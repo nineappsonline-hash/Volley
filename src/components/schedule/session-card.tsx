@@ -23,6 +23,7 @@ interface SessionCardProps {
   session: TrainingSession;
   presentCount?: number;
   calculation?: SessionCalculation | null;
+  onOpenDetails?: () => void;
   onEdit?: () => void;
   onMarkAttendance?: () => void;
   onCancel?: () => void;
@@ -34,6 +35,7 @@ export function SessionCard({
   session,
   presentCount,
   calculation,
+  onOpenDetails,
   onEdit,
   onMarkAttendance,
   onCancel,
@@ -45,10 +47,32 @@ export function SessionCard({
   const canceled = session.status === "canceled";
   const completed = session.status === "completed";
 
+  // Only surface a profit/loss badge when there is real financial data
+  // (costs configured or attendance marked) — a plain "Profit 0.00" on
+  // sessions nobody has set up yet is misleading.
+  const hasFinances =
+    !!calculation &&
+    (Number(calculation.cost_per_session) > 0 ||
+      Number(calculation.total_revenue) > 0);
+
   return (
     <Card
+      onClick={onOpenDetails}
+      role={onOpenDetails ? "button" : undefined}
+      tabIndex={onOpenDetails ? 0 : undefined}
+      onKeyDown={
+        onOpenDetails
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onOpenDetails();
+              }
+            }
+          : undefined
+      }
       className={cn(
         "group overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md",
+        onOpenDetails && "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         completed && "opacity-70",
         canceled && "border-red-300/60 opacity-70 dark:border-red-500/30"
       )}
@@ -76,7 +100,9 @@ export function SessionCard({
               {session.time.slice(0, 5)}
             </Badge>
           </div>
-          {calculation && <ProfitLossIndicator value={calculation.profit_loss} />}
+          {hasFinances && calculation && (
+            <ProfitLossIndicator value={calculation.profit_loss} />
+          )}
         </div>
         <div className="space-y-2 px-4 py-3">
           {session.location && (
@@ -110,7 +136,10 @@ export function SessionCard({
             <div className="flex flex-wrap items-center gap-2.5">
               {!completed && !canceled && onMarkAttendance && (
                 <button
-                  onClick={onMarkAttendance}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMarkAttendance();
+                  }}
                   className="text-xs font-medium text-primary hover:underline"
                 >
                   {t("attendance_title")}
@@ -118,7 +147,10 @@ export function SessionCard({
               )}
               {!canceled && onEdit && (
                 <button
-                  onClick={onEdit}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit();
+                  }}
                   className="text-xs font-medium text-muted-foreground hover:underline"
                 >
                   {t("common_edit")}
@@ -126,7 +158,10 @@ export function SessionCard({
               )}
               {!completed && !canceled && onCancel && (
                 <button
-                  onClick={onCancel}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCancel();
+                  }}
                   title={t("schedule_cancel")}
                   className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 hover:underline dark:text-amber-400"
                 >
@@ -136,7 +171,10 @@ export function SessionCard({
               )}
               {canceled && onRestore && (
                 <button
-                  onClick={onRestore}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRestore();
+                  }}
                   title={t("schedule_restore")}
                   className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:underline"
                 >
@@ -146,7 +184,10 @@ export function SessionCard({
               )}
               {onDelete && (
                 <button
-                  onClick={onDelete}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete();
+                  }}
                   title={t("common_delete")}
                   className="inline-flex items-center gap-1 text-xs font-medium text-destructive hover:underline"
                 >
@@ -156,7 +197,7 @@ export function SessionCard({
               )}
             </div>
           </div>
-          {calculation && (
+          {hasFinances && calculation && (
             <div className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-1.5 text-xs">
               <span className="text-muted-foreground">{t("attendance_revenue")}</span>
               <span className="font-mono font-semibold">

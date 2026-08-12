@@ -22,6 +22,7 @@ import { CalendarView } from "@/components/schedule/calendar-view";
 import { SessionFormDialog } from "@/components/schedule/session-form-dialog";
 import { MonthGeneratorDialog } from "@/components/schedule/month-generator-dialog";
 import { SessionCard } from "@/components/schedule/session-card";
+import { SessionDetailsDialog } from "@/components/schedule/session-details-dialog";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
 import {
@@ -34,7 +35,13 @@ import {
 import type { SessionStatus } from "@/lib/types";
 import type { TrainingSession } from "@/lib/types";
 
-export function ScheduleClient({ isAdmin }: { isAdmin: boolean }) {
+export function ScheduleClient({
+  isAdmin,
+  memberId,
+}: {
+  isAdmin: boolean;
+  memberId?: string;
+}) {
   const { t } = useI18n();
   const { data: sessions, isLoading } = useSessions();
   const { data: counts } = useAttendanceCounts();
@@ -46,6 +53,7 @@ export function ScheduleClient({ isAdmin }: { isAdmin: boolean }) {
   const [genOpen, setGenOpen] = useState(false);
   const [editing, setEditing] = useState<TrainingSession | null>(null);
   const [deleting, setDeleting] = useState<TrainingSession | null>(null);
+  const [details, setDetails] = useState<TrainingSession | null>(null);
 
   const calcBySession = useMemo(
     () => new Map((calculations ?? []).map((c) => [c.session_id, c])),
@@ -135,6 +143,7 @@ export function ScheduleClient({ isAdmin }: { isAdmin: boolean }) {
                     session={s}
                     presentCount={counts?.[s.id]?.present}
                     calculation={calcBySession.get(s.id) ?? null}
+                    onOpenDetails={() => setDetails(s)}
                     onEdit={
                       isAdmin
                         ? () => { setEditing(s); setFormOpen(true); }
@@ -163,6 +172,16 @@ export function ScheduleClient({ isAdmin }: { isAdmin: boolean }) {
           </div>
         </>
       )}
+
+      <SessionDetailsDialog
+        open={!!details}
+        onOpenChange={(open) => {
+          if (!open) setDetails(null);
+        }}
+        session={details}
+        isAdmin={isAdmin}
+        memberId={memberId}
+      />
 
       {isAdmin && (
         <>

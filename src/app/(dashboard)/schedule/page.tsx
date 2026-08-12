@@ -7,5 +7,10 @@ export const metadata: Metadata = { title: "Schedule" };
 export default async function SchedulePage() {
   const { profile } = await requireSession();
 
-  return <ScheduleClient isAdmin={profile.role === "admin"} />;
+  return (
+    <ScheduleClient
+      isAdmin={profile.role === "admin"}
+      memberId={profile.id}
+    />
+  );
 }
