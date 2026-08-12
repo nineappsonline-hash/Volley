@@ -163,6 +163,7 @@ export function MemberTable({ members, onEdit, onDelete }: MemberTableProps) {
                   <ArrowUpDown className="h-3 w-3" />
                 </button>
               </TableHead>
+              <TableHead className="hidden sm:table-cell">{t("members_col_membership")}</TableHead>
               <TableHead>{t("members_col_status")}</TableHead>
               <TableHead className="text-end">{t("members_col_actions")}</TableHead>
             </TableRow>
@@ -170,7 +171,7 @@ export function MemberTable({ members, onEdit, onDelete }: MemberTableProps) {
           <TableBody>
             {pageItems.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-8">
+                <TableCell colSpan={7} className="py-8">
                   <EmptyState message={t("members_no_results")} />
                 </TableCell>
               </TableRow>
@@ -200,6 +201,14 @@ export function MemberTable({ members, onEdit, onDelete }: MemberTableProps) {
                   </TableCell>
                   <TableCell className="font-mono font-medium">
                     {formatMoney(m.totalPaid, lang)}
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    <Badge variant={m.membership_type === "half" ? "outline" : "default"} className="gap-1">
+                      {m.membership_type === "half" ? t("membership_half") : t("membership_full")}
+                      <span className="font-mono text-[10px] opacity-80">
+                        {m.subscription_sessions}
+                      </span>
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge variant={m.active ? "success" : "warning"}>

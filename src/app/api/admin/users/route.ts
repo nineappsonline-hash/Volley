@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sessionsForMembership } from "@/lib/constants";
 
 const bodySchema = z.object({
   email: z.string().email(),
@@ -9,7 +10,8 @@ const bodySchema = z.object({
   name: z.string().min(1),
   phone: z.string().optional().default(""),
   join_date: z.string().optional(),
-  subscription_sessions: z.coerce.number().min(1).max(100).default(8),
+  membership_type: z.enum(["full", "half"]).default("full"),
+  subscription_sessions: z.coerce.number().min(1).max(100).optional(),
 });
 
 export async function POST(request: Request) {
@@ -36,6 +38,10 @@ export async function POST(request: Request) {
     );
   }
 
+  const membership_type = parsed.data.membership_type;
+  const subscription_sessions =
+    parsed.data.subscription_sessions ?? sessionsForMembership(membership_type);
+
   try {
     const admin = createAdminClient();
     const { data: authUser, error: authError } = await admin.auth.admin.createUser({
@@ -59,7 +65,8 @@ export async function POST(request: Request) {
         name: parsed.data.name,
         phone: parsed.data.phone || null,
         join_date: parsed.data.join_date || new Date().toISOString().slice(0, 10),
-        subscription_sessions: parsed.data.subscription_sessions,
+        membership_type,
+        subscription_sessions,
       });
 
     if (profileError) throw profileError;

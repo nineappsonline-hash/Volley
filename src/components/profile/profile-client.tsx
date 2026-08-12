@@ -131,7 +131,12 @@ export function ProfileClient({ serverProfile }: { serverProfile: Profile }) {
               </Avatar>
               <div>
                 <p className="text-lg font-bold">{p.name}</p>
-                <Badge variant="secondary">{t("role_member")}</Badge>
+                <div className="mt-1 flex flex-wrap gap-1">
+                  <Badge variant="secondary">{t("role_member")}</Badge>
+                  <Badge variant={p.membership_type === "half" ? "outline" : "default"}>
+                    {p.membership_type === "half" ? t("membership_half") : t("membership_full")}
+                  </Badge>
+                </div>
               </div>
             </div>
 
@@ -258,6 +263,8 @@ export function ProfileClient({ serverProfile }: { serverProfile: Profile }) {
                           {format(new Date(x.payment_date + "T00:00:00"), "MMM d, yyyy", {
                             locale,
                           })}
+                          {" · "}
+                          {x.membership_type === "half" ? t("membership_half") : t("membership_full")}
                           {" · "}
                           {x.subscription_sessions} {t("member_payment_sessions")}
                         </p>

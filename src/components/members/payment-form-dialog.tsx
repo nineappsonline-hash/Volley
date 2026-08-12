@@ -24,7 +24,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
+import { sessionsForMembership } from "@/lib/constants";
 import { todayInput } from "@/lib/utils";
 import { useSavePayment } from "@/lib/queries";
 
@@ -32,7 +40,7 @@ const schema = (t: (k: any) => string) =>
   z.object({
     amount: z.coerce.number().positive(t("field_required")),
     payment_date: z.string().min(1, t("field_required")),
-    subscription_sessions: z.coerce.number().min(1).max(100),
+    membership_type: z.enum(["full", "half"]),
     notes: z.string().optional(),
   });
 
@@ -62,7 +70,7 @@ export function PaymentFormDialog({
     defaultValues: {
       amount: undefined as unknown as number,
       payment_date: todayInput(),
-      subscription_sessions: defaultSessions,
+      membership_type: defaultSessions <= 4 ? "half" : "full",
       notes: "",
     },
   });
@@ -74,7 +82,8 @@ export function PaymentFormDialog({
         member_id: memberId,
         amount: values.amount,
         payment_date: values.payment_date,
-        subscription_sessions: values.subscription_sessions,
+        membership_type: values.membership_type,
+        subscription_sessions: sessionsForMembership(values.membership_type),
         notes: values.notes || null,
       });
       toast.success(t("member_payment_added"));
@@ -138,13 +147,25 @@ export function PaymentFormDialog({
           </div>
           <FormField
             control={form.control}
-            name="subscription_sessions"
+            name="membership_type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("member_payment_sessions")}</FormLabel>
-                <FormControl>
-                  <Input type="number" min={1} max={100} {...field} />
-                </FormControl>
+                <FormLabel>{t("members_membership_label")}</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="full">
+                      {t("membership_full")} · {t("membership_full_hint")}
+                    </SelectItem>
+                    <SelectItem value="half">
+                      {t("membership_half")} · {t("membership_half_hint")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}

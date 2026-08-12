@@ -122,9 +122,14 @@ export default function MemberDetailsPage() {
               </Avatar>
               <div>
                 <p className="font-semibold">{member.name}</p>
-                <Badge variant="secondary" className="mt-0.5">
-                  {member.role === "admin" ? t("role_admin") : t("role_member")}
-                </Badge>
+                <div className="mt-0.5 flex flex-wrap gap-1">
+                  <Badge variant="secondary">
+                    {member.role === "admin" ? t("role_admin") : t("role_member")}
+                  </Badge>
+                  <Badge variant={member.membership_type === "half" ? "outline" : "default"}>
+                    {member.membership_type === "half" ? t("membership_half") : t("membership_full")}
+                  </Badge>
+                </div>
               </div>
             </div>
 
@@ -206,6 +211,8 @@ export default function MemberDetailsPage() {
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {format(new Date(p.payment_date + "T00:00:00"), "MMM d, yyyy", { locale })}
+                        {" · "}
+                        {p.membership_type === "half" ? t("membership_half") : t("membership_full")}
                         {" · "}
                         {p.subscription_sessions} {t("member_payment_sessions")}
                         {p.notes ? ` · ${p.notes}` : ""}

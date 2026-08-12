@@ -113,6 +113,9 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
             <CardTitle className="flex items-center gap-2 text-base">
               <Timer className="h-4 w-4 text-primary" />
               {t("dash_my_remaining")}
+              <Badge variant={p.membership_type === "half" ? "outline" : "secondary"}>
+                {p.membership_type === "half" ? t("membership_half") : t("membership_full")}
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">

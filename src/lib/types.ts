@@ -2,6 +2,8 @@ export type Role = "admin" | "member";
 
 export type SessionStatus = "scheduled" | "completed" | "canceled";
 
+export type MembershipType = "full" | "half";
+
 export interface Profile {
   id: string;
   email: string;
@@ -9,6 +11,7 @@ export interface Profile {
   name: string;
   phone: string | null;
   join_date: string | null;
+  membership_type: MembershipType;
   subscription_sessions: number;
   sessions_attended: number;
   created_at: string;
@@ -19,6 +22,7 @@ export interface Payment {
   member_id: string;
   amount: number;
   payment_date: string;
+  membership_type: MembershipType;
   subscription_sessions: number;
   notes: string | null;
   created_at: string;

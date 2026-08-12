@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   name TEXT NOT NULL,
   phone TEXT,
   join_date DATE,
+  membership_type TEXT NOT NULL DEFAULT 'full' CHECK (membership_type IN ('full', 'half')),
   subscription_sessions INTEGER NOT NULL DEFAULT 8,
   sessions_attended INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -26,6 +27,7 @@ CREATE TABLE IF NOT EXISTS public.payments (
   member_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   amount DECIMAL(10, 2) NOT NULL CHECK (amount >= 0),
   payment_date DATE NOT NULL,
+  membership_type TEXT NOT NULL DEFAULT 'full' CHECK (membership_type IN ('full', 'half')),
   subscription_sessions INTEGER NOT NULL DEFAULT 8,
   notes TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -301,6 +303,39 @@ DROP TRIGGER IF EXISTS attendance_sync_count ON public.attendance;
 CREATE TRIGGER attendance_sync_count
   AFTER INSERT OR UPDATE OR DELETE ON public.attendance
   FOR EACH ROW EXECUTE FUNCTION public.sync_sessions_attended();
+
+-- Keep the member's plan in sync with their latest payment
+CREATE OR REPLACE FUNCTION public.sync_membership_from_payment()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_member_id UUID;
+BEGIN
+  v_member_id := COALESCE(NEW.member_id, OLD.member_id);
+
+  UPDATE public.profiles p
+  SET membership_type = x.membership_type,
+      subscription_sessions = x.subscription_sessions
+  FROM (
+    SELECT pp.member_id, pp.membership_type, pp.subscription_sessions
+    FROM public.payments pp
+    WHERE pp.member_id = v_member_id
+    ORDER BY pp.payment_date DESC, pp.created_at DESC
+    LIMIT 1
+  ) x
+  WHERE p.id = v_member_id;
+
+  RETURN COALESCE(NEW, OLD);
+END;
+$$;
+
+DROP TRIGGER IF EXISTS payment_sync_membership ON public.payments;
+CREATE TRIGGER payment_sync_membership
+  AFTER INSERT OR UPDATE OR DELETE ON public.payments
+  FOR EACH ROW EXECUTE FUNCTION public.sync_membership_from_payment();
 
 -- ────────────────────────────────────────────────────────────
 -- 4. ROW LEVEL SECURITY

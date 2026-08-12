@@ -24,7 +24,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
+import { sessionsForMembership } from "@/lib/constants";
 import { todayInput } from "@/lib/utils";
 import { useUpdateMember } from "@/lib/queries";
 import type { Profile } from "@/lib/types";
@@ -40,7 +48,7 @@ const createSchema = (t: (k: any) => string, isEdit: boolean) =>
       : z.string().min(6, t("field_min_password")),
     phone: z.string().optional(),
     join_date: z.string().optional(),
-    subscription_sessions: z.coerce.number().min(1).max(100),
+    membership_type: z.enum(["full", "half"]),
   });
 
 type FormValues = z.infer<ReturnType<typeof createSchema>>;
@@ -71,7 +79,7 @@ export function MemberFormDialog({
       password: "",
       phone: "",
       join_date: todayInput(),
-      subscription_sessions: 8,
+      membership_type: "full",
     },
   });
 
@@ -83,7 +91,11 @@ export function MemberFormDialog({
         password: "",
         phone: member?.phone ?? "",
         join_date: member?.join_date ?? todayInput(),
-        subscription_sessions: member?.subscription_sessions ?? 8,
+        membership_type:
+          member?.membership_type ??
+          (member?.subscription_sessions && member.subscription_sessions <= 4
+            ? "half"
+            : "full"),
       });
     }
   }, [open, member, form]);
@@ -97,7 +109,8 @@ export function MemberFormDialog({
           name: values.name,
           phone: values.phone || null,
           join_date: values.join_date || null,
-          subscription_sessions: values.subscription_sessions,
+          membership_type: values.membership_type,
+          subscription_sessions: sessionsForMembership(values.membership_type),
         });
       } else {
         const res = await fetch("/api/admin/users", {
@@ -109,7 +122,7 @@ export function MemberFormDialog({
             name: values.name,
             phone: values.phone || "",
             join_date: values.join_date || todayInput(),
-            subscription_sessions: values.subscription_sessions,
+            membership_type: values.membership_type,
           }),
         });
         if (!res.ok) {
@@ -227,13 +240,25 @@ export function MemberFormDialog({
             />
             <FormField
               control={form.control}
-              name="subscription_sessions"
+              name="membership_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("member_payment_sessions")}</FormLabel>
-                  <FormControl>
-                    <Input type="number" min={1} max={100} {...field} />
-                  </FormControl>
+                  <FormLabel>{t("members_membership_label")}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="full">
+                        {t("membership_full")} · {t("membership_full_hint")}
+                      </SelectItem>
+                      <SelectItem value="half">
+                        {t("membership_half")} · {t("membership_half_hint")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
