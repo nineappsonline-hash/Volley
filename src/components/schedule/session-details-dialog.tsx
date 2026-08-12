@@ -31,10 +31,12 @@ import { formatMoney, sessionsForMembership } from "@/lib/constants";
 import { memberPerSessionValue } from "@/lib/calculations";
 import {
   useAttendance,
+  useMemberRoster,
   useMemberSessionCosts,
   useMonthlyCosts,
   usePayments,
   useProfiles,
+  useSessionCalculations,
 } from "@/lib/queries";
 import { initials } from "@/lib/utils";
 import type { TrainingSession } from "@/lib/types";
@@ -63,14 +65,20 @@ export function SessionDetailsDialog({
     session?.id
   );
   const { data: profiles } = useProfiles();
+  const { data: roster } = useMemberRoster();
   const { data: payments } = usePayments();
   const { data: costs } = useMonthlyCosts();
   // monthly_costs is admin-only; members read the safe view instead.
   const { data: memberCosts } = useMemberSessionCosts();
+  const { data: calculations } = useSessionCalculations();
 
+  // Admins list members from profiles; members get the names-only roster view.
   const members = useMemo(
-    () => (profiles ?? []).filter((p) => p.role === "member"),
-    [profiles]
+    () =>
+      isAdmin
+        ? (profiles ?? []).filter((p) => p.role === "member")
+        : (roster ?? []),
+    [isAdmin, profiles, roster]
   );
 
   const sessionAttendance = useMemo(
@@ -115,6 +123,14 @@ export function SessionDetailsDialog({
   const costPerSession = monthCost ? Number(monthCost.cost_per_session) : 0;
   const profitLoss = Math.round((totalRevenue - costPerSession) * 100) / 100;
 
+  // Server-computed totals (authoritative for members, who can't read other
+  // members' payments). Admins fall back to their live breakdown.
+  const sessionCalc = useMemo(
+    () =>
+      (calculations ?? []).find((c) => c.session_id === session?.id) ?? null,
+    [calculations, session?.id]
+  );
+
   const sessionDate = session ? new Date(session.date + "T00:00:00") : null;
   const memberMonthCost = sessionDate
     ? (memberCosts ?? []).find(
@@ -126,7 +142,110 @@ export function SessionDetailsDialog({
 
   const myAttendance = session && memberId ? byMember.get(memberId) : undefined;
 
-  const statusBadge = session?.status === "canceled" ? "destructive" : session?.status === "completed" ? "outline" : "default";
+  const statusBadge =
+    session?.status === "canceled"
+      ? "destructive"
+      : session?.status === "completed"
+        ? "outline"
+        : "default";
+
+  // Shared attendance roster section (same for admins and members).
+  const attendeesSection = (
+    <section className="space-y-2">
+      <h4 className="flex items-center gap-2 text-sm font-bold">
+        <Users className="h-4 w-4 text-primary" />
+        {t("session_details_attendees")}
+        <span className="font-mono text-xs font-medium text-muted-foreground">
+          {attendees.length} / {members.length}
+        </span>
+      </h4>
+      {loadingAttendance ? (
+        <Skeleton className="h-24 w-full" />
+      ) : members.length === 0 ? (
+        <EmptyState message={t("attendance_no_members")} icon={Users} />
+      ) : sessionAttendance.length === 0 ? (
+        <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+          {t("session_details_no_attendance")}
+        </p>
+      ) : (
+        <div className="space-y-1">
+          {attendees.map((m) => (
+            <div
+              key={m.id}
+              className="flex items-center gap-3 rounded-lg border border-emerald-200/70 bg-emerald-50/60 px-3 py-2 text-sm dark:border-emerald-500/20 dark:bg-emerald-500/5"
+            >
+              <Avatar className="h-7 w-7">
+                <AvatarFallback>{initials(m.name)}</AvatarFallback>
+              </Avatar>
+              <span className="min-w-0 flex-1 truncate font-medium">
+                {m.name}
+              </span>
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+            </div>
+          ))}
+          {absentees.map((m) => (
+            <div
+              key={m.id}
+              className="flex items-center gap-3 rounded-lg border px-3 py-2 text-sm opacity-70"
+            >
+              <Avatar className="h-7 w-7">
+                <AvatarFallback>{initials(m.name)}</AvatarFallback>
+              </Avatar>
+              <span className="min-w-0 flex-1 truncate font-medium">
+                {m.name}
+              </span>
+              <XCircle className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </div>
+          ))}
+          {unmarked.length > 0 && (
+            <p className="px-1 pt-1 text-xs text-muted-foreground">
+              {unmarked.length} {t("session_details_unmarked")}
+            </p>
+          )}
+        </div>
+      )}
+    </section>
+  );
+
+  // Member financial summary — aggregate figures from session_calculations.
+  const memberFinancials = (
+    <section className="space-y-2">
+      <h4 className="flex items-center gap-2 text-sm font-bold">
+        <Wallet className="h-4 w-4 text-primary" />
+        {t("session_details_financial_summary")}
+      </h4>
+      {!sessionCalc ? (
+        <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+          {t("session_details_no_financials")}
+        </p>
+      ) : (
+        <div className="overflow-hidden rounded-lg border">
+          <div className="flex items-center justify-between border-b px-3 py-2 text-sm last:border-0">
+            <span className="flex items-center gap-2">
+              <Receipt className="h-4 w-4 text-muted-foreground" />
+              {t("attendance_revenue")}
+            </span>
+            <span className="font-mono font-semibold">
+              {formatMoney(Number(sessionCalc.total_revenue), lang)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between border-b px-3 py-2 text-sm last:border-0">
+            <span className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-muted-foreground" />
+              {t("session_details_cost_total")}
+            </span>
+            <span className="font-mono font-semibold">
+              {formatMoney(Number(sessionCalc.cost_per_session), lang)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between bg-muted/50 px-3 py-2 text-sm font-bold">
+            <span>{t("session_details_net")}</span>
+            <ProfitLossIndicator value={Number(sessionCalc.profit_loss)} />
+          </div>
+        </div>
+      )}
+    </section>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -178,61 +297,7 @@ export function SessionDetailsDialog({
 
             {isAdmin ? (
               <>
-                {/* Attendees */}
-                <section className="space-y-2">
-                  <h4 className="flex items-center gap-2 text-sm font-bold">
-                    <Users className="h-4 w-4 text-primary" />
-                    {t("session_details_attendees")}
-                    <span className="font-mono text-xs font-medium text-muted-foreground">
-                      {attendees.length} / {members.length}
-                    </span>
-                  </h4>
-                  {loadingAttendance ? (
-                    <Skeleton className="h-24 w-full" />
-                  ) : members.length === 0 ? (
-                    <EmptyState message={t("attendance_no_members")} icon={Users} />
-                  ) : sessionAttendance.length === 0 ? (
-                    <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
-                      {t("session_details_no_attendance")}
-                    </p>
-                  ) : (
-                    <div className="space-y-1">
-                      {attendees.map((m) => (
-                        <div
-                          key={m.id}
-                          className="flex items-center gap-3 rounded-lg border border-emerald-200/70 bg-emerald-50/60 px-3 py-2 text-sm dark:border-emerald-500/20 dark:bg-emerald-500/5"
-                        >
-                          <Avatar className="h-7 w-7">
-                            <AvatarFallback>{initials(m.name)}</AvatarFallback>
-                          </Avatar>
-                          <span className="min-w-0 flex-1 truncate font-medium">
-                            {m.name}
-                          </span>
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
-                        </div>
-                      ))}
-                      {absentees.map((m) => (
-                        <div
-                          key={m.id}
-                          className="flex items-center gap-3 rounded-lg border px-3 py-2 text-sm opacity-70"
-                        >
-                          <Avatar className="h-7 w-7">
-                            <AvatarFallback>{initials(m.name)}</AvatarFallback>
-                          </Avatar>
-                          <span className="min-w-0 flex-1 truncate font-medium">
-                            {m.name}
-                          </span>
-                          <XCircle className="h-4 w-4 shrink-0 text-muted-foreground" />
-                        </div>
-                      ))}
-                      {unmarked.length > 0 && (
-                        <p className="px-1 pt-1 text-xs text-muted-foreground">
-                          {unmarked.length} {t("session_details_unmarked")}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </section>
+                {attendeesSection}
 
                 {/* Revenue breakdown */}
                 <section className="space-y-2">
@@ -353,8 +418,8 @@ export function SessionDetailsDialog({
                 </div>
               </>
             ) : (
-              /* Member view: only their own attendance + a pointer to pay */
-              <div className="space-y-2">
+              <>
+                {/* Your own attendance */}
                 {myAttendance === undefined ? (
                   <p className="flex items-center gap-2 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
                     <Users className="h-4 w-4" />
@@ -371,18 +436,10 @@ export function SessionDetailsDialog({
                     {t("session_details_absent_you")}
                   </p>
                 )}
-                <div className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3">
-                  <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CreditCard className="h-4 w-4" />
-                    {t("session_details_cost_total")}
-                  </span>
-                  <span className="font-mono font-semibold">
-                    {memberMonthCost
-                      ? formatMoney(Number(memberMonthCost.cost_per_session), lang)
-                      : "—"}
-                  </span>
-                </div>
-              </div>
+
+                {attendeesSection}
+                {memberFinancials}
+              </>
             )}
           </div>
         )}

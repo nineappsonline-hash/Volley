@@ -199,6 +199,22 @@ export function useMemberSessionCosts() {
   });
 }
 
+export function useMemberRoster() {
+  return useQuery({
+    queryKey: [...queryKeys.profiles, "roster"],
+    queryFn: async () => {
+      // Names-only view (no email/phone) so members can see the attendance
+      // roster of every session without exposing other users' contact data.
+      const { data, error } = await supabase()
+        .from("member_roster")
+        .select("id, name")
+        .order("name");
+      if (error) throw error;
+      return (data ?? []) as { id: string; name: string }[];
+    },
+  });
+}
+
 export function useSessionCalculations() {
   return useQuery({
     queryKey: queryKeys.calculations,

@@ -28,12 +28,12 @@ export default async function HomePage() {
     {
       icon: ClipboardCheck,
       title: "One-tap attendance",
-      desc: "Mark attendance with live profit/loss for every session.",
+      desc: "Mark attendance with live excess/loss for every session.",
     },
     {
       icon: Wallet,
       title: "Automatic finances",
-      desc: "Revenue, costs and profit are calculated automatically.",
+      desc: "Revenue, costs and excess are calculated automatically.",
     },
     {
       icon: LineChart,
@@ -76,7 +76,7 @@ export default async function HomePage() {
           </span>
           <h1 className="max-w-3xl text-4xl font-extrabold tracking-tight sm:text-6xl">
             Manage your academy with{" "}
-            <span className="text-gradient">automatic profit tracking</span>
+            <span className="text-gradient">automatic excess tracking</span>
           </h1>
           <p className="mt-4 max-w-xl text-base text-muted-foreground sm:text-lg">
             Members, attendance, payments and finances — everything a volleyball

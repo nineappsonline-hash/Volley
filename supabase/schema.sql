@@ -422,14 +422,15 @@ DROP POLICY IF EXISTS "Members view sessions" ON public.training_sessions;
 CREATE POLICY "Members view sessions" ON public.training_sessions
   FOR SELECT USING (true);
 
--- attendance: admins manage, members see their own
+-- attendance: admins manage; members may view all attendance so they can
+-- see the roster (who attended) for every session.
 DROP POLICY IF EXISTS "Admins manage attendance" ON public.attendance;
 CREATE POLICY "Admins manage attendance" ON public.attendance
   FOR ALL USING (auth.jwt() -> 'app_metadata' ->> 'role' = 'admin');
 
 DROP POLICY IF EXISTS "Members view own attendance" ON public.attendance;
-CREATE POLICY "Members view own attendance" ON public.attendance
-  FOR SELECT USING (auth.uid() = member_id);
+CREATE POLICY "Members view attendance" ON public.attendance
+  FOR SELECT USING (auth.role() = 'authenticated');
 
 -- monthly_costs: admins manage; members never read the raw table (it holds
 -- coach salary / court rental). They only see cost_per_session via the view below.
@@ -444,10 +445,25 @@ SELECT month, year, cost_per_session
 FROM public.monthly_costs;
 GRANT SELECT ON public.member_session_costs TO authenticated;
 
--- session_calculations: admins only (financial data derived from members' payments)
+-- session_calculations: admins manage; members may view the per-session
+-- financial totals (revenue / cost per session / net excess) — these are
+-- aggregate figures, not any individual member's payment data.
 DROP POLICY IF EXISTS "Admins manage calculations" ON public.session_calculations;
 CREATE POLICY "Admins manage calculations" ON public.session_calculations
   FOR ALL USING (auth.jwt() -> 'app_metadata' ->> 'role' = 'admin');
+
+DROP POLICY IF EXISTS "Members view calculations" ON public.session_calculations;
+CREATE POLICY "Members view calculations" ON public.session_calculations
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+-- Safe, column-limited view for members: member names only (no phone/email),
+-- so the attendance roster can be rendered for every session.
+DROP VIEW IF EXISTS public.member_roster;
+CREATE VIEW public.member_roster AS
+SELECT id, name
+FROM public.profiles
+WHERE role = 'member' AND is_active = true;
+GRANT SELECT ON public.member_roster TO authenticated;
 
 -- ────────────────────────────────────────────────────────────
 -- 5. REALTIME (idempotent)

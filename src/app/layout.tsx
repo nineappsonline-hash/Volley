@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     template: "%s · Volley Academy",
   },
   description:
-    "Volleyball academy management — members, attendance, payments and profit/loss tracking.",
+    "Volleyball academy management — members, attendance, payments and excess/loss tracking.",
 };
 
 export const viewport: Viewport = {
