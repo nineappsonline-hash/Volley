@@ -209,6 +209,7 @@ export const dictionary = {
     attendance_profit_loss: "Profit / Loss",
     attendance_per_member: "per session value",
     attendance_count: "present",
+    attendance_no_costs_hint: "No costs set for this month — set them in Costs",
     attendance_all_marked: "All marked",
     attendance_confirm_complete: "Save attendance",
     // Costs
@@ -516,6 +517,7 @@ export const dictionary = {
     attendance_profit_loss: "الربح / الخسارة",
     attendance_per_member: "قيمة الحصة للعضو",
     attendance_count: "حاضر",
+    attendance_no_costs_hint: "لا توجد تكاليف محددّة لهذا الشهر — حدّدها من صفحة التكاليف",
     attendance_all_marked: "تم التحديد",
     attendance_confirm_complete: "حفظ الحضور",
     // Costs

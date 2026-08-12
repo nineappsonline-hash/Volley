@@ -79,6 +79,15 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
     return [...merged.values()];
   }, [attendance, pending, session.id]);
 
+  const monthCost = useMemo(() => {
+    const d = new Date(session.date + "T00:00:00");
+    const month = d.getMonth() + 1;
+    const year = d.getFullYear();
+    return (monthlyCosts ?? []).find(
+      (c) => c.month === month && c.year === year
+    );
+  }, [monthlyCosts, session]);
+
   const calc = useMemo(() => {
     if (!attendance || !payments) return null;
     const clientCalc = buildSessionCalculation(
@@ -188,13 +197,18 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
           <div className="rounded-lg bg-muted/50 p-3">
             <p className="text-xs text-muted-foreground">{t("attendance_cost")}</p>
             <p className="mt-1 text-xl font-extrabold font-mono text-muted-foreground">
-              {calc ? formatMoney(calc.cost_per_session, lang) : "—"}
+              {calc && monthCost ? formatMoney(calc.cost_per_session, lang) : "—"}
             </p>
+            {!monthCost && (
+              <p className="mt-1 text-[11px] leading-tight text-amber-600 dark:text-amber-400">
+                {t("attendance_no_costs_hint")}
+              </p>
+            )}
           </div>
           <div className="flex flex-col justify-between rounded-lg bg-muted/50 p-3">
             <p className="text-xs text-muted-foreground">{t("attendance_profit_loss")}</p>
             <div className="mt-1">
-              {calc ? (
+              {calc && monthCost ? (
                 <ProfitLossIndicator value={calc.profit_loss} className="text-sm" />
               ) : (
                 "—"
