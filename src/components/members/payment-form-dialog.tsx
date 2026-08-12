@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -74,6 +74,18 @@ export function PaymentFormDialog({
       notes: "",
     },
   });
+
+  // Refresh the form with the member's current plan whenever the dialog opens.
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        amount: undefined as unknown as number,
+        payment_date: todayInput(),
+        membership_type: defaultSessions <= 4 ? "half" : "full",
+        notes: "",
+      });
+    }
+  }, [open, defaultSessions, form]);
 
   const onSubmit = async (values: FormValues) => {
     setSubmitting(true);
