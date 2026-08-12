@@ -144,7 +144,7 @@ export function MemberFormDialog({
   };
 
   // ── "Pick existing account" tab ──────────────────────────
-  const { data: pendingProfiles } = usePendingProfiles();
+  const { data: pendingProfiles, isLoading: pendingLoading } = usePendingProfiles();
   const [tab, setTab] = useState<"existing" | "create">("existing");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -237,27 +237,12 @@ export function MemberFormDialog({
                     <FormItem>
                       <FormLabel>{t("login_email")}</FormLabel>
                       <FormControl>
-                        <Input type="email" dir="ltr" {...field} />
+                        <Input type="email" dir="ltr" readOnly disabled {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("login_password")}</FormLabel>
-                      <FormControl>
-                        <Input type="password" dir="ltr" placeholder="••••••" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <FormField
                   control={form.control}
                   name="phone"
@@ -271,6 +256,8 @@ export function MemberFormDialog({
                     </FormItem>
                   )}
                 />
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="join_date"
@@ -343,7 +330,11 @@ export function MemberFormDialog({
               </div>
 
               <div className="max-h-56 space-y-1 overflow-y-auto rounded-lg border p-1">
-                {filteredPending.length === 0 ? (
+                {pendingLoading ? (
+                  <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                    {t("common_loading")}
+                  </p>
+                ) : filteredPending.length === 0 ? (
                   <p className="px-3 py-6 text-center text-sm text-muted-foreground">
                     {t("members_no_pending")}
                   </p>
