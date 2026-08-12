@@ -10,6 +10,7 @@ import {
   MapPin,
   Receipt,
   StickyNote,
+  UserRound,
   Users,
   Wallet,
   XCircle,
@@ -313,7 +314,7 @@ export function SessionDetailsDialog({
                     <Receipt className="h-4 w-4 text-primary" />
                     {t("session_details_revenue")}
                   </h4>
-                  {attendees.length === 0 ? (
+                  {totalRevenue <= 0 ? (
                     <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
                       {t("session_details_no_revenue")}
                     </p>
@@ -350,6 +351,20 @@ export function SessionDetailsDialog({
                           </div>
                         );
                       })}
+                      {(guests?.length ?? 0) > 0 && (
+                        <div className="flex items-center justify-between border-b bg-muted/30 px-3 py-2 text-sm">
+                          <span className="flex items-center gap-2">
+                            <UserRound className="h-4 w-4 text-muted-foreground" />
+                            {t("guests_total")}
+                          </span>
+                          <span className="font-mono font-semibold">
+                            {formatMoney(
+                              (guests ?? []).reduce((s, g) => s + Number(g.amount_paid), 0),
+                              lang
+                            )}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between bg-muted/50 px-3 py-2 text-sm font-bold">
                         <span>{t("session_details_total")}</span>
                         <span className="font-mono">{formatMoney(totalRevenue, lang)}</span>
