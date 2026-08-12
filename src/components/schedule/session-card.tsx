@@ -64,6 +64,10 @@ export function SessionCard({
         onOpenDetails
           ? (e) => {
               if (e.key === "Enter" || e.key === " ") {
+                // Don't steal Enter/Space from the card's own buttons.
+                if ((e.target as HTMLElement).closest("button, a, input, select, textarea")) {
+                  return;
+                }
                 e.preventDefault();
                 onOpenDetails();
               }

@@ -31,6 +31,7 @@ import { formatMoney } from "@/lib/constants";
 import { memberPerSessionValue } from "@/lib/calculations";
 import {
   useAttendance,
+  useMemberSessionCosts,
   useMonthlyCosts,
   usePayments,
   useProfiles,
@@ -64,6 +65,8 @@ export function SessionDetailsDialog({
   const { data: profiles } = useProfiles();
   const { data: payments } = usePayments();
   const { data: costs } = useMonthlyCosts();
+  // monthly_costs is admin-only; members read the safe view instead.
+  const { data: memberCosts } = useMemberSessionCosts();
 
   const members = useMemo(
     () => (profiles ?? []).filter((p) => p.role === "member"),
@@ -111,6 +114,15 @@ export function SessionDetailsDialog({
 
   const costPerSession = monthCost ? Number(monthCost.cost_per_session) : 0;
   const profitLoss = Math.round((totalRevenue - costPerSession) * 100) / 100;
+
+  const sessionDate = session ? new Date(session.date + "T00:00:00") : null;
+  const memberMonthCost = sessionDate
+    ? (memberCosts ?? []).find(
+        (c) =>
+          c.month === sessionDate.getMonth() + 1 &&
+          c.year === sessionDate.getFullYear()
+      )
+    : undefined;
 
   const myAttendance = session && memberId ? byMember.get(memberId) : undefined;
 
@@ -359,7 +371,9 @@ export function SessionDetailsDialog({
                     {t("session_details_cost_total")}
                   </span>
                   <span className="font-mono font-semibold">
-                    {monthCost ? formatMoney(costPerSession, lang) : "—"}
+                    {memberMonthCost
+                      ? formatMoney(Number(memberMonthCost.cost_per_session), lang)
+                      : "—"}
                   </span>
                 </div>
               </div>
