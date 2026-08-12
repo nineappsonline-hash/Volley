@@ -52,6 +52,7 @@ export async function requireSession(opts?: { adminOnly?: boolean }): Promise<Se
     membership_type: "full",
     subscription_sessions: 8,
     sessions_attended: 0,
+    is_active: true,
     created_at: new Date().toISOString(),
   };
 

@@ -31,9 +31,28 @@ export function useProfiles() {
   return useQuery({
     queryKey: queryKeys.profiles,
     queryFn: async () => {
+      // Roster = accounts that an admin has added (is_active).
       const { data, error } = await supabase()
         .from("profiles")
         .select("*")
+        .eq("is_active", true)
+        .order("name");
+      if (error) throw error;
+      return (data ?? []) as Profile[];
+    },
+  });
+}
+
+export function usePendingProfiles() {
+  return useQuery({
+    queryKey: [...queryKeys.profiles, "pending"],
+    queryFn: async () => {
+      // Accounts that signed up but haven't been added to the roster yet.
+      const { data, error } = await supabase()
+        .from("profiles")
+        .select("*")
+        .eq("role", "member")
+        .eq("is_active", false)
         .order("name");
       if (error) throw error;
       return (data ?? []) as Profile[];

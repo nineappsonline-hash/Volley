@@ -18,6 +18,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   membership_type TEXT NOT NULL DEFAULT 'full' CHECK (membership_type IN ('full', 'half')),
   subscription_sessions INTEGER NOT NULL DEFAULT 8,
   sessions_attended INTEGER NOT NULL DEFAULT 0,
+  -- Whether the member has been added to the roster by an admin.
+  -- Signing up only creates the account; the admin adds them by name.
+  is_active BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -457,7 +460,7 @@ $$;
 -- 1. Create a user in Supabase Dashboard → Authentication → Users (or via signup).
 -- 2. Grab their UUID and run:
 --
---    UPDATE public.profiles SET role = 'admin' WHERE id = '<user-uuid>';
+--    UPDATE public.profiles SET role = 'admin', is_active = TRUE WHERE id = '<user-uuid>';
 --
 -- The sync_role_claim trigger will set app_metadata.role = 'admin',
 -- so the middleware grants admin access on their next sign-in.

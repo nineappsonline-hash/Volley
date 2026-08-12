@@ -113,6 +113,15 @@ export function ProfileClient({ serverProfile }: { serverProfile: Profile }) {
     <div className="space-y-6">
       <PageHeader title={t("profile_title")} subtitle={t("profile_subtitle")} />
 
+      {p.is_active === false && (
+        <div className="flex items-center gap-3 rounded-lg border border-amber-300/60 bg-amber-50 p-4 text-sm dark:bg-amber-500/10">
+          <Timer className="h-5 w-5 shrink-0 text-amber-600" />
+          <p className="text-amber-800 dark:text-amber-300">
+            {t("members_pending_approval")}
+          </p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Profile card */}
         <Card className="lg:col-span-1">

@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { KeyRound, UserPlus } from "lucide-react";
+import { Check, KeyRound, Search, UserPlus } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,6 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -31,11 +33,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useI18n } from "@/lib/i18n";
 import { sessionsForMembership } from "@/lib/constants";
-import { todayInput } from "@/lib/utils";
-import { useUpdateMember } from "@/lib/queries";
-import type { Profile } from "@/lib/types";
+import { cn, errorMessage, initials, todayInput } from "@/lib/utils";
+import { usePendingProfiles, useUpdateMember } from "@/lib/queries";
+import type { MembershipType, Profile } from "@/lib/types";
 
 const createSchema = (t: (k: any) => string, isEdit: boolean) =>
   z.object({
@@ -134,9 +137,60 @@ export function MemberFormDialog({
       toast.success(isEdit ? t("members_save_success") : t("signup_success"));
       onOpenChange(false);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t("common_error"));
+      toast.error(errorMessage(e, t("common_error")));
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // ── "Pick existing account" tab ──────────────────────────
+  const { data: pendingProfiles } = usePendingProfiles();
+  const [tab, setTab] = useState<"existing" | "create">("existing");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [joinDate, setJoinDate] = useState(todayInput());
+  const [membershipType, setMembershipType] = useState<MembershipType>("full");
+  const [adding, setAdding] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setTab("existing");
+      setSelectedId(null);
+      setSearch("");
+      setJoinDate(todayInput());
+      setMembershipType(member?.membership_type ?? "full");
+    }
+  }, [open, member]);
+
+  const filteredPending = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return (pendingProfiles ?? []).filter(
+      (p) => !q || p.name.toLowerCase().includes(q) || p.email.toLowerCase().includes(q)
+    );
+  }, [pendingProfiles, search]);
+
+  const handleAddExisting = async () => {
+    if (!selectedId) {
+      toast.error(t("members_pick_required"));
+      return;
+    }
+    setAdding(true);
+    try {
+      await updateMember.mutateAsync({
+        id: selectedId,
+        is_active: true,
+        join_date: joinDate || null,
+        membership_type: membershipType,
+        subscription_sessions: sessionsForMembership(membershipType),
+      });
+      toast.success(t("members_save_success"));
+      onOpenChange(false);
+      setSelectedId(null);
+    } catch (e) {
+      console.error("[member-form] add existing failed", e);
+      toast.error(errorMessage(e, t("common_error")));
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -154,102 +208,190 @@ export function MemberFormDialog({
               </>
             )}
           </DialogTitle>
-          <DialogDescription>
-            {!isEdit && (
-              <span className="flex items-center gap-1.5 text-xs">
-                <KeyRound className="h-3 w-3" />
-                {t("members_credential_hint")}
-              </span>
-            )}
-          </DialogDescription>
+          {!isEdit && (
+            <DialogDescription>{t("members_add_existing")}</DialogDescription>
+          )}
         </DialogHeader>
-        <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("signup_name")}</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("login_email")}</FormLabel>
-                  <FormControl>
-                    <Input type="email" dir="ltr" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("login_password")}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      dir="ltr"
-                      placeholder={isEdit ? "••••••" : undefined}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("signup_phone")}</FormLabel>
-                  <FormControl>
-                    <Input dir="ltr" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="join_date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("members_col_join")}</FormLabel>
-                  <FormControl>
-                    <Input type="date" dir="ltr" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="membership_type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("members_membership_label")}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+
+        {isEdit ? (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("signup_name")}</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
+                      <Input {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("login_email")}</FormLabel>
+                      <FormControl>
+                        <Input type="email" dir="ltr" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("login_password")}</FormLabel>
+                      <FormControl>
+                        <Input type="password" dir="ltr" placeholder="••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("signup_phone")}</FormLabel>
+                      <FormControl>
+                        <Input dir="ltr" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="join_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("members_col_join")}</FormLabel>
+                      <FormControl>
+                        <Input type="date" dir="ltr" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="membership_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("members_membership_label")}</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="full">
+                            {t("membership_full")} · {t("membership_full_hint")}
+                          </SelectItem>
+                          <SelectItem value="half">
+                            {t("membership_half")} · {t("membership_half_hint")}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  {t("common_cancel")}
+                </Button>
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? t("common_saving") : t("common_save")}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        ) : (
+          <Tabs value={tab} onValueChange={(v) => setTab(v as "existing" | "create")}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="existing">{t("members_add_existing")}</TabsTrigger>
+              <TabsTrigger value="create">{t("members_add_create")}</TabsTrigger>
+            </TabsList>
+
+            {/* Pick an existing account by name */}
+            <TabsContent value="existing" className="space-y-4">
+              <div className="space-y-2">
+                <Label>{t("members_pick_search_label")}</Label>
+                <div className="relative">
+                  <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    className="ps-9"
+                    placeholder={t("members_search")}
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="max-h-56 space-y-1 overflow-y-auto rounded-lg border p-1">
+                {filteredPending.length === 0 ? (
+                  <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                    {t("members_no_pending")}
+                  </p>
+                ) : (
+                  filteredPending.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setSelectedId(p.id)}
+                      className={cn(
+                        "flex w-full items-center gap-3 rounded-md px-2 py-2 text-start text-sm transition-colors hover:bg-accent",
+                        selectedId === p.id && "bg-accent"
+                      )}
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>{initials(p.name)}</AvatarFallback>
+                      </Avatar>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-medium">{p.name}</span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {p.email}
+                        </span>
+                      </span>
+                      {selectedId === p.id && <Check className="h-4 w-4 text-primary" />}
+                    </button>
+                  ))
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>{t("members_col_join")}</Label>
+                  <Input
+                    type="date"
+                    dir="ltr"
+                    value={joinDate}
+                    onChange={(e) => setJoinDate(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("members_membership_label")}</Label>
+                  <Select
+                    value={membershipType}
+                    onValueChange={(v) => setMembershipType(v as MembershipType)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="full">
                         {t("membership_full")} · {t("membership_full_hint")}
@@ -259,25 +401,134 @@ export function MemberFormDialog({
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              {t("common_cancel")}
-            </Button>
-            <Button type="submit" disabled={submitting}>
-              {submitting ? t("common_saving") : t("common_save")}
-            </Button>
-          </DialogFooter>
-        </form>
-        </Form>
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  {t("common_cancel")}
+                </Button>
+                <Button type="button" onClick={handleAddExisting} disabled={adding}>
+                  {adding ? t("common_saving") : t("members_approve")}
+                </Button>
+              </DialogFooter>
+            </TabsContent>
+
+            {/* Create a brand-new account */}
+            <TabsContent value="create">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <KeyRound className="h-3 w-3" />
+                    {t("members_credential_hint")}
+                  </span>
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("signup_name")}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("login_email")}</FormLabel>
+                          <FormControl>
+                            <Input type="email" dir="ltr" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("login_password")}</FormLabel>
+                          <FormControl>
+                            <Input type="password" dir="ltr" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("signup_phone")}</FormLabel>
+                          <FormControl>
+                            <Input dir="ltr" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="join_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("members_col_join")}</FormLabel>
+                          <FormControl>
+                            <Input type="date" dir="ltr" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="membership_type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("members_membership_label")}</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="full">
+                                {t("membership_full")} · {t("membership_full_hint")}
+                              </SelectItem>
+                              <SelectItem value="half">
+                                {t("membership_half")} · {t("membership_half_hint")}
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                      {t("common_cancel")}
+                    </Button>
+                    <Button type="submit" disabled={submitting}>
+                      {submitting ? t("common_saving") : t("common_save")}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </TabsContent>
+          </Tabs>
+        )}
       </DialogContent>
     </Dialog>
   );

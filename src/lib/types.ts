@@ -14,6 +14,7 @@ export interface Profile {
   membership_type: MembershipType;
   subscription_sessions: number;
   sessions_attended: number;
+  is_active: boolean;
   created_at: string;
 }
 

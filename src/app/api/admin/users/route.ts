@@ -67,6 +67,7 @@ export async function POST(request: Request) {
         join_date: parsed.data.join_date || new Date().toISOString().slice(0, 10),
         membership_type,
         subscription_sessions,
+        is_active: true,
       });
 
     if (profileError) throw profileError;

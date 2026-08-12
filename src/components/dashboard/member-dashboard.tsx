@@ -73,6 +73,14 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
 
   return (
     <div className="space-y-6">
+      {p.is_active === false && (
+        <div className="flex items-center gap-3 rounded-lg border border-amber-300/60 bg-amber-50 p-4 text-sm dark:bg-amber-500/10">
+          <Timer className="h-5 w-5 shrink-0 text-amber-600" />
+          <p className="text-amber-800 dark:text-amber-300">
+            {t("members_pending_approval")}
+          </p>
+        </div>
+      )}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title={t("dash_my_remaining")}
