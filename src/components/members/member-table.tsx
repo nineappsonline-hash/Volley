@@ -5,6 +5,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import {
   ArrowUpDown,
+  BadgeDollarSign,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -55,11 +56,12 @@ interface MemberTableProps {
   members: MemberRow[];
   onEdit: (member: MemberRow) => void;
   onDelete: (member: MemberRow) => void;
+  onRecordPayment: (member: MemberRow) => void;
 }
 
 const PAGE_SIZE = 8;
 
-export function MemberTable({ members, onEdit, onDelete }: MemberTableProps) {
+export function MemberTable({ members, onEdit, onDelete, onRecordPayment }: MemberTableProps) {
   const { t, lang, locale } = useI18n();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "paid" | "unpaid">("all");
@@ -254,6 +256,16 @@ export function MemberTable({ members, onEdit, onDelete }: MemberTableProps) {
                         <Link href={`/members/${m.id}`}>
                           <Eye className="h-4 w-4" />
                         </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-emerald-600 hover:text-emerald-600"
+                        onClick={() => onRecordPayment(m)}
+                        aria-label={t("member_add_payment")}
+                        title={t("member_add_payment")}
+                      >
+                        <BadgeDollarSign className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"

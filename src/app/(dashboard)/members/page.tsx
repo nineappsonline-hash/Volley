@@ -18,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/shared/page-header";
 import { MemberTable, type MemberRow } from "@/components/members/member-table";
 import { MemberFormDialog } from "@/components/members/member-form-dialog";
+import { PaymentFormDialog } from "@/components/members/payment-form-dialog";
 import { useI18n } from "@/lib/i18n";
 import { memberPerSessionValue, usedSessionsSincePayment } from "@/lib/calculations";
 import {
@@ -39,6 +40,7 @@ export default function MembersPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<MemberRow | null>(null);
   const [deleting, setDeleting] = useState<MemberRow | null>(null);
+  const [paymentMember, setPaymentMember] = useState<MemberRow | null>(null);
 
   const members = useMemo<MemberRow[]>(() => {
     const list = (profiles ?? []).filter((p) => p.role === "member");
@@ -88,6 +90,7 @@ export default function MembersPage() {
           members={members}
           onEdit={(m) => { setEditing(m); setFormOpen(true); }}
           onDelete={setDeleting}
+          onRecordPayment={setPaymentMember}
         />
       )}
 
@@ -96,6 +99,14 @@ export default function MembersPage() {
         onOpenChange={setFormOpen}
         member={editing ? { ...editing } : null}
         onCreated={() => setEditing(null)}
+      />
+
+      <PaymentFormDialog
+        open={!!paymentMember}
+        onOpenChange={(open) => { if (!open) setPaymentMember(null); }}
+        memberId={paymentMember?.id ?? ""}
+        memberName={paymentMember?.name ?? ""}
+        defaultSessions={paymentMember?.subscription_sessions}
       />
 
       <AlertDialog
