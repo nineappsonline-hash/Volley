@@ -92,19 +92,21 @@ export function SessionCard({
             </p>
           )}
           <div className="flex items-center justify-between pt-1">
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Users className="h-4 w-4" />
-              {presentCount !== undefined ? (
-                <>
-                  <span className="font-semibold text-foreground">
-                    {presentCount}
-                  </span>
-                  {t("schedule_attending")}
-                </>
-              ) : (
-                t("common_not_set")
-              )}
-            </span>
+            {!canceled && (
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Users className="h-4 w-4" />
+                {presentCount !== undefined ? (
+                  <>
+                    <span className="font-semibold text-foreground">
+                      {presentCount}
+                    </span>
+                    {t("schedule_attending")}
+                  </>
+                ) : (
+                  t("common_not_set")
+                )}
+              </span>
+            )}
             <div className="flex flex-wrap items-center gap-2.5">
               {!completed && !canceled && onMarkAttendance && (
                 <button

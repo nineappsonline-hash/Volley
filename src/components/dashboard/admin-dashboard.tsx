@@ -133,7 +133,11 @@ export function AdminDashboard() {
                         · {s.time.slice(0, 5)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {s.is_completed ? t("schedule_completed") : t("schedule_today")}
+                        {s.status === "canceled"
+                          ? t("schedule_canceled")
+                          : s.status === "completed"
+                            ? t("schedule_completed")
+                            : t("schedule_today")}
                       </p>
                     </div>
                     {calc && (

@@ -59,8 +59,15 @@ export function MonthGeneratorDialog({
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Only active sessions occupy a date — canceled/completed ones can be
+  // regenerated (e.g. cancel a session, then re-generate the month).
   const existingDates = useMemo(
-    () => new Set((sessions ?? []).map((s) => s.date)),
+    () =>
+      new Set(
+        (sessions ?? [])
+          .filter((s) => s.status === "scheduled")
+          .map((s) => s.date)
+      ),
     [sessions]
   );
 
@@ -239,7 +246,7 @@ export function MonthGeneratorDialog({
           >
             {t("common_cancel")}
           </Button>
-          <Button type="submit" onClick={handleGenerate} disabled={saving}>
+          <Button type="button" onClick={handleGenerate} disabled={saving}>
             {saving ? t("common_saving") : t("schedule_generate")}
           </Button>
         </DialogFooter>
