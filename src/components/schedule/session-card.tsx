@@ -47,8 +47,8 @@ export function SessionCard({
   const canceled = session.status === "canceled";
   const completed = session.status === "completed";
 
-  // Only surface a profit/loss badge when there is real financial data
-  // (costs configured or attendance marked) — a plain "Profit 0.00" on
+  // Only surface an excess/loss badge when there is real financial data
+  // (costs configured or attendance marked) — a plain "Excess 0.00" on
   // sessions nobody has set up yet is misleading.
   const hasFinances =
     !!calculation &&
