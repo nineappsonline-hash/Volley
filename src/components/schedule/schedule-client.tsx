@@ -22,6 +22,7 @@ import { CalendarView } from "@/components/schedule/calendar-view";
 import { SessionFormDialog } from "@/components/schedule/session-form-dialog";
 import { SessionCard } from "@/components/schedule/session-card";
 import { useI18n } from "@/lib/i18n";
+import { errorMessage } from "@/lib/utils";
 import {
   useAttendanceCounts,
   useDeleteSession,
@@ -59,8 +60,9 @@ export function ScheduleClient({ isAdmin }: { isAdmin: boolean }) {
     try {
       await deleteSession.mutateAsync(deleting.id);
       toast.success(t("schedule_deleted"));
-    } catch {
-      toast.error(t("common_error"));
+    } catch (err) {
+      console.error("[schedule] delete failed", err);
+      toast.error(errorMessage(err, t("common_error")));
     } finally {
       setDeleting(null);
     }

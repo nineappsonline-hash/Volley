@@ -24,3 +24,14 @@ export function initials(name: string): string {
     .map((p) => p[0]?.toUpperCase() ?? "")
     .join("");
 }
+
+/**
+ * Extract a human-readable message from an unknown error (Supabase/PostgREST
+ * errors carry a `message`), falling back to the given generic string.
+ */
+export function errorMessage(err: unknown, fallback: string): string {
+  const msg =
+    (err as { message?: string } | null)?.message ??
+    (err as { error_description?: string } | null)?.error_description;
+  return msg && msg.trim() ? msg : fallback;
+}

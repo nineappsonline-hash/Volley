@@ -25,7 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useI18n } from "@/lib/i18n";
-import { todayInput } from "@/lib/utils";
+import { errorMessage, todayInput } from "@/lib/utils";
 import { useSaveSession } from "@/lib/queries";
 import type { TrainingSession } from "@/lib/types";
 
@@ -88,8 +88,9 @@ export function SessionFormDialog({
       });
       toast.success(t("schedule_saved"));
       onOpenChange(false);
-    } catch {
-      toast.error(t("common_error"));
+    } catch (err) {
+      console.error("[session-form] save failed", err);
+      toast.error(errorMessage(err, t("common_error")));
     } finally {
       setSubmitting(false);
     }
@@ -113,7 +114,7 @@ export function SessionFormDialog({
                 <FormItem>
                   <FormLabel>{t("schedule_date")}</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input type="date" dir="ltr" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
