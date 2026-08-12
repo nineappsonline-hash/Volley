@@ -16,7 +16,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { CostCalculator } from "@/components/costs/cost-calculator";
 import { useI18n } from "@/lib/i18n";
-import { formatMoney } from "@/lib/constants";
+import { formatMoney, sessionsForMembership } from "@/lib/constants";
 import { useMonthlyCosts } from "@/lib/queries";
 import type { MonthlyCost } from "@/lib/types";
 
@@ -77,7 +77,7 @@ export default function CostsPage() {
                     <TableCell className="text-end">
                       <span className="font-mono">{formatMoney(Number(c.coach_fee), lang)}</span>
                       <span className="ms-2 text-xs text-muted-foreground">
-                        / {c.coach_fee_basis === "half" ? 4 : 8}
+                        / {sessionsForMembership(c.coach_fee_basis)}
                       </span>
                     </TableCell>
                     <TableCell className="text-end font-mono">

@@ -1,3 +1,4 @@
+import { sessionsForMembership } from "@/lib/constants";
 import type {
   Attendance,
   MonthlyCost,
@@ -51,7 +52,7 @@ export function computeCostPerSession(costs: {
   courtRental: number;
   sessionsPerMonth: number;
 }): number {
-  const basisSessions = costs.coachBasis === "half" ? 4 : 8;
+  const basisSessions = sessionsForMembership(costs.coachBasis);
   const perSessionCoach = costs.coachFee / basisSessions;
   const perSessionRent =
     costs.sessionsPerMonth > 0 ? costs.courtRental / costs.sessionsPerMonth : 0;

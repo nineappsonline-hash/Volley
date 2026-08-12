@@ -27,7 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ProfitLossIndicator } from "@/components/shared/profit-loss-indicator";
 import { useI18n } from "@/lib/i18n";
-import { formatMoney } from "@/lib/constants";
+import { formatMoney, sessionsForMembership } from "@/lib/constants";
 import { memberPerSessionValue } from "@/lib/calculations";
 import {
   useAttendance,
@@ -302,14 +302,14 @@ export function SessionDetailsDialog({
                           {t("costs_coach_fee")}
                           <span className="block text-xs text-muted-foreground">
                             {formatMoney(Number(monthCost.coach_fee), lang)} ÷{" "}
-                            {monthCost.coach_fee_basis === "half" ? 4 : 8}{" "}
+                            {sessionsForMembership(monthCost.coach_fee_basis)}{" "}
                             {t("member_payment_sessions").toLowerCase()}
                           </span>
                         </span>
                         <span className="font-mono font-semibold">
                           {formatMoney(
                             Number(monthCost.coach_fee) /
-                              (monthCost.coach_fee_basis === "half" ? 4 : 8),
+                              sessionsForMembership(monthCost.coach_fee_basis),
                             lang
                           )}
                         </span>
