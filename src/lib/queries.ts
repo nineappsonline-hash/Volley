@@ -179,6 +179,26 @@ export function useMonthlyCosts() {
   });
 }
 
+export function useMemberSessionCosts() {
+  return useQuery({
+    queryKey: [...queryKeys.costs, "member"],
+    queryFn: async () => {
+      // Members may only read per-session costs via the member_session_costs
+      // view — coach salary / court rental are admin-only.
+      const { data, error } = await supabase()
+        .from("member_session_costs")
+        .select("*")
+        .order("year", { ascending: false })
+        .order("month", { ascending: false });
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((c) => ({
+        ...c,
+        cost_per_session: Number(c.cost_per_session),
+      })) as { month: number; year: number; cost_per_session: number }[];
+    },
+  });
+}
+
 export function useSessionCalculations() {
   return useQuery({
     queryKey: queryKeys.calculations,

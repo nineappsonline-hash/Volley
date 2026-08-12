@@ -19,7 +19,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { MemberTable, type MemberRow } from "@/components/members/member-table";
 import { MemberFormDialog } from "@/components/members/member-form-dialog";
 import { useI18n } from "@/lib/i18n";
-import { usedSessionsSincePayment } from "@/lib/calculations";
+import { memberPerSessionValue, usedSessionsSincePayment } from "@/lib/calculations";
 import {
   useAllPayments,
   useAttendance,
@@ -50,8 +50,10 @@ export default function MembersPage() {
         sessions ?? [],
         myPayments
       );
-      const active = myPayments.length > 0 && used < m.subscription_sessions;
-      return { ...m, totalPaid, active };
+      const paid = myPayments.length > 0;
+      const active = paid && used < m.subscription_sessions;
+      const perSessionValue = paid ? memberPerSessionValue(m.id, payments ?? []) : 0;
+      return { ...m, totalPaid, paid, active, perSessionValue };
     });
   }, [profiles, payments, attendance, sessions]);
 

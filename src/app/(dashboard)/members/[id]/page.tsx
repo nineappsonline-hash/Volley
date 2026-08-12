@@ -27,7 +27,10 @@ import { PageHeader } from "@/components/shared/page-header";
 import { PaymentFormDialog } from "@/components/members/payment-form-dialog";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
-import { usedSessionsSincePayment } from "@/lib/calculations";
+import {
+  memberPerSessionValue,
+  usedSessionsSincePayment,
+} from "@/lib/calculations";
 import {
   useAttendance,
   useDeletePayment,
@@ -60,6 +63,8 @@ export default function MemberDetailsPage() {
   const used = usedSessionsSincePayment(myAttendance, sessions ?? [], payments ?? []);
   const remaining = member ? Math.max(member.subscription_sessions - used, 0) : 0;
   const totalPaid = (payments ?? []).reduce((s, p) => s + Number(p.amount), 0);
+  const hasPaid = (payments?.length ?? 0) > 0;
+  const perSessionValue = hasPaid ? memberPerSessionValue(id, payments ?? []) : 0;
 
   const attendedSessions = myAttendance
     .filter((a) => a.is_present)
@@ -129,6 +134,19 @@ export default function MemberDetailsPage() {
                   <Badge variant={member.membership_type === "half" ? "outline" : "default"}>
                     {member.membership_type === "half" ? t("membership_half") : t("membership_full")}
                   </Badge>
+                  <Badge variant={hasPaid ? "success" : "destructive"} className="gap-1">
+                    {hasPaid ? (
+                      <>
+                        <CheckCircle2 className="h-3 w-3" />
+                        {t("members_status_paid")}
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-3 w-3" />
+                        {t("members_status_unpaid")}
+                      </>
+                    )}
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -145,6 +163,12 @@ export default function MemberDetailsPage() {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t("member_total_paid")}</span>
                 <span className="font-mono font-semibold">{formatMoney(totalPaid, lang)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t("member_per_session")}</span>
+                <span className="font-mono font-semibold">
+                  {perSessionValue > 0 ? formatMoney(perSessionValue, lang) : "—"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t("member_last_payment")}</span>

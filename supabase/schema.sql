@@ -419,23 +419,23 @@ DROP POLICY IF EXISTS "Members view own attendance" ON public.attendance;
 CREATE POLICY "Members view own attendance" ON public.attendance
   FOR SELECT USING (auth.uid() = member_id);
 
--- monthly_costs: admins manage, members can view
+-- monthly_costs: admins manage; members never read the raw table (it holds
+-- coach salary / court rental). They only see cost_per_session via the view below.
 DROP POLICY IF EXISTS "Admins manage costs" ON public.monthly_costs;
 CREATE POLICY "Admins manage costs" ON public.monthly_costs
   FOR ALL USING (auth.jwt() -> 'app_metadata' ->> 'role' = 'admin');
 
-DROP POLICY IF EXISTS "Members view costs" ON public.monthly_costs;
-CREATE POLICY "Members view costs" ON public.monthly_costs
-  FOR SELECT USING (true);
+-- Safe, column-limited view for members: per-session cost only.
+DROP VIEW IF EXISTS public.member_session_costs;
+CREATE VIEW public.member_session_costs AS
+SELECT month, year, cost_per_session
+FROM public.monthly_costs;
+GRANT SELECT ON public.member_session_costs TO authenticated;
 
--- session_calculations: admins manage, members can view
+-- session_calculations: admins only (financial data derived from members' payments)
 DROP POLICY IF EXISTS "Admins manage calculations" ON public.session_calculations;
 CREATE POLICY "Admins manage calculations" ON public.session_calculations
   FOR ALL USING (auth.jwt() -> 'app_metadata' ->> 'role' = 'admin');
-
-DROP POLICY IF EXISTS "Members view calculations" ON public.session_calculations;
-CREATE POLICY "Members view calculations" ON public.session_calculations
-  FOR SELECT USING (true);
 
 -- ────────────────────────────────────────────────────────────
 -- 5. REALTIME (idempotent)

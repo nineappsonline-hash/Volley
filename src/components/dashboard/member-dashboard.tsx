@@ -22,7 +22,7 @@ import { usedSessionsSincePayment } from "@/lib/calculations";
 import {
   useAllPayments,
   useAttendance,
-  useMonthlyCosts,
+  useMemberSessionCosts,
   useProfile,
   useSessions,
   useUpcomingSessions,
@@ -40,7 +40,7 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
   const { data: attendance } = useAttendance();
   const { data: sessions } = useSessions();
   const { data: upcoming } = useUpcomingSessions();
-  const { data: costs } = useMonthlyCosts();
+  const { data: costs } = useMemberSessionCosts();
 
   const p = ownProfile ?? profile;
   const myPayments = (payments ?? []).filter((x) => x.member_id === p.id);

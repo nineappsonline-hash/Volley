@@ -5,12 +5,15 @@ import Link from "next/link";
 import { format } from "date-fns";
 import {
   ArrowUpDown,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Eye,
   Pencil,
   Search,
+  Timer,
   Trash2,
+  XCircle,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -39,7 +42,11 @@ import type { Profile } from "@/lib/types";
 
 export interface MemberRow extends Profile {
   totalPaid: number;
+  /** True when the member has at least one payment on record. */
+  paid: boolean;
   active: boolean;
+  /** Latest payment ÷ its subscription sessions (revenue per attended session). */
+  perSessionValue: number;
 }
 
 type SortKey = "name" | "join_date" | "totalPaid";
@@ -70,8 +77,8 @@ export function MemberTable({ members, onEdit, onDelete }: MemberTableProps) {
         (m.phone ?? "").toLowerCase().includes(q);
       const matchesFilter =
         filter === "all" ||
-        (filter === "paid" && m.active) ||
-        (filter === "unpaid" && !m.active);
+        (filter === "paid" && m.paid) ||
+        (filter === "unpaid" && !m.paid);
       return matchesSearch && matchesFilter;
     });
     list = [...list].sort((a, b) => {
@@ -199,8 +206,13 @@ export function MemberTable({ members, onEdit, onDelete }: MemberTableProps) {
                       ? format(new Date(m.join_date + "T00:00:00"), "MMM d, yyyy", { locale })
                       : t("common_not_set")}
                   </TableCell>
-                  <TableCell className="font-mono font-medium">
-                    {formatMoney(m.totalPaid, lang)}
+                  <TableCell>
+                    <p className="font-mono font-medium">{formatMoney(m.totalPaid, lang)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {m.paid
+                        ? `≈ ${formatMoney(m.perSessionValue, lang)} ${t("member_per_session").toLowerCase()}`
+                        : t("common_not_set")}
+                    </p>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     <Badge variant={m.membership_type === "half" ? "outline" : "default"} className="gap-1">
@@ -211,9 +223,24 @@ export function MemberTable({ members, onEdit, onDelete }: MemberTableProps) {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={m.active ? "success" : "warning"}>
-                      {m.active ? t("members_status_active") : t("members_status_expired")}
-                    </Badge>
+                    {m.paid ? (
+                      m.active ? (
+                        <Badge variant="success" className="gap-1">
+                          <CheckCircle2 className="h-3 w-3" />
+                          {t("members_status_paid")}
+                        </Badge>
+                      ) : (
+                        <Badge variant="warning" className="gap-1">
+                          <Timer className="h-3 w-3" />
+                          {t("members_status_renewal")}
+                        </Badge>
+                      )
+                    ) : (
+                      <Badge variant="destructive" className="gap-1">
+                        <XCircle className="h-3 w-3" />
+                        {t("members_status_unpaid")}
+                      </Badge>
+                    )}
                   </TableCell>
                   <TableCell className="text-end">
                     <div className="flex items-center justify-end gap-1">

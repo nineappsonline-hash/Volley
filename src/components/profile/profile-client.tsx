@@ -29,7 +29,7 @@ import { usedSessionsSincePayment } from "@/lib/calculations";
 import {
   useAllPayments,
   useAttendance,
-  useMonthlyCosts,
+  useMemberSessionCosts,
   useProfile,
   useSessions,
   useUpdateOwnProfile,
@@ -51,7 +51,7 @@ export function ProfileClient({ serverProfile }: { serverProfile: Profile }) {
   const { data: attendance } = useAttendance();
   const { data: sessions } = useSessions();
   const { data: upcoming } = useUpcomingSessions();
-  const { data: costs } = useMonthlyCosts();
+  const { data: costs } = useMemberSessionCosts();
 
   const myPayments = useMemo(
     () => (payments ?? []).filter((x) => x.member_id === p.id),
