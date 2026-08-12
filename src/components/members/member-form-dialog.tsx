@@ -219,7 +219,7 @@ export function MemberFormDialog({
                 <FormItem>
                   <FormLabel>{t("members_col_join")}</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input type="date" dir="ltr" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

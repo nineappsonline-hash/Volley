@@ -129,7 +129,7 @@ export function PaymentFormDialog({
                 <FormItem>
                   <FormLabel>{t("member_payment_date")}</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input type="date" dir="ltr" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
