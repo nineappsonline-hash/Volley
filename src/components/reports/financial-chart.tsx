@@ -122,10 +122,7 @@ export function buildMonthlyPoints(
   for (const c of costs) {
     const k = key(c.month, c.year);
     const point = months.get(k);
-    if (point)
-      point.costs +=
-        Number(c.coach_fee_per_session) * Number(c.sessions_per_month) +
-        Number(c.court_rental);
+    if (point) point.costs += Number(c.coach_fee) + Number(c.court_rental);
   }
 
   // Session profit belongs to its session's month

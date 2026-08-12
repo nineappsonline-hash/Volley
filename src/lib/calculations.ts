@@ -46,13 +46,16 @@ export function computeSessionRevenue(
 }
 
 export function computeCostPerSession(costs: {
-  coachFeePerSession: number;
+  coachFee: number;
+  coachBasis: "full" | "half";
   courtRental: number;
   sessionsPerMonth: number;
 }): number {
+  const basisSessions = costs.coachBasis === "half" ? 4 : 8;
+  const perSessionCoach = costs.coachFee / basisSessions;
   const perSessionRent =
     costs.sessionsPerMonth > 0 ? costs.courtRental / costs.sessionsPerMonth : 0;
-  return round2(costs.coachFeePerSession + perSessionRent);
+  return round2(perSessionCoach + perSessionRent);
 }
 
 export function computeProfitLoss(revenue: number, costPerSession: number): number {

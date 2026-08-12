@@ -66,9 +66,11 @@ CREATE TABLE IF NOT EXISTS public.monthly_costs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   month INTEGER NOT NULL CHECK (month BETWEEN 1 AND 12),
   year INTEGER NOT NULL,
-  -- Coach is paid a flat fee per training session; court rental is monthly.
-  -- cost_per_session = coach_fee_per_session + (court_rental / sessions_per_month)
-  coach_fee_per_session DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  -- Coach fee is a monthly amount prorated over the Full (8) or Half (4)
+  -- session basis; court rental is monthly.
+  -- cost_per_session = (coach_fee / 8 or 4) + (court_rental / sessions_per_month)
+  coach_fee DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  coach_fee_basis TEXT NOT NULL DEFAULT 'full' CHECK (coach_fee_basis IN ('full', 'half')),
   court_rental DECIMAL(10, 2) NOT NULL DEFAULT 0,
   sessions_per_month INTEGER NOT NULL DEFAULT 0,
   cost_per_session DECIMAL(10, 2) NOT NULL DEFAULT 0,

@@ -299,13 +299,19 @@ export function SessionDetailsDialog({
                     <div className="overflow-hidden rounded-lg border">
                       <div className="flex items-center justify-between border-b px-3 py-2 text-sm last:border-0">
                         <span>
-                          {t("costs_coach_fee_per_session")}
+                          {t("costs_coach_fee")}
                           <span className="block text-xs text-muted-foreground">
-                            {t("session_details_flat")}
+                            {formatMoney(Number(monthCost.coach_fee), lang)} ÷{" "}
+                            {monthCost.coach_fee_basis === "half" ? 4 : 8}{" "}
+                            {t("member_payment_sessions").toLowerCase()}
                           </span>
                         </span>
                         <span className="font-mono font-semibold">
-                          {formatMoney(Number(monthCost.coach_fee_per_session), lang)}
+                          {formatMoney(
+                            Number(monthCost.coach_fee) /
+                              (monthCost.coach_fee_basis === "half" ? 4 : 8),
+                            lang
+                          )}
                         </span>
                       </div>
                       <div className="flex items-center justify-between border-b px-3 py-2 text-sm last:border-0">

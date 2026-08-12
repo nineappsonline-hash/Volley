@@ -24,7 +24,7 @@ import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import { computeCostPerSession } from "@/lib/calculations";
 import { useMonthlyCosts, useSaveCosts } from "@/lib/queries";
-import type { MonthlyCost } from "@/lib/types";
+import type { MembershipType, MonthlyCost } from "@/lib/types";
 
 interface CostCalculatorProps {
   selected?: MonthlyCost | null;
@@ -54,7 +54,10 @@ export function CostCalculator({ selected }: CostCalculatorProps) {
   const [month, setMonth] = useState(selected?.month ?? now.getMonth() + 1);
   const [year, setYear] = useState(selected?.year ?? now.getFullYear());
   const [coachFee, setCoachFee] = useState(
-    selected?.coach_fee_per_session?.toString() ?? ""
+    selected?.coach_fee?.toString() ?? ""
+  );
+  const [coachBasis, setCoachBasis] = useState<MembershipType>(
+    selected?.coach_fee_basis ?? "full"
   );
   const [courtRental, setCourtRental] = useState(
     selected?.court_rental?.toString() ?? ""
@@ -68,7 +71,8 @@ export function CostCalculator({ selected }: CostCalculatorProps) {
     if (selected) {
       setMonth(selected.month);
       setYear(selected.year);
-      setCoachFee(selected.coach_fee_per_session.toString());
+      setCoachFee(selected.coach_fee.toString());
+      setCoachBasis(selected.coach_fee_basis);
       setCourtRental(selected.court_rental.toString());
       setSessionsPerMonth(selected.sessions_per_month.toString());
     }
@@ -77,11 +81,12 @@ export function CostCalculator({ selected }: CostCalculatorProps) {
   const costPerSession = useMemo(
     () =>
       computeCostPerSession({
-        coachFeePerSession: Number(coachFee) || 0,
+        coachFee: Number(coachFee) || 0,
+        coachBasis,
         courtRental: Number(courtRental) || 0,
         sessionsPerMonth: Number(sessionsPerMonth) || 0,
       }),
-    [coachFee, courtRental, sessionsPerMonth]
+    [coachFee, coachBasis, courtRental, sessionsPerMonth]
   );
 
   const monthLabel = MONTHS.find((m) => m.value === month);
@@ -92,7 +97,8 @@ export function CostCalculator({ selected }: CostCalculatorProps) {
       await saveCosts.mutateAsync({
         month,
         year,
-        coach_fee_per_session: Number(coachFee) || 0,
+        coach_fee: Number(coachFee) || 0,
+        coach_fee_basis: coachBasis,
         court_rental: Number(courtRental) || 0,
         sessions_per_month: Number(sessionsPerMonth) || 0,
         cost_per_session: costPerSession,
@@ -157,7 +163,7 @@ export function CostCalculator({ selected }: CostCalculatorProps) {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="space-y-2">
-            <Label>{t("costs_coach_fee_per_session")}</Label>
+            <Label>{t("costs_coach_fee")}</Label>
             <Input
               type="number"
               min={0}
@@ -166,6 +172,25 @@ export function CostCalculator({ selected }: CostCalculatorProps) {
               value={coachFee}
               onChange={(e) => setCoachFee(e.target.value)}
             />
+          </div>
+          <div className="space-y-2">
+            <Label>{t("costs_coach_basis")}</Label>
+            <Select
+              value={coachBasis}
+              onValueChange={(v) => setCoachBasis(v as MembershipType)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="full">
+                  {t("membership_full")} · {t("membership_full_hint")}
+                </SelectItem>
+                <SelectItem value="half">
+                  {t("membership_half")} · {t("membership_half_hint")}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label>{t("costs_court_rental")}</Label>
@@ -178,17 +203,18 @@ export function CostCalculator({ selected }: CostCalculatorProps) {
               onChange={(e) => setCourtRental(e.target.value)}
             />
           </div>
-          <div className="space-y-2">
-            <Label>{t("costs_sessions_per_month")}</Label>
-            <Input
-              type="number"
-              min={1}
-              dir="ltr"
-              placeholder={t("costs_placeholder_sessions")}
-              value={sessionsPerMonth}
-              onChange={(e) => setSessionsPerMonth(e.target.value)}
-            />
-          </div>
+        </div>
+
+        <div className="space-y-2 sm:max-w-xs">
+          <Label>{t("costs_sessions_per_month")}</Label>
+          <Input
+            type="number"
+            min={1}
+            dir="ltr"
+            placeholder={t("costs_placeholder_sessions")}
+            value={sessionsPerMonth}
+            onChange={(e) => setSessionsPerMonth(e.target.value)}
+          />
         </div>
 
         <div className="flex flex-col items-center justify-between gap-3 rounded-lg border border-primary/20 bg-primary/5 p-4 sm:flex-row">

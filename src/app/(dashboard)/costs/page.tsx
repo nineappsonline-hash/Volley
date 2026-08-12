@@ -60,7 +60,7 @@ export default function CostsPage() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead>{t("costs_month")}</TableHead>
-                  <TableHead className="text-end">{t("costs_coach_fee_per_session")}</TableHead>
+                  <TableHead className="text-end">{t("costs_coach_fee")}</TableHead>
                   <TableHead className="text-end">{t("costs_court_rental")}</TableHead>
                   <TableHead className="text-end">{t("costs_sessions_per_month")}</TableHead>
                   <TableHead className="text-end">{t("costs_cost_per_session")}</TableHead>
@@ -74,8 +74,11 @@ export default function CostsPage() {
                       {lang === "ar" ? MONTH_AR[c.month - 1] : MONTH_EN[c.month - 1]}{" "}
                       {c.year}
                     </TableCell>
-                    <TableCell className="text-end font-mono">
-                      {formatMoney(Number(c.coach_fee_per_session), lang)}
+                    <TableCell className="text-end">
+                      <span className="font-mono">{formatMoney(Number(c.coach_fee), lang)}</span>
+                      <span className="ms-2 text-xs text-muted-foreground">
+                        / {c.coach_fee_basis === "half" ? 4 : 8}
+                      </span>
                     </TableCell>
                     <TableCell className="text-end font-mono">
                       {formatMoney(Number(c.court_rental), lang)}
