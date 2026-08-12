@@ -39,7 +39,8 @@ export function Topbar({ role, name }: TopbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur-md sm:px-6">
+    <header className="sticky top-0 z-40 border-b bg-background/80 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+      <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
       <Sheet>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="lg:hidden">
@@ -92,6 +93,7 @@ export function Topbar({ role, name }: TopbarProps) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+      </div>
       </div>
     </header>
   );
