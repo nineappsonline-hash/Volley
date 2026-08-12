@@ -200,17 +200,17 @@ export default function MemberDetailsPage() {
                     : t("membership_none")}
                 </span>
               </div>
-              <Progress
-                value={
-                  member.subscription_sessions > 0
-                    ? Math.min(100, (used / member.subscription_sessions) * 100)
-                    : 0
-                }
-                className="h-2.5"
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t("member_used")}: {used}
-              </p>
+              {member.subscription_sessions > 0 && (
+                <>
+                  <Progress
+                    value={Math.min(100, (used / member.subscription_sessions) * 100)}
+                    className="h-2.5"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {t("member_used")}: {used}
+                  </p>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>

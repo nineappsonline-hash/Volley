@@ -107,14 +107,19 @@ export function MemberFormDialog({
     setSubmitting(true);
     try {
       if (isEdit && member) {
-        await updateMember.mutateAsync({
+        // Members without a payment have no plan yet — the plan is set when the
+        // admin records a payment, so never grant one implicitly on a profile edit.
+        const updates: Partial<Profile> & { id: string } = {
           id: member.id,
           name: values.name,
           phone: values.phone || null,
           join_date: values.join_date || null,
-          membership_type: values.membership_type,
-          subscription_sessions: sessionsForMembership(values.membership_type),
-        });
+        };
+        if ((member.subscription_sessions ?? 0) > 0) {
+          updates.membership_type = values.membership_type;
+          updates.subscription_sessions = sessionsForMembership(values.membership_type);
+        }
+        await updateMember.mutateAsync(updates);
       } else {
         const res = await fetch("/api/admin/users", {
           method: "POST",
@@ -271,31 +276,40 @@ export function MemberFormDialog({
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="membership_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("members_membership_label")}</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="full">
-                            {t("membership_full")} · {t("membership_full_hint")}
-                          </SelectItem>
-                          <SelectItem value="half">
-                            {t("membership_half")} · {t("membership_half_hint")}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {(member?.subscription_sessions ?? 0) > 0 ? (
+                  <FormField
+                    control={form.control}
+                    name="membership_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("members_membership_label")}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="full">
+                              {t("membership_full")} · {t("membership_full_hint")}
+                            </SelectItem>
+                            <SelectItem value="half">
+                              {t("membership_half")} · {t("membership_half_hint")}
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <Label>{t("members_membership_label")}</Label>
+                    <p className="flex h-9 items-center rounded-md border border-dashed px-3 text-xs text-muted-foreground">
+                      {t("membership_none")} — {t("members_set_plan_via_payment")}
+                    </p>
+                  </div>
+                )}
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

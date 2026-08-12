@@ -70,7 +70,8 @@ export function PaymentFormDialog({
     defaultValues: {
       amount: undefined as unknown as number,
       payment_date: todayInput(),
-      membership_type: defaultSessions <= 4 ? "half" : "full",
+      membership_type:
+        defaultSessions > 0 && defaultSessions <= 4 ? "half" : "full",
       notes: "",
     },
   });
@@ -81,7 +82,8 @@ export function PaymentFormDialog({
       form.reset({
         amount: undefined as unknown as number,
         payment_date: todayInput(),
-        membership_type: defaultSessions <= 4 ? "half" : "full",
+        membership_type:
+          defaultSessions > 0 && defaultSessions <= 4 ? "half" : "full",
         notes: "",
       });
     }

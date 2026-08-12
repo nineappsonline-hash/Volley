@@ -109,6 +109,7 @@ export const dictionary = {
     membership_none: "No plan",
     members_no_plan_msg:
       "Your membership (Full · 8 sessions / Half · 4 sessions) is activated once the academy records your first payment.",
+    members_set_plan_via_payment: "set when you record a payment",
     // Member details
     member_details_title: "Member details",
     member_payment_history: "Payment history",
@@ -394,6 +395,7 @@ export const dictionary = {
     membership_none: "لا توجد خطة",
     members_no_plan_msg:
       "يتم تفعيل عضويتك (كامل · 8 حصص / نصف · 4 حصص) بمجرد تسجيل أول دفعة من الأكاديمية.",
+    members_set_plan_via_payment: "يُحدد عند تسجيل الدفعة",
     // Member details
     member_details_title: "تفاصيل العضو",
     member_payment_history: "سجل المدفوعات",
