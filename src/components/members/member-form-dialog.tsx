@@ -150,6 +150,7 @@ export function MemberFormDialog({
             )}
           </DialogDescription>
         </DialogHeader>
+        <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
             control={form.control}
@@ -251,6 +252,7 @@ export function MemberFormDialog({
             </Button>
           </DialogFooter>
         </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

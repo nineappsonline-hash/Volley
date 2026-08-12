@@ -105,6 +105,7 @@ export function SessionFormDialog({
             {isEdit ? t("schedule_form_title_edit") : t("schedule_form_title_new")}
           </DialogTitle>
         </DialogHeader>
+        <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <FormField
@@ -173,6 +174,7 @@ export function SessionFormDialog({
             </Button>
           </DialogFooter>
         </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

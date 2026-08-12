@@ -99,6 +99,7 @@ export function PaymentFormDialog({
             {t("member_payment_notes_placeholder")}
           </DialogDescription>
         </DialogHeader>
+        <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <FormField
@@ -174,6 +175,7 @@ export function PaymentFormDialog({
             </Button>
           </DialogFooter>
         </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
