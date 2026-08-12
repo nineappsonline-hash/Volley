@@ -52,7 +52,7 @@ export interface MonthlyCost {
   id: string;
   month: number;
   year: number;
-  coach_salary: number;
+  coach_fee_per_session: number;
   court_rental: number;
   sessions_per_month: number;
   cost_per_session: number;

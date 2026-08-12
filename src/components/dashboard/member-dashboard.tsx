@@ -47,6 +47,7 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
   const totalPaid = myPayments.reduce((s, x) => s + Number(x.amount), 0);
   const lastPayment = myPayments[0] ?? null;
 
+  const hasPlan = myPayments.length > 0;
   const used = usedSessionsSincePayment(attendance ?? [], sessions ?? [], myPayments);
   const remaining = Math.max(p.subscription_sessions - used, 0);
   const progress =
@@ -84,10 +85,10 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title={t("dash_my_remaining")}
-          value={`${remaining} / ${p.subscription_sessions}`}
+          value={hasPlan ? `${remaining} / ${p.subscription_sessions}` : t("membership_none")}
           icon={Timer}
-          tone={remaining > 0 ? "success" : "destructive"}
-          hint={t("dash_sessions_used")}
+          tone={hasPlan ? (remaining > 0 ? "success" : "destructive") : "default"}
+          hint={hasPlan ? t("dash_sessions_used") : undefined}
         />
         <StatCard
           title={t("dash_my_last_payment")}
@@ -109,9 +110,11 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
         />
         <StatCard
           title={t("dash_my_status")}
-          value={remaining > 0 ? t("dash_active") : t("dash_expired")}
+          value={
+            hasPlan ? (remaining > 0 ? t("dash_active") : t("dash_expired")) : t("membership_none")
+          }
           icon={ShieldCheck}
-          tone={remaining > 0 ? "success" : "destructive"}
+          tone={hasPlan ? (remaining > 0 ? "success" : "destructive") : "default"}
         />
       </div>
 
@@ -121,23 +124,32 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
             <CardTitle className="flex items-center gap-2 text-base">
               <Timer className="h-4 w-4 text-primary" />
               {t("dash_my_remaining")}
-              <Badge variant={p.membership_type === "half" ? "outline" : "secondary"}>
-                {p.membership_type === "half" ? t("membership_half") : t("membership_full")}
-              </Badge>
+              {hasPlan && (
+                <Badge variant={p.membership_type === "half" ? "outline" : "secondary"}>
+                  {p.membership_type === "half" ? t("membership_half") : t("membership_full")}
+                </Badge>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <div className="mb-1.5 flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">
-                  {used} {t("dash_sessions_used")}
-                </span>
-                <span className="font-semibold">
-                  {remaining} {t("profile_sessions_left")}
-                </span>
+            {hasPlan ? (
+              <div>
+                <div className="mb-1.5 flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {used} {t("dash_sessions_used")}
+                  </span>
+                  <span className="font-semibold">
+                    {remaining} {t("profile_sessions_left")}
+                  </span>
+                </div>
+                <Progress value={progress} className="h-3" />
               </div>
-              <Progress value={progress} className="h-3" />
-            </div>
+            ) : (
+              <div className="flex items-center gap-2 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+                <Timer className="h-4 w-4 shrink-0" />
+                {t("members_no_plan_msg")}
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg bg-muted/50 p-3">
                 <p className="flex items-center gap-1.5 text-xs text-muted-foreground">

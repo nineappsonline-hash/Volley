@@ -53,8 +53,8 @@ export function CostCalculator({ selected }: CostCalculatorProps) {
   const now = new Date();
   const [month, setMonth] = useState(selected?.month ?? now.getMonth() + 1);
   const [year, setYear] = useState(selected?.year ?? now.getFullYear());
-  const [coachSalary, setCoachSalary] = useState(
-    selected?.coach_salary?.toString() ?? ""
+  const [coachFee, setCoachFee] = useState(
+    selected?.coach_fee_per_session?.toString() ?? ""
   );
   const [courtRental, setCourtRental] = useState(
     selected?.court_rental?.toString() ?? ""
@@ -68,7 +68,7 @@ export function CostCalculator({ selected }: CostCalculatorProps) {
     if (selected) {
       setMonth(selected.month);
       setYear(selected.year);
-      setCoachSalary(selected.coach_salary.toString());
+      setCoachFee(selected.coach_fee_per_session.toString());
       setCourtRental(selected.court_rental.toString());
       setSessionsPerMonth(selected.sessions_per_month.toString());
     }
@@ -77,11 +77,11 @@ export function CostCalculator({ selected }: CostCalculatorProps) {
   const costPerSession = useMemo(
     () =>
       computeCostPerSession({
-        coachSalary: Number(coachSalary) || 0,
+        coachFeePerSession: Number(coachFee) || 0,
         courtRental: Number(courtRental) || 0,
         sessionsPerMonth: Number(sessionsPerMonth) || 0,
       }),
-    [coachSalary, courtRental, sessionsPerMonth]
+    [coachFee, courtRental, sessionsPerMonth]
   );
 
   const monthLabel = MONTHS.find((m) => m.value === month);
@@ -92,7 +92,7 @@ export function CostCalculator({ selected }: CostCalculatorProps) {
       await saveCosts.mutateAsync({
         month,
         year,
-        coach_salary: Number(coachSalary) || 0,
+        coach_fee_per_session: Number(coachFee) || 0,
         court_rental: Number(courtRental) || 0,
         sessions_per_month: Number(sessionsPerMonth) || 0,
         cost_per_session: costPerSession,
@@ -157,14 +157,14 @@ export function CostCalculator({ selected }: CostCalculatorProps) {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="space-y-2">
-            <Label>{t("costs_coach_salary")}</Label>
+            <Label>{t("costs_coach_fee_per_session")}</Label>
             <Input
               type="number"
               min={0}
               dir="ltr"
-              placeholder={t("costs_placeholder_coach")}
-              value={coachSalary}
-              onChange={(e) => setCoachSalary(e.target.value)}
+              placeholder={t("costs_placeholder_coach_fee")}
+              value={coachFee}
+              onChange={(e) => setCoachFee(e.target.value)}
             />
           </div>
           <div className="space-y-2">

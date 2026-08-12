@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   phone TEXT,
   join_date DATE,
   membership_type TEXT NOT NULL DEFAULT 'full' CHECK (membership_type IN ('full', 'half')),
-  subscription_sessions INTEGER NOT NULL DEFAULT 8,
+  -- 0 until the admin records a payment; the sync trigger then sets the real plan.
+  subscription_sessions INTEGER NOT NULL DEFAULT 0,
   sessions_attended INTEGER NOT NULL DEFAULT 0,
   -- Whether the member has been added to the roster by an admin.
   -- Signing up only creates the account; the admin adds them by name.
@@ -65,7 +66,9 @@ CREATE TABLE IF NOT EXISTS public.monthly_costs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   month INTEGER NOT NULL CHECK (month BETWEEN 1 AND 12),
   year INTEGER NOT NULL,
-  coach_salary DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  -- Coach is paid a flat fee per training session; court rental is monthly.
+  -- cost_per_session = coach_fee_per_session + (court_rental / sessions_per_month)
+  coach_fee_per_session DECIMAL(10, 2) NOT NULL DEFAULT 0,
   court_rental DECIMAL(10, 2) NOT NULL DEFAULT 0,
   sessions_per_month INTEGER NOT NULL DEFAULT 0,
   cost_per_session DECIMAL(10, 2) NOT NULL DEFAULT 0,
@@ -307,7 +310,8 @@ CREATE TRIGGER attendance_sync_count
   AFTER INSERT OR UPDATE OR DELETE ON public.attendance
   FOR EACH ROW EXECUTE FUNCTION public.sync_sessions_attended();
 
--- Keep the member's plan in sync with their latest payment
+-- Keep the member's plan in sync with their latest payment.
+-- No payments = no plan yet (0 sessions).
 CREATE OR REPLACE FUNCTION public.sync_membership_from_payment()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -319,17 +323,23 @@ DECLARE
 BEGIN
   v_member_id := COALESCE(NEW.member_id, OLD.member_id);
 
-  UPDATE public.profiles p
-  SET membership_type = x.membership_type,
-      subscription_sessions = x.subscription_sessions
-  FROM (
-    SELECT pp.member_id, pp.membership_type, pp.subscription_sessions
-    FROM public.payments pp
-    WHERE pp.member_id = v_member_id
-    ORDER BY pp.payment_date DESC, pp.created_at DESC
-    LIMIT 1
-  ) x
-  WHERE p.id = v_member_id;
+  IF EXISTS (SELECT 1 FROM public.payments WHERE member_id = v_member_id) THEN
+    UPDATE public.profiles p
+    SET membership_type = x.membership_type,
+        subscription_sessions = x.subscription_sessions
+    FROM (
+      SELECT pp.member_id, pp.membership_type, pp.subscription_sessions
+      FROM public.payments pp
+      WHERE pp.member_id = v_member_id
+      ORDER BY pp.payment_date DESC, pp.created_at DESC
+      LIMIT 1
+    ) x
+    WHERE p.id = v_member_id;
+  ELSE
+    UPDATE public.profiles p
+    SET membership_type = 'full', subscription_sessions = 0
+    WHERE p.id = v_member_id;
+  END IF;
 
   RETURN COALESCE(NEW, OLD);
 END;

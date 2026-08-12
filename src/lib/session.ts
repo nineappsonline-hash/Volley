@@ -50,7 +50,7 @@ export async function requireSession(opts?: { adminOnly?: boolean }): Promise<Se
     phone: (user.user_metadata?.phone as string | null) ?? null,
     join_date: null,
     membership_type: "full",
-    subscription_sessions: 8,
+    subscription_sessions: 0,
     sessions_attended: 0,
     is_active: true,
     created_at: new Date().toISOString(),

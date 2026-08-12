@@ -83,6 +83,7 @@ export function ProfileClient({ serverProfile }: { serverProfile: Profile }) {
 
   const lastPayment = myPayments[0];
   const totalPaid = myPayments.reduce((s, x) => s + Number(x.amount), 0);
+  const hasPlan = myPayments.length > 0;
 
   const now = new Date();
   const m = now.getMonth() + 1;
@@ -142,9 +143,15 @@ export function ProfileClient({ serverProfile }: { serverProfile: Profile }) {
                 <p className="text-lg font-bold">{p.name}</p>
                 <div className="mt-1 flex flex-wrap gap-1">
                   <Badge variant="secondary">{t("role_member")}</Badge>
-                  <Badge variant={p.membership_type === "half" ? "outline" : "default"}>
-                    {p.membership_type === "half" ? t("membership_half") : t("membership_full")}
-                  </Badge>
+                  {hasPlan ? (
+                    <Badge variant={p.membership_type === "half" ? "outline" : "default"}>
+                      {p.membership_type === "half" ? t("membership_half") : t("membership_full")}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-muted-foreground">
+                      {t("membership_none")}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
@@ -196,23 +203,37 @@ export function ProfileClient({ serverProfile }: { serverProfile: Profile }) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <div className="mb-1.5 flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {used} {t("dash_sessions_used")} {t("member_sessions_remaining_of")}{" "}
-                    {p.subscription_sessions}
-                  </span>
-                  <span className="font-semibold">
-                    {remaining} {t("profile_sessions_left")}
-                  </span>
+              {hasPlan ? (
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {used} {t("dash_sessions_used")} {t("member_sessions_remaining_of")}{" "}
+                      {p.subscription_sessions}
+                    </span>
+                    <span className="font-semibold">
+                      {remaining} {t("profile_sessions_left")}
+                    </span>
+                  </div>
+                  <Progress value={progress} className="h-3" />
                 </div>
-                <Progress value={progress} className="h-3" />
-              </div>
+              ) : (
+                <div className="flex items-center gap-2 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+                  <Timer className="h-4 w-4 shrink-0" />
+                  {t("members_no_plan_msg")}
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-lg bg-muted/50 p-3">
                   <p className="text-xs text-muted-foreground">{t("dash_my_status")}</p>
-                  <Badge variant={remaining > 0 ? "success" : "warning"} className="mt-1">
-                    {remaining > 0 ? t("dash_active") : t("dash_expired")}
+                  <Badge
+                    variant={hasPlan ? (remaining > 0 ? "success" : "warning") : "outline"}
+                    className="mt-1"
+                  >
+                    {hasPlan
+                      ? remaining > 0
+                        ? t("dash_active")
+                        : t("dash_expired")
+                      : t("membership_none")}
                   </Badge>
                 </div>
                 <div className="rounded-lg bg-muted/50 p-3">

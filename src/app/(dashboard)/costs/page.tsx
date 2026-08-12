@@ -60,7 +60,7 @@ export default function CostsPage() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead>{t("costs_month")}</TableHead>
-                  <TableHead className="text-end">{t("costs_coach_salary")}</TableHead>
+                  <TableHead className="text-end">{t("costs_coach_fee_per_session")}</TableHead>
                   <TableHead className="text-end">{t("costs_court_rental")}</TableHead>
                   <TableHead className="text-end">{t("costs_sessions_per_month")}</TableHead>
                   <TableHead className="text-end">{t("costs_cost_per_session")}</TableHead>
@@ -75,7 +75,7 @@ export default function CostsPage() {
                       {c.year}
                     </TableCell>
                     <TableCell className="text-end font-mono">
-                      {formatMoney(Number(c.coach_salary), lang)}
+                      {formatMoney(Number(c.coach_fee_per_session), lang)}
                     </TableCell>
                     <TableCell className="text-end font-mono">
                       {formatMoney(Number(c.court_rental), lang)}

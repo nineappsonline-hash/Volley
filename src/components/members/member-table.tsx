@@ -215,12 +215,18 @@ export function MemberTable({ members, onEdit, onDelete }: MemberTableProps) {
                     </p>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    <Badge variant={m.membership_type === "half" ? "outline" : "default"} className="gap-1">
-                      {m.membership_type === "half" ? t("membership_half") : t("membership_full")}
-                      <span className="font-mono text-[10px] opacity-80">
-                        {m.subscription_sessions}
-                      </span>
-                    </Badge>
+                    {m.subscription_sessions <= 0 ? (
+                      <Badge variant="outline" className="text-muted-foreground">
+                        {t("membership_none")}
+                      </Badge>
+                    ) : (
+                      <Badge variant={m.membership_type === "half" ? "outline" : "default"} className="gap-1">
+                        {m.membership_type === "half" ? t("membership_half") : t("membership_full")}
+                        <span className="font-mono text-[10px] opacity-80">
+                          {m.subscription_sessions}
+                        </span>
+                      </Badge>
+                    )}
                   </TableCell>
                   <TableCell>
                     {m.paid ? (

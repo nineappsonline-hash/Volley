@@ -171,7 +171,7 @@ export function useMonthlyCosts() {
       if (error) throw error;
       return ((data ?? []) as any[]).map((c) => ({
         ...c,
-        coach_salary: Number(c.coach_salary),
+        coach_fee_per_session: Number(c.coach_fee_per_session),
         court_rental: Number(c.court_rental),
         cost_per_session: Number(c.cost_per_session),
       })) as MonthlyCost[];
@@ -385,7 +385,7 @@ export function useSaveCosts() {
     mutationFn: async (costs: {
       month: number;
       year: number;
-      coach_salary: number;
+      coach_fee_per_session: number;
       court_rental: number;
       sessions_per_month: number;
       cost_per_session: number;

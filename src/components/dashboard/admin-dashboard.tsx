@@ -46,7 +46,8 @@ export function AdminDashboard() {
   const monthlyRevenue = monthlyPayments.reduce((s, p) => s + Number(p.amount), 0);
   const monthCost = (costs ?? []).find((c) => c.month === month && c.year === year);
   const monthlyCosts = monthCost
-    ? Number(monthCost.coach_salary) + Number(monthCost.court_rental)
+    ? Number(monthCost.coach_fee_per_session) * Number(monthCost.sessions_per_month) +
+      Number(monthCost.court_rental)
     : 0;
   const net = monthlyRevenue - monthlyCosts;
 

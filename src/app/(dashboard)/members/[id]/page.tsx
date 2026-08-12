@@ -131,9 +131,15 @@ export default function MemberDetailsPage() {
                   <Badge variant="secondary">
                     {member.role === "admin" ? t("role_admin") : t("role_member")}
                   </Badge>
-                  <Badge variant={member.membership_type === "half" ? "outline" : "default"}>
-                    {member.membership_type === "half" ? t("membership_half") : t("membership_full")}
-                  </Badge>
+                  {member.subscription_sessions > 0 ? (
+                    <Badge variant={member.membership_type === "half" ? "outline" : "default"}>
+                      {member.membership_type === "half" ? t("membership_half") : t("membership_full")}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-muted-foreground">
+                      {t("membership_none")}
+                    </Badge>
+                  )}
                   {!loadingPayments && (
                     <Badge variant={hasPaid ? "success" : "destructive"} className="gap-1">
                       {hasPaid ? (
@@ -189,7 +195,9 @@ export default function MemberDetailsPage() {
                   {t("member_remaining")}
                 </span>
                 <span className="font-semibold">
-                  {remaining} / {member.subscription_sessions}
+                  {member.subscription_sessions > 0
+                    ? `${remaining} / ${member.subscription_sessions}`
+                    : t("membership_none")}
                 </span>
               </div>
               <Progress
