@@ -71,6 +71,14 @@ export interface SessionCalculation {
   calculated_at: string;
 }
 
+export interface SessionGuest {
+  id: string;
+  session_id: string;
+  name: string;
+  amount_paid: number;
+  created_at: string;
+}
+
 export interface MemberWithPayments extends Profile {
   payments: Payment[];
 }

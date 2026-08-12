@@ -5,6 +5,7 @@ import type {
   Payment,
   Profile,
   SessionCalculation,
+  SessionGuest,
   TrainingSession,
 } from "@/lib/types";
 
@@ -30,7 +31,8 @@ export function memberPerSessionValue(
 
 export function computeSessionRevenue(
   attendance: Attendance[],
-  payments: Payment[]
+  payments: Payment[],
+  guests: SessionGuest[] = []
 ): number {
   const present = attendance.filter((a) => a.is_present);
   const byMember = new Map<string, number>();
@@ -42,6 +44,9 @@ export function computeSessionRevenue(
   let total = 0;
   for (const memberId of byMember.keys()) {
     total += memberPerSessionValue(memberId, payments);
+  }
+  for (const g of guests) {
+    total += Number(g.amount_paid);
   }
   return round2(total);
 }
@@ -71,14 +76,15 @@ export function buildSessionCalculation(
   session: TrainingSession,
   attendance: Attendance[],
   payments: Payment[],
-  monthlyCosts: MonthlyCost[]
+  monthlyCosts: MonthlyCost[],
+  guests: SessionGuest[] = []
 ): SessionCalculation {
   const d = new Date(session.date + "T00:00:00");
   const month = d.getMonth() + 1;
   const year = d.getFullYear();
   const cost = monthlyCosts.find((c) => c.month === month && c.year === year);
   const costPerSession = cost?.cost_per_session ?? 0;
-  const revenue = computeSessionRevenue(attendance, payments);
+  const revenue = computeSessionRevenue(attendance, payments, guests);
   return {
     id: `client-${session.id}`,
     session_id: session.id,

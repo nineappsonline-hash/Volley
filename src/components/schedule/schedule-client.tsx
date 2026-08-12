@@ -30,8 +30,10 @@ import {
   useDeleteSession,
   useSaveSession,
   useSessionCalculations,
+  useSessionGuests,
   useSessions,
 } from "@/lib/queries";
+import { useRealtime } from "@/lib/useRealtime";
 import type { SessionStatus } from "@/lib/types";
 import type { TrainingSession } from "@/lib/types";
 
@@ -46,6 +48,10 @@ export function ScheduleClient({
   const { data: sessions, isLoading } = useSessions();
   const { data: counts } = useAttendanceCounts();
   const { data: calculations } = useSessionCalculations();
+  const { data: guests } = useSessionGuests();
+
+  // Realtime: guest additions/edits and attendance show up without a refresh.
+  useRealtime(["session_guests", "session_calculations", "attendance"]);
   const deleteSession = useDeleteSession();
   const saveSession = useSaveSession();
 
@@ -59,6 +65,16 @@ export function ScheduleClient({
     () => new Map((calculations ?? []).map((c) => [c.session_id, c])),
     [calculations]
   );
+
+  const guestsBySession = useMemo(() => {
+    const map = new Map<string, typeof guests>();
+    for (const g of guests ?? []) {
+      const arr = map.get(g.session_id);
+      if (arr) arr.push(g);
+      else map.set(g.session_id, [g]);
+    }
+    return map;
+  }, [guests]);
 
   const sortedSessions = useMemo(
     () =>
@@ -142,6 +158,7 @@ export function ScheduleClient({
                     key={s.id}
                     session={s}
                     presentCount={counts?.[s.id]?.present}
+                    guests={guestsBySession.get(s.id) ?? []}
                     calculation={calcBySession.get(s.id) ?? null}
                     onOpenDetails={() => setDetails(s)}
                     onEdit={

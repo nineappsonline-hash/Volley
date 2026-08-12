@@ -26,6 +26,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ProfitLossIndicator } from "@/components/shared/profit-loss-indicator";
+import { GuestManager } from "@/components/schedule/guest-manager";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney, sessionsForMembership } from "@/lib/constants";
 import { memberPerSessionValue } from "@/lib/calculations";
@@ -37,6 +38,7 @@ import {
   usePayments,
   useProfiles,
   useSessionCalculations,
+  useSessionGuests,
 } from "@/lib/queries";
 import { initials } from "@/lib/utils";
 import type { TrainingSession } from "@/lib/types";
@@ -71,6 +73,7 @@ export function SessionDetailsDialog({
   // monthly_costs is admin-only; members read the safe view instead.
   const { data: memberCosts } = useMemberSessionCosts();
   const { data: calculations } = useSessionCalculations();
+  const { data: guests } = useSessionGuests(session?.id);
 
   // Admins list members from profiles; members get the names-only roster view.
   const members = useMemo(
@@ -109,8 +112,11 @@ export function SessionDetailsDialog({
     for (const m of attendees) {
       sum += memberPerSessionValue(m.id, payments ?? []);
     }
+    for (const g of guests ?? []) {
+      sum += Number(g.amount_paid);
+    }
     return Math.round(sum * 100) / 100;
-  }, [attendees, payments]);
+  }, [attendees, payments, guests]);
 
   const monthCost = useMemo(() => {
     if (!session) return undefined;
@@ -299,6 +305,8 @@ export function SessionDetailsDialog({
               <>
                 {attendeesSection}
 
+                {session && <GuestManager sessionId={session.id} isAdmin />}
+
                 {/* Revenue breakdown */}
                 <section className="space-y-2">
                   <h4 className="flex items-center gap-2 text-sm font-bold">
@@ -438,6 +446,7 @@ export function SessionDetailsDialog({
                 )}
 
                 {attendeesSection}
+                {session && <GuestManager sessionId={session.id} isAdmin={false} />}
                 {memberFinancials}
               </>
             )}

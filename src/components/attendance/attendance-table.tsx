@@ -15,6 +15,7 @@ import {
   usePayments,
   useProfiles,
   useSessionCalculations,
+  useSessionGuests,
   useUpsertAttendance,
 } from "@/lib/queries";
 import { useRealtime } from "@/lib/useRealtime";
@@ -38,13 +39,14 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
   const { data: attendance } = useAttendance(session.id);
   const { data: monthlyCosts } = useMonthlyCosts();
   const { data: calculations } = useSessionCalculations();
+  const { data: guests } = useSessionGuests(session.id);
   const upsert = useUpsertAttendance();
 
   const [saving, setSaving] = useState(false);
   const [pending, setPending] = useState<Record<string, boolean | undefined>>({});
 
-  // Realtime: keep everything in sync when attendance changes
-  useRealtime(["attendance", "session_calculations"]);
+  // Realtime: keep everything in sync when attendance/guests change
+  useRealtime(["attendance", "session_calculations", "session_guests"]);
 
   const members = useMemo(
     () => (profiles ?? []).filter((p) => p.role === "member"),
@@ -94,7 +96,8 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
       session,
       effectiveAttendance,
       payments,
-      monthlyCosts ?? []
+      monthlyCosts ?? [],
+      guests ?? []
     );
     const hasPending = Object.values(pending).some((p) => p !== undefined);
     if (hasPending) return clientCalc;
@@ -102,7 +105,7 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
     return (
       (calculations ?? []).find((c) => c.session_id === session.id) ?? clientCalc
     );
-  }, [attendance, payments, calculations, monthlyCosts, session, effectiveAttendance, pending]);
+  }, [attendance, payments, calculations, monthlyCosts, session, effectiveAttendance, pending, guests]);
 
   const presentCount = useMemo(
     () => effectiveAttendance.filter((a) => a.is_present).length,

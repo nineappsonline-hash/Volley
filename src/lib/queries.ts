@@ -8,6 +8,7 @@ import type {
   Payment,
   Profile,
   SessionCalculation,
+  SessionGuest,
   TrainingSession,
 } from "@/lib/types";
 
@@ -21,6 +22,8 @@ export const queryKeys = {
     ["attendance", sessionId ?? "all"] as const,
   costs: ["costs"] as const,
   calculations: ["calculations"] as const,
+  guests: (sessionId?: string) =>
+    ["guests", sessionId ?? "all"] as const,
 };
 
 const supabase = () => createClient();
@@ -233,6 +236,22 @@ export function useSessionCalculations() {
   });
 }
 
+export function useSessionGuests(sessionId?: string) {
+  return useQuery({
+    queryKey: queryKeys.guests(sessionId),
+    queryFn: async () => {
+      let q = supabase().from("session_guests").select("*");
+      if (sessionId) q = q.eq("session_id", sessionId);
+      const { data, error } = await q.order("created_at");
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((g) => ({
+        ...g,
+        amount_paid: Number(g.amount_paid),
+      })) as SessionGuest[];
+    },
+  });
+}
+
 export function useAttendanceCounts() {
   return useQuery({
     queryKey: [...queryKeys.attendance(), "counts"],
@@ -327,6 +346,56 @@ export function useBulkCreateSessions() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sessions"] });
       qc.invalidateQueries({ queryKey: ["calculations"] });
+    },
+  });
+}
+
+export function useSaveGuest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      guest: Partial<SessionGuest> & {
+        session_id: string;
+        name: string;
+        amount_paid: number;
+      }
+    ) => {
+      const { error } = guest.id
+        ? await supabase()
+            .from("session_guests")
+            .update({ name: guest.name, amount_paid: guest.amount_paid })
+            .eq("id", guest.id)
+        : await supabase()
+            .from("session_guests")
+            .insert({
+              session_id: guest.session_id,
+              name: guest.name,
+              amount_paid: guest.amount_paid,
+            });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["guests"] });
+      qc.invalidateQueries({ queryKey: ["calculations"] });
+      qc.invalidateQueries({ queryKey: ["sessions"] });
+    },
+  });
+}
+
+export function useDeleteGuest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase()
+        .from("session_guests")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["guests"] });
+      qc.invalidateQueries({ queryKey: ["calculations"] });
+      qc.invalidateQueries({ queryKey: ["sessions"] });
     },
   });
 }

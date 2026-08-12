@@ -61,6 +61,16 @@ CREATE TABLE IF NOT EXISTS public.attendance (
   UNIQUE(session_id, member_id)
 );
 
+-- Guests table: walk-in players who pay per single session.
+CREATE TABLE IF NOT EXISTS public.session_guests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID NOT NULL REFERENCES public.training_sessions(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  amount_paid DECIMAL(10, 2) NOT NULL DEFAULT 0 CHECK (amount_paid >= 0),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_session_guests_session ON public.session_guests(session_id);
+
 -- Costs table
 CREATE TABLE IF NOT EXISTS public.monthly_costs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -155,6 +165,7 @@ SET search_path = public
 AS $$
 DECLARE
   v_revenue NUMERIC := 0;
+  v_guest_revenue NUMERIC := 0;
   v_cost NUMERIC := 0;
   v_month INTEGER;
   v_year INTEGER;
@@ -184,6 +195,13 @@ BEGIN
     LIMIT 1
   )
   WHERE a.session_id = p_session_id AND a.is_present;
+
+  -- Revenue: guest walk-in payments
+  SELECT COALESCE(SUM(g.amount_paid), 0)
+  INTO v_guest_revenue
+  FROM public.session_guests g
+  WHERE g.session_id = p_session_id;
+  v_revenue := v_revenue + v_guest_revenue;
 
   -- Cost for the session's month
   SELECT EXTRACT(MONTH FROM s.date)::INT, EXTRACT(YEAR FROM s.date)::INT
@@ -224,6 +242,24 @@ DROP TRIGGER IF EXISTS attendance_recompute ON public.attendance;
 CREATE TRIGGER attendance_recompute
   AFTER INSERT OR UPDATE OR DELETE ON public.attendance
   FOR EACH ROW EXECUTE FUNCTION public.trigger_recompute_on_attendance();
+
+-- Recompute when guests change (guest payments add to session revenue)
+CREATE OR REPLACE FUNCTION public.trigger_recompute_on_guest()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  PERFORM public.recompute_session_calculation(COALESCE(NEW.session_id, OLD.session_id));
+  RETURN COALESCE(NEW, OLD);
+END;
+$$;
+
+DROP TRIGGER IF EXISTS guest_recompute ON public.session_guests;
+CREATE TRIGGER guest_recompute
+  AFTER INSERT OR UPDATE OR DELETE ON public.session_guests
+  FOR EACH ROW EXECUTE FUNCTION public.trigger_recompute_on_guest();
 
 -- Recompute affected sessions when a payment changes
 CREATE OR REPLACE FUNCTION public.trigger_recompute_on_payment()
@@ -362,6 +398,7 @@ ALTER TABLE public.training_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.monthly_costs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.session_calculations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.session_guests ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Admins have full access" ON public.profiles;
 CREATE POLICY "Admins have full access" ON public.profiles
@@ -432,6 +469,16 @@ DROP POLICY IF EXISTS "Members view own attendance" ON public.attendance;
 CREATE POLICY "Members view attendance" ON public.attendance
   FOR SELECT USING (auth.role() = 'authenticated');
 
+-- session_guests: admins manage; members may view (guest names + amounts are
+-- part of the per-session financial summary members can see).
+DROP POLICY IF EXISTS "Admins manage guests" ON public.session_guests;
+CREATE POLICY "Admins manage guests" ON public.session_guests
+  FOR ALL USING (auth.jwt() -> 'app_metadata' ->> 'role' = 'admin');
+
+DROP POLICY IF EXISTS "Members view guests" ON public.session_guests;
+CREATE POLICY "Members view guests" ON public.session_guests
+  FOR SELECT USING (auth.role() = 'authenticated');
+
 -- monthly_costs: admins manage; members never read the raw table (it holds
 -- coach salary / court rental). They only see cost_per_session via the view below.
 DROP POLICY IF EXISTS "Admins manage costs" ON public.monthly_costs;
@@ -478,6 +525,8 @@ BEGIN
   BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.payments;
   EXCEPTION WHEN duplicate_object THEN NULL; END;
   BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.training_sessions;
+  EXCEPTION WHEN duplicate_object THEN NULL; END;
+  BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.session_guests;
   EXCEPTION WHEN duplicate_object THEN NULL; END;
 END
 $$;

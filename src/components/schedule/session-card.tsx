@@ -9,6 +9,7 @@ import {
   RotateCcw,
   StickyNote,
   Trash2,
+  UserRound,
   Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -17,11 +18,12 @@ import { ProfitLossIndicator } from "@/components/shared/profit-loss-indicator";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import type { SessionCalculation, TrainingSession } from "@/lib/types";
+import type { SessionCalculation, SessionGuest, TrainingSession } from "@/lib/types";
 
 interface SessionCardProps {
   session: TrainingSession;
   presentCount?: number;
+  guests?: SessionGuest[];
   calculation?: SessionCalculation | null;
   onOpenDetails?: () => void;
   onEdit?: () => void;
@@ -34,6 +36,7 @@ interface SessionCardProps {
 export function SessionCard({
   session,
   presentCount,
+  guests,
   calculation,
   onOpenDetails,
   onEdit,
@@ -122,21 +125,30 @@ export function SessionCard({
             </p>
           )}
           <div className="flex items-center justify-between pt-1">
-            {!canceled && (
-              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Users className="h-4 w-4" />
-                {presentCount !== undefined ? (
-                  <>
-                    <span className="font-semibold text-foreground">
-                      {presentCount}
-                    </span>
-                    {t("schedule_attending")}
-                  </>
-                ) : (
-                  t("common_not_set")
-                )}
-              </span>
-            )}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              {!canceled && (
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Users className="h-4 w-4" />
+                  {presentCount !== undefined ? (
+                    <>
+                      <span className="font-semibold text-foreground">
+                        {presentCount}
+                      </span>
+                      {t("schedule_attending")}
+                    </>
+                  ) : (
+                    t("common_not_set")
+                  )}
+                </span>
+              )}
+              {!canceled && guests && guests.length > 0 && (
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <UserRound className="h-4 w-4" />
+                  <span className="font-semibold text-foreground">{guests.length}</span>
+                  {t("guests_short")}
+                </span>
+              )}
+            </div>
             <div className="flex flex-wrap items-center gap-2.5">
               {!completed && !canceled && onMarkAttendance && (
                 <button
@@ -206,6 +218,17 @@ export function SessionCard({
               <span className="text-muted-foreground">{t("attendance_revenue")}</span>
               <span className="font-mono font-semibold">
                 {formatMoney(calculation.total_revenue, lang)}
+              </span>
+            </div>
+          )}
+          {!hasFinances && guests && guests.length > 0 && (
+            <div className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-1.5 text-xs">
+              <span className="text-muted-foreground">{t("guests_revenue")}</span>
+              <span className="font-mono font-semibold">
+                {formatMoney(
+                  guests.reduce((s, g) => s + Number(g.amount_paid), 0),
+                  lang
+                )}
               </span>
             </div>
           )}

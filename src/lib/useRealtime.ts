@@ -10,7 +10,8 @@ type TableName =
   | "training_sessions"
   | "profiles"
   | "monthly_costs"
-  | "session_calculations";
+  | "session_calculations"
+  | "session_guests";
 
 const queryKeyForTable: Record<TableName, string[]> = {
   attendance: ["attendance"],
@@ -19,6 +20,7 @@ const queryKeyForTable: Record<TableName, string[]> = {
   profiles: ["profiles"],
   monthly_costs: ["costs"],
   session_calculations: ["calculations"],
+  session_guests: ["guests"],
 };
 
 /**
