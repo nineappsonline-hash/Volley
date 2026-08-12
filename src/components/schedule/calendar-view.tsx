@@ -62,7 +62,7 @@ export function CalendarView({ sessions, onSelectSession }: CalendarViewProps) {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between gap-2">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-1">
           <Button
             variant="outline"

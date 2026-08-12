@@ -33,7 +33,10 @@ export function Notifications() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0">
+      <PopoverContent
+        align="end"
+        className="w-[min(20rem,calc(100vw-2rem))] p-0"
+      >
         <div className="border-b p-3 font-semibold">{t("notif_title")}</div>
         <div className="max-h-80 overflow-y-auto p-2">
           {upcoming && upcoming.length > 0 && (

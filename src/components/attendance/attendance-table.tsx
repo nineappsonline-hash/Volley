@@ -228,7 +228,7 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
         )}
       </div>
 
-      <div className="overflow-hidden rounded-xl border">
+      <div className="overflow-x-auto rounded-xl border">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/50">
