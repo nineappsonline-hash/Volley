@@ -16,6 +16,16 @@ import {
   Trash2,
   XCircle,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,6 +48,7 @@ import {
   useProfile,
   useSessions,
 } from "@/lib/queries";
+import type { Payment } from "@/lib/types";
 
 export default function MemberDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -49,6 +60,8 @@ export default function MemberDetailsPage() {
   const deletePayment = useDeletePayment();
 
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
+  const [deletingPayment, setDeletingPayment] = useState<Payment | null>(null);
 
   const myAttendance = useMemo(
     () => (attendance ?? []).filter((a) => a.member_id === id),
@@ -85,12 +98,15 @@ export default function MemberDetailsPage() {
     return <EmptyState message={t("members_no_results")} />;
   }
 
-  const handleDeletePayment = async (paymentId: string) => {
+  const handleDeletePayment = async () => {
+    if (!deletingPayment) return;
     try {
-      await deletePayment.mutateAsync(paymentId);
+      await deletePayment.mutateAsync(deletingPayment.id);
       toast.success(t("member_payment_deleted"));
     } catch {
       toast.error(t("common_error"));
+    } finally {
+      setDeletingPayment(null);
     }
   };
 
@@ -106,7 +122,13 @@ export default function MemberDetailsPage() {
             {t("nav_members")}
           </Link>
         </Button>
-        <Button size="sm" onClick={() => setPaymentOpen(true)}>
+        <Button
+          size="sm"
+          onClick={() => {
+            setEditingPayment(null);
+            setPaymentOpen(true);
+          }}
+        >
           <BadgePlus className="h-4 w-4" />
           {t("member_add_payment")}
         </Button>
@@ -222,7 +244,14 @@ export default function MemberDetailsPage() {
               <CreditCard className="h-4 w-4 text-primary" />
               {t("member_payment_history")}
             </CardTitle>
-            <Button variant="outline" size="sm" onClick={() => setPaymentOpen(true)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setEditingPayment(null);
+                setPaymentOpen(true);
+              }}
+            >
               <BadgePlus className="h-4 w-4" />
               {t("member_add_payment")}
             </Button>
@@ -237,7 +266,7 @@ export default function MemberDetailsPage() {
                 {payments.map((p) => (
                   <div
                     key={p.id}
-                    className="flex items-center justify-between rounded-lg border p-3"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3"
                   >
                     <div>
                       <p className="font-mono font-bold">
@@ -252,14 +281,28 @@ export default function MemberDetailsPage() {
                         {p.notes ? ` · ${p.notes}` : ""}
                       </p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => handleDeletePayment(p.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={t("common_edit")}
+                        onClick={() => {
+                          setEditingPayment(p);
+                          setPaymentOpen(true);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={t("common_delete")}
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => setDeletingPayment(p)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -303,11 +346,38 @@ export default function MemberDetailsPage() {
 
       <PaymentFormDialog
         open={paymentOpen}
-        onOpenChange={setPaymentOpen}
+        onOpenChange={(open) => {
+          setPaymentOpen(open);
+          if (!open) setEditingPayment(null);
+        }}
         memberId={member.id}
         memberName={member.name}
         defaultSessions={member.subscription_sessions}
+        payment={editingPayment}
       />
+
+      <AlertDialog
+        open={!!deletingPayment}
+        onOpenChange={(open) => { if (!open) setDeletingPayment(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("member_delete_payment_title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("member_delete_payment_confirm")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common_cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDeletePayment}
+            >
+              {t("common_delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

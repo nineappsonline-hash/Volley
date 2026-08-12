@@ -34,7 +34,8 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { sessionsForMembership } from "@/lib/constants";
 import { todayInput } from "@/lib/utils";
-import { useSavePayment } from "@/lib/queries";
+import { useSavePayment, useUpdatePayment } from "@/lib/queries";
+import type { Payment } from "@/lib/types";
 
 const schema = (t: (k: any) => string) =>
   z.object({
@@ -52,6 +53,8 @@ interface PaymentFormDialogProps {
   memberId: string;
   memberName: string;
   defaultSessions?: number;
+  /** When set, the dialog edits this payment instead of creating a new one. */
+  payment?: Payment | null;
 }
 
 export function PaymentFormDialog({
@@ -60,10 +63,14 @@ export function PaymentFormDialog({
   memberId,
   memberName,
   defaultSessions = 8,
+  payment = null,
 }: PaymentFormDialogProps) {
   const { t } = useI18n();
   const savePayment = useSavePayment();
+  const updatePayment = useUpdatePayment();
   const [submitting, setSubmitting] = useState(false);
+
+  const isEditing = !!payment;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema(t)),
@@ -76,31 +83,48 @@ export function PaymentFormDialog({
     },
   });
 
-  // Refresh the form with the member's current plan whenever the dialog opens.
+  // Refresh the form whenever the dialog opens — prefilled when editing.
   useEffect(() => {
     if (open) {
-      form.reset({
-        amount: undefined as unknown as number,
-        payment_date: todayInput(),
-        membership_type:
-          defaultSessions > 0 && defaultSessions <= 4 ? "half" : "full",
-        notes: "",
-      });
+      if (payment) {
+        form.reset({
+          amount: Number(payment.amount),
+          payment_date: payment.payment_date,
+          membership_type: payment.membership_type,
+          notes: payment.notes ?? "",
+        });
+      } else {
+        form.reset({
+          amount: undefined as unknown as number,
+          payment_date: todayInput(),
+          membership_type:
+            defaultSessions > 0 && defaultSessions <= 4 ? "half" : "full",
+          notes: "",
+        });
+      }
     }
-  }, [open, defaultSessions, form]);
+  }, [open, payment, defaultSessions, form]);
 
   const onSubmit = async (values: FormValues) => {
     setSubmitting(true);
     try {
-      await savePayment.mutateAsync({
-        member_id: memberId,
+      const payload = {
         amount: values.amount,
         payment_date: values.payment_date,
         membership_type: values.membership_type,
         subscription_sessions: sessionsForMembership(values.membership_type),
         notes: values.notes || null,
-      });
-      toast.success(t("member_payment_added"));
+      };
+      if (payment) {
+        await updatePayment.mutateAsync({ id: payment.id, ...payload });
+        toast.success(t("member_payment_updated"));
+      } else {
+        await savePayment.mutateAsync({
+          member_id: memberId,
+          ...payload,
+        });
+        toast.success(t("member_payment_added"));
+      }
       onOpenChange(false);
       form.reset();
     } catch {
@@ -116,7 +140,8 @@ export function PaymentFormDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BadgeDollarSign className="h-5 w-5 text-primary" />
-            {t("member_add_payment")} — {memberName}
+            {isEditing ? t("member_edit_payment") : t("member_add_payment")} —{" "}
+            {memberName}
           </DialogTitle>
           <DialogDescription>
             {t("member_payment_notes_placeholder")}

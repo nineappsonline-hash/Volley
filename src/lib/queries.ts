@@ -346,6 +346,25 @@ export function useSavePayment() {
   });
 }
 
+export function useUpdatePayment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payment: Partial<Payment> & { id: string }) => {
+      const { id, ...updates } = payment;
+      const { error } = await supabase()
+        .from("payments")
+        .update(updates)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["payments"] });
+      qc.invalidateQueries({ queryKey: ["profiles"] });
+      qc.invalidateQueries({ queryKey: ["calculations"] });
+    },
+  });
+}
+
 export function useDeletePayment() {
   const qc = useQueryClient();
   return useMutation({
@@ -355,6 +374,7 @@ export function useDeletePayment() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["payments"] });
+      qc.invalidateQueries({ queryKey: ["profiles"] });
       qc.invalidateQueries({ queryKey: ["calculations"] });
     },
   });
