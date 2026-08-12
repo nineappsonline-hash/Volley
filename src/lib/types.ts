@@ -1,5 +1,7 @@
 export type Role = "admin" | "member";
 
+export type SessionStatus = "scheduled" | "completed" | "canceled";
+
 export interface Profile {
   id: string;
   email: string;
@@ -29,6 +31,7 @@ export interface TrainingSession {
   location: string | null;
   notes: string | null;
   is_completed: boolean;
+  status: SessionStatus;
   created_at: string;
 }
 

@@ -154,9 +154,11 @@ export function CalendarView({ sessions, onSelectSession }: CalendarViewProps) {
                   key={s.id}
                   className={cn(
                     "truncate rounded px-1 py-0.5 text-[10px] font-medium",
-                    s.is_completed
-                      ? "bg-muted text-muted-foreground line-through"
-                      : "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300"
+                    s.status === "canceled"
+                      ? "bg-red-100 text-red-700 line-through dark:bg-red-500/20 dark:text-red-300"
+                      : s.status === "completed"
+                        ? "bg-muted text-muted-foreground line-through"
+                        : "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300"
                   )}
                 >
                   {s.time.slice(0, 5)}

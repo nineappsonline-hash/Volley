@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS public.training_sessions (
   location TEXT,
   notes TEXT,
   is_completed BOOLEAN NOT NULL DEFAULT FALSE,
+  status TEXT NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'completed', 'canceled')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_training_date ON public.training_sessions(date);
@@ -155,6 +156,12 @@ BEGIN
     RETURN;
   END IF;
 
+  -- Canceled sessions are excluded from financial calculations.
+  IF EXISTS (SELECT 1 FROM public.training_sessions WHERE id = p_session_id AND status = 'canceled') THEN
+    DELETE FROM public.session_calculations WHERE session_id = p_session_id;
+    RETURN;
+  END IF;
+
   -- Revenue: sum of (latest payment / subscription_sessions) for attending members
   SELECT COALESCE(SUM(p.amount / NULLIF(p.subscription_sessions, 0)), 0)
   INTO v_revenue
@@ -248,6 +255,29 @@ DROP TRIGGER IF EXISTS costs_recompute ON public.monthly_costs;
 CREATE TRIGGER costs_recompute
   AFTER INSERT OR UPDATE OR DELETE ON public.monthly_costs
   FOR EACH ROW EXECUTE FUNCTION public.trigger_recompute_on_costs();
+
+-- Recompute/clear calculations when a session is created or its status changes
+-- (canceled sessions are removed from the financials).
+CREATE OR REPLACE FUNCTION public.trigger_recompute_on_session_status()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.status = 'canceled' THEN
+    DELETE FROM public.session_calculations WHERE session_id = NEW.id;
+  ELSE
+    PERFORM public.recompute_session_calculation(NEW.id);
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS session_status_recompute ON public.training_sessions;
+CREATE TRIGGER session_status_recompute
+  AFTER UPDATE OF status ON public.training_sessions
+  FOR EACH ROW EXECUTE FUNCTION public.trigger_recompute_on_session_status();
 
 -- Keep profiles.sessions_attended in sync
 CREATE OR REPLACE FUNCTION public.sync_sessions_attended()

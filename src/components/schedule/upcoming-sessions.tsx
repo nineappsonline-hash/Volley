@@ -65,7 +65,7 @@ export function UpcomingSessions({ isAdmin }: { isAdmin: boolean }) {
                 )}
               </p>
             </div>
-            {isAdmin && !s.is_completed && (
+            {isAdmin && s.status === "scheduled" && (
               <Button asChild variant="outline" size="sm">
                 <Link href={`/attendance?session=${s.id}`}>{t("nav_attendance")}</Link>
               </Button>

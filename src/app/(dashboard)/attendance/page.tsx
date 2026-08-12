@@ -28,7 +28,7 @@ function AttendanceContent() {
   const upcoming = useMemo(
     () =>
       [...(sessions ?? [])]
-        .filter((s) => !s.is_completed)
+        .filter((s) => s.status === "scheduled")
         .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)),
     [sessions]
   );

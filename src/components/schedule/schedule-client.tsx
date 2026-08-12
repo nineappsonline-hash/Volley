@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CalendarPlus } from "lucide-react";
+import { CalendarPlus, CalendarRange } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -20,15 +20,18 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { CalendarView } from "@/components/schedule/calendar-view";
 import { SessionFormDialog } from "@/components/schedule/session-form-dialog";
+import { MonthGeneratorDialog } from "@/components/schedule/month-generator-dialog";
 import { SessionCard } from "@/components/schedule/session-card";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
 import {
   useAttendanceCounts,
   useDeleteSession,
+  useSaveSession,
   useSessionCalculations,
   useSessions,
 } from "@/lib/queries";
+import type { SessionStatus } from "@/lib/types";
 import type { TrainingSession } from "@/lib/types";
 
 export function ScheduleClient({ isAdmin }: { isAdmin: boolean }) {
@@ -37,8 +40,10 @@ export function ScheduleClient({ isAdmin }: { isAdmin: boolean }) {
   const { data: counts } = useAttendanceCounts();
   const { data: calculations } = useSessionCalculations();
   const deleteSession = useDeleteSession();
+  const saveSession = useSaveSession();
 
   const [formOpen, setFormOpen] = useState(false);
+  const [genOpen, setGenOpen] = useState(false);
   const [editing, setEditing] = useState<TrainingSession | null>(null);
   const [deleting, setDeleting] = useState<TrainingSession | null>(null);
 
@@ -68,14 +73,35 @@ export function ScheduleClient({ isAdmin }: { isAdmin: boolean }) {
     }
   };
 
+  const handleSetStatus = async (id: string, status: SessionStatus) => {
+    try {
+      await saveSession.mutateAsync({ id, status });
+      toast.success(
+        status === "canceled" ? t("schedule_canceled_msg") : t("schedule_restored")
+      );
+    } catch (err) {
+      console.error("[schedule] status change failed", err);
+      toast.error(errorMessage(err, t("common_error")));
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader title={t("schedule_title")} subtitle={t("schedule_subtitle")}>
         {isAdmin && (
-          <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
-            <CalendarPlus className="h-4 w-4" />
-            {t("schedule_add")}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setGenOpen(true)}
+            >
+              <CalendarRange className="h-4 w-4" />
+              {t("schedule_generate")}
+            </Button>
+            <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
+              <CalendarPlus className="h-4 w-4" />
+              {t("schedule_add")}
+            </Button>
+          </div>
         )}
       </PageHeader>
 
@@ -115,10 +141,21 @@ export function ScheduleClient({ isAdmin }: { isAdmin: boolean }) {
                         : undefined
                     }
                     onMarkAttendance={
-                      isAdmin && !s.is_completed
+                      isAdmin && s.status === "scheduled"
                         ? () => window.location.assign(`/attendance?session=${s.id}`)
                         : undefined
                     }
+                    onCancel={
+                      isAdmin && s.status === "scheduled"
+                        ? () => handleSetStatus(s.id, "canceled")
+                        : undefined
+                    }
+                    onRestore={
+                      isAdmin && s.status === "canceled"
+                        ? () => handleSetStatus(s.id, "scheduled")
+                        : undefined
+                    }
+                    onDelete={isAdmin ? () => setDeleting(s) : undefined}
                   />
                 ))}
               </div>
@@ -130,6 +167,7 @@ export function ScheduleClient({ isAdmin }: { isAdmin: boolean }) {
       {isAdmin && (
         <>
           <SessionFormDialog open={formOpen} onOpenChange={setFormOpen} session={editing} />
+          <MonthGeneratorDialog open={genOpen} onOpenChange={setGenOpen} />
           <AlertDialog
             open={!!deleting}
             onOpenChange={(open) => { if (!open) setDeleting(null); }}

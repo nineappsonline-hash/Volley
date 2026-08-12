@@ -117,6 +117,7 @@ export function useUpcomingSessions() {
         .from("training_sessions")
         .select("*")
         .gte("date", today)
+        .neq("status", "canceled")
         .order("date")
         .limit(30);
       if (error) throw error;
@@ -220,7 +221,7 @@ export function useUpsertAttendance() {
 export function useSaveSession() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (session: Partial<TrainingSession> & { date: string; time: string }) => {
+    mutationFn: async (session: Partial<TrainingSession>) => {
       const { error } = session.id
         ? await supabase()
             .from("training_sessions")
@@ -246,6 +247,30 @@ export function useDeleteSession() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sessions"] });
       qc.invalidateQueries({ queryKey: ["attendance"] });
+      qc.invalidateQueries({ queryKey: ["calculations"] });
+    },
+  });
+}
+
+export function useBulkCreateSessions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      sessions: {
+        date: string;
+        time: string;
+        location: string | null;
+        notes: string | null;
+      }[]
+    ) => {
+      if (sessions.length === 0) return;
+      const { error } = await supabase()
+        .from("training_sessions")
+        .insert(sessions);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["sessions"] });
       qc.invalidateQueries({ queryKey: ["calculations"] });
     },
   });
