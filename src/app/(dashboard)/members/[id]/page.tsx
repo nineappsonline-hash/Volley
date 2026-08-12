@@ -134,19 +134,21 @@ export default function MemberDetailsPage() {
                   <Badge variant={member.membership_type === "half" ? "outline" : "default"}>
                     {member.membership_type === "half" ? t("membership_half") : t("membership_full")}
                   </Badge>
-                  <Badge variant={hasPaid ? "success" : "destructive"} className="gap-1">
-                    {hasPaid ? (
-                      <>
-                        <CheckCircle2 className="h-3 w-3" />
-                        {t("members_status_paid")}
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="h-3 w-3" />
-                        {t("members_status_unpaid")}
-                      </>
-                    )}
-                  </Badge>
+                  {!loadingPayments && (
+                    <Badge variant={hasPaid ? "success" : "destructive"} className="gap-1">
+                      {hasPaid ? (
+                        <>
+                          <CheckCircle2 className="h-3 w-3" />
+                          {t("members_status_paid")}
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="h-3 w-3" />
+                          {t("members_status_unpaid")}
+                        </>
+                      )}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
