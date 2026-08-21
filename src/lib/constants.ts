@@ -7,6 +7,33 @@ export const MEMBERSHIP_SESSIONS: Record<"full" | "half", number> = {
   half: 4,
 };
 
+// Payment collection methods (i18n keys: method_<value>).
+export const PAYMENT_METHODS = [
+  "cash",
+  "card",
+  "wallet",
+  "bank_transfer",
+  "other",
+] as const;
+
+// Skill levels (i18n keys: skill_<value>).
+export const SKILL_LEVELS = ["beginner", "intermediate", "advanced"] as const;
+
+// Expense categories (i18n keys: expense_cat_<value>).
+export const EXPENSE_CATEGORIES = [
+  "equipment",
+  "uniforms",
+  "tournament",
+  "travel",
+  "other",
+] as const;
+
+// Trial request statuses (i18n keys: trial_status_<value>).
+export const TRIAL_STATUSES = ["new", "contacted", "converted", "declined"] as const;
+
+/** Members whose remaining sessions are at or below this count get expiry alerts. */
+export const EXPIRY_ALERT_THRESHOLD = 1;
+
 export function sessionsForMembership(type: "full" | "half"): number {
   return MEMBERSHIP_SESSIONS[type] ?? DEFAULT_SUBSCRIPTION_SESSIONS;
 }

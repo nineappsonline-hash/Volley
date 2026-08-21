@@ -16,6 +16,9 @@ import { StatCard } from "@/components/shared/stat-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { UpcomingSessions } from "@/components/schedule/upcoming-sessions";
 import { ProfitLossIndicator } from "@/components/shared/profit-loss-indicator";
+import { AdminAlerts } from "@/components/dashboard/admin-alerts";
+import { AnnouncementsCard } from "@/components/dashboard/announcements-card";
+import { TrialsCard } from "@/components/dashboard/trials-card";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import {
@@ -98,6 +101,10 @@ export function AdminDashboard() {
           </>
         )}
       </div>
+
+      <AdminAlerts />
+      <AnnouncementsCard isAdmin />
+      <TrialsCard />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <UpcomingSessions isAdmin />

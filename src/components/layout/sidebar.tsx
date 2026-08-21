@@ -8,6 +8,9 @@ import {
   CreditCard,
   LayoutDashboard,
   LineChart,
+  Settings,
+  Trophy,
+  UserRound,
   Users,
   Volleyball,
 } from "lucide-react";
@@ -18,10 +21,13 @@ import type { Role } from "@/lib/types";
 const adminItems = [
   { href: "/dashboard", key: "nav_dashboard", icon: LayoutDashboard },
   { href: "/members", key: "nav_members", icon: Users },
+  { href: "/teams", key: "nav_teams", icon: Trophy },
+  { href: "/coaches", key: "nav_coaches", icon: UserRound },
   { href: "/schedule", key: "nav_schedule", icon: CalendarDays },
   { href: "/attendance", key: "nav_attendance", icon: ClipboardCheck },
   { href: "/costs", key: "nav_costs", icon: CreditCard },
   { href: "/reports", key: "nav_reports", icon: LineChart },
+  { href: "/settings", key: "nav_settings", icon: Settings },
 ] as const;
 
 const memberItems = [

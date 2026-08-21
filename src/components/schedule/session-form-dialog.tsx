@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { CalendarPlus } from "lucide-react";
+import { AlertTriangle, CalendarPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,9 +24,23 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
+import { SKILL_LEVELS } from "@/lib/constants";
 import { errorMessage, todayInput } from "@/lib/utils";
-import { useSaveSession } from "@/lib/queries";
+import {
+  useCoaches,
+  useSaveSession,
+  useSessions,
+  useSports,
+  useVenues,
+} from "@/lib/queries";
 import type { TrainingSession } from "@/lib/types";
 
 const schema = (t: (k: any) => string) =>
@@ -35,6 +49,11 @@ const schema = (t: (k: any) => string) =>
     time: z.string().min(1, t("field_required")),
     location: z.string().optional(),
     notes: z.string().optional(),
+    sport_id: z.string().optional(),
+    venue_id: z.string().optional(),
+    coach_id: z.string().optional(),
+    age_group: z.string().optional(),
+    skill_level: z.string().optional(),
   });
 
 type FormValues = z.infer<ReturnType<typeof schema>>;
@@ -53,6 +72,10 @@ export function SessionFormDialog({
   const { t } = useI18n();
   const isEdit = !!session;
   const saveSession = useSaveSession();
+  const { data: sports } = useSports();
+  const { data: venues } = useVenues();
+  const { data: coaches } = useCoaches();
+  const { data: sessions } = useSessions();
   const [submitting, setSubmitting] = useState(false);
 
   const form = useForm<FormValues>({
@@ -62,6 +85,11 @@ export function SessionFormDialog({
       time: "18:00",
       location: "",
       notes: "",
+      sport_id: "none",
+      venue_id: "none",
+      coach_id: "none",
+      age_group: "",
+      skill_level: "none",
     },
   });
 
@@ -72,9 +100,41 @@ export function SessionFormDialog({
         time: session?.time.slice(0, 5) ?? "18:00",
         location: session?.location ?? "",
         notes: session?.notes ?? "",
+        sport_id: session?.sport_id ?? "none",
+        venue_id: session?.venue_id ?? "none",
+        coach_id: session?.coach_id ?? "none",
+        age_group: session?.age_group ?? "",
+        skill_level: session?.skill_level ?? "none",
       });
     }
   }, [open, session, form]);
+
+  // When a venue is picked, prefill the free-text location if empty.
+  const onVenueChange = (venueId: string) => {
+    form.setValue("venue_id", venueId);
+    if (venueId !== "none") {
+      const venue = (venues ?? []).find((v) => v.id === venueId);
+      if (venue && !form.getValues("location")) {
+        form.setValue("location", venue.name);
+      }
+    }
+  };
+
+  // Venue conflict: another session at the same venue, date & time.
+  const conflict = useMemo(() => {
+    const venueId = form.watch("venue_id");
+    const date = form.watch("date");
+    const time = form.watch("time");
+    if (!venueId || venueId === "none" || !date || !time) return false;
+    return (sessions ?? []).some(
+      (s) =>
+        s.id !== session?.id &&
+        s.status !== "canceled" &&
+        s.venue_id === venueId &&
+        s.date === date &&
+        s.time.slice(0, 5) === time
+    );
+  }, [form, venues, sessions, session]);
 
   const onSubmit = async (values: FormValues) => {
     setSubmitting(true);
@@ -85,6 +145,14 @@ export function SessionFormDialog({
         time: values.time,
         location: values.location || null,
         notes: values.notes || null,
+        sport_id: values.sport_id === "none" ? null : values.sport_id,
+        venue_id: values.venue_id === "none" ? null : values.venue_id,
+        coach_id: values.coach_id === "none" ? null : values.coach_id,
+        age_group: values.age_group || null,
+        skill_level:
+          values.skill_level && values.skill_level !== "none"
+            ? (values.skill_level as "beginner" | "intermediate" | "advanced")
+            : null,
       });
       toast.success(t("schedule_saved"));
       onOpenChange(false);
@@ -135,19 +203,146 @@ export function SessionFormDialog({
               )}
             />
           </div>
-          <FormField
-            control={form.control}
-            name="location"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("schedule_location")}</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="sport_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("schedule_sport")}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">
+                        {t("schedule_sport_none")}
+                      </SelectItem>
+                      {(sports ?? []).map((sport) => (
+                        <SelectItem key={sport.id} value={sport.id}>
+                          {sport.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="venue_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("venue_label")}</FormLabel>
+                  <Select onValueChange={onVenueChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">{t("venue_none")}</SelectItem>
+                      {(venues ?? []).map((venue) => (
+                        <SelectItem key={venue.id} value={venue.id}>
+                          {venue.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="coach_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("coach_label")}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">{t("coach_none")}</SelectItem>
+                      {(coaches ?? []).map((coach) => (
+                        <SelectItem key={coach.id} value={coach.id}>
+                          {coach.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="skill_level"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("skill_level")}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">—</SelectItem>
+                      {SKILL_LEVELS.map((level) => (
+                        <SelectItem key={level} value={level}>
+                          {t(`skill_${level}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="age_group"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("age_group")}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t("age_group_placeholder")} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("schedule_location")}</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          {conflict && (
+            <p className="flex items-start gap-2 rounded-md border border-amber-300/60 bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+              {t("schedule_venue_conflict")}
+            </p>
+          )}
           <FormField
             control={form.control}
             name="notes"

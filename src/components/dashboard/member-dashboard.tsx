@@ -2,6 +2,7 @@
 
 import { format } from "date-fns";
 import {
+  AlarmClock,
   CalendarDays,
   CalendarClock,
   CreditCard,
@@ -16,8 +17,9 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { StatCard } from "@/components/shared/stat-card";
 import { EmptyState } from "@/components/shared/empty-state";
+import { AnnouncementsCard } from "@/components/dashboard/announcements-card";
 import { useI18n } from "@/lib/i18n";
-import { formatMoney } from "@/lib/constants";
+import { EXPIRY_ALERT_THRESHOLD, formatMoney } from "@/lib/constants";
 import { usedSessionsSincePayment } from "@/lib/calculations";
 import {
   useAllPayments,
@@ -82,6 +84,22 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
           </p>
         </div>
       )}
+      {hasPlan && remaining > 0 && remaining <= EXPIRY_ALERT_THRESHOLD && (
+        <div className="flex items-center gap-3 rounded-lg border border-amber-300/60 bg-amber-50 p-4 text-sm dark:bg-amber-500/10">
+          <AlarmClock className="h-5 w-5 shrink-0 text-amber-600" />
+          <p className="text-amber-800 dark:text-amber-300">
+            {t("alert_subscription_low").replace("{n}", String(remaining))}
+          </p>
+        </div>
+      )}
+      {hasPlan && remaining <= 0 && (
+        <div className="flex items-center gap-3 rounded-lg border border-red-300/60 bg-red-50 p-4 text-sm dark:bg-red-500/10">
+          <AlarmClock className="h-5 w-5 shrink-0 text-red-600" />
+          <p className="text-red-800 dark:text-red-300">
+            {t("alert_subscription_empty")}
+          </p>
+        </div>
+      )}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title={t("dash_my_remaining")}
@@ -117,6 +135,8 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
           tone={hasPlan ? (remaining > 0 ? "success" : "destructive") : "default"}
         />
       </div>
+
+      <AnnouncementsCard isAdmin={false} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>

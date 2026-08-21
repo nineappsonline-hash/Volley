@@ -41,6 +41,7 @@ export async function requireSession(opts?: { adminOnly?: boolean }): Promise<Se
 
   const fallback: Profile = {
     id: user.id,
+    academy_id: null,
     email: user.email ?? "",
     role,
     name:
@@ -53,6 +54,8 @@ export async function requireSession(opts?: { adminOnly?: boolean }): Promise<Se
     subscription_sessions: 0,
     sessions_attended: 0,
     is_active: true,
+    checkin_code: null,
+    last_reminded_at: null,
     created_at: new Date().toISOString(),
   };
 

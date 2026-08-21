@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { AttendanceTable } from "@/components/attendance/attendance-table";
+import { QuickCheckinCard } from "@/components/attendance/quick-checkin-card";
 import { useI18n } from "@/lib/i18n";
 import { useSessions } from "@/lib/queries";
 import type { TrainingSession } from "@/lib/types";
@@ -86,6 +87,8 @@ function AttendanceContent() {
               )}
             </CardContent>
           </Card>
+
+          {selected && <QuickCheckinCard sessionId={selected.id} />}
 
           {selected && <AttendanceTable session={selected} />}
         </>

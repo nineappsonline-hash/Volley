@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CalendarPlus, CalendarRange } from "lucide-react";
+import { CalendarCheck, CalendarPlus, CalendarRange, LayoutTemplate, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -21,17 +21,24 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { CalendarView } from "@/components/schedule/calendar-view";
 import { SessionFormDialog } from "@/components/schedule/session-form-dialog";
 import { MonthGeneratorDialog } from "@/components/schedule/month-generator-dialog";
+import { VenuesManagerDialog } from "@/components/schedule/venues-manager-dialog";
+import { TemplatesManagerDialog } from "@/components/schedule/templates-manager-dialog";
+import { CalendarExportDialog } from "@/components/schedule/calendar-export-dialog";
 import { SessionCard } from "@/components/schedule/session-card";
 import { SessionDetailsDialog } from "@/components/schedule/session-details-dialog";
 import { useI18n } from "@/lib/i18n";
-import { errorMessage } from "@/lib/utils";
+import { cn, errorMessage } from "@/lib/utils";
 import {
+  useAcademy,
   useAttendanceCounts,
+  useCoaches,
   useDeleteSession,
   useSaveSession,
   useSessionCalculations,
   useSessionGuests,
   useSessions,
+  useSports,
+  useVenues,
 } from "@/lib/queries";
 import { useRealtime } from "@/lib/useRealtime";
 import type { SessionStatus } from "@/lib/types";
@@ -49,6 +56,8 @@ export function ScheduleClient({
   const { data: counts } = useAttendanceCounts();
   const { data: calculations } = useSessionCalculations();
   const { data: guests } = useSessionGuests();
+  const { data: sports } = useSports();
+  const { data: academy } = useAcademy();
 
   // Realtime: guest additions/edits and attendance show up without a refresh.
   useRealtime(["session_guests", "session_calculations", "attendance"]);
@@ -57,9 +66,29 @@ export function ScheduleClient({
 
   const [formOpen, setFormOpen] = useState(false);
   const [genOpen, setGenOpen] = useState(false);
+  const [venuesOpen, setVenuesOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [calExportOpen, setCalExportOpen] = useState(false);
   const [editing, setEditing] = useState<TrainingSession | null>(null);
   const [deleting, setDeleting] = useState<TrainingSession | null>(null);
   const [details, setDetails] = useState<TrainingSession | null>(null);
+  const [sportFilter, setSportFilter] = useState<string>("all");
+
+  const sportNameById = useMemo(
+    () => new Map((sports ?? []).map((s) => [s.id, s.name])),
+    [sports]
+  );
+
+  const { data: coaches } = useCoaches();
+  const { data: venues } = useVenues();
+  const coachNameById = useMemo(
+    () => new Map((coaches ?? []).map((c) => [c.id, c.name])),
+    [coaches]
+  );
+  const venueNameById = useMemo(
+    () => new Map((venues ?? []).map((v) => [v.id, v.name])),
+    [venues]
+  );
 
   const calcBySession = useMemo(
     () => new Map((calculations ?? []).map((c) => [c.session_id, c])),
@@ -78,10 +107,17 @@ export function ScheduleClient({
 
   const sortedSessions = useMemo(
     () =>
-      [...(sessions ?? [])].sort((a, b) =>
-        (a.date + a.time).localeCompare(b.date + b.time)
-      ),
-    [sessions]
+      [...(sessions ?? [])]
+        .filter(
+          (s) =>
+            sportFilter === "all" ||
+            (sportFilter === "none" && !s.sport_id) ||
+            s.sport_id === sportFilter
+        )
+        .sort((a, b) =>
+          (a.date + a.time).localeCompare(b.date + b.time)
+        ),
+    [sessions, sportFilter]
   );
 
   const handleDelete = async () => {
@@ -112,8 +148,25 @@ export function ScheduleClient({
   return (
     <div className="space-y-6">
       <PageHeader title={t("schedule_title")} subtitle={t("schedule_subtitle")}>
+        {!isAdmin && academy?.calendar_token && (
+          <Button variant="outline" onClick={() => setCalExportOpen(true)}>
+            <CalendarCheck className="h-4 w-4" />
+            {t("cal_export")}
+          </Button>
+        )}
         {isAdmin && (
           <div className="flex flex-wrap gap-2">
+            <Button variant="ghost" size="icon" aria-label={t("venues_manage")} onClick={() => setVenuesOpen(true)}>
+              <MapPin className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" aria-label={t("tpl_manage")} onClick={() => setTemplatesOpen(true)}>
+              <LayoutTemplate className="h-4 w-4" />
+            </Button>
+            {academy?.calendar_token && (
+              <Button variant="ghost" size="icon" aria-label={t("cal_export")} onClick={() => setCalExportOpen(true)}>
+                <CalendarCheck className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => setGenOpen(true)}
@@ -128,6 +181,38 @@ export function ScheduleClient({
           </div>
         )}
       </PageHeader>
+
+      {(sports ?? []).length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setSportFilter("all")}
+            className={cn(
+              "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+              sportFilter === "all"
+                ? "border-primary/50 bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-accent"
+            )}
+          >
+            {t("schedule_filter_all")}
+          </button>
+          {(sports ?? []).map((sport) => (
+            <button
+              key={sport.id}
+              type="button"
+              onClick={() => setSportFilter(sport.id)}
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                sportFilter === sport.id
+                  ? "border-primary/50 bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-accent"
+              )}
+            >
+              {sport.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {isLoading ? (
         <Skeleton className="h-96 w-full" />
@@ -157,6 +242,17 @@ export function ScheduleClient({
                   <SessionCard
                     key={s.id}
                     session={s}
+                    sportName={sportNameById.get(s.sport_id ?? "") ?? null}
+                    coachName={
+                      s.coach_id
+                        ? coachNameById.get(s.coach_id) ?? null
+                        : null
+                    }
+                    venueName={
+                      s.venue_id
+                        ? venueNameById.get(s.venue_id) ?? null
+                        : null
+                    }
                     presentCount={counts?.[s.id]?.present}
                     guests={guestsBySession.get(s.id) ?? []}
                     calculation={calcBySession.get(s.id) ?? null}
@@ -200,10 +296,20 @@ export function ScheduleClient({
         memberId={memberId}
       />
 
+      {academy?.calendar_token && (
+        <CalendarExportDialog
+          open={calExportOpen}
+          onOpenChange={setCalExportOpen}
+          token={academy.calendar_token}
+        />
+      )}
+
       {isAdmin && (
         <>
           <SessionFormDialog open={formOpen} onOpenChange={setFormOpen} session={editing} />
           <MonthGeneratorDialog open={genOpen} onOpenChange={setGenOpen} />
+          <VenuesManagerDialog open={venuesOpen} onOpenChange={setVenuesOpen} />
+          <TemplatesManagerDialog open={templatesOpen} onOpenChange={setTemplatesOpen} />
           <AlertDialog
             open={!!deleting}
             onOpenChange={(open) => { if (!open) setDeleting(null); }}

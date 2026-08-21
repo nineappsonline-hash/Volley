@@ -23,6 +23,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
+import { CheckinQrCard } from "@/components/profile/checkin-qr-card";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import { usedSessionsSincePayment } from "@/lib/calculations";
@@ -195,6 +196,9 @@ export function ProfileClient({ serverProfile }: { serverProfile: Profile }) {
 
         {/* Middle column: subscription + payments */}
         <div className="space-y-6 lg:col-span-2">
+          {p.checkin_code && (
+            <CheckinQrCard code={p.checkin_code} memberName={p.name} />
+          )}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">

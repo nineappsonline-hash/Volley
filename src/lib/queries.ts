@@ -3,13 +3,24 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type {
+  Academy,
+  Announcement,
   Attendance,
+  Coach,
+  Expense,
+  MembershipPlan,
   MonthlyCost,
   Payment,
+  PlayerEvaluation,
   Profile,
+  ScheduleTemplate,
   SessionCalculation,
   SessionGuest,
+  Sport,
+  TeamWithDetails,
   TrainingSession,
+  TrialRequest,
+  Venue,
 } from "@/lib/types";
 
 export const queryKeys = {
@@ -24,6 +35,18 @@ export const queryKeys = {
   calculations: ["calculations"] as const,
   guests: (sessionId?: string) =>
     ["guests", sessionId ?? "all"] as const,
+  sports: ["sports"] as const,
+  teams: ["teams"] as const,
+  academy: ["academy"] as const,
+  announcements: ["announcements"] as const,
+  coaches: ["coaches"] as const,
+  venues: ["venues"] as const,
+  plans: ["plans"] as const,
+  expenses: ["expenses"] as const,
+  evaluations: (memberId?: string) =>
+    ["evaluations", memberId ?? "all"] as const,
+  templates: ["templates"] as const,
+  trials: ["trials"] as const,
 };
 
 const supabase = () => createClient();
@@ -271,6 +294,152 @@ export function useAttendanceCounts() {
   });
 }
 
+// ── Sports & Teams ──────────────────────────────────────────
+
+export function useSports() {
+  return useQuery({
+    queryKey: queryKeys.sports,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("sports")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return (data ?? []) as Sport[];
+    },
+  });
+}
+
+export function useSaveSport() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...sport }: Partial<Sport> & { name: string }) => {
+      const { error } = id
+        ? await supabase().from("sports").update({ name: sport.name }).eq("id", id)
+        : await supabase().from("sports").insert({ name: sport.name });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["sports"] });
+      qc.invalidateQueries({ queryKey: ["teams"] });
+    },
+  });
+}
+
+export function useDeleteSport() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase().from("sports").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["sports"] });
+      qc.invalidateQueries({ queryKey: ["teams"] });
+      qc.invalidateQueries({ queryKey: ["sessions"] });
+    },
+  });
+}
+
+export function useTeams() {
+  return useQuery({
+    queryKey: queryKeys.teams,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("teams")
+        .select(
+          `*,
+           sport:sports(id, name),
+           team_members(member_id, profile:profiles(id, name))`
+        )
+        .order("name");
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((team) => ({
+        ...team,
+        team_members: (team.team_members ?? []).filter((m: any) => m.profile),
+      })) as TeamWithDetails[];
+    },
+  });
+}
+
+export function useSaveTeam() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...team
+    }: Partial<TeamWithDetails> & { name: string }) => {
+      const payload = {
+        name: team.name,
+        sport_id: team.sport_id ?? null,
+        coach_id: team.coach_id ?? null,
+        age_group: team.age_group ?? null,
+        skill_level: team.skill_level ?? null,
+        description: team.description ?? null,
+      };
+      if (id) {
+        const { error } = await supabase()
+          .from("teams")
+          .update(payload)
+          .eq("id", id);
+        if (error) throw error;
+        return id;
+      }
+      const { data, error } = await supabase()
+        .from("teams")
+        .insert(payload)
+        .select("id")
+        .single();
+      if (error) throw error;
+      return (data as { id: string }).id;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["teams"] });
+    },
+  });
+}
+
+export function useDeleteTeam() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase().from("teams").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["teams"] });
+    },
+  });
+}
+
+/** Replace a team's whole roster with the given member ids. */
+export function useSetTeamMembers() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      team_id,
+      member_ids,
+    }: {
+      team_id: string;
+      member_ids: string[];
+    }) => {
+      const { error: delError } = await supabase()
+        .from("team_members")
+        .delete()
+        .eq("team_id", team_id);
+      if (delError) throw delError;
+      if (member_ids.length === 0) return;
+      const { error } = await supabase()
+        .from("team_members")
+        .insert(member_ids.map((member_id) => ({ team_id, member_id })));
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["teams"] });
+    },
+  });
+}
+
 // ── Mutations ───────────────────────────────────────────────
 
 export function useUpsertAttendance() {
@@ -335,6 +504,11 @@ export function useBulkCreateSessions() {
         time: string;
         location: string | null;
         notes: string | null;
+        sport_id?: string | null;
+        venue_id?: string | null;
+        coach_id?: string | null;
+        age_group?: string | null;
+        skill_level?: string | null;
       }[]
     ) => {
       if (sessions.length === 0) return;
@@ -404,8 +578,13 @@ export function useSavePayment() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (payment: Partial<Payment> & { member_id: string; amount: number; payment_date: string }) => {
-      const { error } = await supabase().from("payments").insert(payment);
+      const { data, error } = await supabase()
+        .from("payments")
+        .insert(payment)
+        .select("id")
+        .single();
       if (error) throw error;
+      return data.id as string;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["payments"] });
@@ -498,7 +677,7 @@ export function useSaveCosts() {
     }) => {
       const { error } = await supabase()
         .from("monthly_costs")
-        .upsert(costs, { onConflict: "month,year" });
+        .upsert(costs, { onConflict: "academy_id,month,year" });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -520,6 +699,513 @@ export function useUpdateOwnProfile() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["profiles"] });
+    },
+  });
+}
+
+// ── Academy (tenant settings) ───────────────────────────────
+
+export function useAcademy() {
+  return useQuery({
+    queryKey: queryKeys.academy,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("academies")
+        .select("*")
+        .maybeSingle();
+      if (error) throw error;
+      return data as Academy | null;
+    },
+  });
+}
+
+export function useUpdateAcademy() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Academy> & { id: string }) => {
+      const { error } = await supabase()
+        .from("academies")
+        .update(updates)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["academy"] });
+    },
+  });
+}
+
+// Public (no auth required): academy page by slug.
+export function usePublicAcademy(slug?: string) {
+  return useQuery({
+    queryKey: ["public-academy", slug],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("academies")
+        .select("id, name, description, is_public, slug")
+        .eq("slug", slug ?? "")
+        .eq("is_public", true)
+        .maybeSingle();
+      if (error) throw error;
+      return data as Pick<Academy, "id" | "name" | "description" | "is_public" | "slug"> | null;
+    },
+    enabled: !!slug,
+  });
+}
+
+// ── Announcements ───────────────────────────────────────────
+
+export function useAnnouncements() {
+  return useQuery({
+    queryKey: queryKeys.announcements,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("announcements")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return (data ?? []) as Announcement[];
+    },
+  });
+}
+
+export function useSaveAnnouncement() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...a
+    }: Partial<Announcement> & { title: string; body: string }) => {
+      const payload = { title: a.title, body: a.body };
+      const { error } = id
+        ? await supabase().from("announcements").update(payload).eq("id", id)
+        : await supabase().from("announcements").insert(payload);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["announcements"] });
+    },
+  });
+}
+
+export function useDeleteAnnouncement() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase().from("announcements").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["announcements"] });
+    },
+  });
+}
+
+// ── Coaches ─────────────────────────────────────────────────
+
+export function useCoaches() {
+  return useQuery({
+    queryKey: queryKeys.coaches,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("coaches")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((c) => ({
+        ...c,
+        monthly_salary: c.monthly_salary == null ? null : Number(c.monthly_salary),
+      })) as Coach[];
+    },
+  });
+}
+
+export function useSaveCoach() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...coach
+    }: Partial<Coach> & { name: string }) => {
+      const payload = {
+        name: coach.name,
+        phone: coach.phone ?? null,
+        specialty: coach.specialty ?? null,
+        monthly_salary: coach.monthly_salary ?? null,
+        is_active: coach.is_active ?? true,
+      };
+      const { error } = id
+        ? await supabase().from("coaches").update(payload).eq("id", id)
+        : await supabase().from("coaches").insert(payload);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["coaches"] });
+    },
+  });
+}
+
+export function useDeleteCoach() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase().from("coaches").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["coaches"] });
+      qc.invalidateQueries({ queryKey: ["teams"] });
+      qc.invalidateQueries({ queryKey: ["sessions"] });
+    },
+  });
+}
+
+// ── Venues ──────────────────────────────────────────────────
+
+export function useVenues() {
+  return useQuery({
+    queryKey: queryKeys.venues,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("venues")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return (data ?? []) as Venue[];
+    },
+  });
+}
+
+export function useSaveVenue() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...venue }: Partial<Venue> & { name: string }) => {
+      const payload = {
+        name: venue.name,
+        address: venue.address ?? null,
+        capacity: venue.capacity ?? null,
+      };
+      const { error } = id
+        ? await supabase().from("venues").update(payload).eq("id", id)
+        : await supabase().from("venues").insert(payload);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["venues"] });
+    },
+  });
+}
+
+export function useDeleteVenue() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase().from("venues").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["venues"] });
+      qc.invalidateQueries({ queryKey: ["sessions"] });
+    },
+  });
+}
+
+// ── Membership plans ────────────────────────────────────────
+
+export function usePlans() {
+  return useQuery({
+    queryKey: queryKeys.plans,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("membership_plans")
+        .select("*")
+        .order("sessions_count", { ascending: false });
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((p) => ({
+        ...p,
+        price: p.price == null ? null : Number(p.price),
+      })) as MembershipPlan[];
+    },
+  });
+}
+
+export function useSavePlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...plan
+    }: Partial<MembershipPlan> & { name: string; sessions_count: number }) => {
+      const payload = {
+        name: plan.name,
+        sessions_count: plan.sessions_count,
+        price: plan.price ?? null,
+        is_active: plan.is_active ?? true,
+      };
+      const { error } = id
+        ? await supabase().from("membership_plans").update(payload).eq("id", id)
+        : await supabase().from("membership_plans").insert(payload);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["plans"] });
+    },
+  });
+}
+
+export function useDeletePlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase()
+        .from("membership_plans")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["plans"] });
+    },
+  });
+}
+
+// ── Expenses ────────────────────────────────────────────────
+
+export function useExpenses() {
+  return useQuery({
+    queryKey: queryKeys.expenses,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("expenses")
+        .select("*")
+        .order("expense_date", { ascending: false });
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((e) => ({
+        ...e,
+        amount: Number(e.amount),
+      })) as Expense[];
+    },
+  });
+}
+
+export function useSaveExpense() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...expense
+    }: Partial<Expense> & {
+      description: string;
+      amount: number;
+      expense_date: string;
+    }) => {
+      const payload = {
+        description: expense.description,
+        amount: expense.amount,
+        category: expense.category ?? "other",
+        expense_date: expense.expense_date,
+      };
+      const { error } = id
+        ? await supabase().from("expenses").update(payload).eq("id", id)
+        : await supabase().from("expenses").insert(payload);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["expenses"] });
+    },
+  });
+}
+
+export function useDeleteExpense() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase().from("expenses").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["expenses"] });
+    },
+  });
+}
+
+// ── Player evaluations ──────────────────────────────────────
+
+export function useEvaluations(memberId?: string) {
+  return useQuery({
+    queryKey: queryKeys.evaluations(memberId),
+    queryFn: async () => {
+      let q = supabase()
+        .from("player_evaluations")
+        .select("*")
+        .order("evaluation_date", { ascending: false });
+      if (memberId) q = q.eq("member_id", memberId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as PlayerEvaluation[];
+    },
+    enabled: memberId ? !!memberId : true,
+  });
+}
+
+export function useSaveEvaluation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...ev
+    }: Partial<PlayerEvaluation> & {
+      member_id: string;
+      evaluation_date: string;
+    } & Record<"technique" | "tactics" | "fitness" | "attitude", number>) => {
+      const payload = {
+        member_id: ev.member_id,
+        evaluated_by: ev.evaluated_by || null,
+        evaluation_date: ev.evaluation_date,
+        technique: ev.technique,
+        tactics: ev.tactics,
+        fitness: ev.fitness,
+        attitude: ev.attitude,
+        notes: ev.notes || null,
+      };
+      const { error } = id
+        ? await supabase()
+            .from("player_evaluations")
+            .update(payload)
+            .eq("id", id)
+        : await supabase().from("player_evaluations").insert(payload);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["evaluations"] });
+    },
+  });
+}
+
+export function useDeleteEvaluation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase()
+        .from("player_evaluations")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["evaluations"] });
+    },
+  });
+}
+
+// ── Schedule templates ──────────────────────────────────────
+
+export function useTemplates() {
+  return useQuery({
+    queryKey: queryKeys.templates,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("schedule_templates")
+        .select("*")
+        .order("weekday");
+      if (error) throw error;
+      return (data ?? []) as ScheduleTemplate[];
+    },
+  });
+}
+
+export function useSaveTemplate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...tpl
+    }: Partial<ScheduleTemplate> & { name: string; weekday: number; time: string }) => {
+      const payload = {
+        name: tpl.name,
+        weekday: tpl.weekday,
+        time: tpl.time,
+        sport_id: tpl.sport_id ?? null,
+        venue_id: tpl.venue_id ?? null,
+        coach_id: tpl.coach_id ?? null,
+        age_group: tpl.age_group ?? null,
+        skill_level: tpl.skill_level ?? null,
+      };
+      const { error } = id
+        ? await supabase().from("schedule_templates").update(payload).eq("id", id)
+        : await supabase().from("schedule_templates").insert(payload);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["templates"] });
+    },
+  });
+}
+
+export function useDeleteTemplate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase()
+        .from("schedule_templates")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["templates"] });
+    },
+  });
+}
+
+// ── Trial requests ──────────────────────────────────────────
+
+export function useTrialRequests() {
+  return useQuery({
+    queryKey: queryKeys.trials,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("trial_requests")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as TrialRequest[];
+    },
+  });
+}
+
+export function useSubmitTrialRequest() {
+  return useMutation({
+    mutationFn: async (req: {
+      academy_id: string;
+      name: string;
+      email?: string | null;
+      phone?: string | null;
+      sport_id?: string | null;
+      preferred_date?: string | null;
+    }) => {
+      const { error } = await supabase().from("trial_requests").insert(req);
+      if (error) throw error;
+    },
+  });
+}
+
+export function useUpdateTrialRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...updates
+    }: Partial<TrialRequest> & { id: string }) => {
+      const { error } = await supabase()
+        .from("trial_requests")
+        .update(updates)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["trials"] });
     },
   });
 }

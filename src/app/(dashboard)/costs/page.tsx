@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { CostCalculator } from "@/components/costs/cost-calculator";
+import { ExpensesCard } from "@/components/costs/expenses-card";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney, sessionsForMembership } from "@/lib/constants";
 import { useMonthlyCosts } from "@/lib/queries";
@@ -47,6 +48,8 @@ export default function CostsPage() {
       <PageHeader title={t("costs_title")} subtitle={t("costs_subtitle")} />
 
       <CostCalculator selected={selected} />
+
+      <ExpensesCard />
 
       <div>
         <h2 className="mb-3 text-lg font-bold">{t("costs_history")}</h2>

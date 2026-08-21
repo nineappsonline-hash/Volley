@@ -9,6 +9,7 @@ import {
   RotateCcw,
   StickyNote,
   Trash2,
+  Trophy,
   UserRound,
   Users,
 } from "lucide-react";
@@ -22,6 +23,9 @@ import type { SessionCalculation, SessionGuest, TrainingSession } from "@/lib/ty
 
 interface SessionCardProps {
   session: TrainingSession;
+  sportName?: string | null;
+  coachName?: string | null;
+  venueName?: string | null;
   presentCount?: number;
   guests?: SessionGuest[];
   calculation?: SessionCalculation | null;
@@ -35,6 +39,9 @@ interface SessionCardProps {
 
 export function SessionCard({
   session,
+  sportName,
+  coachName,
+  venueName,
   presentCount,
   guests,
   calculation,
@@ -106,16 +113,36 @@ export function SessionCard({
               <Clock className="h-3 w-3" />
               {session.time.slice(0, 5)}
             </Badge>
+            {sportName && (
+              <Badge variant="secondary" className="gap-1">
+                <Trophy className="h-3 w-3" />
+                {sportName}
+              </Badge>
+            )}
+            {coachName && (
+              <Badge variant="outline" className="gap-1">
+                <UserRound className="h-3 w-3" />
+                {coachName}
+              </Badge>
+            )}
+            {session.age_group && (
+              <Badge variant="outline" className="font-mono">
+                {session.age_group}
+              </Badge>
+            )}
+            {session.skill_level && (
+              <Badge variant="outline">{t(`skill_${session.skill_level}`)}</Badge>
+            )}
           </div>
           {hasFinances && calculation && (
             <ProfitLossIndicator value={calculation.profit_loss} />
           )}
         </div>
         <div className="space-y-2 px-4 py-3">
-          {session.location && (
+          {(session.location || venueName) && (
             <p className="flex items-center gap-2 text-sm text-muted-foreground">
               <MapPin className="h-4 w-4 shrink-0 text-primary" />
-              {session.location}
+              {venueName ?? session.location}
             </p>
           )}
           {session.notes && (

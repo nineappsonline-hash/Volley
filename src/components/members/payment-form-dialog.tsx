@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -32,16 +33,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
-import { sessionsForMembership } from "@/lib/constants";
+import { PAYMENT_METHODS, sessionsForMembership } from "@/lib/constants";
 import { todayInput } from "@/lib/utils";
-import { useSavePayment, useUpdatePayment } from "@/lib/queries";
-import type { Payment } from "@/lib/types";
+import {
+  usePlans,
+  useSavePayment,
+  useUpdatePayment,
+} from "@/lib/queries";
+import type { Payment, PaymentMethod } from "@/lib/types";
 
 const schema = (t: (k: any) => string) =>
   z.object({
     amount: z.coerce.number().positive(t("field_required")),
     payment_date: z.string().min(1, t("field_required")),
-    membership_type: z.enum(["full", "half"]),
+    plan_choice: z.string().min(1),
+    subscription_sessions: z.coerce.number().min(1),
+    method: z.string().min(1),
     notes: z.string().optional(),
   });
 
@@ -65,23 +72,47 @@ export function PaymentFormDialog({
   defaultSessions = 8,
   payment = null,
 }: PaymentFormDialogProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const router = useRouter();
   const savePayment = useSavePayment();
   const updatePayment = useUpdatePayment();
+  const { data: plans } = usePlans();
   const [submitting, setSubmitting] = useState(false);
 
   const isEditing = !!payment;
+
+  const defaultPlanChoice = () => {
+    if (defaultSessions > 0 && defaultSessions <= 4) return "half";
+    return "full";
+  };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema(t)),
     defaultValues: {
       amount: undefined as unknown as number,
       payment_date: todayInput(),
-      membership_type:
-        defaultSessions > 0 && defaultSessions <= 4 ? "half" : "full",
+      plan_choice: defaultPlanChoice(),
+      subscription_sessions: sessionsForMembership(defaultPlanChoice()),
+      method: PAYMENT_METHODS[0],
       notes: "",
     },
   });
+
+  // Picking a plan fills in the session count (and price when known).
+  const onPlanChoiceChange = (choice: string) => {
+    form.setValue("plan_choice", choice);
+    if (choice === "full" || choice === "half") {
+      form.setValue("subscription_sessions", sessionsForMembership(choice));
+      return;
+    }
+    const plan = (plans ?? []).find((p) => p.id === choice);
+    if (plan) {
+      form.setValue("subscription_sessions", plan.sessions_count);
+      if (plan.price != null && !isEditing) {
+        form.setValue("amount", Number(plan.price));
+      }
+    }
+  };
 
   // Refresh the form whenever the dialog opens — prefilled when editing.
   useEffect(() => {
@@ -90,42 +121,58 @@ export function PaymentFormDialog({
         form.reset({
           amount: Number(payment.amount),
           payment_date: payment.payment_date,
-          membership_type: payment.membership_type,
+          plan_choice: payment.plan_id ?? defaultPlanChoice(),
+          subscription_sessions: payment.subscription_sessions,
+          method: payment.method ?? PAYMENT_METHODS[0],
           notes: payment.notes ?? "",
         });
       } else {
         form.reset({
           amount: undefined as unknown as number,
           payment_date: todayInput(),
-          membership_type:
-            defaultSessions > 0 && defaultSessions <= 4 ? "half" : "full",
+          plan_choice: defaultPlanChoice(),
+          subscription_sessions: sessionsForMembership(defaultPlanChoice()),
+          method: PAYMENT_METHODS[0],
           notes: "",
         });
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, payment, defaultSessions, form]);
 
   const onSubmit = async (values: FormValues) => {
     setSubmitting(true);
-    try {
+    try
+    {
+      const isLegacyType =
+        values.plan_choice === "full" || values.plan_choice === "half";
       const payload = {
         amount: values.amount,
         payment_date: values.payment_date,
-        membership_type: values.membership_type,
-        subscription_sessions: sessionsForMembership(values.membership_type),
+        membership_type: isLegacyType
+          ? (values.plan_choice as "full" | "half")
+          : ("full" as const),
+        plan_id:
+          values.plan_choice !== "full" && values.plan_choice !== "half"
+            ? values.plan_choice
+            : null,
+        subscription_sessions: values.subscription_sessions,
+        method: values.method as PaymentMethod,
         notes: values.notes || null,
       };
       if (payment) {
         await updatePayment.mutateAsync({ id: payment.id, ...payload });
         toast.success(t("member_payment_updated"));
+        onOpenChange(false);
       } else {
-        await savePayment.mutateAsync({
+        const id = await savePayment.mutateAsync({
           member_id: memberId,
           ...payload,
         });
         toast.success(t("member_payment_added"));
+        onOpenChange(false);
+        router.push(`/receipts/${id}`);
       }
-      onOpenChange(false);
       form.reset();
     } catch {
       toast.error(t("common_error"));
@@ -186,11 +233,11 @@ export function PaymentFormDialog({
           </div>
           <FormField
             control={form.control}
-            name="membership_type"
+            name="plan_choice"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("members_membership_label")}</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <FormLabel>{t("payment_plan")}</FormLabel>
+                <Select onValueChange={onPlanChoiceChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue />
@@ -203,12 +250,58 @@ export function PaymentFormDialog({
                     <SelectItem value="half">
                       {t("membership_half")} · {t("membership_half_hint")}
                     </SelectItem>
+                    {(plans ?? []).map((plan) => (
+                      <SelectItem key={plan.id} value={plan.id}>
+                        {plan.name} · {plan.sessions_count}{" "}
+                        {lang === "ar" ? "حصص" : "sessions"}
+                        {plan.price != null ? ` · ${Number(plan.price)}` : ""}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
               </FormItem>
             )}
           />
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="subscription_sessions"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("plans_sessions")}</FormLabel>
+                  <FormControl>
+                    <Input type="number" min="1" dir="ltr" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="method"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("payment_method")}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {PAYMENT_METHODS.map((m) => (
+                        <SelectItem key={m} value={m}>
+                          {t(`method_${m}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
           <FormField
             control={form.control}
             name="notes"

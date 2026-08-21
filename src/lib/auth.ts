@@ -16,12 +16,23 @@ export function useAuth() {
   );
 
   const signUp = useCallback(
-    async (email: string, password: string, name: string, phone?: string) => {
+    async (
+      email: string,
+      password: string,
+      name: string,
+      phone?: string,
+      academy?: { code?: string; newName?: string }
+    ) => {
       const { data, error } = await createClient().auth.signUp({
         email,
         password,
         options: {
-          data: { name, phone },
+          data: {
+            name,
+            phone,
+            ...(academy?.code ? { academy_code: academy.code } : {}),
+            ...(academy?.newName ? { new_academy_name: academy.newName } : {}),
+          },
         },
       });
       if (error) throw error;

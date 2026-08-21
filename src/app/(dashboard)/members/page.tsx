@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -19,6 +19,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { MemberTable, type MemberRow } from "@/components/members/member-table";
 import { MemberFormDialog } from "@/components/members/member-form-dialog";
 import { PaymentFormDialog } from "@/components/members/payment-form-dialog";
+import { PlansManagerDialog } from "@/components/members/plans-manager-dialog";
 import { useI18n } from "@/lib/i18n";
 import { memberPerSessionValue, usedSessionsSincePayment } from "@/lib/calculations";
 import {
@@ -38,6 +39,7 @@ export default function MembersPage() {
   const deleteMember = useDeleteMember();
 
   const [formOpen, setFormOpen] = useState(false);
+  const [plansOpen, setPlansOpen] = useState(false);
   const [editing, setEditing] = useState<MemberRow | null>(null);
   const [deleting, setDeleting] = useState<MemberRow | null>(null);
   const [paymentMember, setPaymentMember] = useState<MemberRow | null>(null);
@@ -74,6 +76,10 @@ export default function MembersPage() {
   return (
     <div className="space-y-6">
       <PageHeader title={t("members_title")} subtitle={t("members_subtitle")}>
+        <Button variant="outline" onClick={() => setPlansOpen(true)}>
+          <Wallet className="h-4 w-4" />
+          {t("plans_manage")}
+        </Button>
         <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
           <UserPlus className="h-4 w-4" />
           {t("members_add")}
@@ -108,6 +114,8 @@ export default function MembersPage() {
         memberName={paymentMember?.name ?? ""}
         defaultSessions={paymentMember?.subscription_sessions}
       />
+
+      <PlansManagerDialog open={plansOpen} onOpenChange={setPlansOpen} />
 
       <AlertDialog
         open={!!deleting}

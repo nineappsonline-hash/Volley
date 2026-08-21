@@ -12,6 +12,7 @@ import {
   CreditCard,
   MapPin,
   Pencil,
+  Receipt,
   Timer,
   Trash2,
   XCircle,
@@ -35,6 +36,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { PaymentFormDialog } from "@/components/members/payment-form-dialog";
+import { EvaluationsCard } from "@/components/members/evaluations-card";
+import { AttendanceTrendCard } from "@/components/members/attendance-trend-card";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import {
@@ -285,6 +288,16 @@ export default function MemberDetailsPage() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        title={t("receipt_view")}
+                        asChild
+                      >
+                        <Link href={`/receipts/${p.id}`}>
+                          <Receipt className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         title={t("common_edit")}
                         onClick={() => {
                           setEditingPayment(p);
@@ -309,6 +322,16 @@ export default function MemberDetailsPage() {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Attendance trend + player development */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <AttendanceTrendCard
+          memberId={id}
+          attendance={attendance ?? []}
+          sessions={sessions ?? []}
+        />
+        <EvaluationsCard memberId={id} isAdmin={member.role === "admin"} />
       </div>
 
       {/* Attendance history */}
