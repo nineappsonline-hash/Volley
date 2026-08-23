@@ -182,6 +182,49 @@ export interface ScheduleTemplate {
   created_at: string;
 }
 
+export interface CoachAvailability {
+  id: string;
+  academy_id: string;
+  coach_id: string;
+  weekday: number;
+  start_time: string;
+  end_time: string;
+  created_at: string;
+}
+
+export interface Tournament {
+  id: string;
+  academy_id: string;
+  name: string;
+  description: string | null;
+  sport_id: string | null;
+  start_date: string;
+  end_date: string | null;
+  status: "upcoming" | "in_progress" | "completed" | "canceled";
+  created_at: string;
+}
+
+export interface TournamentMatch {
+  id: string;
+  tournament_id: string;
+  round_name: string;
+  team_a_id: string | null;
+  team_b_id: string | null;
+  score_a: number | null;
+  score_b: number | null;
+  match_date: string | null;
+  match_time: string | null;
+  venue_id: string | null;
+  status: "scheduled" | "completed" | "canceled";
+  notes: string | null;
+  created_at: string;
+}
+
+export interface TournamentWithMatches extends Tournament {
+  sport: Pick<Sport, "id" | "name"> | null;
+  tournament_matches: TournamentMatch[];
+}
+
 export interface TrialRequest {
   id: string;
   academy_id: string;

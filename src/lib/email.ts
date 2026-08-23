@@ -1,0 +1,130 @@
+import { Resend } from "resend";
+
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
+
+const FROM = process.env.EMAIL_FROM || "Volley Academy <onboarding@resend.dev>";
+
+interface SendEmailOptions {
+  to: string;
+  subject: string;
+  html: string;
+}
+
+/** Send a transactional email. Returns { ok: true } or throws. */
+export async function sendEmail({ to, subject, html }: SendEmailOptions) {
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY not configured — skipping email");
+    return { ok: false, skipped: true };
+  }
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to,
+    subject,
+    html,
+  });
+  if (error) throw error;
+  return { ok: true };
+}
+
+// ── Email templates ────────────────────────────────────────
+
+function baseLayout(content: string): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:system-ui,-apple-system,sans-serif;">
+  <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+    <div style="background:linear-gradient(135deg,#2563EB,#0EA5E9);padding:24px;text-align:center;">
+      <h1 style="color:#fff;margin:0;font-size:20px;">🏐 Volley Academy</h1>
+    </div>
+    <div style="padding:32px 24px;">
+      ${content}
+    </div>
+    <div style="padding:16px 24px;background:#f9fafb;text-align:center;color:#9ca3af;font-size:12px;">
+      This is an automated message from Volley Academy.
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+/** Payment confirmation email. */
+export function paymentConfirmationEmail(opts: {
+  memberName: string;
+  amount: number;
+  sessions: number;
+  date: string;
+}): SendEmailOptions & { subject: string; html: string } {
+  return {
+    to: "", // caller fills this
+    subject: `Payment confirmed — ${opts.sessions} sessions`,
+    html: baseLayout(`
+      <h2 style="margin:0 0 8px;color:#111;">Payment Confirmed ✓</h2>
+      <p style="color:#6b7280;margin:0 0 24px;">Hi ${opts.memberName}, your payment has been recorded.</p>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr><td style="padding:8px 0;color:#6b7280;">Amount</td><td style="padding:8px 0;text-align:right;font-weight:bold;font-size:18px;">EGP ${opts.amount.toFixed(2)}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b7280;">Sessions</td><td style="padding:8px 0;text-align:right;font-weight:600;">${opts.sessions}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b7280;">Date</td><td style="padding:8px 0;text-align:right;">${opts.date}</td></tr>
+      </table>
+    `),
+  };
+}
+
+/** Renewal reminder email. */
+export function renewalReminderEmail(opts: {
+  memberName: string;
+  remaining: number;
+}): SendEmailOptions & { subject: string; html: string } {
+  return {
+    to: "",
+    subject: `Renewal reminder — ${opts.remaining} sessions left`,
+    html: baseLayout(`
+      <h2 style="margin:0 0 8px;color:#111;">Renewal Reminder</h2>
+      <p style="color:#6b7280;margin:0 0 16px;">Hi ${opts.memberName},</p>
+      <p style="color:#6b7280;margin:0 0 24px;">You have <strong>${opts.remaining} session${opts.remaining === 1 ? "" : "s"}</strong> remaining. Please renew your subscription to keep attending.</p>
+      <p style="color:#6b7280;margin:0;">Contact your academy to renew.</p>
+    `),
+  };
+}
+
+/** New session scheduled notification. */
+export function sessionScheduledEmail(opts: {
+  memberName: string;
+  date: string;
+  time: string;
+  location: string | null;
+}): SendEmailOptions & { subject: string; html: string } {
+  return {
+    to: "",
+    subject: `New training session — ${opts.date}`,
+    html: baseLayout(`
+      <h2 style="margin:0 0 8px;color:#111;">New Training Session</h2>
+      <p style="color:#6b7280;margin:0 0 16px;">Hi ${opts.memberName}, a new session has been scheduled:</p>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr><td style="padding:8px 0;color:#6b7280;">Date</td><td style="padding:8px 0;text-align:right;font-weight:600;">${opts.date}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b7280;">Time</td><td style="padding:8px 0;text-align:right;">${opts.time}</td></tr>
+        ${opts.location ? `<tr><td style="padding:8px 0;color:#6b7280;">Location</td><td style="padding:8px 0;text-align:right;">${opts.location}</td></tr>` : ""}
+      </table>
+    `),
+  };
+}
+
+/** Welcome email for new members. */
+export function welcomeEmail(opts: {
+  memberName: string;
+  academyName: string;
+}): SendEmailOptions & { subject: string; html: string } {
+  return {
+    to: "",
+    subject: `Welcome to ${opts.academyName}!`,
+    html: baseLayout(`
+      <h2 style="margin:0 0 8px;color:#111;">Welcome! 🎉</h2>
+      <p style="color:#6b7280;margin:0 0 16px;">Hi ${opts.memberName},</p>
+      <p style="color:#6b7280;margin:0 0 24px;">Welcome to <strong>${opts.academyName}</strong>! Your account has been created and you've been added to the roster.</p>
+      <p style="color:#6b7280;margin:0;">Sign in at your academy's portal to view your schedule, attendance, and more.</p>
+    `),
+  };
+}

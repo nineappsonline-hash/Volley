@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   LineChart,
   Settings,
+  Swords,
   Trophy,
   UserRound,
   Users,
@@ -27,6 +28,7 @@ const adminItems = [
   { href: "/attendance", key: "nav_attendance", icon: ClipboardCheck },
   { href: "/costs", key: "nav_costs", icon: CreditCard },
   { href: "/reports", key: "nav_reports", icon: LineChart },
+  { href: "/tournaments", key: "nav_tournaments", icon: Swords },
   { href: "/settings", key: "nav_settings", icon: Settings },
 ] as const;
 

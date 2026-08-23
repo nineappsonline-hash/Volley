@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
 import { PAYMENT_METHODS, sessionsForMembership } from "@/lib/constants";
+import { triggerEmail } from "@/lib/email-triggers";
 import { todayInput } from "@/lib/utils";
 import {
   usePlans,
@@ -171,6 +172,11 @@ export function PaymentFormDialog({
         });
         toast.success(t("member_payment_added"));
         onOpenChange(false);
+        // Fire-and-forget email
+        triggerEmail("payment", memberId, {
+          amount: values.amount,
+          sessions: values.subscription_sessions,
+        });
         router.push(`/receipts/${id}`);
       }
       form.reset();

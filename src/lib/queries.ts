@@ -7,6 +7,7 @@ import type {
   Announcement,
   Attendance,
   Coach,
+  CoachAvailability,
   Expense,
   MembershipPlan,
   MonthlyCost,
@@ -18,6 +19,9 @@ import type {
   SessionGuest,
   Sport,
   TeamWithDetails,
+  Tournament,
+  TournamentWithMatches,
+  TournamentMatch,
   TrainingSession,
   TrialRequest,
   Venue,
@@ -1164,6 +1168,143 @@ export function useDeleteTemplate() {
 }
 
 // ── Trial requests ──────────────────────────────────────────
+
+// ── Coach availability ─────────────────────────────────────
+
+export function useCoachAvailability(coachId?: string) {
+  return useQuery({
+    queryKey: [...queryKeys.coaches, "availability", coachId ?? "all"],
+    queryFn: async () => {
+      let q = supabase().from("coach_availability").select("*");
+      if (coachId) q = q.eq("coach_id", coachId);
+      const { data, error } = await q.order("weekday").order("start_time");
+      if (error) throw error;
+      return (data ?? []) as CoachAvailability[];
+    },
+    enabled: coachId ? !!coachId : true,
+  });
+}
+
+export function useSaveCoachAvailability() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      coach_id,
+      slots,
+    }: {
+      coach_id: string;
+      slots: { weekday: number; start_time: string; end_time: string }[];
+    }) => {
+      // Delete existing slots for this coach, then insert new ones
+      const { error: delError } = await supabase()
+        .from("coach_availability")
+        .delete()
+        .eq("coach_id", coach_id);
+      if (delError) throw delError;
+      if (slots.length === 0) return;
+      const { error } = await supabase()
+        .from("coach_availability")
+        .insert(slots.map((s) => ({ coach_id, ...s })));
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [...queryKeys.coaches, "availability"] });
+    },
+  });
+}
+
+// ── Tournaments ────────────────────────────────────────────
+
+export function useTournaments() {
+  return useQuery({
+    queryKey: ["tournaments"],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("tournaments")
+        .select(`*, sport:sports(id, name), tournament_matches(*)`)
+        .order("start_date", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as TournamentWithMatches[];
+    },
+  });
+}
+
+export function useSaveTournament() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (tournament: Partial<Tournament> & { name: string; start_date: string }) => {
+      const payload = {
+        name: tournament.name,
+        description: tournament.description ?? null,
+        sport_id: tournament.sport_id ?? null,
+        start_date: tournament.start_date,
+        end_date: tournament.end_date ?? null,
+        status: tournament.status ?? "upcoming",
+      };
+      const { error } = tournament.id
+        ? await supabase().from("tournaments").update(payload).eq("id", tournament.id)
+        : await supabase().from("tournaments").insert(payload);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tournaments"] });
+    },
+  });
+}
+
+export function useDeleteTournament() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase().from("tournaments").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tournaments"] });
+    },
+  });
+}
+
+export function useSaveMatch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (match: Partial<TournamentMatch> & { tournament_id: string; round_name: string }) => {
+      const payload = {
+        tournament_id: match.tournament_id,
+        round_name: match.round_name,
+        team_a_id: match.team_a_id ?? null,
+        team_b_id: match.team_b_id ?? null,
+        score_a: match.score_a ?? null,
+        score_b: match.score_b ?? null,
+        match_date: match.match_date ?? null,
+        match_time: match.match_time ?? null,
+        venue_id: match.venue_id ?? null,
+        status: match.status ?? "scheduled",
+        notes: match.notes ?? null,
+      };
+      const { error } = match.id
+        ? await supabase().from("tournament_matches").update(payload).eq("id", match.id)
+        : await supabase().from("tournament_matches").insert(payload);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tournaments"] });
+    },
+  });
+}
+
+export function useDeleteMatch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase().from("tournament_matches").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tournaments"] });
+    },
+  });
+}
 
 export function useTrialRequests() {
   return useQuery({

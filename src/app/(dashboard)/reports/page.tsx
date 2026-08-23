@@ -2,7 +2,10 @@
 
 import { useMemo } from "react";
 import { format, subDays } from "date-fns";
+import { toast } from "sonner";
 import { Activity, PieChart as PieIcon } from "lucide-react";
+import { downloadCSV, createPDF, addPDFTable, downloadPDF } from "@/lib/export";
+import { ExportMenu } from "@/components/shared/export-menu"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -127,7 +130,69 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("reports_title")} subtitle={t("reports_subtitle")} />
+      <PageHeader title={t("reports_title")} subtitle={t("reports_subtitle")}>
+        <ExportMenu
+          options={[
+            {
+              label: t("export_payments_csv"),
+              icon: "csv",
+              onClick: () => {
+                downloadCSV(
+                  ["Member ID", "Amount", "Date", "Type", "Sessions", "Method"],
+                  (payments ?? []).map((p) => [
+                    p.member_id,
+                    p.amount,
+                    p.payment_date,
+                    p.membership_type,
+                    p.subscription_sessions,
+                    p.method,
+                  ]),
+                  `payments-${new Date().toISOString().slice(0, 10)}.csv`
+                );
+                toast.success(t("export_success"));
+              },
+            },
+            {
+              label: t("export_report_pdf"),
+              icon: "pdf",
+              onClick: () => {
+                const pdf = createPDF("Financial Report");
+                let y = 28;
+                // Monthly summary table
+                if (points.length > 0) {
+                  y = addPDFTable(
+                    pdf,
+                    ["Month", "Revenue", "Costs", "Net"],
+                    [...points].reverse().map((p) => [
+                      p.label,
+                      p.revenue.toFixed(2),
+                      p.costs.toFixed(2),
+                      (p.revenue - p.costs).toFixed(2),
+                    ]),
+                    y
+                  );
+                  y += 10;
+                }
+                // Revenue by sport
+                if (revenueBySport.rows.length > 0) {
+                  addPDFTable(
+                    pdf,
+                    ["Sport", "Revenue", "%"],
+                    revenueBySport.rows.map((r) => [
+                      r.name,
+                      r.revenue.toFixed(2),
+                      `${r.share}%`,
+                    ]),
+                    y
+                  );
+                }
+                downloadPDF(pdf, `report-${new Date().toISOString().slice(0, 10)}.pdf`);
+                toast.success(t("export_success"));
+              },
+            },
+          ]}
+        />
+      </PageHeader>
 
       {loading ? (
         <Skeleton className="h-96 w-full" />

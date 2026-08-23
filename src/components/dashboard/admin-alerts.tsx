@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useI18n } from "@/lib/i18n";
 import { EXPIRY_ALERT_THRESHOLD, formatMoney } from "@/lib/constants";
+import { triggerEmail } from "@/lib/email-triggers";
 import {
   memberPerSessionValue,
   usedSessionsSincePayment,
@@ -84,7 +85,14 @@ export function AdminAlerts() {
     remind.mutate(
       { id: m.id, last_reminded_at: new Date().toISOString() },
       {
-        onSuccess: () => toast.success(t("members_reminded_toast")),
+        onSuccess: () => {
+          toast.success(t("members_reminded_toast"));
+          // Fire-and-forget renewal email
+          const myPayments = (payments ?? []).filter((p) => p.member_id === m.id);
+          const used = usedSessionsSincePayment(attendance ?? [], sessions ?? [], myPayments);
+          const remaining = Math.max(m.subscription_sessions - used, 0);
+          triggerEmail("renewal", m.id, { remaining });
+        },
         onError: () => toast.error(t("common_error")),
       }
     );

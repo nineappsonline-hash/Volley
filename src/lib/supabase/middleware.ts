@@ -53,6 +53,7 @@ export async function updateSession(request: NextRequest) {
     "/coaches",
     "/settings",
     "/receipts",
+    "/tournaments",
   ];
   const isProtected = protectedPages.some(
     (p) => pathname === p || pathname.startsWith(p + "/")
@@ -74,7 +75,7 @@ export async function updateSession(request: NextRequest) {
 
   // Admin-only pages
   const role = (user?.app_metadata?.role as string | undefined) ?? "member";
-  const adminOnly = ["/members", "/costs", "/reports", "/attendance", "/teams", "/coaches", "/settings"].some(
+  const adminOnly = ["/members", "/costs", "/reports", "/attendance", "/teams", "/coaches", "/settings", "/tournaments"].some(
     (p) => pathname === p || pathname.startsWith(p + "/")
   );
   if (user && adminOnly && role !== "admin") {

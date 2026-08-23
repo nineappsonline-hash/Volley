@@ -283,6 +283,52 @@ CREATE TABLE IF NOT EXISTS public.schedule_templates (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Coach availability: which days/times each coach is available.
+CREATE TABLE IF NOT EXISTS public.coach_availability (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  academy_id UUID NOT NULL REFERENCES public.academies(id) ON DELETE CASCADE
+    DEFAULT public.current_academy_id(),
+  coach_id UUID NOT NULL REFERENCES public.coaches(id) ON DELETE CASCADE,
+  weekday INTEGER NOT NULL CHECK (weekday BETWEEN 0 AND 6),
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CHECK (start_time < end_time)
+);
+CREATE INDEX IF NOT EXISTS idx_coach_avail_coach ON public.coach_availability(coach_id);
+
+-- Tournaments
+CREATE TABLE IF NOT EXISTS public.tournaments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  academy_id UUID NOT NULL REFERENCES public.academies(id) ON DELETE CASCADE
+    DEFAULT public.current_academy_id(),
+  name TEXT NOT NULL,
+  description TEXT,
+  sport_id UUID REFERENCES public.sports(id) ON DELETE SET NULL,
+  start_date DATE NOT NULL,
+  end_date DATE,
+  status TEXT NOT NULL DEFAULT 'upcoming' CHECK (status IN ('upcoming', 'in_progress', 'completed', 'canceled')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Tournament matches
+CREATE TABLE IF NOT EXISTS public.tournament_matches (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tournament_id UUID NOT NULL REFERENCES public.tournaments(id) ON DELETE CASCADE,
+  round_name TEXT NOT NULL,
+  team_a_id UUID REFERENCES public.teams(id) ON DELETE SET NULL,
+  team_b_id UUID REFERENCES public.teams(id) ON DELETE SET NULL,
+  score_a INTEGER,
+  score_b INTEGER,
+  match_date DATE,
+  match_time TIME,
+  venue_id UUID REFERENCES public.venues(id) ON DELETE SET NULL,
+  status TEXT NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'completed', 'canceled')),
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_tournament_matches ON public.tournament_matches(tournament_id);
+
 -- Trial session requests submitted from the public academy page.
 CREATE TABLE IF NOT EXISTS public.trial_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -748,6 +794,9 @@ ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.player_evaluations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.schedule_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.coach_availability ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tournaments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tournament_matches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.trial_requests ENABLE ROW LEVEL SECURITY;
 
 -- Helper predicates (kept inline in policies for clarity).
@@ -1097,6 +1146,58 @@ CREATE POLICY "Admins manage templates" ON public.schedule_templates
 DROP POLICY IF EXISTS "Authenticated view templates" ON public.schedule_templates;
 CREATE POLICY "Authenticated view templates" ON public.schedule_templates
   FOR SELECT USING (academy_id = public.current_academy_id());
+
+-- coach_availability: admins manage; members read.
+DROP POLICY IF EXISTS "Admins manage coach availability" ON public.coach_availability;
+CREATE POLICY "Admins manage coach availability" ON public.coach_availability
+  FOR ALL USING (
+    academy_id = public.current_academy_id()
+    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
+  )
+  WITH CHECK (
+    academy_id = public.current_academy_id()
+    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
+  );
+
+DROP POLICY IF EXISTS "Authenticated view coach availability" ON public.coach_availability;
+CREATE POLICY "Authenticated view coach availability" ON public.coach_availability
+  FOR SELECT USING (academy_id = public.current_academy_id());
+
+-- tournaments: admins manage; members read.
+DROP POLICY IF EXISTS "Admins manage tournaments" ON public.tournaments;
+CREATE POLICY "Admins manage tournaments" ON public.tournaments
+  FOR ALL USING (
+    academy_id = public.current_academy_id()
+    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
+  )
+  WITH CHECK (
+    academy_id = public.current_academy_id()
+    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
+  );
+
+DROP POLICY IF EXISTS "Authenticated view tournaments" ON public.tournaments;
+CREATE POLICY "Authenticated view tournaments" ON public.tournaments
+  FOR SELECT USING (academy_id = public.current_academy_id());
+
+-- tournament_matches: scoped through parent tournament.
+DROP POLICY IF EXISTS "Admins manage tournament matches" ON public.tournament_matches;
+CREATE POLICY "Admins manage tournament matches" ON public.tournament_matches
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.tournaments t
+      WHERE t.id = tournament_id AND t.academy_id = public.current_academy_id()
+    )
+    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
+  );
+
+DROP POLICY IF EXISTS "Authenticated view tournament matches" ON public.tournament_matches;
+CREATE POLICY "Authenticated view tournament matches" ON public.tournament_matches
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM public.tournaments t
+      WHERE t.id = tournament_id AND t.academy_id = public.current_academy_id()
+    )
+  );
 
 -- trial_requests: anyone may submit; only admins of that academy read/manage.
 DROP POLICY IF EXISTS "Public submit trial requests" ON public.trial_requests;

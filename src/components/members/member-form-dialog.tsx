@@ -36,6 +36,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useI18n } from "@/lib/i18n";
 import { sessionsForMembership } from "@/lib/constants";
+import { triggerEmail } from "@/lib/email-triggers";
 import { cn, errorMessage, initials, todayInput } from "@/lib/utils";
 import { usePendingProfiles, useUpdateMember } from "@/lib/queries";
 import type { MembershipType, Profile } from "@/lib/types";
@@ -138,6 +139,8 @@ export function MemberFormDialog({
           throw new Error(err.error ?? "Failed");
         }
         onCreated?.();
+        // Fire-and-forget welcome email
+        triggerEmail("welcome", "pending");
       }
       toast.success(isEdit ? t("members_save_success") : t("signup_success"));
       onOpenChange(false);

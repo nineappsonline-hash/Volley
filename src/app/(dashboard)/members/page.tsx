@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { UserPlus, Wallet } from "lucide-react";
+import { downloadCSV } from "@/lib/export";
+import { ExportMenu } from "@/components/shared/export-menu";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -76,6 +78,31 @@ export default function MembersPage() {
   return (
     <div className="space-y-6">
       <PageHeader title={t("members_title")} subtitle={t("members_subtitle")}>
+        <ExportMenu
+          options={[
+            {
+              label: t("export_members_csv"),
+              icon: "csv",
+              onClick: () => {
+                downloadCSV(
+                  ["Name", "Email", "Phone", "Joined", "Type", "Sessions", "Total Paid", "Status"],
+                  members.map((m) => [
+                    m.name,
+                    m.email,
+                    m.phone ?? "",
+                    m.join_date ?? "",
+                    m.membership_type,
+                    m.subscription_sessions,
+                    m.totalPaid,
+                    m.active ? "Active" : m.paid ? "Renewal needed" : "Unpaid",
+                  ]),
+                  `members-${new Date().toISOString().slice(0, 10)}.csv`
+                );
+                toast.success(t("export_success"));
+              },
+            },
+          ]}
+        />
         <Button variant="outline" onClick={() => setPlansOpen(true)}>
           <Wallet className="h-4 w-4" />
           {t("plans_manage")}

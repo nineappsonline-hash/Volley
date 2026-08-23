@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Plus, Trash2, UserRound } from "lucide-react";
+import { CalendarDays, Pencil, Plus, Trash2, UserRound } from "lucide-react";
+import { CoachAvailabilityDialog } from "@/components/coaches/coach-availability-dialog";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,6 +56,7 @@ export function CoachesClient() {
   const [salary, setSalary] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<Coach | null>(null);
+  const [availCoach, setAvailCoach] = useState<Coach | null>(null);
 
   const openNew = () => {
     setEditing(null);
@@ -165,6 +167,14 @@ export function CoachesClient() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        aria-label={t("coach_avail_title")}
+                        onClick={() => setAvailCoach(c)}
+                      >
+                        <CalendarDays className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         className="text-destructive hover:text-destructive"
                         aria-label={t("common_delete")}
                         onClick={() => setDeleteTarget(c)}
@@ -244,6 +254,12 @@ export function CoachesClient() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CoachAvailabilityDialog
+        open={!!availCoach}
+        onOpenChange={(o) => !o && setAvailCoach(null)}
+        coach={availCoach}
+      />
 
       {/* Delete confirmation */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
