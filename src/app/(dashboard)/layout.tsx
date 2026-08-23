@@ -1,6 +1,7 @@
 import { requireSession } from "@/lib/session";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
+import { TrialGate } from "@/components/shared/trial-gate";
 
 export default async function DashboardLayout({
   children,
@@ -17,7 +18,7 @@ export default async function DashboardLayout({
       <div className="lg:ps-64">
         <Topbar role={profile.role} name={profile.name} />
         <main className="mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-8">
-          {children}
+          <TrialGate>{children}</TrialGate>
         </main>
       </div>
     </div>

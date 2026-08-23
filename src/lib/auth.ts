@@ -21,7 +21,7 @@ export function useAuth() {
       password: string,
       name: string,
       phone?: string,
-      academy?: { code?: string; newName?: string }
+      academy?: { code?: string; newName?: string; sports?: string }
     ) => {
       const { data, error } = await createClient().auth.signUp({
         email,
@@ -32,6 +32,7 @@ export function useAuth() {
             phone,
             ...(academy?.code ? { academy_code: academy.code } : {}),
             ...(academy?.newName ? { new_academy_name: academy.newName } : {}),
+            ...(academy?.sports ? { sports: academy.sports } : {}),
           },
         },
       });

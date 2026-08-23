@@ -744,6 +744,68 @@ export function useUpdateAcademy() {
 }
 
 // Public (no auth required): academy page by slug.
+// ── Super admin: all academies ──────────────────────────────
+
+export function useAllAcademies() {
+  return useQuery({
+    queryKey: ["all-academies"],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("academies")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Academy[];
+    },
+  });
+}
+
+export function useExtendTrial() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      academy_id,
+      days,
+    }: {
+      academy_id: string;
+      days: number;
+    }) => {
+      const { error } = await supabase()
+        .from("academies")
+        .update({
+          trial_ends_at: new Date(
+            Date.now() + days * 24 * 60 * 60 * 1000
+          ).toISOString(),
+          trial_extended_at: new Date().toISOString(),
+        })
+        .eq("id", academy_id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["all-academies"] });
+    },
+  });
+}
+
+export function useConvertToPaid() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (academy_id: string) => {
+      const { error } = await supabase()
+        .from("academies")
+        .update({
+          is_trial: false,
+          trial_ends_at: null,
+        })
+        .eq("id", academy_id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["all-academies"] });
+    },
+  });
+}
+
 export function usePublicAcademy(slug?: string) {
   return useQuery({
     queryKey: ["public-academy", slug],

@@ -1,4 +1,4 @@
-export type Role = "admin" | "member";
+export type Role = "super_admin" | "admin" | "member";
 
 export type SessionStatus = "scheduled" | "completed" | "canceled";
 
@@ -25,6 +25,9 @@ export interface Academy {
   description: string | null;
   is_public: boolean;
   calendar_token: string | null;
+  is_trial: boolean;
+  trial_ends_at: string | null;
+  trial_extended_at: string | null;
   created_at: string;
 }
 

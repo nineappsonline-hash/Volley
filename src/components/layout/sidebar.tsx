@@ -6,6 +6,7 @@ import {
   CalendarDays,
   ClipboardCheck,
   CreditCard,
+  Crown,
   LayoutDashboard,
   LineChart,
   Settings,
@@ -32,6 +33,10 @@ const adminItems = [
   { href: "/settings", key: "nav_settings", icon: Settings },
 ] as const;
 
+const superAdminItems = [
+  { href: "/admin", key: "super_admin_title", icon: Crown },
+] as const;
+
 const memberItems = [
   { href: "/dashboard", key: "nav_dashboard", icon: LayoutDashboard },
   { href: "/schedule", key: "nav_schedule", icon: CalendarDays },
@@ -46,7 +51,7 @@ interface SidebarProps {
 export function Sidebar({ role, name }: SidebarProps) {
   const pathname = usePathname();
   const { t } = useI18n();
-  const items = role === "admin" ? adminItems : memberItems;
+  const items = role === "super_admin" ? [...superAdminItems, ...adminItems] : role === "admin" ? adminItems : memberItems;
 
   return (
     <div className="flex h-full flex-col gap-6 p-4">

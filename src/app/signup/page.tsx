@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, Volleyball } from "lucide-react";
+import { Loader2, Trophy, Volleyball } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -45,6 +45,7 @@ const createSchema = (t: (k: any) => string) =>
     phone: z.string().optional(),
     password: z.string().min(6, t("field_min_password")),
     academy_name: z.string().min(2, t("field_required")),
+    sports: z.string().min(1, t("field_required")),
   });
 
 type JoinValues = z.infer<ReturnType<typeof joinSchema>>;
@@ -64,7 +65,7 @@ export default function SignupPage() {
 
   const createForm = useForm<CreateValues>({
     resolver: zodResolver(createSchema(t)),
-    defaultValues: { name: "", email: "", phone: "", password: "", academy_name: "" },
+    defaultValues: { name: "", email: "", phone: "", password: "", academy_name: "", sports: "Volleyball" },
   });
 
   const finishSignup = async (
@@ -72,7 +73,7 @@ export default function SignupPage() {
     password: string,
     name: string,
     phone: string | undefined,
-    academy?: { code?: string; newName?: string }
+    academy?: { code?: string; newName?: string; sports?: string }
   ) => {
     setLoading(true);
     try {
@@ -101,6 +102,7 @@ export default function SignupPage() {
   const onCreate = async (values: CreateValues) => {
     await finishSignup(values.email, values.password, values.name, values.phone, {
       newName: values.academy_name.trim(),
+      sports: values.sports.trim(),
     });
   };
 
@@ -116,6 +118,9 @@ export default function SignupPage() {
           </div>
           <h1 className="text-2xl font-extrabold">{t("signup_title")}</h1>
           <p className="text-sm text-muted-foreground">{t("signup_subtitle")}</p>
+          <p className="rounded-full border bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
+            🎉 {t("signup_trial_info")}
+          </p>
         </div>
 
         <Card>
@@ -237,6 +242,28 @@ export default function SignupPage() {
                             </FormControl>
                             <p className="text-xs text-muted-foreground">
                               {t("signup_create_hint")}
+                            </p>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={createForm.control}
+                        name="sports"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              <Trophy className="h-4 w-4" />
+                              {t("signup_sports_label")}
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder={t("signup_sports_placeholder")}
+                                {...field}
+                              />
+                            </FormControl>
+                            <p className="text-xs text-muted-foreground">
+                              {t("signup_sports_hint")}
                             </p>
                             <FormMessage />
                           </FormItem>

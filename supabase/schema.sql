@@ -47,6 +47,10 @@ CREATE TABLE IF NOT EXISTS public.academies (
   is_public BOOLEAN NOT NULL DEFAULT FALSE,
   -- Token for the read-only .ics calendar feed: /api/calendar/<token>
   calendar_token TEXT UNIQUE DEFAULT md5(random()::text || clock_timestamp()::text),
+  -- Trial period: new academies get a 14-day free trial.
+  is_trial BOOLEAN NOT NULL DEFAULT TRUE,
+  trial_ends_at TIMESTAMPTZ,
+  trial_extended_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -368,6 +372,9 @@ ALTER TABLE public.teams
   ADD COLUMN IF NOT EXISTS skill_level TEXT CHECK (skill_level IN ('beginner', 'intermediate', 'advanced'));
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS last_reminded_at TIMESTAMPTZ;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS checkin_code TEXT;
+ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS is_trial BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMPTZ;
+ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS trial_extended_at TIMESTAMPTZ;
 
 CREATE INDEX IF NOT EXISTS idx_training_sport ON public.training_sessions(sport_id);
 CREATE INDEX IF NOT EXISTS idx_training_venue ON public.training_sessions(venue_id);
@@ -464,18 +471,26 @@ DECLARE
   v_academy UUID;
 BEGIN
   IF v_new_name <> '' THEN
-    INSERT INTO public.academies (name, slug)
+    INSERT INTO public.academies (name, slug, is_trial, trial_ends_at)
     VALUES (
       left(v_new_name, 60),
       lower(regexp_replace(left(v_new_name, 40), '[^a-zA-Z0-9]+', '-', 'g'))
-        || '-' || left(md5(random()::text), 4)
+        || '-' || left(md5(random()::text), 4),
+      TRUE,
+      NOW() + INTERVAL '14 days'
     )
     RETURNING id INTO v_academy;
 
     INSERT INTO public.membership_plans (academy_id, name, sessions_count)
     VALUES (v_academy, 'Full', 8), (v_academy, 'Half', 4);
 
-    INSERT INTO public.sports (academy_id, name) VALUES (v_academy, 'Volleyball');
+    -- Seed sports from signup metadata (comma-separated) or default to Volleyball
+    IF NEW.raw_user_meta_data ->> 'sports' IS NOT NULL AND NEW.raw_user_meta_data ->> 'sports' != '' THEN
+      INSERT INTO public.sports (academy_id, name)
+      SELECT v_academy, trim(unnest(string_to_array(NEW.raw_user_meta_data ->> 'sports', ',')));
+    ELSE
+      INSERT INTO public.sports (academy_id, name) VALUES (v_academy, 'Volleyball');
+    END IF;
 
     INSERT INTO public.profiles (id, email, role, name, join_date, academy_id, is_active)
     VALUES (

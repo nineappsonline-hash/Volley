@@ -1,0 +1,82 @@
+"use client";
+
+import { useMemo } from "react";
+import { AlertTriangle, Clock, CreditCard } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useI18n } from "@/lib/i18n";
+import { useAcademy } from "@/lib/queries";
+
+interface TrialGateProps {
+  children: React.ReactNode;
+}
+
+export function TrialGate({ children }: TrialGateProps) {
+  const { t, lang } = useI18n();
+  const { data: academy } = useAcademy();
+
+  const trialStatus = useMemo(() => {
+    if (!academy) return { expired: false, daysLeft: 0, isTrial: false };
+
+    const isTrial = academy.is_trial;
+    if (!isTrial || !academy.trial_ends_at) {
+      return { expired: false, daysLeft: 0, isTrial: false };
+    }
+
+    const now = new Date();
+    const endsAt = new Date(academy.trial_ends_at);
+    const diffMs = endsAt.getTime() - now.getTime();
+    const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    return {
+      expired: daysLeft <= 0,
+      daysLeft: Math.max(0, daysLeft),
+      isTrial: true,
+    };
+  }, [academy]);
+
+  if (!academy) return <>{children}</>;
+
+  // Trial expired — show upgrade prompt
+  if (trialStatus.isTrial && trialStatus.expired) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center p-6">
+        <Card className="w-full max-w-lg">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-500/10">
+              <AlertTriangle className="h-6 w-6 text-amber-600" />
+            </div>
+            <CardTitle className="text-lg">{t("trial_expired_title")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              {t("trial_expired_message")}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {t("trial_expired_contact")}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Trial active — show banner if < 3 days left
+  if (trialStatus.isTrial && trialStatus.daysLeft <= 3 && trialStatus.daysLeft > 0) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-3 rounded-lg border border-amber-300/60 bg-amber-50 p-4 text-sm dark:bg-amber-500/10">
+          <Clock className="h-5 w-5 shrink-0 text-amber-600" />
+          <div className="flex-1">
+            <p className="font-medium text-amber-800 dark:text-amber-300">
+              {t("trial_expiring_soon").replace("{n}", String(trialStatus.daysLeft))}
+            </p>
+          </div>
+        </div>
+        {children}
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
