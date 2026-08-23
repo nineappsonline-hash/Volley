@@ -110,18 +110,22 @@ function toPayments(data: any[]): Payment[] {
   }));
 }
 
-export function usePayments(memberId?: string) {
+/**
+ * Fetch payments for a specific member. For all payments use useAllPayments().
+ */
+export function usePayments(memberId: string) {
   return useQuery({
     queryKey: queryKeys.payments(memberId),
     queryFn: async () => {
-      let q = supabase().from("payments").select("*");
-      if (memberId) q = q.eq("member_id", memberId);
-      const { data, error } = await q.order("payment_date", {
-        ascending: false,
-      });
+      const { data, error } = await supabase()
+        .from("payments")
+        .select("*")
+        .eq("member_id", memberId)
+        .order("payment_date", { ascending: false });
       if (error) throw error;
       return toPayments(data);
     },
+    enabled: !!memberId,
   });
 }
 

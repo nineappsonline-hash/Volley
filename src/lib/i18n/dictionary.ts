@@ -544,6 +544,8 @@ export const dictionary = {
     trial_status_contacted: "Contacted",
     trial_status_converted: "Joined",
     trial_status_declined: "Declined",
+    public_sports: "Sports",
+    public_upcoming: "Upcoming sessions",
     public_page_link: "Public page",
     settings_public_on: "Public",
     // ── Settings page ──
@@ -1118,6 +1120,8 @@ export const dictionary = {
     trial_status_contacted: "تم التواصل",
     trial_status_converted: "انضم",
     trial_status_declined: "مرفوض",
+    public_sports: "الرياضات",
+    public_upcoming: "الحصص القادمة",
     public_page_link: "الصفحة العامة",
     settings_public_on: "عامة",
     // ── Settings page ──

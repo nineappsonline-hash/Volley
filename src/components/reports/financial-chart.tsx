@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import { useI18n } from "@/lib/i18n";
 import { formatMoneyShort } from "@/lib/constants";
-import type { MonthlyCost, Payment, SessionCalculation, TrainingSession } from "@/lib/types";
+import type { Expense, MonthlyCost, Payment, SessionCalculation, TrainingSession } from "@/lib/types";
 
 export interface MonthlyPoint {
   label: string;
@@ -82,7 +82,8 @@ export function buildMonthlyPoints(
   payments: Payment[],
   costs: MonthlyCost[],
   calculations: SessionCalculation[],
-  sessions: TrainingSession[]
+  sessions: TrainingSession[],
+  expenses: Expense[] = []
 ): MonthlyPoint[] {
   const months = new Map<string, MonthlyPoint>();
   const key = (m: number, y: number) => `${y}-${String(m).padStart(2, "0")}`;
@@ -101,6 +102,10 @@ export function buildMonthlyPoints(
       return key(d.getMonth() + 1, d.getFullYear());
     }),
     ...monthsOfSessions,
+    ...expenses.map((e) => {
+      const d = new Date(e.expense_date + "T00:00:00");
+      return key(d.getMonth() + 1, d.getFullYear());
+    }),
   ]);
 
   const label = (k: string) => {
@@ -123,6 +128,13 @@ export function buildMonthlyPoints(
     const k = key(c.month, c.year);
     const point = months.get(k);
     if (point) point.costs += Number(c.coach_fee) + Number(c.court_rental);
+  }
+
+  for (const e of expenses) {
+    const d = new Date(e.expense_date + "T00:00:00");
+    const k = key(d.getMonth() + 1, d.getFullYear());
+    const point = months.get(k);
+    if (point) point.costs += Number(e.amount);
   }
 
   // Session profit belongs to its session's month

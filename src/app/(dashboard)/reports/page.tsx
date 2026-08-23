@@ -26,6 +26,7 @@ import { formatMoney } from "@/lib/constants";
 import {
   useAllPayments,
   useAttendance,
+  useExpenses,
   useMonthlyCosts,
   useProfiles,
   useSessionCalculations,
@@ -42,13 +43,14 @@ export default function ReportsPage() {
   const { data: sports } = useSports();
   const { data: profiles } = useProfiles();
   const { data: attendance } = useAttendance();
+  const { data: expenses } = useExpenses();
 
   const loading =
     loadingPayments || loadingCosts || loadingCalc || loadingSessions;
 
   const points = useMemo(
-    () => buildMonthlyPoints(payments ?? [], costs ?? [], calculations ?? [], sessions ?? []),
-    [payments, costs, calculations, sessions]
+    () => buildMonthlyPoints(payments ?? [], costs ?? [], calculations ?? [], sessions ?? [], expenses ?? []),
+    [payments, costs, calculations, sessions, expenses]
   );
 
   const avgProfitPerSession = useMemo(() => {
@@ -144,6 +146,12 @@ export default function ReportsPage() {
             points={points}
             avgProfitPerSession={avgProfitPerSession}
           />
+
+          {(expenses ?? []).length > 0 && (
+            <p className="rounded-lg border border-dashed p-3 text-center text-xs text-muted-foreground">
+              {t("reports_expenses_note")}
+            </p>
+          )}
 
           {/* Revenue by sport */}
           <Card>

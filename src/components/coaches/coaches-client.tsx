@@ -127,7 +127,7 @@ export function CoachesClient() {
                 <TableHead>{t("coaches_phone")}</TableHead>
                 <TableHead>{t("coaches_specialty")}</TableHead>
                 <TableHead className="text-end">{t("coaches_salary")}</TableHead>
-                <TableHead className="text-end">{t("common_edit")}</TableHead>
+                <TableHead className="text-end">{t("members_col_actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

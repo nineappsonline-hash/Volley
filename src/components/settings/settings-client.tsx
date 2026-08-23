@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CalendarCheck, Check, Copy, Link2, Save, Settings as SettingsIcon } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -114,15 +115,16 @@ export function SettingsClient() {
               placeholder={t("settings_public_hint")}
             />
           </div>
-          <label className="flex cursor-pointer items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              className="accent-primary"
+          <div className="flex items-center gap-3">
+            <Switch
               checked={isPublic}
-              onChange={(e) => setIsPublic(e.target.checked)}
+              onCheckedChange={setIsPublic}
+              id="public-toggle"
             />
-            {t("settings_public_toggle")}
-          </label>
+            <Label htmlFor="public-toggle" className="cursor-pointer text-sm">
+              {t("settings_public_toggle")}
+            </Label>
+          </div>
           {isPublic && (
             <p className="rounded-md bg-blue-50 p-3 text-xs text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
               {t("settings_public_hint")}

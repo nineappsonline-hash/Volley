@@ -36,7 +36,7 @@ import {
   useMemberRoster,
   useMemberSessionCosts,
   useMonthlyCosts,
-  usePayments,
+  useAllPayments,
   useProfiles,
   useSessionCalculations,
   useSessionGuests,
@@ -69,7 +69,7 @@ export function SessionDetailsDialog({
   );
   const { data: profiles } = useProfiles();
   const { data: roster } = useMemberRoster();
-  const { data: payments } = usePayments();
+  const { data: payments } = useAllPayments();
   const { data: costs } = useMonthlyCosts();
   // monthly_costs is admin-only; members read the safe view instead.
   const { data: memberCosts } = useMemberSessionCosts();

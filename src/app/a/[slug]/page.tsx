@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CalendarDays, MapPin, Trophy, Volleyball } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { dictionary } from "@/lib/i18n/dictionary";
 import { TrialForm } from "@/components/public/trial-form";
 
 export const metadata: Metadata = { title: "Academy" };
@@ -65,7 +66,7 @@ export default async function PublicAcademyPage({
           <section>
             <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
               <Trophy className="h-5 w-5 text-primary" />
-              Sports
+              {dictionary.en.public_sports}
             </h2>
             <div className="flex flex-wrap gap-2">
               {(sports ?? []).map((s) => (
@@ -85,7 +86,7 @@ export default async function PublicAcademyPage({
           <section>
             <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
               <CalendarDays className="h-5 w-5 text-primary" />
-              Upcoming sessions
+              {dictionary.en.public_upcoming}
             </h2>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {(sessions ?? []).map((s) => (

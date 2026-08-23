@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { toast } from "sonner";
-import { CheckCircle2, Circle, Users } from "lucide-react";
+import { CheckCircle2, Circle, Save, Users } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import { ProfitLossIndicator } from "@/components/shared/profit-loss-indicator";
 import {
   useAttendance,
   useMonthlyCosts,
-  usePayments,
+  useAllPayments,
   useProfiles,
   useSessionCalculations,
   useSessionGuests,
@@ -35,7 +35,7 @@ interface AttendanceTableProps {
 export function AttendanceTable({ session }: AttendanceTableProps) {
   const { t, lang } = useI18n();
   const { data: profiles, isLoading: loadingMembers } = useProfiles();
-  const { data: payments } = usePayments();
+  const { data: payments } = useAllPayments();
   const { data: attendance } = useAttendance(session.id);
   const { data: monthlyCosts } = useMonthlyCosts();
   const { data: calculations } = useSessionCalculations();
@@ -118,8 +118,11 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
     setPending({});
   }, [session.id]);
 
-  useEffect(() => {
-    if (saving) return;
+  const hasChanges = useMemo(() => {
+    return Object.values(pending).some((p) => p !== undefined);
+  }, [pending]);
+
+  const handleSave = useCallback(async () => {
     const changes: { member_id: string; is_present: boolean }[] = [];
     for (const m of members) {
       const p = pending[m.id];
@@ -128,30 +131,23 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
       }
     }
     if (changes.length === 0) return;
-    const savedIds = new Set(changes.map((c) => c.member_id));
     setSaving(true);
-    upsert
-      .mutateAsync(
+    try {
+      await upsert.mutateAsync(
         changes.map((c) => ({
           session_id: session.id,
           member_id: c.member_id,
           is_present: c.is_present,
         }))
-      )
-      .then(() => toast.success(t("attendance_saved")))
-      .catch(() => toast.error(t("common_error")))
-      .finally(() => {
-        setSaving(false);
-        // Remove only the entries that were just persisted so toggles made
-        // while the save was in flight are not silently dropped.
-        setPending((prev) => {
-          if (savedIds.size === 0) return prev;
-          const next = { ...prev };
-          for (const id of savedIds) delete next[id];
-          return next;
-        });
-      });
-  }, [pending, saving]); // eslint-disable-line react-hooks/exhaustive-deps
+      );
+      toast.success(t("attendance_saved"));
+      setPending({});
+    } catch {
+      toast.error(t("common_error"));
+    } finally {
+      setSaving(false);
+    }
+  }, [members, pending, presentMap, session.id, upsert, t]);
 
   const toggle = (memberId: string, value: boolean) => {
     setPending((p) => ({ ...p, [memberId]: value }));
@@ -240,9 +236,15 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
           <Circle className="h-4 w-4 text-muted-foreground" />
           {t("attendance_clear_all")}
         </Button>
-        {saving && (
-          <span className="text-xs text-muted-foreground">{t("attendance_saving")}</span>
-        )}
+        <Button
+          size="sm"
+          onClick={handleSave}
+          disabled={saving || !hasChanges}
+          className="ms-auto gap-1.5"
+        >
+          <Save className="h-4 w-4" />
+          {saving ? t("attendance_saving") : t("attendance_confirm_complete")}
+        </Button>
       </div>
 
       <div className="overflow-x-auto rounded-xl border">
