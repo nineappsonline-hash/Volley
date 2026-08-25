@@ -346,6 +346,89 @@ CREATE TABLE IF NOT EXISTS public.trial_requests (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Session waitlist: members can join when a session is full.
+CREATE TABLE IF NOT EXISTS public.session_waitlist (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID NOT NULL REFERENCES public.training_sessions(id) ON DELETE CASCADE,
+  member_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  position INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'waiting' CHECK (status IN ('waiting', 'notified', 'promoted', 'cancelled')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(session_id, member_id)
+);
+CREATE INDEX IF NOT EXISTS idx_waitlist_session ON public.session_waitlist(session_id);
+
+-- Session ratings: members rate sessions after attending.
+CREATE TABLE IF NOT EXISTS public.session_ratings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID NOT NULL REFERENCES public.training_sessions(id) ON DELETE CASCADE,
+  member_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  rating SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(session_id, member_id)
+);
+CREATE INDEX IF NOT EXISTS idx_ratings_session ON public.session_ratings(session_id);
+CREATE INDEX IF NOT EXISTS idx_ratings_member ON public.session_ratings(member_id);
+
+-- Member badges: gamification — earned for milestones.
+CREATE TABLE IF NOT EXISTS public.member_badges (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  member_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  badge_type TEXT NOT NULL,
+  badge_name TEXT NOT NULL,
+  description TEXT,
+  icon TEXT DEFAULT '🏆',
+  earned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(member_id, badge_type)
+);
+CREATE INDEX IF NOT EXISTS idx_badges_member ON public.member_badges(member_id);
+
+-- Session photos: photo gallery for sessions and announcements.
+CREATE TABLE IF NOT EXISTS public.session_photos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID REFERENCES public.training_sessions(id) ON DELETE CASCADE,
+  announcement_id UUID REFERENCES public.announcements(id) ON DELETE CASCADE,
+  photo_url TEXT NOT NULL,
+  caption TEXT,
+  uploaded_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_photos_session ON public.session_photos(session_id);
+
+-- Activity feed: timeline of member events.
+CREATE TABLE IF NOT EXISTS public.activity_feed (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  academy_id UUID NOT NULL REFERENCES public.academies(id) ON DELETE CASCADE
+    DEFAULT public.current_academy_id(),
+  member_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  activity_type TEXT NOT NULL CHECK (activity_type IN ('joined', 'attended', 'payment', 'badge', 'evaluation', 'rating', 'checkin')),
+  description TEXT NOT NULL,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_activity_member ON public.activity_feed(member_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_activity_academy ON public.activity_feed(academy_id, created_at DESC);
+
+-- Recurring schedules: generates training_sessions from a pattern.
+CREATE TABLE IF NOT EXISTS public.recurring_schedules (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  academy_id UUID NOT NULL REFERENCES public.academies(id) ON DELETE CASCADE
+    DEFAULT public.current_academy_id(),
+  name TEXT NOT NULL,
+  weekday INTEGER NOT NULL CHECK (weekday BETWEEN 0 AND 6),
+  time TIME NOT NULL,
+  sport_id UUID REFERENCES public.sports(id) ON DELETE SET NULL,
+  venue_id UUID REFERENCES public.venues(id) ON DELETE SET NULL,
+  coach_id UUID REFERENCES public.coaches(id) ON DELETE SET NULL,
+  age_group TEXT,
+  skill_level TEXT CHECK (skill_level IN ('beginner', 'intermediate', 'advanced')),
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- ── Column migrations for already-deployed databases ──────────
 
 ALTER TABLE public.profiles
@@ -786,6 +869,130 @@ CREATE TRIGGER payment_sync_membership
   FOR EACH ROW EXECUTE FUNCTION public.sync_membership_from_payment();
 
 -- ────────────────────────────────────────────────────────────
+-- 3.5 ACTIVITY FEED & BADGE AUTO-AWARD
+-- ────────────────────────────────────────────────────────────
+
+-- Log attendance events to activity_feed
+CREATE OR REPLACE FUNCTION public.log_attendance_activity()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_academy UUID;
+  v_member_name TEXT;
+  v_session_date DATE;
+BEGIN
+  SELECT s.academy_id, s.date INTO v_academy, v_session_date
+  FROM public.training_sessions s WHERE s.id = NEW.session_id;
+
+  SELECT name INTO v_member_name FROM public.profiles WHERE id = NEW.member_id;
+
+  IF NEW.is_present THEN
+    INSERT INTO public.activity_feed (academy_id, member_id, activity_type, description, metadata)
+    VALUES (v_academy, NEW.member_id, 'attended',
+      v_member_name || ' attended session on ' || v_session_date::TEXT,
+      jsonb_build_object('session_id', NEW.session_id, 'date', v_session_date));
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS log_attendance ON public.attendance;
+CREATE TRIGGER log_attendance
+  AFTER INSERT ON public.attendance
+  FOR EACH ROW WHEN (NEW.is_present = TRUE)
+  EXECUTE FUNCTION public.log_attendance_activity();
+
+-- Log payment events
+CREATE OR REPLACE FUNCTION public.log_payment_activity()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_member_name TEXT;
+BEGIN
+  SELECT name INTO v_member_name FROM public.profiles WHERE id = NEW.member_id;
+  INSERT INTO public.activity_feed (academy_id, member_id, activity_type, description, metadata)
+  VALUES (NEW.academy_id, NEW.member_id, 'payment',
+    v_member_name || ' paid ' || NEW.amount || ' on ' || NEW.payment_date::TEXT,
+    jsonb_build_object('payment_id', NEW.id, 'amount', NEW.amount));
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS log_payment ON public.payments;
+CREATE TRIGGER log_payment
+  AFTER INSERT ON public.payments
+  FOR EACH ROW EXECUTE FUNCTION public.log_payment_activity();
+
+-- Auto-award badges based on attendance milestones
+CREATE OR REPLACE FUNCTION public.check_and_award_badges()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_count INTEGER;
+  v_member_name TEXT;
+  v_academy UUID;
+BEGIN
+  SELECT sessions_attended, academy_id, name INTO v_count, v_academy, v_member_name
+  FROM public.profiles WHERE id = NEW.member_id;
+
+  -- First session badge
+  IF v_count = 1 AND NOT EXISTS (SELECT 1 FROM public.member_badges WHERE member_id = NEW.member_id AND badge_type = 'first_session') THEN
+    INSERT INTO public.member_badges (member_id, badge_type, badge_name, description, icon)
+    VALUES (NEW.member_id, 'first_session', 'First Step', 'Attended first session', '⭐');
+  END IF;
+
+  -- 10 sessions
+  IF v_count >= 10 AND NOT EXISTS (SELECT 1 FROM public.member_badges WHERE member_id = NEW.member_id AND badge_type = 'ten_sessions') THEN
+    INSERT INTO public.member_badges (member_id, badge_type, badge_name, description, icon)
+    VALUES (NEW.member_id, 'ten_sessions', 'Regular', 'Attended 10 sessions', '🔥');
+  END IF;
+
+  -- 25 sessions
+  IF v_count >= 25 AND NOT EXISTS (SELECT 1 FROM public.member_badges WHERE member_id = NEW.member_id AND badge_type = 'twenty_five_sessions') THEN
+    INSERT INTO public.member_badges (member_id, badge_type, badge_name, description, icon)
+    VALUES (NEW.member_id, 'twenty_five_sessions', 'Dedicated', 'Attended 25 sessions', '💪');
+  END IF;
+
+  -- 50 sessions
+  IF v_count >= 50 AND NOT EXISTS (SELECT 1 FROM public.member_badges WHERE member_id = NEW.member_id AND badge_type = 'fifty_sessions') THEN
+    INSERT INTO public.member_badges (member_id, badge_type, badge_name, description, icon)
+    VALUES (NEW.member_id, 'fifty_sessions', 'Champion', 'Attended 50 sessions', '🏆');
+  END IF;
+
+  -- 100 sessions
+  IF v_count >= 100 AND NOT EXISTS (SELECT 1 FROM public.member_badges WHERE member_id = NEW.member_id AND badge_type = 'hundred_sessions') THEN
+    INSERT INTO public.member_badges (member_id, badge_type, badge_name, description, icon)
+    VALUES (NEW.member_id, 'hundred_sessions', 'Legend', 'Attended 100 sessions', '👑');
+  END IF;
+
+  -- Log the badge activity if any badge was earned
+  IF FOUND THEN
+    INSERT INTO public.activity_feed (academy_id, member_id, activity_type, description, metadata)
+    VALUES (v_academy, NEW.member_id, 'badge',
+      v_member_name || ' earned a new badge!',
+      jsonb_build_object('badge_type', NEW.badge_type));
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS check_badges_on_attendance ON public.attendance;
+CREATE TRIGGER check_badges_on_attendance
+  AFTER INSERT OR UPDATE ON public.attendance
+  FOR EACH ROW WHEN (NEW.is_present = TRUE)
+  EXECUTE FUNCTION public.check_and_award_badges();
+
+-- ────────────────────────────────────────────────────────────
 -- 4. ROW LEVEL SECURITY
 -- Every policy scopes by academy via current_academy_id(); admins
 -- additionally need the admin role claim.
@@ -813,6 +1020,12 @@ ALTER TABLE public.coach_availability ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tournaments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tournament_matches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.trial_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.session_waitlist ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.session_ratings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.member_badges ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.session_photos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.activity_feed ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recurring_schedules ENABLE ROW LEVEL SECURITY;
 
 -- Helper predicates (kept inline in policies for clarity).
 -- is_admin   : auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
@@ -1213,6 +1426,125 @@ CREATE POLICY "Authenticated view tournament matches" ON public.tournament_match
       WHERE t.id = tournament_id AND t.academy_id = public.current_academy_id()
     )
   );
+
+-- trial_requests: anyone may submit; only admins of that academy read/manage.
+-- session_waitlist: members join/leave; admins manage all.
+DROP POLICY IF EXISTS "Admins manage waitlist" ON public.session_waitlist;
+CREATE POLICY "Admins manage waitlist" ON public.session_waitlist
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.training_sessions s
+      WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
+    )
+    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
+  );
+
+DROP POLICY IF EXISTS "Members view waitlist" ON public.session_waitlist;
+CREATE POLICY "Members view waitlist" ON public.session_waitlist
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM public.training_sessions s
+      WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
+    )
+  );
+
+DROP POLICY IF EXISTS "Members join waitlist" ON public.session_waitlist;
+CREATE POLICY "Members join waitlist" ON public.session_waitlist
+  FOR INSERT WITH CHECK (
+    auth.uid() = member_id
+    AND EXISTS (
+      SELECT 1 FROM public.training_sessions s
+      WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
+    )
+  );
+
+-- session_ratings: members rate; admins manage.
+DROP POLICY IF EXISTS "Admins manage ratings" ON public.session_ratings;
+CREATE POLICY "Admins manage ratings" ON public.session_ratings
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.training_sessions s
+      WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
+    )
+    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
+  );
+
+DROP POLICY IF EXISTS "Members view ratings" ON public.session_ratings;
+CREATE POLICY "Members view ratings" ON public.session_ratings
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM public.training_sessions s
+      WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
+    )
+  );
+
+DROP POLICY IF EXISTS "Members submit ratings" ON public.session_ratings;
+CREATE POLICY "Members submit ratings" ON public.session_ratings
+  FOR INSERT WITH CHECK (auth.uid() = member_id);
+
+-- member_badges: admins assign; members view their own.
+DROP POLICY IF EXISTS "Admins manage badges" ON public.member_badges;
+CREATE POLICY "Admins manage badges" ON public.member_badges
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles p
+      WHERE p.id = member_id AND p.academy_id = public.current_academy_id()
+    )
+    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
+  );
+
+DROP POLICY IF EXISTS "Members view own badges" ON public.member_badges;
+CREATE POLICY "Members view own badges" ON public.member_badges
+  FOR SELECT USING (
+    auth.uid() = member_id
+    OR EXISTS (
+      SELECT 1 FROM public.profiles p
+      WHERE p.id = member_id AND p.academy_id = public.current_academy_id()
+    )
+  );
+
+-- session_photos: admins manage; members view.
+DROP POLICY IF EXISTS "Admins manage photos" ON public.session_photos;
+CREATE POLICY "Admins manage photos" ON public.session_photos
+  FOR ALL USING (
+    (session_id IS NULL OR EXISTS (
+      SELECT 1 FROM public.training_sessions s WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
+    ))
+    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
+  );
+
+DROP POLICY IF EXISTS "Authenticated view photos" ON public.session_photos;
+CREATE POLICY "Authenticated view photos" ON public.session_photos
+  FOR SELECT USING (
+    session_id IS NULL OR EXISTS (
+      SELECT 1 FROM public.training_sessions s WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
+    )
+  );
+
+-- activity_feed: admins + members view their academy; system inserts via trigger.
+DROP POLICY IF EXISTS "Academy members view activity" ON public.activity_feed;
+CREATE POLICY "Academy members view activity" ON public.activity_feed
+  FOR SELECT USING (academy_id = public.current_academy_id());
+
+DROP POLICY IF EXISTS "Academy insert activity" ON public.activity_feed;
+CREATE POLICY "Academy insert activity" ON public.activity_feed
+  FOR INSERT WITH CHECK (academy_id = public.current_academy_id());
+
+-- recurring_schedules: admins manage; members read.
+DROP POLICY IF EXISTS "Admins manage recurring" ON public.recurring_schedules;
+CREATE POLICY "Admins manage recurring" ON public.recurring_schedules
+  FOR ALL USING (
+    academy_id = public.current_academy_id()
+    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
+  )
+  WITH CHECK (
+    academy_id = public.current_academy_id()
+    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
+  );
+
+DROP POLICY IF EXISTS "Authenticated view recurring" ON public.recurring_schedules;
+CREATE POLICY "Authenticated view recurring" ON public.recurring_schedules
+  FOR SELECT USING (academy_id = public.current_academy_id());
 
 -- trial_requests: anyone may submit; only admins of that academy read/manage.
 DROP POLICY IF EXISTS "Public submit trial requests" ON public.trial_requests;

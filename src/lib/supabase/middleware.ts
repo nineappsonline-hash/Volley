@@ -86,7 +86,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  const adminOnly = ["/members", "/costs", "/reports", "/attendance", "/teams", "/coaches", "/settings", "/tournaments"].some(
+  const adminOnly = ["/members", "/costs", "/reports", "/attendance", "/teams", "/coaches", "/settings", "/tournaments", "/analytics"].some(
     (p) => pathname === p || pathname.startsWith(p + "/")
   );
   if (user && adminOnly && role !== "admin") {

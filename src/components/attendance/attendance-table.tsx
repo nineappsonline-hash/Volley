@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ProfitLossIndicator } from "@/components/shared/profit-loss-indicator";
+import { BatchToolbar } from "@/components/shared/batch-toolbar";
 import {
   useAttendance,
   useMonthlyCosts,
@@ -44,6 +45,7 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
 
   const [saving, setSaving] = useState(false);
   const [pending, setPending] = useState<Record<string, boolean | undefined>>({});
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   // Realtime: keep everything in sync when attendance/guests change
   useRealtime(["attendance", "session_calculations", "session_guests"]);
@@ -159,6 +161,48 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
     setPending(next);
   };
 
+  const toggleSelect = (memberId: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(memberId)) next.delete(memberId);
+      else next.add(memberId);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.size === members.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(members.map((m) => m.id)));
+    }
+  };
+
+  const batchMarkPresent = () => {
+    const next: Record<string, boolean | undefined> = {};
+    for (const id of selected) next[id] = true;
+    setPending((p) => ({ ...p, ...next }));
+  };
+
+  const batchMarkAbsent = () => {
+    const next: Record<string, boolean | undefined> = {};
+    for (const id of selected) next[id] = false;
+    setPending((p) => ({ ...p, ...next }));
+  };
+
+  const batchExport = () => {
+    const rows = members.filter((m) => selected.has(m.id)).map((m) => {
+      const present = pending[m.id] ?? presentMap.get(m.id) ?? false;
+      return { name: m.name, email: m.email, phone: m.phone, present: present ? 'Yes' : 'No' };
+    });
+    const csv = [Object.keys(rows[0] || {}).join(','), ...rows.map(r => Object.values(r).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `attendance-${session.date}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (loadingMembers) {
     return (
       <div className="space-y-2">
@@ -217,6 +261,14 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
         </CardContent>
       </Card>
 
+      <BatchToolbar
+        selectedCount={selected.size}
+        onMarkPresent={batchMarkPresent}
+        onMarkAbsent={batchMarkAbsent}
+        onExport={batchExport}
+        onClear={() => setSelected(new Set())}
+      />
+
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
@@ -252,7 +304,12 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
           <thead>
             <tr className="border-b bg-muted/50">
               <th className="px-4 py-3 text-start font-medium text-muted-foreground">
-                {t("attendance_member")}
+                <button onClick={toggleSelectAll} className="flex items-center gap-2">
+                  <span className={`inline-flex h-4 w-4 items-center justify-center rounded border ${selected.size === members.length && members.length > 0 ? 'bg-primary border-primary' : 'border-muted-foreground/50'}`}> 
+                    {selected.size === members.length && members.length > 0 && <span className="text-[10px] text-primary-foreground">✓</span>}
+                  </span>
+                  {t("batch_select")}
+                </button>
               </th>
               <th className="hidden px-4 py-3 text-end font-medium text-muted-foreground sm:table-cell">
                 {t("attendance_per_member")}
@@ -274,6 +331,13 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
                     present ? "bg-emerald-50/60 dark:bg-emerald-500/5" : "hover:bg-accent/40"
                   }`}
                 >
+                  <td className="px-4 py-2.5">
+                    <button onClick={() => toggleSelect(m.id)}>
+                      <span className={`inline-flex h-4 w-4 items-center justify-center rounded border ${selected.has(m.id) ? 'bg-primary border-primary' : 'border-muted-foreground/50'}`}> 
+                        {selected.has(m.id) && <span className="text-[10px] text-primary-foreground">✓</span>}
+                      </span>
+                    </button>
+                  </td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">

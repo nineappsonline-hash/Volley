@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BarChart3,
   CalendarDays,
   ClipboardCheck,
   CreditCard,
@@ -29,6 +30,7 @@ const adminItems = [
   { href: "/attendance", key: "nav_attendance", icon: ClipboardCheck },
   { href: "/costs", key: "nav_costs", icon: CreditCard },
   { href: "/reports", key: "nav_reports", icon: LineChart },
+  { href: "/analytics", key: "nav_analytics", icon: BarChart3 },
   { href: "/tournaments", key: "nav_tournaments", icon: Swords },
   { href: "/settings", key: "nav_settings", icon: Settings },
 ] as const;
@@ -99,7 +101,11 @@ export function Sidebar({ role, name }: SidebarProps) {
       <div className="rounded-lg border bg-muted/40 p-3 text-xs text-muted-foreground">
         <p className="font-semibold text-foreground">{name}</p>
         <p className="mt-0.5">
-          {role === "admin" ? t("role_admin") : t("role_member")}
+          {role === "super_admin"
+            ? t("role_super_admin")
+            : role === "admin"
+              ? t("role_admin")
+              : t("role_member")}
         </p>
       </div>
     </div>

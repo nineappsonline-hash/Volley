@@ -4,19 +4,25 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type {
   Academy,
+  ActivityFeedItem,
   Announcement,
   Attendance,
   Coach,
   CoachAvailability,
   Expense,
+  MemberBadge,
   MembershipPlan,
   MonthlyCost,
   Payment,
   PlayerEvaluation,
   Profile,
+  RecurringSchedule,
   ScheduleTemplate,
   SessionCalculation,
   SessionGuest,
+  SessionPhoto,
+  SessionRating,
+  SessionWaitlist,
   Sport,
   TeamWithDetails,
   Tournament,
@@ -51,6 +57,16 @@ export const queryKeys = {
     ["evaluations", memberId ?? "all"] as const,
   templates: ["templates"] as const,
   trials: ["trials"] as const,
+  waitlist: (sessionId?: string) =>
+    ["waitlist", sessionId ?? "all"] as const,
+  ratings: (sessionId?: string) =>
+    ["ratings", sessionId ?? "all"] as const,
+  badges: (memberId?: string) =>
+    ["badges", memberId ?? "all"] as const,
+  photos: ["photos"] as const,
+  activity: (memberId?: string) =>
+    ["activity", memberId ?? "all"] as const,
+  recurring: ["recurring"] as const,
 };
 
 const supabase = () => createClient();
@@ -1413,6 +1429,332 @@ export function useUpdateTrialRequest() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["trials"] });
+    },
+  });
+}
+
+// ── Waitlist ──────────────────────────────────────────────
+
+export function useSessionWaitlist(sessionId: string) {
+  return useQuery({
+    queryKey: queryKeys.waitlist(sessionId),
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("session_waitlist")
+        .select("*, profile:member_id(id, name)")
+        .eq("session_id", sessionId)
+        .eq("status", "waiting")
+        .order("position");
+      if (error) throw error;
+      return (data ?? []) as SessionWaitlist[];
+    },
+    enabled: !!sessionId,
+  });
+}
+
+export function useJoinWaitlist() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      session_id,
+      member_id,
+      position,
+    }: {
+      session_id: string;
+      member_id: string;
+      position: number;
+    }) => {
+      const { error } = await supabase().from("session_waitlist").insert({
+        session_id,
+        member_id,
+        position,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["waitlist"] });
+    },
+  });
+}
+
+export function useUpdateWaitlistEntry() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...updates
+    }: Partial<SessionWaitlist> & { id: string }) => {
+      const { error } = await supabase()
+        .from("session_waitlist")
+        .update(updates)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["waitlist"] });
+    },
+  });
+}
+
+// ── Session Ratings ───────────────────────────────────────
+
+export function useSessionRatings(sessionId: string) {
+  return useQuery({
+    queryKey: queryKeys.ratings(sessionId),
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("session_ratings")
+        .select("*, profile:member_id(id, name)")
+        .eq("session_id", sessionId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as SessionRating[];
+    },
+    enabled: !!sessionId,
+  });
+}
+
+export function useSubmitRating() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      session_id,
+      member_id,
+      rating,
+      comment,
+    }: {
+      session_id: string;
+      member_id: string;
+      rating: number;
+      comment?: string;
+    }) => {
+      const { error } = await supabase().from("session_ratings").upsert(
+        { session_id, member_id, rating, comment },
+        { onConflict: "session_id,member_id" }
+      );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["ratings"] });
+    },
+  });
+}
+
+// ── Member Badges ─────────────────────────────────────────
+
+export function useMemberBadges(memberId?: string) {
+  return useQuery({
+    queryKey: queryKeys.badges(memberId),
+    queryFn: async () => {
+      let q = supabase()
+        .from("member_badges")
+        .select("*")
+        .order("earned_at", { ascending: false });
+      if (memberId) q = q.eq("member_id", memberId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as MemberBadge[];
+    },
+  });
+}
+
+export function useAwardBadge() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      member_id,
+      badge_type,
+      badge_name,
+      description,
+      icon,
+    }: {
+      member_id: string;
+      badge_type: string;
+      badge_name: string;
+      description?: string;
+      icon?: string;
+    }) => {
+      const { error } = await supabase().from("member_badges").upsert(
+        { member_id, badge_type, badge_name, description, icon },
+        { onConflict: "member_id,badge_type" }
+      );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["badges"] });
+    },
+  });
+}
+
+// ── Session Photos ────────────────────────────────────────
+
+export function useSessionPhotos(sessionId?: string) {
+  return useQuery({
+    queryKey: queryKeys.photos,
+    queryFn: async () => {
+      let q = supabase()
+        .from("session_photos")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (sessionId) q = q.eq("session_id", sessionId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as SessionPhoto[];
+    },
+  });
+}
+
+export function useUploadPhoto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      session_id,
+      announcement_id,
+      photo_url,
+      caption,
+      uploaded_by,
+    }: {
+      session_id?: string;
+      announcement_id?: string;
+      photo_url: string;
+      caption?: string;
+      uploaded_by?: string;
+    }) => {
+      const { error } = await supabase().from("session_photos").insert({
+        session_id,
+        announcement_id,
+        photo_url,
+        caption,
+        uploaded_by,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["photos"] });
+    },
+  });
+}
+
+export function useDeletePhoto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase()
+        .from("session_photos")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["photos"] });
+    },
+  });
+}
+
+// ── Activity Feed ─────────────────────────────────────────
+
+export function useActivityFeed(memberId?: string, limit = 50) {
+  return useQuery({
+    queryKey: queryKeys.activity(memberId),
+    queryFn: async () => {
+      let q = supabase()
+        .from("activity_feed")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (memberId) q = q.eq("member_id", memberId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as ActivityFeedItem[];
+    },
+  });
+}
+
+// ── Recurring Schedules ───────────────────────────────────
+
+export function useRecurringSchedules() {
+  return useQuery({
+    queryKey: queryKeys.recurring,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("recurring_schedules")
+        .select("*")
+        .order("weekday");
+      if (error) throw error;
+      return (data ?? []) as RecurringSchedule[];
+    },
+  });
+}
+
+export function useCreateRecurringSchedule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (schedule: Omit<RecurringSchedule, "id" | "created_at">) => {
+      const { error } = await supabase().from("recurring_schedules").insert(schedule);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.recurring });
+    },
+  });
+}
+
+export function useDeleteRecurringSchedule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase()
+        .from("recurring_schedules")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.recurring });
+    },
+  });
+}
+
+/** Generate training_sessions from a recurring schedule within a date range. */
+export function useGenerateSessions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (schedule: RecurringSchedule) => {
+      const sessions: Omit<TrainingSession, "id" | "created_at">[] = [];
+      const start = new Date(schedule.start_date);
+      const end = new Date(schedule.end_date);
+
+      for (
+        let d = new Date(start);
+        d <= end;
+        d.setDate(d.getDate() + 1)
+      ) {
+        if (d.getDay() === schedule.weekday) {
+          sessions.push({
+            academy_id: schedule.academy_id,
+            date: d.toISOString().slice(0, 10),
+            time: schedule.time,
+            location: null,
+            notes: `Generated from: ${schedule.name}`,
+            is_completed: false,
+            status: "scheduled",
+            sport_id: schedule.sport_id,
+            venue_id: schedule.venue_id,
+            coach_id: schedule.coach_id,
+            age_group: schedule.age_group,
+            skill_level: schedule.skill_level,
+          });
+        }
+      }
+
+      // Skip if no dates fall on the weekday
+      if (sessions.length === 0) return;
+
+      const { error } = await supabase().from("training_sessions").insert(sessions);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.sessions });
     },
   });
 }

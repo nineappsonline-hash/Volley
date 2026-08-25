@@ -24,6 +24,7 @@ import { MonthGeneratorDialog } from "@/components/schedule/month-generator-dial
 import { VenuesManagerDialog } from "@/components/schedule/venues-manager-dialog";
 import { TemplatesManagerDialog } from "@/components/schedule/templates-manager-dialog";
 import { CalendarExportDialog } from "@/components/schedule/calendar-export-dialog";
+import { RecurringSchedulesList } from "@/components/shared/recurring-schedules";
 import { SessionCard } from "@/components/schedule/session-card";
 import { SessionDetailsDialog } from "@/components/schedule/session-details-dialog";
 import { useI18n } from "@/lib/i18n";
@@ -302,6 +303,10 @@ export function ScheduleClient({
           onOpenChange={setCalExportOpen}
           token={academy.calendar_token}
         />
+      )}
+
+      {isAdmin && (
+        <RecurringSchedulesList />
       )}
 
       {isAdmin && (

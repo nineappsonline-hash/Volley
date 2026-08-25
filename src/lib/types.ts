@@ -280,6 +280,71 @@ export interface SessionGuest {
   created_at: string;
 }
 
+export interface SessionWaitlist {
+  id: string;
+  session_id: string;
+  member_id: string;
+  position: number;
+  status: "waiting" | "notified" | "promoted" | "cancelled";
+  created_at: string;
+}
+
+export interface SessionRating {
+  id: string;
+  session_id: string;
+  member_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+}
+
+export interface MemberBadge {
+  id: string;
+  member_id: string;
+  badge_type: string;
+  badge_name: string;
+  description: string | null;
+  icon: string;
+  earned_at: string;
+}
+
+export interface SessionPhoto {
+  id: string;
+  session_id: string | null;
+  announcement_id: string | null;
+  photo_url: string;
+  caption: string | null;
+  uploaded_by: string | null;
+  created_at: string;
+}
+
+export interface ActivityFeedItem {
+  id: string;
+  academy_id: string;
+  member_id: string;
+  activity_type: "joined" | "attended" | "payment" | "badge" | "evaluation" | "rating" | "checkin";
+  description: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface RecurringSchedule {
+  id: string;
+  academy_id: string;
+  name: string;
+  weekday: number;
+  time: string;
+  sport_id: string | null;
+  venue_id: string | null;
+  coach_id: string | null;
+  age_group: string | null;
+  skill_level: SkillLevel | null;
+  start_date: string;
+  end_date: string;
+  is_active: boolean;
+  created_at: string;
+}
+
 export interface MemberWithPayments extends Profile {
   payments: Payment[];
 }

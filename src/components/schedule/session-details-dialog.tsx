@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ProfitLossIndicator } from "@/components/shared/profit-loss-indicator";
 import { GuestManager } from "@/components/schedule/guest-manager";
+import { SessionRatings } from "@/components/shared/session-ratings";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney, sessionsForMembership } from "@/lib/constants";
 import { memberPerSessionValue } from "@/lib/calculations";
@@ -464,6 +465,13 @@ export function SessionDetailsDialog({
                 {session && <GuestManager sessionId={session.id} isAdmin={false} />}
                 {memberFinancials}
               </>
+            )}
+
+            {/* Session ratings */}
+            {session && (
+              <div className="mt-4">
+                <SessionRatings sessionId={session.id} currentUserId={memberId} />
+              </div>
             )}
           </div>
         )}

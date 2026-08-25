@@ -10,6 +10,7 @@ import {
   BadgePlus,
   CheckCircle2,
   CreditCard,
+  FileDown,
   MapPin,
   Pencil,
   Receipt,
@@ -38,8 +39,11 @@ import { PageHeader } from "@/components/shared/page-header";
 import { PaymentFormDialog } from "@/components/members/payment-form-dialog";
 import { EvaluationsCard } from "@/components/members/evaluations-card";
 import { AttendanceTrendCard } from "@/components/members/attendance-trend-card";
+import { MemberBadges } from "@/components/shared/member-badges";
+import { ActivityFeed } from "@/components/shared/activity-feed";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
+import { createPDF, addPDFTable, downloadPDF } from "@/lib/export";
 import {
   memberPerSessionValue,
   usedSessionsSincePayment,
@@ -113,6 +117,45 @@ export default function MemberDetailsPage() {
     }
   };
 
+  const handleExportStatement = () => {
+    if (!member || !payments) return;
+    const pdf = createPDF(`${t("member_export_statement")} — ${member.name}`);
+
+    // Summary block
+    pdf.doc.setFontSize(10);
+    pdf.doc.setFont("helvetica", "normal");
+    let y = 27;
+    const line = (label: string, value: string) => {
+      pdf.doc.text(label, 14, y);
+      pdf.doc.text(value, 120, y);
+      y += 6;
+    };
+    line("Total paid", formatMoney(totalPaid, "en"));
+    line(
+      "Remaining sessions",
+      member.subscription_sessions > 0
+        ? `${remaining} / ${member.subscription_sessions}`
+        : "—"
+    );
+    line("Sessions attended", String(attendedSessions.length));
+    y += 1;
+
+    addPDFTable(
+      pdf,
+      ["Date", "Amount", "Type", "Sessions", "Method"],
+      payments.map((p) => [
+        format(new Date(p.payment_date + "T00:00:00"), "yyyy-MM-dd"),
+        formatMoney(Number(p.amount), "en"),
+        p.membership_type === "half" ? "Half" : "Full",
+        String(p.subscription_sessions),
+        p.method.replace("_", " "),
+      ]),
+      y + 3
+    );
+
+    downloadPDF(pdf, `statement-${member.name.replace(/\s+/g, "-").toLowerCase()}.pdf`);
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -124,6 +167,15 @@ export default function MemberDetailsPage() {
             <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
             {t("nav_members")}
           </Link>
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleExportStatement}
+          disabled={!payments || payments.length === 0}
+        >
+          <FileDown className="h-4 w-4" />
+          {t("member_export_statement")}
         </Button>
         <Button
           size="sm"
@@ -332,6 +384,12 @@ export default function MemberDetailsPage() {
           sessions={sessions ?? []}
         />
         <EvaluationsCard memberId={id} isAdmin={member.role === "admin"} />
+      </div>
+
+      {/* Badges + Activity Feed */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <MemberBadges memberId={id} />
+        <ActivityFeed memberId={id} limit={15} />
       </div>
 
       {/* Attendance history */}

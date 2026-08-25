@@ -17,14 +17,17 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { AttendanceTable } from "@/components/attendance/attendance-table";
 import { QuickCheckinCard } from "@/components/attendance/quick-checkin-card";
+import { AttendanceAnalytics } from "@/components/shared/attendance-analytics";
 import { useI18n } from "@/lib/i18n";
-import { useSessions } from "@/lib/queries";
+import { useSessions, useAttendance, useProfiles } from "@/lib/queries";
 import type { TrainingSession } from "@/lib/types";
 
 function AttendanceContent() {
   const { t, locale } = useI18n();
   const searchParams = useSearchParams();
   const { data: sessions, isLoading } = useSessions();
+  const { data: attendance } = useAttendance();
+  const { data: profiles } = useProfiles();
 
   const upcoming = useMemo(
     () =>
@@ -91,6 +94,12 @@ function AttendanceContent() {
           {selected && <QuickCheckinCard sessionId={selected.id} />}
 
           {selected && <AttendanceTable session={selected} />}
+
+          <AttendanceAnalytics
+            sessions={sessions ?? []}
+            attendance={attendance ?? []}
+            profiles={profiles ?? []}
+          />
         </>
       )}
     </div>
