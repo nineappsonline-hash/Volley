@@ -1078,8 +1078,11 @@ BEGIN
        OR NEW.email IS DISTINCT FROM OLD.email
        OR NEW.id IS DISTINCT FROM OLD.id
        OR NEW.join_date IS DISTINCT FROM OLD.join_date
-       OR NEW.academy_id IS DISTINCT FROM OLD.academy_id
-       OR NEW.checkin_code IS DISTINCT FROM OLD.checkin_code THEN
+       OR NEW.checkin_code IS DISTINCT FROM OLD.checkin_code
+       -- academy_id may change exactly once: a member who signed up without an
+       -- invite code picking an academy from the public directory (still pending).
+       OR (NEW.academy_id IS DISTINCT FROM OLD.academy_id
+           AND NOT (OLD.academy_id IS NULL AND NEW.is_active = FALSE)) THEN
       RAISE EXCEPTION 'Not allowed to change subscription fields';
     END IF;
   END IF;
@@ -1230,7 +1233,14 @@ CREATE POLICY "Admins manage sports" ON public.sports
 
 DROP POLICY IF EXISTS "Authenticated view sports" ON public.sports;
 CREATE POLICY "Authenticated view sports" ON public.sports
-  FOR SELECT USING (academy_id = public.current_academy_id());
+  FOR SELECT USING (
+    academy_id = public.current_academy_id()
+    -- Also publicly readable for public academies (directory listings).
+    OR EXISTS (
+      SELECT 1 FROM public.academies a
+      WHERE a.id = sports.academy_id AND a.is_public = TRUE
+    )
+  );
 
 -- teams + team_members: admins manage; members can view teams and rosters.
 DROP POLICY IF EXISTS "Admins manage teams" ON public.teams;
@@ -1598,3 +1608,71 @@ $$;
 --
 -- The sync_role_claim trigger will set app_metadata.role = 'admin',
 -- so the middleware grants admin access on their next sign-in.
+
+-- ────────────────────────────────────────────────────────────
+-- 5. PUBLIC ACADEMY DIRECTORY & RATINGS
+-- Members who sign up without an invite code can browse public
+-- academies and pick one; registered users can rate academies.
+-- ────────────────────────────────────────────────────────────
+
+-- Public contact/location info shown in the directory.
+ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS address TEXT;
+
+CREATE TABLE IF NOT EXISTS public.academy_ratings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  academy_id UUID NOT NULL REFERENCES public.academies(id) ON DELETE CASCADE,
+  member_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  rating SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(academy_id, member_id)
+);
+CREATE INDEX IF NOT EXISTS idx_academy_ratings_academy ON public.academy_ratings(academy_id);
+
+ALTER TABLE public.academy_ratings ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can view academy ratings" ON public.academy_ratings;
+CREATE POLICY "Anyone can view academy ratings" ON public.academy_ratings
+  FOR SELECT USING (TRUE);
+
+DROP POLICY IF EXISTS "Members insert own ratings" ON public.academy_ratings;
+CREATE POLICY "Members insert own ratings" ON public.academy_ratings
+  FOR INSERT WITH CHECK (auth.uid() = member_id);
+
+DROP POLICY IF EXISTS "Members update own ratings" ON public.academy_ratings;
+CREATE POLICY "Members update own ratings" ON public.academy_ratings
+  FOR UPDATE USING (auth.uid() = member_id)
+  WITH CHECK (auth.uid() = member_id);
+
+-- A member who signed up without an invite code may attach themselves to
+-- exactly one public academy (they stay pending until an admin approves).
+CREATE OR REPLACE FUNCTION public.join_public_academy(p_academy_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_is_public BOOLEAN;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  SELECT is_public INTO v_is_public FROM public.academies WHERE id = p_academy_id;
+  IF v_is_public IS NOT TRUE THEN
+    RAISE EXCEPTION 'Academy not found';
+  END IF;
+
+  UPDATE public.profiles
+  SET academy_id = p_academy_id
+  WHERE id = auth.uid()
+    AND academy_id IS NULL
+    AND role = 'member';
+
+  RETURN FOUND; -- false if already attached to an academy
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.join_public_academy(UUID) TO authenticated;

@@ -23,6 +23,7 @@ export interface Academy {
   invite_code: string;
   slug: string | null;
   description: string | null;
+  address: string | null;
   is_public: boolean;
   calendar_token: string | null;
   is_trial: boolean;
@@ -226,6 +227,15 @@ export interface TournamentMatch {
 export interface TournamentWithMatches extends Tournament {
   sport: Pick<Sport, "id" | "name"> | null;
   tournament_matches: TournamentMatch[];
+}
+
+export interface AcademyRating {
+  id: string;
+  academy_id: string;
+  member_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
 }
 
 export interface TrialRequest {

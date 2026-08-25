@@ -27,6 +27,7 @@ export function SettingsClient() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [address, setAddress] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const [slug, setSlug] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
@@ -35,6 +36,7 @@ export function SettingsClient() {
     if (academy) {
       setName(academy.name);
       setDescription(academy.description ?? "");
+      setAddress(academy.address ?? "");
       setIsPublic(academy.is_public ?? false);
       setSlug(academy.slug ?? "");
     }
@@ -65,6 +67,7 @@ export function SettingsClient() {
         id: academy.id,
         name: name.trim(),
         description: description.trim() || null,
+        address: address.trim() || null,
         is_public: isPublic,
         slug: slug.trim() || null,
       });
@@ -113,6 +116,14 @@ export function SettingsClient() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={t("settings_public_hint")}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>{t("settings_address")}</Label>
+            <Input
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder={t("directory_no_address")}
             />
           </div>
           <div className="flex items-center gap-3">

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CalendarDays, MapPin, Trophy, Volleyball } from "lucide-react";
+import { CalendarDays, MapPin, Star, Trophy, Volleyball } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { dictionary } from "@/lib/i18n/dictionary";
 import { TrialForm } from "@/components/public/trial-form";
@@ -17,7 +17,7 @@ export default async function PublicAcademyPage({
 
   const { data: academy } = await admin
     .from("academies")
-    .select("id, name, description, is_public")
+    .select("id, name, description, address, is_public")
     .eq("slug", slug)
     .eq("is_public", true)
     .single();
@@ -25,22 +25,33 @@ export default async function PublicAcademyPage({
   if (!academy) notFound();
 
   const today = new Date().toISOString().slice(0, 10);
-  const [{ data: sports }, { data: sessions }] = await Promise.all([
-    admin
-      .from("sports")
-      .select("id, name")
-      .eq("academy_id", academy.id)
-      .order("name"),
-    admin
-      .from("training_sessions")
-      .select("date, time, location")
-      .eq("academy_id", academy.id)
-      .eq("status", "scheduled")
-      .gte("date", today)
-      .order("date")
-      .order("time")
-      .limit(6),
-  ]);
+  const [{ data: sports }, { data: sessions }, { data: ratings }] =
+    await Promise.all([
+      admin
+        .from("sports")
+        .select("id, name")
+        .eq("academy_id", academy.id)
+        .order("name"),
+      admin
+        .from("training_sessions")
+        .select("date, time, location")
+        .eq("academy_id", academy.id)
+        .eq("status", "scheduled")
+        .gte("date", today)
+        .order("date")
+        .order("time")
+        .limit(6),
+      admin
+        .from("academy_ratings")
+        .select("rating")
+        .eq("academy_id", academy.id),
+    ]);
+
+  const ratingCount = (ratings ?? []).length;
+  const avgRating =
+    ratingCount > 0
+      ? (ratings ?? []).reduce((sum, r) => sum + r.rating, 0) / ratingCount
+      : 0;
 
   return (
     <main className="min-h-screen bg-background">
@@ -56,6 +67,37 @@ export default async function PublicAcademyPage({
             <p className="max-w-xl text-sm text-white/85 sm:text-base">
               {academy.description}
             </p>
+          )}
+          {academy.address && (
+            <p className="flex items-center justify-center gap-1.5 text-sm text-white/85">
+              <MapPin className="h-4 w-4" />
+              {academy.address}
+            </p>
+          )}
+          {ratingCount > 0 && (
+            <div className="flex items-center gap-2 text-sm text-white/90">
+              <span className="flex items-center gap-0.5" dir="ltr">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${
+                      i <= Math.round(avgRating)
+                        ? "fill-amber-300 text-amber-300"
+                        : "text-white/40"
+                    }`}
+                  />
+                ))}
+              </span>
+              <span>
+                {avgRating.toFixed(1)} ·{" "}
+                {
+                  (dictionary.en.directory_reviews as string).replace(
+                    "{n}",
+                    String(ratingCount)
+                  ) as string
+                }
+              </span>
+            </div>
           )}
         </div>
       </section>

@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type {
   Academy,
+  AcademyRating,
   ActivityFeedItem,
   Announcement,
   Attendance,
@@ -67,6 +68,8 @@ export const queryKeys = {
   activity: (memberId?: string) =>
     ["activity", memberId ?? "all"] as const,
   recurring: ["recurring"] as const,
+  publicAcademies: ["public-academies"] as const,
+  academyRatings: ["academy-ratings"] as const,
 };
 
 const supabase = () => createClient();
@@ -760,6 +763,74 @@ export function useUpdateAcademy() {
 }
 
 // Public (no auth required): academy page by slug.
+
+// ── Public academy directory & ratings ──────────────────────
+
+export function usePublicAcademies() {
+  return useQuery({
+    queryKey: ["public-academies"],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("academies")
+        .select("id, name, description, address, slug")
+        .eq("is_public", true)
+        .order("name");
+      if (error) throw error;
+      return (data ?? []) as Pick<Academy, "id" | "name" | "description" | "address" | "slug">[];
+    },
+  });
+}
+
+export function usePublicSports() {
+  return useQuery({
+    queryKey: ["public-sports"],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("sports")
+        .select("academy_id, name");
+      if (error) throw error;
+      return (data ?? []) as { academy_id: string; name: string }[];
+    },
+  });
+}
+
+export function useAcademyRatings() {
+  return useQuery({
+    queryKey: queryKeys.academyRatings,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("academy_ratings")
+        .select("*");
+      if (error) throw error;
+      return (data ?? []) as AcademyRating[];
+    },
+  });
+}
+
+export function useRateAcademy() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ academyId, rating }: { academyId: string; rating: number }) => {
+      const { data: session } = await supabase().auth.getSession();
+      const uid = session.session?.user.id;
+      if (!uid) throw new Error("not authenticated");
+      const { error } = await supabase().from("academy_ratings").upsert(
+        { academy_id: academyId, member_id: uid, rating },
+        { onConflict: "academy_id,member_id" }
+      );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.academyRatings });
+    },
+  });
+}
+
+/** Attach a pending (codeless) member to a public academy. Returns false if already attached. */
+export function joinPublicAcademy(academyId: string) {
+  return supabase().rpc("join_public_academy", { p_academy_id: academyId });
+}
+
 // ── Super admin: all academies ──────────────────────────────
 
 export function useAllAcademies() {

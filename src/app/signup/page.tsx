@@ -35,7 +35,7 @@ const joinSchema = (t: (k: any) => string) =>
     email: z.string().email(t("field_invalid_email")),
     phone: z.string().optional(),
     password: z.string().min(6, t("field_min_password")),
-    academy_code: z.string().min(1, t("field_required")),
+    academy_code: z.string().optional(),
   });
 
 const createSchema = (t: (k: any) => string) =>
@@ -80,7 +80,10 @@ export default function SignupPage() {
       const { session } = await signUp(email, password, name, phone, academy);
       if (session) {
         toast.success(t("signup_success"));
-        router.push("/dashboard");
+        // Members who signed up without an invite code pick their academy
+        // from the public directory next.
+        const hasAcademy = !!academy?.code || !!academy?.newName;
+        router.push(hasAcademy ? "/dashboard" : "/academies");
         router.refresh();
       } else {
         setConfirming(true);
@@ -95,7 +98,7 @@ export default function SignupPage() {
 
   const onJoin = async (values: JoinValues) => {
     await finishSignup(values.email, values.password, values.name, values.phone, {
-      code: values.academy_code.trim(),
+      code: values.academy_code?.trim() || undefined,
     });
   };
 
@@ -153,6 +156,9 @@ export default function SignupPage() {
                             </FormControl>
                             <p className="text-xs text-muted-foreground">
                               {t("signup_academy_code_hint")}
+                            </p>
+                            <p className="text-xs text-primary">
+                              {t("signup_academy_code_optional")}
                             </p>
                             <FormMessage />
                           </FormItem>
