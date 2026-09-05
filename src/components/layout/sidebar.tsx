@@ -8,10 +8,14 @@ import {
   ClipboardCheck,
   CreditCard,
   Crown,
+  HandCoins,
+  LandPlot,
   LayoutDashboard,
   LineChart,
+  Map,
   Settings,
   Swords,
+  Ticket,
   Trophy,
   UserRound,
   Users,
@@ -32,6 +36,8 @@ const adminItems = [
   { href: "/reports", key: "nav_reports", icon: LineChart },
   { href: "/analytics", key: "nav_analytics", icon: BarChart3 },
   { href: "/tournaments", key: "nav_tournaments", icon: Swords },
+  { href: "/playgrounds", key: "nav_playgrounds", icon: LandPlot },
+  { href: "/rentals", key: "nav_rentals", icon: HandCoins },
   { href: "/settings", key: "nav_settings", icon: Settings },
 ] as const;
 
@@ -42,18 +48,24 @@ const superAdminItems = [
 const memberItems = [
   { href: "/dashboard", key: "nav_dashboard", icon: LayoutDashboard },
   { href: "/schedule", key: "nav_schedule", icon: CalendarDays },
+  { href: "/events", key: "nav_events", icon: Map },
   { href: "/profile", key: "nav_profile", icon: Users },
+  { href: "/upgrade", key: "nav_upgrade", icon: Crown },
+  { href: "/marketplace", key: "nav_marketplace", icon: Ticket },
 ] as const;
 
 interface SidebarProps {
   role: Role;
   name: string;
+  memberPlan?: "free" | "premium";
 }
 
-export function Sidebar({ role, name }: SidebarProps) {
+export function Sidebar({ role, name, memberPlan }: SidebarProps) {
   const pathname = usePathname();
   const { t } = useI18n();
-  const items = role === "super_admin" ? [...superAdminItems, ...adminItems] : role === "admin" ? adminItems : memberItems;
+  // All roles see the full feature set — admin control happens via the
+  // Super Admin panel (/admin) and server-side RLS policies.
+  const items = role === "super_admin" ? [...superAdminItems, ...adminItems] : role === "admin" ? [...adminItems, ...memberItems] : memberItems;
 
   return (
     <div className="flex h-full flex-col gap-6 p-4">
@@ -100,13 +112,21 @@ export function Sidebar({ role, name }: SidebarProps) {
 
       <div className="rounded-lg border bg-muted/40 p-3 text-xs text-muted-foreground">
         <p className="font-semibold text-foreground">{name}</p>
-        <p className="mt-0.5">
-          {role === "super_admin"
-            ? t("role_super_admin")
-            : role === "admin"
-              ? t("role_admin")
-              : t("role_member")}
-        </p>
+        <div className="mt-0.5 flex items-center gap-1.5">
+          <span>
+            {role === "super_admin"
+              ? t("role_super_admin")
+              : role === "admin"
+                ? t("role_admin")
+                : t("role_member")}
+          </span>
+          {role === "member" && memberPlan === "premium" && (
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">
+              <Crown className="h-2.5 w-2.5" />
+              PRO
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -14,6 +14,7 @@ import {
   Search,
   Timer,
   Trash2,
+  Wallet,
   XCircle,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -57,11 +58,12 @@ interface MemberTableProps {
   onEdit: (member: MemberRow) => void;
   onDelete: (member: MemberRow) => void;
   onRecordPayment: (member: MemberRow) => void;
+  onManagePlan: (member: MemberRow) => void;
 }
 
 const PAGE_SIZE = 8;
 
-export function MemberTable({ members, onEdit, onDelete, onRecordPayment }: MemberTableProps) {
+export function MemberTable({ members, onEdit, onDelete, onRecordPayment, onManagePlan }: MemberTableProps) {
   const { t, lang, locale } = useI18n();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "paid" | "unpaid">("all");
@@ -266,6 +268,15 @@ export function MemberTable({ members, onEdit, onDelete, onRecordPayment }: Memb
                         title={t("member_add_payment")}
                       >
                         <BadgeDollarSign className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onManagePlan(m)}
+                        aria-label={t("members_manage_plan")}
+                        title={t("members_manage_plan")}
+                      >
+                        <Wallet className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"

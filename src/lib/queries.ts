@@ -20,6 +20,7 @@ import type {
   RecurringSchedule,
   ScheduleTemplate,
   SessionCalculation,
+  SessionBooking,
   SessionGuest,
   SessionPhoto,
   SessionRating,
@@ -32,6 +33,7 @@ import type {
   TrainingSession,
   TrialRequest,
   Venue,
+  VenueRental,
 } from "@/lib/types";
 
 export const queryKeys = {
@@ -772,11 +774,14 @@ export function usePublicAcademies() {
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("academies")
-        .select("id, name, description, address, slug")
+        .select("id, name, description, address, country, governorate, area, cover_url, slug")
         .eq("is_public", true)
         .order("name");
       if (error) throw error;
-      return (data ?? []) as Pick<Academy, "id" | "name" | "description" | "address" | "slug">[];
+      return (data ?? []) as Pick<
+        Academy,
+        "id" | "name" | "description" | "address" | "country" | "governorate" | "area" | "cover_url" | "slug"
+      >[];
     },
   });
 }
@@ -829,6 +834,83 @@ export function useRateAcademy() {
 /** Attach a pending (codeless) member to a public academy. Returns false if already attached. */
 export function joinPublicAcademy(academyId: string) {
   return supabase().rpc("join_public_academy", { p_academy_id: academyId });
+}
+
+// ── Member premium plan ────────────────────────────────────
+
+export function useActivatePremium() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      months,
+      amount,
+      method,
+    }: {
+      months: number;
+      amount: number;
+      method: string;
+    }) => {
+      const { error } = await supabase().rpc("activate_member_premium", {
+        p_months: months,
+        p_amount: amount,
+        p_method: method,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profiles"] });
+    },
+  });
+}
+
+export function useAdminSetMemberPlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      member_id,
+      member_plan,
+      premium_expires_at,
+    }: {
+      member_id: string;
+      member_plan: "free" | "premium";
+      premium_expires_at?: string | null;
+    }) => {
+      const { error } = await supabase()
+        .from("profiles")
+        .update({ member_plan, premium_expires_at: premium_expires_at ?? null })
+        .eq("id", member_id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profiles"] });
+    },
+  });
+}
+
+// ── Nearby events (premium) ─────────────────────────────────
+
+export function useNearbyTournaments(myAcademyId?: string | null) {
+  return useQuery({
+    queryKey: ["nearby-tournaments", myAcademyId],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("tournaments")
+        .select(
+          `*,
+           sport:sports(id, name),
+           academy:academies(id, name, slug, address)`
+        )
+        .eq("academies.is_public", true)
+        .neq("academy_id", myAcademyId ?? "")
+        .order("start_date", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as (TournamentWithMatches & {
+        sport: Pick<Sport, "id" | "name"> | null;
+        academy: Pick<Academy, "id" | "name" | "slug" | "address"> | null;
+      })[];
+    },
+    enabled: !!myAcademyId,
+  });
 }
 
 // ── Super admin: all academies ──────────────────────────────
@@ -1042,6 +1124,9 @@ export function useSaveVenue() {
         name: venue.name,
         address: venue.address ?? null,
         capacity: venue.capacity ?? null,
+        sport_id: venue.sport_id ?? null,
+        school_name: venue.school_name ?? null,
+        rental_cost: venue.rental_cost ?? null,
       };
       const { error } = id
         ? await supabase().from("venues").update(payload).eq("id", id)
@@ -1069,6 +1154,82 @@ export function useDeleteVenue() {
 }
 
 // ── Membership plans ────────────────────────────────────────
+
+export function useBookableSessions() {
+  return useQuery({
+    queryKey: ["bookable-sessions"],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("training_sessions")
+        .select(`*
+          , sport:sports(id, name)
+          , venue:venues(id, name, address)
+          , coach:coaches(id, name)
+          , academy:academies(id, name, slug, address, session_booking_enabled)`)
+        .eq("academies.session_booking_enabled", true)
+        .eq("status", "scheduled")
+        .gte("date", new Date().toISOString().slice(0, 10))
+        .order("date")
+        .limit(50);
+      if (error) throw error;
+      return (data ?? []) as (TrainingSession & {
+        sport: Pick<Sport, "id" | "name"> | null;
+        venue: Pick<Venue, "id" | "name" | "address"> | null;
+        coach: Pick<Coach, "id" | "name"> | null;
+        academy: Pick<Academy, "id" | "name" | "slug" | "address" | "session_booking_enabled"> | null;
+      })[];
+    },
+  });
+}
+
+export function useMyBookings() {
+  return useQuery({
+    queryKey: ["my-bookings"],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("session_bookings")
+        .select(`*
+          , session:training_sessions(*)
+          , academy:academies(id, name, slug, address)`)
+        .eq("member_id", (await supabase().auth.getUser()).data.user?.id ?? "")
+        .order("booked_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as SessionBooking[];
+    },
+  });
+}
+
+export function useBookSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ sessionId, notes }: { sessionId: string; notes?: string }) => {
+      const { error } = await supabase().rpc("book_session", {
+        p_session_id: sessionId,
+        p_notes: notes ?? null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my-bookings"] });
+    },
+  });
+}
+
+export function useUpdateBookingStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ bookingId, status }: { bookingId: string; status: string }) => {
+      const { error } = await supabase()
+        .from("session_bookings")
+        .update({ status })
+        .eq("id", bookingId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my-bookings"] });
+    },
+  });
+}
 
 export function usePlans() {
   return useQuery({
@@ -1722,6 +1883,71 @@ export function useDeletePhoto() {
   });
 }
 
+// ── Venue rentals (playground sub-rentals) ────────────────
+
+export function useVenueRentals() {
+  return useQuery({
+    queryKey: ["venue-rentals"],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("venue_rentals")
+        .select("*, venues(name)")
+        .order("rental_date", { ascending: false })
+        .order("start_time", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as VenueRental[];
+    },
+  });
+}
+
+export function useSaveVenueRental() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...rental
+    }: Partial<VenueRental> & {
+      customer_name: string;
+      price: number;
+      rental_date: string;
+      start_time: string;
+    }) => {
+      const payload = {
+        venue_id: rental.venue_id ?? null,
+        customer_name: rental.customer_name,
+        customer_phone: rental.customer_phone ?? null,
+        customer_email: rental.customer_email ?? null,
+        price: rental.price,
+        rental_date: rental.rental_date,
+        start_time: rental.start_time,
+        is_paid: rental.is_paid ?? false,
+        payment_method: rental.payment_method ?? null,
+        notes: rental.notes ?? null,
+      };
+      const { error } = id
+        ? await supabase().from("venue_rentals").update(payload).eq("id", id)
+        : await supabase().from("venue_rentals").insert(payload);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["venue-rentals"] });
+    },
+  });
+}
+
+export function useDeleteVenueRental() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase().from("venue_rentals").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["venue-rentals"] });
+    },
+  });
+}
+
 // ── Activity Feed ─────────────────────────────────────────
 
 export function useActivityFeed(memberId?: string, limit = 50) {
@@ -1814,6 +2040,7 @@ export function useGenerateSessions() {
             coach_id: schedule.coach_id,
             age_group: schedule.age_group,
             skill_level: schedule.skill_level,
+            session_price: null,
           });
         }
       }

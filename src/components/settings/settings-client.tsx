@@ -1,8 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { CalendarCheck, Check, Copy, Link2, Save, Settings as SettingsIcon } from "lucide-react";
+import {
+  CalendarCheck,
+  Check,
+  Copy,
+  Link2,
+  Save,
+  Settings as SettingsIcon,
+  Trash2,
+  Upload,
+} from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +29,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
 import { useAcademy, useUpdateAcademy } from "@/lib/queries";
+import { COUNTRIES, STATES_BY_COUNTRY } from "@/lib/locations";
 
 export function SettingsClient() {
   const { t } = useI18n();
@@ -28,17 +39,31 @@ export function SettingsClient() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
+  const [country, setCountry] = useState("");
+  const [governorate, setGovernorate] = useState("");
+  const [area, setArea] = useState("");
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [isPublic, setIsPublic] = useState(false);
   const [slug, setSlug] = useState("");
+  const [sessionBooking, setSessionBooking] = useState(false);
+  const [platformFee, setPlatformFee] = useState("5");
   const [copied, setCopied] = useState<string | null>(null);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (academy) {
       setName(academy.name);
       setDescription(academy.description ?? "");
       setAddress(academy.address ?? "");
+      setCountry(academy.country ?? "");
+      setGovernorate(academy.governorate ?? "");
+      setArea(academy.area ?? "");
+      setCoverUrl(academy.cover_url ?? null);
       setIsPublic(academy.is_public ?? false);
       setSlug(academy.slug ?? "");
+      setSessionBooking(academy.session_booking_enabled ?? false);
+      setPlatformFee(String(academy.platform_fee_percent ?? 5));
     }
   }, [academy]);
 
@@ -68,12 +93,43 @@ export function SettingsClient() {
         name: name.trim(),
         description: description.trim() || null,
         address: address.trim() || null,
+        country: country.trim() || null,
+        governorate: governorate.trim() || null,
+        area: area.trim() || null,
+        cover_url: coverUrl || null,
         is_public: isPublic,
         slug: slug.trim() || null,
+        session_booking_enabled: sessionBooking,
+        platform_fee_percent: Number(platformFee) || 5,
       });
       toast.success(t("settings_saved"));
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
+    }
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingCover(true);
+    try {
+      const supabase = createClient();
+      const fileExt = file.name.split(".").pop();
+      const filePath = `covers/${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from("session-photos")
+        .upload(filePath, file);
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage
+        .from("session-photos")
+        .getPublicUrl(filePath);
+      setCoverUrl(urlData.publicUrl);
+      toast.success(t("settings_cover_upload"));
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setUploadingCover(false);
+      if (coverInputRef.current) coverInputRef.current.value = "";
     }
   };
 
@@ -119,12 +175,94 @@ export function SettingsClient() {
             />
           </div>
           <div className="space-y-2">
+            <Label>{t("settings_country")}</Label>
+            <Input
+              list="countries"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              placeholder={t("settings_country")}
+            />
+            <datalist id="countries">
+              {COUNTRIES.map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>{t("settings_governorate")}</Label>
+              <Input
+                list="states"
+                value={governorate}
+                onChange={(e) => setGovernorate(e.target.value)}
+                placeholder={t("settings_governorate")}
+              />
+              <datalist id="states">
+                {(STATES_BY_COUNTRY[country] ?? []).map((s) => (
+                  <option key={s} value={s} />
+                ))}
+              </datalist>
+            </div>
+            <div className="space-y-2">
+              <Label>{t("settings_area")}</Label>
+              <Input
+                value={area}
+                onChange={(e) => setArea(e.target.value)}
+                placeholder={t("settings_area")}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
             <Label>{t("settings_address")}</Label>
             <Input
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder={t("directory_no_address")}
             />
+          </div>
+          <div className="space-y-2">
+            <Label>{t("settings_cover_photo")}</Label>
+            {coverUrl ? (
+              <div className="relative overflow-hidden rounded-lg border">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={coverUrl}
+                  alt={t("settings_cover_photo")}
+                  className="aspect-video w-full object-cover"
+                />
+                <button
+                  type="button"
+                  aria-label={t("settings_cover_remove")}
+                  onClick={() => setCoverUrl(null)}
+                  className="absolute top-2 right-2 rounded-full bg-black/60 p-1.5 text-white transition-colors hover:bg-black/80"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex aspect-video items-center justify-center rounded-lg border border-dashed bg-muted/30">
+                <p className="text-xs text-muted-foreground">
+                  {t("settings_cover_hint")}
+                </p>
+              </div>
+            )}
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleCoverUpload}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => coverInputRef.current?.click()}
+              disabled={uploadingCover}
+            >
+              <Upload className="h-4 w-4" />
+              {uploadingCover ? t("photos_uploading") : t("settings_cover_upload")}
+            </Button>
           </div>
           <div className="flex items-center gap-3">
             <Switch
@@ -210,6 +348,58 @@ export function SettingsClient() {
                 )}
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Session booking */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <CalendarCheck className="h-4 w-4 text-primary" />
+              {t("settings_session_booking")}
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              {t("settings_session_booking_hint")}
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={sessionBooking}
+                onCheckedChange={setSessionBooking}
+                id="session-booking-toggle"
+              />
+              <Label htmlFor="session-booking-toggle" className="cursor-pointer text-sm">
+                {t("settings_session_booking_toggle")}
+              </Label>
+            </div>
+            {sessionBooking && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm">{t("settings_platform_fee")}</Label>
+                  <span className="font-mono font-medium">
+                    {platformFee}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="20"
+                  step="1"
+                  value={platformFee}
+                  onChange={(e) => setPlatformFee(e.target.value)}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>0%</span>
+                  <span>10%</span>
+                  <span>20%</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("settings_platform_fee_hint")}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

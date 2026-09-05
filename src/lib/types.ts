@@ -1,5 +1,7 @@
 export type Role = "super_admin" | "admin" | "member";
 
+export type MemberPlan = "free" | "premium";
+
 export type SessionStatus = "scheduled" | "completed" | "canceled";
 
 export type MembershipType = "full" | "half";
@@ -24,11 +26,17 @@ export interface Academy {
   slug: string | null;
   description: string | null;
   address: string | null;
+  country: string | null;
+  governorate: string | null;
+  area: string | null;
+  cover_url: string | null;
   is_public: boolean;
   calendar_token: string | null;
   is_trial: boolean;
   trial_ends_at: string | null;
   trial_extended_at: string | null;
+  session_booking_enabled: boolean;
+  platform_fee_percent: number | null;
   created_at: string;
 }
 
@@ -46,6 +54,8 @@ export interface Profile {
   is_active: boolean;
   checkin_code: string | null;
   last_reminded_at: string | null;
+  member_plan: MemberPlan;
+  premium_expires_at: string | null;
   created_at: string;
 }
 
@@ -76,7 +86,30 @@ export interface Venue {
   name: string;
   address: string | null;
   capacity: number | null;
+  sport_id: string | null;
+  school_name: string | null;
+  rental_cost: number | null;
   created_at: string;
+}
+
+export type RentalPaymentMethod = "cash" | "bank_transfer" | "e_wallet";
+
+export interface VenueRental {
+  id: string;
+  academy_id: string;
+  venue_id: string | null;
+  customer_name: string;
+  customer_phone: string | null;
+  customer_email: string | null;
+  price: number;
+  rental_date: string;
+  start_time: string;
+  is_paid: boolean;
+  payment_method: RentalPaymentMethod | null;
+  notes: string | null;
+  created_at: string;
+  // Embedded select: venue name (via venues(name)).
+  venues?: { name: string } | null;
 }
 
 export interface Payment {
@@ -107,6 +140,7 @@ export interface TrainingSession {
   skill_level: SkillLevel | null;
   is_completed: boolean;
   status: SessionStatus;
+  session_price: number | null;
   created_at: string;
 }
 
@@ -326,6 +360,23 @@ export interface SessionPhoto {
   caption: string | null;
   uploaded_by: string | null;
   created_at: string;
+}
+
+export interface SessionBooking {
+  id: string;
+  session_id: string;
+  member_id: string;
+  academy_id: string;
+  session_price: number;
+  platform_fee: number;
+  member_payment: number;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  booked_at: string;
+  checked_in_at: string | null;
+  notes: string | null;
+  // Joined data
+  session?: TrainingSession | null;
+  academy?: Academy | null;
 }
 
 export interface ActivityFeedItem {

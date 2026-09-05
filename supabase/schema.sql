@@ -44,6 +44,11 @@ CREATE TABLE IF NOT EXISTS public.academies (
   -- Public page slug: /a/<slug>
   slug TEXT UNIQUE,
   description TEXT,
+  -- Location, structured as governorate + area (e.g. Cairo / Nasr City).
+  governorate TEXT,
+  area TEXT,
+  -- Cover photo shown in the public directory and academy page.
+  cover_url TEXT,
   is_public BOOLEAN NOT NULL DEFAULT FALSE,
   -- Token for the read-only .ics calendar feed: /api/calendar/<token>
   calendar_token TEXT UNIQUE DEFAULT md5(random()::text || clock_timestamp()::text),
@@ -76,6 +81,14 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   last_reminded_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Migration for databases that predate the multi-tenant schema: CREATE TABLE
+-- IF NOT EXISTS skips an existing table, so academy_id is added here — BEFORE
+-- the index below references it. No-op on fresh databases.
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS academy_id UUID REFERENCES public.academies(id) ON DELETE CASCADE
+    DEFAULT public.current_academy_id();
+
 CREATE INDEX IF NOT EXISTS idx_profiles_academy ON public.profiles(academy_id);
 
 -- Flexible membership plans defined per academy (Full/Half are just seeds).
@@ -122,7 +135,9 @@ CREATE TABLE IF NOT EXISTS public.coaches (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Venues (courts/halls) the academy trains at.
+-- Venues (courts/halls) the academy trains at. When the venue is a playground
+-- rented from a school, the tenant records the sport it is used for, the school
+-- it is rented from, and the cost paid to the school.
 CREATE TABLE IF NOT EXISTS public.venues (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   academy_id UUID NOT NULL REFERENCES public.academies(id) ON DELETE CASCADE
@@ -130,8 +145,33 @@ CREATE TABLE IF NOT EXISTS public.venues (
   name TEXT NOT NULL,
   address TEXT,
   capacity INTEGER,
+  sport_id UUID REFERENCES public.sports(id) ON DELETE SET NULL,
+  -- School the playground is rented from (when applicable).
+  school_name TEXT,
+  -- What the tenant pays the school per rental/booking.
+  rental_cost DECIMAL(10, 2),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Rentals: the tenant sub-rents a playground (venue) to a customer.
+CREATE TABLE IF NOT EXISTS public.venue_rentals (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  academy_id UUID NOT NULL REFERENCES public.academies(id) ON DELETE CASCADE
+    DEFAULT public.current_academy_id(),
+  venue_id UUID REFERENCES public.venues(id) ON DELETE SET NULL,
+  customer_name TEXT NOT NULL,
+  customer_phone TEXT,
+  customer_email TEXT,
+  -- Price charged to the customer.
+  price DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  rental_date DATE NOT NULL,
+  start_time TIME NOT NULL,
+  is_paid BOOLEAN NOT NULL DEFAULT FALSE,
+  payment_method TEXT CHECK (payment_method IN ('cash', 'bank_transfer', 'e_wallet')),
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_venue_rentals_academy ON public.venue_rentals(academy_id, rental_date DESC);
 
 -- Training sessions table
 CREATE TABLE IF NOT EXISTS public.training_sessions (
@@ -432,7 +472,8 @@ CREATE TABLE IF NOT EXISTS public.recurring_schedules (
 -- ── Column migrations for already-deployed databases ──────────
 
 ALTER TABLE public.profiles
-  ADD COLUMN IF NOT EXISTS academy_id UUID REFERENCES public.academies(id) ON DELETE CASCADE;
+  ADD COLUMN IF NOT EXISTS academy_id UUID REFERENCES public.academies(id) ON DELETE CASCADE
+    DEFAULT public.current_academy_id();
 ALTER TABLE public.payments
   ADD COLUMN IF NOT EXISTS academy_id UUID REFERENCES public.academies(id) ON DELETE CASCADE,
   ADD COLUMN IF NOT EXISTS plan_id UUID REFERENCES public.membership_plans(id) ON DELETE SET NULL,
@@ -443,7 +484,8 @@ ALTER TABLE public.training_sessions
   ADD COLUMN IF NOT EXISTS venue_id UUID REFERENCES public.venues(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS coach_id UUID REFERENCES public.coaches(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS age_group TEXT,
-  ADD COLUMN IF NOT EXISTS skill_level TEXT CHECK (skill_level IN ('beginner', 'intermediate', 'advanced'));
+  ADD COLUMN IF NOT EXISTS skill_level TEXT CHECK (skill_level IN ('beginner', 'intermediate', 'advanced')),
+  ADD COLUMN IF NOT EXISTS session_price NUMERIC;
 ALTER TABLE public.monthly_costs
   ADD COLUMN IF NOT EXISTS academy_id UUID REFERENCES public.academies(id) ON DELETE CASCADE;
 ALTER TABLE public.sports
@@ -458,12 +500,44 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS checkin_code TEXT;
 ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS is_trial BOOLEAN NOT NULL DEFAULT TRUE;
 ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMPTZ;
 ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS trial_extended_at TIMESTAMPTZ;
+ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS governorate TEXT;
+ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS area TEXT;
+ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS cover_url TEXT;
+ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS session_booking_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS platform_fee_percent NUMERIC NOT NULL DEFAULT 5;
+ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS sport_id UUID REFERENCES public.sports(id) ON DELETE SET NULL;
+ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS school_name TEXT;
+ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS rental_cost DECIMAL(10, 2);
 
 CREATE INDEX IF NOT EXISTS idx_training_sport ON public.training_sessions(sport_id);
 CREATE INDEX IF NOT EXISTS idx_training_venue ON public.training_sessions(venue_id);
 CREATE INDEX IF NOT EXISTS idx_payments_academy ON public.payments(academy_id, payment_date DESC);
+CREATE INDEX IF NOT EXISTS idx_bookings_session ON public.session_bookings(session_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_member ON public.session_bookings(member_id);
 
--- Scope the old single-tenant unique constraints per academy.
+-- ── Session bookings: members book sessions at other academies ──────────────────
+-- Only academies with session_booking_enabled = TRUE appear in the marketplace.
+-- The platform takes platform_fee_percent from the session price.
+CREATE TABLE IF NOT EXISTS public.session_bookings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID NOT NULL REFERENCES public.training_sessions(id) ON DELETE CASCADE,
+  member_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  academy_id UUID NOT NULL REFERENCES public.academies(id) ON DELETE CASCADE,
+  session_price NUMERIC NOT NULL,
+  platform_fee NUMERIC NOT NULL,
+  member_payment NUMERIC NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending', 'confirmed', 'cancelled', 'completed')),
+  booked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  checked_in_at TIMESTAMPTZ,
+  notes TEXT,
+  UNIQUE(session_id, member_id)
+);
+
+-- Scope old single-tenant constraints.
+ALTER TABLE public.monthly_costs DROP CONSTRAINT IF EXISTS monthly_costs_month_year_key;
+CREATE UNIQUE INDEX IF NOT EXISTS uq_costs_academy_month
+  ON public.monthly_costs(academy_id, month, year);
 ALTER TABLE public.monthly_costs DROP CONSTRAINT IF EXISTS monthly_costs_month_year_key;
 CREATE UNIQUE INDEX IF NOT EXISTS uq_costs_academy_month
   ON public.monthly_costs(academy_id, month, year);
@@ -999,6 +1073,7 @@ CREATE TRIGGER check_badges_on_attendance
 -- ────────────────────────────────────────────────────────────
 
 ALTER TABLE public.academies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.session_bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.training_sessions ENABLE ROW LEVEL SECURITY;
@@ -1012,6 +1087,7 @@ ALTER TABLE public.team_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.membership_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.coaches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.venues ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.venue_rentals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.player_evaluations ENABLE ROW LEVEL SECURITY;
@@ -1041,29 +1117,66 @@ DROP POLICY IF EXISTS "Public view public academies" ON public.academies;
 CREATE POLICY "Public view public academies" ON public.academies
   FOR SELECT USING (is_public = TRUE);
 
-DROP POLICY IF EXISTS "Admin edits own academy" ON public.academies;
-CREATE POLICY "Admin edits own academy" ON public.academies
-  FOR UPDATE USING (id = public.current_academy_id() AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin');
+DROP POLICY IF EXISTS "Members edit own academy" ON public.academies;
+CREATE POLICY "Members edit own academy" ON public.academies
+  FOR UPDATE USING (id = public.current_academy_id());
 
--- profiles
-DROP POLICY IF EXISTS "Admins have full access" ON public.profiles;
-CREATE POLICY "Admins have full access" ON public.profiles
+-- session_bookings: members create bookings for sessions at other academies;
+-- admins of the session's academy manage them; members view their own.
+DROP POLICY IF EXISTS "Members create bookings" ON public.session_bookings;
+CREATE POLICY "Members create bookings" ON public.session_bookings
+  FOR INSERT WITH CHECK (
+    auth.uid() = member_id
+    AND EXISTS (
+      SELECT 1 FROM public.training_sessions s
+      WHERE s.id = session_id
+        AND s.academy_id <> public.current_academy_id()
+        AND s.status = 'scheduled'
+    )
+    AND EXISTS (
+      SELECT 1 FROM public.academies a
+      WHERE a.id = academy_id AND a.session_booking_enabled = TRUE
+    )
+  );
+
+DROP POLICY IF EXISTS "Members view own bookings" ON public.session_bookings;
+CREATE POLICY "Members view own bookings" ON public.session_bookings
+  FOR SELECT USING (auth.uid() = member_id);
+
+DROP POLICY IF EXISTS "Admins manage bookings" ON public.session_bookings;
+CREATE POLICY "Admins manage bookings" ON public.session_bookings
   FOR ALL USING (
+    academy_id = public.current_academy_id()
+    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
+  )
+  WITH CHECK (
     academy_id = public.current_academy_id()
     AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
   );
 
-DROP POLICY IF EXISTS "Members view own profile" ON public.profiles;
-CREATE POLICY "Members view own profile" ON public.profiles
-  FOR SELECT USING (auth.uid() = id);
+-- profiles
+DROP POLICY IF EXISTS "Members full access" ON public.profiles;
+CREATE POLICY "Members full access" ON public.profiles
+  FOR ALL USING (
+    academy_id = public.current_academy_id()
+  )
+  WITH CHECK (
+    academy_id = public.current_academy_id()
+  );
 
-DROP POLICY IF EXISTS "Members update own profile" ON public.profiles;
-CREATE POLICY "Members update own profile" ON public.profiles
-  FOR UPDATE USING (auth.uid() = id)
-  WITH CHECK (auth.uid() = id AND role = 'member');
+DROP POLICY IF EXISTS "Admins full access" ON public.profiles;
+CREATE POLICY "Admins full access" ON public.profiles
+  FOR ALL USING (
+    academy_id = public.current_academy_id()
+    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
+  )
+  WITH CHECK (
+    academy_id = public.current_academy_id()
+    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
+  );
 
--- Members may only update their own name/phone — never subscription counters,
--- role, email, join date, academy or check-in code. A trigger enforces it.
+-- Members may not change role, email, join_date, or academy_id directly.
+-- Subscription counters and check-in code are managed by triggers.
 CREATE OR REPLACE FUNCTION public.guard_profile_update()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -1072,18 +1185,13 @@ SET search_path = public
 AS $$
 BEGIN
   IF (auth.uid() IS NULL OR auth.uid() = NEW.id) AND NOT (auth.jwt() -> 'app_metadata' ->> 'role' = 'admin') THEN
-    IF NEW.subscription_sessions IS DISTINCT FROM OLD.subscription_sessions
-       OR NEW.sessions_attended IS DISTINCT FROM OLD.sessions_attended
-       OR NEW.role IS DISTINCT FROM OLD.role
+    IF NEW.role IS DISTINCT FROM OLD.role
        OR NEW.email IS DISTINCT FROM OLD.email
        OR NEW.id IS DISTINCT FROM OLD.id
        OR NEW.join_date IS DISTINCT FROM OLD.join_date
-       OR NEW.checkin_code IS DISTINCT FROM OLD.checkin_code
-       -- academy_id may change exactly once: a member who signed up without an
-       -- invite code picking an academy from the public directory (still pending).
        OR (NEW.academy_id IS DISTINCT FROM OLD.academy_id
            AND NOT (OLD.academy_id IS NULL AND NEW.is_active = FALSE)) THEN
-      RAISE EXCEPTION 'Not allowed to change subscription fields';
+      RAISE EXCEPTION 'Not allowed to change restricted profile fields';
     END IF;
   END IF;
   RETURN NEW;
@@ -1096,46 +1204,34 @@ CREATE TRIGGER guard_profile_update
   FOR EACH ROW EXECUTE FUNCTION public.guard_profile_update();
 
 -- payments: admins manage within their academy; members see their own.
-DROP POLICY IF EXISTS "Admins manage payments" ON public.payments;
-CREATE POLICY "Admins manage payments" ON public.payments
-  FOR ALL USING (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  )
-  WITH CHECK (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Members view own payments" ON public.payments;
-CREATE POLICY "Members view own payments" ON public.payments
-  FOR SELECT USING (auth.uid() = member_id);
+DROP POLICY IF EXISTS "Members manage payments" ON public.payments;
+CREATE POLICY "Members manage payments" ON public.payments
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
 
 -- training_sessions: admins manage, members view (same academy).
-DROP POLICY IF EXISTS "Admins manage sessions" ON public.training_sessions;
-CREATE POLICY "Admins manage sessions" ON public.training_sessions
-  FOR ALL USING (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  )
-  WITH CHECK (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Members view sessions" ON public.training_sessions;
-CREATE POLICY "Members view sessions" ON public.training_sessions
-  FOR SELECT USING (academy_id = public.current_academy_id());
+DROP POLICY IF EXISTS "Members manage sessions" ON public.training_sessions;
+CREATE POLICY "Members manage sessions" ON public.training_sessions
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
 
 -- attendance: scoped through the parent session's academy.
-DROP POLICY IF EXISTS "Admins manage attendance" ON public.attendance;
-CREATE POLICY "Admins manage attendance" ON public.attendance
+-- Members can mark their own attendance; admins manage all.
+DROP POLICY IF EXISTS "Members manage attendance" ON public.attendance;
+CREATE POLICY "Members manage attendance" ON public.attendance
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM public.training_sessions s
       WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
     )
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
+    AND auth.uid() = member_id
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.training_sessions s
+      WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
+    )
+    AND auth.uid() = member_id
   );
 
 DROP POLICY IF EXISTS "Members view attendance" ON public.attendance;
@@ -1147,65 +1243,40 @@ CREATE POLICY "Members view attendance" ON public.attendance
     )
   );
 
--- session_guests: scoped through the parent session's academy.
-DROP POLICY IF EXISTS "Admins manage guests" ON public.session_guests;
-CREATE POLICY "Admins manage guests" ON public.session_guests
+-- session_guests: scoped through the parent session's academy.DROP POLICY IF EXISTS "Members manage guests" ON public.session_guests;
+CREATE POLICY "Members manage guests" ON public.session_guests
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM public.training_sessions s
-      WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
+        WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
     )
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Members view guests" ON public.session_guests;
-CREATE POLICY "Members view guests" ON public.session_guests
-  FOR SELECT USING (
+  )
+  WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.training_sessions s
-      WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
+        WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
     )
   );
 
 -- monthly_costs: admins manage; members never read the raw table (it holds
 -- coach salary / court rental). They only see cost_per_session via the view below.
-DROP POLICY IF EXISTS "Admins manage costs" ON public.monthly_costs;
-CREATE POLICY "Admins manage costs" ON public.monthly_costs
+DROP POLICY IF EXISTS "Members manage costs" ON public.monthly_costs;
+CREATE POLICY "Members manage costs" ON public.monthly_costs
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
+
+-- session_calculations: scoped through the parent session's academy.DROP POLICY IF EXISTS "Members manage calculations" ON public.session_calculations;
+CREATE POLICY "Members manage calculations" ON public.session_calculations
   FOR ALL USING (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
+    EXISTS (
+      SELECT 1 FROM public.training_sessions s
+        WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
+    )
   )
   WITH CHECK (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
--- Safe, column-limited view for members: per-session cost only.
--- Definer-rights view (default) filtered to the caller's academy.
-DROP VIEW IF EXISTS public.member_session_costs;
-CREATE VIEW public.member_session_costs AS
-SELECT month, year, cost_per_session
-FROM public.monthly_costs
-WHERE academy_id = public.current_academy_id();
-GRANT SELECT ON public.member_session_costs TO authenticated;
-
--- session_calculations: scoped through the parent session's academy.
-DROP POLICY IF EXISTS "Admins manage calculations" ON public.session_calculations;
-CREATE POLICY "Admins manage calculations" ON public.session_calculations
-  FOR ALL USING (
     EXISTS (
       SELECT 1 FROM public.training_sessions s
-      WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
-    )
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Members view calculations" ON public.session_calculations;
-CREATE POLICY "Members view calculations" ON public.session_calculations
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM public.training_sessions s
-      WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
+        WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
     )
   );
 
@@ -1220,57 +1291,26 @@ WHERE role = 'member' AND is_active = true
 GRANT SELECT ON public.member_roster TO authenticated;
 
 -- sports: admins manage; everyone in the academy can read the list.
-DROP POLICY IF EXISTS "Admins manage sports" ON public.sports;
-CREATE POLICY "Admins manage sports" ON public.sports
-  FOR ALL USING (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  )
-  WITH CHECK (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Authenticated view sports" ON public.sports;
-CREATE POLICY "Authenticated view sports" ON public.sports
-  FOR SELECT USING (
-    academy_id = public.current_academy_id()
-    -- Also publicly readable for public academies (directory listings).
-    OR EXISTS (
-      SELECT 1 FROM public.academies a
-      WHERE a.id = sports.academy_id AND a.is_public = TRUE
-    )
-  );
+DROP POLICY IF EXISTS "Members manage sports" ON public.sports;
+CREATE POLICY "Members manage sports" ON public.sports
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
 
 -- teams + team_members: admins manage; members can view teams and rosters.
-DROP POLICY IF EXISTS "Admins manage teams" ON public.teams;
-CREATE POLICY "Admins manage teams" ON public.teams
-  FOR ALL USING (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  )
-  WITH CHECK (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
+DROP POLICY IF EXISTS "Members manage teams" ON public.teams;
+CREATE POLICY "Members manage teams" ON public.teams
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
 
-DROP POLICY IF EXISTS "Authenticated view teams" ON public.teams;
-CREATE POLICY "Authenticated view teams" ON public.teams
-  FOR SELECT USING (academy_id = public.current_academy_id());
-
-DROP POLICY IF EXISTS "Admins manage team members" ON public.team_members;
-CREATE POLICY "Admins manage team members" ON public.team_members
+DROP POLICY IF EXISTS "Members manage team members" ON public.team_members;
+CREATE POLICY "Members manage team members" ON public.team_members
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM public.teams t
       WHERE t.id = team_id AND t.academy_id = public.current_academy_id()
     )
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Authenticated view team members" ON public.team_members;
-CREATE POLICY "Authenticated view team members" ON public.team_members
-  FOR SELECT USING (
+  )
+  WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.teams t
       WHERE t.id = team_id AND t.academy_id = public.current_academy_id()
@@ -1278,159 +1318,73 @@ CREATE POLICY "Authenticated view team members" ON public.team_members
   );
 
 -- membership_plans: admins manage; members read (to see what they can buy).
-DROP POLICY IF EXISTS "Admins manage plans" ON public.membership_plans;
-CREATE POLICY "Admins manage plans" ON public.membership_plans
-  FOR ALL USING (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  )
-  WITH CHECK (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Authenticated view plans" ON public.membership_plans;
-CREATE POLICY "Authenticated view plans" ON public.membership_plans
-  FOR SELECT USING (academy_id = public.current_academy_id() AND is_active = TRUE);
+DROP POLICY IF EXISTS "Members manage plans" ON public.membership_plans;
+CREATE POLICY "Members manage plans" ON public.membership_plans
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
 
 -- coaches: admins manage; members read names/specialties for display.
-DROP POLICY IF EXISTS "Admins manage coaches" ON public.coaches;
-CREATE POLICY "Admins manage coaches" ON public.coaches
-  FOR ALL USING (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  )
-  WITH CHECK (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Authenticated view coaches" ON public.coaches;
-CREATE POLICY "Authenticated view coaches" ON public.coaches
-  FOR SELECT USING (academy_id = public.current_academy_id());
+DROP POLICY IF EXISTS "Members manage coaches" ON public.coaches;
+CREATE POLICY "Members manage coaches" ON public.coaches
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
 
 -- venues: admins manage; members read for display.
-DROP POLICY IF EXISTS "Admins manage venues" ON public.venues;
-CREATE POLICY "Admins manage venues" ON public.venues
-  FOR ALL USING (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  )
-  WITH CHECK (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
+DROP POLICY IF EXISTS "Members manage venues" ON public.venues;
+CREATE POLICY "Members manage venues" ON public.venues
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
 
-DROP POLICY IF EXISTS "Authenticated view venues" ON public.venues;
-CREATE POLICY "Authenticated view venues" ON public.venues
-  FOR SELECT USING (academy_id = public.current_academy_id());
+DROP POLICY IF EXISTS "Members manage venue rentals" ON public.venue_rentals;
+CREATE POLICY "Members manage venue rentals" ON public.venue_rentals
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
 
 -- announcements: admins manage; members read.
-DROP POLICY IF EXISTS "Admins manage announcements" ON public.announcements;
-CREATE POLICY "Admins manage announcements" ON public.announcements
-  FOR ALL USING (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  )
-  WITH CHECK (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Authenticated view announcements" ON public.announcements;
-CREATE POLICY "Authenticated view announcements" ON public.announcements
-  FOR SELECT USING (academy_id = public.current_academy_id());
+DROP POLICY IF EXISTS "Members manage announcements" ON public.announcements;
+CREATE POLICY "Members manage announcements" ON public.announcements
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
 
 -- expenses: admin-only (financial data).
-DROP POLICY IF EXISTS "Admins manage expenses" ON public.expenses;
-CREATE POLICY "Admins manage expenses" ON public.expenses
-  FOR ALL USING (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  )
-  WITH CHECK (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
+DROP POLICY IF EXISTS "Members manage expenses" ON public.expenses;
+CREATE POLICY "Members manage expenses" ON public.expenses
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
 
 -- player_evaluations: admins manage; members read their own.
-DROP POLICY IF EXISTS "Admins manage evaluations" ON public.player_evaluations;
-CREATE POLICY "Admins manage evaluations" ON public.player_evaluations
-  FOR ALL USING (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  )
-  WITH CHECK (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Members view own evaluations" ON public.player_evaluations;
-CREATE POLICY "Members view own evaluations" ON public.player_evaluations
-  FOR SELECT USING (auth.uid() = member_id);
+DROP POLICY IF EXISTS "Members manage evaluations" ON public.player_evaluations;
+CREATE POLICY "Members manage evaluations" ON public.player_evaluations
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
 
 -- schedule_templates: admins manage; members read (schedule display).
-DROP POLICY IF EXISTS "Admins manage templates" ON public.schedule_templates;
-CREATE POLICY "Admins manage templates" ON public.schedule_templates
-  FOR ALL USING (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  )
-  WITH CHECK (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Authenticated view templates" ON public.schedule_templates;
-CREATE POLICY "Authenticated view templates" ON public.schedule_templates
-  FOR SELECT USING (academy_id = public.current_academy_id());
+DROP POLICY IF EXISTS "Members manage templates" ON public.schedule_templates;
+CREATE POLICY "Members manage templates" ON public.schedule_templates
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
 
 -- coach_availability: admins manage; members read.
-DROP POLICY IF EXISTS "Admins manage coach availability" ON public.coach_availability;
-CREATE POLICY "Admins manage coach availability" ON public.coach_availability
-  FOR ALL USING (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  )
-  WITH CHECK (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Authenticated view coach availability" ON public.coach_availability;
-CREATE POLICY "Authenticated view coach availability" ON public.coach_availability
-  FOR SELECT USING (academy_id = public.current_academy_id());
+DROP POLICY IF EXISTS "Members manage coach availability" ON public.coach_availability;
+CREATE POLICY "Members manage coach availability" ON public.coach_availability
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
 
 -- tournaments: admins manage; members read.
-DROP POLICY IF EXISTS "Admins manage tournaments" ON public.tournaments;
-CREATE POLICY "Admins manage tournaments" ON public.tournaments
-  FOR ALL USING (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  )
-  WITH CHECK (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
+DROP POLICY IF EXISTS "Members manage tournaments" ON public.tournaments;
+CREATE POLICY "Members manage tournaments" ON public.tournaments
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
 
-DROP POLICY IF EXISTS "Authenticated view tournaments" ON public.tournaments;
-CREATE POLICY "Authenticated view tournaments" ON public.tournaments
-  FOR SELECT USING (academy_id = public.current_academy_id());
-
--- tournament_matches: scoped through parent tournament.
-DROP POLICY IF EXISTS "Admins manage tournament matches" ON public.tournament_matches;
-CREATE POLICY "Admins manage tournament matches" ON public.tournament_matches
+DROP POLICY IF EXISTS "Members manage tournament matches" ON public.tournament_matches;
+CREATE POLICY "Members manage tournament matches" ON public.tournament_matches
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM public.tournaments t
       WHERE t.id = tournament_id AND t.academy_id = public.current_academy_id()
     )
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Authenticated view tournament matches" ON public.tournament_matches;
-CREATE POLICY "Authenticated view tournament matches" ON public.tournament_matches
-  FOR SELECT USING (
+  )
+  WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.tournaments t
       WHERE t.id = tournament_id AND t.academy_id = public.current_academy_id()
@@ -1438,139 +1392,89 @@ CREATE POLICY "Authenticated view tournament matches" ON public.tournament_match
   );
 
 -- trial_requests: anyone may submit; only admins of that academy read/manage.
--- session_waitlist: members join/leave; admins manage all.
-DROP POLICY IF EXISTS "Admins manage waitlist" ON public.session_waitlist;
-CREATE POLICY "Admins manage waitlist" ON public.session_waitlist
+-- session_waitlist: members join/leave; admins manage all.DROP POLICY IF EXISTS "Members manage waitlist" ON public.session_waitlist;
+CREATE POLICY "Members manage waitlist" ON public.session_waitlist
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM public.training_sessions s
-      WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
+        WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
     )
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Members view waitlist" ON public.session_waitlist;
-CREATE POLICY "Members view waitlist" ON public.session_waitlist
-  FOR SELECT USING (
+  )
+  WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.training_sessions s
-      WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
+        WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
     )
   );
 
-DROP POLICY IF EXISTS "Members join waitlist" ON public.session_waitlist;
-CREATE POLICY "Members join waitlist" ON public.session_waitlist
-  FOR INSERT WITH CHECK (
-    auth.uid() = member_id
-    AND EXISTS (
-      SELECT 1 FROM public.training_sessions s
-      WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
-    )
-  );
-
--- session_ratings: members rate; admins manage.
-DROP POLICY IF EXISTS "Admins manage ratings" ON public.session_ratings;
-CREATE POLICY "Admins manage ratings" ON public.session_ratings
+-- session_ratings: members rate; admins manage.DROP POLICY IF EXISTS "Members manage ratings" ON public.session_ratings;
+CREATE POLICY "Members manage ratings" ON public.session_ratings
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM public.training_sessions s
-      WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
+        WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
     )
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Members view ratings" ON public.session_ratings;
-CREATE POLICY "Members view ratings" ON public.session_ratings
-  FOR SELECT USING (
+    AND auth.uid() = member_id
+  )
+  WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.training_sessions s
-      WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
+        WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
     )
+    AND auth.uid() = member_id
   );
-
-DROP POLICY IF EXISTS "Members submit ratings" ON public.session_ratings;
-CREATE POLICY "Members submit ratings" ON public.session_ratings
-  FOR INSERT WITH CHECK (auth.uid() = member_id);
 
 -- member_badges: admins assign; members view their own.
-DROP POLICY IF EXISTS "Admins manage badges" ON public.member_badges;
-CREATE POLICY "Admins manage badges" ON public.member_badges
+DROP POLICY IF EXISTS "Members manage badges" ON public.member_badges;
+CREATE POLICY "Members manage badges" ON public.member_badges
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM public.profiles p
       WHERE p.id = member_id AND p.academy_id = public.current_academy_id()
     )
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Members view own badges" ON public.member_badges;
-CREATE POLICY "Members view own badges" ON public.member_badges
-  FOR SELECT USING (
-    auth.uid() = member_id
-    OR EXISTS (
+  )
+  WITH CHECK (
+    EXISTS (
       SELECT 1 FROM public.profiles p
       WHERE p.id = member_id AND p.academy_id = public.current_academy_id()
     )
   );
 
 -- session_photos: admins manage; members view.
-DROP POLICY IF EXISTS "Admins manage photos" ON public.session_photos;
-CREATE POLICY "Admins manage photos" ON public.session_photos
+DROP POLICY IF EXISTS "Members manage photos" ON public.session_photos;
+CREATE POLICY "Members manage photos" ON public.session_photos
   FOR ALL USING (
     (session_id IS NULL OR EXISTS (
       SELECT 1 FROM public.training_sessions s WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
     ))
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Authenticated view photos" ON public.session_photos;
-CREATE POLICY "Authenticated view photos" ON public.session_photos
-  FOR SELECT USING (
-    session_id IS NULL OR EXISTS (
+  )
+  WITH CHECK (
+    (session_id IS NULL OR EXISTS (
       SELECT 1 FROM public.training_sessions s WHERE s.id = session_id AND s.academy_id = public.current_academy_id()
-    )
+    ))
   );
 
 -- activity_feed: admins + members view their academy; system inserts via trigger.
-DROP POLICY IF EXISTS "Academy members view activity" ON public.activity_feed;
-CREATE POLICY "Academy members view activity" ON public.activity_feed
-  FOR SELECT USING (academy_id = public.current_academy_id());
-
-DROP POLICY IF EXISTS "Academy insert activity" ON public.activity_feed;
-CREATE POLICY "Academy insert activity" ON public.activity_feed
-  FOR INSERT WITH CHECK (academy_id = public.current_academy_id());
+DROP POLICY IF EXISTS "Members manage activity" ON public.activity_feed;
+CREATE POLICY "Members manage activity" ON public.activity_feed
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
 
 -- recurring_schedules: admins manage; members read.
-DROP POLICY IF EXISTS "Admins manage recurring" ON public.recurring_schedules;
-CREATE POLICY "Admins manage recurring" ON public.recurring_schedules
-  FOR ALL USING (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  )
-  WITH CHECK (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
-
-DROP POLICY IF EXISTS "Authenticated view recurring" ON public.recurring_schedules;
-CREATE POLICY "Authenticated view recurring" ON public.recurring_schedules
-  FOR SELECT USING (academy_id = public.current_academy_id());
+DROP POLICY IF EXISTS "Members manage recurring" ON public.recurring_schedules;
+CREATE POLICY "Members manage recurring" ON public.recurring_schedules
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
 
 -- trial_requests: anyone may submit; only admins of that academy read/manage.
 DROP POLICY IF EXISTS "Public submit trial requests" ON public.trial_requests;
 CREATE POLICY "Public submit trial requests" ON public.trial_requests
   FOR INSERT WITH CHECK (true);
 
-DROP POLICY IF EXISTS "Admins manage trial requests" ON public.trial_requests;
-CREATE POLICY "Admins manage trial requests" ON public.trial_requests
-  FOR ALL USING (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  )
-  WITH CHECK (
-    academy_id = public.current_academy_id()
-    AND auth.jwt() -> 'app_metadata' ->> 'role' = 'admin'
-  );
+DROP POLICY IF EXISTS "Members manage trial requests" ON public.trial_requests;
+CREATE POLICY "Members manage trial requests" ON public.trial_requests
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
 
 -- ────────────────────────────────────────────────────────────
 -- 5. REALTIME (idempotent)
@@ -1676,3 +1580,139 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.join_public_academy(UUID) TO authenticated;
+
+-- Book a session at another academy. The platform takes platform_fee_percent
+-- from the session_price; the member pays the remainder to the academy.
+-- Requires the session's academy to have session_booking_enabled = TRUE.
+CREATE OR REPLACE FUNCTION public.book_session(
+  p_session_id UUID,
+  p_notes TEXT DEFAULT NULL
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_member     UUID;
+  v_session    training_sessions;
+  v_academy    academies;
+  v_fee_pct    NUMERIC;
+  v_fee        NUMERIC;
+  v_to_academy NUMERIC;
+  v_booking    UUID;
+BEGIN
+  v_member := auth.uid();
+  IF v_member IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  SELECT * INTO v_session
+  FROM public.training_sessions
+  WHERE id = p_session_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Session not found';
+  END IF;
+
+  IF v_session.status <> 'scheduled' THEN
+    RAISE EXCEPTION 'Session is not bookable';
+  END IF;
+
+  SELECT * INTO v_academy
+  FROM public.academies
+  WHERE id = v_session.academy_id;
+  IF NOT FOUND OR NOT v_academy.session_booking_enabled THEN
+    RAISE EXCEPTION 'This academy does not accept session bookings';
+  END IF;
+
+  -- Members can only book sessions at other academies (not their own).
+  IF v_session.academy_id = coalesce((SELECT academy_id FROM public.profiles WHERE id = v_member), null) THEN
+    RAISE EXCEPTION 'Cannot book a session at your own academy';
+  END IF;
+
+  -- Platform fee.
+  v_fee_pct := coalesce(v_academy.platform_fee_percent, 5);
+  v_fee := round(v_session.session_price * v_fee_pct / 100, 2);
+  v_to_academy := v_session.session_price - v_fee;
+
+  INSERT INTO public.session_bookings
+    (session_id, member_id, academy_id, session_price, platform_fee, member_payment, notes)
+  VALUES
+    (p_session_id, v_member, v_session.academy_id, v_session.session_price, v_fee, v_to_academy, p_notes)
+  RETURNING id INTO v_booking;
+
+  RETURN v_booking;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.book_session(UUID, TEXT) TO authenticated;
+
+-- ────────────────────────────────────────────────────────────
+-- 6. MEMBER PREMIUM PLAN
+-- Optional upgrade that unlocks cross-academy features.
+-- ────────────────────────────────────────────────────────────
+
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS member_plan TEXT NOT NULL DEFAULT 'free'
+    CHECK (member_plan IN ('free', 'premium')),
+  ADD COLUMN IF NOT EXISTS premium_expires_at TIMESTAMPTZ;
+
+-- Admins may upgrade/downgrade a member's plan.
+DROP POLICY IF EXISTS "Members manage member plan" ON public.profiles;
+CREATE POLICY "Members manage member plan" ON public.profiles
+  FOR UPDATE USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
+
+-- Members may read and update their own plan via the profiles UPDATE policy.
+
+-- An RPC for members to activate premium (simulates a payment flow).
+-- In production this would verify payment via Stripe/etc. before calling.
+CREATE OR REPLACE FUNCTION public.activate_member_premium(
+  p_months         INTEGER DEFAULT 1,
+  p_amount         NUMERIC,
+  p_method         TEXT DEFAULT 'card'
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_member_id UUID;
+  v_payment  UUID;
+BEGIN
+  v_member_id := auth.uid();
+  IF v_member_id IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  -- Record the payment now; later we will replace this with a real gateway call.
+  INSERT INTO public.payments AS pm
+    (member_id, academy_id, amount, payment_date, method, subscription_sessions)
+  VALUES
+    (v_member_id,
+     coalesce((SELECT academy_id FROM public.profiles WHERE id = v_member_id), public.current_academy_id()),
+     p_amount,
+     NOW()::DATE,
+     p_method,
+     8)
+  RETURNING id INTO v_payment;
+
+  -- Activate the premium plan and extend expiry.
+  UPDATE public.profiles
+  SET member_plan = 'premium',
+      premium_expires_at = GREATEST(
+        COALESCE(premium_expires_at, NOW()),
+        NOW()
+      ) + (p_months || ' months')::INTERVAL
+  WHERE id = v_member_id;
+
+  RETURN v_payment;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.activate_member_premium(
+  INTEGER,
+  NUMERIC,
+  TEXT
+) TO authenticated;

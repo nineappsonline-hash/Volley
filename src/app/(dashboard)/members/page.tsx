@@ -22,6 +22,7 @@ import { MemberTable, type MemberRow } from "@/components/members/member-table";
 import { MemberFormDialog } from "@/components/members/member-form-dialog";
 import { PaymentFormDialog } from "@/components/members/payment-form-dialog";
 import { PlansManagerDialog } from "@/components/members/plans-manager-dialog";
+import { MemberPlanDialog } from "@/components/members/member-plan-dialog";
 import { useI18n } from "@/lib/i18n";
 import { memberPerSessionValue, usedSessionsSincePayment } from "@/lib/calculations";
 import {
@@ -42,6 +43,7 @@ export default function MembersPage() {
 
   const [formOpen, setFormOpen] = useState(false);
   const [plansOpen, setPlansOpen] = useState(false);
+  const [planDialogMember, setPlanDialogMember] = useState<MemberRow | null>(null);
   const [editing, setEditing] = useState<MemberRow | null>(null);
   const [deleting, setDeleting] = useState<MemberRow | null>(null);
   const [paymentMember, setPaymentMember] = useState<MemberRow | null>(null);
@@ -124,6 +126,7 @@ export default function MembersPage() {
           onEdit={(m) => { setEditing(m); setFormOpen(true); }}
           onDelete={setDeleting}
           onRecordPayment={setPaymentMember}
+          onManagePlan={setPlanDialogMember}
         />
       )}
 
@@ -143,6 +146,12 @@ export default function MembersPage() {
       />
 
       <PlansManagerDialog open={plansOpen} onOpenChange={setPlansOpen} />
+
+      <MemberPlanDialog
+        open={!!planDialogMember}
+        onOpenChange={(open) => { if (!open) setPlanDialogMember(null); }}
+        member={planDialogMember ?? null}
+      />
 
       <AlertDialog
         open={!!deleting}
