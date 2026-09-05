@@ -63,6 +63,7 @@ export function PlaygroundsClient() {
   const [sportId, setSportId] = useState("none");
   const [schoolName, setSchoolName] = useState("");
   const [rentalCost, setRentalCost] = useState("");
+  const [rentalHours, setRentalHours] = useState("1");
   const [deleteTarget, setDeleteTarget] = useState<Venue | null>(null);
 
   const sportName = (id: string | null) =>
@@ -76,6 +77,7 @@ export function PlaygroundsClient() {
     setSportId("none");
     setSchoolName("");
     setRentalCost("");
+    setRentalHours("1");
     setDialogOpen(true);
   };
 
@@ -87,6 +89,7 @@ export function PlaygroundsClient() {
     setSportId(v.sport_id ?? "none");
     setSchoolName(v.school_name ?? "");
     setRentalCost(v.rental_cost != null ? String(v.rental_cost) : "");
+    setRentalHours(v.rental_hours != null ? String(v.rental_hours) : "1");
     setDialogOpen(true);
   };
 
@@ -101,6 +104,7 @@ export function PlaygroundsClient() {
         sport_id: sportId === "none" ? null : sportId,
         school_name: schoolName.trim() || null,
         rental_cost: rentalCost ? Number(rentalCost) : null,
+        rental_hours: rentalHours ? Number(rentalHours) : null,
       });
       toast.success(t("venues_saved"));
       setDialogOpen(false);
@@ -159,10 +163,24 @@ export function PlaygroundsClient() {
                     <Badge variant="outline">{sportName(v.sport_id)}</Badge>
                   </TableCell>
                   <TableCell>{v.school_name ?? "—"}</TableCell>
-                  <TableCell className="text-end font-mono">
-                    {v.rental_cost != null
-                      ? formatMoney(Number(v.rental_cost), lang)
-                      : "—"}
+                  <TableCell className="text-end">
+                    {v.rental_cost != null ? (
+                      <>
+                        <p className="font-mono">
+                          {formatMoney(
+                            Number(v.rental_cost) * (v.rental_hours ?? 1),
+                            lang
+                          )}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatMoney(Number(v.rental_cost), lang)}/h ×{" "}
+                          {v.rental_hours ?? 1}
+                          {t("rentals_hours_short")}
+                        </p>
+                      </>
+                    ) : (
+                      <span>—</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-end">
                     <div className="flex items-center justify-end gap-1">
@@ -203,23 +221,23 @@ export function PlaygroundsClient() {
               <Label>{t("venues_name")}</Label>
               <Input value={name} onChange={(e) => setName(e.target.value)} />
             </div>
+            <div className="space-y-2">
+              <Label>{t("venues_sport")}</Label>
+              <Select value={sportId} onValueChange={setSportId}>
+                <SelectTrigger aria-label={t("venues_sport")}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">{t("venues_no_sport")}</SelectItem>
+                  {(sports ?? []).map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t("venues_sport")}</Label>
-                <Select value={sportId} onValueChange={setSportId}>
-                  <SelectTrigger aria-label={t("venues_sport")}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">{t("venues_no_sport")}</SelectItem>
-                    {(sports ?? []).map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
               <div className="space-y-2">
                 <Label>{t("venues_rental_cost")}</Label>
                 <Input
@@ -233,6 +251,21 @@ export function PlaygroundsClient() {
                 />
                 <p className="text-[11px] text-muted-foreground">
                   {t("venues_rental_cost_hint")}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label>{t("venues_rental_hours")}</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  dir="ltr"
+                  value={rentalHours}
+                  onChange={(e) => setRentalHours(e.target.value)}
+                  placeholder="1"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  {t("venues_rental_hours_hint")}
                 </p>
               </div>
             </div>

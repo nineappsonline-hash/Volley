@@ -46,6 +46,7 @@ export function VenuesManagerDialog({
   const [sportId, setSportId] = useState("none");
   const [schoolName, setSchoolName] = useState("");
   const [rentalCost, setRentalCost] = useState("");
+  const [rentalHours, setRentalHours] = useState("1");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -66,6 +67,7 @@ export function VenuesManagerDialog({
     setSportId("none");
     setSchoolName("");
     setRentalCost("");
+    setRentalHours("1");
   };
 
   const startEdit = (v: Venue) => {
@@ -76,6 +78,7 @@ export function VenuesManagerDialog({
     setSportId(v.sport_id ?? "none");
     setSchoolName(v.school_name ?? "");
     setRentalCost(v.rental_cost != null ? String(v.rental_cost) : "");
+    setRentalHours(v.rental_hours != null ? String(v.rental_hours) : "1");
     setConfirmDeleteId(null);
   };
 
@@ -90,6 +93,7 @@ export function VenuesManagerDialog({
         sport_id: sportId === "none" ? null : sportId,
         school_name: schoolName.trim() || null,
         rental_cost: rentalCost ? Number(rentalCost) : null,
+        rental_hours: rentalHours ? Number(rentalHours) : null,
       });
       toast.success(t("venues_saved"));
       resetForm();
@@ -112,6 +116,7 @@ export function VenuesManagerDialog({
         sport_id: sportId === "none" ? null : sportId,
         school_name: schoolName.trim() || null,
         rental_cost: rentalCost ? Number(rentalCost) : null,
+        rental_hours: rentalHours ? Number(rentalHours) : null,
       });
       toast.success(t("venues_saved"));
       setEditingId(null);
@@ -169,8 +174,7 @@ export function VenuesManagerDialog({
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1.5">
+            <div className="space-y-1.5">
                 <Label>{t("venues_sport")}</Label>
                 <Select value={sportId} onValueChange={setSportId}>
                   <SelectTrigger aria-label={t("venues_sport")}>
@@ -200,6 +204,20 @@ export function VenuesManagerDialog({
                   {t("venues_rental_cost_hint")}
                 </p>
               </div>
+            <div className="space-y-1.5">
+              <Label>{t("venues_rental_hours")}</Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.5"
+                dir="ltr"
+                value={rentalHours}
+                onChange={(e) => setRentalHours(e.target.value)}
+                placeholder="1"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                {t("venues_rental_hours_hint")}
+              </p>
             </div>
             <div className="space-y-1.5">
               <Label>{t("venues_school")}</Label>
@@ -297,7 +315,11 @@ export function VenuesManagerDialog({
                             venue.address,
                             venue.capacity != null ? `${venue.capacity}` : null,
                             venue.school_name,
-                            venue.rental_cost != null ? `${venue.rental_cost}` : null,
+                            venue.rental_cost != null
+                              ? `${venue.rental_cost}/h × ${
+                                  venue.rental_hours ?? 1
+                                }h`
+                              : null,
                           ]
                             .filter(Boolean)
                             .join(" · ")}

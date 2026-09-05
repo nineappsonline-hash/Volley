@@ -102,6 +102,8 @@ export interface Venue {
   sport_id: string | null;
   school_name: string | null;
   rental_cost: number | null;
+  // Number of time units (hours) the academy rents this venue from the owner.
+  rental_hours: number | null;
   created_at: string;
 }
 

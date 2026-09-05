@@ -165,6 +165,8 @@ CREATE TABLE IF NOT EXISTS public.venues (
   school_name TEXT,
   -- What the tenant pays the school/owner per unit of time (1 unit = 1 hour).
   rental_cost DECIMAL(10, 2),
+  -- Number of time units (hours) rented from the owner per booking.
+  rental_hours DECIMAL(5, 2) NOT NULL DEFAULT 1,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -525,6 +527,7 @@ ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS platform_fee_percent NUMER
 ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS sport_id UUID REFERENCES public.sports(id) ON DELETE SET NULL;
 ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS school_name TEXT;
 ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS rental_cost DECIMAL(10, 2);
+ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS rental_hours DECIMAL(5, 2) NOT NULL DEFAULT 1;
 ALTER TABLE public.venue_rentals ADD COLUMN IF NOT EXISTS hours DECIMAL(5, 2) NOT NULL DEFAULT 1;
 
 CREATE INDEX IF NOT EXISTS idx_training_sport ON public.training_sessions(sport_id);
