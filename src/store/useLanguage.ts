@@ -5,15 +5,14 @@ import { persist } from "zustand/middleware";
 
 export type Lang = "en" | "ar";
 
-function detectLang(): Lang {
+function readStoredLang(): Lang {
   if (typeof window === "undefined") return "ar";
   try {
-    const stored = localStorage.getItem("volley-lang");
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (parsed?.state?.lang === "en" || parsed?.state?.lang === "ar") {
-        return parsed.state.lang;
-      }
+    const raw = localStorage.getItem("volley-lang");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const l = parsed?.state?.lang;
+      if (l === "en" || l === "ar") return l;
     }
   } catch {}
   return "ar";
@@ -25,27 +24,15 @@ interface LanguageState {
   toggleLang: () => void;
 }
 
+const initialLang: Lang = readStoredLang();
+
 export const useLanguage = create<LanguageState>()(
   persist(
     (set) => ({
-      lang: detectLang(),
+      lang: initialLang,
       setLang: (lang) => set({ lang }),
       toggleLang: () => set((s) => ({ lang: s.lang === "en" ? "ar" : "en" })),
     }),
-    {
-      name: "volley-lang",
-      merge: (persisted, current) => {
-        if (
-          persisted &&
-          typeof persisted === "object" &&
-          "state" in persisted &&
-          (persisted as { state: { lang: Lang } }).state?.lang === "en" ||
-          (persisted as { state: { lang: Lang } }).state?.lang === "ar"
-        ) {
-          return persisted as LanguageState;
-        }
-        return current;
-      },
-    }
+    { name: "volley-lang" }
   )
 );
