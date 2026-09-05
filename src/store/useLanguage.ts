@@ -14,7 +14,7 @@ interface LanguageState {
 export const useLanguage = create<LanguageState>()(
   persist(
     (set) => ({
-      lang: "en",
+      lang: "ar",
       setLang: (lang) => set({ lang }),
       toggleLang: () => set((s) => ({ lang: s.lang === "en" ? "ar" : "en" })),
     }),
