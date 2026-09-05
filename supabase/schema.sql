@@ -591,10 +591,18 @@ BEGIN
   UPDATE public.payments          SET academy_id = v_academy WHERE academy_id IS NULL;
   UPDATE public.monthly_costs     SET academy_id = v_academy WHERE academy_id IS NULL;
 
-  -- Seed the default sport for every academy that has none.
+  -- Seed the full sport catalog for every academy so dropdowns show all sports.
   INSERT INTO public.sports (academy_id, name)
-  SELECT a.id, 'Volleyball' FROM public.academies a
-  WHERE NOT EXISTS (SELECT 1 FROM public.sports s WHERE s.academy_id = a.id);
+  SELECT a.id, az.name
+  FROM public.academies a
+  CROSS JOIN (VALUES
+    ('Football'), ('Basketball'), ('Handball'), ('Volleyball'), ('Tennis'),
+    ('Swimming'), ('Padel'), ('Squash'), ('Table Tennis'), ('Badminton'),
+    ('Gymnastics'), ('Karate'), ('Boxing'), ('Athletics'), ('Kung Fu'),
+    ('Taekwondo'), ('CrossFit'), ('Judo'), ('Kickboxing'), ('Wrestling'),
+    ('Archery'), ('Fencing'), ('Equestrian'), ('Cycling'), ('Weightlifting'), ('Parkour')
+  ) AS az(name)
+  ON CONFLICT (academy_id, name) DO NOTHING;
 
   -- Seed Full/Half plans for every academy that has no plans yet.
   INSERT INTO public.membership_plans (academy_id, name, sessions_count)
@@ -662,13 +670,17 @@ BEGIN
     INSERT INTO public.membership_plans (academy_id, name, sessions_count)
     VALUES (v_academy, 'Full', 8), (v_academy, 'Half', 4);
 
-    -- Seed sports from signup metadata (comma-separated) or default to Volleyball
-    IF NEW.raw_user_meta_data ->> 'sports' IS NOT NULL AND NEW.raw_user_meta_data ->> 'sports' != '' THEN
-      INSERT INTO public.sports (academy_id, name)
-      SELECT v_academy, trim(unnest(string_to_array(NEW.raw_user_meta_data ->> 'sports', ',')));
-    ELSE
-      INSERT INTO public.sports (academy_id, name) VALUES (v_academy, 'Volleyball');
-    END IF;
+    -- Seed the full sport catalog for every new academy so dropdowns show all sports.
+    INSERT INTO public.sports (academy_id, name)
+    SELECT v_academy, az.name
+    FROM (VALUES
+      ('Football'), ('Basketball'), ('Handball'), ('Volleyball'), ('Tennis'),
+      ('Swimming'), ('Padel'), ('Squash'), ('Table Tennis'), ('Badminton'),
+      ('Gymnastics'), ('Karate'), ('Boxing'), ('Athletics'), ('Kung Fu'),
+      ('Taekwondo'), ('CrossFit'), ('Judo'), ('Kickboxing'), ('Wrestling'),
+      ('Archery'), ('Fencing'), ('Equestrian'), ('Cycling'), ('Weightlifting'), ('Parkour')
+    ) AS az(name)
+    ON CONFLICT (academy_id, name) DO NOTHING;
 
     INSERT INTO public.profiles (id, email, role, name, join_date, academy_id, is_active)
     VALUES (
