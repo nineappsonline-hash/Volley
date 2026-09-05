@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -258,82 +259,107 @@ export default function AcademiesDirectoryPage() {
       <div className="mx-auto max-w-5xl px-6 py-10">
         {/* Filters */}
         <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Select
-            value={filterCountry}
-            onValueChange={(v) => {
-              setFilterCountry(v);
-              setFilterGov("all");
-              setFilterArea("all");
-            }}
-          >
-            <SelectTrigger aria-label={t("directory_filter_country")}>
-              <SelectValue placeholder={t("directory_filter_country")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("directory_filter_all")}</SelectItem>
-              {countries.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={filterGov}
-            onValueChange={(v) => {
-              setFilterGov(v);
-              setFilterArea("all");
-            }}
-          >
-            <SelectTrigger aria-label={t("directory_filter_governorate")}>
-              <SelectValue placeholder={t("directory_filter_governorate")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("directory_filter_all")}</SelectItem>
-              {governorates.map((g) => (
-                <SelectItem key={g} value={g}>
-                  {g}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={filterArea} onValueChange={setFilterArea}>
-            <SelectTrigger aria-label={t("directory_filter_area")}>
-              <SelectValue placeholder={t("directory_filter_area")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("directory_filter_all")}</SelectItem>
-              {areas.map((g) => (
-                <SelectItem key={g} value={g}>
-                  {g}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={filterSport} onValueChange={setFilterSport}>
-            <SelectTrigger aria-label={t("directory_filter_sport")}>
-              <SelectValue placeholder={t("directory_filter_sport")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("directory_filter_all")}</SelectItem>
-              {allSports.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={filterRating} onValueChange={setFilterRating}>
-            <SelectTrigger aria-label={t("directory_filter_rating")}>
-              <SelectValue placeholder={t("directory_filter_rating")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="0">{t("directory_rating_any")}</SelectItem>
-              <SelectItem value="3">{t("directory_rating_3")}</SelectItem>
-              <SelectItem value="4">{t("directory_rating_4")}</SelectItem>
-              <SelectItem value="4.5">{t("directory_rating_4_5")}</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-muted-foreground">
+              {t("directory_filter_country")}
+            </Label>
+            <Select
+              value={filterCountry}
+              onValueChange={(v) => {
+                setFilterCountry(v);
+                setFilterGov("all");
+                setFilterArea("all");
+              }}
+            >
+              <SelectTrigger aria-label={t("directory_filter_country")}>
+                <SelectValue placeholder={t("directory_filter_country")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("directory_filter_all")}</SelectItem>
+                {countries.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-muted-foreground">
+              {t("directory_filter_governorate")}
+            </Label>
+            <Select
+              value={filterGov}
+              onValueChange={(v) => {
+                setFilterGov(v);
+                setFilterArea("all");
+              }}
+            >
+              <SelectTrigger aria-label={t("directory_filter_governorate")}>
+                <SelectValue placeholder={t("directory_filter_governorate")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("directory_filter_all")}</SelectItem>
+                {governorates.map((g) => (
+                  <SelectItem key={g} value={g}>
+                    {g}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-muted-foreground">
+              {t("directory_filter_area")}
+            </Label>
+            <Select value={filterArea} onValueChange={setFilterArea}>
+              <SelectTrigger aria-label={t("directory_filter_area")}>
+                <SelectValue placeholder={t("directory_filter_area")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("directory_filter_all")}</SelectItem>
+                {areas.map((g) => (
+                  <SelectItem key={g} value={g}>
+                    {g}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-muted-foreground">
+              {t("directory_filter_sport")}
+            </Label>
+            <Select value={filterSport} onValueChange={setFilterSport}>
+              <SelectTrigger aria-label={t("directory_filter_sport")}>
+                <SelectValue placeholder={t("directory_filter_sport")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("directory_filter_all")}</SelectItem>
+                {allSports.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-muted-foreground">
+              {t("directory_filter_rating")}
+            </Label>
+            <Select value={filterRating} onValueChange={setFilterRating}>
+              <SelectTrigger aria-label={t("directory_filter_rating")}>
+                <SelectValue placeholder={t("directory_filter_rating")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">{t("directory_rating_any")}</SelectItem>
+                <SelectItem value="3">{t("directory_rating_3")}</SelectItem>
+                <SelectItem value="4">{t("directory_rating_4")}</SelectItem>
+                <SelectItem value="4.5">{t("directory_rating_4_5")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {isLoading ? (

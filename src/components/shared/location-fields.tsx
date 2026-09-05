@@ -123,15 +123,7 @@ export function LocationFields({
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>{t("signup_country")}</Label>
-        <LocationCombobox
-          value={country}
-          options={countryOptions}
-          placeholder={t("signup_country")}
-          onSelect={handleCountry}
-        />
-      </div>
+      <CountryField country={country} onCountryChange={handleCountry} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
@@ -178,6 +170,36 @@ export function LocationFields({
 
 function otherOption(label: string): Option {
   return { value: OTHER, label, search: `other ${label}`.toLowerCase() };
+}
+
+/** Standalone Country picker (type-to-search, localized) — used on its own for member signup. */
+export function CountryField({
+  country,
+  onCountryChange,
+}: {
+  country: string;
+  onCountryChange: (v: string) => void;
+}) {
+  const { t, lang } = useI18n();
+  const isArabicLocale = lang === "ar";
+
+  const countryOptions: Option[] = COUNTRIES.map((en) => {
+    const ar = COUNTRIES_AR[en] ?? en;
+    const name = isArabicLocale ? ar : en;
+    return { value: name, label: name, search: `${en} ${ar}`.toLowerCase() };
+  });
+
+  return (
+    <div className="space-y-2">
+      <Label>{t("signup_country")}</Label>
+      <LocationCombobox
+        value={country}
+        options={countryOptions}
+        placeholder={t("signup_country")}
+        onSelect={onCountryChange}
+      />
+    </div>
+  );
 }
 
 function LocationCombobox({

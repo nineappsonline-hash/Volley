@@ -40,6 +40,7 @@ export function useAuth() {
             ...(academy?.code ? { academy_code: academy.code } : {}),
             ...(academy?.newName ? { new_academy_name: academy.newName } : {}),
             ...(academy?.sports ? { sports: academy.sports } : {}),
+            ...(academy?.country ? { country: academy.country } : {}),
             ...(academy?.country ? { new_academy_country: academy.country } : {}),
             ...(academy?.governorate
               ? { new_academy_governorate: academy.governorate }

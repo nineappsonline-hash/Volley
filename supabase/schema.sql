@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   role TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'member')),
   name TEXT NOT NULL,
   phone TEXT,
+  country TEXT,
   join_date DATE,
   membership_type TEXT NOT NULL DEFAULT 'full' CHECK (membership_type IN ('full', 'half')),
   -- 0 until the admin records a payment; the sync trigger then sets the real plan.
@@ -660,7 +661,7 @@ DECLARE
   v_academy UUID;
 BEGIN
   IF v_new_name <> '' THEN
-    INSERT INTO public.academies (name, slug, country, governorate, area, is_trial, trial_ends_at)
+    INSERT INTO public.academies (name, slug, country, governorate, area, is_public, is_trial, trial_ends_at)
     VALUES (
       left(v_new_name, 60),
       lower(regexp_replace(left(v_new_name, 40), '[^a-zA-Z0-9]+', '-', 'g'))
@@ -668,6 +669,7 @@ BEGIN
       v_new_country,
       v_new_governorate,
       v_new_area,
+      TRUE,
       TRUE,
       NOW() + INTERVAL '14 days'
     )
@@ -688,10 +690,12 @@ BEGIN
     ) AS az(name)
     ON CONFLICT (academy_id, name) DO NOTHING;
 
-    INSERT INTO public.profiles (id, email, role, name, join_date, academy_id, is_active)
+    INSERT INTO public.profiles (id, email, role, name, phone, country, join_date, academy_id, is_active)
     VALUES (
       NEW.id, NEW.email, 'admin',
       COALESCE(NEW.raw_user_meta_data ->> 'name', split_part(NEW.email, '@', 1)),
+      NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'phone', '')), ''),
+      COALESCE(v_new_country, NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'country', '')), '')),
       CURRENT_DATE, v_academy, TRUE
     )
     ON CONFLICT (id) DO NOTHING;
@@ -700,10 +704,12 @@ BEGIN
       SELECT id INTO v_academy FROM public.academies WHERE UPPER(invite_code) = UPPER(v_code);
     END IF;
 
-    INSERT INTO public.profiles (id, email, role, name, join_date, academy_id, is_active)
+    INSERT INTO public.profiles (id, email, role, name, phone, country, join_date, academy_id, is_active)
     VALUES (
       NEW.id, NEW.email, 'member',
       COALESCE(NEW.raw_user_meta_data ->> 'name', split_part(NEW.email, '@', 1)),
+      NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'phone', '')), ''),
+      NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'country', '')), ''),
       CURRENT_DATE, v_academy, FALSE
     )
     ON CONFLICT (id) DO NOTHING;
@@ -1335,6 +1341,16 @@ DROP POLICY IF EXISTS "Members manage sports" ON public.sports;
 CREATE POLICY "Members manage sports" ON public.sports
   FOR ALL USING (academy_id = public.current_academy_id())
   WITH CHECK (academy_id = public.current_academy_id());
+
+-- Public directory: anyone may read the sports of academies marked is_public.
+DROP POLICY IF EXISTS "Public view public academy sports" ON public.sports;
+CREATE POLICY "Public view public academy sports" ON public.sports
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM public.academies a
+      WHERE a.id = sports.academy_id AND a.is_public = TRUE
+    )
+  );
 
 -- teams + team_members: admins manage; members can view teams and rosters.
 DROP POLICY IF EXISTS "Members manage teams" ON public.teams;

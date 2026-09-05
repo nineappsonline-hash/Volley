@@ -19,7 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { LocationFields } from "@/components/shared/location-fields";
+import { LocationFields, CountryField } from "@/components/shared/location-fields";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
@@ -28,7 +28,7 @@ const joinSchema = (t: (k: any) => string) =>
   z.object({
     name: z.string().min(1, t("field_required")),
     email: z.string().email(t("field_invalid_email")),
-    phone: z.string().optional(),
+    phone: z.string().min(1, t("field_required")),
     password: z.string().min(6, t("field_min_password")),
     academy_code: z.string().optional(),
   });
@@ -38,7 +38,7 @@ const createSchema = (t: (k: any) => string) =>
     .object({
       name: z.string().min(1, t("field_required")),
       email: z.string().email(t("field_invalid_email")),
-      phone: z.string().optional(),
+      phone: z.string().min(1, t("field_required")),
       password: z.string().min(6, t("field_min_password")),
       password_confirm: z.string().min(6, t("field_min_password")),
       academy_name: z.string().min(2, t("field_required")),
@@ -152,8 +152,13 @@ export function SignupForm() {
   };
 
   const onJoin = async (values: JoinValues) => {
+    if (!location.country.trim()) {
+      toast.error(t("field_required"));
+      return;
+    }
     await finishSignup(values.email, values.password, values.name, values.phone, {
       code: values.academy_code?.trim() || undefined,
+      country: location.country.trim(),
     });
   };
 
@@ -427,6 +432,12 @@ export function SignupForm() {
                         <FormMessage />
                       </FormItem>
                     )}
+                  />
+                  <CountryField
+                    country={location.country}
+                    onCountryChange={(v) =>
+                      setLocation((l) => ({ ...l, country: v }))
+                    }
                   />
                   <FormField
                     control={joinForm.control}
