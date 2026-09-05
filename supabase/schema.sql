@@ -624,15 +624,21 @@ SET search_path = public
 AS $$
 DECLARE
   v_new_name TEXT := trim(COALESCE(NEW.raw_user_meta_data ->> 'new_academy_name', ''));
+  v_new_country TEXT := NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'new_academy_country', '')), '');
+  v_new_governorate TEXT := NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'new_academy_governorate', '')), '');
+  v_new_area TEXT := NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'new_academy_area', '')), '');
   v_code TEXT := NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'academy_code', '')), '');
   v_academy UUID;
 BEGIN
   IF v_new_name <> '' THEN
-    INSERT INTO public.academies (name, slug, is_trial, trial_ends_at)
+    INSERT INTO public.academies (name, slug, country, governorate, area, is_trial, trial_ends_at)
     VALUES (
       left(v_new_name, 60),
       lower(regexp_replace(left(v_new_name, 40), '[^a-zA-Z0-9]+', '-', 'g'))
         || '-' || left(md5(random()::text), 4),
+      v_new_country,
+      v_new_governorate,
+      v_new_area,
       TRUE,
       NOW() + INTERVAL '14 days'
     )

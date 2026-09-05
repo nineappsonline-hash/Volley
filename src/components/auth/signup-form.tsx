@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Building2, Loader2, Trophy, Volleyball } from "lucide-react";
+import { Check, Building2, Loader2, Trophy, Volleyball } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -19,16 +19,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
+import { COUNTRIES, STATES_BY_COUNTRY } from "@/lib/locations";
 
 const joinSchema = (t: (k: any) => string) =>
   z.object({
@@ -40,14 +34,23 @@ const joinSchema = (t: (k: any) => string) =>
   });
 
 const createSchema = (t: (k: any) => string) =>
-  z.object({
-    name: z.string().min(1, t("field_required")),
-    email: z.string().email(t("field_invalid_email")),
-    phone: z.string().optional(),
-    password: z.string().min(6, t("field_min_password")),
-    academy_name: z.string().min(2, t("field_required")),
-    sports: z.string().min(1, t("field_required")),
-  });
+  z
+    .object({
+      name: z.string().min(1, t("field_required")),
+      email: z.string().email(t("field_invalid_email")),
+      phone: z.string().optional(),
+      password: z.string().min(6, t("field_min_password")),
+      password_confirm: z.string().min(6, t("field_min_password")),
+      academy_name: z.string().min(2, t("field_required")),
+      sports: z.array(z.string()).min(1, t("field_required")),
+      country: z.string().min(1, t("field_required")),
+      governorate: z.string().min(1, t("field_required")),
+      city: z.string().min(1, t("field_required")),
+    })
+    .refine((d) => d.password === d.password_confirm, {
+      message: t("field_password_mismatch"),
+      path: ["password_confirm"],
+    });
 
 type JoinValues = z.infer<ReturnType<typeof joinSchema>>;
 type CreateValues = z.infer<ReturnType<typeof createSchema>>;
@@ -100,7 +103,18 @@ export function SignupForm() {
 
   const createForm = useForm<CreateValues>({
     resolver: zodResolver(createSchema(t)),
-    defaultValues: { name: "", email: "", phone: "", password: "", academy_name: "", sports: "Volleyball" },
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      password: "",
+      password_confirm: "",
+      academy_name: "",
+      sports: ["Volleyball"],
+      country: "",
+      governorate: "",
+      city: "",
+    },
   });
 
   const finishSignup = async (
@@ -108,7 +122,14 @@ export function SignupForm() {
     password: string,
     name: string,
     phone: string | undefined,
-    academy?: { code?: string; newName?: string; sports?: string }
+    academy?: {
+      code?: string;
+      newName?: string;
+      sports?: string;
+      country?: string;
+      governorate?: string;
+      city?: string;
+    }
   ) => {
     setLoading(true);
     try {
@@ -140,7 +161,10 @@ export function SignupForm() {
   const onCreate = async (values: CreateValues) => {
     await finishSignup(values.email, values.password, values.name, values.phone, {
       newName: values.academy_name.trim(),
-      sports: values.sports.trim(),
+      sports: values.sports.join(","),
+      country: values.country.trim(),
+      governorate: values.governorate.trim(),
+      city: values.city.trim(),
     });
   };
 
@@ -227,22 +251,38 @@ export function SignupForm() {
                           <Trophy className="h-4 w-4" />
                           {t("signup_sports_label")}
                         </FormLabel>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue
-                                placeholder={t("signup_sports_placeholder")}
-                              />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {SPORTS.map((s) => (
-                              <SelectItem key={s.value} value={s.value}>
-                                {t(s.key)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                            {SPORTS.map((s) => {
+                              const active = field.value.includes(s.value);
+                              return (
+                                <button
+                                  key={s.value}
+                                  type="button"
+                                  aria-pressed={active}
+                                  onClick={() =>
+                                    field.onChange(
+                                      active
+                                        ? field.value.filter((v) => v !== s.value)
+                                        : [...field.value, s.value]
+                                    )
+                                  }
+                                  className={cn(
+                                    "flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
+                                    active
+                                      ? "border-primary bg-primary/10 font-medium text-primary"
+                                      : "border-input bg-background text-muted-foreground hover:text-foreground"
+                                  )}
+                                >
+                                  <span className="truncate">{t(s.key)}</span>
+                                  {active && (
+                                    <Check className="h-4 w-4 shrink-0" />
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </FormControl>
                         <p className="text-xs text-muted-foreground">
                           {t("signup_sports_hint")}
                         </p>
@@ -250,6 +290,56 @@ export function SignupForm() {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={createForm.control}
+                    name="country"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("signup_country")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            list="countries"
+                            autoComplete="country-name"
+                            placeholder={t("signup_country")}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={createForm.control}
+                      name="governorate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("signup_governorate")}</FormLabel>
+                          <FormControl>
+                            <Input
+                              list="states"
+                              placeholder={t("signup_governorate")}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={createForm.control}
+                      name="city"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("signup_city")}</FormLabel>
+                          <FormControl>
+                            <Input placeholder={t("signup_city")} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   <FormField
                     control={createForm.control}
                     name="name"
@@ -309,6 +399,24 @@ export function SignupForm() {
                       )}
                     />
                   </div>
+                  <FormField
+                    control={createForm.control}
+                    name="password_confirm"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("signup_confirm_password")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            dir="ltr"
+                            autoComplete="new-password"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   {submitButton}
                 </form>
               </Form>
@@ -421,6 +529,19 @@ export function SignupForm() {
           </CardContent>
         </Card>
       </div>
+
+      <datalist id="countries">
+        {COUNTRIES.map((c) => (
+          <option key={c} value={c} />
+        ))}
+      </datalist>
+      <datalist id="states">
+        {STATES_BY_COUNTRY[
+          createForm.watch("country")
+        ]?.map((s) => (
+          <option key={s} value={s} />
+        ))}
+      </datalist>
     </main>
   );
 }

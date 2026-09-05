@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
+  Building2,
   CalendarDays,
   ClipboardCheck,
   CreditCard,
@@ -45,6 +46,10 @@ const superAdminItems = [
   { href: "/admin", key: "super_admin_title", icon: Crown },
 ] as const;
 
+const academyItems = [
+  { href: "/profile", key: "nav_academy_profile", icon: Building2 },
+] as const;
+
 const memberItems = [
   { href: "/dashboard", key: "nav_dashboard", icon: LayoutDashboard },
   { href: "/schedule", key: "nav_schedule", icon: CalendarDays },
@@ -63,9 +68,14 @@ interface SidebarProps {
 export function Sidebar({ role, name, memberPlan }: SidebarProps) {
   const pathname = usePathname();
   const { t } = useI18n();
-  // All roles see the full feature set — admin control happens via the
-  // Super Admin panel (/admin) and server-side RLS policies.
-  const items = role === "super_admin" ? [...superAdminItems, ...adminItems] : role === "admin" ? [...adminItems, ...memberItems] : memberItems;
+  // Admins manage the academy's own pages; members see the member feature set.
+  // Super admins additionally get the platform admin panel.
+  const items =
+    role === "super_admin"
+      ? [...superAdminItems, ...adminItems]
+      : role === "admin"
+      ? [...adminItems, ...academyItems]
+      : memberItems;
 
   return (
     <div className="flex h-full flex-col gap-6 p-4">

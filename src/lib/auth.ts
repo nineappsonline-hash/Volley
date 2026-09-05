@@ -21,7 +21,14 @@ export function useAuth() {
       password: string,
       name: string,
       phone?: string,
-      academy?: { code?: string; newName?: string; sports?: string }
+      academy?: {
+        code?: string;
+        newName?: string;
+        sports?: string;
+        country?: string;
+        governorate?: string;
+        city?: string;
+      }
     ) => {
       const { data, error } = await createClient().auth.signUp({
         email,
@@ -33,6 +40,11 @@ export function useAuth() {
             ...(academy?.code ? { academy_code: academy.code } : {}),
             ...(academy?.newName ? { new_academy_name: academy.newName } : {}),
             ...(academy?.sports ? { sports: academy.sports } : {}),
+            ...(academy?.country ? { new_academy_country: academy.country } : {}),
+            ...(academy?.governorate
+              ? { new_academy_governorate: academy.governorate }
+              : {}),
+            ...(academy?.city ? { new_academy_area: academy.city } : {}),
           },
         },
       });

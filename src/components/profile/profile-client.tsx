@@ -4,9 +4,13 @@ import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
+  Building2,
+  Check,
   CheckCircle2,
+  Copy,
   CreditCard,
   Crown,
+  Link2,
   Mail,
   MapPin,
   Phone,
@@ -28,7 +32,9 @@ import { CheckinQrCard } from "@/components/profile/checkin-qr-card";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import { usedSessionsSincePayment } from "@/lib/calculations";
+import { initials } from "@/lib/utils";
 import {
+  useAcademy,
   useAllPayments,
   useAttendance,
   useMemberSessionCosts,
@@ -40,6 +46,261 @@ import {
 import type { Profile } from "@/lib/types";
 
 export function ProfileClient({ serverProfile }: { serverProfile: Profile }) {
+  if (serverProfile.role === "admin") {
+    return <AcademyProfile serverProfile={serverProfile} />;
+  }
+  return <MemberProfile serverProfile={serverProfile} />;
+}
+
+function AcademyProfile({ serverProfile }: { serverProfile: Profile }) {
+  const { t, locale } = useI18n();
+  const { data: academy, isLoading } = useAcademy();
+  const { data: profile } = useProfile(serverProfile.id);
+  const p = profile ?? serverProfile;
+
+  const [name, setName] = useState(p.name);
+  const [phone, setPhone] = useState(p.phone ?? "");
+  const [saving, setSaving] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+  const updateProfile = useUpdateOwnProfile();
+
+  const handleSave = async () => {
+    if (!name.trim()) {
+      toast.error(t("field_required"));
+      return;
+    }
+    setSaving(true);
+    try {
+      await updateProfile.mutateAsync({
+        id: p.id,
+        name: name.trim(),
+        phone: phone || null,
+      });
+      toast.success(t("profile_saved"));
+    } catch {
+      toast.error(t("common_error"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const copy = async (value: string, key: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(key);
+      toast.success(t("cal_copied"));
+      setTimeout(() => setCopied(null), 2000);
+    } catch {
+      toast.error(t("common_error"));
+    }
+  };
+
+  if (isLoading || !academy) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title={t("profile_academy_title")}
+          subtitle={t("profile_academy_subtitle")}
+        />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  const location = [
+    academy.country,
+    academy.governorate,
+    academy.area,
+    academy.address,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const publicUrl =
+    typeof window !== "undefined" && academy.slug
+      ? `${window.location.origin}/a/${academy.slug}`
+      : "";
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title={t("profile_academy_title")}
+        subtitle={t("profile_academy_subtitle")}
+      />
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Academy identity */}
+        <Card className="lg:col-span-1">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Building2 className="h-4 w-4 text-primary" />
+              {t("settings_academy_info")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16">
+                <AvatarFallback className="text-lg">
+                  {initials(academy.name) || "A"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <p className="text-lg font-bold">{academy.name}</p>
+                <div className="mt-1 flex flex-wrap gap-1">
+                  <Badge variant="secondary">{t("role_academy")}</Badge>
+                  {academy.is_trial && (
+                    <Badge variant="outline">{t("trial_badge")}</Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3 border-t pt-4 text-sm">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  {t("profile_location")}
+                </p>
+                <p className="mt-0.5 flex items-start gap-1.5 text-muted-foreground">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{location || t("common_not_set")}</span>
+                </p>
+              </div>
+              {academy.description && (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {t("profile_about")}
+                  </p>
+                  <p className="mt-0.5 text-muted-foreground">
+                    {academy.description}
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Owner contact + links */}
+        <div className="space-y-6 lg:col-span-2">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <UserRound className="h-4 w-4 text-primary" />
+                {t("profile_owner_contact")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-base font-semibold">{p.name}</p>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>{t("profile_owner_name")}</Label>
+                  <Input value={name} onChange={(e) => setName(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("profile_phone")}</Label>
+                  <Input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    dir="ltr"
+                  />
+                </div>
+              </div>
+              <Button onClick={handleSave} disabled={saving} className="w-full">
+                <Save className="h-4 w-4" />
+                {saving ? t("common_saving") : t("profile_save")}
+              </Button>
+              <div className="space-y-2 border-t pt-4 text-sm">
+                <p className="flex items-center gap-2 text-muted-foreground">
+                  <Mail className="h-4 w-4 shrink-0" />
+                  <span dir="ltr" className="truncate">{p.email}</span>
+                </p>
+                <p className="flex items-center gap-2 text-muted-foreground">
+                  <Phone className="h-4 w-4 shrink-0" />
+                  {p.phone || t("common_not_set")}
+                </p>
+                <p className="flex items-center gap-2 text-muted-foreground">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  {t("profile_join_date")}:{" "}
+                  {academy.created_at
+                    ? format(
+                        new Date(academy.created_at),
+                        "MMM d, yyyy",
+                        { locale }
+                      )
+                    : t("common_not_set")}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Link2 className="h-4 w-4 text-primary" />
+                {t("profile_public_link")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>{t("settings_invite_code")}</Label>
+                <div className="flex items-center gap-2">
+                  <Input dir="ltr" readOnly value={academy.invite_code} />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    aria-label={t("cal_copy")}
+                    onClick={() => copy(academy.invite_code, "invite")}
+                  >
+                    {copied === "invite" ? (
+                      <Check className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("settings_invite_hint")}
+                </p>
+              </div>
+              {publicUrl && (
+                <div className="space-y-2">
+                  <Label>{t("settings_slug")}</Label>
+                  <div className="flex items-center gap-2">
+                    <Input dir="ltr" readOnly value={publicUrl} />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      aria-label={t("cal_copy")}
+                      onClick={() => copy(publicUrl, "public")}
+                    >
+                      {copied === "public" ? (
+                        <Check className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  <a
+                    href={publicUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+                    dir="ltr"
+                  >
+                    <Link2 className="h-3 w-3" />
+                    {publicUrl}
+                  </a>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
   const { t, lang, locale } = useI18n();
   const { data: profile } = useProfile(serverProfile.id);
   const p = profile ?? serverProfile;
