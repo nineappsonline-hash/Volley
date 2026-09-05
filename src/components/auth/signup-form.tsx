@@ -19,6 +19,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
@@ -46,6 +53,35 @@ type JoinValues = z.infer<ReturnType<typeof joinSchema>>;
 type CreateValues = z.infer<ReturnType<typeof createSchema>>;
 
 type Role = "member" | "tenant";
+
+const SPORTS = [
+  { value: "Football", key: "sport_football" },
+  { value: "Basketball", key: "sport_basketball" },
+  { value: "Handball", key: "sport_handball" },
+  { value: "Volleyball", key: "sport_volleyball" },
+  { value: "Tennis", key: "sport_tennis" },
+  { value: "Swimming", key: "sport_swimming" },
+  { value: "Padel", key: "sport_padel" },
+  { value: "Squash", key: "sport_squash" },
+  { value: "Table Tennis", key: "sport_table_tennis" },
+  { value: "Badminton", key: "sport_badminton" },
+  { value: "Gymnastics", key: "sport_gymnastics" },
+  { value: "Karate", key: "sport_karate" },
+  { value: "Boxing", key: "sport_boxing" },
+  { value: "Athletics", key: "sport_athletics" },
+  { value: "Kung Fu", key: "sport_kungfu" },
+  { value: "Taekwondo", key: "sport_taekwondo" },
+  { value: "CrossFit", key: "sport_crossfit" },
+  { value: "Judo", key: "sport_judo" },
+  { value: "Kickboxing", key: "sport_kickboxing" },
+  { value: "Wrestling", key: "sport_wrestling" },
+  { value: "Archery", key: "sport_archery" },
+  { value: "Fencing", key: "sport_fencing" },
+  { value: "Equestrian", key: "sport_equestrian" },
+  { value: "Cycling", key: "sport_cycling" },
+  { value: "Weightlifting", key: "sport_weightlifting" },
+  { value: "Parkour", key: "sport_parkour" },
+] as const;
 
 export function SignupForm() {
   const { t } = useI18n();
@@ -191,12 +227,22 @@ export function SignupForm() {
                           <Trophy className="h-4 w-4" />
                           {t("signup_sports_label")}
                         </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder={t("signup_sports_placeholder")}
-                            {...field}
-                          />
-                        </FormControl>
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue
+                                placeholder={t("signup_sports_placeholder")}
+                              />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {SPORTS.map((s) => (
+                              <SelectItem key={s.value} value={s.value}>
+                                {t(s.key)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <p className="text-xs text-muted-foreground">
                           {t("signup_sports_hint")}
                         </p>
