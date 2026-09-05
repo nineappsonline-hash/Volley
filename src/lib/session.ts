@@ -12,10 +12,9 @@ export interface SessionData {
 }
 
 /**
- * Server-side guard. Redirects to /login when unauthenticated and
- * to /dashboard when the user lacks admin rights (requireAdmin).
+ * Server-side guard. Redirects to /login when unauthenticated.
  */
-export async function requireSession(opts?: { adminOnly?: boolean }): Promise<SessionData> {
+export async function requireSession(): Promise<SessionData> {
   const supabase = createClient();
 
   const {
@@ -27,10 +26,6 @@ export async function requireSession(opts?: { adminOnly?: boolean }): Promise<Se
   }
 
   const role = (user.app_metadata?.role as Role | undefined) ?? "member";
-
-  if (opts?.adminOnly && role !== "admin") {
-    redirect("/dashboard");
-  }
 
   // Fetch profile for display data
   const { data: profile } = await supabase
@@ -56,6 +51,8 @@ export async function requireSession(opts?: { adminOnly?: boolean }): Promise<Se
     is_active: true,
     checkin_code: null,
     last_reminded_at: null,
+    member_plan: "free",
+    premium_expires_at: null,
     created_at: new Date().toISOString(),
   };
 
