@@ -34,11 +34,18 @@ export const useLanguage = create<LanguageState>()(
     }),
     {
       name: "volley-lang",
-      merge: (persisted, current) => (
-        persisted && typeof persisted === "object" && "state" in persisted
-          ? persisted
-          : current
-      ),
+      merge: (persisted, current) => {
+        if (
+          persisted &&
+          typeof persisted === "object" &&
+          "state" in persisted &&
+          (persisted as { state: { lang: Lang } }).state?.lang === "en" ||
+          (persisted as { state: { lang: Lang } }).state?.lang === "ar"
+        ) {
+          return persisted as LanguageState;
+        }
+        return current;
+      },
     }
   )
 );
