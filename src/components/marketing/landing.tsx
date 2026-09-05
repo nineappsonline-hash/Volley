@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import {
-  CalendarDays,
   ClipboardCheck,
   LineChart,
   Users,
@@ -63,7 +62,7 @@ export function LandingPage() {
               <Link href="/login">{t("landing_signin")}</Link>
             </Button>
             <Button asChild>
-              <Link href="/signup">{t("landing_join")}</Link>
+              <Link href="/signup">{t("landing_signup")}</Link>
             </Button>
           </div>
         </header>
@@ -80,28 +79,13 @@ export function LandingPage() {
             {t("landing_hero_desc")}
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Button asChild size="lg" className="gap-2">
-              <Link href="/signup">
-                <Users className="h-5 w-5" />
-                {t("landing_signup_member")}
-              </Link>
-            </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href="/login/tenant">
-                <CalendarDays className="h-5 w-5" />
-                {t("landing_signin_admin")}
-              </Link>
+              <Link href="/login">{t("landing_signin")}</Link>
+            </Button>
+            <Button asChild size="lg">
+              <Link href="/signup">{t("landing_signup")}</Link>
             </Button>
           </div>
-          <p className="mt-6 text-sm text-muted-foreground">
-            {t("landing_own_academy")}{" "}
-            <Link
-              href="/signup/tenant"
-              className="font-medium text-primary hover:underline"
-            >
-              {t("landing_create_academy")} →
-            </Link>
-          </p>
         </section>
 
         <section className="grid grid-cols-1 gap-4 pb-8 sm:grid-cols-2 lg:grid-cols-4">

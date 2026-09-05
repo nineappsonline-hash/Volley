@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import { SignupForm } from "@/components/auth/signup-form";
 
 export const metadata: Metadata = {
-  title: "Join an academy — Volleyra",
-  description: "Create your member account and join your academy on Volleyra.",
+  title: "Sign up — Volleyra",
+  description:
+    "Create your Volleyra account as a member or set up your sports academy.",
 };
 
 export default function SignupPage() {
-  return <SignupForm mode="member" />;
+  return <SignupForm />;
 }

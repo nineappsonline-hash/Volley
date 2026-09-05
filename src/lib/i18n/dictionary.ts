@@ -950,7 +950,7 @@ export const dictionary = {
     // ── Landing page ──
     landing_tagline: "Sports academy management",
     landing_signin: "Sign in",
-    landing_join: "Join as member",
+    landing_signup: "Sign up",
     landing_badge: "🏐 All-in-one CRM & ERP for Sports Academies",
     landing_hero: "Manage your academy with",
     landing_hero_highlight: "automatic profit tracking",
@@ -968,10 +968,9 @@ export const dictionary = {
     landing_feature_reports_title: "Reports & charts",
     landing_feature_reports_desc:
       "Track revenue vs costs with beautiful monthly charts.",
-    landing_signup_member: "Sign up as a member",
-    landing_signin_admin: "Sign in as admin",
-    landing_own_academy: "Own an academy?",
-    landing_create_academy: "Create your academy free",
+    // ── Auth role selector ──
+    auth_role_member: "Member",
+    auth_role_tenant: "Academy owner",
     // ── Not found ──
     notfound_subtitle: "The page you are looking for doesn't exist.",
     notfound_action: "Go to dashboard",
@@ -1927,7 +1926,7 @@ export const dictionary = {
     // ── الصفحة الرئيسية ──
     landing_tagline: "إدارة أكاديميات الرياضة",
     landing_signin: "تسجيل الدخول",
-    landing_join: "انضم كعضو",
+    landing_signup: "التسجيل",
     landing_badge: "🏐 نظام متكامل لإدارة أكاديميات الرياضة",
     landing_hero: "أدر أكاديميتك مع",
     landing_hero_highlight: "تتبع الأرباح تلقائياً",
@@ -1945,10 +1944,9 @@ export const dictionary = {
     landing_feature_reports_title: "تقارير ورسوم بيانية",
     landing_feature_reports_desc:
       "تتبّع الإيرادات مقابل التكاليف مع رسوم بيانية شهرية جميلة.",
-    landing_signup_member: "سجّل كعضو",
-    landing_signin_admin: "سجّل الدخول كمدير",
-    landing_own_academy: "تمتلك أكاديمية؟",
-    landing_create_academy: "أنشئ أكاديميتك مجاناً",
+    // ── اختيار الدور في تسجيل الدخول ──
+    auth_role_member: "عضو",
+    auth_role_tenant: "صاحب أكاديمية",
     // ── الصفحة غير موجودة ──
     notfound_subtitle: "الصفحة التي تبحث عنها غير موجودة.",
     notfound_action: "الانتقال إلى لوحة التحكم",

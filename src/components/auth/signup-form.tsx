@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 
@@ -44,17 +45,17 @@ const createSchema = (t: (k: any) => string) =>
 type JoinValues = z.infer<ReturnType<typeof joinSchema>>;
 type CreateValues = z.infer<ReturnType<typeof createSchema>>;
 
-interface SignupFormProps {
-  mode: "member" | "tenant";
-}
+type Role = "member" | "tenant";
 
-export function SignupForm({ mode }: SignupFormProps) {
-  const isTenant = mode === "tenant";
+export function SignupForm() {
   const { t } = useI18n();
   const router = useRouter();
   const { signUp } = useAuth();
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [mode, setMode] = useState<Role>("member");
+
+  const isTenant = mode === "tenant";
 
   const joinForm = useForm<JoinValues>({
     resolver: zodResolver(joinSchema(t)),
@@ -120,6 +121,25 @@ export function SignupForm({ mode }: SignupFormProps) {
       <div className="pointer-events-none absolute -top-32 start-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-blue-500/20 blur-3xl rtl:translate-x-1/2" />
 
       <div className="relative w-full max-w-md">
+        <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
+          {(["member", "tenant"] as const).map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => setMode(r)}
+              aria-pressed={mode === r}
+              className={cn(
+                "rounded-lg px-3 py-2 text-sm font-semibold transition-all",
+                mode === r
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {r === "member" ? t("auth_role_member") : t("auth_role_tenant")}
+            </button>
+          ))}
+        </div>
+
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-sky-400 text-white shadow-lg shadow-blue-500/30">
             {isTenant ? (
@@ -346,7 +366,7 @@ export function SignupForm({ mode }: SignupFormProps) {
             <p className="mt-4 text-center text-sm text-muted-foreground">
               {t("signup_have_account")}{" "}
               <Link
-                href={isTenant ? "/login/tenant" : "/login"}
+                href="/login"
                 className="font-medium text-primary hover:underline"
               >
                 {t("signup_login_link")}

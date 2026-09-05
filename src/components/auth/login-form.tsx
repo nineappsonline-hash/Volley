@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 
@@ -30,15 +31,14 @@ const schema = (t: (k: any) => string) =>
 
 type FormValues = z.infer<ReturnType<typeof schema>>;
 
-interface LoginFormProps {
-  mode: "member" | "tenant";
-}
+type Role = "member" | "tenant";
 
-export function LoginForm({ mode }: LoginFormProps) {
+export function LoginForm() {
   const { t } = useI18n();
   const router = useRouter();
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<Role>("member");
 
   const isTenant = mode === "tenant";
 
@@ -66,6 +66,25 @@ export function LoginForm({ mode }: LoginFormProps) {
       <div className="pointer-events-none absolute -top-32 start-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-blue-500/20 blur-3xl rtl:translate-x-1/2" />
 
       <div className="relative w-full max-w-md">
+        <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
+          {(["member", "tenant"] as const).map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => setMode(r)}
+              aria-pressed={mode === r}
+              className={cn(
+                "rounded-lg px-3 py-2 text-sm font-semibold transition-all",
+                mode === r
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {r === "member" ? t("auth_role_member") : t("auth_role_tenant")}
+            </button>
+          ))}
+        </div>
+
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-sky-400 text-white shadow-lg shadow-blue-500/30">
             {isTenant ? (
@@ -126,24 +145,16 @@ export function LoginForm({ mode }: LoginFormProps) {
             <p className="mt-4 text-center text-sm text-muted-foreground">
               {isTenant ? t("login_tenant_no_account") : t("login_no_account")}{" "}
               <Link
-                href={isTenant ? "/signup/tenant" : "/signup"}
+                href="/signup"
                 className="font-medium text-primary hover:underline"
               >
-                {isTenant ? t("login_tenant_signup_link") : t("login_signup_link")}
+                {isTenant
+                  ? t("login_tenant_signup_link")
+                  : t("login_signup_link")}
               </Link>
             </p>
           </CardContent>
         </Card>
-
-        <p className="mt-4 text-center text-sm text-muted-foreground">
-          {isTenant ? t("login_member_link") : t("login_tenant_link")}{" "}
-          <Link
-            href={isTenant ? "/login" : "/login/tenant"}
-            className="font-medium text-primary hover:underline"
-          >
-            {t("login_button")}
-          </Link>
-        </p>
       </div>
     </main>
   );
