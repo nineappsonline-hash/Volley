@@ -71,6 +71,7 @@ export function RentalsClient() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [price, setPrice] = useState("");
+  const [hours, setHours] = useState("1");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [isPaid, setIsPaid] = useState(false);
@@ -85,6 +86,7 @@ export function RentalsClient() {
       setCustomerPhone("");
       setCustomerEmail("");
       setPrice("");
+      setHours("1");
       setDate(todayInput());
       setTime("");
       setIsPaid(false);
@@ -100,6 +102,7 @@ export function RentalsClient() {
     setCustomerPhone(r.customer_phone ?? "");
     setCustomerEmail(r.customer_email ?? "");
     setPrice(r.price != null ? String(r.price) : "");
+    setHours(r.hours != null ? String(r.hours) : "1");
     setDate(r.rental_date);
     setTime(r.start_time);
     setIsPaid(r.is_paid);
@@ -113,10 +116,13 @@ export function RentalsClient() {
     return (id: string | null) => (id && map.get(id)) || "—";
   }, [venues]);
 
+  const rentalAmount = (r: VenueRental) =>
+    Number(r.price) * (Number(r.hours) || 1);
+
   const totals = useMemo(() => {
-    const total = (rentals ?? []).reduce((s, r) => s + Number(r.price), 0);
+    const total = (rentals ?? []).reduce((s, r) => s + rentalAmount(r), 0);
     const collected = (rentals ?? []).reduce(
-      (s, r) => s + (r.is_paid ? Number(r.price) : 0),
+      (s, r) => s + (r.is_paid ? rentalAmount(r) : 0),
       0
     );
     return { total, collected, outstanding: total - collected };
@@ -132,6 +138,7 @@ export function RentalsClient() {
         customer_phone: customerPhone.trim() || null,
         customer_email: customerEmail.trim() || null,
         price: Number(price) || 0,
+        hours: Number(hours) || 1,
         rental_date: date,
         start_time: time,
         is_paid: isPaid,
@@ -155,6 +162,7 @@ export function RentalsClient() {
         customer_phone: r.customer_phone,
         customer_email: r.customer_email,
         price: Number(r.price),
+        hours: Number(r.hours) || 1,
         rental_date: r.rental_date,
         start_time: r.start_time,
         is_paid: !r.is_paid,
@@ -229,7 +237,7 @@ export function RentalsClient() {
                 <TableHead>{t("rentals_venue")}</TableHead>
                 <TableHead>{t("rentals_customer")}</TableHead>
                 <TableHead>{t("rentals_date")} / {t("rentals_time")}</TableHead>
-                <TableHead className="text-end">{t("rentals_price")}</TableHead>
+                <TableHead className="text-end">{t("rentals_amount")}</TableHead>
                 <TableHead>{t("rentals_payment_method")}</TableHead>
                 <TableHead>{t("members_col_status")}</TableHead>
                 <TableHead className="text-end">{t("members_col_actions")}</TableHead>
@@ -250,8 +258,14 @@ export function RentalsClient() {
                   <TableCell dir="ltr" className="text-start font-mono text-sm">
                     {r.rental_date} · {r.start_time.slice(0, 5)}
                   </TableCell>
-                  <TableCell className="text-end font-mono">
-                    {formatMoney(Number(r.price), lang)}
+                  <TableCell className="text-end">
+                    <p className="font-mono">
+                      {formatMoney(rentalAmount(r), lang)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {Number(r.hours) || 1} {t("rentals_hours_short")} ×{" "}
+                      {formatMoney(Number(r.price), lang)}
+                    </p>
                   </TableCell>
                   <TableCell>
                     {r.payment_method ? (
@@ -360,31 +374,53 @@ export function RentalsClient() {
                   type="email"
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
-                />
+/>
+                </div>
               </div>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>{t("rentals_date")}</Label>
-                <Input dir="ltr" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>{t("rentals_date")}</Label>
+                  <Input dir="ltr" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("rentals_time")}</Label>
+                  <Input dir="ltr" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("rentals_hours")}</Label>
+                  <Input
+                    dir="ltr"
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={hours}
+                    onChange={(e) => setHours(e.target.value)}
+                    placeholder="1"
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>{t("rentals_time")}</Label>
-                <Input dir="ltr" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>{t("rentals_price")}</Label>
+                  <Input
+                    dir="ltr"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    placeholder="0"
+                  />
+                </div>
+                <div className="flex flex-col justify-end">
+                  <Label className="text-xs text-muted-foreground">
+                    {t("rentals_total")}
+                  </Label>
+                  <p className="font-mono text-lg font-semibold" dir="ltr">
+                    {formatMoney((Number(price) || 0) * (Number(hours) || 1), lang)}
+                  </p>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>{t("rentals_price")}</Label>
-                <Input
-                  dir="ltr"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-            </div>
             <div className="space-y-2">
               <Label>{t("rentals_payment_method")}</Label>
               <Select

@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS public.venues (
   sport_id UUID REFERENCES public.sports(id) ON DELETE SET NULL,
   -- School the playground is rented from (when applicable).
   school_name TEXT,
-  -- What the tenant pays the school per rental/booking.
+  -- What the tenant pays the school/owner per unit of time (1 unit = 1 hour).
   rental_cost DECIMAL(10, 2),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -177,8 +177,10 @@ CREATE TABLE IF NOT EXISTS public.venue_rentals (
   customer_name TEXT NOT NULL,
   customer_phone TEXT,
   customer_email TEXT,
-  -- Price charged to the customer.
+  -- Rate charged to the customer per unit of time (1 unit = 1 hour).
   price DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  -- Number of time units (hours) the rental lasts.
+  hours DECIMAL(5, 2) NOT NULL DEFAULT 1,
   rental_date DATE NOT NULL,
   start_time TIME NOT NULL,
   is_paid BOOLEAN NOT NULL DEFAULT FALSE,
@@ -523,6 +525,7 @@ ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS platform_fee_percent NUMER
 ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS sport_id UUID REFERENCES public.sports(id) ON DELETE SET NULL;
 ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS school_name TEXT;
 ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS rental_cost DECIMAL(10, 2);
+ALTER TABLE public.venue_rentals ADD COLUMN IF NOT EXISTS hours DECIMAL(5, 2) NOT NULL DEFAULT 1;
 
 CREATE INDEX IF NOT EXISTS idx_training_sport ON public.training_sessions(sport_id);
 CREATE INDEX IF NOT EXISTS idx_training_venue ON public.training_sessions(venue_id);

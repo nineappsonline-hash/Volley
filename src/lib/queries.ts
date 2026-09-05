@@ -1990,6 +1990,7 @@ export function useSaveVenueRental() {
         customer_phone: rental.customer_phone ?? null,
         customer_email: rental.customer_email ?? null,
         price: rental.price,
+        hours: rental.hours ?? 1,
         rental_date: rental.rental_date,
         start_time: rental.start_time,
         is_paid: rental.is_paid ?? false,

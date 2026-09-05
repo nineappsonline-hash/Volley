@@ -114,7 +114,10 @@ export interface VenueRental {
   customer_name: string;
   customer_phone: string | null;
   customer_email: string | null;
+  // Rate charged per unit of time (1 unit = 1 hour).
   price: number;
+  // Number of time units (hours) this rental lasts.
+  hours: number;
   rental_date: string;
   start_time: string;
   is_paid: boolean;
