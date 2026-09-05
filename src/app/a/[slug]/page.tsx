@@ -4,6 +4,7 @@ import { CalendarDays, MapPin, Star, Trophy, Volleyball } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { dictionary } from "@/lib/i18n/dictionary";
 import { TrialForm } from "@/components/public/trial-form";
+import { LangLabel } from "@/components/shared/lang-label";
 
 export const metadata: Metadata = { title: "Academy" };
 
@@ -102,12 +103,16 @@ export default async function PublicAcademyPage({
               </span>
               <span>
                 {avgRating.toFixed(1)} ·{" "}
-                {
-                  (dictionary.en.directory_reviews as string).replace(
+                <LangLabel
+                  en={(dictionary.en.directory_reviews as string).replace(
                     "{n}",
                     String(ratingCount)
-                  ) as string
-                }
+                  )}
+                  ar={(dictionary.ar.directory_reviews as string).replace(
+                    "{n}",
+                    String(ratingCount)
+                  )}
+                />
               </span>
             </div>
           )}
@@ -120,7 +125,7 @@ export default async function PublicAcademyPage({
           <section>
             <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
               <Trophy className="h-5 w-5 text-primary" />
-              {dictionary.en.public_sports}
+              <LangLabel en={dictionary.en.public_sports} ar={dictionary.ar.public_sports} />
             </h2>
             <div className="flex flex-wrap gap-2">
               {(sports ?? []).map((s) => (
@@ -140,7 +145,7 @@ export default async function PublicAcademyPage({
           <section>
             <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
               <CalendarDays className="h-5 w-5 text-primary" />
-              {dictionary.en.public_upcoming}
+              <LangLabel en={dictionary.en.public_upcoming} ar={dictionary.ar.public_upcoming} />
             </h2>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {(sessions ?? []).map((s) => (

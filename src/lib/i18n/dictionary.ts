@@ -947,6 +947,34 @@ export const dictionary = {
     events_matches: "Matches",
     events_vs: "TBD",
     events_more_matches: "more matches",
+    // ── Landing page ──
+    landing_tagline: "Sports academy management",
+    landing_signin: "Sign in",
+    landing_join: "Join as member",
+    landing_badge: "🏐 All-in-one CRM & ERP for Sports Academies",
+    landing_hero: "Manage your academy with",
+    landing_hero_highlight: "automatic profit tracking",
+    landing_hero_desc:
+      "The all-in-one platform for sports academies — volleyball, football, basketball, padel, swimming and more. Members, attendance, payments, scheduling and finances in one beautiful dashboard.",
+    landing_feature_members_title: "Members & payments",
+    landing_feature_members_desc:
+      "Manage players, subscriptions and payment history in one place.",
+    landing_feature_attendance_title: "One-tap attendance",
+    landing_feature_attendance_desc:
+      "Mark attendance with live profit/loss for every session.",
+    landing_feature_finances_title: "Automatic finances",
+    landing_feature_finances_desc:
+      "Revenue, costs and profit are calculated automatically.",
+    landing_feature_reports_title: "Reports & charts",
+    landing_feature_reports_desc:
+      "Track revenue vs costs with beautiful monthly charts.",
+    landing_signup_member: "Sign up as a member",
+    landing_signin_admin: "Sign in as admin",
+    landing_own_academy: "Own an academy?",
+    landing_create_academy: "Create your academy free",
+    // ── Not found ──
+    notfound_subtitle: "The page you are looking for doesn't exist.",
+    notfound_action: "Go to dashboard",
   },
 
   ar: {
@@ -1896,6 +1924,34 @@ export const dictionary = {
     events_matches: "المباريات",
     events_vs: "لم يُحدد بعد",
     events_more_matches: "مباريات إضافية",
+    // ── الصفحة الرئيسية ──
+    landing_tagline: "إدارة أكاديميات الرياضة",
+    landing_signin: "تسجيل الدخول",
+    landing_join: "انضم كعضو",
+    landing_badge: "🏐 نظام متكامل لإدارة أكاديميات الرياضة",
+    landing_hero: "أدر أكاديميتك مع",
+    landing_hero_highlight: "تتبع الأرباح تلقائياً",
+    landing_hero_desc:
+      "منصة متكاملة لأكاديميات الرياضة — كرة طائرة، كرة قدم، كرة سلة، بادل، سباحة والمزيد. الأعضاء، الحضور، المدفوعات، الجدولة والمالية في لوحة تحكم واحدة جميلة.",
+    landing_feature_members_title: "الأعضاء والمدفوعات",
+    landing_feature_members_desc:
+      "إدارة اللاعبين والاشتراكات وسجل المدفوعات في مكان واحد.",
+    landing_feature_attendance_title: "حضور بلمسة واحدة",
+    landing_feature_attendance_desc:
+      "سجّل الحضور مع حساب الربح/الخسارة الفوري لكل حصة.",
+    landing_feature_finances_title: "مالية تلقائية",
+    landing_feature_finances_desc:
+      "تُحسب الإيرادات والتكاليف والأرباح تلقائياً.",
+    landing_feature_reports_title: "تقارير ورسوم بيانية",
+    landing_feature_reports_desc:
+      "تتبّع الإيرادات مقابل التكاليف مع رسوم بيانية شهرية جميلة.",
+    landing_signup_member: "سجّل كعضو",
+    landing_signin_admin: "سجّل الدخول كمدير",
+    landing_own_academy: "تمتلك أكاديمية؟",
+    landing_create_academy: "أنشئ أكاديميتك مجاناً",
+    // ── الصفحة غير موجودة ──
+    notfound_subtitle: "الصفحة التي تبحث عنها غير موجودة.",
+    notfound_action: "الانتقال إلى لوحة التحكم",
   },
 } as const;
 
