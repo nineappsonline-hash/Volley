@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import {
   CheckCircle2,
   CreditCard,
+  Crown,
   Mail,
   MapPin,
   Phone,
@@ -151,6 +152,12 @@ export function ProfileClient({ serverProfile }: { serverProfile: Profile }) {
                   ) : (
                     <Badge variant="outline" className="text-muted-foreground">
                       {t("membership_none")}
+                    </Badge>
+                  )}
+                  {p.member_plan === "premium" && (
+                    <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white">
+                      <Crown className="mr-1 h-3 w-3" />
+                      Premium
                     </Badge>
                   )}
                 </div>

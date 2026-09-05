@@ -25,9 +25,10 @@ import { useAuth } from "@/lib/auth";
 interface TopbarProps {
   role: Role;
   name: string;
+  memberPlan?: "free" | "premium";
 }
 
-export function Topbar({ role, name }: TopbarProps) {
+export function Topbar({ role, name, memberPlan }: TopbarProps) {
   const { t } = useI18n();
   const router = useRouter();
   const { signOut } = useAuth();
@@ -48,7 +49,7 @@ export function Topbar({ role, name }: TopbarProps) {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-72 p-0">
-          <Sidebar role={role} name={name} />
+          <Sidebar role={role} name={name} memberPlan={memberPlan} />
         </SheetContent>
       </Sheet>
 

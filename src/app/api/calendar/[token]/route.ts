@@ -48,7 +48,7 @@ export async function GET(
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Volley Academy//Schedule//EN",
+    "PRODID:-//Volleyra//Schedule//EN",
     "CALSCALE:GREGORIAN",
     `X-WR-CALNAME:${icsEscape(academy.name)}`,
   ];
@@ -56,7 +56,7 @@ export async function GET(
   for (const s of sessions ?? []) {
     lines.push(
       "BEGIN:VEVENT",
-      `UID:${s.id}@volley-academy`,
+      `UID:${s.id}@volleyra`,
       `DTSTART:${toIcsDate(s.date, s.time.slice(0, 5))}`,
       `SUMMARY:${icsEscape(`${academy.name} — Training`)}`
     );

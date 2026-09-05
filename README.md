@@ -1,6 +1,6 @@
-# 🏐 Volley Academy
+# 🏐 Volleyra
 
-A complete full-stack web application for managing a volleyball academy — members,
+A complete full-stack web application for managing sports academies — members,
 attendance tracking, payments, and **automatic profit/loss calculations**.
 
 Built with **Next.js 14 (App Router)**, **Supabase** (Auth + Postgres + Realtime),

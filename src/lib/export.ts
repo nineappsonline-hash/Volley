@@ -45,7 +45,7 @@ export function createPDF(title: string): PDFDoc {
 
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
-  doc.text("Volley Academy", 14, 12);
+  doc.text("Volleyra", 14, 12);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text(title, 14, 18);

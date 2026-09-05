@@ -17,7 +17,7 @@ export default async function PublicAcademyPage({
 
   const { data: academy } = await admin
     .from("academies")
-    .select("id, name, description, address, is_public")
+    .select("id, name, description, address, country, governorate, area, cover_url, is_public")
     .eq("slug", slug)
     .eq("is_public", true)
     .single();
@@ -56,9 +56,17 @@ export default async function PublicAcademyPage({
   return (
     <main className="min-h-screen bg-background">
       {/* Hero */}
-      <section className="relative overflow-hidden border-b bg-gradient-to-br from-blue-700 via-blue-600 to-sky-500 py-20 text-white">
+      <section className="relative overflow-hidden border-b bg-gradient-to-br from-blue-700 via-blue-600 to-sky-500 py-14 text-white">
         <div className="pointer-events-none absolute -top-24 start-1/2 h-72 w-[32rem] -translate-x-1/2 rounded-full bg-white/15 blur-3xl rtl:translate-x-1/2" />
         <div className="relative mx-auto flex max-w-3xl flex-col items-center gap-4 px-6 text-center">
+          {academy.cover_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={academy.cover_url}
+              alt={academy.name}
+              className="h-40 w-full max-w-xl rounded-2xl border border-white/20 object-cover shadow-lg sm:h-56"
+            />
+          )}
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
             <Volleyball className="h-9 w-9" />
           </div>
@@ -68,10 +76,14 @@ export default async function PublicAcademyPage({
               {academy.description}
             </p>
           )}
-          {academy.address && (
+          {(academy.country || academy.governorate || academy.address) && (
             <p className="flex items-center justify-center gap-1.5 text-sm text-white/85">
               <MapPin className="h-4 w-4" />
-              {academy.address}
+              {academy.country || academy.governorate
+                ? [academy.area, academy.governorate, academy.country]
+                    .filter(Boolean)
+                    .join(", ")
+                : academy.address}
             </p>
           )}
           {ratingCount > 0 && (

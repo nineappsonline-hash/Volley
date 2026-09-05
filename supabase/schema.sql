@@ -1,5 +1,5 @@
 -- ============================================================
--- Volley Academy — Supabase Database Schema
+-- Volleyra — Supabase Database Schema
 -- Multi-tenant edition: every academy owns its own data.
 -- Run this entire file in the Supabase SQL Editor.
 -- Safe to re-run (idempotent) — includes migration backfills.

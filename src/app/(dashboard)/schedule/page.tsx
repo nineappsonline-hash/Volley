@@ -9,7 +9,7 @@ export default async function SchedulePage() {
 
   return (
     <ScheduleClient
-      isAdmin={profile.role === "admin"}
+      isAdmin={profile.role !== "member"}
       memberId={profile.id}
     />
   );

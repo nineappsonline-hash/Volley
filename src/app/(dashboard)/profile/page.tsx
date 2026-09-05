@@ -7,6 +7,5 @@ export const metadata: Metadata = { title: "My Profile" };
 
 export default async function ProfilePage() {
   const { profile } = await requireSession();
-  if (profile.role === "admin") redirect("/members");
   return <ProfileClient serverProfile={profile} />;
 }

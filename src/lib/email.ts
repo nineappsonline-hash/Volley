@@ -4,7 +4,7 @@ const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
-const FROM = process.env.EMAIL_FROM || "Volley Academy <onboarding@resend.dev>";
+const FROM = process.env.EMAIL_FROM || "Volleyra <onboarding@resend.dev>";
 
 interface SendEmailOptions {
   to: string;
@@ -38,13 +38,13 @@ function baseLayout(content: string): string {
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:system-ui,-apple-system,sans-serif;">
   <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
     <div style="background:linear-gradient(135deg,#2563EB,#0EA5E9);padding:24px;text-align:center;">
-      <h1 style="color:#fff;margin:0;font-size:20px;">🏐 Volley Academy</h1>
+      <h1 style="color:#fff;margin:0;font-size:20px;">🏐 Volleyra</h1>
     </div>
     <div style="padding:32px 24px;">
       ${content}
     </div>
     <div style="padding:16px 24px;background:#f9fafb;text-align:center;color:#9ca3af;font-size:12px;">
-      This is an automated message from Volley Academy.
+      This is an automated message from Volleyra.
     </div>
   </div>
 </body>

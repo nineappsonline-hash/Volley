@@ -1,7 +1,7 @@
 export const dictionary = {
   en: {
-    appName: "Volley Academy",
-    appTagline: "Volleyball academy management",
+    appName: "Volleyra",
+    appTagline: "إدارة أكاديميات الرياضة",
     // Navigation
     nav_dashboard: "Dashboard",
     nav_members: "Members",
@@ -21,7 +21,7 @@ export const dictionary = {
     nav_member_area: "Member area",
     // Auth
     login_title: "Welcome back",
-    login_subtitle: "Sign in to your Volley Academy account",
+    login_subtitle: "Sign in to your Volleyra account",
     login_member_title: "Member sign in",
     login_member_subtitle: "Sign in to your member account",
     login_tenant_title: "Academy owner sign in",
@@ -677,7 +677,7 @@ export const dictionary = {
     trial_expired_title: "Trial Period Expired",
     trial_expired_message: "Your 14-day free trial has ended. Please contact the app administrator to extend your trial or upgrade to a paid plan.",
     trial_expired_contact: "Once you receive payment, your admin can extend your trial immediately.",
-    trial_expiring_soon: "Your trial expires in {n} day{n === 1 ? '' : 's'}. Contact us to continue using Volley Academy.",
+    trial_expiring_soon: "Your trial expires in {n} day{n === 1 ? '' : 's'}. Contact us to continue using Volleyra.",
     trial_badge: "Trial",
     trial_days_left: "{n} days left",
     // ── Super Admin ──
@@ -950,8 +950,8 @@ export const dictionary = {
   },
 
   ar: {
-    appName: "أكاديمية الكرة الطائرة",
-    appTagline: "إدارة أكاديمية الكرة الطائرة",
+    appName: "فوليرا",
+    appTagline: "إدارة أكاديميات الرياضة",
     // Navigation
     nav_dashboard: "الرئيسية",
     nav_members: "الأعضاء",
@@ -1626,7 +1626,7 @@ export const dictionary = {
     trial_expired_title: "انتهت الفترة التجريبية",
     trial_expired_message: "انتهت فترة التجريب المجانية لمدة 14 يومًا. يُرجى التواصل مع مسؤول التطبيق لتمديد الفترة أو الترقية إلى خطة مدفوعة.",
     trial_expired_contact: "بمجرد استلام الدفعة، يمكن للمدير تمديد الفترة فوراً.",
-    trial_expiring_soon: "تنتهي فترتك التجريبية خلال {n} يوم{n === 1 ? '' : 'ًا'}. تواصل معنا لمواصلة استخدام أكاديمية الكرة الطائرة.",
+    trial_expiring_soon: "تنتهي فترتك التجريبية خلال {n} يوم{n === 1 ? '' : 'ًا'}. تواصل معنا لمواصلة استخدام فوليرا.",
     trial_badge: "تجريبي",
     trial_days_left: "{n} يوم متبقي",
     // ── Super Admin ──

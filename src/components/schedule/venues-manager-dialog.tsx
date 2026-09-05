@@ -15,7 +15,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
-import { useDeleteVenue, useSaveVenue, useVenues } from "@/lib/queries";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useDeleteVenue, useSaveVenue, useSports, useVenues } from "@/lib/queries";
 import type { Venue } from "@/lib/types";
 
 interface VenuesManagerDialogProps {
@@ -29,12 +36,16 @@ export function VenuesManagerDialog({
 }: VenuesManagerDialogProps) {
   const { t } = useI18n();
   const { data: venues, isLoading } = useVenues();
+  const { data: sports } = useSports();
   const saveVenue = useSaveVenue();
   const deleteVenue = useDeleteVenue();
 
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [capacity, setCapacity] = useState("");
+  const [sportId, setSportId] = useState("none");
+  const [schoolName, setSchoolName] = useState("");
+  const [rentalCost, setRentalCost] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -52,6 +63,9 @@ export function VenuesManagerDialog({
     setName("");
     setAddress("");
     setCapacity("");
+    setSportId("none");
+    setSchoolName("");
+    setRentalCost("");
   };
 
   const startEdit = (v: Venue) => {
@@ -59,6 +73,9 @@ export function VenuesManagerDialog({
     setName(v.name);
     setAddress(v.address ?? "");
     setCapacity(v.capacity != null ? String(v.capacity) : "");
+    setSportId(v.sport_id ?? "none");
+    setSchoolName(v.school_name ?? "");
+    setRentalCost(v.rental_cost != null ? String(v.rental_cost) : "");
     setConfirmDeleteId(null);
   };
 
@@ -70,6 +87,9 @@ export function VenuesManagerDialog({
         name: name.trim(),
         address: address.trim() || null,
         capacity: capacity ? Number(capacity) : null,
+        sport_id: sportId === "none" ? null : sportId,
+        school_name: schoolName.trim() || null,
+        rental_cost: rentalCost ? Number(rentalCost) : null,
       });
       toast.success(t("venues_saved"));
       resetForm();
@@ -89,6 +109,9 @@ export function VenuesManagerDialog({
         name: name.trim(),
         address: address.trim() || null,
         capacity: capacity ? Number(capacity) : null,
+        sport_id: sportId === "none" ? null : sportId,
+        school_name: schoolName.trim() || null,
+        rental_cost: rentalCost ? Number(rentalCost) : null,
       });
       toast.success(t("venues_saved"));
       setEditingId(null);
@@ -145,6 +168,46 @@ export function VenuesManagerDialog({
                   onChange={(e) => setCapacity(e.target.value)}
                 />
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <Label>{t("venues_sport")}</Label>
+                <Select value={sportId} onValueChange={setSportId}>
+                  <SelectTrigger aria-label={t("venues_sport")}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{t("venues_no_sport")}</SelectItem>
+                    {(sports ?? []).map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>{t("venues_rental_cost")}</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  dir="ltr"
+                  value={rentalCost}
+                  onChange={(e) => setRentalCost(e.target.value)}
+                  placeholder="0"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  {t("venues_rental_cost_hint")}
+                </p>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>{t("venues_school")}</Label>
+              <Input
+                value={schoolName}
+                onChange={(e) => setSchoolName(e.target.value)}
+                placeholder={t("venues_school")}
+              />
             </div>
             <div className="flex justify-end gap-2">
               {editingId && (
@@ -225,9 +288,17 @@ export function VenuesManagerDialog({
                       title={t("common_edit")}
                     >
                       <p className="truncate text-sm font-medium">{venue.name}</p>
-                      {(venue.address || venue.capacity != null) && (
+                      {(venue.address ||
+                        venue.capacity != null ||
+                        venue.school_name ||
+                        venue.rental_cost != null) && (
                         <p className="truncate text-xs text-muted-foreground">
-                          {[venue.address, venue.capacity != null ? `${venue.capacity}` : null]
+                          {[
+                            venue.address,
+                            venue.capacity != null ? `${venue.capacity}` : null,
+                            venue.school_name,
+                            venue.rental_cost != null ? `${venue.rental_cost}` : null,
+                          ]
                             .filter(Boolean)
                             .join(" · ")}
                         </p>

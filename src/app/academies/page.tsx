@@ -13,6 +13,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -122,6 +129,76 @@ export default function AcademiesDirectoryPage() {
     return map;
   }, [sports]);
 
+  // ── Filters ──
+  const [filterCountry, setFilterCountry] = useState("all");
+  const [filterGov, setFilterGov] = useState("all");
+  const [filterArea, setFilterArea] = useState("all");
+  const [filterSport, setFilterSport] = useState("all");
+  const [filterRating, setFilterRating] = useState("0");
+
+  const countries = useMemo(() => {
+    const set = new Set<string>();
+    for (const a of academies ?? []) if (a.country) set.add(a.country);
+    return [...set].sort();
+  }, [academies]);
+
+  const governorates = useMemo(() => {
+    const set = new Set<string>();
+    for (const a of academies ?? []) {
+      if (filterCountry !== "all" && a.country !== filterCountry) continue;
+      if (a.governorate) set.add(a.governorate);
+    }
+    return [...set].sort();
+  }, [academies, filterCountry]);
+
+  const areas = useMemo(() => {
+    const set = new Set<string>();
+    for (const a of academies ?? []) {
+      if (filterCountry !== "all" && a.country !== filterCountry) continue;
+      if (filterGov !== "all" && a.governorate !== filterGov) continue;
+      if (a.area) set.add(a.area);
+    }
+    return [...set].sort();
+  }, [academies, filterCountry, filterGov]);
+
+  const allSports = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of sports ?? []) set.add(s.name);
+    return [...set].sort();
+  }, [sports]);
+
+  const filteredAcademies = useMemo(() => {
+    const min = parseFloat(filterRating) || 0;
+    return (academies ?? []).filter((a) => {
+      if (filterCountry !== "all" && a.country !== filterCountry) return false;
+      if (filterGov !== "all" && a.governorate !== filterGov) return false;
+      if (filterArea !== "all" && a.area !== filterArea) return false;
+      if (filterSport !== "all") {
+        const list = sportsByAcademy.get(a.id) ?? [];
+        if (!list.includes(filterSport)) return false;
+      }
+      if (min > 0) {
+        const stat = statsByAcademy.get(a.id);
+        if ((stat?.avg ?? 0) < min) return false;
+      }
+      return true;
+    });
+  }, [
+    academies,
+    filterCountry,
+    filterGov,
+    filterArea,
+    filterSport,
+    filterRating,
+    sportsByAcademy,
+    statsByAcademy,
+  ]);
+
+  const locationLabel = (a: NonNullable<typeof academies>[number]) =>
+    a.country || a.governorate || a.area
+      ? [a.area, a.governorate, a.country].filter(Boolean).join(", ")
+      : a.address || t("directory_no_location");
+
   const onJoin = async (academyId: string) => {
     if (!myId) {
       router.push("/signup");
@@ -179,6 +256,86 @@ export default function AcademiesDirectoryPage() {
 
       {/* Directory */}
       <div className="mx-auto max-w-5xl px-6 py-10">
+        {/* Filters */}
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Select
+            value={filterCountry}
+            onValueChange={(v) => {
+              setFilterCountry(v);
+              setFilterGov("all");
+              setFilterArea("all");
+            }}
+          >
+            <SelectTrigger aria-label={t("directory_filter_country")}>
+              <SelectValue placeholder={t("directory_filter_country")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("directory_filter_all")}</SelectItem>
+              {countries.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={filterGov}
+            onValueChange={(v) => {
+              setFilterGov(v);
+              setFilterArea("all");
+            }}
+          >
+            <SelectTrigger aria-label={t("directory_filter_governorate")}>
+              <SelectValue placeholder={t("directory_filter_governorate")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("directory_filter_all")}</SelectItem>
+              {governorates.map((g) => (
+                <SelectItem key={g} value={g}>
+                  {g}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterArea} onValueChange={setFilterArea}>
+            <SelectTrigger aria-label={t("directory_filter_area")}>
+              <SelectValue placeholder={t("directory_filter_area")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("directory_filter_all")}</SelectItem>
+              {areas.map((g) => (
+                <SelectItem key={g} value={g}>
+                  {g}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterSport} onValueChange={setFilterSport}>
+            <SelectTrigger aria-label={t("directory_filter_sport")}>
+              <SelectValue placeholder={t("directory_filter_sport")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("directory_filter_all")}</SelectItem>
+              {allSports.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterRating} onValueChange={setFilterRating}>
+            <SelectTrigger aria-label={t("directory_filter_rating")}>
+              <SelectValue placeholder={t("directory_filter_rating")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0">{t("directory_rating_any")}</SelectItem>
+              <SelectItem value="3">{t("directory_rating_3")}</SelectItem>
+              <SelectItem value="4">{t("directory_rating_4")}</SelectItem>
+              <SelectItem value="4.5">{t("directory_rating_4_5")}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         {isLoading ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Skeleton className="h-56 w-full" />
@@ -190,14 +347,32 @@ export default function AcademiesDirectoryPage() {
           <p className="py-20 text-center text-muted-foreground">
             {t("directory_empty")}
           </p>
+        ) : filteredAcademies.length === 0 ? (
+          <p className="py-20 text-center text-muted-foreground">
+            {t("directory_no_results")}
+          </p>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {(academies ?? []).map((a) => {
+            {filteredAcademies.map((a) => {
               const stat = statsByAcademy.get(a.id);
               const academySports = sportsByAcademy.get(a.id) ?? [];
               const joined = myAcademyId != null && myAcademyId !== undefined;
               return (
-                <Card key={a.id} className="flex flex-col">
+                <Card key={a.id} className="flex flex-col overflow-hidden">
+                  {a.cover_url ? (
+                    <div className="relative aspect-video w-full overflow-hidden border-b">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={a.cover_url}
+                        alt={a.name}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex aspect-video w-full items-center justify-center bg-gradient-to-br from-blue-600/15 to-sky-400/15">
+                      <Volleyball className="h-10 w-10 text-primary/40" />
+                    </div>
+                  )}
                   <CardHeader className="pb-2">
                     <CardTitle className="flex items-start justify-between gap-2">
                       <Link
@@ -242,7 +417,7 @@ export default function AcademiesDirectoryPage() {
                     )}
                     <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <MapPin className="h-3.5 w-3.5 shrink-0" />
-                      {a.address || t("directory_no_address")}
+                      {locationLabel(a)}
                     </p>
 
                     {/* Rate (registered members only) */}

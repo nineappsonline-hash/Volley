@@ -54,7 +54,11 @@ export async function updateSession(request: NextRequest) {
     "/settings",
     "/receipts",
     "/tournaments",
+    "/playgrounds",
+    "/rentals",
     "/admin",
+    "/upgrade",
+    "/events",
   ];
   const isProtected = protectedPages.some(
     (p) => pathname === p || pathname.startsWith(p + "/")
@@ -74,22 +78,9 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Admin-only pages
+  // Only /admin requires super_admin role
   const role = (user?.app_metadata?.role as string | undefined) ?? "member";
-  const superAdminOnly = ["/admin"].some(
-    (p) => pathname === p || pathname.startsWith(p + "/")
-  );
-  if (user && superAdminOnly && role !== "super_admin") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    url.search = "";
-    return NextResponse.redirect(url);
-  }
-
-  const adminOnly = ["/members", "/costs", "/reports", "/attendance", "/teams", "/coaches", "/settings", "/tournaments", "/analytics"].some(
-    (p) => pathname === p || pathname.startsWith(p + "/")
-  );
-  if (user && adminOnly && role !== "admin") {
+  if (user && (pathname === "/admin" || pathname.startsWith("/admin/")) && role !== "super_admin") {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     url.search = "";

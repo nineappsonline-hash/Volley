@@ -5,8 +5,8 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: {
     default:
-      "Volley Academy — إدارة أكاديميات الرياضة",
-    template: "%s · Volley Academy",
+      "Volleyra — إدارة أكاديميات الرياضة",
+    template: "%s · Volleyra",
   },
   description:
     "The complete management platform for sports academies in Egypt and the Gulf. Manage members, attendance, payments, scheduling and automatic profit tracking for volleyball, football, basketball, padel, swimming and more. منصة شاملة لإدارة أكاديميات الرياضة.",
@@ -135,9 +135,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     alternateLocale: "ar_EG",
-    siteName: "Volley Academy",
+    siteName: "Volleyra",
     title:
-      "Volley Academy — إدارة أكاديميات الرياضة",
+      "Volleyra — إدارة أكاديميات الرياضة",
     description:
       "The complete management platform for sports academies in Egypt and the Gulf. Manage members, attendance, payments and profit tracking.",
     images: [
@@ -145,14 +145,14 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Volley Academy — Sports Academy Management CRM",
+        alt: "Volleyra — Sports Academy Management CRM",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title:
-      "Volley Academy — إدارة أكاديميات الرياضة",
+      "Volleyra — إدارة أكاديميات الرياضة",
     description:
       "The complete management platform for sports academies. Manage members, attendance, payments and automatic profit tracking.",
     images: ["/og-image.png"],
@@ -169,7 +169,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://volley-academy.com",
+    canonical: "https://volley-academy.vercel.app",
   },
   other: {
     "theme-color": "#2563EB",

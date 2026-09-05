@@ -1,4 +1,4 @@
-# 🏐 Volley Academy — Product Overview
+# 🏐 Volleyra — Product Overview
 
 > **The complete operating system for sports academies.**
 > Manage members, subscriptions, schedules, attendance and finances from one place — and know your profit on every single session, automatically.
@@ -7,7 +7,7 @@
 
 ## Table of Contents
 
-1. [What is Volley Academy?](#what-is-volley-academy)
+1. [What is Volleyra?](#what-is-volleyra)
 2. [Who it's for](#who-its-for)
 3. [Feature Guide](#feature-guide)
    - [Dashboard](#dashboard)
@@ -32,9 +32,9 @@
 
 ---
 
-## What is Volley Academy?
+## What is Volleyra?
 
-Volley Academy is a web-based **academy management platform** that replaces the
+Volleyra is a web-based **academy management platform** that replaces the
 spreadsheets, WhatsApp groups and notebooks most academies run on today.
 
 It handles the full lifecycle of running an academy:
@@ -263,7 +263,7 @@ expensive, English-only) or nothing at all.
 
 ### The Solution
 
-Volley Academy is a focused, affordable, bilingual SaaS that digitizes the
+Volleyra is a focused, affordable, bilingual SaaS that digitizes the
 entire academy operation in under an hour of setup — with **per-session
 profitability** as its signature capability. It converts administrative chaos
 into a single source of truth that pays for itself through recovered renewals
@@ -303,7 +303,7 @@ Supporting levers:
 
 ### Competitive Advantages
 
-| Alternative | Volley Academy advantage |
+| Alternative | Volleyra advantage |
 |---|---|
 | Spreadsheets | Automation, realtime P/L, no manual errors, works on phones |
 | WhatsApp-only ops | Structured records, payments, analytics and accountability |
@@ -312,11 +312,11 @@ Supporting levers:
 
 ### Bottom Line
 
-Volley Academy turns an academy's messiest back-office work into its sharpest
+Volleyra turns an academy's messiest back-office work into its sharpest
 competitive edge: knowing exactly which sessions, sports and members make
 money — while giving families a professional, modern experience. It is
 architecturally ready to scale from one academy to a regional platform.
 
 ---
 
-*Volley Academy — run your academy like a business.* 🏐
+*Volleyra — run your academy like a business.* 🏐

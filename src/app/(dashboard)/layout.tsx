@@ -13,10 +13,10 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-muted/20 pb-[env(safe-area-inset-bottom)]">
       <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 border-e bg-card lg:block">
-        <Sidebar role={profile.role} name={profile.name} />
+        <Sidebar role={profile.role} name={profile.name} memberPlan={profile.member_plan} />
       </aside>
       <div className="lg:ps-64">
-        <Topbar role={profile.role} name={profile.name} />
+        <Topbar role={profile.role} name={profile.name} memberPlan={profile.member_plan} />
         <main className="mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-8">
           <TrialGate>{children}</TrialGate>
         </main>

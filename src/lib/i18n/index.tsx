@@ -9,6 +9,8 @@ import {
   type ReactNode,
 } from "react";
 import { dictionary, type Dict, type Lang } from "@/lib/i18n/dictionary";
+
+export type { Dict, Lang };
 import { useLanguage } from "@/store/useLanguage";
 import { enUS, ar } from "date-fns/locale";
 import { Locale } from "date-fns";
