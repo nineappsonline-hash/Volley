@@ -40,6 +40,19 @@ export interface Academy {
   created_at: string;
 }
 
+export interface AcademyBranch {
+  id: string;
+  academy_id: string;
+  name: string;
+  address: string | null;
+  country: string | null;
+  governorate: string | null;
+  area: string | null;
+  phone: string | null;
+  is_main: boolean;
+  created_at: string;
+}
+
 export interface Profile {
   id: string;
   academy_id: string | null;

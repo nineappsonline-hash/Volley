@@ -19,10 +19,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { LocationFields } from "@/components/shared/location-fields";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
-import { COUNTRIES, STATES_BY_COUNTRY } from "@/lib/locations";
 
 const joinSchema = (t: (k: any) => string) =>
   z.object({
@@ -43,9 +43,6 @@ const createSchema = (t: (k: any) => string) =>
       password_confirm: z.string().min(6, t("field_min_password")),
       academy_name: z.string().min(2, t("field_required")),
       sports: z.array(z.string()).min(1, t("field_required")),
-      country: z.string().min(1, t("field_required")),
-      governorate: z.string().min(1, t("field_required")),
-      city: z.string().min(1, t("field_required")),
     })
     .refine((d) => d.password === d.password_confirm, {
       message: t("field_password_mismatch"),
@@ -93,6 +90,11 @@ export function SignupForm() {
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [mode, setMode] = useState<Role>("member");
+  const [location, setLocation] = useState({
+    country: "",
+    governorate: "",
+    city: "",
+  });
 
   const isTenant = mode === "tenant";
 
@@ -111,9 +113,6 @@ export function SignupForm() {
       password_confirm: "",
       academy_name: "",
       sports: ["Volleyball"],
-      country: "",
-      governorate: "",
-      city: "",
     },
   });
 
@@ -159,12 +158,16 @@ export function SignupForm() {
   };
 
   const onCreate = async (values: CreateValues) => {
+    if (!location.country.trim() || !location.governorate.trim() || !location.city.trim()) {
+      toast.error(t("field_required"));
+      return;
+    }
     await finishSignup(values.email, values.password, values.name, values.phone, {
       newName: values.academy_name.trim(),
       sports: values.sports.join(","),
-      country: values.country.trim(),
-      governorate: values.governorate.trim(),
-      city: values.city.trim(),
+      country: location.country.trim(),
+      governorate: location.governorate.trim(),
+      city: location.city.trim(),
     });
   };
 
@@ -290,56 +293,20 @@ export function SignupForm() {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={createForm.control}
-                    name="country"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("signup_country")}</FormLabel>
-                        <FormControl>
-                          <Input
-                            list="countries"
-                            autoComplete="country-name"
-                            placeholder={t("signup_country")}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                  <LocationFields
+                    country={location.country}
+                    governorate={location.governorate}
+                    city={location.city}
+                    onCountryChange={(v) =>
+                      setLocation((l) => ({ ...l, country: v }))
+                    }
+                    onGovernorateChange={(v) =>
+                      setLocation((l) => ({ ...l, governorate: v }))
+                    }
+                    onCityChange={(v) =>
+                      setLocation((l) => ({ ...l, city: v }))
+                    }
                   />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={createForm.control}
-                      name="governorate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t("signup_governorate")}</FormLabel>
-                          <FormControl>
-                            <Input
-                              list="states"
-                              placeholder={t("signup_governorate")}
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={createForm.control}
-                      name="city"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t("signup_city")}</FormLabel>
-                          <FormControl>
-                            <Input placeholder={t("signup_city")} {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
                   <FormField
                     control={createForm.control}
                     name="name"
@@ -529,19 +496,6 @@ export function SignupForm() {
           </CardContent>
         </Card>
       </div>
-
-      <datalist id="countries">
-        {COUNTRIES.map((c) => (
-          <option key={c} value={c} />
-        ))}
-      </datalist>
-      <datalist id="states">
-        {STATES_BY_COUNTRY[
-          createForm.watch("country")
-        ]?.map((s) => (
-          <option key={s} value={s} />
-        ))}
-      </datalist>
     </main>
   );
 }

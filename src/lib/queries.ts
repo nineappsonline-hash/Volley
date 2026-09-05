@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type {
   Academy,
+  AcademyBranch,
   AcademyRating,
   ActivityFeedItem,
   Announcement,
@@ -51,6 +52,7 @@ export const queryKeys = {
   sports: ["sports"] as const,
   teams: ["teams"] as const,
   academy: ["academy"] as const,
+  branches: ["branches"] as const,
   announcements: ["announcements"] as const,
   coaches: ["coaches"] as const,
   venues: ["venues"] as const,
@@ -760,6 +762,76 @@ export function useUpdateAcademy() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["academy"] });
+    },
+  });
+}
+
+export function useBranches() {
+  return useQuery({
+    queryKey: queryKeys.branches,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("academy_branches")
+        .select("*")
+        .order("is_main", { ascending: false })
+        .order("created_at");
+      if (error) throw error;
+      return (data ?? []) as AcademyBranch[];
+    },
+  });
+}
+
+export function useCreateBranch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      name: string;
+      address?: string | null;
+      country?: string | null;
+      governorate?: string | null;
+      area?: string | null;
+      phone?: string | null;
+    }) => {
+      const { error } = await supabase().from("academy_branches").insert(input);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.branches });
+    },
+  });
+}
+
+export function useUpdateBranch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...updates
+    }: Partial<AcademyBranch> & { id: string }) => {
+      const { error } = await supabase()
+        .from("academy_branches")
+        .update(updates)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.branches });
+    },
+  });
+}
+
+export function useDeleteBranch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase()
+        .from("academy_branches")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.branches });
     },
   });
 }

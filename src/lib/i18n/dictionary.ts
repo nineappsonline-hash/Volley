@@ -1016,6 +1016,20 @@ export const dictionary = {
     profile_location: "Location",
     profile_about: "About the academy",
     profile_public_link: "Public academy page",
+    // ── Branches ──
+    settings_branches_title: "Branches",
+    settings_branches_hint: "Manage your academy's branches and their contact details.",
+    settings_branch_add: "Add branch",
+    settings_branch_edit: "Edit branch",
+    settings_branch_delete: "Delete branch",
+    settings_branch_delete_confirm: "Delete this branch?",
+    settings_branch_name: "Branch name",
+    settings_branch_phone: "Branch phone",
+    settings_branch_empty: "No branches yet — add your first branch.",
+    settings_branch_main: "Main",
+    settings_branch_saved: "Branch saved",
+    settings_branch_deleted: "Branch deleted",
+    common_other: "Other",
   },
 
   ar: {
@@ -2034,6 +2048,20 @@ export const dictionary = {
     profile_location: "الموقع",
     profile_about: "نبذة عن الأكاديمية",
     profile_public_link: "الصفحة العامة للأكاديمية",
+    // ── الفروع ──
+    settings_branches_title: "الفروع",
+    settings_branches_hint: "أدر فروع أكاديميتك وبيانات التواصل الخاصة بها.",
+    settings_branch_add: "إضافة فرع",
+    settings_branch_edit: "تعديل الفرع",
+    settings_branch_delete: "حذف الفرع",
+    settings_branch_delete_confirm: "حذف هذا الفرع؟",
+    settings_branch_name: "اسم الفرع",
+    settings_branch_phone: "هاتف الفرع",
+    settings_branch_empty: "لا توجد فروع بعد — أضف فرعك الأول.",
+    settings_branch_main: "الفرع الرئيسي",
+    settings_branch_saved: "تم حفظ الفرع",
+    settings_branch_deleted: "تم حذف الفرع",
+    common_other: "أخرى",
   },
 } as const;
 

@@ -59,6 +59,21 @@ CREATE TABLE IF NOT EXISTS public.academies (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Multiple branches/locations per academy.
+CREATE TABLE IF NOT EXISTS public.academy_branches (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  academy_id UUID NOT NULL REFERENCES public.academies(id) ON DELETE CASCADE
+    DEFAULT public.current_academy_id(),
+  name TEXT NOT NULL,
+  address TEXT,
+  country TEXT,
+  governorate TEXT,
+  area TEXT,
+  phone TEXT,
+  is_main BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Users table (extends Supabase auth.users)
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -1079,6 +1094,7 @@ CREATE TRIGGER check_badges_on_attendance
 -- ────────────────────────────────────────────────────────────
 
 ALTER TABLE public.academies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.academy_branches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.session_bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
@@ -1349,6 +1365,12 @@ CREATE POLICY "Members manage venue rentals" ON public.venue_rentals
 -- announcements: admins manage; members read.
 DROP POLICY IF EXISTS "Members manage announcements" ON public.announcements;
 CREATE POLICY "Members manage announcements" ON public.announcements
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
+
+-- academy_branches: members of the academy manage its branches.
+DROP POLICY IF EXISTS "Members manage branches" ON public.academy_branches;
+CREATE POLICY "Members manage branches" ON public.academy_branches
   FOR ALL USING (academy_id = public.current_academy_id())
   WITH CHECK (academy_id = public.current_academy_id());
 

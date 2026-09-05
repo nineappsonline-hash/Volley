@@ -26,10 +26,11 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/shared/page-header";
+import { LocationFields } from "@/components/shared/location-fields";
+import { BranchesCard } from "@/components/settings/branches-card";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
 import { useAcademy, useUpdateAcademy } from "@/lib/queries";
-import { COUNTRIES, STATES_BY_COUNTRY } from "@/lib/locations";
 
 export function SettingsClient() {
   const { t } = useI18n();
@@ -174,44 +175,14 @@ export function SettingsClient() {
               placeholder={t("settings_public_hint")}
             />
           </div>
-          <div className="space-y-2">
-            <Label>{t("settings_country")}</Label>
-            <Input
-              list="countries"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              placeholder={t("settings_country")}
-            />
-            <datalist id="countries">
-              {COUNTRIES.map((c) => (
-                <option key={c} value={c} />
-              ))}
-            </datalist>
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>{t("settings_governorate")}</Label>
-              <Input
-                list="states"
-                value={governorate}
-                onChange={(e) => setGovernorate(e.target.value)}
-                placeholder={t("settings_governorate")}
-              />
-              <datalist id="states">
-                {(STATES_BY_COUNTRY[country] ?? []).map((s) => (
-                  <option key={s} value={s} />
-                ))}
-              </datalist>
-            </div>
-            <div className="space-y-2">
-              <Label>{t("settings_area")}</Label>
-              <Input
-                value={area}
-                onChange={(e) => setArea(e.target.value)}
-                placeholder={t("settings_area")}
-              />
-            </div>
-          </div>
+          <LocationFields
+            country={country}
+            governorate={governorate}
+            city={area}
+            onCountryChange={setCountry}
+            onGovernorateChange={setGovernorate}
+            onCityChange={setArea}
+          />
           <div className="space-y-2">
             <Label>{t("settings_address")}</Label>
             <Input
@@ -321,6 +292,8 @@ export function SettingsClient() {
           </div>
         </CardContent>
       </Card>
+
+      <BranchesCard />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Invite code */}
