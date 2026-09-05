@@ -112,7 +112,7 @@ export function SignupForm() {
       password: "",
       password_confirm: "",
       academy_name: "",
-      sports: ["Volleyball"],
+      sports: [],
     },
   });
 

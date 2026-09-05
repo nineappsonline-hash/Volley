@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
+import { COUNTRIES, COUNTRIES_AR, localizeCountry, normalizeCountry } from "@/lib/locations";
 import { createClient } from "@/lib/supabase/client";
 import {
   joinPublicAcademy,
@@ -56,7 +57,7 @@ function Stars({
 }
 
 export default function AcademiesDirectoryPage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const router = useRouter();
 
   const { data: academies, isLoading } = usePublicAcademies();
@@ -138,10 +139,14 @@ export default function AcademiesDirectoryPage() {
   const [filterRating, setFilterRating] = useState("0");
 
   const countries = useMemo(() => {
-    const set = new Set<string>();
-    for (const a of academies ?? []) if (a.country) set.add(a.country);
-    return [...set].sort();
-  }, [academies]);
+    // Full localized catalog so the member's own country is always available.
+    const catalog = lang === "ar" ? Object.values(COUNTRIES_AR) : COUNTRIES;
+    const set = new Set<string>(catalog);
+    for (const a of academies ?? []) {
+      if (a.country) set.add(localizeCountry(a.country, lang));
+    }
+    return [...set].sort((x, y) => x.localeCompare(y, lang));
+  }, [academies, lang]);
 
   const governorates = useMemo(() => {
     const set = new Set<string>();
@@ -171,7 +176,8 @@ export default function AcademiesDirectoryPage() {
   const filteredAcademies = useMemo(() => {
     const min = parseFloat(filterRating) || 0;
     return (academies ?? []).filter((a) => {
-      if (filterCountry !== "all" && a.country !== filterCountry) return false;
+      if (filterCountry !== "all" &&
+        normalizeCountry(a.country ?? "") !== normalizeCountry(filterCountry)) return false;
       if (filterGov !== "all" && a.governorate !== filterGov) return false;
       if (filterArea !== "all" && a.area !== filterArea) return false;
       if (filterSport !== "all") {
@@ -195,10 +201,12 @@ export default function AcademiesDirectoryPage() {
     statsByAcademy,
   ]);
 
-  const locationLabel = (a: NonNullable<typeof academies>[number]) =>
-    a.country || a.governorate || a.area
-      ? [a.area, a.governorate, a.country].filter(Boolean).join(", ")
+  const locationLabel = (a: NonNullable<typeof academies>[number]) => {
+    const country = a.country ? localizeCountry(a.country, lang) : "";
+    return a.country || a.governorate || a.area
+      ? [a.area, a.governorate, country].filter(Boolean).join(", ")
       : a.address || t("directory_no_location");
+  };
 
   const onJoin = async (academyId: string) => {
     if (!myId) {

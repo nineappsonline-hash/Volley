@@ -998,3 +998,22 @@ export const CITIES_BY_STATE: Record<string, string[]> = {
   "جنوب سيناء": EGYPT_CITIES["South Sinai"],
   "الوادي الجديد": EGYPT_CITIES["New Valley"],
 };
+
+/** Reverse of COUNTRIES_AR: Arabic country name → canonical English name. */
+export const COUNTRY_EN: Record<string, string> = (() => {
+  const m: Record<string, string> = {};
+  for (const [en, ar] of Object.entries(COUNTRIES_AR)) m[ar] = en;
+  return m;
+})();
+
+/** Display a stored country (en|ar or custom) in the given UI language. */
+export function localizeCountry(value: string, lang: string): string {
+  const en = COUNTRY_EN[value] ?? value;
+  if (lang === "ar") return COUNTRIES_AR[en] ?? en;
+  return en;
+}
+
+/** Canonical key so filtering matches regardless of the storage language. */
+export function normalizeCountry(value: string): string {
+  return COUNTRY_EN[value] ?? value;
+}

@@ -678,16 +678,11 @@ BEGIN
     INSERT INTO public.membership_plans (academy_id, name, sessions_count)
     VALUES (v_academy, 'Full', 8), (v_academy, 'Half', 4);
 
-    -- Seed the full sport catalog for every new academy so dropdowns show all sports.
+    -- Seed only the sports the admin chose at signup so pickers list supported sports.
     INSERT INTO public.sports (academy_id, name)
-    SELECT v_academy, az.name
-    FROM (VALUES
-      ('Football'), ('Basketball'), ('Handball'), ('Volleyball'), ('Tennis'),
-      ('Swimming'), ('Padel'), ('Squash'), ('Table Tennis'), ('Badminton'),
-      ('Gymnastics'), ('Karate'), ('Boxing'), ('Athletics'), ('Kung Fu'),
-      ('Taekwondo'), ('CrossFit'), ('Judo'), ('Kickboxing'), ('Wrestling'),
-      ('Archery'), ('Fencing'), ('Equestrian'), ('Cycling'), ('Weightlifting'), ('Parkour')
-    ) AS az(name)
+    SELECT v_academy, trim(az.name)
+    FROM unnest(string_to_array(COALESCE(NEW.raw_user_meta_data ->> 'sports', ''), ',')) AS az(name)
+    WHERE trim(az.name) <> ''
     ON CONFLICT (academy_id, name) DO NOTHING;
 
     INSERT INTO public.profiles (id, email, role, name, phone, country, join_date, academy_id, is_active)
