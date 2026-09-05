@@ -15,6 +15,8 @@ import { COUNTRIES, CITIES_BY_STATE, STATES_BY_COUNTRY } from "@/lib/locations";
 
 const OTHER = "__other__";
 
+const isArabicScript = (s: string) => /[\u0600-\u06FF]/.test(s);
+
 interface LocationFieldsProps {
   country: string;
   governorate: string;
@@ -37,10 +39,13 @@ export function LocationFields({
   onGovernorateChange,
   onCityChange,
 }: LocationFieldsProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const isArabicLocale = lang === "ar";
+  const localized = (arr: string[]) =>
+    arr.filter((s) => isArabicLocale === isArabicScript(s));
 
-  const states = STATES_BY_COUNTRY[country] ?? [];
-  const cities = governorate ? CITIES_BY_STATE[governorate] ?? [] : [];
+  const states = localized(STATES_BY_COUNTRY[country] ?? []);
+  const cities = governorate ? localized(CITIES_BY_STATE[governorate] ?? []) : [];
 
   const [govManual, setGovManual] = useState(
     states.length === 0 || (!!governorate && !states.includes(governorate))
@@ -68,7 +73,7 @@ export function LocationFields({
     onCountryChange(v);
     onGovernorateChange("");
     onCityChange("");
-    setGovManual(!(STATES_BY_COUNTRY[v]?.length ?? 0));
+    setGovManual(localized(STATES_BY_COUNTRY[v] ?? []).length === 0);
     setCityManual(true);
   };
 
@@ -80,7 +85,7 @@ export function LocationFields({
     onGovernorateChange(v);
     onCityChange("");
     setGovManual(false);
-    setCityManual(!((CITIES_BY_STATE[v]?.length ?? 0) > 0));
+    setCityManual(localized(CITIES_BY_STATE[v] ?? []).length === 0);
   };
 
   const handleCity = (v: string) => {
