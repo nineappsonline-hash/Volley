@@ -2247,6 +2247,8 @@ export function useCreateFriendlyGame() {
       description?: string;
       is_public?: boolean;
       recurrence?: "weekly" | null;
+      fee_method: "instapay" | "e_wallet" | "visa";
+      fee_receipt_url: string;
     }) => {
       const { error } = await supabase().rpc("create_friendly_game", {
         p_title: input.title,
@@ -2262,6 +2264,8 @@ export function useCreateFriendlyGame() {
         p_description: input.description ?? null,
         p_is_public: input.is_public ?? true,
         p_recurrence: input.recurrence ?? null,
+        p_fee_method: input.fee_method,
+        p_fee_receipt_url: input.fee_receipt_url,
       });
       if (error) throw error;
     },

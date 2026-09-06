@@ -1865,6 +1865,10 @@ CREATE TABLE IF NOT EXISTS public.friendly_games (
 );
 ALTER TABLE public.friendly_games
   ADD COLUMN IF NOT EXISTS creator_name TEXT NOT NULL DEFAULT 'Member';
+ALTER TABLE public.friendly_games
+  ADD COLUMN IF NOT EXISTS creation_fee_paid BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS fee_method TEXT CHECK (fee_method IN ('instapay', 'e_wallet', 'visa')),
+  ADD COLUMN IF NOT EXISTS fee_receipt_url TEXT;
 CREATE INDEX IF NOT EXISTS idx_friendly_games_date ON public.friendly_games(game_date);
 CREATE INDEX IF NOT EXISTS idx_friendly_games_sport ON public.friendly_games(sport);
 CREATE INDEX IF NOT EXISTS idx_friendly_games_creator ON public.friendly_games(creator_id);
@@ -1942,7 +1946,9 @@ CREATE OR REPLACE FUNCTION public.create_friendly_game(
   p_skill_level  TEXT DEFAULT NULL,
   p_description  TEXT DEFAULT NULL,
   p_is_public    BOOLEAN DEFAULT TRUE,
-  p_recurrence   TEXT DEFAULT NULL
+  p_recurrence   TEXT DEFAULT NULL,
+  p_fee_method   TEXT DEFAULT NULL,
+  p_fee_receipt_url TEXT DEFAULT NULL
 )
 RETURNS UUID
 LANGUAGE plpgsql
@@ -1968,13 +1974,23 @@ BEGIN
   IF p_game_date IS NULL OR p_start_time IS NULL THEN
     RAISE EXCEPTION 'Date and time are required';
   END IF;
+  IF p_fee_method IS NULL OR p_fee_method NOT IN ('instapay', 'e_wallet', 'visa') THEN
+    RAISE EXCEPTION 'A payment method is required to create a friendly game';
+  END IF;
+  IF p_fee_method = 'visa' AND (p_fee_receipt_url IS NULL OR btrim(p_fee_receipt_url) = '') THEN
+    RAISE EXCEPTION 'A gateway payment reference is required for Visa';
+  END IF;
+  IF p_fee_method IN ('instapay', 'e_wallet') AND (p_fee_receipt_url IS NULL OR btrim(p_fee_receipt_url) = '') THEN
+    RAISE EXCEPTION 'A receipt is required to confirm the game creation fee';
+  END IF;
 
   SELECT name INTO v_name FROM public.profiles WHERE id = v_member;
   v_name := COALESCE(NULLIF(btrim(v_name), ''), 'Member');
 
   INSERT INTO public.friendly_games
     (creator_id, creator_name, sport, title, description, area, location, lat, lng,
-     game_date, start_time, max_players, skill_level, is_public, recurrence)
+     game_date, start_time, max_players, skill_level, is_public, recurrence,
+     creation_fee_paid, fee_method, fee_receipt_url)
   VALUES
     (v_member,
      v_name,
@@ -1991,7 +2007,10 @@ BEGIN
      CASE WHEN p_skill_level IN ('beginner', 'intermediate', 'advanced')
           THEN p_skill_level ELSE NULL END,
      COALESCE(p_is_public, TRUE),
-     CASE WHEN p_recurrence IN ('weekly') THEN p_recurrence ELSE NULL END)
+     CASE WHEN p_recurrence IN ('weekly') THEN p_recurrence ELSE NULL END,
+     TRUE,
+     p_fee_method,
+     p_fee_receipt_url)
   RETURNING id INTO v_game;
 
   -- The creator is always the organizer participant.
@@ -2021,8 +2040,30 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.create_friendly_game(
-  TEXT, TEXT, DATE, TIME, TEXT, TEXT, DOUBLE PRECISION, DOUBLE PRECISION, INTEGER, TEXT, TEXT, BOOLEAN, TEXT
+  TEXT, TEXT, DATE, TIME, TEXT, TEXT, DOUBLE PRECISION, DOUBLE PRECISION, INTEGER, TEXT, TEXT, BOOLEAN, TEXT, TEXT, TEXT
 ) TO authenticated;
+
+-- Storage bucket for friendly-game creation fee receipts. Files are uploaded
+-- by the payer under their own subfolder and only they can read them back.
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('game-fee-receipts', 'game-fee-receipts', FALSE)
+ON CONFLICT (id) DO NOTHING;
+
+DROP POLICY IF EXISTS "Game fee receipts: upload own" ON storage.objects;
+CREATE POLICY "Game fee receipts: upload own" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'game-fee-receipts'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+DROP POLICY IF EXISTS "Game fee receipts: read own" ON storage.objects;
+CREATE POLICY "Game fee receipts: read own" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (
+    bucket_id = 'game-fee-receipts'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
 
 CREATE OR REPLACE FUNCTION public.join_friendly_game(p_game_id UUID)
 RETURNS UUID

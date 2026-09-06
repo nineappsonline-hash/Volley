@@ -1,6 +1,9 @@
 export const CURRENCY = "EGP";
 export const DEFAULT_SUBSCRIPTION_SESSIONS = 8;
 
+// Fee charged to create a friendly game (both plans).
+export const GAME_CREATION_FEE = 50;
+
 // Membership plans: full = 8 sessions, half = 4 sessions (per payment cycle).
 export const MEMBERSHIP_SESSIONS: Record<"full" | "half", number> = {
   full: 8,
