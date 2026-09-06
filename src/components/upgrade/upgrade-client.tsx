@@ -4,80 +4,40 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import {
-  CalendarDays,
-  CheckCircle2,
-  Crown,
-  Loader2,
-  Map,
-  BarChart3,
-  Shield,
-  Swords,
-  UserCheck,
-  Sparkles,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Crown } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { useI18n } from "@/lib/i18n";
 import { useActivatePremium } from "@/lib/queries";
 import type { Profile } from "@/lib/types";
+import { PlanComparison } from "./plan-comparison";
 
-const PLANS = [
-  {
-    months: 1,
-    price: "50",
-    labelKey: "premium_plan_monthly",
-    perMonth: true,
-  },
-  {
-    months: 6,
-    price: "250",
-    labelKey: "premium_plan_semi",
-    perMonth: false,
-  },
-  {
-    months: 12,
-    price: "450",
-    labelKey: "premium_plan_yearly",
-    perMonth: false,
-  },
-] as const;
+type Tier = "starter" | "plus" | "elite";
 
-const FEATURES = [
-  { icon: Map, key: "premium_feat_events" },
-  { icon: Swords, key: "premium_feat_friendlies" },
-  { icon: BarChart3, key: "premium_feat_leaderboard" },
-  { icon: UserCheck, key: "premium_feat_scouting" },
-  { icon: Shield, key: "premium_feat_analytics" },
-  { icon: CalendarDays, key: "premium_feat_card" },
-] as const;
+const MONTHLY: Record<Tier, number> = {
+  starter: 0,
+  plus: 200,
+  elite: 350,
+};
 
 export function UpgradeClient({ profile }: { profile: Profile }) {
   const { t, lang } = useI18n();
   const router = useRouter();
   const activate = useActivatePremium();
-  const [selected, setSelected] = useState<number>(1);
 
   const isPremium = profile.member_plan === "premium";
+  const current: Tier = isPremium ? "plus" : "starter";
   const expiresAt = profile.premium_expires_at
     ? format(new Date(profile.premium_expires_at), "MMM d, yyyy", {
         locale: lang === "ar" ? undefined : undefined,
       })
     : null;
 
-  const onSubscribe = async () => {
-    const plan = PLANS.find((p) => p.months === selected)!;
+  const onSubscribe = async (tier: Tier) => {
+    if (tier === "starter") return;
     try {
       await activate.mutateAsync({
-        months: selected,
-        amount: Number(plan.price),
+        months: 1,
+        amount: MONTHLY[tier],
         method: "card",
       });
       toast.success(t("premium_activated"));
@@ -111,94 +71,22 @@ export function UpgradeClient({ profile }: { profile: Profile }) {
         </div>
       )}
 
-      {/* Features grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {FEATURES.map(({ icon: Icon, key }) => (
-          <Card key={key}>
-            <CardContent className="flex items-start gap-3 p-4">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                <Icon className="h-4 w-4 text-primary" />
-              </div>
-              <p className="text-sm">{t(key)}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <p className="text-sm text-muted-foreground">
+        {t("plans_compare_subtitle")}
+      </p>
 
-      {/* Plans */}
-      {!isPremium && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Crown className="h-4 w-4 text-amber-500" />
-              {t("premium_choose_plan")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {PLANS.map((plan) => (
-                <button
-                  key={plan.months}
-                  type="button"
-                  onClick={() => setSelected(plan.months)}
-                  className={`relative flex flex-col items-center gap-2 rounded-xl border-2 p-5 text-center transition-all ${
-                    selected === plan.months
-                      ? "border-primary bg-primary/5 shadow-md"
-                      : "border-border hover:border-primary/40"
-                  }`}
-                >
-                  {plan.months === 12 && (
-                    <Badge
-                      variant="default"
-                      className="absolute -top-2.5 text-[10px]"
-                    >
-                      {t("premium_best_value")}
-                    </Badge>
-                  )}
-                  <span className="text-2xl font-extrabold">
-                    {plan.price} EGP
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {t(plan.labelKey)}
-                  </span>
-                  {plan.perMonth ? (
-                    <span className="text-[10px] text-muted-foreground">
-                      / {t("premium_month")}
-                    </span>
-                  ) : (
-                    <span className="text-[10px] text-muted-foreground">
-                      {t("premium_total")}
-                    </span>
-                  )}
-                  {selected === plan.months && (
-                    <CheckCircle2 className="absolute top-2 end-2 h-4 w-4 text-primary" />
-                  )}
-                </button>
-              ))}
-            </div>
+      <PlanComparison
+        current={current}
+        busy={activate.isPending}
+        onSubscribe={onSubscribe}
+      />
 
-            <Button
-              className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700"
-              size="lg"
-              disabled={activate.isPending}
-              onClick={onSubscribe}
-            >
-              {activate.isPending ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                <Crown className="mr-2 h-4 w-4" />
-              )}
-              {t("premium_subscribe")}
-            </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              {t("premium_payment_note")}
-            </p>
-            <p className="text-center text-[10px] text-muted-foreground/60">
-              {t("premium_gateway_soon")}
-            </p>
-          </CardContent>
-        </Card>
-      )}
+      <p className="text-center text-xs text-muted-foreground">
+        {t("premium_payment_note")}
+      </p>
+      <p className="text-center text-[10px] text-muted-foreground/60">
+        {t("premium_gateway_soon")}
+      </p>
     </div>
   );
 }
