@@ -27,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/shared/page-header";
 import { LocationFields } from "@/components/shared/location-fields";
+import { MapPicker } from "@/components/shared/map-picker";
 import { BranchesCard } from "@/components/settings/branches-card";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
@@ -43,6 +44,8 @@ export function SettingsClient() {
   const [country, setCountry] = useState("");
   const [governorate, setGovernorate] = useState("");
   const [area, setArea] = useState("");
+  const [lat, setLat] = useState<number | null>(null);
+  const [lng, setLng] = useState<number | null>(null);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [isPublic, setIsPublic] = useState(false);
   const [slug, setSlug] = useState("");
@@ -60,6 +63,8 @@ export function SettingsClient() {
       setCountry(academy.country ?? "");
       setGovernorate(academy.governorate ?? "");
       setArea(academy.area ?? "");
+      setLat(academy.lat ?? null);
+      setLng(academy.lng ?? null);
       setCoverUrl(academy.cover_url ?? null);
       setIsPublic(academy.is_public ?? false);
       setSlug(academy.slug ?? "");
@@ -97,6 +102,8 @@ export function SettingsClient() {
         country: country.trim() || null,
         governorate: governorate.trim() || null,
         area: area.trim() || null,
+        lat,
+        lng,
         cover_url: coverUrl || null,
         is_public: isPublic,
         slug: slug.trim() || null,
@@ -191,6 +198,16 @@ export function SettingsClient() {
               placeholder={t("directory_no_address")}
             />
           </div>
+          <MapPicker
+            lat={lat}
+            lng={lng}
+            onChange={(loc) => {
+              setLat(loc.lat);
+              setLng(loc.lng);
+              if (loc.label) setAddress(loc.label);
+            }}
+            hint={t("settings_map_hint")}
+          />
           <div className="space-y-2">
             <Label>{t("settings_cover_photo")}</Label>
             {coverUrl ? (

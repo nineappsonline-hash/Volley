@@ -534,8 +534,6 @@ ALTER TABLE public.venue_rentals ADD COLUMN IF NOT EXISTS hours DECIMAL(5, 2) NO
 CREATE INDEX IF NOT EXISTS idx_training_sport ON public.training_sessions(sport_id);
 CREATE INDEX IF NOT EXISTS idx_training_venue ON public.training_sessions(venue_id);
 CREATE INDEX IF NOT EXISTS idx_payments_academy ON public.payments(academy_id, payment_date DESC);
-CREATE INDEX IF NOT EXISTS idx_bookings_session ON public.session_bookings(session_id);
-CREATE INDEX IF NOT EXISTS idx_bookings_member ON public.session_bookings(member_id);
 
 -- ── Session bookings: members book sessions at other academies ──────────────────
 -- Only academies with session_booking_enabled = TRUE appear in the marketplace.
@@ -555,6 +553,9 @@ CREATE TABLE IF NOT EXISTS public.session_bookings (
   notes TEXT,
   UNIQUE(session_id, member_id)
 );
+
+CREATE INDEX IF NOT EXISTS idx_bookings_session ON public.session_bookings(session_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_member ON public.session_bookings(member_id);
 
 -- Scope old single-tenant constraints.
 ALTER TABLE public.monthly_costs DROP CONSTRAINT IF EXISTS monthly_costs_month_year_key;
@@ -1284,7 +1285,8 @@ CREATE POLICY "Members view attendance" ON public.attendance
     )
   );
 
--- session_guests: scoped through the parent session's academy.DROP POLICY IF EXISTS "Members manage guests" ON public.session_guests;
+-- session_guests: scoped through the parent session's academy.
+DROP POLICY IF EXISTS "Members manage guests" ON public.session_guests;
 CREATE POLICY "Members manage guests" ON public.session_guests
   FOR ALL USING (
     EXISTS (
@@ -1306,7 +1308,8 @@ CREATE POLICY "Members manage costs" ON public.monthly_costs
   FOR ALL USING (academy_id = public.current_academy_id())
   WITH CHECK (academy_id = public.current_academy_id());
 
--- session_calculations: scoped through the parent session's academy.DROP POLICY IF EXISTS "Members manage calculations" ON public.session_calculations;
+-- session_calculations: scoped through the parent session's academy.
+DROP POLICY IF EXISTS "Members manage calculations" ON public.session_calculations;
 CREATE POLICY "Members manage calculations" ON public.session_calculations
   FOR ALL USING (
     EXISTS (
@@ -1449,7 +1452,8 @@ CREATE POLICY "Members manage tournament matches" ON public.tournament_matches
   );
 
 -- trial_requests: anyone may submit; only admins of that academy read/manage.
--- session_waitlist: members join/leave; admins manage all.DROP POLICY IF EXISTS "Members manage waitlist" ON public.session_waitlist;
+-- session_waitlist: members join/leave; admins manage all.
+DROP POLICY IF EXISTS "Members manage waitlist" ON public.session_waitlist;
 CREATE POLICY "Members manage waitlist" ON public.session_waitlist
   FOR ALL USING (
     EXISTS (
@@ -1464,7 +1468,8 @@ CREATE POLICY "Members manage waitlist" ON public.session_waitlist
     )
   );
 
--- session_ratings: members rate; admins manage.DROP POLICY IF EXISTS "Members manage ratings" ON public.session_ratings;
+-- session_ratings: members rate; admins manage.
+DROP POLICY IF EXISTS "Members manage ratings" ON public.session_ratings;
 CREATE POLICY "Members manage ratings" ON public.session_ratings
   FOR ALL USING (
     EXISTS (
@@ -1724,9 +1729,14 @@ CREATE POLICY "Members manage member plan" ON public.profiles
 
 -- An RPC for members to activate premium (simulates a payment flow).
 -- In production this would verify payment via Stripe/etc. before calling.
+-- Drop both parameter-order variants first so exactly one overload exists
+-- (parameter reordering via CREATE OR REPLACE would otherwise leave a stale
+-- second function behind and confuse PostgREST's RPC resolution).
+DROP FUNCTION IF EXISTS public.activate_member_premium(INTEGER, NUMERIC, TEXT);
+DROP FUNCTION IF EXISTS public.activate_member_premium(NUMERIC, INTEGER, TEXT);
 CREATE OR REPLACE FUNCTION public.activate_member_premium(
-  p_months         INTEGER DEFAULT 1,
   p_amount         NUMERIC,
+  p_months         INTEGER DEFAULT 1,
   p_method         TEXT DEFAULT 'card'
 )
 RETURNS UUID
@@ -1769,7 +1779,792 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.activate_member_premium(
-  INTEGER,
   NUMERIC,
+  INTEGER,
   TEXT
 ) TO authenticated;
+
+-- ────────────────────────────────────────────────────────────
+-- 7. COMMUNITY
+-- An open member directory + public "friendly games".
+--
+-- Users can be members WITHOUT being attached to an academy, so the
+-- community is not scoped by current_academy_id(). Instead:
+--   • profiles.bio / community_visible  → opt in/out of the directory
+--   • community_members (view)          → safe, cross-academy directory
+--   • friendly_games                    → any member creates a public game
+--   • friendly_game_participants        → join/leave tracked (RPC-only)
+-- ────────────────────────────────────────────────────────────
+
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS community_visible BOOLEAN NOT NULL DEFAULT TRUE,
+  ADD COLUMN IF NOT EXISTS bio TEXT,
+  ADD COLUMN IF NOT EXISTS lat DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS lng DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS skill_level TEXT CHECK (skill_level IN ('beginner', 'intermediate', 'advanced')),
+  ADD COLUMN IF NOT EXISTS position TEXT,
+  ADD COLUMN IF NOT EXISTS availability_days INTEGER[] NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS interested_sports TEXT[] NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS notify_game_alerts BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Safe community-wide directory: NO email / phone / checkin code exposure.
+-- Plain (definer) view so an authenticated member from any academy can
+-- read the safe fields. bio is public by design (open directory).
+DROP VIEW IF EXISTS public.community_members;
+CREATE VIEW public.community_members AS
+SELECT
+  p.id,
+  p.name,
+  p.bio,
+  p.academy_id,
+  a.name AS academy_name,
+  COALESCE(a.area, a.governorate) AS area,
+  p.skill_level,
+  p.position,
+  p.availability_days,
+  p.interested_sports,
+  p.lat,
+  p.lng
+FROM public.profiles p
+LEFT JOIN public.academies a ON a.id = p.academy_id
+WHERE p.community_visible = TRUE
+  AND p.name IS NOT NULL;
+GRANT SELECT ON public.community_members TO authenticated;
+
+-- Friendly games — the community's open court.
+-- creator_name is denormalized (set at creation) so every member — even from
+-- another academy — can see who organized the game without extra joins/RLS.
+CREATE TABLE IF NOT EXISTS public.friendly_games (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  creator_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  creator_name TEXT NOT NULL,
+  sport TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  area TEXT,
+  location TEXT,
+  game_date DATE NOT NULL,
+  start_time TIME NOT NULL,
+  max_players INTEGER NOT NULL DEFAULT 12 CHECK (max_players >= 2),
+  skill_level TEXT CHECK (skill_level IN ('beginner', 'intermediate', 'advanced')),
+  is_public BOOLEAN NOT NULL DEFAULT TRUE,
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'full', 'completed', 'cancelled')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE public.friendly_games
+  ADD COLUMN IF NOT EXISTS creator_name TEXT NOT NULL DEFAULT 'Member';
+CREATE INDEX IF NOT EXISTS idx_friendly_games_date ON public.friendly_games(game_date);
+CREATE INDEX IF NOT EXISTS idx_friendly_games_sport ON public.friendly_games(sport);
+CREATE INDEX IF NOT EXISTS idx_friendly_games_creator ON public.friendly_games(creator_id);
+
+CREATE TABLE IF NOT EXISTS public.friendly_game_participants (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  game_id UUID NOT NULL REFERENCES public.friendly_games(id) ON DELETE CASCADE,
+  member_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  role TEXT NOT NULL DEFAULT 'player' CHECK (role IN ('organizer', 'player')),
+  joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(game_id, member_id)
+);
+CREATE INDEX IF NOT EXISTS idx_fgp_game ON public.friendly_game_participants(game_id);
+CREATE INDEX IF NOT EXISTS idx_fgp_member ON public.friendly_game_participants(member_id);
+
+ALTER TABLE public.friendly_games ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.friendly_game_participants ENABLE ROW LEVEL SECURITY;
+
+-- Community games: anyone authenticated sees public games; the owner sees
+-- (and manages) their own private ones too.
+DROP POLICY IF EXISTS "Community games read" ON public.friendly_games;
+CREATE POLICY "Community games read" ON public.friendly_games
+  FOR SELECT TO authenticated USING (is_public = TRUE OR creator_id = auth.uid());
+
+DROP POLICY IF EXISTS "Community games create" ON public.friendly_games;
+CREATE POLICY "Community games create" ON public.friendly_games
+  FOR INSERT TO authenticated WITH CHECK (creator_id = auth.uid());
+
+DROP POLICY IF EXISTS "Community games owner update" ON public.friendly_games;
+CREATE POLICY "Community games owner update" ON public.friendly_games
+  FOR UPDATE TO authenticated USING (creator_id = auth.uid())
+  WITH CHECK (creator_id = auth.uid());
+
+DROP POLICY IF EXISTS "Community games owner delete" ON public.friendly_games;
+CREATE POLICY "Community games owner delete" ON public.friendly_games
+  FOR DELETE TO authenticated USING (creator_id = auth.uid());
+
+-- Participants are visible to anyone authenticated (roster on game cards).
+-- Inserts/deletes are RPC-only (join_friendly_game / leave_friendly_game)
+-- so seat limits and the open/full status stay consistent.
+DROP POLICY IF EXISTS "Community participants read" ON public.friendly_game_participants;
+CREATE POLICY "Community participants read" ON public.friendly_game_participants
+  FOR SELECT TO authenticated USING (TRUE);
+
+-- Members must always be able to read & edit their OWN profile row, even
+-- when they are not attached to any academy (community-first signup).
+DROP POLICY IF EXISTS "Members read own profile" ON public.profiles;
+CREATE POLICY "Members read own profile" ON public.profiles
+  FOR SELECT TO authenticated USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Members update own profile" ON public.profiles;
+CREATE POLICY "Members update own profile" ON public.profiles
+  FOR UPDATE TO authenticated USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
+
+-- ────────────────────────────────────────────────────────────
+-- 7.5 COMMUNITY RPCs
+-- ────────────────────────────────────────────────────────────
+
+-- Drop both signatures first so re-running this file never leaves a stale
+-- overload behind (parameter reordering changes the RPC signature).
+DROP FUNCTION IF EXISTS public.create_friendly_game(TEXT, TEXT, DATE, TIME, TEXT, TEXT, INTEGER, TEXT, TEXT, BOOLEAN);
+DROP FUNCTION IF EXISTS public.create_friendly_game(TEXT, TEXT, DATE, TIME, TEXT, TEXT, DOUBLE PRECISION, DOUBLE PRECISION, INTEGER, TEXT, TEXT, BOOLEAN);
+DROP FUNCTION IF EXISTS public.create_friendly_game(TEXT, TEXT, DATE, TIME, TEXT, TEXT, DOUBLE PRECISION, DOUBLE PRECISION, INTEGER, TEXT, TEXT, BOOLEAN, TEXT);
+CREATE OR REPLACE FUNCTION public.create_friendly_game(
+  p_title        TEXT,
+  p_sport        TEXT,
+  p_game_date    DATE,
+  p_start_time   TIME,
+  p_area         TEXT DEFAULT NULL,
+  p_location     TEXT DEFAULT NULL,
+  p_lat          DOUBLE PRECISION DEFAULT NULL,
+  p_lng          DOUBLE PRECISION DEFAULT NULL,
+  p_max_players  INTEGER DEFAULT 12,
+  p_skill_level  TEXT DEFAULT NULL,
+  p_description  TEXT DEFAULT NULL,
+  p_is_public    BOOLEAN DEFAULT TRUE,
+  p_recurrence   TEXT DEFAULT NULL
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_member UUID;
+  v_game   UUID;
+  v_name   TEXT;
+BEGIN
+  v_member := auth.uid();
+  IF v_member IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  IF p_title IS NULL OR btrim(p_title) = '' THEN
+    RAISE EXCEPTION 'Title is required';
+  END IF;
+  IF p_sport IS NULL OR btrim(p_sport) = '' THEN
+    RAISE EXCEPTION 'Sport is required';
+  END IF;
+  IF p_game_date IS NULL OR p_start_time IS NULL THEN
+    RAISE EXCEPTION 'Date and time are required';
+  END IF;
+
+  SELECT name INTO v_name FROM public.profiles WHERE id = v_member;
+  v_name := COALESCE(NULLIF(btrim(v_name), ''), 'Member');
+
+  INSERT INTO public.friendly_games
+    (creator_id, creator_name, sport, title, description, area, location, lat, lng,
+     game_date, start_time, max_players, skill_level, is_public, recurrence)
+  VALUES
+    (v_member,
+     v_name,
+     btrim(p_sport),
+     btrim(p_title),
+     NULLIF(btrim(COALESCE(p_description, '')), ''),
+     NULLIF(btrim(COALESCE(p_area, '')), ''),
+     NULLIF(btrim(COALESCE(p_location, '')), ''),
+     CASE WHEN p_lat BETWEEN -90 AND 90 THEN p_lat ELSE NULL END,
+     CASE WHEN p_lng BETWEEN -180 AND 180 THEN p_lng ELSE NULL END,
+     p_game_date,
+     p_start_time,
+     GREATEST(p_max_players, 2),
+     CASE WHEN p_skill_level IN ('beginner', 'intermediate', 'advanced')
+          THEN p_skill_level ELSE NULL END,
+     COALESCE(p_is_public, TRUE),
+     CASE WHEN p_recurrence IN ('weekly') THEN p_recurrence ELSE NULL END)
+  RETURNING id INTO v_game;
+
+  -- The creator is always the organizer participant.
+  INSERT INTO public.friendly_game_participants (game_id, member_id, role)
+  VALUES (v_game, v_member, 'organizer');
+
+  -- Alert members who opted in to matching-sport game alerts (capped).
+  INSERT INTO public.notifications (recipient_id, type, title, body, link)
+  SELECT
+    p.id,
+    'game_alert',
+    'New ' || btrim(p_sport) || ' game',
+    btrim(p_title),
+    '/community'
+  FROM public.profiles p
+  WHERE p.id <> v_member
+    AND p.notify_game_alerts = TRUE
+    AND p.interested_sports @> ARRAY[btrim(p_sport)]
+    AND NOT EXISTS (
+      SELECT 1 FROM public.blocks b
+      WHERE b.blocker_id = p.id AND b.blocked_id = v_member
+    )
+  LIMIT 100;
+
+  RETURN v_game;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.create_friendly_game(
+  TEXT, TEXT, DATE, TIME, TEXT, TEXT, DOUBLE PRECISION, DOUBLE PRECISION, INTEGER, TEXT, TEXT, BOOLEAN, TEXT
+) TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.join_friendly_game(p_game_id UUID)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_member UUID;
+  v_game   friendly_games;
+  v_count  INTEGER;
+BEGIN
+  v_member := auth.uid();
+  IF v_member IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  SELECT * INTO v_game FROM public.friendly_games WHERE id = p_game_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Game not found';
+  END IF;
+  IF NOT v_game.is_public THEN
+    RAISE EXCEPTION 'This game is not public';
+  END IF;
+  IF v_game.status NOT IN ('open', 'full') THEN
+    RAISE EXCEPTION 'This game is no longer open';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM public.friendly_game_participants
+    WHERE game_id = p_game_id AND member_id = v_member
+  ) THEN
+    RAISE EXCEPTION 'You already joined this game';
+  END IF;
+
+  SELECT COUNT(*) INTO v_count
+  FROM public.friendly_game_participants WHERE game_id = p_game_id;
+  IF v_count >= v_game.max_players THEN
+    RAISE EXCEPTION 'This game is full';
+  END IF;
+
+  INSERT INTO public.friendly_game_participants (game_id, member_id, role)
+  VALUES (p_game_id, v_member, 'player');
+
+  -- Tell the organizer someone joined (unless it's their own game).
+  IF v_game.creator_id <> v_member THEN
+    INSERT INTO public.notifications (recipient_id, type, title, body, link)
+    VALUES (
+      v_game.creator_id,
+      'game_join',
+      'Someone joined your game',
+      (SELECT name FROM public.profiles WHERE id = v_member) || ' joined ' || btrim(v_game.title) || '.',
+      '/community'
+    );
+  END IF;
+
+  SELECT COUNT(*) INTO v_count
+  FROM public.friendly_game_participants WHERE game_id = p_game_id;
+  IF v_count >= v_game.max_players AND v_game.status = 'open' THEN
+    UPDATE public.friendly_games SET status = 'full' WHERE id = p_game_id;
+    INSERT INTO public.notifications (recipient_id, type, title, body, link)
+    VALUES (
+      v_game.creator_id,
+      'game_filled',
+      'Your game is full',
+      btrim(v_game.title) || ' just filled up — get ready to play!',
+      '/community'
+    );
+  END IF;
+
+  RETURN p_game_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.join_friendly_game(UUID) TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.leave_friendly_game(p_game_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_member UUID;
+  v_game   friendly_games;
+BEGIN
+  v_member := auth.uid();
+  IF v_member IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  SELECT * INTO v_game FROM public.friendly_games WHERE id = p_game_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Game not found';
+  END IF;
+
+  -- The organizer quitting cancels the game (no ownership transfer) and
+  -- everyone who signed up gets a notification.
+  IF v_game.creator_id = v_member THEN
+    UPDATE public.friendly_games SET status = 'cancelled' WHERE id = p_game_id;
+    INSERT INTO public.notifications (recipient_id, type, title, body, link)
+    SELECT
+      member_id,
+      'game_cancelled',
+      'Game cancelled',
+      btrim(v_game.title) || ' was cancelled by the organizer.',
+      '/community'
+    FROM public.friendly_game_participants WHERE game_id = p_game_id;
+    RETURN;
+  END IF;
+
+  DELETE FROM public.friendly_game_participants
+  WHERE game_id = p_game_id AND member_id = v_member;
+
+  INSERT INTO public.notifications (recipient_id, type, title, body, link)
+  VALUES (
+    v_game.creator_id,
+    'game_left',
+    'Someone left your game',
+    (SELECT name FROM public.profiles WHERE id = v_member) || ' left ' || btrim(v_game.title) || '.',
+    '/community'
+  );
+
+  IF v_game.status = 'full' THEN
+    UPDATE public.friendly_games SET status = 'open' WHERE id = p_game_id;
+  END IF;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.leave_friendly_game(UUID) TO authenticated;
+
+-- Realtime for the community so games load without a page refresh.
+DO $$
+BEGIN
+  BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.friendly_games;
+  EXCEPTION WHEN duplicate_object THEN NULL; END;
+  BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.friendly_game_participants;
+  EXCEPTION WHEN duplicate_object THEN NULL; END;
+END
+$$;
+
+-- ────────────────────────────────────────────────────────────
+-- 7.6 GEO LOCATIONS
+-- lat/lng let members find the nearest academy/playground and
+-- let tenants pin their location on the map.
+-- ────────────────────────────────────────────────────────────
+ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS lat DOUBLE PRECISION;
+ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS lng DOUBLE PRECISION;
+ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS lat DOUBLE PRECISION;
+ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS lng DOUBLE PRECISION;
+
+-- ────────────────────────────────────────────────────────────
+-- 7.7 GOOGLE-MAPS-STYLE LOCATION PINS
+-- Members can pin their own location; friendly games get a pin.
+-- (profiles.lat / lng are declared above, next to the community view.)
+-- ────────────────────────────────────────────────────────────
+ALTER TABLE public.friendly_games ADD COLUMN IF NOT EXISTS lat DOUBLE PRECISION;
+ALTER TABLE public.friendly_games ADD COLUMN IF NOT EXISTS lng DOUBLE PRECISION;
+
+-- ────────────────────────────────────────────────────────────
+-- 8. ENGAGEMENT, SCORES & TRUST
+-- Recurring games, scores/results, notifications, skill profile +
+-- matchmaking alerts, community reports/blocks, housekeeping job.
+-- ────────────────────────────────────────────────────────────
+
+-- 8.1 friendly_games: recurrence + results
+ALTER TABLE public.friendly_games
+  ADD COLUMN IF NOT EXISTS recurrence TEXT CHECK (recurrence IN ('weekly')),
+  ADD COLUMN IF NOT EXISTS source_game_id UUID REFERENCES public.friendly_games(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS result_a INTEGER,
+  ADD COLUMN IF NOT EXISTS result_b INTEGER,
+  ADD COLUMN IF NOT EXISTS completed_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ;
+CREATE INDEX IF NOT EXISTS idx_friendly_games_source ON public.friendly_games(source_game_id);
+
+-- Participants flagged when a game was already full (waitlist seats).
+ALTER TABLE public.friendly_game_participants
+  ADD COLUMN IF NOT EXISTS is_waitlisted BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- 8.2 Member skill profile (used by the matchmaker + game alerts).
+-- The columns themselves (skill_level, position, availability_days,
+-- interested_sports, notify_game_alerts) are declared in section 7 next to
+-- the community_members view, which needs them at creation time.
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS skill_level TEXT CHECK (skill_level IN ('beginner', 'intermediate', 'advanced')),
+  ADD COLUMN IF NOT EXISTS position TEXT,
+  ADD COLUMN IF NOT EXISTS availability_days INTEGER[] NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS interested_sports TEXT[] NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS notify_game_alerts BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- 8.3 Notifications (in-app). Recipients always own their own rows; RPCs
+-- (SECURITY DEFINER) can also write on behalf of other members.
+CREATE TABLE IF NOT EXISTS public.notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  recipient_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL DEFAULT '',
+  link TEXT,
+  is_read BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_notifications_recipient
+  ON public.notifications(recipient_id, is_read, created_at DESC);
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Notifications own read" ON public.notifications;
+CREATE POLICY "Notifications own read" ON public.notifications
+  FOR SELECT TO authenticated USING (recipient_id = auth.uid());
+DROP POLICY IF EXISTS "Notifications own insert" ON public.notifications;
+CREATE POLICY "Notifications own insert" ON public.notifications
+  FOR INSERT TO authenticated WITH CHECK (recipient_id = auth.uid());
+DROP POLICY IF EXISTS "Notifications own update" ON public.notifications;
+CREATE POLICY "Notifications own update" ON public.notifications
+  FOR UPDATE TO authenticated USING (recipient_id = auth.uid());
+DROP POLICY IF EXISTS "Notifications own delete" ON public.notifications;
+CREATE POLICY "Notifications own delete" ON public.notifications
+  FOR DELETE TO authenticated USING (recipient_id = auth.uid());
+
+-- 8.4 Community trust: reports (moderated by platform admins) + member blocks.
+CREATE TABLE IF NOT EXISTS public.reports (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  reporter_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  target_type TEXT NOT NULL CHECK (target_type IN ('member', 'game')),
+  target_id TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'resolved', 'dismissed')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_reports_status ON public.reports(status, created_at DESC);
+ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Reports reporter create" ON public.reports;
+CREATE POLICY "Reports reporter create" ON public.reports
+  FOR INSERT TO authenticated WITH CHECK (reporter_id = auth.uid());
+DROP POLICY IF EXISTS "Reports super admin read" ON public.reports;
+CREATE POLICY "Reports super admin read" ON public.reports
+  FOR SELECT TO authenticated
+  USING (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'super_admin'));
+DROP POLICY IF EXISTS "Reports super admin update" ON public.reports;
+CREATE POLICY "Reports super admin update" ON public.reports
+  FOR UPDATE TO authenticated
+  USING (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'super_admin'))
+  WITH CHECK (status IN ('open', 'resolved', 'dismissed'));
+
+CREATE TABLE IF NOT EXISTS public.blocks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  blocker_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  blocked_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (blocker_id, blocked_id)
+);
+ALTER TABLE public.blocks ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Blocks own read" ON public.blocks;
+CREATE POLICY "Blocks own read" ON public.blocks
+  FOR SELECT TO authenticated USING (blocker_id = auth.uid() OR blocked_id = auth.uid());
+DROP POLICY IF EXISTS "Blocks own insert" ON public.blocks;
+CREATE POLICY "Blocks own insert" ON public.blocks
+  FOR INSERT TO authenticated WITH CHECK (blocker_id = auth.uid());
+DROP POLICY IF EXISTS "Blocks own delete" ON public.blocks;
+CREATE POLICY "Blocks own delete" ON public.blocks
+  FOR DELETE TO authenticated USING (blocker_id = auth.uid());
+
+-- 8.5 ── RPCs ──
+
+-- Cancel a game as its organizer (with participant notifications).
+CREATE OR REPLACE FUNCTION public.cancel_friendly_game(p_game_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_member UUID;
+  v_game   friendly_games;
+BEGIN
+  v_member := auth.uid();
+  IF v_member IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
+
+  SELECT * INTO v_game FROM public.friendly_games WHERE id = p_game_id;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Game not found'; END IF;
+  IF v_game.creator_id <> v_member THEN
+    RAISE EXCEPTION 'Only the organizer can cancel this game';
+  END IF;
+
+  IF v_game.status = 'cancelled' THEN RETURN; END IF;
+  UPDATE public.friendly_games SET status = 'cancelled' WHERE id = p_game_id;
+
+  INSERT INTO public.notifications (recipient_id, type, title, body, link)
+  SELECT
+    member_id,
+    'game_cancelled',
+    'Game cancelled',
+    btrim(v_game.title) || ' was cancelled by the organizer.',
+    '/community'
+  FROM public.friendly_game_participants WHERE game_id = p_game_id;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.cancel_friendly_game(UUID) TO authenticated;
+
+-- Materialize weekly-friendly-game instances (lazy, idempotent). Called on
+-- every community load so a "weekly" game behaves like a true series without
+-- needing a cron daemon. Copies the organizer + previous occurrence's crew.
+DO $fn$
+BEGIN
+DROP FUNCTION IF EXISTS public.materialize_recurring_games();
+END $fn$;
+CREATE OR REPLACE FUNCTION public.materialize_recurring_games()
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_parent    public.friendly_games%ROWTYPE;
+  v_dt        DATE;
+  v_new_id    UUID;
+  v_anchor    UUID;
+  v_created   INTEGER := 0;
+  v_horizon   DATE := CURRENT_DATE + 56;
+BEGIN
+  FOR v_parent IN
+    SELECT fg.* FROM public.friendly_games fg
+    WHERE fg.recurrence = 'weekly'
+      AND fg.source_game_id IS NULL
+      AND fg.status IN ('open', 'full')
+  LOOP
+    v_dt := v_parent.game_date + 1;
+    -- Fill any missed slots between today and the horizon.
+    IF v_dt < CURRENT_DATE THEN v_dt := CURRENT_DATE; END IF;
+    WHILE v_dt <= v_horizon LOOP
+      IF date_part('isodow', v_dt) = date_part('isodow', v_parent.game_date)
+         AND NOT EXISTS (
+           SELECT 1 FROM public.friendly_games f
+           WHERE f.source_game_id = v_parent.id AND f.game_date = v_dt
+         )
+      THEN
+        INSERT INTO public.friendly_games
+          (creator_id, creator_name, sport, title, description, area, location,
+           lat, lng, game_date, start_time, max_players, skill_level, is_public,
+           status, source_game_id, recurrence)
+        VALUES
+          (v_parent.creator_id, v_parent.creator_name, v_parent.sport,
+           v_parent.title, v_parent.description, v_parent.area, v_parent.location,
+           v_parent.lat, v_parent.lng, v_dt, v_parent.start_time,
+           v_parent.max_players, v_parent.skill_level, v_parent.is_public,
+           'open', v_parent.id, 'weekly')
+        RETURNING id INTO v_new_id;
+
+        -- Carry the roster over from the most recent past occurrence.
+        SELECT MAX(f2.id) INTO v_anchor
+        FROM public.friendly_games f2
+        WHERE (f2.source_game_id = v_parent.id OR f2.id = v_parent.id)
+          AND f2.game_date < v_dt AND f2.status <> 'cancelled';
+        IF v_anchor IS NOT NULL THEN
+          INSERT INTO public.friendly_game_participants (game_id, member_id, role)
+          SELECT v_new_id, member_id, role
+          FROM public.friendly_game_participants
+          WHERE game_id = v_anchor
+          ON CONFLICT DO NOTHING;
+        END IF;
+
+        v_created := v_created + 1;
+      END IF;
+      v_dt := v_dt + 1;
+    END LOOP;
+  END LOOP;
+  RETURN v_created;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.materialize_recurring_games() TO authenticated;
+
+-- Organizer submits the final score; participants get notified.
+CREATE OR REPLACE FUNCTION public.submit_game_score(
+  p_game_id UUID,
+  p_result_a INTEGER,
+  p_result_b INTEGER
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_member UUID;
+  v_game   friendly_games;
+BEGIN
+  v_member := auth.uid();
+  IF v_member IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
+
+  SELECT * INTO v_game FROM public.friendly_games WHERE id = p_game_id;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Game not found'; END IF;
+  IF v_game.creator_id <> v_member THEN
+    RAISE EXCEPTION 'Only the organizer can submit the score';
+  END IF;
+  IF v_game.status = 'cancelled' THEN
+    RAISE EXCEPTION 'This game was cancelled';
+  END IF;
+  IF p_result_a IS NULL OR p_result_b IS NULL OR p_result_a < 0 OR p_result_b < 0 THEN
+    RAISE EXCEPTION 'Invalid score';
+  END IF;
+
+  UPDATE public.friendly_games
+  SET status = 'completed',
+      result_a = p_result_a,
+      result_b = p_result_b,
+      completed_by = v_member,
+      completed_at = NOW()
+  WHERE id = p_game_id;
+
+  INSERT INTO public.notifications (recipient_id, type, title, body, link)
+  SELECT
+    DISTINCT member_id,
+    'game_result',
+    'Score submitted',
+    btrim(v_game.title) || ': ' || p_result_a || ' – ' || p_result_b,
+    '/community'
+  FROM public.friendly_game_participants WHERE game_id = p_game_id;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.submit_game_score(UUID, INTEGER, INTEGER) TO authenticated;
+
+-- Mark notifications (all or a subset) as read.
+CREATE OR REPLACE FUNCTION public.mark_notifications_read(p_ids UUID[] DEFAULT NULL)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_member UUID;
+BEGIN
+  v_member := auth.uid();
+  IF v_member IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
+  IF p_ids IS NULL OR array_length(p_ids, 1) = 0 THEN
+    UPDATE public.notifications SET is_read = TRUE WHERE recipient_id = v_member;
+  ELSE
+    UPDATE public.notifications SET is_read = TRUE
+    WHERE recipient_id = v_member AND id = ANY(p_ids);
+  END IF;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.mark_notifications_read(UUID[]) TO authenticated;
+
+-- Report a member or a game to the moderation queue.
+CREATE OR REPLACE FUNCTION public.file_report(
+  p_target_type TEXT,
+  p_target_id   TEXT,
+  p_reason      TEXT
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_member UUID;
+  v_id     UUID;
+BEGIN
+  v_member := auth.uid();
+  IF v_member IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
+  IF p_target_type NOT IN ('member', 'game') THEN
+    RAISE EXCEPTION 'Invalid target type';
+  END IF;
+  IF p_reason IS NULL OR btrim(p_reason) = '' THEN
+    RAISE EXCEPTION 'Please add a reason';
+  END IF;
+  IF p_target_type = 'member' AND v_member::TEXT = p_target_id THEN
+    RAISE EXCEPTION 'You cannot report yourself';
+  END IF;
+  IF p_target_type = 'game' AND EXISTS (
+    SELECT 1 FROM public.friendly_games WHERE id = p_target_id::UUID AND creator_id = v_member
+  ) THEN
+    RAISE EXCEPTION 'You cannot report your own game';
+  END IF;
+
+  INSERT INTO public.reports (reporter_id, target_type, target_id, reason)
+  VALUES (v_member, p_target_type, p_target_id, left(btrim(p_reason), 500))
+  RETURNING id INTO v_id;
+  RETURN v_id;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.file_report(TEXT, TEXT, TEXT) TO authenticated;
+
+-- Platform admins resolve/dismiss a report.
+CREATE OR REPLACE FUNCTION public.resolve_report(p_report_id UUID, p_status TEXT)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'super_admin'
+  ) THEN
+    RAISE EXCEPTION 'Not authorized';
+  END IF;
+  IF p_status NOT IN ('resolved', 'dismissed') THEN
+    RAISE EXCEPTION 'Invalid status';
+  END IF;
+  UPDATE public.reports SET status = p_status WHERE id = p_report_id;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.resolve_report(UUID, TEXT) TO authenticated;
+
+-- Block (and unblock) a member so their games don't surface for you.
+CREATE OR REPLACE FUNCTION public.block_member(p_member_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
+  IF p_member_id = auth.uid() THEN RAISE EXCEPTION 'You cannot block yourself'; END IF;
+  INSERT INTO public.blocks (blocker_id, blocked_id)
+  VALUES (auth.uid(), p_member_id)
+  ON CONFLICT (blocker_id, blocked_id) DO NOTHING;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.block_member(UUID) TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.unblock_member(p_member_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
+  DELETE FROM public.blocks
+  WHERE blocker_id = auth.uid() AND blocked_id = p_member_id;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.unblock_member(UUID) TO authenticated;
+
+-- 8.6 Realtime for notifications.
+DO $$
+BEGIN
+  BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+  EXCEPTION WHEN duplicate_object THEN NULL; END;
+END
+$$;
+
+-- 8.7 Daily housekeeping via pg_cron (idempotent): auto-complete stale games.
+DO $do$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron')
+     AND EXISTS (SELECT 1 FROM pg_class WHERE relname = 'job') THEN
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'volley-daily-housekeeping') THEN
+      PERFORM cron.unschedule('volley-daily-housekeeping');
+    END IF;
+    PERFORM cron.schedule('volley-daily-housekeeping', '0 3 * * *', $job$
+      UPDATE public.friendly_games SET status = 'completed'
+      WHERE status IN ('open', 'full') AND game_date < CURRENT_DATE;
+    $job$);
+  END IF;
+END
+$do$;

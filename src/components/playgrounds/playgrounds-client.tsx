@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
+import { MapPicker } from "@/components/shared/map-picker";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import { errorMessage } from "@/lib/utils";
@@ -64,6 +65,8 @@ export function PlaygroundsClient() {
   const [schoolName, setSchoolName] = useState("");
   const [rentalCost, setRentalCost] = useState("");
   const [rentalHours, setRentalHours] = useState("1");
+  const [lat, setLat] = useState<number | null>(null);
+  const [lng, setLng] = useState<number | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Venue | null>(null);
 
   const sportName = (id: string | null) =>
@@ -78,6 +81,8 @@ export function PlaygroundsClient() {
     setSchoolName("");
     setRentalCost("");
     setRentalHours("1");
+    setLat(null);
+    setLng(null);
     setDialogOpen(true);
   };
 
@@ -90,6 +95,8 @@ export function PlaygroundsClient() {
     setSchoolName(v.school_name ?? "");
     setRentalCost(v.rental_cost != null ? String(v.rental_cost) : "");
     setRentalHours(v.rental_hours != null ? String(v.rental_hours) : "1");
+    setLat(v.lat ?? null);
+    setLng(v.lng ?? null);
     setDialogOpen(true);
   };
 
@@ -105,6 +112,8 @@ export function PlaygroundsClient() {
         school_name: schoolName.trim() || null,
         rental_cost: rentalCost ? Number(rentalCost) : null,
         rental_hours: rentalHours ? Number(rentalHours) : null,
+        lat,
+        lng,
       });
       toast.success(t("venues_saved"));
       setDialogOpen(false);
@@ -293,6 +302,16 @@ export function PlaygroundsClient() {
                 />
               </div>
             </div>
+            <MapPicker
+              lat={lat}
+              lng={lng}
+              onChange={(loc) => {
+                setLat(loc.lat);
+                setLng(loc.lng);
+                if (loc.label) setAddress(loc.label);
+              }}
+              hint={t("venues_map_hint")}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>

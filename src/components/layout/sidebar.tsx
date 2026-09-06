@@ -14,6 +14,8 @@ import {
   LayoutDashboard,
   LineChart,
   Map,
+  Network,
+  Search,
   Settings,
   Swords,
   Ticket,
@@ -52,11 +54,13 @@ const academyItems = [
 
 const memberItems = [
   { href: "/dashboard", key: "nav_dashboard", icon: LayoutDashboard },
+  { href: "/academies", key: "nav_academies", icon: Search },
   { href: "/schedule", key: "nav_schedule", icon: CalendarDays },
   { href: "/events", key: "nav_events", icon: Map },
   { href: "/profile", key: "nav_profile", icon: Users },
   { href: "/upgrade", key: "nav_upgrade", icon: Crown },
   { href: "/marketplace", key: "nav_marketplace", icon: Ticket },
+  { href: "/community", key: "nav_community", icon: Network },
 ] as const;
 
 interface SidebarProps {

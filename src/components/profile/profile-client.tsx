@@ -10,13 +10,17 @@ import {
   Copy,
   CreditCard,
   Crown,
+  Flame,
   Link2,
   Mail,
   MapPin,
   Phone,
   Save,
+  Swords,
   Timer,
+  Trophy,
   UserRound,
+  Zap,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +33,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { CheckinQrCard } from "@/components/profile/checkin-qr-card";
-import { useI18n } from "@/lib/i18n";
+import { MapPicker } from "@/components/shared/map-picker";
+import { useI18n, type Dict } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import { usedSessionsSincePayment } from "@/lib/calculations";
 import { initials } from "@/lib/utils";
@@ -38,6 +43,8 @@ import {
   useAllPayments,
   useAttendance,
   useMemberSessionCosts,
+  useMyCommunityRecord,
+  useMyStreaks,
   useProfile,
   useSessions,
   useUpdateOwnProfile,
@@ -307,7 +314,10 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
 
   const [name, setName] = useState(p.name);
   const [phone, setPhone] = useState(p.phone ?? "");
+  const [locLat, setLocLat] = useState<number | null>(p.lat ?? null);
+  const [locLng, setLocLng] = useState<number | null>(p.lng ?? null);
   const [saving, setSaving] = useState(false);
+  const [savingLoc, setSavingLoc] = useState(false);
   const updateProfile = useUpdateOwnProfile();
 
   const { data: payments, isLoading: loadingPayments } = useAllPayments();
@@ -315,6 +325,17 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
   const { data: sessions } = useSessions();
   const { data: upcoming } = useUpcomingSessions();
   const { data: costs } = useMemberSessionCosts();
+  const { data: record } = useMyCommunityRecord();
+  const { data: streaks } = useMyStreaks();
+
+  const premiumWarning = useMemo(() => {
+    if (!p.premium_expires_at) return null;
+    const exp = new Date(p.premium_expires_at);
+    const diffDays = Math.ceil((exp.getTime() - Date.now()) / 86400000);
+    if (diffDays < 0) return "expired";
+    if (diffDays <= 14) return "soon";
+    return null;
+  }, [p.premium_expires_at]);
 
   const myPayments = useMemo(
     () => (payments ?? []).filter((x) => x.member_id === p.id),
@@ -373,16 +394,49 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
     }
   };
 
+  const handleSaveLocation = async () => {
+    setSavingLoc(true);
+    try {
+      await updateProfile.mutateAsync({
+        id: p.id,
+        lat: locLat,
+        lng: locLng,
+      });
+      toast.success(t("profile_saved"));
+    } catch {
+      toast.error(t("common_error"));
+    } finally {
+      setSavingLoc(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader title={t("profile_title")} subtitle={t("profile_subtitle")} />
 
-      {p.is_active === false && (
-        <div className="flex items-center gap-3 rounded-lg border border-amber-300/60 bg-amber-50 p-4 text-sm dark:bg-amber-500/10">
-          <Timer className="h-5 w-5 shrink-0 text-amber-600" />
-          <p className="text-amber-800 dark:text-amber-300">
-            {t("members_pending_approval")}
-          </p>
+      {premiumWarning && (
+        <div
+          className={`flex items-center gap-3 rounded-lg border p-3 text-sm ${
+            premiumWarning === "expired"
+              ? "border-destructive/30 bg-destructive/5 text-destructive"
+              : "border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300"
+          }`}
+        >
+          <Crown className="h-4 w-4 shrink-0" />
+          <span>
+            {premiumWarning === "expired"
+              ? t("premium_expired_banner")
+              : t("premium_expiring_banner").replace(
+                  "{days}",
+                  String(
+                    Math.ceil(
+                      (new Date(p.premium_expires_at!).getTime() -
+                        Date.now()) /
+                        86400000
+                    )
+                  )
+                )}
+          </span>
         </div>
       )}
 
@@ -464,9 +518,127 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
 
         {/* Middle column: subscription + payments */}
         <div className="space-y-6 lg:col-span-2">
-          {p.checkin_code && (
+{p.checkin_code && (
             <CheckinQrCard code={p.checkin_code} memberName={p.name} />
           )}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <MapPin className="h-4 w-4 text-primary" />
+                {t("profile_location_title")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <MapPicker
+                lat={locLat}
+                lng={locLng}
+                onChange={(loc) => {
+                  setLocLat(loc.lat);
+                  setLocLng(loc.lng);
+                }}
+                hint={t("profile_location_hint")}
+              />
+              <Button
+                onClick={handleSaveLocation}
+                disabled={savingLoc || (locLat == null && locLng == null)}
+                className="w-full"
+              >
+                <Save className="h-4 w-4" />
+                {savingLoc ? t("common_saving") : t("profile_save")}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Swords className="h-4 w-4 text-primary" />
+                {t("community_stats_title")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-4 gap-2 text-center">
+                <div className="rounded-lg bg-muted/50 p-2">
+                  <p className="text-lg font-bold">{record?.played ?? "–"}</p>
+                  <p className="text-[10px] text-muted-foreground">{t("record_played")}</p>
+                </div>
+                <div className="rounded-lg bg-success/10 p-2">
+                  <p className="text-lg font-bold text-success">{record?.wins ?? "–"}</p>
+                  <p className="text-[10px] text-muted-foreground">{t("record_wins")}</p>
+                </div>
+                <div className="rounded-lg bg-destructive/10 p-2">
+                  <p className="text-lg font-bold text-destructive">{record?.losses ?? "–"}</p>
+                  <p className="text-[10px] text-muted-foreground">{t("record_losses")}</p>
+                </div>
+                <div className="rounded-lg bg-muted/50 p-2">
+                  <p className="text-lg font-bold">{record?.draws ?? "–"}</p>
+                  <p className="text-[10px] text-muted-foreground">{t("record_draws")}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <Flame className="h-4 w-4 text-orange-500" />
+                  <span>{t("streak_current")}</span>
+                </div>
+                <Badge variant="outline">
+                  {streaks?.current ?? 0} {t("streak_days")}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <Zap className="h-4 w-4 text-amber-500" />
+                  <span>{t("streak_best")}</span>
+                </div>
+                <Badge variant="outline">
+                  {streaks?.best ?? 0} {t("streak_days")}
+                </Badge>
+              </div>
+
+              <div className="space-y-2">
+                <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <Trophy className="h-3.5 w-3.5" />
+                  {t("achievements_title")}
+                </p>
+                <div className="grid grid-cols-5 gap-2">
+                  {[
+                    { min: 1, icon: "1", key: "achievement_first" },
+                    { min: 10, icon: "10", key: "achievement_ten" },
+                    { min: 25, icon: "25", key: "achievement_twentyfive" },
+                    { min: 50, icon: "50", key: "achievement_fifty" },
+                    { min: 30, icon: "30", key: "achievement_streak" },
+                  ].map((b) => {
+                    const unlocked =
+                      b.key === "achievement_streak"
+                        ? (streaks?.best ?? 0) >= b.min
+                        : (streaks?.attendedSessions ?? 0) >= b.min;
+                    return (
+                      <div
+                        key={b.key}
+                        title={t(b.key as keyof Dict)}
+                        className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border text-center ${
+                          unlocked
+                            ? "border-amber-300 bg-amber-50 dark:bg-amber-500/10"
+                            : "border-dashed opacity-50"
+                        }`}
+                      >
+                        <Trophy
+                          className={`h-4 w-4 ${
+                            unlocked
+                              ? "text-amber-500"
+                              : "text-muted-foreground"
+                          }`}
+                        />
+                        <span className="text-[9px] font-semibold text-muted-foreground">
+                          {b.icon}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">

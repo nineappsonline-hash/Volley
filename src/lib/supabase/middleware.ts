@@ -59,6 +59,9 @@ export async function updateSession(request: NextRequest) {
     "/admin",
     "/upgrade",
     "/events",
+    "/marketplace",
+    "/community",
+    "/academies",
   ];
   const isProtected = protectedPages.some(
     (p) => pathname === p || pathname.startsWith(p + "/")

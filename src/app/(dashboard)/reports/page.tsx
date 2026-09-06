@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { format, subDays } from "date-fns";
 import { toast } from "sonner";
-import { Activity, PieChart as PieIcon } from "lucide-react";
+import { Activity, Clock3, LandPlot, PieChart as PieIcon } from "lucide-react";
 import { downloadCSV, createPDF, addPDFTable, downloadPDF } from "@/lib/export";
 import { ExportMenu } from "@/components/shared/export-menu"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +35,7 @@ import {
   useSessionCalculations,
   useSessions,
   useSports,
+  useVenues,
 } from "@/lib/queries";
 
 export default function ReportsPage() {
@@ -47,6 +48,7 @@ export default function ReportsPage() {
   const { data: profiles } = useProfiles();
   const { data: attendance } = useAttendance();
   const { data: expenses } = useExpenses();
+  const { data: venues } = useVenues();
 
   const loading =
     loadingPayments || loadingCosts || loadingCalc || loadingSessions;
@@ -127,6 +129,33 @@ export default function ReportsPage() {
 
     return { total: members.length, active30, inactive30, inactive60, newMembers };
   }, [profiles, attendance, sessions]);
+
+  // ── Insights: peak hours + busiest venues (by attended member-sessions) ──
+  const insights = useMemo(() => {
+    const sessionById = new Map((sessions ?? []).map((s) => [s.id, s]));
+    const venueById = new Map((venues ?? []).map((v) => [v.id, v.name]));
+    const hourCount = new Map<string, number>();
+    const venueCount = new Map<string, number>();
+    for (const a of attendance ?? []) {
+      if (!a.is_present) continue;
+      const s = sessionById.get(a.session_id);
+      if (!s) continue;
+      const hour = s.time.slice(0, 5);
+      hourCount.set(hour, (hourCount.get(hour) ?? 0) + 1);
+      if (s.venue_id) {
+        venueCount.set(s.venue_id, (venueCount.get(s.venue_id) ?? 0) + 1);
+      }
+    }
+    const peakHours = [...hourCount.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([hour, count]) => ({ hour, count }));
+    const busiestVenues = [...venueCount.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([id, count]) => ({ name: venueById.get(id) ?? "—", count }));
+    return { peakHours, busiestVenues };
+  }, [attendance, sessions, venues]);
 
   return (
     <div className="space-y-6">
@@ -296,6 +325,54 @@ export default function ReportsPage() {
                 <p className="mt-1 font-mono text-xl font-extrabold text-blue-700 dark:text-blue-400">
                   {retention.newMembers}
                 </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Insights: peak hours + busiest venues */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Activity className="h-4 w-4 text-primary" />
+                {t("reports_insights_title")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <Clock3 className="h-3.5 w-3.5" />
+                  {t("reports_peak_hours")}
+                </p>
+                {insights.peakHours.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">{t("reports_insights_empty")}</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {insights.peakHours.map((p) => (
+                      <Badge key={p.hour} variant="secondary" className="gap-1 font-mono">
+                        {p.hour}
+                        <span className="text-muted-foreground">· {p.count}</span>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="space-y-2">
+                <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <LandPlot className="h-3.5 w-3.5" />
+                  {t("reports_busiest_venues")}
+                </p>
+                {insights.busiestVenues.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">{t("reports_insights_empty")}</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {insights.busiestVenues.map((v) => (
+                      <Badge key={v.name} variant="secondary" className="gap-1">
+                        {v.name}
+                        <span className="text-muted-foreground">· {v.count}</span>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

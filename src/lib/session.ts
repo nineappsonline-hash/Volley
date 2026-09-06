@@ -53,6 +53,15 @@ export async function requireSession(): Promise<SessionData> {
     last_reminded_at: null,
     member_plan: "free",
     premium_expires_at: null,
+    community_visible: true,
+    bio: null,
+    lat: null,
+    lng: null,
+    skill_level: null,
+    position: null,
+    availability_days: [],
+    interested_sports: [],
+    notify_game_alerts: false,
     created_at: new Date().toISOString(),
   };
 

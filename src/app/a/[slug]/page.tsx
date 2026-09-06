@@ -18,7 +18,7 @@ export default async function PublicAcademyPage({
 
   const { data: academy } = await admin
     .from("academies")
-    .select("id, name, description, address, country, governorate, area, cover_url, is_public")
+    .select("id, name, description, country, governorate, area, cover_url, is_public")
     .eq("slug", slug)
     .eq("is_public", true)
     .single();
@@ -77,14 +77,12 @@ export default async function PublicAcademyPage({
               {academy.description}
             </p>
           )}
-          {(academy.country || academy.governorate || academy.address) && (
+          {(academy.country || academy.governorate) && (
             <p className="flex items-center justify-center gap-1.5 text-sm text-white/85">
               <MapPin className="h-4 w-4" />
-              {academy.country || academy.governorate
-                ? [academy.area, academy.governorate, academy.country]
-                    .filter(Boolean)
-                    .join(", ")
-                : academy.address}
+              {[academy.area, academy.governorate, academy.country]
+                .filter(Boolean)
+                .join(", ")}
             </p>
           )}
           {ratingCount > 0 && (

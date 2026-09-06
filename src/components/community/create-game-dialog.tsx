@@ -1,0 +1,277 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useI18n } from "@/lib/i18n";
+import { COMMUNITY_SPORTS } from "@/lib/constants";
+import { MapPicker } from "@/components/shared/map-picker";
+import { useCreateFriendlyGame } from "@/lib/queries";
+import { errorMessage, todayInput } from "@/lib/utils";
+
+export function CreateGameDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { t } = useI18n();
+  const create = useCreateFriendlyGame();
+
+  const [title, setTitle] = useState("");
+  const [sport, setSport] = useState("");
+  const [area, setArea] = useState("");
+  const [location, setLocation] = useState("");
+  const [lat, setLat] = useState<number | null>(null);
+  const [lng, setLng] = useState<number | null>(null);
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [maxPlayers, setMaxPlayers] = useState("12");
+  const [skillLevel, setSkillLevel] = useState("any");
+  const [description, setDescription] = useState("");
+  const [isPublic, setIsPublic] = useState(true);
+  const [recurrence, setRecurrence] = useState("once");
+
+  useEffect(() => {
+    if (open) {
+      setTitle("");
+      setSport("");
+      setArea("");
+      setLocation("");
+      setLat(null);
+      setLng(null);
+      setDate(todayInput());
+      setTime("");
+      setMaxPlayers("12");
+      setSkillLevel("any");
+      setDescription("");
+      setIsPublic(true);
+      setRecurrence("once");
+    }
+  }, [open]);
+
+  const handleCreate = async () => {
+    if (!title.trim() || !sport || !date || !time) return;
+    try {
+      await create.mutateAsync({
+        title: title.trim(),
+        sport,
+        area: area.trim() || undefined,
+        location: location.trim() || undefined,
+        lat,
+        lng,
+        game_date: date,
+        start_time: time,
+        max_players: Math.max(2, Number(maxPlayers) || 12),
+        skill_level: skillLevel === "any" ? undefined : skillLevel,
+        description: description.trim() || undefined,
+        is_public: isPublic,
+        recurrence: recurrence === "weekly" ? "weekly" : null,
+      });
+      toast.success(t("community_created"));
+      onOpenChange(false);
+    } catch (err) {
+      toast.error(errorMessage(err, t("common_error")));
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{t("community_create_title")}</DialogTitle>
+          <DialogDescription>{t("community_create_desc")}</DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>{t("community_game_title")}</Label>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={t("community_game_title_ph")}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>{t("community_sport")}</Label>
+              <Select value={sport} onValueChange={setSport}>
+                <SelectTrigger aria-label={t("community_sport")}>
+                  <SelectValue placeholder={t("community_sport")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {COMMUNITY_SPORTS.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>{t("community_skill_level")}</Label>
+              <Select value={skillLevel} onValueChange={setSkillLevel}>
+                <SelectTrigger aria-label={t("community_skill_level")}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">{t("community_any_level")}</SelectItem>
+                  <SelectItem value="beginner">
+                    {t("skill_beginner")}
+                  </SelectItem>
+                  <SelectItem value="intermediate">
+                    {t("skill_intermediate")}
+                  </SelectItem>
+                  <SelectItem value="advanced">
+                    {t("skill_advanced")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>{t("community_area")}</Label>
+              <Input
+                value={area}
+                onChange={(e) => setArea(e.target.value)}
+                placeholder={t("community_area_ph")}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("community_location")}</Label>
+              <Input
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder={t("community_location_ph")}
+              />
+            </div>
+          </div>
+
+          <MapPicker
+            lat={lat}
+            lng={lng}
+            onChange={(loc) => {
+              setLat(loc.lat);
+              setLng(loc.lng);
+              if (loc.label) setLocation(loc.label);
+            }}
+            hint={t("community_map_hint")}
+          />
+
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div className="space-y-2">
+              <Label>{t("community_date")}</Label>
+              <Input
+                type="date"
+                dir="ltr"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("community_time")}</Label>
+              <Input
+                type="time"
+                dir="ltr"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("community_max_players")}</Label>
+              <Input
+                type="number"
+                min="2"
+                dir="ltr"
+                value={maxPlayers}
+                onChange={(e) => setMaxPlayers(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2" />
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t("community_description")}</Label>
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={t("community_description_ph")}
+              rows={2}
+            />
+          </div>
+
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={isPublic}
+                  onCheckedChange={setIsPublic}
+                  id="game-public"
+                />
+                <Label htmlFor="game-public">{t("community_public")}</Label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("community_public_hint")}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t("community_recurrence")}</Label>
+            <Select value={recurrence} onValueChange={setRecurrence}>
+              <SelectTrigger aria-label={t("community_recurrence")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="once">{t("community_once")}</SelectItem>
+                <SelectItem value="weekly">{t("community_weekly")}</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {t("community_recurrence_hint")}
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            {t("common_cancel")}
+          </Button>
+          <Button
+            onClick={handleCreate}
+            disabled={
+              !title.trim() || !sport || !date || !time || create.isPending
+            }
+          >
+            <Plus className="me-1 h-4 w-4" />
+            {create.isPending ? t("common_saving") : t("community_create")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

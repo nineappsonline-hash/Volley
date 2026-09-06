@@ -3,15 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { CheckCircle2, LandPlot, Pencil, Plus, Trash2, Wallet } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +13,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { AlertTriangle, CheckCircle2, LandPlot, Pencil, Plus, Trash2, Wallet } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -78,6 +78,25 @@ export function RentalsClient() {
   const [method, setMethod] = useState<RentalPaymentMethod | "none">("none");
   const [notes, setNotes] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<VenueRental | null>(null);
+  const [pendingSave, setPendingSave] = useState<boolean>(false);
+
+  const minutesOf = (t: string) => {
+    const [h, m] = t.split(":").map((x) => Number(x) || 0);
+    return h * 60 + m;
+  };
+
+  const findConflicts = (): VenueRental[] => {
+    if (venueId === "none" || !date || !time) return [];
+    const myStart = minutesOf(time);
+    const myEnd = myStart + (Number(hours) || 1) * 60;
+    return (rentals ?? []).filter((r) => {
+      if (editing && r.id === editing.id) return false;
+      if (r.venue_id !== venueId || r.rental_date !== date) return false;
+      const other = minutesOf(r.start_time);
+      const otherEnd = other + (Number(r.hours) || 1) * 60;
+      return myStart < otherEnd && other < myEnd;
+    });
+  };
 
   useEffect(() => {
     if (dialogOpen && !editing) {
@@ -128,8 +147,13 @@ export function RentalsClient() {
     return { total, collected, outstanding: total - collected };
   }, [rentals]);
 
-  const handleSave = async () => {
+  const handleSave = async (force = false) => {
     if (!customerName.trim() || !date || !time) return;
+    const conflicts = findConflicts();
+    if (conflicts.length > 0 && !force) {
+      setPendingSave(true);
+      return;
+    }
     try {
       await save.mutateAsync({
         id: editing?.id,
@@ -148,6 +172,7 @@ export function RentalsClient() {
       toast.success(t("rentals_saved"));
       setDialogOpen(false);
       setEditing(null);
+      setPendingSave(false);
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
     }
@@ -461,13 +486,48 @@ export function RentalsClient() {
             </Button>
             <Button
               disabled={!customerName.trim() || !date || !time || save.isPending}
-              onClick={handleSave}
+              onClick={() => handleSave()}
             >
               {save.isPending ? t("common_saving") : t("common_save")}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Booking conflict confirmation */}
+      <AlertDialog
+        open={pendingSave}
+        onOpenChange={(o) => !o && setPendingSave(false)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              {t("rentals_conflict_title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("rentals_conflict_desc")
+                .replace(
+                  "{venue}",
+                  venueName(venueId === "none" ? null : venueId)
+                )
+                .replace("{count}", String(findConflicts().length))}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common_cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                setPendingSave(false);
+                void handleSave(true);
+              }}
+            >
+              {t("rentals_conflict_override")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete confirmation */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>

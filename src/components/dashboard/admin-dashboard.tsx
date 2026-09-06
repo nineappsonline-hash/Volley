@@ -7,11 +7,13 @@ import {
   CreditCard,
   PiggyBank,
   Receipt,
+  Rocket,
   TrendingUp,
   Users,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/shared/stat-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { UpcomingSessions } from "@/components/schedule/upcoming-sessions";
@@ -22,6 +24,7 @@ import { TrialsCard } from "@/components/dashboard/trials-card";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import {
+  useAcademy,
   useAllPayments,
   useMonthlyCosts,
   useProfiles,
@@ -36,6 +39,7 @@ export function AdminDashboard() {
   const { data: costs } = useMonthlyCosts();
   const { data: sessions } = useSessions();
   const { data: calculations } = useSessionCalculations();
+  const { data: academy } = useAcademy();
 
   const now = new Date();
   const month = now.getMonth() + 1;
@@ -61,8 +65,28 @@ export function AdminDashboard() {
     (calculations ?? []).map((c) => [c.session_id, c])
   );
 
+  const incomplete =
+    academy != null &&
+    (!academy.name.trim() || academy.lat == null || academy.lng == null);
+
   return (
     <div className="space-y-6">
+      {incomplete && (
+        <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
+          <div className="flex items-center gap-3">
+            <Rocket className="h-5 w-5 shrink-0 text-primary" />
+            <div>
+              <p className="text-sm font-semibold">{t("onboarding_banner_title")}</p>
+              <p className="text-xs text-muted-foreground">
+                {t("onboarding_banner_hint")}
+              </p>
+            </div>
+          </div>
+          <Button asChild size="sm">
+            <Link href="/onboarding">{t("onboarding_banner_cta")}</Link>
+          </Button>
+        </div>
+      )}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {loadingProfiles ? (
           <>

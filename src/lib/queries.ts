@@ -8,10 +8,16 @@ import type {
   AcademyRating,
   ActivityFeedItem,
   Announcement,
+  AppNotification,
   Attendance,
+  Block,
   Coach,
   CoachAvailability,
+  CommunityMember,
+  CommunityReport,
   Expense,
+  FriendlyGameParticipant,
+  FriendlyGameWithDetails,
   MemberBadge,
   MembershipPlan,
   MonthlyCost,
@@ -74,6 +80,14 @@ export const queryKeys = {
   recurring: ["recurring"] as const,
   publicAcademies: ["public-academies"] as const,
   academyRatings: ["academy-ratings"] as const,
+  communityMembers: ["community-members"] as const,
+  friendlyGames: ["friendly-games"] as const,
+  myGameParticipants: ["my-game-participants"] as const,
+  notifications: ["notifications"] as const,
+  reports: ["reports"] as const,
+  blocks: ["blocks"] as const,
+  communityRecord: ["community-record"] as const,
+  myStreaks: ["my-streaks"] as const,
 };
 
 const supabase = () => createClient();
@@ -846,13 +860,13 @@ export function usePublicAcademies() {
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("academies")
-        .select("id, name, description, address, country, governorate, area, cover_url, slug")
+        .select("id, name, description, country, governorate, area, lat, lng, cover_url, slug")
         .eq("is_public", true)
         .order("name");
       if (error) throw error;
       return (data ?? []) as Pick<
         Academy,
-        "id" | "name" | "description" | "address" | "country" | "governorate" | "area" | "cover_url" | "slug"
+        "id" | "name" | "description" | "country" | "governorate" | "area" | "lat" | "lng" | "cover_url" | "slug"
       >[];
     },
   });
@@ -1195,6 +1209,8 @@ export function useSaveVenue() {
       const payload = {
         name: venue.name,
         address: venue.address ?? null,
+        lat: venue.lat ?? null,
+        lng: venue.lng ?? null,
         capacity: venue.capacity ?? null,
         sport_id: venue.sport_id ?? null,
         school_name: venue.school_name ?? null,
@@ -2126,6 +2142,485 @@ export function useGenerateSessions() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.sessions });
+    },
+  });
+}
+
+// ── Community ───────────────────────────────────────────────
+
+export function useCommunityMembers() {
+  return useQuery({
+    queryKey: queryKeys.communityMembers,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("community_members")
+        .select("*")
+        .order("name")
+        .limit(500);
+      if (error) throw error;
+      return (data ?? []) as CommunityMember[];
+    },
+  });
+}
+
+export function useFriendlyGames() {
+  return useQuery({
+    queryKey: queryKeys.friendlyGames,
+    queryFn: async () => {
+      // Lazy-materialize weekly series so recurring games always show the
+      // next instances without waiting for a scheduler.
+      try {
+        await supabase().rpc("materialize_recurring_games");
+      } catch {
+        // Non-fatal: the listing below still works without materialization.
+      }
+
+      const today = new Date().toISOString().slice(0, 10);
+
+      // Load member blocks so blocked users' games don't surface.
+      const {
+        data: { user },
+      } = await supabase().auth.getUser();
+      let blockedIds: string[] = [];
+      if (user) {
+        const { data: blockRows, error: blockErr } = await supabase()
+          .from("blocks")
+          .select("blocked_id")
+          .eq("blocker_id", user.id);
+        if (!blockErr) blockedIds = (blockRows ?? []).map((b) => b.blocked_id);
+      }
+
+      const { data, error } = await supabase()
+        .from("friendly_games")
+        .select("*, participants:friendly_game_participants(count)")
+        .neq("status", "cancelled")
+        .gte("game_date", today)
+        .order("game_date")
+        .limit(200);
+      if (error) throw error;
+
+      const hidden = new Set(blockedIds);
+      return ((data ?? []) as any[])
+        .filter((g) => !hidden.has(g.creator_id))
+        .map((g) => ({
+          ...g,
+          participants_count: Number(g.participants?.[0]?.count ?? 0),
+        })) as FriendlyGameWithDetails[];
+    },
+  });
+}
+
+export function useMyGameParticipants() {
+  return useQuery({
+    queryKey: queryKeys.myGameParticipants,
+    queryFn: async () => {
+      const {
+        data: { user },
+      } = await supabase().auth.getUser();
+      if (!user) return [];
+      const { data, error } = await supabase()
+        .from("friendly_game_participants")
+        .select("id, game_id, member_id, role, is_waitlisted, joined_at")
+        .eq("member_id", user.id);
+      if (error) throw error;
+      return (data ?? []) as FriendlyGameParticipant[];
+    },
+  });
+}
+
+export function useCreateFriendlyGame() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      title: string;
+      sport: string;
+      area?: string;
+      location?: string;
+      lat?: number | null;
+      lng?: number | null;
+      game_date: string;
+      start_time: string;
+      max_players: number;
+      skill_level?: string;
+      description?: string;
+      is_public?: boolean;
+      recurrence?: "weekly" | null;
+    }) => {
+      const { error } = await supabase().rpc("create_friendly_game", {
+        p_title: input.title,
+        p_sport: input.sport,
+        p_area: input.area ?? null,
+        p_location: input.location ?? null,
+        p_lat: input.lat ?? null,
+        p_lng: input.lng ?? null,
+        p_game_date: input.game_date,
+        p_start_time: input.start_time,
+        p_max_players: input.max_players,
+        p_skill_level: input.skill_level ?? null,
+        p_description: input.description ?? null,
+        p_is_public: input.is_public ?? true,
+        p_recurrence: input.recurrence ?? null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
+      qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
+    },
+  });
+}
+
+export function useJoinFriendlyGame() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (gameId: string) => {
+      const { error } = await supabase().rpc("join_friendly_game", {
+        p_game_id: gameId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
+      qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
+    },
+  });
+}
+
+export function useLeaveFriendlyGame() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (gameId: string) => {
+      const { error } = await supabase().rpc("leave_friendly_game", {
+        p_game_id: gameId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
+      qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
+    },
+  });
+}
+
+export function useCancelFriendlyGame() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (gameId: string) => {
+      const { error } = await supabase().rpc("cancel_friendly_game", {
+        p_game_id: gameId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
+      qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
+    },
+  });
+}
+
+export function useUpdateCommunityProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      id: string;
+      bio?: string | null;
+      community_visible?: boolean;
+      skill_level?: string | null;
+      position?: string | null;
+      availability_days?: number[];
+      interested_sports?: string[];
+      notify_game_alerts?: boolean;
+    }) => {
+      const { error } = await supabase()
+        .from("profiles")
+        .update({
+          bio: input.bio ?? null,
+          community_visible: input.community_visible ?? true,
+          skill_level:
+            input.skill_level === undefined ? undefined : input.skill_level,
+          position: input.position === undefined ? undefined : input.position,
+          availability_days:
+            input.availability_days === undefined
+              ? undefined
+              : input.availability_days,
+          interested_sports:
+            input.interested_sports === undefined
+              ? undefined
+              : input.interested_sports,
+          notify_game_alerts:
+            input.notify_game_alerts === undefined
+              ? undefined
+              : input.notify_game_alerts,
+        })
+        .eq("id", input.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.profiles });
+      qc.invalidateQueries({ queryKey: queryKeys.communityMembers });
+    },
+  });
+}
+
+// ── Notifications ────────────────────────────────────────────
+
+export function useNotifications(limit = 30) {
+  return useQuery({
+    queryKey: [...queryKeys.notifications, limit],
+    queryFn: async () => {
+      const {
+        data: { user },
+      } = await supabase().auth.getUser();
+      if (!user) return [];
+      const { data, error } = await supabase()
+        .from("notifications")
+        .select("*")
+        .eq("recipient_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return (data ?? []) as AppNotification[];
+    },
+  });
+}
+
+export function useMarkNotificationsRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids?: string[]) => {
+      const { error } = await supabase().rpc("mark_notifications_read", {
+        p_ids: ids ?? null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.notifications });
+    },
+  });
+}
+
+// ── Scores & records ─────────────────────────────────────────
+
+export function useSubmitGameScore() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { gameId: string; resultA: number; resultB: number }) => {
+      const { error } = await supabase().rpc("submit_game_score", {
+        p_game_id: input.gameId,
+        p_result_a: input.resultA,
+        p_result_b: input.resultB,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
+      qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
+    },
+  });
+}
+
+// ── Trust & safety ───────────────────────────────────────────
+
+export function useFileReport() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { targetType: "member" | "game"; targetId: string; reason: string }) => {
+      if (!input.reason.trim()) throw new Error("Reason is required");
+      const { error } = await supabase().rpc("file_report", {
+        p_target_type: input.targetType,
+        p_target_id: input.targetId,
+        p_reason: input.reason.trim(),
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.reports });
+    },
+  });
+}
+
+export function useResolveReport() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { reportId: string; status: "resolved" | "dismissed" }) => {
+      const { error } = await supabase().rpc("resolve_report", {
+        p_report_id: input.reportId,
+        p_status: input.status,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.reports });
+    },
+  });
+}
+
+export function useReports() {
+  return useQuery({
+    queryKey: queryKeys.reports,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("reports")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      return (data ?? []) as CommunityReport[];
+    },
+  });
+}
+
+export function useMyBlocks() {
+  return useQuery({
+    queryKey: queryKeys.blocks,
+    queryFn: async () => {
+      const {
+        data: { user },
+      } = await supabase().auth.getUser();
+      if (!user) return [] as Block[];
+      const { data, error } = await supabase()
+        .from("blocks")
+        .select("*")
+        .eq("blocker_id", user.id);
+      if (error) throw error;
+      return (data ?? []) as Block[];
+    },
+  });
+}
+
+export function useBlockMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (memberId: string) => {
+      const { error } = await supabase().rpc("block_member", {
+        p_member_id: memberId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.blocks });
+      qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
+    },
+  });
+}
+
+export function useUnblockMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (memberId: string) => {
+      const { error } = await supabase().rpc("unblock_member", {
+        p_member_id: memberId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.blocks });
+      qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
+    },
+  });
+}
+
+// ── Community record & streaks ───────────────────────────────
+
+export function useMyCommunityRecord() {
+  return useQuery({
+    queryKey: queryKeys.communityRecord,
+    queryFn: async () => {
+      const {
+        data: { user },
+      } = await supabase().auth.getUser();
+      if (!user) return { played: 0, wins: 0, losses: 0, draws: 0 };
+      const { data: parts } = await supabase()
+        .from("friendly_game_participants")
+        .select("game_id")
+        .eq("member_id", user.id);
+      const ids = (parts ?? []).map((p) => p.game_id);
+      if (ids.length === 0) return { played: 0, wins: 0, losses: 0, draws: 0 };
+      const { data: games, error } = await supabase()
+        .from("friendly_games")
+        .select("result_a, result_b")
+        .in("id", ids)
+        .eq("status", "completed")
+        .not("result_a", "is", null);
+      if (error) throw error;
+      const rows = (games ?? []) as { result_a: number; result_b: number }[];
+      let wins = 0;
+      let losses = 0;
+      let draws = 0;
+      for (const g of rows) {
+        if (g.result_a > g.result_b) wins += 1;
+        else if (g.result_a < g.result_b) losses += 1;
+        else draws += 1;
+      }
+      return { played: rows.length, wins, losses, draws };
+    },
+  });
+}
+
+export interface StreakStats {
+  current: number;
+  best: number;
+  attendedSessions: number;
+}
+
+export function useMyStreaks() {
+  return useQuery({
+    queryKey: queryKeys.myStreaks,
+    queryFn: async () => {
+      const stats: StreakStats = { current: 0, best: 0, attendedSessions: 0 };
+      const {
+        data: { user },
+      } = await supabase().auth.getUser();
+      if (!user) return stats;
+
+      const { data, error } = await supabase()
+        .from("attendance")
+        .select("is_present, session:training_sessions(date)")
+        .eq("member_id", user.id)
+        .eq("is_present", true);
+      if (error) throw error;
+
+      const unique = [
+        ...new Set(
+          (data ?? []).map((r: any) => r.session?.date).filter(Boolean)
+        ),
+      ] as string[];
+      unique.sort();
+      stats.attendedSessions = unique.length;
+      if (unique.length === 0) return stats;
+
+      const keyOf = (d: Date) => d.toISOString().slice(0, 10);
+      const dayOf = (s: string) => new Date(s + "T12:00:00");
+      const set = new Set(unique);
+
+      // Best streak: longest run of consecutive unique dates.
+      let run = 1;
+      for (let i = 1; i < unique.length; i++) {
+        const prev = dayOf(unique[i - 1]);
+        const cur = new Date(prev);
+        cur.setDate(prev.getDate() + 1);
+        if (keyOf(cur) === unique[i]) {
+          run += 1;
+        } else {
+          stats.best = Math.max(stats.best, run);
+          run = 1;
+        }
+      }
+      stats.best = Math.max(stats.best, run);
+
+      // Current streak: consecutive days up to today (or yesterday if today
+      // has no session yet).
+      let cursor = new Date();
+      cursor.setHours(0, 0, 0, 0);
+      if (!set.has(keyOf(cursor))) {
+        cursor.setDate(cursor.getDate() - 1);
+      }
+      while (set.has(keyOf(cursor))) {
+        stats.current += 1;
+        cursor.setDate(cursor.getDate() - 1);
+      }
+
+      return stats;
     },
   });
 }

@@ -1,84 +1,139 @@
 "use client";
 
-import { Bell } from "lucide-react";
-import { format } from "date-fns";
+import { useMemo, useState } from "react";
+import { formatDistanceToNow } from "date-fns";
+import {
+  Bell,
+  CheckCheck,
+  Flag,
+  PlusCircle,
+  RefreshCw,
+  Trophy,
+  UserPlus,
+  UserRoundX,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/lib/i18n";
-import { formatMoney } from "@/lib/constants";
-import { useAllPayments, useUpcomingSessions } from "@/lib/queries";
+import {
+  useMarkNotificationsRead,
+  useNotifications,
+} from "@/lib/queries";
+import { useRealtime } from "@/lib/useRealtime";
+import type { NotificationType } from "@/lib/types";
+
+const TYPE_ICONS: Record<NotificationType, typeof Bell> = {
+  game_join: UserPlus,
+  game_left: UserRoundX,
+  game_filled: PlusCircle,
+  game_alert: Bell,
+  game_cancelled: Flag,
+  game_result: Trophy,
+};
 
 export function Notifications() {
-  const { t, lang, locale } = useI18n();
-  const { data: payments } = useAllPayments();
-  const { data: upcoming } = useUpcomingSessions();
+  const { t, locale } = useI18n();
+  const { data: items } = useNotifications(40);
+  const markRead = useMarkNotificationsRead();
+  useRealtime(["notifications"]);
+  const [open, setOpen] = useState(false);
 
-  const recentPayments = (payments ?? []).slice(0, 3);
-  const total = (recentPayments.length ?? 0) + (upcoming?.length ?? 0);
+  const unread = useMemo(
+    () => (items ?? []).filter((n) => !n.is_read).length,
+    [items]
+  );
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (next && unread > 0) {
+      markRead.mutate(undefined);
+    }
+  };
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative" aria-label={t("notif_title")}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          aria-label={t("notif_title")}
+        >
           <Bell className="h-5 w-5" />
-          {total > 0 && (
+          {unread > 0 && (
             <span className="absolute end-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-              {Math.min(total, 9)}
+              {Math.min(unread, 9)}
             </span>
           )}
         </Button>
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-[min(20rem,calc(100vw-2rem))] p-0"
+        className="w-[min(21rem,calc(100vw-2rem))] p-0"
       >
-        <div className="border-b p-3 font-semibold">{t("notif_title")}</div>
-        <div className="max-h-80 overflow-y-auto p-2">
-          {upcoming && upcoming.length > 0 && (
-            <div className="mb-2 rounded-md bg-blue-50 p-3 text-sm dark:bg-blue-500/10">
-              <p className="font-medium text-blue-700 dark:text-blue-300">
-                {upcoming.length} {t("notif_upcoming")}
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {format(
-                  new Date(upcoming[0].date + "T00:00:00"),
-                  "EEE, MMM d",
-                  { locale }
-                )}
-                {" · "}
-                {upcoming[0].time.slice(0, 5)}
-              </p>
-            </div>
-          )}
-          {recentPayments.map((p) => (
-            <div
-              key={p.id}
-              className="flex items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-accent"
+        <div className="flex items-center justify-between border-b p-3">
+          <span className="font-semibold">{t("notif_title")}</span>
+          {items && items.length > 0 && (
+            <button
+              onClick={() => markRead.mutate(undefined)}
+              className="flex items-center gap-1 text-xs text-primary hover:underline"
             >
-              <span className="text-muted-foreground">{t("notif_new_payment")}</span>
-              <span className="flex items-center gap-2">
-                <Badge variant="success" className="font-mono">
-                  {formatMoney(p.amount, lang)}
-                </Badge>
-                <span className="text-xs text-muted-foreground">
-                  {format(new Date(p.payment_date + "T00:00:00"), "MMM d", {
-                    locale,
-                  })}
-                </span>
-              </span>
-            </div>
-          ))}
-          {recentPayments.length === 0 && (!upcoming || upcoming.length === 0) && (
-            <p className="p-4 text-center text-sm text-muted-foreground">
-              {t("notif_empty")}
-            </p>
+              <CheckCheck className="h-3.5 w-3.5" />
+              {t("notif_mark_all")}
+            </button>
           )}
         </div>
+        <div className="max-h-80 overflow-y-auto p-2">
+          {items && items.length > 0 ? (
+            items.map((n) => {
+              const Icon = TYPE_ICONS[n.type] ?? Bell;
+              return (
+                <div
+                  key={n.id}
+                  className={`flex items-start gap-3 rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-accent ${
+                    n.is_read ? "opacity-70" : ""
+                  }`}
+                >
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Icon className="h-3.5 w-3.5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium leading-snug">{n.title}</p>
+                    {n.body && (
+                      <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                        {n.body}
+                      </p>
+                    )}
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">
+                      {formatDistanceToNow(new Date(n.created_at), {
+                        addSuffix: true,
+                        locale,
+                      })}
+                    </p>
+                  </div>
+                  {!n.is_read && (
+                    <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <div className="flex flex-col items-center gap-2 p-6 text-center">
+              <Bell className="h-6 w-6 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">{t("notif_empty")}</p>
+            </div>
+          )}
+        </div>
+        {markRead.isPending && (
+          <div className="flex items-center justify-center gap-1 border-t p-2 text-xs text-muted-foreground">
+            <RefreshCw className="h-3 w-3 animate-spin" />
+            {t("notif_updating")}
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );

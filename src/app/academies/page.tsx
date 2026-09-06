@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, MapPin, Star, Volleyball } from "lucide-react";
+import { Crosshair, Loader2, MapPin, Navigation, Search, Star, Volleyball } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -23,6 +24,8 @@ import {
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
+import { matchesBilingual } from "@/lib/search";
+import { formatKm, haversineKm, type LatLng } from "@/lib/geo";
 import { COUNTRIES, COUNTRIES_AR, localizeCountry, normalizeCountry } from "@/lib/locations";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -88,10 +91,17 @@ export default function AcademiesDirectoryPage() {
       setMyId(user.id);
       const { data: profile } = await supabase
         .from("profiles")
-        .select("academy_id")
+        .select("academy_id, lat, lng")
         .eq("id", user.id)
         .maybeSingle();
-      if (alive) setMyAcademyId(profile?.academy_id ?? null);
+      if (alive) {
+        setMyAcademyId(profile?.academy_id ?? null);
+        // Default the "nearest" reference to the member's saved profile pin.
+        if (profile?.lat != null && profile?.lng != null) {
+          setMyLoc({ lat: profile.lat, lng: profile.lng });
+          setSortMode("nearest");
+        }
+      }
     })();
     return () => {
       alive = false;
@@ -137,6 +147,12 @@ export default function AcademiesDirectoryPage() {
   const [filterArea, setFilterArea] = useState("all");
   const [filterSport, setFilterSport] = useState("all");
   const [filterRating, setFilterRating] = useState("0");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [maxKm, setMaxKm] = useState("0");
+  const [myLoc, setMyLoc] = useState<LatLng | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [geoError, setGeoError] = useState(false);
+  const [sortMode, setSortMode] = useState<"name" | "nearest">("name");
 
   const countries = useMemo(() => {
     // Full localized catalog so the member's own country is always available.
@@ -173,8 +189,23 @@ export default function AcademiesDirectoryPage() {
     return [...set].sort();
   }, [sports]);
 
+  // Distance from the member's location to each academy (km, null if no coords).
+  const distances = useMemo(() => {
+    const map = new Map<string, number>();
+    if (myLoc) {
+      for (const a of academies ?? []) {
+        if (a.lat != null && a.lng != null) {
+          map.set(a.id, haversineKm(myLoc, { lat: a.lat, lng: a.lng }));
+        }
+      }
+    }
+    return map;
+  }, [academies, myLoc]);
+
   const filteredAcademies = useMemo(() => {
     const min = parseFloat(filterRating) || 0;
+    const radius = parseFloat(maxKm) || 0;
+    const q = searchQuery.trim();
     return (academies ?? []).filter((a) => {
       if (filterCountry !== "all" &&
         normalizeCountry(a.country ?? "") !== normalizeCountry(filterCountry)) return false;
@@ -183,6 +214,15 @@ export default function AcademiesDirectoryPage() {
       if (filterSport !== "all") {
         const list = sportsByAcademy.get(a.id) ?? [];
         if (!list.includes(filterSport)) return false;
+      }
+      if (radius > 0 && myLoc) {
+        if (a.lat == null || a.lng == null) return false;
+        const d = distances.get(a.id) ?? Infinity;
+        if (d > radius) return false;
+      }
+      if (q) {
+        const hay = `${a.name} ${a.description ?? ""} ${a.area ?? ""} ${a.governorate ?? ""} ${a.country ?? ""}`;
+        if (!matchesBilingual(hay, q)) return false;
       }
       if (min > 0) {
         const stat = statsByAcademy.get(a.id);
@@ -197,6 +237,10 @@ export default function AcademiesDirectoryPage() {
     filterArea,
     filterSport,
     filterRating,
+    maxKm,
+    searchQuery,
+    myLoc,
+    distances,
     sportsByAcademy,
     statsByAcademy,
   ]);
@@ -205,7 +249,42 @@ export default function AcademiesDirectoryPage() {
     const country = a.country ? localizeCountry(a.country, lang) : "";
     return a.country || a.governorate || a.area
       ? [a.area, a.governorate, country].filter(Boolean).join(", ")
-      : a.address || t("directory_no_location");
+      : t("directory_no_location");
+  };
+
+  // Apply the requested ordering on top of the active filters.
+  const sortedAcademies = useMemo(() => {
+    const list = filteredAcademies;
+    if (sortMode === "nearest" && myLoc) {
+      return [...list].sort((a, b) => {
+        const da = distances.get(a.id) ?? Infinity;
+        const db = distances.get(b.id) ?? Infinity;
+        if (da !== db) return da - db;
+        return a.name.localeCompare(b.name);
+      });
+    }
+    return list;
+  }, [filteredAcademies, sortMode, myLoc, distances]);
+
+  const requestLocation = () => {
+    if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
+      setGeoError(true);
+      return;
+    }
+    setLocating(true);
+    setGeoError(false);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocating(false);
+        setMyLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setSortMode("nearest");
+      },
+      () => {
+        setLocating(false);
+        setGeoError(true);
+      },
+      { enableHighAccuracy: true, timeout: 15000 }
+    );
   };
 
   const onJoin = async (academyId: string) => {
@@ -265,6 +344,81 @@ export default function AcademiesDirectoryPage() {
 
       {/* Directory */}
       <div className="mx-auto max-w-5xl px-6 py-10">
+        {/* Near me toolbar */}
+        <div className="mb-5 flex flex-col gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <Button
+              variant={myLoc ? "outline" : "default"}
+              onClick={requestLocation}
+              disabled={locating}
+            >
+              <Crosshair
+                className={`h-4 w-4 ${locating ? "animate-spin" : ""}`}
+              />
+              {locating
+                ? t("geo_locating")
+                : myLoc
+                  ? t("geo_near_me")
+                  : t("geo_find_near_me")}
+            </Button>
+            <div className="flex items-center gap-2">
+              <Label className="text-xs font-semibold text-muted-foreground">
+                {t("directory_sort")}
+              </Label>
+              <Select
+                value={sortMode}
+                onValueChange={(v) => {
+                  if (v === "nearest") {
+                    if (myLoc) setSortMode("nearest");
+                    else requestLocation();
+                  } else {
+                    setSortMode("name");
+                  }
+                }}
+              >
+                <SelectTrigger aria-label={t("directory_sort")} className="w-44">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">{t("directory_sort_name")}</SelectItem>
+                  <SelectItem value="nearest">{t("directory_sort_nearest")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Search + radius */}
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="relative flex-1">
+              <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t("directory_search_placeholder")}
+                className="ps-9"
+              />
+            </div>
+            {myLoc && (
+              <Select value={maxKm} onValueChange={setMaxKm}>
+                <SelectTrigger aria-label={t("directory_radius")} className="sm:w-44">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">{t("directory_radius_any")}</SelectItem>
+                  <SelectItem value="5">{t("directory_radius_5")}</SelectItem>
+                  <SelectItem value="10">{t("directory_radius_10")}</SelectItem>
+                  <SelectItem value="25">{t("directory_radius_25")}</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+        </div>
+        {geoError && (
+          <p className="mb-4 rounded-md bg-amber-50 p-3 text-xs text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+            {t("geo_location_error")}
+          </p>
+        )}
+
         {/* Filters */}
         <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-1.5">
@@ -387,9 +541,10 @@ export default function AcademiesDirectoryPage() {
           </p>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {filteredAcademies.map((a) => {
+            {sortedAcademies.map((a) => {
               const stat = statsByAcademy.get(a.id);
               const academySports = sportsByAcademy.get(a.id) ?? [];
+              const km = myLoc ? distances.get(a.id) : undefined;
               const joined = myAcademyId != null && myAcademyId !== undefined;
               return (
                 <Card key={a.id} className="flex flex-col overflow-hidden">
@@ -453,6 +608,12 @@ export default function AcademiesDirectoryPage() {
                       <MapPin className="h-3.5 w-3.5 shrink-0" />
                       {locationLabel(a)}
                     </p>
+                    {km != null && (
+                      <p className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                        <Navigation className="h-3.5 w-3.5 shrink-0" />
+                        {t("geo_distance_km").replace("{d}", formatKm(km))}
+                      </p>
+                    )}
 
                     {/* Rate (registered members only) */}
                     {myId && (

@@ -29,6 +29,8 @@ export interface Academy {
   country: string | null;
   governorate: string | null;
   area: string | null;
+  lat: number | null;
+  lng: number | null;
   cover_url: string | null;
   is_public: boolean;
   calendar_token: string | null;
@@ -69,6 +71,15 @@ export interface Profile {
   last_reminded_at: string | null;
   member_plan: MemberPlan;
   premium_expires_at: string | null;
+  community_visible: boolean;
+  bio: string | null;
+  lat: number | null;
+  lng: number | null;
+  skill_level: SkillLevel | null;
+  position: string | null;
+  availability_days: number[];
+  interested_sports: string[] | null;
+  notify_game_alerts: boolean;
   created_at: string;
 }
 
@@ -98,6 +109,8 @@ export interface Venue {
   academy_id: string;
   name: string;
   address: string | null;
+  lat: number | null;
+  lng: number | null;
   capacity: number | null;
   sport_id: string | null;
   school_name: string | null;
@@ -432,4 +445,100 @@ export interface SessionWithStats extends TrainingSession {
   calculation?: SessionCalculation | null;
   attendance_count: number;
   present_count: number;
+}
+
+export type CommunityGameStatus = "open" | "full" | "completed" | "cancelled";
+
+export interface CommunityMember {
+  id: string;
+  name: string;
+  bio: string | null;
+  academy_id: string | null;
+  academy_name: string | null;
+  area: string | null;
+  skill_level: SkillLevel | null;
+  position: string | null;
+  availability_days: number[];
+  interested_sports: string[] | null;
+  lat: number | null;
+  lng: number | null;
+}
+
+export interface FriendlyGame {
+  id: string;
+  creator_id: string;
+  creator_name: string;
+  sport: string;
+  title: string;
+  description: string | null;
+  area: string | null;
+  location: string | null;
+  lat: number | null;
+  lng: number | null;
+  game_date: string;
+  start_time: string;
+  max_players: number;
+  skill_level: SkillLevel | null;
+  is_public: boolean;
+  status: CommunityGameStatus;
+  recurrence: "weekly" | null;
+  source_game_id: string | null;
+  result_a: number | null;
+  result_b: number | null;
+  completed_by: string | null;
+  completed_at: string | null;
+  created_at: string;
+}
+
+export interface FriendlyGameWithDetails extends FriendlyGame {
+  participants_count: number;
+}
+
+export interface FriendlyGameParticipant {
+  id: string;
+  game_id: string;
+  member_id: string;
+  role: "organizer" | "player";
+  is_waitlisted: boolean;
+  joined_at: string;
+}
+
+export type NotificationType =
+  | "game_join"
+  | "game_left"
+  | "game_filled"
+  | "game_alert"
+  | "game_cancelled"
+  | "game_result";
+
+export interface AppNotification {
+  id: string;
+  recipient_id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  link: string | null;
+  is_read: boolean;
+  created_at: string;
+}
+
+export type ReportStatus = "open" | "resolved" | "dismissed";
+
+export interface CommunityReport {
+  id: string;
+  reporter_id: string;
+  target_type: "member" | "game";
+  target_id: string;
+  reason: string;
+  status: ReportStatus;
+  created_at: string;
+  reporter_name?: string;
+  target_name?: string;
+}
+
+export interface Block {
+  id: string;
+  blocker_id: string;
+  blocked_id: string;
+  created_at: string;
 }

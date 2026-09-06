@@ -8,8 +8,10 @@ import {
   CheckCircle2,
   Crown,
   ExternalLink,
+  Flag,
   Plus,
   Shield,
+  ShieldAlert,
   XCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -37,13 +39,26 @@ import {
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { useI18n } from "@/lib/i18n";
-import { useAllAcademies, useConvertToPaid, useExtendTrial } from "@/lib/queries";
+import {
+  useAllAcademies,
+  useCommunityMembers,
+  useConvertToPaid,
+  useExtendTrial,
+  useReports,
+  useResolveReport,
+} from "@/lib/queries";
 
 export function SuperAdminDashboard() {
   const { t, lang, locale } = useI18n();
   const { data: academies, isLoading } = useAllAcademies();
   const extendTrial = useExtendTrial();
   const convertToPaid = useConvertToPaid();
+  const { data: reports } = useReports();
+  const { data: members } = useCommunityMembers();
+  const resolve = useResolveReport();
+
+  const memberName = (id: string) =>
+    (members ?? []).find((m) => m.id === id)?.name ?? id.slice(0, 8);
 
   const stats = useMemo(() => {
     const list = academies ?? [];
@@ -245,6 +260,117 @@ export function SuperAdminDashboard() {
           </CardContent>
         </Card>
       )}
+
+      {/* Community moderation */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <ShieldAlert className="h-4 w-4 text-destructive" />
+            {t("moderation_title")}
+            {(reports ?? []).filter((r) => r.status === "open").length > 0 && (
+              <Badge variant="destructive">
+                {(reports ?? []).filter((r) => r.status === "open").length}
+              </Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!reports || reports.length === 0 ? (
+            <EmptyState
+              message={t("moderation_empty")}
+              hint={t("moderation_empty_hint")}
+              icon={Flag}
+            />
+          ) : (
+            <div className="rounded-xl border">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead>{t("moderation_target")}</TableHead>
+                    <TableHead className="hidden sm:table-cell">{t("moderation_reason")}</TableHead>
+                    <TableHead>{t("moderation_status")}</TableHead>
+                    <TableHead className="hidden md:table-cell">{t("moderation_date")}</TableHead>
+                    <TableHead className="text-end">{t("moderation_actions")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(reports ?? []).map((r) => (
+                    <TableRow key={r.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="shrink-0 text-[10px]">
+                            {r.target_type === "game" ? t("moderation_type_game") : t("moderation_type_member")}
+                          </Badge>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium">
+                              {r.target_type === "member"
+                                ? memberName(r.target_id)
+                                : r.target_id.slice(0, 8)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {t("moderation_reported_by")} {memberName(r.reporter_id)}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden max-w-[280px] sm:table-cell">
+                        <p className="line-clamp-2 text-xs text-muted-foreground">{r.reason}</p>
+                      </TableCell>
+                      <TableCell>
+                        {r.status === "open" ? (
+                          <Badge variant="destructive">{t("moderation_open")}</Badge>
+                        ) : r.status === "resolved" ? (
+                          <Badge variant="success">{t("moderation_resolved")}</Badge>
+                        ) : (
+                          <Badge variant="secondary">{t("moderation_dismissed")}</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-muted-foreground">
+                        {format(new Date(r.created_at), "MMM d, yyyy", { locale })}
+                      </TableCell>
+                      <TableCell className="text-end">
+                        {r.status === "open" ? (
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1 text-emerald-600 hover:text-emerald-600"
+                              onClick={() =>
+                                resolve
+                                  .mutateAsync({ reportId: r.id, status: "resolved" })
+                                  .then(() => toast.success(t("moderation_resolved_ok")))
+                                  .catch(() => toast.error(t("common_error")))
+                              }
+                              disabled={resolve.isPending}
+                            >
+                              <CheckCircle2 className="h-3 w-3" />
+                              {t("moderation_resolve")}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="gap-1 text-muted-foreground"
+                              onClick={() =>
+                                resolve
+                                  .mutateAsync({ reportId: r.id, status: "dismissed" })
+                                  .catch(() => toast.error(t("common_error")))
+                              }
+                              disabled={resolve.isPending}
+                            >
+                              <XCircle className="h-3 w-3" />
+                              {t("moderation_dismiss")}
+                            </Button>
+                          </div>
+                        ) : null}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
