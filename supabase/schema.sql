@@ -2691,7 +2691,7 @@ BEGIN
      AND v_functions_url IS NOT NULL AND v_functions_url <> '' THEN
     PERFORM net.http_post(
       url := v_functions_url || '/notify-push',
-      headers := '{"Content-Type": "application/json", "Authorization": "Bearer " || current_setting('app.settings.service_role_key', true)}',
+      headers := $hdr${"Content-Type": "application/json", "Authorization": "Bearer " || current_setting('app.settings.service_role_key', true)}$hdr$,
       body := json_build_object(
         'recipient_id', NEW.recipient_id::text,
         'title', NEW.title,
