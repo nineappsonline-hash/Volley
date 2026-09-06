@@ -47,6 +47,7 @@ import {
   useJoinFriendlyGame,
   useLeaveFriendlyGame,
   useMyGameParticipants,
+  useStopRecurringGame,
 } from "@/lib/queries";
 import { useRealtime } from "@/lib/useRealtime";
 import { matchesBilingual } from "@/lib/search";
@@ -78,17 +79,33 @@ function GameCard({
   game,
   profile,
   myParticipants,
+  allGames,
 }: {
   game: FriendlyGameWithDetails;
   profile: Profile;
   myParticipants: FriendlyGameParticipant[];
+  allGames: FriendlyGameWithDetails[];
 }) {
   const { t, locale } = useI18n();
   const join = useJoinFriendlyGame();
   const leave = useLeaveFriendlyGame();
   const cancel = useCancelFriendlyGame();
+  const stopRecurring = useStopRecurringGame();
   const [reportOpen, setReportOpen] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
+
+  const isParent = game.recurrence === "weekly" && game.source_game_id == null;
+  const today = new Date().toISOString().slice(0, 10);
+  const nextOccurrence = isParent
+    ? allGames
+        .filter(
+          (g) =>
+            g.source_game_id === game.id &&
+            g.status !== "cancelled" &&
+            g.game_date > today
+        )
+        .sort((a, b) => a.game_date.localeCompare(b.game_date))[0]
+    : undefined;
 
   const mine = myParticipants.find((p) => p.game_id === game.id);
   const isOrganizer = game.creator_id === profile.id;
@@ -96,7 +113,6 @@ function GameCard({
   const count = game.participants_count;
   const full = game.status === "full" || count >= game.max_players;
   const slotsLeft = Math.max(game.max_players - count, 0);
-  const today = new Date().toISOString().slice(0, 10);
   const pastDate = game.game_date < today;
   const needsResult =
     isOrganizer &&
@@ -140,6 +156,17 @@ function GameCard({
     }
   };
 
+  const handleStopRecurring = async () => {
+    if (!isParent) return;
+    if (!window.confirm(t("community_stop_repeat_confirm"))) return;
+    try {
+      await stopRecurring.mutateAsync(game.id);
+      toast.success(t("community_stop_repeat_ok"));
+    } catch (err) {
+      toast.error(errorMessage(err, t("common_error")));
+    }
+  };
+
   return (
     <Card className="hover:border-primary/30 flex flex-col transition-colors">
       <CardHeader className="pb-2">
@@ -150,6 +177,19 @@ function GameCard({
               <Badge variant="secondary" className="gap-1 text-[10px]">
                 <Repeat className="h-3 w-3" />
                 {t("community_weekly")}
+              </Badge>
+            )}
+            {nextOccurrence && (
+              <Badge variant="outline" className="gap-1 text-[10px]">
+                <CalendarDays className="h-3 w-3" />
+                {t("community_next").replace(
+                  "{date}",
+                  format(
+                    new Date(nextOccurrence.game_date + "T00:00:00"),
+                    "MMM d",
+                    { locale }
+                  )
+                )}
               </Badge>
             )}
             {recommended && (
@@ -288,6 +328,17 @@ function GameCard({
               >
                 {t("community_cancel")}
               </Button>
+              {isParent && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleStopRecurring}
+                  disabled={stopRecurring.isPending}
+                >
+                  <Repeat className="me-1 h-3.5 w-3.5" />
+                  {t("community_stop_repeat")}
+                </Button>
+              )}
             </>
           )}
 
@@ -418,6 +469,7 @@ export function GamesTab({ profile }: { profile: Profile }) {
               game={g}
               profile={profile}
               myParticipants={myParticipants ?? []}
+              allGames={games ?? []}
             />
           ))}
         </div>

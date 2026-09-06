@@ -11,6 +11,7 @@ import type {
   AppNotification,
   Attendance,
   Block,
+  BlockedMember,
   Coach,
   CoachAvailability,
   CommunityMember,
@@ -86,6 +87,7 @@ export const queryKeys = {
   notifications: ["notifications"] as const,
   reports: ["reports"] as const,
   blocks: ["blocks"] as const,
+  blockedMembers: ["blocked-members"] as const,
   communityRecord: ["community-record"] as const,
   myStreaks: ["my-streaks"] as const,
 };
@@ -2318,6 +2320,22 @@ export function useCancelFriendlyGame() {
   });
 }
 
+export function useStopRecurringGame() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (parentId: string) => {
+      const { error } = await supabase().rpc("stop_recurring_game", {
+        p_parent_id: parentId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
+      qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
+    },
+  });
+}
+
 export function useUpdateCommunityProfile() {
   const qc = useQueryClient();
   return useMutation({
@@ -2488,6 +2506,25 @@ export function useMyBlocks() {
   });
 }
 
+export function useBlockedMembers() {
+  return useQuery({
+    queryKey: queryKeys.blockedMembers,
+    queryFn: async () => {
+      const {
+        data: { user },
+      } = await supabase().auth.getUser();
+      if (!user) return [] as BlockedMember[];
+      const { data, error } = await supabase()
+        .from("blocked_members")
+        .select("*")
+        .eq("blocker_id", user.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as BlockedMember[];
+    },
+  });
+}
+
 export function useBlockMember() {
   const qc = useQueryClient();
   return useMutation({
@@ -2499,6 +2536,7 @@ export function useBlockMember() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.blocks });
+      qc.invalidateQueries({ queryKey: queryKeys.blockedMembers });
       qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
     },
   });
@@ -2515,6 +2553,7 @@ export function useUnblockMember() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.blocks });
+      qc.invalidateQueries({ queryKey: queryKeys.blockedMembers });
       qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
     },
   });

@@ -1810,6 +1810,18 @@ ALTER TABLE public.profiles
 -- Safe community-wide directory: NO email / phone / checkin code exposure.
 -- Plain (definer) view so an authenticated member from any academy can
 -- read the safe fields. bio is public by design (open directory).
+DROP VIEW IF EXISTS public.blocked_members;
+CREATE VIEW public.blocked_members AS
+SELECT
+  b.id,
+  b.blocker_id,
+  p.id AS blocked_id,
+  p.name AS blocked_name,
+  b.created_at
+FROM public.blocks b
+LEFT JOIN public.profiles p ON p.id = b.blocked_id;
+GRANT SELECT ON public.blocked_members TO authenticated;
+
 DROP VIEW IF EXISTS public.community_members;
 CREATE VIEW public.community_members AS
 SELECT
@@ -2381,6 +2393,36 @@ END;
 $$;
 GRANT EXECUTE ON FUNCTION public.materialize_recurring_games() TO authenticated;
 
+-- Stop a weekly series: clears recurrence on the parent and cancels all future
+-- child instances so no more weekly games are materialized. Organizer only.
+CREATE OR REPLACE FUNCTION public.stop_recurring_game(p_parent_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.friendly_games
+    WHERE id = p_parent_id AND creator_id = auth.uid()
+  ) THEN
+    RAISE EXCEPTION 'Only the organizer can stop this series';
+  END IF;
+  -- Demote the parent to a one-off game.
+  UPDATE public.friendly_games
+    SET recurrence = NULL
+  WHERE id = p_parent_id;
+  -- Cancel future child instances (those not yet past).
+  UPDATE public.friendly_games
+    SET status = 'cancelled'
+  WHERE source_game_id = p_parent_id
+    AND game_date > CURRENT_DATE
+    AND status IN ('open', 'full');
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.stop_recurring_game(UUID) TO authenticated;
+
 -- Organizer submits the final score; participants get notified.
 CREATE OR REPLACE FUNCTION public.submit_game_score(
   p_game_id UUID,
@@ -2568,3 +2610,103 @@ BEGIN
   END IF;
 END
 $do$;
+
+-- ────────────────────────────────────────────────────────────
+-- 8.8 WEB PUSH NOTIFICATIONS
+-- push_subscriptions stores each browser's push endpoint. The browser calls
+-- the RPCs to add/remove its subscription. When a notification row is
+-- inserted, a pg_net hook forwards it to the Edge Function
+-- "notify-push", which fans it out with the Web Push protocol (VAPID).
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.push_subscriptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  endpoint TEXT NOT NULL UNIQUE,
+  p256dh TEXT NOT NULL,
+  auth TEXT NOT NULL,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user
+  ON public.push_subscriptions(user_id);
+ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Push subs own select" ON public.push_subscriptions;
+CREATE POLICY "Push subs own select" ON public.push_subscriptions
+  FOR SELECT TO authenticated USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "Push subs own insert" ON public.push_subscriptions;
+CREATE POLICY "Push subs own insert" ON public.push_subscriptions
+  FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
+DROP POLICY IF EXISTS "Push subs own delete" ON public.push_subscriptions;
+CREATE POLICY "Push subs own delete" ON public.push_subscriptions
+  FOR DELETE TO authenticated USING (user_id = auth.uid());
+
+-- Upsert a browser push subscription for the current user.
+-- The RPC (SECURITY DEFINER) reads the raw subscription from the HTTP client.
+CREATE OR REPLACE FUNCTION public.upsert_push_subscription(
+  p_endpoint TEXT, p_p256dh TEXT, p_auth TEXT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
+  INSERT INTO public.push_subscriptions (user_id, endpoint, p256dh, auth, user_agent)
+  VALUES (auth.uid(), p_endpoint, p_p256dh, p_auth, NULL)
+  ON CONFLICT (endpoint)
+  DO UPDATE SET p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.upsert_push_subscription(TEXT, TEXT, TEXT) TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.remove_push_subscription(p_endpoint TEXT)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
+  DELETE FROM public.push_subscriptions
+  WHERE user_id = auth.uid() AND endpoint = p_endpoint;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.remove_push_subscription(TEXT) TO authenticated;
+
+-- Deliver new notifications to the recipient's subscribed devices via the
+-- Edge Function. Requires pg_net + the project's function URL configured via
+--   select set_config('app.settings.functions_url', 'https://<ref>.supabase.co/functions/v1', false);
+-- If either is missing we skip silently and in-app notifications still work.
+CREATE OR REPLACE FUNCTION public.notify_push_forward()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_functions_url TEXT := current_setting('app.settings.functions_url', true);
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_net')
+     AND v_functions_url IS NOT NULL AND v_functions_url <> '' THEN
+    PERFORM net.http_post(
+      url := v_functions_url || '/notify-push',
+      headers := '{"Content-Type": "application/json", "Authorization": "Bearer " || current_setting('app.settings.service_role_key', true)}',
+      body := json_build_object(
+        'recipient_id', NEW.recipient_id::text,
+        'title', NEW.title,
+        'body', NEW.body,
+        'link', NEW.link,
+        'type', NEW.type
+      )::text,
+      timeout_milliseconds := 5000
+    );
+  END IF;
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS notify_push_on_insert ON public.notifications;
+CREATE TRIGGER notify_push_on_insert
+  AFTER INSERT ON public.notifications
+  FOR EACH ROW
+  EXECUTE FUNCTION public.notify_push_forward();

@@ -31,6 +31,7 @@ import { ReportDialog } from "@/components/shared/report-dialog";
 import { useI18n, type Dict } from "@/lib/i18n";
 import { COMMUNITY_SPORTS } from "@/lib/constants";
 import {
+  useBlockedMembers,
   useBlockMember,
   useCommunityMembers,
   useMyBlocks,
@@ -167,6 +168,8 @@ export function MembersTab({ profile }: { profile: Profile }) {
   const { t } = useI18n();
   const { data: members, isLoading } = useCommunityMembers();
   const update = useUpdateCommunityProfile();
+  const { data: blocked } = useBlockedMembers();
+  const unblock = useUnblockMember();
 
   const [bio, setBio] = useState(profile.bio ?? "");
   const [visible, setVisible] = useState(profile.community_visible ?? true);
@@ -388,6 +391,56 @@ export function MembersTab({ profile }: { profile: Profile }) {
           </p>
         )}
       </div>
+
+      {/* Blocked members */}
+      {(blocked ?? []).length > 0 && (
+        <Card className="animate-fade-in-up">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ShieldOff className="h-4 w-4 text-destructive" />
+              {t("community_blocked_title")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {(blocked ?? []).map((b) => (
+                <div
+                  key={b.id}
+                  className="flex items-center gap-3 rounded-lg border p-3"
+                >
+                  <Avatar className="h-9 w-9 shrink-0">
+                    <AvatarFallback>{initials(b.blocked_name)}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">
+                      {b.blocked_name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("blocked_label")}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      unblock
+                        .mutateAsync(b.blocked_id)
+                        .then(() => toast.success(t("unblocked_ok")))
+                        .catch((e) =>
+                          toast.error(errorMessage(e, t("common_error")))
+                        )
+                    }
+                    disabled={unblock.isPending}
+                  >
+                    <Check className="me-1 h-3.5 w-3.5" />
+                    {t("unblock")}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

@@ -1,0 +1,44 @@
+/* Volley push service worker. */
+self.addEventListener("install", () => {
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener("push", (event) => {
+  let data = { title: "Volley", body: "", data: {} };
+  try {
+    const parsed = event.data ? event.data.json() : {};
+    data = { title: "Volley", body: "", ...parsed };
+  } catch {
+    /* fall back to defaults */
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || "/favicon.ico",
+    badge: data.badge || "/favicon.ico",
+    data: data.data || {},
+    vibrate: [100, 50, 100],
+  };
+
+  event.waitUntil(self.registration.showNotification(data.title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "/";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ("focus" in client) {
+          client.navigate(url);
+          return client.focus();
+        }
+      }
+      return self.clients.openWindow(url);
+    })
+  );
+});

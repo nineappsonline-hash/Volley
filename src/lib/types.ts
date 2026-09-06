@@ -542,3 +542,11 @@ export interface Block {
   blocked_id: string;
   created_at: string;
 }
+
+export interface BlockedMember {
+  id: string;
+  blocker_id: string;
+  blocked_id: string;
+  blocked_name: string;
+  created_at: string;
+}

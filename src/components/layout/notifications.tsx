@@ -2,8 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 import {
   Bell,
+  BellRing,
   CheckCheck,
   Flag,
   PlusCircle,
@@ -13,6 +15,7 @@ import {
   UserRoundX,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   Popover,
   PopoverContent,
@@ -23,6 +26,7 @@ import {
   useMarkNotificationsRead,
   useNotifications,
 } from "@/lib/queries";
+import { usePushNotifications } from "@/lib/push";
 import { useRealtime } from "@/lib/useRealtime";
 import type { NotificationType } from "@/lib/types";
 
@@ -40,7 +44,17 @@ export function Notifications() {
   const { data: items } = useNotifications(40);
   const markRead = useMarkNotificationsRead();
   useRealtime(["notifications"]);
+  const push = usePushNotifications();
   const [open, setOpen] = useState(false);
+
+  const handleTogglePush = async (on: boolean) => {
+    if (on) {
+      const ok = await push.subscribe();
+      if (!ok) toast.error(t("push_permission_denied"));
+    } else {
+      await push.unsubscribe();
+    }
+  };
 
   const unread = useMemo(
     () => (items ?? []).filter((n) => !n.is_read).length,
@@ -132,6 +146,24 @@ export function Notifications() {
           <div className="flex items-center justify-center gap-1 border-t p-2 text-xs text-muted-foreground">
             <RefreshCw className="h-3 w-3 animate-spin" />
             {t("notif_updating")}
+          </div>
+        )}
+        {push.supported && (
+          <div className="flex items-center justify-between border-t p-3">
+            <div className="flex items-center gap-2">
+              <BellRing className="h-4 w-4 text-muted-foreground" />
+              <div className="space-y-0">
+                <p className="text-xs font-medium">{t("push_browser_title")}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {t("push_browser_hint")}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={push.subscribed}
+              disabled={push.busy}
+              onCheckedChange={handleTogglePush}
+            />
           </div>
         )}
       </PopoverContent>
