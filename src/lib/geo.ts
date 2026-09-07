@@ -80,15 +80,11 @@ export async function geocodeQuery(
 ): Promise<NominatimResult[]> {
   const params = new URLSearchParams({
     format: "jsonv2",
-    limit: "5",
+    limit: "8",
     q: query,
   });
   // Bias results towards Egypt by default for better local results
-  if (countryBias) {
-    params.set("countrycodes", countryBias);
-  } else {
-    params.set("countrycodes", "eg");
-  }
+  params.set("countrycodes", countryBias ?? "eg");
   const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
   try {
     const res = await fetch(url, {
@@ -101,13 +97,41 @@ export async function geocodeQuery(
       lon: string;
       display_name: string;
     }>;
-    return Array.isArray(data)
+    const results = Array.isArray(data)
       ? data.map((r) => ({
           lat: parseFloat(r.lat),
           lng: parseFloat(r.lon),
           label: r.display_name,
         }))
       : [];
+    // If no results with country bias, try without bias (for broader search)
+    if (results.length === 0 && !countryBias) {
+      const globalParams = new URLSearchParams({
+        format: "jsonv2",
+        limit: "5",
+        q: query,
+      });
+      const globalUrl = `https://nominatim.openstreetmap.org/search?${globalParams.toString()}`;
+      const globalRes = await fetch(globalUrl, {
+        signal,
+        headers: { Accept: "application/json" },
+      });
+      if (globalRes.ok) {
+        const globalData = (await globalRes.json()) as Array<{
+          lat: string;
+          lon: string;
+          display_name: string;
+        }>;
+        if (Array.isArray(globalData) && globalData.length > 0) {
+          return globalData.map((r) => ({
+            lat: parseFloat(r.lat),
+            lng: parseFloat(r.lon),
+            label: r.display_name,
+          }));
+        }
+      }
+    }
+    return results;
   } catch {
     return [];
   }

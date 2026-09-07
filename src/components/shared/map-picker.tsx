@@ -20,8 +20,8 @@ const MapView = dynamic(() => import("@/components/shared/map-view"), {
   loading: () => <Skeleton className="h-[300px] w-full" />,
 });
 
-const DEFAULT_CENTER: LatLng = { lat: 30.0444, lng: 31.2357 };
-const MIN_QUERY_LENGTH = 2;
+const DEFAULT_CENTER: LatLng = { lat: 26.8206, lng: 30.8025 };
+const MIN_QUERY_LENGTH = 1;
 
 interface MapPickerProps {
   lat: number | null;
