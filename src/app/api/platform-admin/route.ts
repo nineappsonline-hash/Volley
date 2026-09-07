@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isPlatformAdmin } from "@/lib/platform-admin";
+import { isPlatformAdmin, matchesAccountEmail } from "@/lib/platform-admin";
 
 const tables = ["profiles", "academies", "friendly_games", "friendly_game_participants", "venues", "venue_rentals", "training_sessions", "tournament_matches", "payments", "attendance", "academy_branches", "membership_plans"] as const;
 export async function GET() {
@@ -26,14 +26,15 @@ export async function GET() {
       return [table, rows];
     }));
     const result = Object.fromEntries(entries);
+    const accountEmails = new Map<string, string | null>();
     const bans = new Map<string, string | undefined>();
     for (let page = 1; ; page++) {
       const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
       if (error) throw error;
-      data.users.forEach(account => bans.set(account.id, account.banned_until));
+      data.users.forEach(account => { bans.set(account.id, account.banned_until); accountEmails.set(account.id, account.email ?? null); });
       if (data.users.length < 1000) break;
     }
-    result.profiles = result.profiles.map((profile: { id: string }) => ({ ...profile, banned_until: bans.get(profile.id) ?? null }));
+    result.profiles = result.profiles.map((profile: { id: string }) => ({ ...profile, account_email: accountEmails.get(profile.id) ?? null, banned_until: bans.get(profile.id) ?? null }));
     return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json({ error: "Could not load admin records. Check the database migration and server configuration." }, { status: 500 });
@@ -92,7 +93,7 @@ export async function POST(request: Request) {
       const { error } = await admin.auth.admin.updateUserById(input.id, { ban_duration: input.blocked ? "876000h" : "none" });
       if (error) throw error;
     } else {
-      if (input.confirmation !== target.user.email) return NextResponse.json({ error: "Enter the account email exactly to confirm deletion." }, { status: 400 });
+      if (!matchesAccountEmail(input.confirmation, target.user.email)) return NextResponse.json({ error: "Enter the current account email to confirm deletion. Refresh the member list if the email has changed." }, { status: 400 });
       const { error } = await admin.auth.admin.deleteUser(input.id);
       if (error) throw error;
     }
