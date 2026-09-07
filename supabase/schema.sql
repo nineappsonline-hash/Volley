@@ -1869,6 +1869,11 @@ ALTER TABLE public.friendly_games
   ADD COLUMN IF NOT EXISTS creation_fee_paid BOOLEAN NOT NULL DEFAULT FALSE,
   ADD COLUMN IF NOT EXISTS fee_method TEXT CHECK (fee_method IN ('instapay', 'e_wallet', 'visa')),
   ADD COLUMN IF NOT EXISTS fee_receipt_url TEXT;
+-- Fee-review workflow: games start "pending" super-admin review of the receipt;
+-- approved => creation_fee_paid = TRUE, rejected keeps the game open for appeal.
+ALTER TABLE public.friendly_games
+  ADD COLUMN IF NOT EXISTS fee_status TEXT NOT NULL DEFAULT 'pending'
+  CHECK (fee_status IN ('pending', 'approved', 'rejected'));
 CREATE INDEX IF NOT EXISTS idx_friendly_games_date ON public.friendly_games(game_date);
 CREATE INDEX IF NOT EXISTS idx_friendly_games_sport ON public.friendly_games(sport);
 CREATE INDEX IF NOT EXISTS idx_friendly_games_creator ON public.friendly_games(creator_id);
@@ -1990,7 +1995,7 @@ BEGIN
   INSERT INTO public.friendly_games
     (creator_id, creator_name, sport, title, description, area, location, lat, lng,
      game_date, start_time, max_players, skill_level, is_public, recurrence,
-     creation_fee_paid, fee_method, fee_receipt_url)
+     creation_fee_paid, fee_status, fee_method, fee_receipt_url)
   VALUES
     (v_member,
      v_name,
@@ -2008,7 +2013,8 @@ BEGIN
           THEN p_skill_level ELSE NULL END,
      COALESCE(p_is_public, TRUE),
      CASE WHEN p_recurrence IN ('weekly') THEN p_recurrence ELSE NULL END,
-     TRUE,
+     FALSE,
+     'pending',
      p_fee_method,
      p_fee_receipt_url)
   RETURNING id INTO v_game;
@@ -2300,11 +2306,11 @@ CREATE POLICY "Reports reporter create" ON public.reports
 DROP POLICY IF EXISTS "Reports super admin read" ON public.reports;
 CREATE POLICY "Reports super admin read" ON public.reports
   FOR SELECT TO authenticated
-  USING (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'super_admin'));
+  USING (public.is_super_admin());
 DROP POLICY IF EXISTS "Reports super admin update" ON public.reports;
 CREATE POLICY "Reports super admin update" ON public.reports
   FOR UPDATE TO authenticated
-  USING (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'super_admin'))
+  USING (public.is_super_admin())
   WITH CHECK (status IN ('open', 'resolved', 'dismissed'));
 
 CREATE TABLE IF NOT EXISTS public.blocks (
@@ -2584,9 +2590,7 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'super_admin'
-  ) THEN
+  IF NOT public.is_super_admin() THEN
     RAISE EXCEPTION 'Not authorized';
   END IF;
   IF p_status NOT IN ('resolved', 'dismissed') THEN
@@ -2751,3 +2755,243 @@ CREATE TRIGGER notify_push_on_insert
   AFTER INSERT ON public.notifications
   FOR EACH ROW
   EXECUTE FUNCTION public.notify_push_forward();
+
+-- ────────────────────────────────────────────────────────────
+-- 8.9 SUPER ADMIN, PLANS, FEE REVIEW & LEADERBOARD
+-- ────────────────────────────────────────────────────────────
+
+-- One source of truth for "is this user a platform super admin". The role
+-- travels in the JWT's app_metadata (see src/lib/session.ts). We also accept
+-- profiles.role = 'super_admin' so legacy rows keep working on older databases.
+CREATE OR REPLACE FUNCTION public.is_super_admin()
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(
+    auth.jwt() -> 'app_metadata' ->> 'role',
+    (SELECT p.role FROM public.profiles p WHERE p.id = auth.uid())
+  ) = 'super_admin';
+$$;
+GRANT EXECUTE ON FUNCTION public.is_super_admin() TO authenticated;
+
+-- Super admins may inspect every community game (any fee status), not just the
+-- public ones or their own.
+DROP POLICY IF EXISTS "Community games super admin read" ON public.friendly_games;
+CREATE POLICY "Community games super admin read" ON public.friendly_games
+  FOR SELECT TO authenticated
+  USING (public.is_super_admin());
+
+-- Super admins can open the (private) fee-receipt files themselves.
+DROP POLICY IF EXISTS "Game fee receipts: super admin read" ON storage.objects;
+CREATE POLICY "Game fee receipts: super admin read" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (
+    bucket_id = 'game-fee-receipts'
+    AND public.is_super_admin()
+  );
+
+-- Super-admin reviews the receipt uploaded for a friendly game: approving sets
+-- creation_fee_paid = TRUE, rejecting keeps it FALSE and flags fee_status.
+CREATE OR REPLACE FUNCTION public.review_game_fee(p_game_id UUID, p_approve BOOLEAN)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT public.is_super_admin() THEN RAISE EXCEPTION 'Not authorized'; END IF;
+  UPDATE public.friendly_games
+  SET fee_status = CASE WHEN p_approve THEN 'approved' ELSE 'rejected' END,
+      creation_fee_paid = p_approve
+  WHERE id = p_game_id;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.review_game_fee(UUID, BOOLEAN) TO authenticated;
+
+-- ── Academy subscription plan ──
+-- Display-only before; now real: the super admin assigns a plan and the
+-- database enforces its limits (venues / coaches / marketplace publishing).
+ALTER TABLE public.academies
+  ADD COLUMN IF NOT EXISTS plan TEXT NOT NULL DEFAULT 'starter'
+  CHECK (plan IN ('starter', 'plus', 'elite'));
+
+-- Super admins see and manage every academy (list, trial, plans).
+DROP POLICY IF EXISTS "Academies super admin read" ON public.academies;
+CREATE POLICY "Academies super admin read" ON public.academies
+  FOR SELECT TO authenticated USING (public.is_super_admin());
+DROP POLICY IF EXISTS "Academies super admin update" ON public.academies;
+CREATE POLICY "Academies super admin update" ON public.academies
+  FOR UPDATE TO authenticated USING (public.is_super_admin());
+
+-- Assign/change an academy's plan (super admin only).
+CREATE OR REPLACE FUNCTION public.set_academy_plan(p_academy_id UUID, p_plan TEXT)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT public.is_super_admin() THEN RAISE EXCEPTION 'Not authorized'; END IF;
+  IF p_plan NOT IN ('starter', 'plus', 'elite') THEN
+    RAISE EXCEPTION 'Invalid plan';
+  END IF;
+  UPDATE public.academies SET plan = p_plan WHERE id = p_academy_id;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.set_academy_plan(UUID, TEXT) TO authenticated;
+
+-- Plan limits: Starter = 1 venue, Plus = 3, Elite = unlimited.
+CREATE OR REPLACE FUNCTION public.guard_venue_limit()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_plan TEXT;
+  v_count INTEGER;
+  v_limit INTEGER;
+BEGIN
+  SELECT plan INTO v_plan FROM public.academies WHERE id = NEW.academy_id;
+  IF v_plan = 'starter' THEN v_limit := 1;
+  ELSIF v_plan = 'plus' THEN v_limit := 3;
+  ELSE RETURN NEW; END IF;
+  SELECT count(*) INTO v_count FROM public.venues WHERE academy_id = NEW.academy_id;
+  IF v_count >= v_limit THEN
+    RAISE EXCEPTION 'Your plan allows only % venue(s). Upgrade to add more.', v_limit;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS guard_venue_limit_on_insert ON public.venues;
+CREATE TRIGGER guard_venue_limit_on_insert
+  BEFORE INSERT ON public.venues
+  FOR EACH ROW EXECUTE FUNCTION public.guard_venue_limit();
+
+-- Plan limits: Starter = 1 coach, Plus/Elite = unlimited.
+CREATE OR REPLACE FUNCTION public.guard_coach_limit()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_plan TEXT;
+  v_count INTEGER;
+BEGIN
+  SELECT plan INTO v_plan FROM public.academies WHERE id = NEW.academy_id;
+  IF v_plan <> 'starter' THEN RETURN NEW; END IF;
+  SELECT count(*) INTO v_count FROM public.coaches WHERE academy_id = NEW.academy_id;
+  IF v_count >= 1 THEN
+    RAISE EXCEPTION 'Your plan allows only 1 coach. Upgrade to add more.';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS guard_coach_limit_on_insert ON public.coaches;
+CREATE TRIGGER guard_coach_limit_on_insert
+  BEFORE INSERT ON public.coaches
+  FOR EACH ROW EXECUTE FUNCTION public.guard_coach_limit();
+
+-- Marketplace publishing (session_booking_enabled) is an Elite-only feature.
+CREATE OR REPLACE FUNCTION public.guard_session_booking_plan()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.session_booking_enabled AND COALESCE(NEW.plan, 'starter') <> 'elite' THEN
+    RAISE EXCEPTION 'Marketplace publishing requires the Elite plan.';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS guard_session_booking_plan ON public.academies;
+CREATE TRIGGER guard_session_booking_plan
+  BEFORE INSERT OR UPDATE OF session_booking_enabled, plan ON public.academies
+  FOR EACH ROW EXECUTE FUNCTION public.guard_session_booking_plan();
+
+-- ── Community leaderboard ──
+-- Points = 2 per completed friendly game + 1 per attended session. Only
+-- community-visible members rank. The plain view runs with owner privileges,
+-- so it can aggregate across academies/RLS for this public ranking.
+DROP VIEW IF EXISTS public.community_leaderboard;
+CREATE VIEW public.community_leaderboard AS
+WITH played AS (
+  SELECT p.member_id, count(*)::int AS games_played
+  FROM public.friendly_game_participants p
+  JOIN public.friendly_games g ON g.id = p.game_id
+  WHERE g.status = 'completed'
+  GROUP BY p.member_id
+),
+attend AS (
+  SELECT a.member_id, count(*)::int AS sessions_attended
+  FROM public.attendance a
+  GROUP BY a.member_id
+)
+SELECT
+  pr.id AS member_id,
+  pr.name,
+  COALESCE(played.games_played, 0) AS games_played,
+  COALESCE(attend.sessions_attended, 0) AS sessions_attended,
+  COALESCE(played.games_played, 0) * 2 + COALESCE(attend.sessions_attended, 0) AS points
+FROM public.profiles pr
+LEFT JOIN played ON played.member_id = pr.id
+LEFT JOIN attend ON attend.member_id = pr.id
+WHERE pr.name IS NOT NULL
+  AND pr.community_visible = TRUE
+ORDER BY points DESC;
+GRANT SELECT ON public.community_leaderboard TO authenticated;
+
+-- ── Scouting: player shortlist ──
+-- A member can "note" players they want to scout; the note is private.
+CREATE TABLE IF NOT EXISTS public.scout_notes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  scout_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  player_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (scout_id, player_id)
+);
+CREATE INDEX IF NOT EXISTS idx_scout_notes_scout ON public.scout_notes(scout_id);
+CREATE INDEX IF NOT EXISTS idx_scout_notes_player ON public.scout_notes(player_id);
+ALTER TABLE public.scout_notes ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Scout notes own select" ON public.scout_notes;
+CREATE POLICY "Scout notes own select" ON public.scout_notes
+  FOR SELECT TO authenticated USING (scout_id = auth.uid());
+DROP POLICY IF EXISTS "Scout notes own insert" ON public.scout_notes;
+CREATE POLICY "Scout notes own insert" ON public.scout_notes
+  FOR INSERT TO authenticated WITH CHECK (scout_id = auth.uid());
+DROP POLICY IF EXISTS "Scout notes own delete" ON public.scout_notes;
+CREATE POLICY "Scout notes own delete" ON public.scout_notes
+  FOR DELETE TO authenticated USING (scout_id = auth.uid());
+
+CREATE OR REPLACE FUNCTION public.toggle_scout_note(p_player_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_existed BOOLEAN;
+BEGIN
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
+  IF p_player_id = auth.uid() THEN RAISE EXCEPTION 'You cannot scout yourself'; END IF;
+  SELECT EXISTS (
+    SELECT 1 FROM public.scout_notes
+    WHERE scout_id = auth.uid() AND player_id = p_player_id
+  ) INTO v_existed;
+  IF v_existed THEN
+    DELETE FROM public.scout_notes
+    WHERE scout_id = auth.uid() AND player_id = p_player_id;
+  ELSE
+    INSERT INTO public.scout_notes (scout_id, player_id)
+    VALUES (auth.uid(), p_player_id);
+  END IF;
+  RETURN NOT v_existed;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.toggle_scout_note(UUID) TO authenticated;

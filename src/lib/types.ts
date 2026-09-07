@@ -39,6 +39,7 @@ export interface Academy {
   trial_extended_at: string | null;
   session_booking_enabled: boolean;
   platform_fee_percent: number | null;
+  plan: "starter" | "plus" | "elite";
   created_at: string;
 }
 
@@ -487,6 +488,10 @@ export interface FriendlyGame {
   result_b: number | null;
   completed_by: string | null;
   completed_at: string | null;
+  creation_fee_paid: boolean;
+  fee_method: "instapay" | "e_wallet" | "visa" | null;
+  fee_receipt_url: string | null;
+  fee_status: "pending" | "approved" | "rejected";
   created_at: string;
 }
 
@@ -548,5 +553,20 @@ export interface BlockedMember {
   blocker_id: string;
   blocked_id: string;
   blocked_name: string;
+  created_at: string;
+}
+
+export interface CommunityLeaderboardRow {
+  member_id: string;
+  name: string;
+  games_played: number;
+  sessions_attended: number;
+  points: number;
+}
+
+export interface ScoutNote {
+  id: string;
+  scout_id: string;
+  player_id: string;
   created_at: string;
 }

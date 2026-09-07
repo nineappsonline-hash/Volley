@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -8,8 +8,10 @@ import {
   CheckCircle2,
   Crown,
   ExternalLink,
+  Eye,
   Flag,
   Plus,
+  Receipt,
   Shield,
   ShieldAlert,
   XCircle,
@@ -38,15 +40,23 @@ import {
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
+import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import {
   useAllAcademies,
   useCommunityMembers,
   useConvertToPaid,
   useExtendTrial,
+  usePendingGameFees,
   useReports,
   useResolveReport,
+  useReviewGameFee,
+  useSetAcademyPlan,
 } from "@/lib/queries";
+
+type AcademyPlan = "starter" | "plus" | "elite";
+
+const PLAN_ORDER: AcademyPlan[] = ["starter", "plus", "elite"];
 
 export function SuperAdminDashboard() {
   const { t, lang, locale } = useI18n();
@@ -56,6 +66,10 @@ export function SuperAdminDashboard() {
   const { data: reports } = useReports();
   const { data: members } = useCommunityMembers();
   const resolve = useResolveReport();
+  const { data: pendingFees } = usePendingGameFees();
+  const reviewGameFee = useReviewGameFee();
+  const setAcademyPlan = useSetAcademyPlan();
+  const [openingReceipt, setOpeningReceipt] = useState<string | null>(null);
 
   const memberName = (id: string) =>
     (members ?? []).find((m) => m.id === id)?.name ?? id.slice(0, 8);
@@ -90,6 +104,43 @@ export function SuperAdminDashboard() {
       toast.success(t("super_admin_converted"));
     } catch {
       toast.error(t("common_error"));
+    }
+  };
+
+  const handleSetPlan = async (academyId: string, plan: AcademyPlan) => {
+    try {
+      await setAcademyPlan.mutateAsync({ academyId, plan });
+      toast.success(t("super_admin_plan_updated"));
+    } catch {
+      toast.error(t("common_error"));
+    }
+  };
+
+  const handleReviewFee = async (gameId: string, approve: boolean) => {
+    try {
+      await reviewGameFee.mutateAsync({ gameId, approve });
+      toast.success(
+        approve ? t("super_admin_fee_approved") : t("super_admin_fee_rejected")
+      );
+    } catch {
+      toast.error(t("common_error"));
+    }
+  };
+
+  const handleViewReceipt = async (path: string | null) => {
+    if (!path) return;
+    setOpeningReceipt(path);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.storage
+        .from("game-fee-receipts")
+        .createSignedUrl(path, 600);
+      if (error) throw error;
+      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    } catch {
+      toast.error(t("super_admin_fee_receipt_fail"));
+    } finally {
+      setOpeningReceipt(null);
     }
   };
 
@@ -164,6 +215,7 @@ export function SuperAdminDashboard() {
                     <TableHead>{t("super_admin_academy_name")}</TableHead>
                     <TableHead className="hidden sm:table-cell">{t("super_admin_admin_email")}</TableHead>
                     <TableHead>{t("super_admin_status")}</TableHead>
+                    <TableHead className="hidden md:table-cell">{t("super_admin_plan_label")}</TableHead>
                     <TableHead className="hidden md:table-cell">{t("super_admin_trial_ends")}</TableHead>
                     <TableHead className="text-end">{t("super_admin_actions")}</TableHead>
                   </TableRow>
@@ -210,11 +262,32 @@ export function SuperAdminDashboard() {
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell className="hidden md:table-cell text-muted-foreground text-sm">
-                          {academy.trial_ends_at
-                            ? format(new Date(academy.trial_ends_at), "MMM d, yyyy", { locale })
-                            : "—"}
-                        </TableCell>
+<TableCell className="hidden md:table-cell">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  {t(`plans_tier_${academy.plan ?? "starter"}` as any)}
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start">
+                                {PLAN_ORDER.map((p) => (
+                                  <DropdownMenuItem
+                                    key={p}
+                                    onClick={() =>
+                                      handleSetPlan(academy.id, p)
+                                    }
+                                  >
+                                    {t(`plans_tier_${p}` as any)}
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell text-muted-foreground text-sm">
+                            {academy.trial_ends_at
+                              ? format(new Date(academy.trial_ends_at), "MMM d, yyyy", { locale })
+                              : "—"}
+                          </TableCell>
                         <TableCell className="text-end">
                           <div className="flex items-center justify-end gap-1">
                             {academy.is_trial && (
@@ -260,6 +333,102 @@ export function SuperAdminDashboard() {
           </CardContent>
         </Card>
       )}
+
+      {/* Game fee review */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Receipt className="h-4 w-4 text-primary" />
+            {t("super_admin_game_fees")}
+            {(pendingFees ?? []).length > 0 && (
+              <Badge variant="destructive">{(pendingFees ?? []).length}</Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!pendingFees || pendingFees.length === 0 ? (
+            <EmptyState
+              message={t("super_admin_game_fees_empty")}
+              hint={t("super_admin_game_fees_hint")}
+              icon={Receipt}
+            />
+          ) : (
+            <div className="rounded-xl border">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead>{t("community_game_title")}</TableHead>
+                    <TableHead className="hidden sm:table-cell">{t("community_organizer")}</TableHead>
+                    <TableHead className="hidden md:table-cell">{t("community_sport")}</TableHead>
+                    <TableHead className="hidden md:table-cell">{t("game_fee_title")}</TableHead>
+                    <TableHead className="text-end">{t("super_admin_actions")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(pendingFees ?? []).map((game) => (
+                    <TableRow key={game.id}>
+                      <TableCell>
+                        <p className="truncate font-medium">{game.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {game.game_date} · {game.start_time}
+                        </p>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        {memberName(game.creator_id)}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {game.sport}
+                        {game.area ? ` · ${game.area}` : ""}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {game.fee_method
+                          ? t(`game_fee_method_${game.fee_method}` as any)
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="text-end">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1"
+                            disabled={openingReceipt !== null}
+                            onClick={() =>
+                              handleViewReceipt(game.fee_receipt_url)
+                            }
+                          >
+                            <Eye className="h-3 w-3" />
+                            {t("super_admin_fee_view_receipt")}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1 text-emerald-600 hover:text-emerald-600"
+                            disabled={reviewGameFee.isPending}
+                            onClick={() => handleReviewFee(game.id, true)}
+                          >
+                            <CheckCircle2 className="h-3 w-3" />
+                            {t("super_admin_fee_approve")}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1 text-muted-foreground"
+                            disabled={reviewGameFee.isPending}
+                            onClick={() => handleReviewFee(game.id, false)}
+                          >
+                            <XCircle className="h-3 w-3" />
+                            {t("super_admin_fee_reject")}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Community moderation */}
       <Card>

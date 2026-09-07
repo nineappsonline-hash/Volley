@@ -48,9 +48,11 @@ import type { TrainingSession } from "@/lib/types";
 export function ScheduleClient({
   isAdmin,
   memberId,
+  memberPlan,
 }: {
   isAdmin: boolean;
   memberId?: string;
+  memberPlan?: "free" | "premium";
 }) {
   const { t } = useI18n();
   const { data: sessions, isLoading } = useSessions();
@@ -302,6 +304,7 @@ export function ScheduleClient({
           open={calExportOpen}
           onOpenChange={setCalExportOpen}
           token={academy.calendar_token}
+          isPro={isAdmin || memberPlan === "premium"}
         />
       )}
 

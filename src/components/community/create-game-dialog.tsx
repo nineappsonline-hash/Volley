@@ -45,11 +45,14 @@ const FEE_METHODS: {
 export function CreateGameDialog({
   open,
   onOpenChange,
+  memberPlan,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  memberPlan?: "free" | "premium";
 }) {
   const { t } = useI18n();
+  const isPro = memberPlan === "premium";
   const create = useCreateFriendlyGame();
   const supabase = createClient();
 
@@ -312,15 +315,23 @@ export function CreateGameDialog({
 
           <div className="space-y-2">
             <Label>{t("community_recurrence")}</Label>
-            <Select value={recurrence} onValueChange={setRecurrence}>
-              <SelectTrigger aria-label={t("community_recurrence")}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="once">{t("community_once")}</SelectItem>
-                <SelectItem value="weekly">{t("community_weekly")}</SelectItem>
-              </SelectContent>
-            </Select>
+          <Select value={recurrence} onValueChange={setRecurrence}>
+            <SelectTrigger aria-label={t("community_recurrence")}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="once">{t("community_once")}</SelectItem>
+              <SelectItem value="weekly" disabled={!isPro}>
+                {t("community_weekly")}
+                {!isPro && ` · ${t("mplan_tier_pro")}`}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            {isPro
+              ? t("community_recurrence_hint")
+              : t("community_recurrence_pro")}
+          </p>
             <p className="text-xs text-muted-foreground">
               {t("community_recurrence_hint")}
             </p>

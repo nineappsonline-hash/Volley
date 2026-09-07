@@ -10,6 +10,7 @@ import { useI18n } from "@/lib/i18n";
 import { useActivatePremium } from "@/lib/queries";
 import type { Profile } from "@/lib/types";
 import { PlanComparison } from "./plan-comparison";
+import { MemberPlanComparison } from "./member-plan-comparison";
 
 type Tier = "starter" | "plus" | "elite";
 
@@ -79,6 +80,18 @@ export function UpgradeClient({ profile }: { profile: Profile }) {
         current={current}
         busy={activate.isPending}
         onSubscribe={onSubscribe}
+      />
+
+      <p className="pt-4 text-sm font-semibold text-foreground">
+        {t("mplan_page_title")}
+      </p>
+      <p className="text-sm text-muted-foreground">
+        {t("mplan_page_subtitle")}
+      </p>
+
+      <MemberPlanComparison
+        currentPlan={profile.member_plan}
+        busy={activate.isPending}
       />
 
       <p className="text-center text-xs text-muted-foreground">

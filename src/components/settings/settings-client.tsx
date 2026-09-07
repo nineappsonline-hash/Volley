@@ -6,6 +6,7 @@ import {
   CalendarCheck,
   Check,
   Copy,
+  Crown,
   Link2,
   Save,
   Settings as SettingsIcon,
@@ -358,11 +359,35 @@ export function SettingsClient() {
                 checked={sessionBooking}
                 onCheckedChange={setSessionBooking}
                 id="session-booking-toggle"
+                disabled={academy.plan !== "elite"}
               />
               <Label htmlFor="session-booking-toggle" className="cursor-pointer text-sm">
                 {t("settings_session_booking_toggle")}
               </Label>
             </div>
+            {academy.plan !== "elite" && (
+              <div className="rounded-lg border border-amber-300/60 bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
+                <p className="flex items-center gap-1.5 font-medium">
+                  <Crown className="h-3.5 w-3.5 shrink-0" />
+                  {t("settings_booking_elite_only")}
+                </p>
+                <p className="mt-1">{t("settings_booking_elite_hint")}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-2 gap-1 border-amber-400/60 text-amber-700 hover:bg-amber-100 dark:text-amber-300 dark:hover:bg-amber-500/10"
+                  onClick={() => {
+                    if (typeof window !== "undefined") {
+                      window.location.href = "/upgrade";
+                    }
+                  }}
+                >
+                  <Crown className="h-3.5 w-3.5" />
+                  {t("premium_upgrade_cta")}
+                </Button>
+              </div>
+            )}
             {sessionBooking && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">

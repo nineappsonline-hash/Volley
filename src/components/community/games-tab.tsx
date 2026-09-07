@@ -40,6 +40,7 @@ import { DirectionsLinks } from "@/components/shared/directions-links";
 import { ReportDialog } from "@/components/shared/report-dialog";
 import { ScoreDialog } from "@/components/shared/score-dialog";
 import { useI18n } from "@/lib/i18n";
+import { useRouter } from "next/navigation";
 import { COMMUNITY_SPORTS } from "@/lib/constants";
 import {
   useCancelFriendlyGame,
@@ -86,6 +87,7 @@ function GameCard({
   myParticipants: FriendlyGameParticipant[];
   allGames: FriendlyGameWithDetails[];
 }) {
+  const router = useRouter();
   const { t, locale } = useI18n();
   const join = useJoinFriendlyGame();
   const leave = useLeaveFriendlyGame();
@@ -93,6 +95,8 @@ function GameCard({
   const stopRecurring = useStopRecurringGame();
   const [reportOpen, setReportOpen] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
+
+  const isPro = profile.member_plan === "premium";
 
   const isParent = game.recurrence === "weekly" && game.source_game_id == null;
   const today = new Date().toISOString().slice(0, 10);
@@ -199,6 +203,17 @@ function GameCard({
               >
                 <Lamp className="h-3 w-3" />
                 {t("community_recommended")}
+              </Badge>
+            )}
+            {isOrganizer && game.fee_status && game.fee_status !== "approved" && (
+              <Badge
+                className={`gap-1 text-[10px] ${
+                  game.fee_status === "pending"
+                    ? "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400"
+                    : "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400"
+                }`}
+              >
+                {t(`game_fee_status_${game.fee_status}` as any)}
               </Badge>
             )}
             <Badge
@@ -313,12 +328,18 @@ function GameCard({
                 <Share2 className="me-1 h-3.5 w-3.5" />
                 {t("community_invite")}
               </Button>
-              {needsResult && (
-                <Button size="sm" onClick={() => setScoreOpen(true)}>
-                  <Trophy className="me-1 h-3.5 w-3.5" />
-                  {t("community_add_score")}
-                </Button>
-              )}
+              {needsResult &&
+                (isPro ? (
+                  <Button size="sm" onClick={() => setScoreOpen(true)}>
+                    <Trophy className="me-1 h-3.5 w-3.5" />
+                    {t("community_add_score")}
+                  </Button>
+                ) : (
+                  <Button size="sm" onClick={() => router.push("/upgrade")}>
+                    <Trophy className="me-1 h-3.5 w-3.5" />
+                    {t("community_add_score_pro")}
+                  </Button>
+                ))}
               <Button
                 variant="outline"
                 size="sm"
@@ -328,17 +349,27 @@ function GameCard({
               >
                 {t("community_cancel")}
               </Button>
-              {isParent && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleStopRecurring}
-                  disabled={stopRecurring.isPending}
-                >
-                  <Repeat className="me-1 h-3.5 w-3.5" />
-                  {t("community_stop_repeat")}
-                </Button>
-              )}
+              {isParent &&
+                (isPro ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleStopRecurring}
+                    disabled={stopRecurring.isPending}
+                  >
+                    <Repeat className="me-1 h-3.5 w-3.5" />
+                    {t("community_stop_repeat")}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.push("/upgrade")}
+                  >
+                    <Repeat className="me-1 h-3.5 w-3.5" />
+                    {t("community_stop_repeat_pro")}
+                  </Button>
+                ))}
             </>
           )}
 
@@ -475,7 +506,11 @@ export function GamesTab({ profile }: { profile: Profile }) {
         </div>
       )}
 
-      <CreateGameDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <CreateGameDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        memberPlan={profile.member_plan}
+      />
     </div>
   );
 }

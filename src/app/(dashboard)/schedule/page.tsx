@@ -11,6 +11,7 @@ export default async function SchedulePage() {
     <ScheduleClient
       isAdmin={profile.role !== "member"}
       memberId={profile.id}
+      memberPlan={profile.member_plan}
     />
   );
 }

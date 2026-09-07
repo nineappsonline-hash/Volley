@@ -14,9 +14,11 @@ import type {
   BlockedMember,
   Coach,
   CoachAvailability,
+  CommunityLeaderboardRow,
   CommunityMember,
   CommunityReport,
   Expense,
+  FriendlyGame,
   FriendlyGameParticipant,
   FriendlyGameWithDetails,
   MemberBadge,
@@ -33,6 +35,7 @@ import type {
   SessionPhoto,
   SessionRating,
   SessionWaitlist,
+  ScoutNote,
   Sport,
   TeamWithDetails,
   Tournament,
@@ -2664,6 +2667,123 @@ export function useMyStreaks() {
       }
 
       return stats;
+    },
+  });
+}
+
+// ── Super admin: game-fee review ───────────────────────────
+
+export function usePendingGameFees() {
+  return useQuery({
+    queryKey: ["pending-game-fees"],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("friendly_games")
+        .select("*")
+        .eq("fee_status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return (data ?? []) as FriendlyGame[];
+    },
+  });
+}
+
+export function useReviewGameFee() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      gameId,
+      approve,
+    }: {
+      gameId: string;
+      approve: boolean;
+    }) => {
+      const { error } = await supabase().rpc("review_game_fee", {
+        p_game_id: gameId,
+        p_approve: approve,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pending-game-fees"] });
+      qc.invalidateQueries({ queryKey: ["friendly-games"] });
+    },
+  });
+}
+
+// ── Academy plan management (super admin) ──────────────────
+
+export function useSetAcademyPlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      academyId,
+      plan,
+    }: {
+      academyId: string;
+      plan: "starter" | "plus" | "elite";
+    }) => {
+      const { error } = await supabase().rpc("set_academy_plan", {
+        p_academy_id: academyId,
+        p_plan: plan,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["all-academies"] });
+    },
+  });
+}
+
+// ── Community leaderboard ──────────────────────────────────
+
+export function useCommunityLeaderboard() {
+  return useQuery({
+    queryKey: ["community-leaderboard"],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("community_leaderboard")
+        .select("*")
+        .limit(100);
+      if (error) throw error;
+      return (data ?? []) as CommunityLeaderboardRow[];
+    },
+  });
+}
+
+// ── Scouting shortlist ─────────────────────────────────────
+
+export function useScoutNotes() {
+  return useQuery({
+    queryKey: ["scout-notes"],
+    queryFn: async () => {
+      const {
+        data: { user },
+      } = await supabase().auth.getUser();
+      if (!user) return [];
+      const { data, error } = await supabase()
+        .from("scout_notes")
+        .select("*")
+        .eq("scout_id", user.id);
+      if (error) throw error;
+      return (data ?? []) as ScoutNote[];
+    },
+  });
+}
+
+export function useToggleScoutNote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (playerId: string) => {
+      const { data, error } = await supabase().rpc("toggle_scout_note", {
+        p_player_id: playerId,
+      });
+      if (error) throw error;
+      return data as boolean;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["scout-notes"] });
     },
   });
 }
