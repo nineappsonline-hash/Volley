@@ -77,31 +77,20 @@ export function LocationFields({
     search: c.toLowerCase(),
   }));
 
-  // Check if stored value exists in the full array (any language), not just localized
-  const govInFullArray = allStates.includes(governorate);
-  const cityInFullArray = allCities.includes(city);
-
-  const [govManual, setGovManual] = useState(
-    allStates.length === 0 || (!!governorate && !govInFullArray)
-  );
-  const [cityManual, setCityManual] = useState(
-    allCities.length === 0 || (!!city && !cityInFullArray)
-  );
+  // Show dropdown if there are options, otherwise show manual input
+  // Always allow manual input by including an "Other" option
+  const [govManual, setGovManual] = useState(allStates.length === 0);
+  const [cityManual, setCityManual] = useState(allCities.length === 0);
 
   useEffect(() => {
-    setGovManual(
-      allStates.length === 0 ||
-        (!!governorate && !govInFullArray)
-    );
+    setGovManual(allStates.length === 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [country, governorate, allStates]);
+  }, [country]);
 
   useEffect(() => {
-    setCityManual(
-      allCities.length === 0 || (!!city && !cityInFullArray)
-    );
+    setCityManual(allCities.length === 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [governorate, city, allCities]);
+  }, [governorate]);
 
   const handleCountry = (v: string) => {
     onCountryChange(v);
