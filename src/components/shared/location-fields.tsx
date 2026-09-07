@@ -61,8 +61,10 @@ export function LocationFields({
     return { value: name, label: name, search: `${en} ${ar}`.toLowerCase() };
   });
 
-  const states = localized(STATES_BY_COUNTRY[country] ?? []);
-  const cities = governorate ? localized(CITIES_BY_STATE[governorate] ?? []) : [];
+  const allStates = STATES_BY_COUNTRY[country] ?? [];
+  const allCities = governorate ? CITIES_BY_STATE[governorate] ?? [] : [];
+  const states = localized(allStates);
+  const cities = localized(allCities);
 
   const stateOptions: Option[] = states.map((s) => ({
     value: s,
@@ -75,33 +77,37 @@ export function LocationFields({
     search: c.toLowerCase(),
   }));
 
+  // Check if stored value exists in the full array (any language), not just localized
+  const govInFullArray = allStates.includes(governorate);
+  const cityInFullArray = allCities.includes(city);
+
   const [govManual, setGovManual] = useState(
-    states.length === 0 || (!!governorate && !states.includes(governorate))
+    allStates.length === 0 || (!!governorate && !govInFullArray)
   );
   const [cityManual, setCityManual] = useState(
-    cities.length === 0 || (!!city && !cities.includes(city))
+    allCities.length === 0 || (!!city && !cityInFullArray)
   );
 
   useEffect(() => {
     setGovManual(
-      states.length === 0 ||
-        (!!governorate && !states.includes(governorate))
+      allStates.length === 0 ||
+        (!!governorate && !govInFullArray)
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [country, governorate]);
+  }, [country, governorate, allStates]);
 
   useEffect(() => {
     setCityManual(
-      cities.length === 0 || (!!city && !cities.includes(city))
+      allCities.length === 0 || (!!city && !cityInFullArray)
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [governorate, city]);
+  }, [governorate, city, allCities]);
 
   const handleCountry = (v: string) => {
     onCountryChange(v);
     onGovernorateChange("");
     onCityChange("");
-    setGovManual(localized(STATES_BY_COUNTRY[v] ?? []).length === 0);
+    setGovManual((STATES_BY_COUNTRY[v] ?? []).length === 0);
     setCityManual(true);
   };
 
@@ -113,7 +119,7 @@ export function LocationFields({
     onGovernorateChange(v);
     onCityChange("");
     setGovManual(false);
-    setCityManual(localized(CITIES_BY_STATE[v] ?? []).length === 0);
+    setCityManual((CITIES_BY_STATE[v] ?? []).length === 0);
   };
 
   const handleCity = (v: string) => {
