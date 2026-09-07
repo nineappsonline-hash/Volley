@@ -2,6 +2,7 @@
 
 import { PlatformRecords } from "./platform-records";
 import { PlatformAnalytics } from "./platform-analytics";
+import { AcademyEditDialog } from "./academy-edit-dialog";
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -12,6 +13,7 @@ import {
   ExternalLink,
   Eye,
   Flag,
+  Pencil,
   Plus,
   Receipt,
   Shield,
@@ -42,6 +44,7 @@ import {
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
+import type { Academy } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import {
@@ -72,6 +75,7 @@ export function SuperAdminDashboard() {
   const reviewGameFee = useReviewGameFee();
   const setAcademyPlan = useSetAcademyPlan();
   const [openingReceipt, setOpeningReceipt] = useState<string | null>(null);
+  const [editing, setEditing] = useState<Academy | null>(null);
 
   const memberName = (id: string) =>
     (members ?? []).find((m) => m.id === id)?.name ?? id.slice(0, 8);
@@ -296,6 +300,15 @@ export function SuperAdminDashboard() {
                           </TableCell>
                         <TableCell className="text-end">
                           <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              aria-label={t("sa_edit")}
+                              onClick={() => setEditing(academy)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
                             {academy.is_trial && (
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -546,6 +559,12 @@ export function SuperAdminDashboard() {
           )}
         </CardContent>
       </Card>
+
+      <AcademyEditDialog
+        academy={editing}
+        onClose={() => setEditing(null)}
+        onDeleted={() => setEditing(null)}
+      />
     </div>
   );
 }

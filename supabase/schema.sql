@@ -3200,3 +3200,146 @@ END;
 $$;
 REVOKE ALL ON FUNCTION public.super_admin_stats() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.super_admin_stats() TO authenticated;
+
+-- ────────────────────────────────────────────────────────────
+-- 8.13 ACADEMY MANAGEMENT (super admin)
+-- ────────────────────────────────────────────────────────────
+
+-- The platform console's academy editor reads any academy's admin profile,
+-- sports and branches.
+DROP POLICY IF EXISTS "Super admin read profiles" ON public.profiles;
+CREATE POLICY "Super admin read profiles" ON public.profiles
+  FOR SELECT TO authenticated USING (public.is_super_admin());
+
+DROP POLICY IF EXISTS "Super admin read sports" ON public.sports;
+CREATE POLICY "Super admin read sports" ON public.sports
+  FOR SELECT TO authenticated USING (public.is_super_admin());
+
+DROP POLICY IF EXISTS "Super admin read branches" ON public.academy_branches;
+CREATE POLICY "Super admin read branches" ON public.academy_branches
+  FOR SELECT TO authenticated USING (public.is_super_admin());
+
+-- Edit an academy's details, membership level, sports and the admin contact
+-- (name / phone / email) from the platform console in one call.
+CREATE OR REPLACE FUNCTION public.super_admin_update_academy(
+  p_academy_id UUID,
+  p_payload JSONB
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_admin_id UUID;
+  v_email TEXT := NULLIF(trim(COALESCE(p_payload ->> 'admin_email', '')), '');
+BEGIN
+  IF NOT public.is_super_admin() THEN
+    RAISE EXCEPTION 'Not authorized';
+  END IF;
+  IF p_academy_id IS NULL THEN
+    RAISE EXCEPTION 'Missing academy id';
+  END IF;
+
+  SELECT id INTO v_admin_id
+  FROM public.profiles
+  WHERE academy_id = p_academy_id AND role = 'admin'
+  ORDER BY created_at LIMIT 1;
+
+  -- Academy identity / location / visibility / subscription.
+  UPDATE public.academies SET
+    name           = COALESCE(NULLIF(trim(COALESCE(p_payload ->> 'name', '')), ''), name),
+    description    = COALESCE(NULLIF(p_payload ->> 'description', ''), description),
+    country        = COALESCE(NULLIF(p_payload ->> 'country', ''), country),
+    governorate    = COALESCE(NULLIF(p_payload ->> 'governorate', ''), governorate),
+    area           = COALESCE(NULLIF(p_payload ->> 'area', ''), area),
+    cover_url      = COALESCE(NULLIF(p_payload ->> 'cover_url', ''), cover_url),
+    is_public      = COALESCE((p_payload ->> 'is_public')::boolean, is_public),
+    is_trial       = COALESCE((p_payload ->> 'is_trial')::boolean, is_trial),
+    plan           = CASE
+                       WHEN p_payload ? 'plan'
+                         AND p_payload ->> 'plan' IN ('starter', 'plus', 'elite')
+                         THEN p_payload ->> 'plan'
+                       ELSE plan
+                     END,
+    trial_ends_at  = CASE
+                       WHEN p_payload ? 'trial_ends_at'
+                         THEN NULLIF(p_payload ->> 'trial_ends_at', '')::timestamptz
+                       ELSE trial_ends_at
+                     END
+  WHERE id = p_academy_id;
+
+  -- Sports roster: a supplied List replaces the current list entirely.
+  IF p_payload ? 'sports' THEN
+    DELETE FROM public.sports WHERE academy_id = p_academy_id;
+    INSERT INTO public.sports (academy_id, name)
+    SELECT p_academy_id, trim(az.name)
+    FROM jsonb_array_elements_text(COALESCE(p_payload -> 'sports', '[]'::jsonb)) AS az(name)
+    WHERE trim(az.name) <> ''
+    ON CONFLICT (academy_id, name) DO NOTHING;
+  END IF;
+
+  -- Contact details live on the founder's profile (and auth email when given).
+  IF v_admin_id IS NOT NULL AND (
+    p_payload ? 'admin_email' OR p_payload ? 'admin_name' OR p_payload ? 'admin_phone'
+  ) THEN
+    -- Bypass the self-guard trigger so the console may change a foreign profile.
+    ALTER TABLE public.profiles DISABLE TRIGGER guard_profile_update;
+    BEGIN
+      IF v_email IS NOT NULL
+         AND v_email <> (SELECT email FROM public.profiles WHERE id = v_admin_id) THEN
+        UPDATE auth.users SET email = v_email WHERE id = v_admin_id;
+      END IF;
+      UPDATE public.profiles SET
+        email = COALESCE(v_email, email),
+        name  = COALESCE(NULLIF(trim(COALESCE(p_payload ->> 'admin_name', '')), ''), name),
+        phone = CASE
+                  WHEN p_payload ? 'admin_phone'
+                    THEN NULLIF(p_payload ->> 'admin_phone', '')
+                  ELSE phone
+                END
+      WHERE id = v_admin_id;
+    EXCEPTION WHEN OTHERS THEN
+      ALTER TABLE public.profiles ENABLE TRIGGER guard_profile_update;
+      RAISE;
+    END;
+    ALTER TABLE public.profiles ENABLE TRIGGER guard_profile_update;
+  END IF;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.super_admin_update_academy(UUID, JSONB) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.super_admin_update_academy(UUID, JSONB) TO authenticated;
+
+-- Permanently delete an academy and every account tied to it.
+CREATE OR REPLACE FUNCTION public.super_admin_delete_academy(p_academy_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_user_ids UUID[];
+BEGIN
+  IF NOT public.is_super_admin() THEN
+    RAISE EXCEPTION 'Not authorized';
+  END IF;
+  IF p_academy_id IS NULL THEN
+    RAISE EXCEPTION 'Missing academy id';
+  END IF;
+
+  -- Remember every login belonging to the academy before the cascade erases rows.
+  SELECT array_agg(id) INTO v_user_ids
+  FROM public.profiles
+  WHERE academy_id = p_academy_id;
+
+  -- Cascades to branches, sports, members, sessions, games, payments…
+  DELETE FROM public.academies WHERE id = p_academy_id;
+
+  -- Remove the associated auth accounts (and their emails).
+  IF v_user_ids IS NOT NULL THEN
+    DELETE FROM auth.users WHERE id = ANY(v_user_ids);
+  END IF;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.super_admin_delete_academy(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.super_admin_delete_academy(UUID) TO authenticated;

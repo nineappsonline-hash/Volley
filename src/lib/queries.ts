@@ -1032,6 +1032,84 @@ export function useSuperAdminStats() {
   });
 }
 
+export function useAcademyManagement(academyId: string | null) {
+  return useQuery({
+    queryKey: ["academy-management", academyId],
+    enabled: !!academyId,
+    queryFn: async () => {
+      const [adminRes, sportsRes, branchesRes] = await Promise.all([
+        supabase()
+          .from("profiles")
+          .select("*")
+          .eq("academy_id", academyId!)
+          .eq("role", "admin")
+          .order("created_at", { ascending: true })
+          .limit(1),
+        supabase()
+          .from("sports")
+          .select("name")
+          .eq("academy_id", academyId!)
+          .order("created_at", { ascending: true }),
+        supabase()
+          .from("academy_branches")
+          .select("*")
+          .eq("academy_id", academyId!)
+          .order("is_main", { ascending: false })
+          .order("created_at", { ascending: true }),
+      ]);
+      for (const r of [adminRes, sportsRes, branchesRes]) {
+        if (r.error) throw r.error;
+      }
+      return {
+        admin: (adminRes.data?.[0] as Profile) ?? null,
+        sports: (sportsRes.data ?? []).map((s: { name: string }) => s.name),
+        branches: (branchesRes.data ?? []) as AcademyBranch[],
+      };
+    },
+  });
+}
+
+export function useSuperAdminUpdateAcademy() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      academyId,
+      payload,
+    }: {
+      academyId: string;
+      payload: Record<string, unknown>;
+    }) => {
+      const { error } = await supabase().rpc("super_admin_update_academy", {
+        p_academy_id: academyId,
+        p_payload: payload,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["all-academies"] });
+      qc.invalidateQueries({ queryKey: ["super-admin-stats"] });
+      qc.invalidateQueries({ queryKey: ["academy-management"] });
+    },
+  });
+}
+
+export function useSuperAdminDeleteAcademy() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (academyId: string) => {
+      const { error } = await supabase().rpc("super_admin_delete_academy", {
+        p_academy_id: academyId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["all-academies"] });
+      qc.invalidateQueries({ queryKey: ["super-admin-stats"] });
+      qc.invalidateQueries({ queryKey: ["academy-management"] });
+    },
+  });
+}
+
 export function useExtendTrial() {
   const qc = useQueryClient();
   return useMutation({
