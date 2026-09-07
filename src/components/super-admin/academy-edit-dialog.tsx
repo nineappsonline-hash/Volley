@@ -49,7 +49,6 @@ import {
 } from "@/lib/queries";
 import type { Academy, Coach, Venue } from "@/lib/types";
 import { LocationFields } from "@/components/shared/location-fields";
-import { COUNTRIES, COUNTRIES_AR } from "@/lib/locations";
 
 interface DraftVenue {
   id?: string | null;
@@ -305,33 +304,15 @@ export function AcademyEditDialog({
                   rows={3}
                 />
               </div>
-              <div className="space-y-2">
-                <Label>{t("sa_form_country")}</Label>
-                <Select
-                  value={country}
-                  onValueChange={(v) => {
-                    setCountry(v);
-                    setGovernorate("");
-                    setArea("");
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("common_select")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {COUNTRIES.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {COUNTRIES_AR[c] ?? c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
               <LocationFields
                 country={country}
                 governorate={governorate}
                 city={area}
-                onCountryChange={setCountry}
+                onCountryChange={(v) => {
+                  setCountry(v);
+                  setGovernorate("");
+                  setArea("");
+                }}
                 onGovernorateChange={(v) => {
                   setGovernorate(v);
                   setArea("");
