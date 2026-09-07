@@ -68,8 +68,8 @@
   /* Arabic font for RTL */
   [dir="rtl"] body,
   [dir="rtl"] {
-    font-family: "Cairo", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-      Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: "IBM Plex Sans Arabic", ui-sans-serif, system-ui, -apple-system,
+      "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
 }
 
