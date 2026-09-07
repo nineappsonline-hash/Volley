@@ -66,31 +66,28 @@ export function LocationFields({
   const states = localized(allStates);
   const cities = localized(allCities);
 
-  const stateOptions: Option[] = states.map((s) => ({
+  const stateOptions: Option[] = allStates.map((s) => ({
     value: s,
     label: s,
     search: s.toLowerCase(),
   }));
-  const cityOptions: Option[] = cities.map((c) => ({
+  const cityOptions: Option[] = allCities.map((c) => ({
     value: c,
     label: c,
     search: c.toLowerCase(),
   }));
 
   // Show dropdown if there are options, otherwise show manual input
-  // Always allow manual input by including an "Other" option
   const [govManual, setGovManual] = useState(allStates.length === 0);
   const [cityManual, setCityManual] = useState(allCities.length === 0);
 
   useEffect(() => {
     setGovManual(allStates.length === 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [country]);
+  }, [allStates]);
 
   useEffect(() => {
     setCityManual(allCities.length === 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [governorate]);
+  }, [allCities]);
 
   const handleCountry = (v: string) => {
     onCountryChange(v);
