@@ -2720,9 +2720,11 @@ $$;
 GRANT EXECUTE ON FUNCTION public.remove_push_subscription(TEXT) TO authenticated;
 
 -- Deliver new notifications to the recipient's subscribed devices via the
--- Edge Function. Requires pg_net + the project's function URL configured via
---   select set_config('app.settings.functions_url', 'https://<ref>.supabase.co/functions/v1', false);
--- If either is missing we skip silently and in-app notifications still work.
+-- Edge Function "notify-push" (deployed separately, see supabase/functions/).
+-- Requires the pg_net extension. The function URL and auth header use only
+-- non-secret values (public anon key). If services are missing we skip
+-- silently and in-app notifications still work.
+CREATE EXTENSION IF NOT EXISTS pg_net;
 CREATE OR REPLACE FUNCTION public.notify_push_forward()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -2730,20 +2732,25 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_functions_url TEXT := current_setting('app.settings.functions_url', true);
+  -- Non-secret constants. Replace with this project's own values if re-run
+  -- against a different project (function URL + anon/publishable key).
+  v_functions_url TEXT := 'https://wknaiyouwjobmzzjoutz.supabase.co/functions/v1';
+  v_anon_key TEXT := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndrbmFpeW91d2pvYm16empvdXR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1Mjc1ODYsImV4cCI6MjEwMjEwMzU4Nn0.oNl-1ctScgybJWMwrQSmJrOvLLhkYJ9zO0E_mwWeaB0';
 BEGIN
-  IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_net')
-     AND v_functions_url IS NOT NULL AND v_functions_url <> '' THEN
+  IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_net') THEN
     PERFORM net.http_post(
       url := v_functions_url || '/notify-push',
-      headers := $hdr${"Content-Type": "application/json", "Authorization": "Bearer " || current_setting('app.settings.service_role_key', true)}$hdr$,
-      body := json_build_object(
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'Authorization', 'Bearer ' || v_anon_key
+      ),
+      body := jsonb_build_object(
         'recipient_id', NEW.recipient_id::text,
         'title', NEW.title,
         'body', NEW.body,
         'link', NEW.link,
         'type', NEW.type
-      )::text,
+      ),
       timeout_milliseconds := 5000
     );
   END IF;

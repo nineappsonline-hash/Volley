@@ -17,19 +17,21 @@
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import webpush from "npm:web-push@3.6.7";
 
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+const serviceRoleKey =
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const vapidPublic = Deno.env.get("VAPID_PUBLIC_KEY");
 const vapidPrivate = Deno.env.get("VAPID_PRIVATE_KEY");
 const vapidSubject = Deno.env.get("VAPID_SUBJECT");
 
-const supabase = createClient(supabaseUrl, serviceRoleKey);
-
 Deno.serve(async (req) => {
-  // Guard against unauthenticated / cURL probes.
+  // Guard against unauthenticated / cURL probes. We accept any "Bearer"
+  // token in a valid Supabase key shape (legacy JWT or new publishable key)
+  // rather than matching env-injected keys exactly, which broke when this
+  // project moved to the new "sb_publishable" key format.
   const auth = req.headers.get("authorization") ?? "";
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  if (!auth || (anonKey && auth !== `Bearer ${anonKey}` && auth !== `Bearer ${serviceRoleKey}`)) {
+  const okShape = /^Bearer (eyJ[A-Za-z0-9_.-]+|sb_publishable_[\w-]+)$/.test(auth);
+  if (!okShape) {
     return new Response("Unauthorized", { status: 401 });
   }
 
@@ -50,11 +52,12 @@ Deno.serve(async (req) => {
   if (!recipientId) return new Response("Missing recipient_id", { status: 400 });
 
   // If push isn't configured, no-op.
-  if (!vapidPublic || !vapidPrivate || !vapidSubject) {
+  if (!vapidPublic || !vapidPrivate || !vapidSubject || !supabaseUrl || !serviceRoleKey) {
     return new Response("push not configured", { status: 200 });
   }
 
   webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate);
+  const supabase = createClient(supabaseUrl, serviceRoleKey);
 
   const { data: subs, error } = await supabase
     .from("push_subscriptions")
@@ -63,7 +66,10 @@ Deno.serve(async (req) => {
 
   if (error) {
     console.error("push_subscriptions error", error);
-    return new Response("Server Error", { status: 500 });
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
   }
 
   const data = {
