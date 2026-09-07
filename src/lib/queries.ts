@@ -1037,33 +1037,51 @@ export function useAcademyManagement(academyId: string | null) {
     queryKey: ["academy-management", academyId],
     enabled: !!academyId,
     queryFn: async () => {
-      const [adminRes, sportsRes, branchesRes] = await Promise.all([
-        supabase()
-          .from("profiles")
-          .select("*")
-          .eq("academy_id", academyId!)
-          .eq("role", "admin")
-          .order("created_at", { ascending: true })
-          .limit(1),
-        supabase()
-          .from("sports")
-          .select("name")
-          .eq("academy_id", academyId!)
-          .order("created_at", { ascending: true }),
-        supabase()
-          .from("academy_branches")
-          .select("*")
-          .eq("academy_id", academyId!)
-          .order("is_main", { ascending: false })
-          .order("created_at", { ascending: true }),
-      ]);
-      for (const r of [adminRes, sportsRes, branchesRes]) {
+      const [adminRes, sportsRes, branchesRes, venuesRes, coachesRes] =
+        await Promise.all([
+          supabase()
+            .from("profiles")
+            .select("*")
+            .eq("academy_id", academyId!)
+            .eq("role", "admin")
+            .order("created_at", { ascending: true })
+            .limit(1),
+          supabase()
+            .from("sports")
+            .select("id, name")
+            .eq("academy_id", academyId!)
+            .order("created_at", { ascending: true }),
+          supabase()
+            .from("academy_branches")
+            .select("*")
+            .eq("academy_id", academyId!)
+            .order("is_main", { ascending: false })
+            .order("created_at", { ascending: true }),
+          supabase()
+            .from("venues")
+            .select("*")
+            .eq("academy_id", academyId!)
+            .order("created_at", { ascending: true }),
+          supabase()
+            .from("coaches")
+            .select("*")
+            .eq("academy_id", academyId!)
+            .order("created_at", { ascending: true }),
+        ]);
+      for (const r of [adminRes, sportsRes, branchesRes, venuesRes, coachesRes]) {
         if (r.error) throw r.error;
       }
+      const sportsRows = (sportsRes.data ?? []) as { id: string; name: string }[];
+      const sportsById = Object.fromEntries(
+        sportsRows.map((s) => [s.id, s.name])
+      );
       return {
         admin: (adminRes.data?.[0] as Profile) ?? null,
-        sports: (sportsRes.data ?? []).map((s: { name: string }) => s.name),
+        sports: sportsRows,
+        sportsById,
         branches: (branchesRes.data ?? []) as AcademyBranch[],
+        venues: (venuesRes.data ?? []) as Venue[],
+        coaches: (coachesRes.data ?? []) as Coach[],
       };
     },
   });

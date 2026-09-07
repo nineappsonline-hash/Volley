@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   Loader2,
   Pencil,
+  Plus,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -46,7 +47,28 @@ import {
   useSuperAdminDeleteAcademy,
   useSuperAdminUpdateAcademy,
 } from "@/lib/queries";
-import type { Academy } from "@/lib/types";
+import type { Academy, Coach, Venue } from "@/lib/types";
+import { LocationFields } from "@/components/shared/location-fields";
+import { COUNTRIES, COUNTRIES_AR } from "@/lib/locations";
+
+interface DraftVenue {
+  id?: string | null;
+  name: string;
+  address: string;
+  capacity: string;
+  sport: string;
+  school_name: string;
+  rental_cost: string;
+  rental_hours: string;
+}
+interface DraftCoach {
+  id?: string | null;
+  name: string;
+  phone: string;
+  specialty: string;
+  monthly_salary: string;
+  is_active: boolean;
+}
 
 type Plan = "starter" | "plus" | "elite";
 const PLANS: Plan[] = ["starter", "plus", "elite"];
@@ -80,6 +102,8 @@ export function AcademyEditDialog({
   const [adminName, setAdminName] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPhone, setAdminPhone] = useState("");
+  const [venues, setVenues] = useState<DraftVenue[]>([]);
+  const [coaches, setCoaches] = useState<DraftCoach[]>([]);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   useEffect(() => {
@@ -99,13 +123,88 @@ export function AcademyEditDialog({
 
   useEffect(() => {
     if (!detail) return;
-    setSports((detail.sports ?? []).join(", "));
+    setSports((detail.sports ?? []).map((s) => s.name).join(", "));
     setAdminName(detail.admin?.name ?? "");
     setAdminEmail(detail.admin?.email ?? "");
     setAdminPhone(detail.admin?.phone ?? "");
+    setVenues((detail.venues ?? []).map((v: Venue) => ({
+      id: v.id,
+      name: v.name,
+      address: v.address ?? "",
+      capacity: v.capacity != null ? String(v.capacity) : "",
+      sport: v.sport_id ? (detail.sportsById?.[v.sport_id] ?? "") : "",
+      school_name: v.school_name ?? "",
+      rental_cost: v.rental_cost != null ? String(v.rental_cost) : "",
+      rental_hours: v.rental_hours != null ? String(v.rental_hours) : "1",
+    })));
+    setCoaches((detail.coaches ?? []).map((c: Coach) => ({
+      id: c.id,
+      name: c.name,
+      phone: c.phone ?? "",
+      specialty: c.specialty ?? "",
+      monthly_salary: c.monthly_salary != null ? String(c.monthly_salary) : "",
+      is_active: c.is_active,
+    })));
   }, [detail]);
 
   if (!academy) return null;
+
+  const sportNames = (detail?.sports ?? []).map((s) => s.name);
+  const trialAutoDate = isTrial && !trialEndsAt && academy.created_at
+    ? new Date(
+        new Date(academy.created_at).getTime() + 30 * 24 * 60 * 60 * 1000
+      )
+        .toISOString()
+        .slice(0, 10)
+    : "";
+
+  const setVenue = (i: number, patch: Partial<DraftVenue>) =>
+    setVenues((vs) => vs.map((v, idx) => (idx === i ? { ...v, ...patch } : v)));
+  const removeVenue = (i: number) =>
+    setVenues((vs) => vs.filter((_, idx) => idx !== i));
+  const addVenue = () =>
+    setVenues((vs) => [
+      ...vs,
+      {
+        id: null,
+        name: "",
+        address: "",
+        capacity: "",
+        sport: "",
+        school_name: "",
+        rental_cost: "",
+        rental_hours: "1",
+      },
+    ]);
+  const setCoach = (i: number, patch: Partial<DraftCoach>) =>
+    setCoaches((cs) => cs.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
+  const removeCoach = (i: number) =>
+    setCoaches((cs) => cs.filter((_, idx) => idx !== i));
+  const addCoach = () =>
+    setCoaches((cs) => [
+      ...cs,
+      {
+        id: null,
+        name: "",
+        phone: "",
+        specialty: "",
+        monthly_salary: "",
+        is_active: true,
+      },
+    ]);
+
+  // Auto-calculate trial end date if trial is active but no date is set
+  const finalTrialEndsAt = isTrial
+    ? trialEndsAt
+      ? `${trialEndsAt}T23:59:59Z`
+      : academy.created_at
+        ? new Date(
+            new Date(academy.created_at).getTime() + 30 * 24 * 60 * 60 * 1000
+          )
+            .toISOString()
+            .slice(0, 10) + "T23:59:59Z"
+        : null
+    : null;
 
   const payload = {
     name,
@@ -116,11 +215,29 @@ export function AcademyEditDialog({
     is_public: isPublic,
     plan,
     is_trial: isTrial,
-    trial_ends_at: trialEndsAt ? `${trialEndsAt}T23:59:59Z` : null,
+    trial_ends_at: finalTrialEndsAt,
     sports: sports
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean),
+    venues: venues.map((v) => ({
+      ...(v.id ? { id: v.id } : {}),
+      name: v.name,
+      address: v.address || null,
+      capacity: v.capacity !== "" ? Number(v.capacity) : null,
+      sport: v.sport || null,
+      school_name: v.school_name || null,
+      rental_cost: v.rental_cost !== "" ? Number(v.rental_cost) : null,
+      rental_hours: v.rental_hours !== "" ? Number(v.rental_hours) : 1,
+    })),
+    coaches: coaches.map((c) => ({
+      ...(c.id ? { id: c.id } : {}),
+      name: c.name,
+      phone: c.phone || null,
+      specialty: c.specialty || null,
+      monthly_salary: c.monthly_salary !== "" ? Number(c.monthly_salary) : null,
+      is_active: c.is_active,
+    })),
     admin_name: adminName,
     admin_email: adminEmail,
     admin_phone: adminPhone,
@@ -188,26 +305,39 @@ export function AcademyEditDialog({
                   rows={3}
                 />
               </div>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div className="space-y-2">
-                  <Label>{t("sa_form_country")}</Label>
-                  <Input
-                    value={country}
-                    onChange={(e) => setCountry(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>{t("sa_form_governorate")}</Label>
-                  <Input
-                    value={governorate}
-                    onChange={(e) => setGovernorate(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>{t("sa_form_area")}</Label>
-                  <Input value={area} onChange={(e) => setArea(e.target.value)} />
-                </div>
+              <div className="space-y-2">
+                <Label>{t("sa_form_country")}</Label>
+                <Select
+                  value={country}
+                  onValueChange={(v) => {
+                    setCountry(v);
+                    setGovernorate("");
+                    setArea("");
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("common_select")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COUNTRIES.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {COUNTRIES_AR[c] ?? c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+              <LocationFields
+                country={country}
+                governorate={governorate}
+                city={area}
+                onCountryChange={setCountry}
+                onGovernorateChange={(v) => {
+                  setGovernorate(v);
+                  setArea("");
+                }}
+                onCityChange={setArea}
+              />
               <div className="space-y-2">
                 <Label>{t("sa_form_sports")}</Label>
                 <Input
@@ -251,6 +381,14 @@ export function AcademyEditDialog({
                     value={trialEndsAt}
                     onChange={(e) => setTrialEndsAt(e.target.value)}
                   />
+                  {isTrial && !trialEndsAt && (
+                    <p className="text-xs text-muted-foreground">
+                      {t("sa_form_trial_auto").replace(
+                        "{date}",
+                        trialAutoDate
+                      )}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row">
@@ -322,6 +460,118 @@ export function AcademyEditDialog({
                 )}
               </p>
             )}
+
+            {/* Playgrounds */}
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-muted-foreground">
+                {t("sa_form_playgrounds")}
+              </p>
+              <div className="space-y-3">
+                {venues.map((v, i) => (
+                  <div key={v.id ?? `new-${i}`} className="rounded-lg border p-3 space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <Label className="mb-0">{v.name || `#${i + 1}`}</Label>
+                      <Button variant="ghost" size="sm" onClick={() => removeVenue(i)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>{t("sa_form_playground_name")}</Label>
+                        <Input value={v.name} onChange={(e) => setVenue(i, { name: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{t("sa_form_playground_sport")}</Label>
+                        <Select value={v.sport} onValueChange={(sport) => setVenue(i, { sport })}>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t("common_select")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {sportNames.map((s) => (
+                              <SelectItem key={s} value={s}>
+                                {s}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{t("sa_form_playground_address")}</Label>
+                        <Input value={v.address} onChange={(e) => setVenue(i, { address: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{t("sa_form_playground_capacity")}</Label>
+                        <Input type="number" min="0" value={v.capacity} onChange={(e) => setVenue(i, { capacity: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{t("sa_form_playground_school")}</Label>
+                        <Input value={v.school_name} onChange={(e) => setVenue(i, { school_name: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{t("sa_form_playground_cost")}</Label>
+                        <Input type="number" min="0" value={v.rental_cost} onChange={(e) => setVenue(i, { rental_cost: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{t("sa_form_playground_hours")}</Label>
+                        <Input type="number" min="0" step="0.5" value={v.rental_hours} onChange={(e) => setVenue(i, { rental_hours: e.target.value })} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" onClick={addVenue}>
+                  <Plus className="h-4 w-4" />
+                  {t("sa_form_add_playground")}
+                </Button>
+              </div>
+            </div>
+
+            {/* Coaches */}
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-muted-foreground">
+                {t("sa_form_coaches")}
+              </p>
+              <div className="space-y-3">
+                {coaches.map((c, i) => (
+                  <div key={c.id ?? `new-${i}`} className="rounded-lg border p-3 space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <Label className="mb-0">{c.name || `#${i + 1}`}</Label>
+                      <Button variant="ghost" size="sm" onClick={() => removeCoach(i)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>{t("sa_form_coach_name")}</Label>
+                        <Input value={c.name} onChange={(e) => setCoach(i, { name: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{t("sa_form_coach_phone")}</Label>
+                        <Input dir="ltr" value={c.phone} onChange={(e) => setCoach(i, { phone: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{t("sa_form_coach_specialty")}</Label>
+                        <Input value={c.specialty} onChange={(e) => setCoach(i, { specialty: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{t("sa_form_coach_salary")}</Label>
+                        <Input type="number" min="0" value={c.monthly_salary} onChange={(e) => setCoach(i, { monthly_salary: e.target.value })} />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg border p-3">
+                      <div>
+                        <p className="text-sm font-medium">{t("sa_form_coach_active")}</p>
+                        <p className="text-xs text-muted-foreground">{t("sa_form_coach_active_hint")}</p>
+                      </div>
+                      <Switch checked={c.is_active} onCheckedChange={(v) => setCoach(i, { is_active: v })} />
+                    </div>
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" onClick={addCoach}>
+                  <Plus className="h-4 w-4" />
+                  {t("sa_form_add_coach")}
+                </Button>
+              </div>
+            </div>
           </div>
         )}
 

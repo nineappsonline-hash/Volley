@@ -44,7 +44,8 @@ CREATE TABLE IF NOT EXISTS public.academies (
   -- Public page slug: /a/<slug>
   slug TEXT UNIQUE,
   description TEXT,
-  -- Location, structured as governorate + area (e.g. Cairo / Nasr City).
+  -- Location, structured as country → governorate → city/area.
+  country TEXT,
   governorate TEXT,
   area TEXT,
   -- Cover photo shown in the public directory and academy page.
@@ -519,9 +520,9 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS last_reminded_at TIMESTAMPT
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS checkin_code TEXT;
 ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS is_trial BOOLEAN NOT NULL DEFAULT TRUE;
 ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMPTZ;
-ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS trial_extended_at TIMESTAMPTZ;
-ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS governorate TEXT;
-ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS area TEXT;
+ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS trial_extended_at TIMESTAMPTZ;ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS country TEXT;
+  ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS governorate TEXT;
+  ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS area TEXT;
 ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS cover_url TEXT;
 ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS session_booking_enabled BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS platform_fee_percent NUMERIC NOT NULL DEFAULT 5;
@@ -3219,8 +3220,9 @@ DROP POLICY IF EXISTS "Super admin read branches" ON public.academy_branches;
 CREATE POLICY "Super admin read branches" ON public.academy_branches
   FOR SELECT TO authenticated USING (public.is_super_admin());
 
--- Edit an academy's details, membership level, sports and the admin contact
--- (name / phone / email) from the platform console in one call.
+-- Edit an academy's details, membership level, sports, playgrounds (venues),
+-- coaches and the admin contact (name / phone / email) from the platform
+-- console in one call.
 CREATE OR REPLACE FUNCTION public.super_admin_update_academy(
   p_academy_id UUID,
   p_payload JSONB
@@ -3233,6 +3235,8 @@ AS $$
 DECLARE
   v_admin_id UUID;
   v_email TEXT := NULLIF(trim(COALESCE(p_payload ->> 'admin_email', '')), '');
+  v_trial_active BOOLEAN;
+  v_item JSONB;
 BEGIN
   IF NOT public.is_super_admin() THEN
     RAISE EXCEPTION 'Not authorized';
@@ -3246,7 +3250,14 @@ BEGIN
   WHERE academy_id = p_academy_id AND role = 'admin'
   ORDER BY created_at LIMIT 1;
 
-  -- Academy identity / location / visibility / subscription.
+  -- Will the academy be inside a trial after this update?
+  v_trial_active := COALESCE(
+    (p_payload ->> 'is_trial')::boolean,
+    (SELECT is_trial FROM public.academies WHERE id = p_academy_id)
+  );
+
+  -- Academy identity / location / visibility / subscription. A trial with a
+  -- blank date is calculated automatically as 1 month from account creation.
   UPDATE public.academies SET
     name           = COALESCE(NULLIF(trim(COALESCE(p_payload ->> 'name', '')), ''), name),
     description    = COALESCE(NULLIF(p_payload ->> 'description', ''), description),
@@ -3255,7 +3266,7 @@ BEGIN
     area           = COALESCE(NULLIF(p_payload ->> 'area', ''), area),
     cover_url      = COALESCE(NULLIF(p_payload ->> 'cover_url', ''), cover_url),
     is_public      = COALESCE((p_payload ->> 'is_public')::boolean, is_public),
-    is_trial       = COALESCE((p_payload ->> 'is_trial')::boolean, is_trial),
+    is_trial       = v_trial_active,
     plan           = CASE
                        WHEN p_payload ? 'plan'
                          AND p_payload ->> 'plan' IN ('starter', 'plus', 'elite')
@@ -3264,7 +3275,11 @@ BEGIN
                      END,
     trial_ends_at  = CASE
                        WHEN p_payload ? 'trial_ends_at'
+                         AND NULLIF(p_payload ->> 'trial_ends_at', '') IS NOT NULL
                          THEN NULLIF(p_payload ->> 'trial_ends_at', '')::timestamptz
+                       WHEN v_trial_active
+                         THEN (SELECT created_at FROM public.academies WHERE id = p_academy_id)
+                            + INTERVAL '1 month'
                        ELSE trial_ends_at
                      END
   WHERE id = p_academy_id;
@@ -3277,6 +3292,105 @@ BEGIN
     FROM jsonb_array_elements_text(COALESCE(p_payload -> 'sports', '[]'::jsonb)) AS az(name)
     WHERE trim(az.name) <> ''
     ON CONFLICT (academy_id, name) DO NOTHING;
+  END IF;
+
+  -- Playgrounds (venues): rows with an id are updated in place, rows without
+  -- one are added, and existing rows that disappear are removed. The console
+  -- is not bound by the per-plan venue limits. Removed rows are deleted first
+  -- so rows added in the same call are never mistaken for removals.
+  IF p_payload ? 'venues' THEN
+    ALTER TABLE public.venues DISABLE TRIGGER guard_venue_limit_on_insert;
+    BEGIN
+      DELETE FROM public.venues
+      WHERE academy_id = p_academy_id
+        AND NOT (id IN (
+          SELECT (x ->> 'id')::uuid
+          FROM jsonb_array_elements(p_payload -> 'venues') AS x
+          WHERE x ? 'id'
+        ));
+      FOR v_item IN SELECT value FROM jsonb_array_elements(p_payload -> 'venues') LOOP
+        IF v_item ? 'id' THEN
+          UPDATE public.venues SET
+            name         = COALESCE(NULLIF(trim(COALESCE(v_item ->> 'name', '')), ''), name),
+            address      = CASE WHEN v_item ? 'address' THEN NULLIF(v_item ->> 'address', '') ELSE address END,
+            capacity     = CASE WHEN v_item ? 'capacity' THEN NULLIF(v_item ->> 'capacity', '')::integer ELSE capacity END,
+            school_name  = CASE WHEN v_item ? 'school_name' THEN NULLIF(v_item ->> 'school_name', '') ELSE school_name END,
+            rental_cost  = CASE WHEN v_item ? 'rental_cost' THEN NULLIF(v_item ->> 'rental_cost', '')::numeric ELSE rental_cost END,
+            rental_hours = CASE WHEN v_item ? 'rental_hours'
+                                THEN COALESCE(NULLIF(v_item ->> 'rental_hours', '')::numeric, 1)
+                                ELSE rental_hours END,
+            sport_id     = CASE WHEN v_item ? 'sport'
+                                THEN (SELECT id FROM public.sports
+                                      WHERE academy_id = p_academy_id
+                                        AND name = v_item ->> 'sport' LIMIT 1)
+                                ELSE sport_id END
+          WHERE id = (v_item ->> 'id')::uuid AND academy_id = p_academy_id;
+        ELSE
+          INSERT INTO public.venues (
+            academy_id, name, address, capacity, sport_id, school_name,
+            rental_cost, rental_hours
+          )
+          VALUES (
+            p_academy_id,
+            trim(v_item ->> 'name'),
+            NULLIF(v_item ->> 'address', ''),
+            NULLIF(v_item ->> 'capacity', '')::integer,
+            (SELECT id FROM public.sports
+             WHERE academy_id = p_academy_id
+               AND name = v_item ->> 'sport' LIMIT 1),
+            NULLIF(v_item ->> 'school_name', ''),
+            NULLIF(v_item ->> 'rental_cost', '')::numeric,
+            COALESCE(NULLIF(v_item ->> 'rental_hours', '')::numeric, 1)
+          );
+        END IF;
+      END LOOP;
+    EXCEPTION WHEN OTHERS THEN
+      ALTER TABLE public.venues ENABLE TRIGGER guard_venue_limit_on_insert;
+      RAISE;
+    END;
+    ALTER TABLE public.venues ENABLE TRIGGER guard_venue_limit_on_insert;
+  END IF;
+
+  -- Coaches: same incremental pattern. The console is not bound by the
+  -- per-plan coach limits.
+  IF p_payload ? 'coaches' THEN
+    ALTER TABLE public.coaches DISABLE TRIGGER guard_coach_limit_on_insert;
+    BEGIN
+      DELETE FROM public.coaches
+      WHERE academy_id = p_academy_id
+        AND NOT (id IN (
+          SELECT (x ->> 'id')::uuid
+          FROM jsonb_array_elements(p_payload -> 'coaches') AS x
+          WHERE x ? 'id'
+        ));
+      FOR v_item IN SELECT value FROM jsonb_array_elements(p_payload -> 'coaches') LOOP
+        IF v_item ? 'id' THEN
+          UPDATE public.coaches SET
+            name           = COALESCE(NULLIF(trim(COALESCE(v_item ->> 'name', '')), ''), name),
+            phone          = CASE WHEN v_item ? 'phone' THEN NULLIF(v_item ->> 'phone', '') ELSE phone END,
+            specialty      = CASE WHEN v_item ? 'specialty' THEN NULLIF(v_item ->> 'specialty', '') ELSE specialty END,
+            monthly_salary = CASE WHEN v_item ? 'monthly_salary'
+                                  THEN NULLIF(v_item ->> 'monthly_salary', '')::numeric
+                                  ELSE monthly_salary END,
+            is_active      = COALESCE((v_item ->> 'is_active')::boolean, is_active)
+          WHERE id = (v_item ->> 'id')::uuid AND academy_id = p_academy_id;
+        ELSE
+          INSERT INTO public.coaches (academy_id, name, phone, specialty, monthly_salary, is_active)
+          VALUES (
+            p_academy_id,
+            trim(v_item ->> 'name'),
+            NULLIF(v_item ->> 'phone', ''),
+            NULLIF(v_item ->> 'specialty', ''),
+            NULLIF(v_item ->> 'monthly_salary', '')::numeric,
+            COALESCE((v_item ->> 'is_active')::boolean, TRUE)
+          );
+        END IF;
+      END LOOP;
+    EXCEPTION WHEN OTHERS THEN
+      ALTER TABLE public.coaches ENABLE TRIGGER guard_coach_limit_on_insert;
+      RAISE;
+    END;
+    ALTER TABLE public.coaches ENABLE TRIGGER guard_coach_limit_on_insert;
   END IF;
 
   -- Contact details live on the founder's profile (and auth email when given).
@@ -3343,3 +3457,21 @@ END;
 $$;
 REVOKE ALL ON FUNCTION public.super_admin_delete_academy(UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.super_admin_delete_academy(UUID) TO authenticated;
+
+-- ── Automatic trial expiry ──
+-- Once a 1-month trial passes, the academy automatically drops back to the
+-- free (starter) plan. pg_cron runs the check on a schedule; only academies
+-- still on the trial plan ('elite') are downgraded so paid choices are kept.
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'trial-expiry-downgrade') THEN
+    PERFORM cron.unschedule('trial-expiry-downgrade');
+  END IF;
+  PERFORM cron.schedule('trial-expiry-downgrade', '*/5 * * * *', $cron$
+    UPDATE public.academies
+       SET is_trial = false, plan = 'starter', session_booking_enabled = false
+     WHERE is_trial AND trial_ends_at < NOW() AND plan = 'elite';
+  $cron$);
+END
+$$;
