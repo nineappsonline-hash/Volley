@@ -32,6 +32,8 @@ interface LocationFieldsProps {
   onCountryChange: (v: string) => void;
   onGovernorateChange: (v: string) => void;
   onCityChange: (v: string) => void;
+  governorateLabel?: string;
+  cityLabel?: string;
 }
 
 /**
@@ -45,6 +47,8 @@ export function LocationFields({
   onCountryChange,
   onGovernorateChange,
   onCityChange,
+  governorateLabel,
+  cityLabel,
 }: LocationFieldsProps) {
   const { t, lang } = useI18n();
   const isArabicLocale = lang === "ar";
@@ -127,7 +131,7 @@ export function LocationFields({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label>{t("signup_governorate")}</Label>
+          <Label>{governorateLabel ?? t("signup_governorate")}</Label>
           {govManual ? (
             <Input
               value={governorate}
@@ -146,7 +150,7 @@ export function LocationFields({
         </div>
 
         <div className="space-y-2">
-          <Label>{t("signup_city")}</Label>
+          <Label>{cityLabel ?? t("signup_city")}</Label>
           {cityManual ? (
             <Input
               value={city}

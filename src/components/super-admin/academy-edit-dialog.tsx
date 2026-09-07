@@ -580,6 +580,8 @@ export function AcademyEditDialog({
                         onCountryChange={(c) => setVenue(i, { country: c, governorate: "", area: "" })}
                         onGovernorateChange={(g) => setVenue(i, { governorate: g, area: "" })}
                         onCityChange={(a) => setVenue(i, { area: a })}
+                        governorateLabel="Governorate"
+                        cityLabel="City / Area"
                       />
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
                         <div className="space-y-2">

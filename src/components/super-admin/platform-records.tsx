@@ -176,15 +176,16 @@ export function PlatformRecords() {
         </div>         <div className="space-y-2">
            <Label>Address</Label>
            <Input value={editingVenue.address ?? ""} onChange={e => setEditingVenue({ ...editingVenue, address: e.target.value })} placeholder="e.g. 123 Street Name, City" />
-         </div>
-        <LocationFields
-          country={editingVenue.country ?? ""}
-          governorate={editingVenue.governorate ?? ""}
-          city={editingVenue.area ?? ""}
-          onCountryChange={(v) => setEditingVenue({ ...editingVenue, country: v, governorate: "", area: "" })}
-          onGovernorateChange={(v) => setEditingVenue({ ...editingVenue, governorate: v, area: "" })}
-          onCityChange={(v) => setEditingVenue({ ...editingVenue, area: v })}
-        />
+         </div>         <LocationFields
+           country={editingVenue.country ?? ""}
+           governorate={editingVenue.governorate ?? ""}
+           city={editingVenue.area ?? ""}
+           onCountryChange={(v) => setEditingVenue({ ...editingVenue, country: v, governorate: "", area: "" })}
+           onGovernorateChange={(v) => setEditingVenue({ ...editingVenue, governorate: v, area: "" })}
+           onCityChange={(v) => setEditingVenue({ ...editingVenue, area: v })}
+           governorateLabel="Governorate"
+           cityLabel="City / Area"
+         />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label>Capacity</Label>
