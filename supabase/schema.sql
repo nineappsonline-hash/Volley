@@ -2071,6 +2071,23 @@ CREATE POLICY "Game fee receipts: read own" ON storage.objects
     AND (storage.foldername(name))[1] = auth.uid()::text
   );
 
+-- Storage bucket for session/announcement photos. The bucket is public so the
+-- generated getPublicUrl() links load in <img> tags; uploads come from any
+-- authenticated member.
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('session-photos', 'session-photos', TRUE)
+ON CONFLICT (id) DO NOTHING;
+
+DROP POLICY IF EXISTS "Session photos: upload" ON storage.objects;
+CREATE POLICY "Session photos: upload" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'session-photos');
+
+DROP POLICY IF EXISTS "Session photos: read" ON storage.objects;
+CREATE POLICY "Session photos: read" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (bucket_id = 'session-photos');
+
 CREATE OR REPLACE FUNCTION public.join_friendly_game(p_game_id UUID)
 RETURNS UUID
 LANGUAGE plpgsql
@@ -2288,7 +2305,27 @@ DROP POLICY IF EXISTS "Notifications own delete" ON public.notifications;
 CREATE POLICY "Notifications own delete" ON public.notifications
   FOR DELETE TO authenticated USING (recipient_id = auth.uid());
 
+-- ────────────────────────────────────────────────────────────
 -- 8.4 Community trust: reports (moderated by platform admins) + member blocks.
+
+-- One source of truth for "is this user a platform super admin". The role
+-- travels in the JWT's app_metadata (see src/lib/session.ts). We also accept
+-- profiles.role = 'super_admin' so legacy rows keep working on older databases.
+-- Defined here (before the reports policies below use it); sections 8.5+ reuse it.
+CREATE OR REPLACE FUNCTION public.is_super_admin()
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(
+    auth.jwt() -> 'app_metadata' ->> 'role',
+    (SELECT p.role FROM public.profiles p WHERE p.id = auth.uid())
+  ) = 'super_admin';
+$$;
+GRANT EXECUTE ON FUNCTION public.is_super_admin() TO authenticated;
+
 CREATE TABLE IF NOT EXISTS public.reports (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   reporter_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -2767,22 +2804,8 @@ CREATE TRIGGER notify_push_on_insert
 -- 8.9 SUPER ADMIN, PLANS, FEE REVIEW & LEADERBOARD
 -- ────────────────────────────────────────────────────────────
 
--- One source of truth for "is this user a platform super admin". The role
--- travels in the JWT's app_metadata (see src/lib/session.ts). We also accept
--- profiles.role = 'super_admin' so legacy rows keep working on older databases.
-CREATE OR REPLACE FUNCTION public.is_super_admin()
-RETURNS BOOLEAN
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT COALESCE(
-    auth.jwt() -> 'app_metadata' ->> 'role',
-    (SELECT p.role FROM public.profiles p WHERE p.id = auth.uid())
-  ) = 'super_admin';
-$$;
-GRANT EXECUTE ON FUNCTION public.is_super_admin() TO authenticated;
+-- public.is_super_admin() is defined in section 8.4 (before the reports
+-- policies that use it). CREATE OR REPLACE keeps this safe to re-run.
 
 -- Super admins may inspect every community game (any fee status), not just the
 -- public ones or their own.
