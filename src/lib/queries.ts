@@ -1057,11 +1057,11 @@ export function useAcademyManagement(academyId: string | null) {
             .eq("academy_id", academyId!)
             .order("is_main", { ascending: false })
             .order("created_at", { ascending: true }),
-          supabase()
-            .from("venues")
-            .select("*")
-            .eq("academy_id", academyId!)
-            .order("created_at", { ascending: true }),
+          fetch("/api/platform-admin", { cache: "no-store" }).then(async response => {
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error ?? "Could not load playgrounds");
+            return { data: result.venues.filter((venue: Venue) => venue.academy_id === academyId) as Venue[], error: null };
+          }),
           supabase()
             .from("coaches")
             .select("*")
@@ -1307,7 +1307,7 @@ export function useVenues() {
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("venues")
-        .select("*")
+        .select("id, academy_id, name, address, lat, lng, capacity, sport_id, school_name, rental_cost, rental_hours, created_at")
         .order("name");
       if (error) throw error;
       return (data ?? []) as Venue[];
