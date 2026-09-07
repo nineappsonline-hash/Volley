@@ -90,6 +90,11 @@ interface DraftVenue {
   school_name: string;
   rental_cost: string;
   rental_hours: string;
+  country: string;
+  governorate: string;
+  area: string;
+  contact_person: string;
+  contact_phone: string;
 }
 interface DraftCoach {
   id?: string | null;
@@ -157,7 +162,7 @@ export function AcademyEditDialog({
     setAdminName(detail.admin?.name ?? "");
     setAdminEmail(detail.admin?.email ?? "");
     setAdminPhone(detail.admin?.phone ?? "");
-    setVenues((detail.venues ?? []).map((v: Venue) => ({
+    setVenues((detail.venues ?? []).map((v: Venue & { country?: string; governorate?: string; area?: string; contact_person?: string; contact_phone?: string }) => ({
       id: v.id,
       name: v.name,
       address: v.address ?? "",
@@ -166,6 +171,11 @@ export function AcademyEditDialog({
       school_name: v.school_name ?? "",
       rental_cost: v.rental_cost != null ? String(v.rental_cost) : "",
       rental_hours: v.rental_hours != null ? String(v.rental_hours) : "1",
+      country: v.country ?? "",
+      governorate: v.governorate ?? "",
+      area: v.area ?? "",
+      contact_person: v.contact_person ?? "",
+      contact_phone: v.contact_phone ?? "",
     })));
     setCoaches((detail.coaches ?? []).map((c: Coach) => ({
       id: c.id,
@@ -204,6 +214,11 @@ export function AcademyEditDialog({
         school_name: "",
         rental_cost: "",
         rental_hours: "1",
+        country: "",
+        governorate: "",
+        area: "",
+        contact_person: "",
+        contact_phone: "",
       },
     ]);
   const setCoach = (i: number, patch: Partial<DraftCoach>) =>
@@ -256,6 +271,11 @@ export function AcademyEditDialog({
       school_name: v.school_name || null,
       rental_cost: v.rental_cost !== "" ? Number(v.rental_cost) : null,
       rental_hours: v.rental_hours !== "" ? Number(v.rental_hours) : 1,
+      country: v.country || null,
+      governorate: v.governorate || null,
+      area: v.area || null,
+      contact_person: v.contact_person || null,
+      contact_phone: v.contact_phone || null,
     })),
     coaches: coaches.map((c) => ({
       ...(c.id ? { id: c.id } : {}),
@@ -550,6 +570,26 @@ export function AcademyEditDialog({
                       <div className="space-y-2">
                         <Label>{t("sa_form_playground_hours")}</Label>
                         <Input type="number" min="0" step="0.5" value={v.rental_hours} onChange={(e) => setVenue(i, { rental_hours: e.target.value })} />
+                      </div>
+                    </div>
+                    <div className="pt-3 border-t">
+                      <LocationFields
+                        country={v.country}
+                        governorate={v.governorate}
+                        city={v.area}
+                        onCountryChange={(c) => setVenue(i, { country: c, governorate: "", area: "" })}
+                        onGovernorateChange={(g) => setVenue(i, { governorate: g, area: "" })}
+                        onCityChange={(a) => setVenue(i, { area: a })}
+                      />
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
+                        <div className="space-y-2">
+                          <Label>{t("sa_form_playground_contact_person")}</Label>
+                          <Input value={v.contact_person} onChange={(e) => setVenue(i, { contact_person: e.target.value })} placeholder="Contact person name" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>{t("sa_form_playground_contact_phone")}</Label>
+                          <Input value={v.contact_phone} onChange={(e) => setVenue(i, { contact_phone: e.target.value })} placeholder="Contact phone" />
+                        </div>
                       </div>
                     </div>
                   </div>

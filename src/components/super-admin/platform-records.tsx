@@ -14,6 +14,11 @@ import { PLATFORM_ADMIN_EMAIL } from "@/lib/platform-admin";
 import { useSuperAdminDeleteAcademy } from "@/lib/queries";
 import type { Academy } from "@/lib/types";
 import { AcademyEditDialog } from "./academy-edit-dialog";
+import { LocationFields } from "@/components/shared/location-fields";
+import { COUNTRIES, COUNTRIES_AR } from "@/lib/locations";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus } from "lucide-react";
 
 type Row = Record<string, any>;
 type Records = Record<string, Row[]>;
@@ -156,15 +161,63 @@ export function PlatformRecords() {
       <Dialog open={!!deleting} onOpenChange={open => !busy && !open && setDeleting(null)}><DialogContent><DialogHeader><DialogTitle>Permanently delete account?</DialogTitle><DialogDescription>This removes the login and related records according to database deletion rules. This cannot be undone. Type {deleting?.email} to confirm.</DialogDescription></DialogHeader><Input aria-label="Account email confirmation" value={confirmation} onChange={e => setConfirmation(e.target.value)} /><Button variant="destructive" disabled={busy || confirmation !== deleting?.email} onClick={() => act({ action: "delete", id: deleting!.id, confirmation })}>{busy ? "Deleting…" : "Permanently delete"}</Button></DialogContent></Dialog>
       <AlertDialog open={!!deletingAcademy} onOpenChange={open => !removeAcademy.isPending && !open && setDeletingAcademy(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Permanently delete academy?</AlertDialogTitle><AlertDialogDescription>This removes the academy and every account and record linked to it (members, sessions, games, payments, branches, sports). This cannot be undone. Type {deletingAcademy?.name} to confirm.</AlertDialogDescription></AlertDialogHeader><Input aria-label="Academy name confirmation" value={confirmation} onChange={e => setConfirmation(e.target.value)} /><AlertDialogFooter><AlertDialogCancel disabled={removeAcademy.isPending}>Cancel</AlertDialogCancel><AlertDialogAction asChild><Button variant="destructive" disabled={removeAcademy.isPending || confirmation !== deletingAcademy?.name} onClick={async () => { try { await removeAcademy.mutateAsync(deletingAcademy!.id); toast.success("Academy deleted"); setDeletingAcademy(null); setConfirmation(""); await cache.invalidateQueries(); } catch (e) { toast.error(e instanceof Error ? e.message : "Deletion failed"); } }}>{removeAcademy.isPending ? "Deleting…" : "Permanently delete"}</Button></AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
       <AcademyEditDialog academy={editingAcademy} onClose={() => setEditingAcademy(null)} onDeleted={() => { setEditingAcademy(null); cache.invalidateQueries(); }} />
-      <Dialog open={!!editingVenue} onOpenChange={open => !busy && !open && setEditingVenue(null)}><DialogContent><DialogHeader><DialogTitle>Edit playground</DialogTitle><DialogDescription>{editingVenue?.name}</DialogDescription></DialogHeader>{editingVenue && <form className="space-y-4" onSubmit={e => { e.preventDefault(); act({ action: "venue", id: editingVenue.id, name: editingVenue.name, address: editingVenue.address, capacity: editingVenue.capacity, sport_id: editingVenue.sport_id, school_name: editingVenue.school_name, rental_cost: editingVenue.rental_cost, rental_hours: editingVenue.rental_hours }); }}>
-        <label className="block text-sm">Playground name<Input required value={editingVenue.name} onChange={e => setEditingVenue({ ...editingVenue, name: e.target.value })} /></label>
-        <label className="block text-sm">Address<Input value={editingVenue.address ?? ""} onChange={e => setEditingVenue({ ...editingVenue, address: e.target.value })} /></label>
-        <label className="block text-sm">Capacity<Input type="number" min="0" value={editingVenue.capacity ?? ""} onChange={e => setEditingVenue({ ...editingVenue, capacity: e.target.value })} /></label>
-        <label className="block text-sm">Sport ID<Input value={editingVenue.sport_id ?? ""} onChange={e => setEditingVenue({ ...editingVenue, sport_id: e.target.value })} /></label>
-        <label className="block text-sm">Rented school / owner<Input value={editingVenue.school_name ?? ""} onChange={e => setEditingVenue({ ...editingVenue, school_name: e.target.value })} /></label>
-        <label className="block text-sm">Rental cost (EGP)<Input type="number" min="0" step="0.01" value={editingVenue.rental_cost ?? ""} onChange={e => setEditingVenue({ ...editingVenue, rental_cost: e.target.value })} /></label>
-        <label className="block text-sm">Rental hours<Input type="number" min="0" step="0.5" value={editingVenue.rental_hours ?? "1"} onChange={e => setEditingVenue({ ...editingVenue, rental_hours: e.target.value })} /></label>
-        <Button type="submit" disabled={busy}>{busy ? "Saving…" : "Save playground"}</Button>
+      <Dialog open={!!editingVenue} onOpenChange={open => !busy && !open && setEditingVenue(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>Edit playground</DialogTitle><DialogDescription>{editingVenue?.name}</DialogDescription></DialogHeader>{editingVenue && <form className="space-y-4" onSubmit={e => { e.preventDefault(); act({ action: "venue", id: editingVenue.id, name: editingVenue.name, address: editingVenue.address, capacity: editingVenue.capacity, sport_id: editingVenue.sport_id, school_name: editingVenue.school_name, rental_cost: editingVenue.rental_cost, rental_hours: editingVenue.rental_hours, country: editingVenue.country, governorate: editingVenue.governorate, city: editingVenue.area, contact_person: editingVenue.contact_person, contact_phone: editingVenue.contact_phone }); }}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label>Playground name</Label>
+            <Input required value={editingVenue.name} onChange={e => setEditingVenue({ ...editingVenue, name: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Sport</Label>
+            <Input value={editingVenue.sport_id ?? ""} onChange={e => setEditingVenue({ ...editingVenue, sport_id: e.target.value })} placeholder="Sport ID or name" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label>Address</Label>
+          <Input value={editingVenue.address ?? ""} onChange={e => setEditingVenue({ ...editingVenue, address: e.target.value })} />
+        </div>
+        <LocationFields
+          country={editingVenue.country ?? ""}
+          governorate={editingVenue.governorate ?? ""}
+          city={editingVenue.area ?? ""}
+          onCountryChange={(v) => setEditingVenue({ ...editingVenue, country: v, governorate: "", area: "" })}
+          onGovernorateChange={(v) => setEditingVenue({ ...editingVenue, governorate: v, area: "" })}
+          onCityChange={(v) => setEditingVenue({ ...editingVenue, area: v })}
+        />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label>Capacity</Label>
+            <Input type="number" min="0" value={editingVenue.capacity ?? ""} onChange={e => setEditingVenue({ ...editingVenue, capacity: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Rented school / owner</Label>
+            <Input value={editingVenue.school_name ?? ""} onChange={e => setEditingVenue({ ...editingVenue, school_name: e.target.value })} />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label>Rental cost (EGP)</Label>
+            <Input type="number" min="0" step="0.01" value={editingVenue.rental_cost ?? ""} onChange={e => setEditingVenue({ ...editingVenue, rental_cost: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Rental hours</Label>
+            <Input type="number" min="0" step="0.5" value={editingVenue.rental_hours ?? "1"} onChange={e => setEditingVenue({ ...editingVenue, rental_hours: e.target.value })} />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label>Contact person</Label>
+            <Input value={editingVenue.contact_person ?? ""} onChange={e => setEditingVenue({ ...editingVenue, contact_person: e.target.value })} placeholder="Name of contact person" />
+          </div>
+          <div className="space-y-2">
+            <Label>Contact phone</Label>
+            <Input value={editingVenue.contact_phone ?? ""} onChange={e => setEditingVenue({ ...editingVenue, contact_phone: e.target.value })} placeholder="Phone number" />
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button type="button" variant="outline" onClick={() => setEditingVenue(null)}>Cancel</Button>
+          <Button type="submit" disabled={busy} className="ml-auto">{busy ? "Saving…" : "Save playground"}</Button>
+        </div>
       </form>}</DialogContent></Dialog>
       <Dialog open={!!deleting} onOpenChange={open => !busy && !open && setDeleting(null)}><DialogContent><DialogHeader><DialogTitle>Permanently delete playground?</DialogTitle><DialogDescription>This removes the playground. Rentals using this playground will keep working but without the playground name. Type {deleting?.name} to confirm.</DialogDescription></DialogHeader><Input aria-label="Playground name confirmation" value={confirmation} onChange={e => setConfirmation(e.target.value)} /><Button variant="destructive" disabled={busy || confirmation !== deleting?.name} onClick={() => act({ action: "delete", id: deleting!.id, confirmation })}>{busy ? "Deleting…" : "Permanently delete"}</Button></DialogContent></Dialog>
     </CardContent>
