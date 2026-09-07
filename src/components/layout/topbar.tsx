@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 import { LogOut, Menu, UserRound } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -26,12 +27,26 @@ interface TopbarProps {
   role: Role;
   name: string;
   memberPlan?: "free" | "premium";
+  academy?: {
+    plan: string;
+    isTrial: boolean;
+    trialEndsAt: string | null;
+  } | null;
 }
 
-export function Topbar({ role, name, memberPlan }: TopbarProps) {
+export function Topbar({ role, name, memberPlan, academy }: TopbarProps) {
   const { t } = useI18n();
   const router = useRouter();
   const { signOut } = useAuth();
+
+  const trialDaysLeft = useMemo(() => {
+    if (!academy || !academy.isTrial || !academy.trialEndsAt) return null;
+    const endsAt = new Date(academy.trialEndsAt);
+    const days = Math.ceil((endsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return days <= 0 ? 0 : days;
+  }, [academy]);
+
+  const planLabel = academy ? t(`plan_${academy.plan}` as any) : "";
 
   const handleSignOut = async () => {
     await signOut();
@@ -54,6 +69,18 @@ export function Topbar({ role, name, memberPlan }: TopbarProps) {
       </Sheet>
 
       <div className="ms-auto flex items-center gap-1">
+        {role === "admin" && academy && (
+          <span
+            className="hidden items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary sm:inline-flex"
+            title={academy.isTrial ? "Trial" : undefined}
+          >
+            {academy.isTrial && trialDaysLeft !== null
+              ? trialDaysLeft > 0
+                ? t("topbar_trial_left").replace("{plan}", planLabel).replace("{n}", String(trialDaysLeft))
+                : t("topbar_trial_expired").replace("{plan}", planLabel)
+              : planLabel}
+          </span>
+        )}
         <Notifications />
         <ThemeToggle />
         <LanguageToggle />

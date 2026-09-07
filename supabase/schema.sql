@@ -668,7 +668,7 @@ BEGIN
       RAISE EXCEPTION 'Phone number is required to create an academy account';
     END IF;
 
-    INSERT INTO public.academies (name, slug, country, governorate, area, is_public, is_trial, trial_ends_at)
+    INSERT INTO public.academies (name, slug, country, governorate, area, is_public, is_trial, trial_ends_at, plan)
     VALUES (
       left(v_new_name, 60),
       lower(regexp_replace(left(v_new_name, 40), '[^a-zA-Z0-9]+', '-', 'g'))
@@ -678,7 +678,10 @@ BEGIN
       v_new_area,
       TRUE,
       TRUE,
-      NOW() + INTERVAL '14 days'
+      NOW() + INTERVAL '30 days',
+      -- New academies start on a 1-month trial of the top (Enterprise/elite)
+      -- plan so the whole product is usable during the trial period.
+      'elite'
     )
     RETURNING id INTO v_academy;
 
