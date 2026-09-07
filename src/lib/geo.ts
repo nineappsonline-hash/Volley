@@ -75,11 +75,21 @@ export interface NominatimResult {
  */
 export async function geocodeQuery(
   query: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  countryBias?: string
 ): Promise<NominatimResult[]> {
-  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&q=${encodeURIComponent(
-    query
-  )}`;
+  const params = new URLSearchParams({
+    format: "jsonv2",
+    limit: "5",
+    q: query,
+  });
+  // Bias results towards Egypt by default for better local results
+  if (countryBias) {
+    params.set("countrycodes", countryBias);
+  } else {
+    params.set("countrycodes", "eg");
+  }
+  const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
   try {
     const res = await fetch(url, {
       signal,
@@ -105,7 +115,7 @@ export async function geocodeQuery(
 
 /** Reverse-geocode coordinates into a human-readable address label. */
 export async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
-  const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat.toFixed(6)}&lon=${lng.toFixed(6)}&zoom=18`;
+  const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat.toFixed(6)}&lon=${lng.toFixed(6)}&zoom=18&countrycodes=eg`;
   try {
     const res = await fetch(url, { headers: { Accept: "application/json" } });
     if (!res.ok) return null;
