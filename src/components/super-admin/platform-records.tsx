@@ -17,6 +17,26 @@ const tabs = ["Members", "Academies", "Friendly games", "Playgrounds"] as const;
 function Details({ row }: { row: Row }) {
   return <dl className="grid gap-3 sm:grid-cols-2">{Object.entries(row).map(([key, value]) => <div key={key} className="min-w-0 rounded-lg bg-muted/40 p-3"><dt className="text-xs capitalize text-muted-foreground">{key.replaceAll("_", " ")}</dt><dd className="mt-1 break-words text-sm">{value == null ? "—" : typeof value === "object" ? JSON.stringify(value) : String(value)}</dd></div>)}</dl>;
 }
+function AcademyMemberRow({ member }: { member: Row }) {
+  const blocked = member.banned_until && new Date(member.banned_until) > new Date();
+  const status = blocked ? "Blocked" : member.is_active ? "Active" : "Inactive";
+  return <details className="rounded-lg border px-3 py-2">
+    <summary className="cursor-pointer text-sm marker:text-muted-foreground">
+      <span className="inline-flex max-w-[calc(100%-1.5rem)] items-center gap-2 align-middle">
+        <span className="truncate font-medium">{member.name || "Unnamed member"}</span>
+        <span className="shrink-0 text-xs text-muted-foreground">{status}</span>
+      </span>
+    </summary>
+    <div className="pt-3"><Details row={{
+      Email: member.email || "Not provided",
+      Phone: member.phone || "Not provided",
+      Membership: member.membership_type === "half" ? "Half" : "Full",
+      "Platform plan": member.member_plan === "premium" ? "Premium" : "Free",
+      "Subscription sessions": member.subscription_sessions,
+      "Sessions attended": member.sessions_attended,
+    }} /></div>
+  </details>;
+}
 function MemberDetails({ member, data }: { member: Row; data: Records }) {
   const payments = data.payments.filter(r => r.member_id === member.id).sort((a, b) => b.payment_date.localeCompare(a.payment_date));
   const attendance = data.attendance.filter(r => r.member_id === member.id);
@@ -114,7 +134,7 @@ export function PlatformRecords() {
           {tab === "Playgrounds" && <div className="space-y-2 text-sm"><p className="font-medium">{(occupied / 60).toFixed(1)} rental hours / 24 hours ({Math.round(occupied / 1440 * 100)}% rental occupation)</p>{events.map((event,i) => <p key={i} className="rounded bg-muted p-2">{event.time.slice(0,5) || "Time unknown"} · {event.label}</p>)}{events.length === 0 && <p>No bookings recorded for this date.</p>}<p className="text-muted-foreground">Rental gaps: {gaps.join(", ") || "None"}</p></div>}
         </article>;
       })}</div>
-      <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle>{selected?.name ?? selected?.title ?? "Record details"}</DialogTitle><DialogDescription>{tab === "Members" ? "Contact, membership and activity" : "Stored record and related activity"}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails member={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && Object.entries(related).map(([label, records]) => <details key={label}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => label === "Members" ? <MemberDetails key={r.id} member={r} data={data} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
+      <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle>{selected?.name ?? selected?.title ?? "Record details"}</DialogTitle><DialogDescription>{tab === "Members" ? "Contact, membership and activity" : "Stored record and related activity"}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails member={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && Object.entries(related).map(([label, records]) => <details key={label}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => label === "Members" ? <AcademyMemberRow key={r.id} member={r} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
       <Dialog open={!!editing} onOpenChange={open => !busy && !open && setEditing(null)}><DialogContent><DialogHeader><DialogTitle>Edit membership</DialogTitle><DialogDescription>{editing?.name} · {editing?.email}</DialogDescription></DialogHeader>{editing && <form className="space-y-4" onSubmit={e => { e.preventDefault(); act({ action: "membership", id: editing.id, membership_type: editing.membership_type, subscription_sessions: Number(editing.subscription_sessions), member_plan: editing.member_plan, premium_expires_at: editing.premium_expires_at ? new Date(editing.premium_expires_at).toISOString() : null, is_active: editing.is_active }); }}>
         <label className="block text-sm">Academy membership<select className="mt-1 w-full rounded border bg-background p-2" value={editing.membership_type} onChange={e => setEditing({ ...editing, membership_type: e.target.value })}><option value="full">Full</option><option value="half">Half</option></select></label>
         <label className="block text-sm">Subscription sessions<Input type="number" min="0" max="10000" required value={editing.subscription_sessions} onChange={e => setEditing({ ...editing, subscription_sessions: e.target.value })} /></label>
