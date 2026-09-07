@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,8 @@ function Details({ row }: { row: Row }) {
 }
 export function PlatformRecords() {
   const cache = useQueryClient();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { data, isLoading, error, refetch } = useQuery<Records>({ queryKey: ["platform-records"], queryFn: async () => {
     const response = await fetch("/api/platform-admin", { cache: "no-store" });
     const result = await response.json();
@@ -32,6 +35,12 @@ export function PlatformRecords() {
   const [deleting, setDeleting] = useState<Row | null>(null);
   const [confirmation, setConfirmation] = useState("");
   const [busy, setBusy] = useState(false);
+  const requestedTab = searchParams.get("tab");
+  useEffect(() => {
+    setTab(tabs.find(item => item === requestedTab) ?? "Members");
+    setSearch("");
+    setSelected(null);
+  }, [requestedTab]);
   const act = async (body: Row) => {
     setBusy(true);
     try {
@@ -53,7 +62,7 @@ export function PlatformRecords() {
   return <Card>
     <CardHeader><CardTitle>Platform management</CardTitle><p className="text-sm text-muted-foreground">{data.profiles.length} accounts · {data.academies.length} academies · {data.friendly_games.length} games · {data.venues.length} playgrounds</p></CardHeader>
     <CardContent className="space-y-4">
-      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Platform records">{tabs.map(item => <Button key={item} role="tab" aria-selected={tab === item} variant={tab === item ? "default" : "outline"} onClick={() => { setTab(item); setSearch(""); setSelected(null); }}>{item}</Button>)}</div>
+      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Platform records">{tabs.map(item => <Button key={item} role="tab" aria-selected={tab === item} variant={tab === item ? "default" : "outline"} onClick={() => { router.push(`/admin?tab=${encodeURIComponent(item)}`, { scroll: false }); }}>{item}</Button>)}</div>
       <div className="flex flex-wrap gap-2"><Input className="max-w-sm" aria-label="Search records" placeholder="Search name, email, phone or academy…" value={search} onChange={e => setSearch(e.target.value)} />{tab === "Playgrounds" && <Input className="w-auto" type="date" aria-label="Schedule date" value={date} onChange={e => setDate(e.target.value)} />}<Button variant="outline" onClick={() => refetch()}>Refresh</Button></div>
       {tab === "Playgrounds" && <p className="text-sm text-muted-foreground">Schedules use recorded local times. Rentals have known durations; training and tournament end times are not stored. Gaps are unbooked rental time, not confirmed availability. Opening hours and friendly-game venue links are not recorded.</p>}
       <p className="text-xs text-muted-foreground">{rows.length} records</p>

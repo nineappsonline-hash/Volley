@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   BarChart3,
   Building2,
@@ -47,6 +47,10 @@ const adminItems = [
 
 const superAdminItems = [
   { href: "/admin", key: "super_admin_title", icon: Crown },
+  { href: "/admin?tab=Members", key: "nav_members", icon: Users },
+  { href: "/admin?tab=Academies", key: "nav_academies", icon: Building2 },
+  { href: "/admin?tab=Friendly%20games", key: "nav_community", icon: Volleyball },
+  { href: "/admin?tab=Playgrounds", key: "nav_playgrounds", icon: LandPlot },
 ] as const;
 
 const academyItems = [
@@ -74,19 +78,20 @@ interface SidebarProps {
 
 export function Sidebar({ role, name, memberPlan }: SidebarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { t } = useI18n();
   // Admins manage the academy's own pages; members see the member feature set.
-  // Super admins additionally get the platform admin panel.
+  // Platform admins navigate within their cross-academy panel.
   const items =
     role === "super_admin"
-      ? [...superAdminItems, ...adminItems]
+      ? superAdminItems
       : role === "admin"
       ? [...adminItems, ...academyItems]
       : memberItems;
 
   return (
     <div className="flex h-full flex-col gap-6 p-4">
-      <Link href="/dashboard" className="flex items-center gap-3 px-2 pt-2">
+      <Link href={role === "super_admin" ? "/admin" : "/dashboard"} className="flex items-center gap-3 px-2 pt-2">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-sky-400 text-white shadow-lg shadow-blue-500/30">
           <Volleyball className="h-6 w-6" />
         </div>
@@ -103,7 +108,9 @@ export function Sidebar({ role, name, memberPlan }: SidebarProps) {
       <nav className="flex flex-1 flex-col gap-1">
         {items.map(({ href, key, icon: Icon }) => {
           const active =
-            pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+            role === "super_admin"
+              ? pathname === "/admin" && (new URLSearchParams(href.split("?")[1]).get("tab") ?? "") === (searchParams.get("tab") ?? "")
+              : pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
           return (
             <Link
               key={href}

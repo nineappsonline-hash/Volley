@@ -81,7 +81,7 @@ export function Topbar({ role, name, memberPlan, academy }: TopbarProps) {
               : planLabel}
           </span>
         )}
-        <Notifications />
+        {role !== "super_admin" && <Notifications />}
         <ThemeToggle />
         <LanguageToggle />
         <DropdownMenu>
@@ -102,7 +102,7 @@ export function Topbar({ role, name, memberPlan, academy }: TopbarProps) {
             <DropdownMenuLabel>
               <p className="truncate font-medium">{name}</p>
               <p className="text-xs font-normal text-muted-foreground">
-                {role === "admin" ? t("role_admin") : t("role_member")}
+                {role === "super_admin" ? t("role_super_admin") : role === "admin" ? t("role_admin") : t("role_member")}
               </p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { requireSession } from "@/lib/session";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
@@ -8,6 +9,7 @@ export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   const { profile } = await requireSession();
+  if (profile.role === "super_admin") redirect("/admin");
 
   return (
     <div className="space-y-6">
