@@ -1,5 +1,6 @@
 "use client";
 
+import { PlatformRecords } from "./platform-records";
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -161,6 +162,8 @@ export function SuperAdminDashboard() {
   return (
     <div className="space-y-6">
       <PageHeader title={t("super_admin_title")} subtitle={t("super_admin_subtitle")} />
+
+      <PlatformRecords />
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

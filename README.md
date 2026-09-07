@@ -149,3 +149,28 @@ src/
 
 Database triggers recompute `session_calculations` on every attendance/payment/cost
 change, and the attendance screen shows the result **immediately** while marking.
+
+### Platform administration
+
+The `/admin` page is restricted to the verified Supabase Auth account
+`mo.dowaik@gmail.com`. It requires `SUPABASE_SERVICE_ROLE_KEY` on the server.
+Apply `supabase/migrations/20260907190000_platform_admin.sql` using the Supabase
+SQL editor before using it. The migration also appears at the end of `schema.sql`.
+It restricts existing super-admin database permissions, denies blocked users
+through RLS, and installs `public.check_account_access` as the PostgREST
+`db_pre_request` hook so blocked accounts cannot call security-definer RPCs with
+old access tokens. If your deployment already has a custom pre-request hook,
+combine its checks with this function before applying the configuration change.
+
+The page includes searchable account and academy records, membership editing,
+Auth bans, permanent account deletion with email confirmation, friendly-game
+participants, and daily playground schedules. Account deletion uses Supabase Auth
+and existing foreign-key deletion rules; it does not delete the academy itself.
+Playground rental coverage merges overlapping bookings and includes bookings
+crossing midnight. Rental gaps do not establish opening hours or availability:
+training/tournament durations and friendly-game venue associations are not yet
+stored. New platform controls currently use English labels.
+
+Run `node tests/platform-admin.cjs`, `npm run typecheck`, and `npm run build`
+to verify the local implementation. Live authorization, bans, and deletion should
+be exercised on test accounts after applying the migration.

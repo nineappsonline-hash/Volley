@@ -1,3 +1,4 @@
+import { isPlatformAdmin } from "@/lib/platform-admin";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile, Role } from "@/lib/types";
@@ -25,7 +26,10 @@ export async function requireSession(): Promise<SessionData> {
     redirect("/login");
   }
 
-  const role = (user.app_metadata?.role as Role | undefined) ?? "member";
+  const metadataRole = user.app_metadata?.role as Role | undefined;
+  const role: Role = isPlatformAdmin(user)
+    ? "super_admin"
+    : metadataRole === "admin" ? "admin" : "member";
 
   // Fetch profile for display data
   const { data: profile } = await supabase
@@ -71,6 +75,6 @@ export async function requireSession(): Promise<SessionData> {
       email: user.email ?? undefined,
       role,
     },
-    profile: (profile as Profile | null) ?? fallback,
+    profile: profile ? { ...profile, role } as Profile : fallback,
   };
 }

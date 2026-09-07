@@ -1,3 +1,4 @@
+import { isPlatformAdmin } from "@/lib/platform-admin";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -37,6 +38,14 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  if (user) {
+    const { data: blocked, error } = await supabase.rpc("is_account_blocked");
+    if (blocked || error?.code === "42501") {
+      await supabase.auth.signOut();
+      return NextResponse.json({ error: "This account has been blocked." }, { status: 403 });
+    }
+  }
 
   const pathname = request.nextUrl.pathname;
   const isAuthPage =
@@ -81,9 +90,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Only /admin requires super_admin role
-  const role = (user?.app_metadata?.role as string | undefined) ?? "member";
-  if (user && (pathname === "/admin" || pathname.startsWith("/admin/")) && role !== "super_admin") {
+  // Platform access uses a verified Auth email, never a profile role.
+  if (user && (pathname === "/admin" || pathname.startsWith("/admin/")) && !isPlatformAdmin(user)) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     url.search = "";
