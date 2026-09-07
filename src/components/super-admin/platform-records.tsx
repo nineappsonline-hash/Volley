@@ -180,9 +180,9 @@ export function PlatformRecords() {
            country={editingVenue.country ?? ""}
            governorate={editingVenue.governorate ?? ""}
            city={editingVenue.area ?? ""}
-           onCountryChange={(v) => setEditingVenue({ ...editingVenue, country: v, governorate: "", area: "" })}
-           onGovernorateChange={(v) => setEditingVenue({ ...editingVenue, governorate: v, area: "" })}
-           onCityChange={(v) => setEditingVenue({ ...editingVenue, area: v })}
+           onCountryChange={(v) => setEditingVenue((current) => current && ({ ...current, country: v, governorate: "", area: "" }))}
+           onGovernorateChange={(v) => setEditingVenue((current) => current && ({ ...current, governorate: v, area: "" }))}
+           onCityChange={(v) => setEditingVenue((current) => current && ({ ...current, area: v }))}
            governorateLabel="Governorate"
            cityLabel="City / Area"
          />

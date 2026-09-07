@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,46 +55,32 @@ export function LocationFields({
   const localized = (arr: string[]) =>
     arr.filter((s) => isArabicLocale === isArabicScript(s));
 
-  const countryOptions: Option[] = COUNTRIES.map((en) => {
-    const ar = COUNTRIES_AR[en] ?? en;
-    const name = isArabicLocale ? ar : en;
-    return { value: name, label: name, search: `${en} ${ar}`.toLowerCase() };
-  });
-
   const allStates = STATES_BY_COUNTRY[country] ?? [];
   const allCities = governorate ? CITIES_BY_STATE[governorate] ?? [] : [];
   const states = localized(allStates);
   const cities = localized(allCities);
 
-  const stateOptions: Option[] = allStates.map((s) => ({
+  const stateOptions: Option[] = states.map((s) => ({
     value: s,
     label: s,
     search: s.toLowerCase(),
   }));
-  const cityOptions: Option[] = allCities.map((c) => ({
+  const cityOptions: Option[] = cities.map((c) => ({
     value: c,
     label: c,
     search: c.toLowerCase(),
   }));
 
-  // Show dropdown if there are options, otherwise show manual input
-  const [govManual, setGovManual] = useState(allStates.length === 0);
-  const [cityManual, setCityManual] = useState(allCities.length === 0);
-
-  useEffect(() => {
-    setGovManual(allStates.length === 0);
-  }, [allStates]);
-
-  useEffect(() => {
-    setCityManual(allCities.length === 0);
-  }, [allCities]);
+  // Manual entry is an explicit choice; empty locations still show a picker.
+  const [govManual, setGovManual] = useState(false);
+  const [cityManual, setCityManual] = useState(false);
 
   const handleCountry = (v: string) => {
     onCountryChange(v);
     onGovernorateChange("");
     onCityChange("");
-    setGovManual((STATES_BY_COUNTRY[v] ?? []).length === 0);
-    setCityManual(true);
+    setGovManual(false);
+    setCityManual(false);
   };
 
   const handleGovernorate = (v: string) => {
@@ -105,7 +91,7 @@ export function LocationFields({
     onGovernorateChange(v);
     onCityChange("");
     setGovManual(false);
-    setCityManual((CITIES_BY_STATE[v] ?? []).length === 0);
+    setCityManual(false);
   };
 
   const handleCity = (v: string) => {
