@@ -3034,3 +3034,46 @@ BEGIN
 END;
 $$;
 GRANT EXECUTE ON FUNCTION public.toggle_scout_note(UUID) TO authenticated;
+
+-- ────────────────────────────────────────────────────────────
+-- 8.10 ACCOUNT DELETION
+-- ────────────────────────────────────────────────────────────
+
+-- Users can erase their own account (profile + auth row + every personal
+-- record). Academy admins additionally delete the academy they run and
+-- everything under it (all child tables ON DELETE CASCADE from academies).
+-- Runs as SECURITY DEFINER so the caller can remove their auth.users row.
+CREATE OR REPLACE FUNCTION public.delete_my_account()
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_uid UUID := auth.uid();
+  v_role TEXT;
+  v_academy UUID;
+BEGIN
+  IF v_uid IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  SELECT role, COALESCE(academy_id, public.current_academy_id())
+    INTO v_role, v_academy
+    FROM public.profiles
+    WHERE id = v_uid;
+
+  IF v_role = 'admin' AND v_academy IS NOT NULL THEN
+    -- Remove fee-receipt files the admin uploaded (subfolder = their uid).
+    DELETE FROM storage.objects
+    WHERE bucket_id = 'game-fee-receipts'
+      AND (storage.foldername(name))[1] = v_uid::text;
+    -- Cascades to branches, venues, coaches, members, sessions, payments…
+    DELETE FROM public.academies WHERE id = v_academy;
+  END IF;
+
+  -- Cascades to the profile and every member record created by this user.
+  DELETE FROM auth.users WHERE id = v_uid;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.delete_my_account() TO authenticated;

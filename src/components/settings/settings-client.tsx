@@ -30,11 +30,12 @@ import { PageHeader } from "@/components/shared/page-header";
 import { LocationFields } from "@/components/shared/location-fields";
 import { MapPicker } from "@/components/shared/map-picker";
 import { BranchesCard } from "@/components/settings/branches-card";
+import { DeleteAccountCard } from "@/components/settings/delete-account-card";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
 import { useAcademy, useUpdateAcademy } from "@/lib/queries";
 
-export function SettingsClient() {
+export function SettingsClient({ isAdmin }: { isAdmin: boolean }) {
   const { t } = useI18n();
   const { data: academy, isLoading } = useAcademy();
   const update = useUpdateAcademy();
@@ -449,6 +450,8 @@ export function SettingsClient() {
           </CardContent>
         </Card>
       </div>
+
+      <DeleteAccountCard isAdmin={isAdmin} />
     </div>
   );
 }

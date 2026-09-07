@@ -33,6 +33,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { CheckinQrCard } from "@/components/profile/checkin-qr-card";
+import { DeleteAccountCard } from "@/components/settings/delete-account-card";
 import { MapPicker } from "@/components/shared/map-picker";
 import { useI18n, type Dict } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
@@ -303,6 +304,8 @@ function AcademyProfile({ serverProfile }: { serverProfile: Profile }) {
           </Card>
         </div>
       </div>
+
+      <DeleteAccountCard isAdmin />
     </div>
   );
 }
@@ -825,6 +828,8 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
           )}
         </CardContent>
       </Card>
+
+      <DeleteAccountCard isAdmin={false} />
     </div>
   );
 }

@@ -791,6 +791,20 @@ export const dictionary = {
     settings_invite_code: "Invite code",
     settings_invite_hint: "New members enter this code when signing up.",
     settings_saved: "Settings saved",
+    delete_account_title: "Delete account",
+    delete_account_button: "Delete my account",
+    delete_account_desc_member:
+      "Erases your profile and all of your personal data (sessions, games, bookings, payments). This cannot be undone.",
+    delete_account_desc_academy:
+      "Sends your account to the void: your academy, every member, every session, every game and every payment are permanently deleted. This cannot be undone.",
+    delete_account_confirm_title: "Are you absolutely sure?",
+    delete_account_confirm_member:
+      "Once gone, all your personal data is erased permanently and your email can be used to register again from scratch.",
+    delete_account_confirm_academy:
+      "Once gone, the academy and everything under it — members, sessions, games, payments — is erased permanently.",
+    delete_account_type_email: "Type {email} to confirm.",
+    delete_account_confirm_action: "Permanently delete",
+    delete_account_success: "Account deleted",
     settings_address: "Academy address",
     settings_country: "Country",
     settings_governorate: "State / Governorate",
@@ -2223,6 +2237,20 @@ export const dictionary = {
     settings_invite_code: "كود الدعوة",
     settings_invite_hint: "يدخل الأعضاء الجدد هذا الكود عند التسجيل.",
     settings_saved: "تم حفظ الإعدادات",
+    delete_account_title: "حذف الحساب",
+    delete_account_button: "حذف حسابي",
+    delete_account_desc_member:
+      "يمسح ملفك الشخصي وكل بياناتك الشخصية (الحصص والمباريات والحجوزات والمدفوعات). لا يمكن التراجع عن هذا.",
+    delete_account_desc_academy:
+      "يرسل حسابك إلى العدم: أكاديميتك وكل عضو وكل حصة وكل مباراة وكل دفعة تُحذف نهائيًا. لا يمكن التراجع عن هذا.",
+    delete_account_confirm_title: "هل أنت متأكد تمامًا؟",
+    delete_account_confirm_member:
+      "بمجرد الحذف، تُمسح كل بياناتك الشخصية نهائيًا ويمكن استخدام بريدك للتسجيل من جديد.",
+    delete_account_confirm_academy:
+      "بمجرد الحذف، تُمسح الأكاديمية وكل ما تحتها — الأعضاء والحصص والمباريات والمدفوعات — نهائيًا.",
+    delete_account_type_email: "اكتب {email} للتأكيد.",
+    delete_account_confirm_action: "حذف نهائي",
+    delete_account_success: "تم حذف الحساب",
     settings_address: "عنوان الأكاديمية",
     settings_country: "البلد",
     settings_governorate: "الولاية / المحافظة",
