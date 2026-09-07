@@ -3,9 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-const VAPID_PUBLIC_KEY =
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ??
-  "BEl62iUYgUivxIkv69yViEuiBIaGnK1kCcz0BO8LD8kZ1uGiQ8m3q6byr7R6Q7W2x3SkOY6NS4fQnHkS4zKz2nI";
+const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
 
 async function urlBase64ToUint8Array(base64String: string): Promise<Uint8Array> {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -57,7 +55,7 @@ export function usePushNotifications() {
   }, [supported]);
 
   const subscribe = useCallback(async () => {
-    if (!supported) return false;
+    if (!supported || !VAPID_PUBLIC_KEY) return false;
     setBusy(true);
     try {
       if ("Notification" in window && Notification.permission !== "granted") {
