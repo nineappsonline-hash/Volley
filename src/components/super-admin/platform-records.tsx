@@ -19,7 +19,6 @@ import { COUNTRIES, COUNTRIES_AR } from "@/lib/locations";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus } from "lucide-react";
-import { MapPicker } from "@/components/shared/map-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { Check } from "lucide-react";
 
@@ -164,7 +163,7 @@ export function PlatformRecords() {
       <Dialog open={!!deleting} onOpenChange={open => !busy && !open && setDeleting(null)}><DialogContent><DialogHeader><DialogTitle>Permanently delete account?</DialogTitle><DialogDescription>This removes the login and related records according to database deletion rules. This cannot be undone. Type {deleting?.email} to confirm.</DialogDescription></DialogHeader><Input aria-label="Account email confirmation" value={confirmation} onChange={e => setConfirmation(e.target.value)} /><Button variant="destructive" disabled={busy || confirmation !== deleting?.email} onClick={() => act({ action: "delete", id: deleting!.id, confirmation })}>{busy ? "Deleting…" : "Permanently delete"}</Button></DialogContent></Dialog>
       <AlertDialog open={!!deletingAcademy} onOpenChange={open => !removeAcademy.isPending && !open && setDeletingAcademy(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Permanently delete academy?</AlertDialogTitle><AlertDialogDescription>This removes the academy and every account and record linked to it (members, sessions, games, payments, branches, sports). This cannot be undone. Type {deletingAcademy?.name} to confirm.</AlertDialogDescription></AlertDialogHeader><Input aria-label="Academy name confirmation" value={confirmation} onChange={e => setConfirmation(e.target.value)} /><AlertDialogFooter><AlertDialogCancel disabled={removeAcademy.isPending}>Cancel</AlertDialogCancel><AlertDialogAction asChild><Button variant="destructive" disabled={removeAcademy.isPending || confirmation !== deletingAcademy?.name} onClick={async () => { try { await removeAcademy.mutateAsync(deletingAcademy!.id); toast.success("Academy deleted"); setDeletingAcademy(null); setConfirmation(""); await cache.invalidateQueries(); } catch (e) { toast.error(e instanceof Error ? e.message : "Deletion failed"); } }}>{removeAcademy.isPending ? "Deleting…" : "Permanently delete"}</Button></AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
       <AcademyEditDialog academy={editingAcademy} onClose={() => setEditingAcademy(null)} onDeleted={() => { setEditingAcademy(null); cache.invalidateQueries(); }} />
-      <Dialog open={!!editingVenue} onOpenChange={open => !busy && !open && setEditingVenue(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>Edit playground</DialogTitle><DialogDescription>{editingVenue?.name}</DialogDescription></DialogHeader>{editingVenue && <form className="space-y-4" onSubmit={e => { e.preventDefault(); act({ action: "venue", id: editingVenue.id, name: editingVenue.name, address: editingVenue.address, lat: editingVenue.lat !== "" ? Number(editingVenue.lat) : null, lng: editingVenue.lng !== "" ? Number(editingVenue.lng) : null, capacity: editingVenue.capacity, sport_id: editingVenue.sport_id, school_name: editingVenue.school_name, rental_cost: editingVenue.rental_cost, rental_hours: editingVenue.rental_hours, country: editingVenue.country, governorate: editingVenue.governorate, city: editingVenue.area, contact_person: editingVenue.contact_person, contact_phone: editingVenue.contact_phone }); }}>
+      <Dialog open={!!editingVenue} onOpenChange={open => !busy && !open && setEditingVenue(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>Edit playground</DialogTitle><DialogDescription>{editingVenue?.name}</DialogDescription></DialogHeader>{editingVenue && <form className="space-y-4" onSubmit={e => { e.preventDefault(); act({ action: "venue", id: editingVenue.id, name: editingVenue.name, address: editingVenue.address, capacity: editingVenue.capacity, sport_id: editingVenue.sport_id, school_name: editingVenue.school_name, rental_cost: editingVenue.rental_cost, rental_hours: editingVenue.rental_hours, country: editingVenue.country, governorate: editingVenue.governorate, city: editingVenue.area, contact_person: editingVenue.contact_person, contact_phone: editingVenue.contact_phone }); }}>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label>Playground name</Label>
@@ -176,11 +175,7 @@ export function PlatformRecords() {
           </div>
         </div>         <div className="space-y-2">
            <Label>Address</Label>
-           <MapPicker
-             lat={editingVenue.lat !== "" ? Number(editingVenue.lat) : null}
-             lng={editingVenue.lng !== "" ? Number(editingVenue.lng) : null}
-             onChange={(pick) => setEditingVenue({ ...editingVenue, lat: String(pick.lat), lng: String(pick.lng), address: pick.label ?? editingVenue.address })}
-           />
+           <Input value={editingVenue.address ?? ""} onChange={e => setEditingVenue({ ...editingVenue, address: e.target.value })} placeholder="e.g. 123 Street Name, City" />
          </div>
         <LocationFields
           country={editingVenue.country ?? ""}

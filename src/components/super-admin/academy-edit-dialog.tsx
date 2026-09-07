@@ -51,7 +51,6 @@ import {
 } from "@/lib/queries";
 import type { Academy, Coach, Venue } from "@/lib/types";
 import { LocationFields } from "@/components/shared/location-fields";
-import { MapPicker } from "@/components/shared/map-picker";
 
 const SPORT_OPTIONS = [
   { value: "Football", key: "sport_football" },
@@ -86,8 +85,6 @@ interface DraftVenue {
   id?: string | null;
   name: string;
   address: string;
-  lat: string;
-  lng: string;
   capacity: string;
   sport: string;
   school_name: string;
@@ -169,8 +166,6 @@ export function AcademyEditDialog({
       id: v.id,
       name: v.name,
       address: v.address ?? "",
-      lat: v.lat != null ? String(v.lat) : "",
-      lng: v.lng != null ? String(v.lng) : "",
       capacity: v.capacity != null ? String(v.capacity) : "",
       sport: v.sport_id ? (detail.sportsById?.[v.sport_id] ?? "") : "",
       school_name: v.school_name ?? "",
@@ -214,8 +209,6 @@ export function AcademyEditDialog({
         id: null,
         name: "",
         address: "",
-        lat: "",
-        lng: "",
         capacity: "",
         sport: "",
         school_name: "",
@@ -273,9 +266,7 @@ export function AcademyEditDialog({
       ...(v.id ? { id: v.id } : {}),
       name: v.name,
       address: v.address || null,
-      lat: v.lat !== "" ? Number(v.lat) : null,
-      lng: v.lng !== "" ? Number(v.lng) : null,
-      capacity: v.capacity !== "" ? Number(v.capacity) : null,
+          capacity: v.capacity !== "" ? Number(v.capacity) : null,
       sport: v.sport || null,
       school_name: v.school_name || null,
       rental_cost: v.rental_cost !== "" ? Number(v.rental_cost) : null,
@@ -562,17 +553,7 @@ export function AcademyEditDialog({
                       </div>
                       <div className="space-y-2">
                         <Label>{t("sa_form_playground_address")}</Label>
-                        <MapPicker
-                          lat={v.lat !== "" ? Number(v.lat) : null}
-                          lng={v.lng !== "" ? Number(v.lng) : null}
-                          onChange={(pick) => {
-                            setVenue(i, {
-                              lat: String(pick.lat),
-                              lng: String(pick.lng),
-                              address: pick.label ?? v.address,
-                            });
-                          }}
-                        />
+                        <Input value={v.address} onChange={(e) => setVenue(i, { address: e.target.value })} placeholder="e.g. 123 Street Name, City" />
                       </div>
                       <div className="space-y-2">
                         <Label>{t("sa_form_playground_capacity")}</Label>
