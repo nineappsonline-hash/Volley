@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import {
   AlertTriangle,
+  Check,
   Loader2,
   Pencil,
   Plus,
+  Trophy,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -41,7 +43,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/i18n";
-import { errorMessage } from "@/lib/utils";
+import { cn, errorMessage } from "@/lib/utils";
 import {
   useAcademyManagement,
   useSuperAdminDeleteAcademy,
@@ -49,6 +51,35 @@ import {
 } from "@/lib/queries";
 import type { Academy, Coach, Venue } from "@/lib/types";
 import { LocationFields } from "@/components/shared/location-fields";
+
+const SPORT_OPTIONS = [
+  { value: "Football", key: "sport_football" },
+  { value: "Basketball", key: "sport_basketball" },
+  { value: "Handball", key: "sport_handball" },
+  { value: "Volleyball", key: "sport_volleyball" },
+  { value: "Tennis", key: "sport_tennis" },
+  { value: "Swimming", key: "sport_swimming" },
+  { value: "Padel", key: "sport_padel" },
+  { value: "Squash", key: "sport_squash" },
+  { value: "Table Tennis", key: "sport_table_tennis" },
+  { value: "Badminton", key: "sport_badminton" },
+  { value: "Gymnastics", key: "sport_gymnastics" },
+  { value: "Karate", key: "sport_karate" },
+  { value: "Boxing", key: "sport_boxing" },
+  { value: "Athletics", key: "sport_athletics" },
+  { value: "Kung Fu", key: "sport_kungfu" },
+  { value: "Taekwondo", key: "sport_taekwondo" },
+  { value: "CrossFit", key: "sport_crossfit" },
+  { value: "Judo", key: "sport_judo" },
+  { value: "Kickboxing", key: "sport_kickboxing" },
+  { value: "Wrestling", key: "sport_wrestling" },
+  { value: "Archery", key: "sport_archery" },
+  { value: "Fencing", key: "sport_fencing" },
+  { value: "Equestrian", key: "sport_equestrian" },
+  { value: "Cycling", key: "sport_cycling" },
+  { value: "Weightlifting", key: "sport_weightlifting" },
+  { value: "Parkour", key: "sport_parkour" },
+] as const;
 
 interface DraftVenue {
   id?: string | null;
@@ -97,7 +128,7 @@ export function AcademyEditDialog({
   const [plan, setPlan] = useState<Plan>("starter");
   const [isTrial, setIsTrial] = useState(false);
   const [trialEndsAt, setTrialEndsAt] = useState("");
-  const [sports, setSports] = useState("");
+  const [sports, setSports] = useState<string[]>([]);
   const [adminName, setAdminName] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPhone, setAdminPhone] = useState("");
@@ -122,7 +153,7 @@ export function AcademyEditDialog({
 
   useEffect(() => {
     if (!detail) return;
-    setSports((detail.sports ?? []).map((s) => s.name).join(", "));
+    setSports((detail.sports ?? []).map((s) => s.name));
     setAdminName(detail.admin?.name ?? "");
     setAdminEmail(detail.admin?.email ?? "");
     setAdminPhone(detail.admin?.phone ?? "");
@@ -215,10 +246,7 @@ export function AcademyEditDialog({
     plan,
     is_trial: isTrial,
     trial_ends_at: finalTrialEndsAt,
-    sports: sports
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean),
+    sports,
     venues: venues.map((v) => ({
       ...(v.id ? { id: v.id } : {}),
       name: v.name,
@@ -320,11 +348,38 @@ export function AcademyEditDialog({
                 onCityChange={setArea}
               />
               <div className="space-y-2">
-                <Label>{t("sa_form_sports")}</Label>
-                <Input
-                  value={sports}
-                  onChange={(e) => setSports(e.target.value)}
-                />
+                <Label className="flex items-center gap-2">
+                  <Trophy className="h-4 w-4" />
+                  {t("sa_form_sports")}
+                </Label>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {SPORT_OPTIONS.map((s) => {
+                    const active = sports.includes(s.value);
+                    return (
+                      <button
+                        key={s.value}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() =>
+                          setSports(
+                            active
+                              ? sports.filter((v) => v !== s.value)
+                              : [...sports, s.value]
+                          )
+                        }
+                        className={cn(
+                          "flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
+                          active
+                            ? "border-primary bg-primary/10 font-medium text-primary"
+                            : "border-input bg-background text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        <span className="truncate">{t(s.key)}</span>
+                        {active && <Check className="h-4 w-4 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   {t("sa_form_sports_hint")}
                 </p>
