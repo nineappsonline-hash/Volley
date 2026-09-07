@@ -570,3 +570,52 @@ export interface ScoutNote {
   player_id: string;
   created_at: string;
 }
+
+export interface MonthCount {
+  month: string;
+  count: number;
+}
+
+export interface MonthFee {
+  month: string;
+  total: number;
+  count: number;
+}
+
+export interface SportCount {
+  sport: string;
+  count: number;
+}
+
+export interface SuperAdminStats {
+  members: {
+    total: number;
+    members: number;
+    admins: number;
+    by_month: MonthCount[];
+  };
+  games: {
+    total: number;
+    approved: number;
+    by_month: MonthCount[];
+    by_sport: SportCount[];
+    by_status: { status: string; count: number }[];
+  };
+  academies: {
+    total: number;
+    trials: number;
+    paid: number;
+    by_plan: { starter: number; plus: number; elite: number };
+    by_month: MonthCount[];
+  };
+  fees: {
+    session_total: number;
+    session_count: number;
+    session_by_month: MonthFee[];
+    game_count: number;
+    game_by_month: MonthCount[];
+    payments_total: number;
+    payments_count: number;
+    payments_by_month: MonthFee[];
+  };
+}

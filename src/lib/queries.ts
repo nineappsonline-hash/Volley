@@ -45,6 +45,7 @@ import type {
   TrialRequest,
   Venue,
   VenueRental,
+  SuperAdminStats,
 } from "@/lib/types";
 
 export const queryKeys = {
@@ -1016,6 +1017,17 @@ export function useAllAcademies() {
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Academy[];
+    },
+  });
+}
+
+export function useSuperAdminStats() {
+  return useQuery({
+    queryKey: ["super-admin-stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase().rpc("super_admin_stats");
+      if (error) throw error;
+      return data as SuperAdminStats;
     },
   });
 }

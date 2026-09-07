@@ -3123,3 +3123,80 @@ CREATE POLICY "Blocked accounts denied" ON storage.objects AS RESTRICTIVE
 FOR ALL TO authenticated
 USING (NOT (SELECT public.is_account_blocked()))
 WITH CHECK (NOT (SELECT public.is_account_blocked()));
+
+-- ────────────────────────────────────────────────────────────
+-- 8.12 PLATFORM ANALYTICS (super admin dashboard)
+-- ────────────────────────────────────────────────────────────
+
+-- One-shot aggregates for the super-admin dashboard. SECURITY DEFINER so it
+-- can read every tenant's rows; the is_super_admin() guard keeps it private.
+-- Game-creation fee amounts are intentionally NOT summed here — the client
+-- multiplies the approved-game count by GAME_CREATION_FEE (sole source of
+-- truth in src/lib/constants.ts).
+CREATE OR REPLACE FUNCTION public.super_admin_stats()
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_stats JSONB;
+BEGIN
+  IF NOT public.is_super_admin() THEN RAISE EXCEPTION 'Not authorized'; END IF;
+
+  SELECT jsonb_build_object(
+    'members', jsonb_build_object(
+      'total',        (SELECT count(*)                 FROM public.profiles),
+      'members',      (SELECT count(*)                 FROM public.profiles WHERE role = 'member'),
+      'admins',       (SELECT count(*)                 FROM public.profiles WHERE role = 'admin'),
+      'by_month', COALESCE((SELECT jsonb_agg(jsonb_build_object('month', m, 'count', c) ORDER BY m)
+        FROM (SELECT to_char(created_at, 'YYYY-MM') AS m, count(*) AS c
+              FROM public.profiles GROUP BY 1) s), '[]'::jsonb)
+    ),
+    'games', jsonb_build_object(
+      'total',    (SELECT count(*) FROM public.friendly_games),
+      'approved', (SELECT count(*) FROM public.friendly_games WHERE creation_fee_paid),
+      'by_month', COALESCE((SELECT jsonb_agg(jsonb_build_object('month', m, 'count', c) ORDER BY m)
+        FROM (SELECT to_char(created_at, 'YYYY-MM') AS m, count(*) AS c
+              FROM public.friendly_games GROUP BY 1) s), '[]'::jsonb),
+      'by_sport', COALESCE((SELECT jsonb_agg(jsonb_build_object('sport', sport, 'count', c) ORDER BY c DESC)
+        FROM (SELECT sport, count(*) AS c FROM public.friendly_games GROUP BY 1) s), '[]'::jsonb),
+      'by_status', COALESCE((SELECT jsonb_agg(jsonb_build_object('status', status, 'count', c))
+        FROM (SELECT status, count(*) AS c FROM public.friendly_games GROUP BY 1) s), '[]'::jsonb)
+    ),
+    'academies', jsonb_build_object(
+      'total',  (SELECT count(*) FROM public.academies),
+      'trials', (SELECT count(*) FROM public.academies WHERE is_trial),
+      'paid',   (SELECT count(*) FROM public.academies WHERE NOT is_trial),
+      'by_plan', jsonb_build_object(
+        'starter', (SELECT count(*) FROM public.academies WHERE plan = 'starter'),
+        'plus',    (SELECT count(*) FROM public.academies WHERE plan = 'plus'),
+        'elite',   (SELECT count(*) FROM public.academies WHERE plan = 'elite')
+      ),
+      'by_month', COALESCE((SELECT jsonb_agg(jsonb_build_object('month', m, 'count', c) ORDER BY m)
+        FROM (SELECT to_char(created_at, 'YYYY-MM') AS m, count(*) AS c
+              FROM public.academies GROUP BY 1) s), '[]'::jsonb)
+    ),
+    'fees', jsonb_build_object(
+      'session_total', COALESCE((SELECT sum(platform_fee) FROM public.session_bookings WHERE status <> 'cancelled'), 0),
+      'session_count', (SELECT count(*) FROM public.session_bookings WHERE status <> 'cancelled'),
+      'session_by_month', COALESCE((SELECT jsonb_agg(jsonb_build_object('month', m, 'total', t, 'count', c) ORDER BY m)
+        FROM (SELECT to_char(booked_at, 'YYYY-MM') AS m, sum(platform_fee) AS t, count(*) AS c
+              FROM public.session_bookings WHERE status <> 'cancelled' GROUP BY 1) s), '[]'::jsonb),
+      'game_count', (SELECT count(*) FROM public.friendly_games WHERE creation_fee_paid),
+      'game_by_month', COALESCE((SELECT jsonb_agg(jsonb_build_object('month', m, 'count', c) ORDER BY m)
+        FROM (SELECT to_char(created_at, 'YYYY-MM') AS m, count(*) AS c
+              FROM public.friendly_games WHERE creation_fee_paid GROUP BY 1) s), '[]'::jsonb),
+      'payments_total', COALESCE((SELECT sum(amount) FROM public.payments), 0),
+      'payments_count', (SELECT count(*) FROM public.payments),
+      'payments_by_month', COALESCE((SELECT jsonb_agg(jsonb_build_object('month', m, 'total', t, 'count', c) ORDER BY m)
+        FROM (SELECT to_char(payment_date, 'YYYY-MM') AS m, sum(amount) AS t, count(*) AS c
+              FROM public.payments GROUP BY 1) s), '[]'::jsonb)
+    )
+  ) INTO v_stats;
+
+  RETURN v_stats;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.super_admin_stats() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.super_admin_stats() TO authenticated;
