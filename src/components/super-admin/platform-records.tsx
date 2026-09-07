@@ -8,8 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { rentalCoverage, type RentalInterval } from "@/lib/admin-schedule";
 import { PLATFORM_ADMIN_EMAIL } from "@/lib/platform-admin";
+import { useSuperAdminDeleteAcademy } from "@/lib/queries";
+import type { Academy } from "@/lib/types";
+import { AcademyEditDialog } from "./academy-edit-dialog";
 
 type Row = Record<string, any>;
 type Records = Record<string, Row[]>;
@@ -87,13 +91,18 @@ export function PlatformRecords() {
   const [selected, setSelected] = useState<Row | null>(null);
   const [editing, setEditing] = useState<Row | null>(null);
   const [deleting, setDeleting] = useState<Row | null>(null);
+  const [editingAcademy, setEditingAcademy] = useState<Academy | null>(null);
+  const [deletingAcademy, setDeletingAcademy] = useState<Academy | null>(null);
   const [confirmation, setConfirmation] = useState("");
   const [busy, setBusy] = useState(false);
+  const removeAcademy = useSuperAdminDeleteAcademy();
   const requestedTab = searchParams.get("tab");
   useEffect(() => {
     setTab(tabs.find(item => item === requestedTab) ?? "Members");
     setSearch("");
     setSelected(null);
+    setEditingAcademy(null);
+    setDeletingAcademy(null);
   }, [requestedTab]);
   const act = async (body: Row) => {
     setBusy(true);
@@ -130,7 +139,7 @@ export function PlatformRecords() {
         const { occupied, gaps } = rentalCoverage(data.venue_rentals.filter(r => r.venue_id === row.id) as RentalInterval[], date);
         return <article key={row.id} className="rounded-xl border p-4 space-y-3">
           <div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-semibold">{row.name ?? row.title}</h3><p className="text-sm text-muted-foreground">{tab === "Members" ? `${row.email} · ${academy(row.academy_id)} · ${row.role} · ${blocked ? "Blocked" : row.is_active ? "Active" : "Inactive"} · ${row.member_plan} · ${row.membership_type} · ${row.sessions_attended}/${row.subscription_sessions} sessions` : tab === "Academies" ? `${row.plan} · ${row.is_trial ? "Trial" : "Paid"} · ${data.profiles.filter(p => p.academy_id === row.id).length} accounts` : tab === "Friendly games" ? `${row.game_date} ${row.start_time} · ${row.sport} · ${row.status} · ${data.friendly_game_participants.filter(p => p.game_id === row.id && !p.is_waitlisted).length}/${row.max_players} players` : `${academy(row.academy_id)} · ${row.address ?? "No address"}`}</p></div>
-          <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => setSelected(row)}>Details</Button>{tab === "Members" && <><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => setEditing({ ...row })}>Membership</Button><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => act({ action: "block", id: row.id, blocked: !blocked })}>{blocked ? "Unblock" : "Block"}</Button><Button size="sm" variant="destructive" disabled={busy || protectedAccount} onClick={() => { setDeleting(row); setConfirmation(""); }}>Delete</Button></>}</div></div>
+          <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => setSelected(row)}>Details</Button>{tab === "Members" && <><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => setEditing({ ...row })}>Membership</Button><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => act({ action: "block", id: row.id, blocked: !blocked })}>{blocked ? "Unblock" : "Block"}</Button><Button size="sm" variant="destructive" disabled={busy || protectedAccount} onClick={() => { setDeleting(row); setConfirmation(""); }}>Delete</Button></>}{tab === "Academies" && <><Button size="sm" variant="outline" disabled={busy} onClick={() => setEditingAcademy(row as Academy)}>Edit</Button><Button size="sm" variant="destructive" disabled={busy} onClick={() => { setDeletingAcademy(row as Academy); setConfirmation(""); }}>Delete</Button></>}</div></div>
           {tab === "Playgrounds" && <div className="space-y-2 text-sm"><p className="font-medium">{(occupied / 60).toFixed(1)} rental hours / 24 hours ({Math.round(occupied / 1440 * 100)}% rental occupation)</p>{events.map((event,i) => <p key={i} className="rounded bg-muted p-2">{event.time.slice(0,5) || "Time unknown"} · {event.label}</p>)}{events.length === 0 && <p>No bookings recorded for this date.</p>}<p className="text-muted-foreground">Rental gaps: {gaps.join(", ") || "None"}</p></div>}
         </article>;
       })}</div>
@@ -144,6 +153,8 @@ export function PlatformRecords() {
         <Button type="submit" disabled={busy}>{busy ? "Saving…" : "Save membership"}</Button>
       </form>}</DialogContent></Dialog>
       <Dialog open={!!deleting} onOpenChange={open => !busy && !open && setDeleting(null)}><DialogContent><DialogHeader><DialogTitle>Permanently delete account?</DialogTitle><DialogDescription>This removes the login and related records according to database deletion rules. This cannot be undone. Type {deleting?.email} to confirm.</DialogDescription></DialogHeader><Input aria-label="Account email confirmation" value={confirmation} onChange={e => setConfirmation(e.target.value)} /><Button variant="destructive" disabled={busy || confirmation !== deleting?.email} onClick={() => act({ action: "delete", id: deleting!.id, confirmation })}>{busy ? "Deleting…" : "Permanently delete"}</Button></DialogContent></Dialog>
+      <AlertDialog open={!!deletingAcademy} onOpenChange={open => !removeAcademy.isPending && !open && setDeletingAcademy(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Permanently delete academy?</AlertDialogTitle><AlertDialogDescription>This removes the academy and every account and record linked to it (members, sessions, games, payments, branches, sports). This cannot be undone. Type {deletingAcademy?.name} to confirm.</AlertDialogDescription></AlertDialogHeader><Input aria-label="Academy name confirmation" value={confirmation} onChange={e => setConfirmation(e.target.value)} /><AlertDialogFooter><AlertDialogCancel disabled={removeAcademy.isPending}>Cancel</AlertDialogCancel><AlertDialogAction asChild><Button variant="destructive" disabled={removeAcademy.isPending || confirmation !== deletingAcademy?.name} onClick={async () => { try { await removeAcademy.mutateAsync(deletingAcademy!.id); toast.success("Academy deleted"); setDeletingAcademy(null); setConfirmation(""); await cache.invalidateQueries(); } catch (e) { toast.error(e instanceof Error ? e.message : "Deletion failed"); } }}>{removeAcademy.isPending ? "Deleting…" : "Permanently delete"}</Button></AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      <AcademyEditDialog academy={editingAcademy} onClose={() => setEditingAcademy(null)} onDeleted={() => { setEditingAcademy(null); cache.invalidateQueries(); }} />
     </CardContent>
   </Card>;
 }
