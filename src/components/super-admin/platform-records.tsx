@@ -17,6 +17,40 @@ const tabs = ["Members", "Academies", "Friendly games", "Playgrounds"] as const;
 function Details({ row }: { row: Row }) {
   return <dl className="grid gap-3 sm:grid-cols-2">{Object.entries(row).map(([key, value]) => <div key={key} className="min-w-0 rounded-lg bg-muted/40 p-3"><dt className="text-xs capitalize text-muted-foreground">{key.replaceAll("_", " ")}</dt><dd className="mt-1 break-words text-sm">{value == null ? "—" : typeof value === "object" ? JSON.stringify(value) : String(value)}</dd></div>)}</dl>;
 }
+function MemberDetails({ member, data }: { member: Row; data: Records }) {
+  const payments = data.payments.filter(r => r.member_id === member.id).sort((a, b) => b.payment_date.localeCompare(a.payment_date));
+  const attendance = data.attendance.filter(r => r.member_id === member.id);
+  const games = data.friendly_game_participants.filter(r => r.member_id === member.id);
+  const blocked = member.banned_until && new Date(member.banned_until) > new Date();
+  const summary = {
+    Email: member.email,
+    Phone: member.phone || "Not provided",
+    Academy: data.academies.find(a => a.id === member.academy_id)?.name ?? "Independent",
+    "Account status": blocked ? "Blocked" : "Enabled",
+    "Membership status": member.is_active ? "Active" : "Inactive",
+    "Membership type": member.membership_type === "half" ? "Half" : "Full",
+    "Platform plan": member.member_plan === "premium" ? "Premium" : "Free",
+    "Subscription sessions": member.subscription_sessions,
+    "Sessions attended": member.sessions_attended,
+    "Joined": member.join_date ?? member.created_at?.slice(0, 10) ?? "Unknown",
+    ...(member.member_plan === "premium" ? { "Premium expires": member.premium_expires_at?.slice(0, 10) ?? "No expiry" } : {}),
+  };
+  return <div className="space-y-5">
+    <Details row={summary} />
+    <details><summary className="cursor-pointer font-medium">Payment history ({payments.length})</summary>
+      <div className="mt-3 space-y-2">{payments.length === 0 && <p className="text-sm text-muted-foreground">No payments recorded.</p>}{payments.map(payment => <div key={payment.id} className="rounded-lg border p-3 text-sm"><p className="font-medium">{payment.payment_date} · {payment.amount} · {String(payment.method ?? "").replaceAll("_", " ")}</p><p className="text-muted-foreground">{payment.subscription_sessions} sessions{payment.notes ? ` · ${payment.notes}` : ""}</p></div>)}</div>
+    </details>
+    <details><summary className="cursor-pointer font-medium">Activity ({attendance.filter(r => r.is_present).length} attendances · {games.length} game registrations)</summary>
+      <div className="mt-3 space-y-2 text-sm">{attendance.length === 0 && games.length === 0 && <p className="text-muted-foreground">No activity recorded.</p>}{attendance.map(record => {
+        const session = data.training_sessions.find(item => item.id === record.session_id);
+        return <p key={record.id} className="rounded-lg border p-3">{session?.date ?? "Unknown date"} · Training · {record.is_present ? "Attended" : "Absent"}</p>;
+      })}{games.map(record => {
+        const game = data.friendly_games.find(item => item.id === record.game_id);
+        return <p key={record.id} className="rounded-lg border p-3">{game?.game_date ?? "Unknown date"} · {game?.title ?? "Friendly game"} · {record.is_waitlisted ? "Waitlisted" : record.role === "organizer" ? "Organizer" : "Player"}</p>;
+      })}</div>
+    </details>
+  </div>;
+}
 export function PlatformRecords() {
   const cache = useQueryClient();
   const router = useRouter();
@@ -76,11 +110,11 @@ export function PlatformRecords() {
         const { occupied, gaps } = rentalCoverage(data.venue_rentals.filter(r => r.venue_id === row.id) as RentalInterval[], date);
         return <article key={row.id} className="rounded-xl border p-4 space-y-3">
           <div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-semibold">{row.name ?? row.title}</h3><p className="text-sm text-muted-foreground">{tab === "Members" ? `${row.email} · ${academy(row.academy_id)} · ${row.role} · ${blocked ? "Blocked" : row.is_active ? "Active" : "Inactive"} · ${row.member_plan} · ${row.membership_type} · ${row.sessions_attended}/${row.subscription_sessions} sessions` : tab === "Academies" ? `${row.plan} · ${row.is_trial ? "Trial" : "Paid"} · ${data.profiles.filter(p => p.academy_id === row.id).length} accounts` : tab === "Friendly games" ? `${row.game_date} ${row.start_time} · ${row.sport} · ${row.status} · ${data.friendly_game_participants.filter(p => p.game_id === row.id && !p.is_waitlisted).length}/${row.max_players} players` : `${academy(row.academy_id)} · ${row.address ?? "No address"}`}</p></div>
-          <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => setSelected(row)}>All details</Button>{tab === "Members" && <><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => setEditing({ ...row })}>Membership</Button><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => act({ action: "block", id: row.id, blocked: !blocked })}>{blocked ? "Unblock" : "Block"}</Button><Button size="sm" variant="destructive" disabled={busy || protectedAccount} onClick={() => { setDeleting(row); setConfirmation(""); }}>Delete</Button></>}</div></div>
+          <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => setSelected(row)}>Details</Button>{tab === "Members" && <><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => setEditing({ ...row })}>Membership</Button><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => act({ action: "block", id: row.id, blocked: !blocked })}>{blocked ? "Unblock" : "Block"}</Button><Button size="sm" variant="destructive" disabled={busy || protectedAccount} onClick={() => { setDeleting(row); setConfirmation(""); }}>Delete</Button></>}</div></div>
           {tab === "Playgrounds" && <div className="space-y-2 text-sm"><p className="font-medium">{(occupied / 60).toFixed(1)} rental hours / 24 hours ({Math.round(occupied / 1440 * 100)}% rental occupation)</p>{events.map((event,i) => <p key={i} className="rounded bg-muted p-2">{event.time.slice(0,5) || "Time unknown"} · {event.label}</p>)}{events.length === 0 && <p>No bookings recorded for this date.</p>}<p className="text-muted-foreground">Rental gaps: {gaps.join(", ") || "None"}</p></div>}
         </article>;
       })}</div>
-      <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle>{selected?.name ?? selected?.title ?? "Record details"}</DialogTitle><DialogDescription>Stored record and related activity</DialogDescription></DialogHeader>{selected && <Details row={selected} />}{Object.entries(related).map(([label, records]) => <details key={label}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
+      <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle>{selected?.name ?? selected?.title ?? "Record details"}</DialogTitle><DialogDescription>{tab === "Members" ? "Contact, membership and activity" : "Stored record and related activity"}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails member={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && Object.entries(related).map(([label, records]) => <details key={label}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => label === "Members" ? <MemberDetails key={r.id} member={r} data={data} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
       <Dialog open={!!editing} onOpenChange={open => !busy && !open && setEditing(null)}><DialogContent><DialogHeader><DialogTitle>Edit membership</DialogTitle><DialogDescription>{editing?.name} · {editing?.email}</DialogDescription></DialogHeader>{editing && <form className="space-y-4" onSubmit={e => { e.preventDefault(); act({ action: "membership", id: editing.id, membership_type: editing.membership_type, subscription_sessions: Number(editing.subscription_sessions), member_plan: editing.member_plan, premium_expires_at: editing.premium_expires_at ? new Date(editing.premium_expires_at).toISOString() : null, is_active: editing.is_active }); }}>
         <label className="block text-sm">Academy membership<select className="mt-1 w-full rounded border bg-background p-2" value={editing.membership_type} onChange={e => setEditing({ ...editing, membership_type: e.target.value })}><option value="full">Full</option><option value="half">Half</option></select></label>
         <label className="block text-sm">Subscription sessions<Input type="number" min="0" max="10000" required value={editing.subscription_sessions} onChange={e => setEditing({ ...editing, subscription_sessions: e.target.value })} /></label>
