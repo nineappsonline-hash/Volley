@@ -49,6 +49,7 @@ const actionSchema = z.discriminatedUnion("action", [
     school_name: optionalText, rental_cost: optionalNumber, rental_hours: z.coerce.number().finite().positive(),
     country: optionalText, governorate: optionalText, city: optionalText, contact_person: optionalText, contact_phone: optionalText }),
   z.object({ action: z.literal("block"), id: z.string().uuid(), blocked: z.boolean() }),
+  z.object({ action: z.literal("delete_venue"), id: z.string().uuid(), confirmation: z.string() }),
   z.object({ action: z.literal("delete"), id: z.string().uuid(), confirmation: z.string() }),
 ]);
 export async function POST(request: Request) {
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
   const parsed = actionSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues.map(issue => `${issue.path.join(".")}: ${issue.message}`).join("; ") }, { status: 400 });
   const input = parsed.data;
-  if (input.action !== "venue" && input.id === user!.id) return NextResponse.json({ error: "You cannot modify your own administrator account here." }, { status: 400 });
+  if (input.action !== "venue" && input.action !== "delete_venue" && input.id === user!.id) return NextResponse.json({ error: "You cannot modify your own administrator account here." }, { status: 400 });
   try {
     const { data: permitted, error: accessError } = await createClient().rpc("is_super_admin");
     const { error: migrationError } = await createClient().rpc("is_account_blocked");
@@ -65,6 +66,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Apply the platform admin database migration before using this page." }, { status: 503 });
     }
     const admin = createAdminClient();
+    if (input.action === "delete_venue") {
+      const { data: venue, error: lookupError } = await admin.from("venues").select("id, name").eq("id", input.id).single();
+      if (lookupError || !venue) return NextResponse.json({ error: "Playground not found." }, { status: 404 });
+      if (input.confirmation !== venue.name) return NextResponse.json({ error: "Enter the playground name exactly to confirm deletion." }, { status: 400 });
+      const { error } = await admin.from("venues").delete().eq("id", input.id).select("id").single();
+      if (error) return NextResponse.json({ error: "Could not delete playground." }, { status: 400 });
+      return NextResponse.json({ ok: true });
+    }
     if (input.action === "venue") {
       const { action, id, city, ...changes } = input;
       const { error } = await admin.from("venues").update({ ...changes, area: city }).eq("id", id).select("id").single();

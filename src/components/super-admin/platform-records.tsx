@@ -97,6 +97,7 @@ export function PlatformRecords() {
   const [date, setDate] = useState(() => `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`);
   const [selected, setSelected] = useState<Row | null>(null);
   const [editing, setEditing] = useState<Row | null>(null);
+  const [deletingVenue, setDeletingVenue] = useState<Row | null>(null);
   const [deleting, setDeleting] = useState<Row | null>(null);
   const [editingAcademy, setEditingAcademy] = useState<Academy | null>(null);
   const [editingVenue, setEditingVenue] = useState<Row | null>(null);
@@ -111,6 +112,7 @@ export function PlatformRecords() {
     setSelected(null);
     setEditingAcademy(null);
     setDeletingAcademy(null);
+    setDeletingVenue(null);
   }, [requestedTab]);
   const act = async (body: Row) => {
     setBusy(true);
@@ -118,9 +120,9 @@ export function PlatformRecords() {
       const response = await fetch("/api/platform-admin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
-      toast.success(body.action === "venue" ? "Playground updated" : "Account updated");
+      toast.success(body.action === "venue" ? "Playground updated" : body.action === "delete_venue" ? "Playground deleted" : body.action === "delete" ? "Account deleted" : "Account updated");
       if (body.action === "venue") setEditingVenue(null);
-      setEditing(null); setDeleting(null); setConfirmation("");
+      setEditing(null); setDeleting(null); setDeletingVenue(null); setConfirmation("");
       await cache.invalidateQueries();
     } catch (e) { toast.error(e instanceof Error ? e.message : "Action failed"); }
     finally { setBusy(false); }
@@ -153,7 +155,7 @@ export function PlatformRecords() {
               {tab === "Members" && <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${blocked ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>{blocked ? "Blocked" : "Account enabled"}</span>}
             </div>
             {tab === "Members" ? <p className="mt-1 break-all text-sm text-muted-foreground">{row.email}</p> : <p className="text-sm text-muted-foreground">{tab === "Academies" ? `${row.plan} · ${row.is_trial ? "Trial" : "Paid"} · ${data.profiles.filter(p => p.academy_id === row.id).length} accounts` : tab === "Friendly games" ? `${row.game_date} ${row.start_time} · ${row.sport} · ${row.status} · ${data.friendly_game_participants.filter(p => p.game_id === row.id && !p.is_waitlisted).length}/${row.max_players} players` : `${academy(row.academy_id)} · ${row.address ?? "No address"}`}</p>}</div>
-          <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => setSelected(row)}>Details</Button>{tab === "Members" && <><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => setEditing({ ...row })}>Membership</Button><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => act({ action: "block", id: row.id, blocked: !blocked })}>{blocked ? "Unblock" : "Block"}</Button><Button size="sm" variant="destructive" disabled={busy || protectedAccount} onClick={() => { setDeleting(row); setConfirmation(""); }}>Delete</Button></>}{tab === "Academies" && <><Button size="sm" variant="outline" disabled={busy} onClick={() => setEditingAcademy(row as Academy)}>Edit</Button><Button size="sm" variant="destructive" disabled={busy} onClick={() => { setDeletingAcademy(row as Academy); setConfirmation(""); }}>Delete</Button></>}          {tab === "Playgrounds" && <><Button size="sm" variant="outline" disabled={busy} onClick={() => setEditingVenue({ ...row, lat: row.lat ? String(row.lat) : "", lng: row.lng ? String(row.lng) : "" })}>Edit</Button><Button size="sm" variant="destructive" disabled={busy} onClick={() => { setDeleting(row); setConfirmation(""); }}>Delete</Button></>}</div></div>
+          <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => setSelected(row)}>Details</Button>{tab === "Members" && <><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => setEditing({ ...row })}>Membership</Button><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => act({ action: "block", id: row.id, blocked: !blocked })}>{blocked ? "Unblock" : "Block"}</Button><Button size="sm" variant="destructive" disabled={busy || protectedAccount} onClick={() => { setDeleting(row); setConfirmation(""); }}>Delete</Button></>}{tab === "Academies" && <><Button size="sm" variant="outline" disabled={busy} onClick={() => setEditingAcademy(row as Academy)}>Edit</Button><Button size="sm" variant="destructive" disabled={busy} onClick={() => { setDeletingAcademy(row as Academy); setConfirmation(""); }}>Delete</Button></>}          {tab === "Playgrounds" && <><Button size="sm" variant="outline" disabled={busy} onClick={() => setEditingVenue({ ...row, lat: row.lat ? String(row.lat) : "", lng: row.lng ? String(row.lng) : "" })}>Edit</Button><Button size="sm" variant="destructive" disabled={busy} onClick={() => { setDeletingVenue(row); setConfirmation(""); }}>Delete</Button></>}</div></div>
           {tab === "Members" && <dl className="grid grid-cols-1 gap-3 rounded-lg bg-muted/40 p-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
             <div className="min-w-0"><dt className="text-xs text-muted-foreground">Academy</dt><dd className="mt-1 break-words font-medium">{academy(row.academy_id)}</dd><dd className="text-xs text-muted-foreground">{row.academy_id ? row.is_active ? "Active academy membership" : "Pending / inactive membership" : "Not joined to an academy"}</dd></div>
             <div><dt className="text-xs text-muted-foreground">Platform plan</dt><dd className="mt-1 font-medium">{row.member_plan === "premium" ? "Premium" : "Free"}</dd></div>
@@ -233,7 +235,7 @@ export function PlatformRecords() {
           <Button type="submit" disabled={busy} className="ml-auto">{busy ? "Saving…" : "Save playground"}</Button>
         </div>
       </form>}</DialogContent></Dialog>
-      <Dialog open={!!deleting} onOpenChange={open => !busy && !open && setDeleting(null)}><DialogContent><DialogHeader><DialogTitle>Permanently delete playground?</DialogTitle><DialogDescription>This removes the playground. Rentals using this playground will keep working but without the playground name. Type {deleting?.name} to confirm.</DialogDescription></DialogHeader><Input aria-label="Playground name confirmation" value={confirmation} onChange={e => setConfirmation(e.target.value)} /><Button variant="destructive" disabled={busy || confirmation !== deleting?.name} onClick={() => act({ action: "delete", id: deleting!.id, confirmation })}>{busy ? "Deleting…" : "Permanently delete"}</Button></DialogContent></Dialog>
+      <Dialog open={!!deletingVenue} onOpenChange={open => !busy && !open && setDeletingVenue(null)}><DialogContent><DialogHeader><DialogTitle>Permanently delete playground?</DialogTitle><DialogDescription>This removes the playground. Rentals using this playground will keep working but without the playground name. Type {deletingVenue?.name} to confirm.</DialogDescription></DialogHeader><Input aria-label="Playground name confirmation" value={confirmation} onChange={e => setConfirmation(e.target.value)} /><Button variant="destructive" disabled={busy || confirmation !== deletingVenue?.name} onClick={() => act({ action: "delete_venue", id: deletingVenue!.id, confirmation })}>{busy ? "Deleting…" : "Permanently delete"}</Button></DialogContent></Dialog>
     </CardContent>
   </Card>;
 }
