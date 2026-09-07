@@ -118,7 +118,8 @@ export function PlatformRecords() {
       const response = await fetch("/api/platform-admin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
-      toast.success("Account updated");
+      toast.success(body.action === "venue" ? "Playground updated" : "Account updated");
+      if (body.action === "venue") setEditingVenue(null);
       setEditing(null); setDeleting(null); setConfirmation("");
       await cache.invalidateQueries();
     } catch (e) { toast.error(e instanceof Error ? e.message : "Action failed"); }
@@ -171,7 +172,7 @@ export function PlatformRecords() {
           </div>
           <div className="space-y-2">
             <Label>Sport</Label>
-            <Input value={editingVenue.sport_id ?? ""} onChange={e => setEditingVenue({ ...editingVenue, sport_id: e.target.value })} placeholder="Sport ID or name" />
+            <Input value={editingVenue.sport_id ?? ""} onChange={e => setEditingVenue({ ...editingVenue, sport_id: e.target.value })} placeholder="Sport UUID (leave blank for none)" />
           </div>
         </div>         <div className="space-y-2">
            <Label>Address</Label>

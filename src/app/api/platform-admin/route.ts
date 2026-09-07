@@ -39,8 +39,15 @@ export async function GET() {
     return NextResponse.json({ error: "Could not load admin records. Check the database migration and server configuration." }, { status: 500 });
   }
 }
+const optionalText = z.string().trim().nullable().optional();
+const optionalNumber = z.preprocess(v => v === "" || v == null ? null : v, z.coerce.number().finite().nonnegative().nullable());
 const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("membership"), id: z.string().uuid(), membership_type: z.enum(["full", "half"]), subscription_sessions: z.number().int().min(0).max(10000), member_plan: z.enum(["free", "premium"]), premium_expires_at: z.string().datetime().nullable(), is_active: z.boolean() }),
+  z.object({ action: z.literal("venue"), id: z.string().uuid(), name: z.string().trim().min(1),
+    address: optionalText, capacity: z.preprocess(v => v === "" || v == null ? null : v, z.coerce.number().int().nonnegative().nullable()),
+    sport_id: z.preprocess(v => v === "" || v == null ? null : v, z.string().uuid().nullable()),
+    school_name: optionalText, rental_cost: optionalNumber, rental_hours: z.coerce.number().finite().positive(),
+    country: optionalText, governorate: optionalText, city: optionalText, contact_person: optionalText, contact_phone: optionalText }),
   z.object({ action: z.literal("block"), id: z.string().uuid(), blocked: z.boolean() }),
   z.object({ action: z.literal("delete"), id: z.string().uuid(), confirmation: z.string() }),
 ]);
@@ -48,9 +55,9 @@ export async function POST(request: Request) {
   const { data: { user } } = await createClient().auth.getUser();
   if (!isPlatformAdmin(user)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const parsed = actionSchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ error: "Invalid admin action" }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.issues.map(issue => `${issue.path.join(".")}: ${issue.message}`).join("; ") }, { status: 400 });
   const input = parsed.data;
-  if (input.id === user!.id) return NextResponse.json({ error: "You cannot modify your own administrator account here." }, { status: 400 });
+  if (input.action !== "venue" && input.id === user!.id) return NextResponse.json({ error: "You cannot modify your own administrator account here." }, { status: 400 });
   try {
     const { data: permitted, error: accessError } = await createClient().rpc("is_super_admin");
     const { error: migrationError } = await createClient().rpc("is_account_blocked");
@@ -58,6 +65,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Apply the platform admin database migration before using this page." }, { status: 503 });
     }
     const admin = createAdminClient();
+    if (input.action === "venue") {
+      const { action, id, city, ...changes } = input;
+      const { error } = await admin.from("venues").update({ ...changes, area: city }).eq("id", id).select("id").single();
+      if (error) return NextResponse.json({ error: error.code === "42703" || error.code === "PGRST204"
+        ? "Apply the playground location migration (20260907210000_venue_locations.sql), then retry saving."
+        : "Could not save playground. Check that the playground and selected sport still exist." }, { status: 400 });
+      return NextResponse.json({ ok: true });
+    }
     const { data: target, error: lookupError } = await admin.auth.admin.getUserById(input.id);
     if (lookupError || !target.user) throw new Error("Account not found");
     if (input.action === "membership") {

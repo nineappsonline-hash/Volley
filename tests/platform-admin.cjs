@@ -26,12 +26,13 @@ console.log('Platform admin access and rental coverage checks passed');
 async function checkRoutes() {
   let user = null;
   let adminCalls = 0;
+  let saved;
   const source = ts.transpileModule(fs.readFileSync('src/app/api/platform-admin/route.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
   const module = { exports: {} };
   const mockRequire = name => {
     if (name === 'next/server') return { NextResponse: { json: (body, init = {}) => ({ body, status: init.status || 200 }) } };
-    if (name === '@/lib/supabase/server') return { createClient: () => ({ auth: { getUser: async () => ({ data: { user } }) } }) };
-    if (name === '@/lib/supabase/admin') return { createAdminClient: () => { adminCalls++; throw new Error('Unexpected privileged access'); } };
+    if (name === '@/lib/supabase/server') return { createClient: () => ({ rpc: async () => ({ data: true }), auth: { getUser: async () => ({ data: { user } }) } }) };
+    if (name === '@/lib/supabase/admin') return { createAdminClient: () => { adminCalls++; return { from: table => { assert.equal(table, 'venues'); return { update: changes => { saved = changes; return { eq: () => ({ select: () => ({ single: async () => ({ error: null }) }) }) }; } }; } };  } };
     if (name === '@/lib/platform-admin') return { isPlatformAdmin };
     return require(name);
   };
@@ -45,6 +46,14 @@ async function checkRoutes() {
   assert.equal((await POST({ json: async () => ({ action: 'delete', id: user.id, confirmation: user.email }) })).status, 400);
   assert.equal((await POST({ json: async () => ({ action: 'membership', id: 'bad' }) })).status, 400);
   assert.equal(adminCalls, 0);
+  const venue = { action: 'venue', id: '00000000-0000-4000-8000-000000000002', name: 'Court', capacity: '12', rental_cost: '150.50', rental_hours: '2', sport_id: '', country: 'Egypt', governorate: 'Cairo', city: 'Nasr City' };
+  assert.equal((await POST({ json: async () => venue })).status, 200);
+  assert.equal(saved.area, 'Nasr City');
+  assert.equal(saved.capacity, 12);
+  assert.equal(saved.rental_cost, 150.5);
+  assert.equal(saved.sport_id, null);
+  assert.equal((await POST({ json: async () => ({ ...venue, rental_hours: '-1' }) })).status, 400);
+  assert.equal(adminCalls, 1);
   console.log('Admin route authorization, validation, and self-protection checks passed');
 }
 checkRoutes().catch(error => { console.error(error); process.exitCode = 1; });
