@@ -662,6 +662,12 @@ DECLARE
   v_academy UUID;
 BEGIN
   IF v_new_name <> '' THEN
+    -- A phone number is mandatory to create an academy account. Reject the
+    -- whole signup (user + academy) if it is missing or blank.
+    IF NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'phone', '')), '') IS NULL THEN
+      RAISE EXCEPTION 'Phone number is required to create an academy account';
+    END IF;
+
     INSERT INTO public.academies (name, slug, country, governorate, area, is_public, is_trial, trial_ends_at)
     VALUES (
       left(v_new_name, 60),

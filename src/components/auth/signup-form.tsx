@@ -28,22 +28,21 @@ const joinSchema = (t: (k: any) => string) =>
   z.object({
     name: z.string().min(1, t("field_required")),
     email: z.string().email(t("field_invalid_email")),
-    phone: z.string().min(1, t("field_required")),
+    phone: z.string().trim().min(1, t("field_required")),
     password: z.string().min(6, t("field_min_password")),
     academy_code: z.string().optional(),
   });
 
 const createSchema = (t: (k: any) => string) =>
-  z
-    .object({
-      name: z.string().min(1, t("field_required")),
-      email: z.string().email(t("field_invalid_email")),
-      phone: z.string().min(1, t("field_required")),
-      password: z.string().min(6, t("field_min_password")),
-      password_confirm: z.string().min(6, t("field_min_password")),
-      academy_name: z.string().min(2, t("field_required")),
-      sports: z.array(z.string()).min(1, t("field_required")),
-    })
+  z.object({
+    name: z.string().min(1, t("field_required")),
+    email: z.string().email(t("field_invalid_email")),
+    phone: z.string().trim().min(1, t("field_required")),
+    password: z.string().min(6, t("field_min_password")),
+    password_confirm: z.string().min(6, t("field_min_password")),
+    academy_name: z.string().min(2, t("field_required")),
+    sports: z.array(z.string()).min(1, t("field_required")),
+  })
     .refine((d) => d.password === d.password_confirm, {
       message: t("field_password_mismatch"),
       path: ["password_confirm"],
