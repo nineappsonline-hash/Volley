@@ -179,7 +179,7 @@ export function AcademyEditDialog({
     setAdminName(detail.admin?.name ?? "");
     setAdminEmail(detail.admin?.email ?? "");
     setAdminPhone(detail.admin?.phone ?? "");
-    setVenues((detail.venues ?? []).map((v: Venue & { country?: string; governorate?: string; area?: string; contact_person?: string; contact_phone?: string }) => ({
+    setVenues((detail.venues ?? []).map((v: Venue & { contact_person?: string | null; contact_phone?: string | null }) => ({
       id: v.id,
       name: v.name,
       address: v.address ?? "",

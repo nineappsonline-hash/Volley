@@ -30,7 +30,7 @@ import { MapPicker } from "@/components/shared/map-picker";
 import { useCreateFriendlyGame } from "@/lib/queries";
 import { errorMessage, todayInput } from "@/lib/utils";
 
-type FeeMethod = "instapay" | "e_wallet" | "visa";
+type FeeMethod = "instapay" | "e_wallet" | "kashier";
 
 const FEE_METHODS: {
   value: FeeMethod;
@@ -39,7 +39,7 @@ const FEE_METHODS: {
 }[] = [
   { value: "instapay", icon: Smartphone },
   { value: "e_wallet", icon: Wallet },
-  { value: "visa", icon: CreditCard, disabled: true },
+  { value: "kashier", icon: CreditCard, disabled: true },
 ];
 
 export function CreateGameDialog({
@@ -122,7 +122,7 @@ export function CreateGameDialog({
 
   const handleCreate = async () => {
     if (!title.trim() || !sport || !date || !time) return;
-    if (!feeMethod || feeMethod === "visa") return;
+    if (!feeMethod || feeMethod === "kashier") return;
     if (!receiptUrl) {
       toast.error(t("game_fee_receipt_required"));
       return;
@@ -164,7 +164,7 @@ export function CreateGameDialog({
     !!date &&
     !!time &&
     !!feeMethod &&
-    feeMethod !== "visa" &&
+    feeMethod !== "kashier" &&
     !!receiptUrl &&
     !uploading &&
     !create.isPending;
@@ -369,7 +369,7 @@ export function CreateGameDialog({
                     </span>
                     {disabled && (
                       <span className="text-[9px] text-muted-foreground">
-                        {t("game_fee_visa_soon")}
+                        {t("game_fee_kashier_soon")}
                       </span>
                     )}
                   </button>
@@ -377,7 +377,7 @@ export function CreateGameDialog({
               })}
             </div>
 
-            {feeMethod && feeMethod !== "visa" && (
+            {feeMethod && feeMethod !== "kashier" && (
               <div className="space-y-2">
                 <Label>{t("game_fee_receipt")}</Label>
                 <div className="flex items-center gap-2">

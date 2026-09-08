@@ -135,7 +135,7 @@ function GameCard({
 
   const handleJoin = async () => {
     try {
-      await join.mutateAsync(game.id);
+      await join.mutateAsync({ gameId: game.id });
       toast.success(t("community_joined"));
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));

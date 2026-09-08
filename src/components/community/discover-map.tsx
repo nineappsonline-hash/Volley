@@ -96,7 +96,7 @@ export default function DiscoverMap({ profile }: { profile: Profile }) {
 
   const handleJoin = async (gameId: string) => {
     try {
-      await join.mutateAsync(gameId);
+      await join.mutateAsync({ gameId });
       toast.success(t("community_joined"));
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));

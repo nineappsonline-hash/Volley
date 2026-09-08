@@ -30,6 +30,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { CheckinQrCard } from "@/components/profile/checkin-qr-card";
@@ -317,6 +324,8 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
 
   const [name, setName] = useState(p.name);
   const [phone, setPhone] = useState(p.phone ?? "");
+  const [gender, setGender] = useState<Profile["gender"]>(p.gender ?? null);
+  const [birthDate, setBirthDate] = useState(p.birth_date ?? "");
   const [locLat, setLocLat] = useState<number | null>(p.lat ?? null);
   const [locLng, setLocLng] = useState<number | null>(p.lng ?? null);
   const [saving, setSaving] = useState(false);
@@ -388,6 +397,8 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
         id: p.id,
         name: name.trim(),
         phone: phone || null,
+        gender,
+        birth_date: birthDate || null,
       });
       toast.success(t("profile_saved"));
     } catch {
@@ -492,6 +503,32 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 dir="ltr"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("profile_gender")}</Label>
+              <Select
+                value={gender ?? "none"}
+                onValueChange={(v) => setGender(v === "none" ? null : (v as "male" | "female"))}
+              >
+                <SelectTrigger aria-label={t("profile_gender")}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">{t("common_not_set")}</SelectItem>
+                  <SelectItem value="male">{t("games_gender_male")}</SelectItem>
+                  <SelectItem value="female">{t("games_gender_female")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>{t("profile_birth_date")}</Label>
+              <Input
+                type="date"
+                dir="ltr"
+                max={new Date().toISOString().slice(0, 10)}
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
               />
             </div>
             <Button onClick={handleSave} disabled={saving} className="w-full">

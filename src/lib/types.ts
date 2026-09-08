@@ -104,6 +104,9 @@ export interface Profile {
   availability_days: number[];
   interested_sports: string[] | null;
   notify_game_alerts: boolean;
+  // Community join criteria (used to gate who can join a friendly game).
+  gender: "male" | "female" | null;
+  birth_date: string | null;
   created_at: string;
 }
 
@@ -142,6 +145,9 @@ export interface Venue {
   rental_cost: number | null;
   // Number of time units (hours) the academy rents this venue from the owner.
   rental_hours: number | null;
+  country: string | null;
+  governorate: string | null;
+  area: string | null;
   created_at: string;
 }
 
@@ -509,6 +515,13 @@ export interface FriendlyGame {
   location: string | null;
   lat: number | null;
   lng: number | null;
+  playground_id: string | null;
+  playground: {
+    name: string | null;
+    area: string | null;
+    governorate: string | null;
+    address: string | null;
+  } | null;
   game_date: string;
   start_time: string;
   max_players: number;
@@ -522,9 +535,13 @@ export interface FriendlyGame {
   completed_by: string | null;
   completed_at: string | null;
   creation_fee_paid: boolean;
-  fee_method: "instapay" | "e_wallet" | "visa" | null;
+  fee_method: "instapay" | "e_wallet" | "kashier" | "visa" | null;
   fee_receipt_url: string | null;
   fee_status: "pending" | "approved" | "rejected";
+  invite_code: string | null;
+  gender: "male" | "female" | "mixed";
+  min_age: number | null;
+  max_age: number | null;
   created_at: string;
 }
 

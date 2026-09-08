@@ -63,12 +63,13 @@ const memberItems = [
   { href: "/academies", key: "nav_academies", icon: Search },
   { href: "/schedule", key: "nav_schedule", icon: CalendarDays },
   { href: "/events", key: "nav_events", icon: Map },
+  { href: "/games", key: "nav_games", icon: Volleyball },
+  { href: "/community", key: "nav_community", icon: Network },
   { href: "/leaderboard", key: "nav_leaderboard", icon: Trophy },
   { href: "/scouting", key: "nav_scouting", icon: Radar },
   { href: "/profile", key: "nav_profile", icon: Users },
   { href: "/upgrade", key: "nav_upgrade", icon: Crown },
   { href: "/marketplace", key: "nav_marketplace", icon: Ticket },
-  { href: "/community", key: "nav_community", icon: Network },
 ] as const;
 
 interface SidebarProps {

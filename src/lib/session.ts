@@ -66,6 +66,8 @@ export async function requireSession(): Promise<SessionData> {
     availability_days: [],
     interested_sports: [],
     notify_game_alerts: false,
+    gender: null,
+    birth_date: null,
     created_at: new Date().toISOString(),
   };
 

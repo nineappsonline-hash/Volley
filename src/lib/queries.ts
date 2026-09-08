@@ -90,6 +90,7 @@ export const queryKeys = {
   communityMembers: ["community-members"] as const,
   friendlyGames: ["friendly-games"] as const,
   myGameParticipants: ["my-game-participants"] as const,
+  poolPlaygrounds: ["pool-playgrounds"] as const,
   notifications: ["notifications"] as const,
   reports: ["reports"] as const,
   blocks: ["blocks"] as const,
@@ -2369,7 +2370,9 @@ export function useFriendlyGames() {
 
       const { data, error } = await supabase()
         .from("friendly_games")
-        .select("*, participants:friendly_game_participants(count)")
+        .select(
+          "*, participants:friendly_game_participants(count), playground:venues(name, area, governorate, address)"
+        )
         .neq("status", "cancelled")
         .gte("game_date", today)
         .order("game_date")
@@ -2383,6 +2386,21 @@ export function useFriendlyGames() {
           ...g,
           participants_count: Number(g.participants?.[0]?.count ?? 0),
         })) as FriendlyGameWithDetails[];
+    },
+  });
+}
+
+export function usePoolPlaygrounds() {
+  return useQuery({
+    queryKey: queryKeys.poolPlaygrounds,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("venues")
+        .select("*")
+        .is("academy_id", null)
+        .order("name");
+      if (error) throw error;
+      return (data ?? []) as Venue[];
     },
   });
 }
@@ -2411,6 +2429,7 @@ export function useCreateFriendlyGame() {
     mutationFn: async (input: {
       title: string;
       sport: string;
+      playgroundId?: string | null;
       area?: string;
       location?: string;
       lat?: number | null;
@@ -2422,12 +2441,16 @@ export function useCreateFriendlyGame() {
       description?: string;
       is_public?: boolean;
       recurrence?: "weekly" | null;
-      fee_method: "instapay" | "e_wallet" | "visa";
+      gender?: "male" | "female" | "mixed";
+      min_age?: number | null;
+      max_age?: number | null;
+      fee_method: "instapay" | "e_wallet" | "kashier";
       fee_receipt_url: string;
     }) => {
       const { error } = await supabase().rpc("create_friendly_game", {
         p_title: input.title,
         p_sport: input.sport,
+        p_playground_id: input.playgroundId ?? null,
         p_area: input.area ?? null,
         p_location: input.location ?? null,
         p_lat: input.lat ?? null,
@@ -2441,6 +2464,9 @@ export function useCreateFriendlyGame() {
         p_recurrence: input.recurrence ?? null,
         p_fee_method: input.fee_method,
         p_fee_receipt_url: input.fee_receipt_url,
+        p_gender: input.gender ?? "mixed",
+        p_min_age: input.min_age ?? null,
+        p_max_age: input.max_age ?? null,
       });
       if (error) throw error;
     },
@@ -2454,9 +2480,10 @@ export function useCreateFriendlyGame() {
 export function useJoinFriendlyGame() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (gameId: string) => {
+    mutationFn: async (input: { gameId: string; inviteCode?: string | null }) => {
       const { error } = await supabase().rpc("join_friendly_game", {
-        p_game_id: gameId,
+        p_game_id: input.gameId,
+        p_invite_code: input.inviteCode ?? null,
       });
       if (error) throw error;
     },
