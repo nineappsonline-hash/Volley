@@ -19,6 +19,7 @@ import {
   Receipt,
   Shield,
   ShieldAlert,
+  Wallet,
   XCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -54,9 +55,11 @@ import {
   useConvertToPaid,
   useExtendTrial,
   usePendingGameFees,
+  usePendingSubscriptions,
   useReports,
   useResolveReport,
   useReviewGameFee,
+  useReviewSubscription,
   useSetAcademyPlan,
 } from "@/lib/queries";
 
@@ -77,7 +80,10 @@ export function SuperAdminDashboard() {
   const { data: pendingFees } = usePendingGameFees();
   const reviewGameFee = useReviewGameFee();
   const setAcademyPlan = useSetAcademyPlan();
+  const { data: pendingSubs } = usePendingSubscriptions();
+  const reviewSub = useReviewSubscription();
   const [openingReceipt, setOpeningReceipt] = useState<string | null>(null);
+  const [openingSubReceipt, setOpeningSubReceipt] = useState<string | null>(null);
   const [editing, setEditing] = useState<Academy | null>(null);
 
   const memberName = (id: string) =>
@@ -150,6 +156,34 @@ export function SuperAdminDashboard() {
       toast.error(t("super_admin_fee_receipt_fail"));
     } finally {
       setOpeningReceipt(null);
+    }
+  };
+
+  const handleViewSubReceipt = async (path: string | null) => {
+    if (!path) return;
+    setOpeningSubReceipt(path);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.storage
+        .from("subscription-receipts")
+        .createSignedUrl(path, 600);
+      if (error) throw error;
+      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    } catch {
+      toast.error(t("super_admin_sub_receipt_fail"));
+    } finally {
+      setOpeningSubReceipt(null);
+    }
+  };
+
+  const handleReviewSub = async (subscriptionId: string, approve: boolean) => {
+    try {
+      await reviewSub.mutateAsync({ subscriptionId, approve });
+      toast.success(
+        approve ? t("super_admin_sub_approved") : t("super_admin_sub_rejected")
+      );
+    } catch {
+      toast.error(t("common_error"));
     }
   };
 
@@ -449,6 +483,107 @@ export function SuperAdminDashboard() {
                           >
                             <XCircle className="h-3 w-3" />
                             {t("super_admin_fee_reject")}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Subscription receipts review */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Wallet className="h-4 w-4 text-primary" />
+            {t("super_admin_subscriptions")}
+            {(pendingSubs ?? []).length > 0 && (
+              <Badge variant="destructive">{(pendingSubs ?? []).length}</Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!pendingSubs || pendingSubs.length === 0 ? (
+            <EmptyState
+              message={t("super_admin_subscriptions_empty")}
+              hint={t("super_admin_subscriptions_hint")}
+              icon={Wallet}
+            />
+          ) : (
+            <div className="rounded-xl border">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead>{t("super_admin_plan_label")}</TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      {t("community_organizer")}
+                    </TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      {t("checkout_total")}
+                    </TableHead>
+                    <TableHead className="text-end">{t("super_admin_actions")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(pendingSubs ?? []).map((sub) => (
+                    <TableRow key={sub.id}>
+                      <TableCell>
+                        <p className="truncate font-medium">
+                          {sub.kind === "member"
+                            ? t("sub_kind_member")
+                            : t(`plans_tier_${sub.plan}` as any)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {t(`checkout_method_${sub.method}` as any)} ·{" "}
+                          {t(`checkout_cycle_${sub.billing_cycle}` as any)}
+                        </p>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        {sub.kind === "academy"
+                          ? t("sub_kind_academy")
+                          : memberName(sub.user_id)}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {sub.amount} {t("currency_egp")}
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(sub.created_at), "MMM d, yyyy")}
+                        </p>
+                      </TableCell>
+                      <TableCell className="text-end">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1"
+                            disabled={openingSubReceipt !== null}
+                            onClick={() => handleViewSubReceipt(sub.receipt_url)}
+                          >
+                            <Eye className="h-3 w-3" />
+                            {t("super_admin_sub_view")}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1 text-emerald-600 hover:text-emerald-600"
+                            disabled={reviewSub.isPending}
+                            onClick={() => handleReviewSub(sub.id, true)}
+                          >
+                            <CheckCircle2 className="h-3 w-3" />
+                            {t("super_admin_sub_approve")}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1 text-muted-foreground"
+                            disabled={reviewSub.isPending}
+                            onClick={() => handleReviewSub(sub.id, false)}
+                          >
+                            <XCircle className="h-3 w-3" />
+                            {t("super_admin_sub_reject")}
                           </Button>
                         </div>
                       </TableCell>

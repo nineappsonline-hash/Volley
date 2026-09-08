@@ -27,6 +27,7 @@ import type {
   MonthlyCost,
   Payment,
   PlayerEvaluation,
+  PlanSubscription,
   Profile,
   RecurringSchedule,
   ScheduleTemplate,
@@ -2903,6 +2904,103 @@ export function useSetAcademyPlan() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["all-academies"] });
+    },
+  });
+}
+
+// ── Plan subscriptions (member Pro / academy Plus & Elite) ──
+
+export function usePurchasePlanSubscription() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      kind,
+      plan,
+      billingCycle,
+      method,
+      receiptUrl,
+    }: {
+      kind: "member" | "academy";
+      plan: "pro" | "plus" | "elite";
+      billingCycle: "monthly" | "semi" | "yearly";
+      method: "instapay" | "e_wallet" | "kashier";
+      receiptUrl?: string | null;
+    }) => {
+      const { error } = await supabase().rpc("purchase_plan_subscription", {
+        p_kind: kind,
+        p_plan: plan,
+        p_billing_cycle: billingCycle,
+        p_method: method,
+        p_receipt_url: receiptUrl ?? null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my-subscriptions"] });
+      qc.invalidateQueries({ queryKey: ["profiles"] });
+      qc.invalidateQueries({ queryKey: ["academy"] });
+      qc.invalidateQueries({ queryKey: ["all-academies"] });
+    },
+  });
+}
+
+export function useMySubscriptions() {
+  const qc = useQueryClient();
+  return useQuery({
+    queryKey: ["my-subscriptions"],
+    queryFn: async () => {
+      const {
+        data: { user },
+      } = await supabase().auth.getUser();
+      if (!user) return [] as PlanSubscription[];
+      const { data, error } = await supabase()
+        .from("plan_subscriptions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data ?? []) as PlanSubscription[];
+    },
+  });
+}
+
+export function usePendingSubscriptions() {
+  return useQuery({
+    queryKey: ["pending-subscriptions"],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("plan_subscriptions")
+        .select("*")
+        .eq("receipt_status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return (data ?? []) as PlanSubscription[];
+    },
+  });
+}
+
+export function useReviewSubscription() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      subscriptionId,
+      approve,
+    }: {
+      subscriptionId: string;
+      approve: boolean;
+    }) => {
+      const { error } = await supabase().rpc("review_subscription_receipt", {
+        p_subscription_id: subscriptionId,
+        p_approve: approve,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pending-subscriptions"] });
+      qc.invalidateQueries({ queryKey: ["all-academies"] });
+      qc.invalidateQueries({ queryKey: ["academy"] });
     },
   });
 }

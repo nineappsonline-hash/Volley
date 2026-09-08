@@ -8,6 +8,28 @@ export type MembershipType = "full" | "half";
 
 export type PaymentMethod = "cash" | "card" | "wallet" | "bank_transfer" | "other";
 
+export type PlanSubscriptionKind = "member" | "academy";
+export type PlanSubscriptionPlan = "pro" | "plus" | "elite";
+export type PlanSubscriptionCycle = "monthly" | "semi" | "yearly";
+export type PlanSubscriptionMethod = "instapay" | "e_wallet" | "kashier";
+export type PlanSubscriptionStatus = "pending" | "verified" | "rejected";
+
+export interface PlanSubscription {
+  id: string;
+  user_id: string;
+  academy_id: string | null;
+  kind: PlanSubscriptionKind;
+  plan: PlanSubscriptionPlan;
+  billing_cycle: PlanSubscriptionCycle;
+  amount: number;
+  method: PlanSubscriptionMethod;
+  receipt_url: string | null;
+  receipt_status: PlanSubscriptionStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+}
+
 export type SkillLevel = "beginner" | "intermediate" | "advanced";
 
 export type ExpenseCategory =

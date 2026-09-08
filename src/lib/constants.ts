@@ -1,6 +1,10 @@
 export const CURRENCY = "EGP";
 export const DEFAULT_SUBSCRIPTION_SESSIONS = 8;
 
+// Plan subscription payment methods (screenshot-verified).
+export const INSTAPAY_LINK = "https://ipn.eg/S/jimmydodo3/instapay/45APuk";
+export const E_WALLET_NUMBER = "01023862436";
+
 // Fee charged to create a friendly game (both plans).
 export const GAME_CREATION_FEE = 50;
 

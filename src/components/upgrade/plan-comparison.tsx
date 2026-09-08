@@ -237,9 +237,7 @@ export function PlanComparison({
                   >
                     {isCurrent
                       ? t("plans_current")
-                      : tier === "elite"
-                        ? t("plans_tier_elite")
-                        : t("plans_tier_plus")}
+                      : t("plans_subscribe")}
                   </Button>
                 )}
                 {tier === "starter" && (

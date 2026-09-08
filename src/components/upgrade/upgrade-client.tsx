@@ -3,27 +3,18 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Crown } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { useI18n } from "@/lib/i18n";
-import { useActivatePremium } from "@/lib/queries";
 import type { Profile } from "@/lib/types";
 import { PlanComparison } from "./plan-comparison";
 import { MemberPlanComparison } from "./member-plan-comparison";
 
 type Tier = "starter" | "plus" | "elite";
 
-const MONTHLY: Record<Tier, number> = {
-  starter: 0,
-  plus: 200,
-  elite: 350,
-};
-
 export function UpgradeClient({ profile }: { profile: Profile }) {
   const { t, lang } = useI18n();
   const router = useRouter();
-  const activate = useActivatePremium();
 
   const isPremium = profile.member_plan === "premium";
   const current: Tier = isPremium ? "plus" : "starter";
@@ -33,20 +24,12 @@ export function UpgradeClient({ profile }: { profile: Profile }) {
       })
     : null;
 
-  const onSubscribe = async (tier: Tier) => {
-    if (tier === "starter") return;
-    try {
-      await activate.mutateAsync({
-        months: 1,
-        amount: MONTHLY[tier],
-        method: "card",
-      });
-      toast.success(t("premium_activated"));
-      router.push("/dashboard");
-      router.refresh();
-    } catch {
-      toast.error(t("common_error"));
-    }
+  const onSubscribe = (tier: Tier) => {
+    router.push(`/checkout?kind=academy&plan=${tier}`);
+  };
+
+  const onMemberSubscribe = () => {
+    router.push("/checkout?kind=member&plan=pro");
   };
 
   return (
@@ -78,7 +61,7 @@ export function UpgradeClient({ profile }: { profile: Profile }) {
 
       <PlanComparison
         current={current}
-        busy={activate.isPending}
+        busy={false}
         onSubscribe={onSubscribe}
       />
 
@@ -91,7 +74,7 @@ export function UpgradeClient({ profile }: { profile: Profile }) {
 
       <MemberPlanComparison
         currentPlan={profile.member_plan}
-        busy={activate.isPending}
+        onSubscribe={onMemberSubscribe}
       />
 
       <p className="text-center text-xs text-muted-foreground">
