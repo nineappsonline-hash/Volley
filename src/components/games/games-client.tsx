@@ -19,6 +19,7 @@ import {
   Users,
   UsersRound,
 } from "lucide-react";
+import { GameChat } from "@/components/games/game-chat";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -353,6 +354,7 @@ function GameCard({
             </DropdownMenu>
           </div>
         </div>
+      {joined && <GameChat gameId={game.id} gameTitle={game.title} memberId={profile.id} />}
       </CardContent>
 
       <ReportDialog

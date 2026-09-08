@@ -1,0 +1,44 @@
+const { PGlite } = require('@electric-sql/pglite');
+const { readFileSync } = require('node:fs');
+const { join } = require('node:path');
+const assert = require('node:assert/strict');
+async function main() {
+  const db = new PGlite();
+  await db.exec(`
+    CREATE ROLE anon; CREATE ROLE authenticated; CREATE SCHEMA auth;
+    GRANT USAGE ON SCHEMA auth TO authenticated;
+    CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT nullif(current_setting('test.uid',true),'')::uuid $$;
+    CREATE FUNCTION public.is_account_blocked() RETURNS boolean LANGUAGE sql AS $$ SELECT coalesce(current_setting('test.blocked',true),'false')='true' $$;
+    CREATE TABLE profiles(id uuid PRIMARY KEY, name text);
+    CREATE TABLE friendly_games(id uuid PRIMARY KEY);
+    CREATE TABLE friendly_game_participants(game_id uuid, member_id uuid, UNIQUE(game_id,member_id));
+    GRANT SELECT ON friendly_game_participants TO authenticated;
+    INSERT INTO profiles VALUES ('00000000-0000-0000-0000-000000000001','Player one'),('00000000-0000-0000-0000-000000000002','Player two');
+    INSERT INTO friendly_games VALUES ('10000000-0000-0000-0000-000000000000'),('20000000-0000-0000-0000-000000000000');
+    INSERT INTO friendly_game_participants VALUES ('10000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000001');
+  `);
+  const sql = readFileSync(join(__dirname, '../supabase/migrations/20260909010000_friendly_game_chat.sql'), 'utf8');
+  await db.exec(sql); await db.exec(sql);
+  await db.exec(`SET ROLE authenticated; SET test.uid='00000000-0000-0000-0000-000000000001';`);
+  const send = (body=' Hello team ', game='10000000-0000-0000-0000-000000000000', id='30000000-0000-0000-0000-000000000000') => db.query('SELECT send_game_message($1,$2,$3)', [game,body,id]);
+  await send(); await send();
+  const rows = (await db.query('SELECT * FROM friendly_game_messages')).rows;
+  assert.equal(rows.length,1); assert.equal(rows[0].body,'Hello team'); assert.equal(rows[0].sender_name,'Player one');
+  await assert.rejects(send('Changed')); await assert.rejects(send(' ')); await assert.rejects(send('x'.repeat(2001)));
+  await assert.rejects(send('Other game','20000000-0000-0000-0000-000000000000'));
+  await assert.rejects(db.exec('DELETE FROM friendly_game_messages'));
+  await assert.rejects(db.exec(`INSERT INTO friendly_game_messages (game_id,sender_id,sender_name,body) VALUES ('10000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000002','Fake','Hello')`));
+  await db.exec(`SET test.uid='00000000-0000-0000-0000-000000000002'`);
+  assert.equal((await db.query('SELECT * FROM friendly_game_messages')).rows.length,0); await assert.rejects(send());
+  await db.exec(`RESET ROLE; INSERT INTO friendly_game_participants VALUES ('10000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000002'); SET ROLE authenticated;`);
+  assert.equal((await db.query('SELECT * FROM friendly_game_messages')).rows.length,1);
+  await send('Reply','10000000-0000-0000-0000-000000000000','40000000-0000-0000-0000-000000000000');
+  await db.exec(`RESET ROLE; DELETE FROM friendly_game_participants WHERE member_id='00000000-0000-0000-0000-000000000002'; SET ROLE authenticated;`);
+  assert.equal((await db.query('SELECT * FROM friendly_game_messages')).rows.length,0); await assert.rejects(send());
+  await db.exec(`SET test.uid='00000000-0000-0000-0000-000000000001'; SET test.blocked='true';`);
+  assert.equal((await db.query('SELECT * FROM friendly_game_messages')).rows.length,0); await assert.rejects(send());
+  await db.exec(`SET test.uid=''; SET test.blocked='false';`); await assert.rejects(send());
+  console.log('PASS: reruns, participant chat, identity, retry deduplication, validation, cross-game isolation, direct writes denied, joining/leaving, blocked and anonymous callers');
+  await db.close();
+}
+main().catch(error => { console.error(error); process.exitCode=1; });
