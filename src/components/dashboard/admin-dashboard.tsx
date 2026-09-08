@@ -21,6 +21,7 @@ import { ProfitLossIndicator } from "@/components/shared/profit-loss-indicator";
 import { AdminAlerts } from "@/components/dashboard/admin-alerts";
 import { AnnouncementsCard } from "@/components/dashboard/announcements-card";
 import { TrialsCard } from "@/components/dashboard/trials-card";
+import { AdminPlanBanner } from "@/components/upgrade/plan-benefit-banner";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import {
@@ -86,6 +87,9 @@ export function AdminDashboard() {
             <Link href="/onboarding">{t("onboarding_banner_cta")}</Link>
           </Button>
         </div>
+      )}
+      {academy && (
+        <AdminPlanBanner plan={academy.plan} isTrial={academy.is_trial} />
       )}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {loadingProfiles ? (

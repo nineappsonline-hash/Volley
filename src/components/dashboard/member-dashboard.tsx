@@ -19,6 +19,7 @@ import { Progress } from "@/components/ui/progress";
 import { StatCard } from "@/components/shared/stat-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { AnnouncementsCard } from "@/components/dashboard/announcements-card";
+import { MemberPlanBanner } from "@/components/upgrade/plan-benefit-banner";
 import { useI18n } from "@/lib/i18n";
 import { EXPIRY_ALERT_THRESHOLD, formatMoney } from "@/lib/constants";
 import { usedSessionsSincePayment } from "@/lib/calculations";
@@ -77,6 +78,7 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
 
   return (
     <div className="space-y-6">
+      <MemberPlanBanner memberPlan={p.member_plan} />
       {p.is_active === false && (
         <div className="flex items-center gap-3 rounded-lg border border-amber-300/60 bg-amber-50 p-4 text-sm dark:bg-amber-500/10">
           <Timer className="h-5 w-5 shrink-0 text-amber-600" />

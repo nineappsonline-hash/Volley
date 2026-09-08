@@ -43,6 +43,7 @@ const adminItems = [
   { href: "/playgrounds", key: "nav_playgrounds", icon: LandPlot },
   { href: "/rentals", key: "nav_rentals", icon: HandCoins },
   { href: "/settings", key: "nav_settings", icon: Settings },
+  { href: "/upgrade", key: "nav_upgrade", icon: Crown },
 ] as const;
 
 const superAdminItems = [

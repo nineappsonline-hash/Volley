@@ -32,6 +32,7 @@ export interface Academy {
   lat: number | null;
   lng: number | null;
   cover_url: string | null;
+  logo_url: string | null;
   is_public: boolean;
   calendar_token: string | null;
   is_trial: boolean;
@@ -123,6 +124,15 @@ export interface Venue {
 }
 
 export type RentalPaymentMethod = "cash" | "bank_transfer" | "e_wallet";
+
+export interface AcademyPhoto {
+  id: string;
+  academy_id: string;
+  photo_url: string;
+  caption: string | null;
+  uploaded_by: string | null;
+  created_at: string;
+}
 
 export interface VenueRental {
   id: string;

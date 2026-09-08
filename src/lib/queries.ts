@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import type {
   Academy,
   AcademyBranch,
+  AcademyPhoto,
   AcademyRating,
   ActivityFeedItem,
   Announcement,
@@ -2082,6 +2083,66 @@ export function useDeletePhoto() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["photos"] });
+    },
+  });
+}
+
+// ── Academy Photos (logo & gallery) ───────────────────────
+
+export function useAcademyPhotos(academyId?: string) {
+  return useQuery({
+    queryKey: academyId ? ["academy-photos", academyId] : ["academy-photos"],
+    enabled: !!academyId,
+    queryFn: async () => {
+      let q = supabase()
+        .from("academy_photos")
+        .select("*")
+        .order("created_at", { ascending: true });
+      if (academyId) q = q.eq("academy_id", academyId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as AcademyPhoto[];
+    },
+  });
+}
+
+export function useAddAcademyPhoto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      academy_id,
+      photo_url,
+      caption,
+    }: {
+      academy_id: string;
+      photo_url: string;
+      caption?: string;
+    }) => {
+      const { error } = await supabase().from("academy_photos").insert({
+        academy_id,
+        photo_url,
+        caption,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["academy-photos"] });
+    },
+  });
+}
+
+export function useDeleteAcademyPhoto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase()
+        .from("academy_photos")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["academy-photos"] });
     },
   });
 }

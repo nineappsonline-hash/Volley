@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, PartyPopper, Rocket, Sparkles, MapPin } from "lucide-react";
+import { Check, PartyPopper, Sparkles, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { MapPicker } from "@/components/shared/map-picker";
+import { AcademyMediaManager } from "@/components/media/academy-media-manager";
 import { PageHeader } from "@/components/shared/page-header";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
@@ -21,7 +22,12 @@ import {
   useUpdateAcademy,
 } from "@/lib/queries";
 
-const STEPS = ["onboarding_step_basics", "onboarding_step_location", "onboarding_step_sports"] as const;
+const STEPS = [
+  "onboarding_step_basics",
+  "onboarding_step_location",
+  "onboarding_step_sports",
+  "onboarding_step_photos",
+] as const;
 
 export function OnboardingWizard() {
   const { t } = useI18n();
@@ -263,6 +269,15 @@ export function OnboardingWizard() {
             </div>
           )}
 
+          {step === 3 && (
+            <div className="space-y-4">
+              <AcademyMediaManager />
+              <p className="text-xs text-muted-foreground">
+                {t("onboarding_photos_hint")}
+              </p>
+            </div>
+          )}
+
           <div className="mt-6 flex items-center justify-between gap-3">
             <Button
               type="button"
@@ -272,15 +287,34 @@ export function OnboardingWizard() {
             >
               {t("common_back")}
             </Button>
-            {step < STEPS.length - 1 ? (
-              <Button type="button" disabled={!canNext} onClick={() => setStep((s) => s + 1)}>
-                {t("onboarding_next")}
-              </Button>
+            {step === STEPS.length - 1 ? (
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={saving}
+                  onClick={finish}
+                >
+                  {t("onboarding_skip_photos")}
+                </Button>
+                <Button type="button" variant="outline" disabled={saving} onClick={finish}>
+                  {saving ? t("common_saving") : t("onboarding_finish")}
+                </Button>
+              </div>
             ) : (
-              <Button type="button" disabled={saving} onClick={finish}>
-                <Rocket className="me-1 h-4 w-4" />
-                {saving ? t("common_saving") : t("onboarding_finish")}
-              </Button>
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={step === 0}
+                  onClick={() => setStep((s) => Math.max(0, s - 1))}
+                >
+                  {t("common_back")}
+                </Button>
+                <Button type="button" disabled={!canNext} onClick={() => setStep((s) => s + 1)}>
+                  {t("onboarding_next")}
+                </Button>
+              </>
             )}
           </div>
         </CardContent>

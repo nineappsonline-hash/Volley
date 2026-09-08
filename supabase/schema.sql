@@ -50,6 +50,8 @@ CREATE TABLE IF NOT EXISTS public.academies (
   area TEXT,
   -- Cover photo shown in the public directory and academy page.
   cover_url TEXT,
+  -- Brand logo uploaded during academy setup.
+  logo_url TEXT,
   is_public BOOLEAN NOT NULL DEFAULT FALSE,
   -- Token for the read-only .ics calendar feed: /api/calendar/<token>
   calendar_token TEXT UNIQUE DEFAULT md5(random()::text || clock_timestamp()::text),
@@ -459,6 +461,17 @@ CREATE TABLE IF NOT EXISTS public.session_photos (
 );
 CREATE INDEX IF NOT EXISTS idx_photos_session ON public.session_photos(session_id);
 
+-- Academy media: photo gallery for academies and their playgrounds.
+CREATE TABLE IF NOT EXISTS public.academy_photos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  academy_id UUID NOT NULL REFERENCES public.academies(id) ON DELETE CASCADE,
+  photo_url TEXT NOT NULL,
+  caption TEXT,
+  uploaded_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_academy_photos_academy ON public.academy_photos(academy_id);
+
 -- Activity feed: timeline of member events.
 CREATE TABLE IF NOT EXISTS public.activity_feed (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -526,6 +539,7 @@ ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS trial_extended_at TIMESTAM
   ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS governorate TEXT;
   ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS area TEXT;
 ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS cover_url TEXT;
+ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS logo_url TEXT;
 ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS session_booking_enabled BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS platform_fee_percent NUMERIC NOT NULL DEFAULT 5;
 ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS sport_id UUID REFERENCES public.sports(id) ON DELETE SET NULL;
@@ -1186,6 +1200,7 @@ ALTER TABLE public.session_waitlist ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.session_ratings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.member_badges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.session_photos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.academy_photos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.activity_feed ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.recurring_schedules ENABLE ROW LEVEL SECURITY;
 
@@ -1441,6 +1456,16 @@ CREATE POLICY "Unassigned playgrounds are viewable" ON public.venues
 
 DROP POLICY IF EXISTS "Members manage venue rentals" ON public.venue_rentals;
 CREATE POLICY "Members manage venue rentals" ON public.venue_rentals
+  FOR ALL USING (academy_id = public.current_academy_id())
+  WITH CHECK (academy_id = public.current_academy_id());
+
+-- academy_photos: world-readable gallery, editable by the academy's owners.
+DROP POLICY IF EXISTS "Academy photos: public view" ON public.academy_photos;
+CREATE POLICY "Academy photos: public view" ON public.academy_photos
+  FOR SELECT USING (TRUE);
+
+DROP POLICY IF EXISTS "Academy photos: manage" ON public.academy_photos;
+CREATE POLICY "Academy photos: manage" ON public.academy_photos
   FOR ALL USING (academy_id = public.current_academy_id())
   WITH CHECK (academy_id = public.current_academy_id());
 
@@ -2137,6 +2162,22 @@ DROP POLICY IF EXISTS "Session photos: read" ON storage.objects;
 CREATE POLICY "Session photos: read" ON storage.objects
   FOR SELECT TO authenticated
   USING (bucket_id = 'session-photos');
+
+-- Storage bucket for academy logo + gallery photos. Public bucket so images
+-- load in <img> tags; uploads come from any authenticated academy owner.
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('academy-media', 'academy-media', TRUE)
+ON CONFLICT (id) DO NOTHING;
+
+DROP POLICY IF EXISTS "Academy media: upload" ON storage.objects;
+CREATE POLICY "Academy media: upload" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'academy-media');
+
+DROP POLICY IF EXISTS "Academy media: read" ON storage.objects;
+CREATE POLICY "Academy media: read" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (bucket_id = 'academy-media');
 
 CREATE OR REPLACE FUNCTION public.join_friendly_game(p_game_id UUID)
 RETURNS UUID

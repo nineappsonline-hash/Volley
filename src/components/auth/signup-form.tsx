@@ -7,7 +7,22 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Check, Building2, List, Loader2, Plus, Trash2, Trophy, Volleyball } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Building2,
+  Check,
+  LandPlot,
+  List,
+  Loader2,
+  MapPin,
+  Plus,
+  Rocket,
+  Trash2,
+  Trophy,
+  UserRound,
+  Volleyball,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -51,7 +66,6 @@ const createSchema = (t: (k: any) => string) =>
     });
 
 type JoinValues = z.infer<ReturnType<typeof joinSchema>>;
-type CreateValues = z.infer<ReturnType<typeof createSchema>>;
 
 type Role = "member" | "tenant";
 
@@ -82,6 +96,14 @@ const SPORTS = [
   { value: "Cycling", key: "sport_cycling" },
   { value: "Weightlifting", key: "sport_weightlifting" },
   { value: "Parkour", key: "sport_parkour" },
+] as const;
+
+const WIZARD_STEPS = [
+  { key: "signup_ws_basics", icon: Building2 },
+  { key: "signup_ws_sports", icon: Trophy },
+  { key: "signup_ws_location", icon: MapPin },
+  { key: "signup_ws_playgrounds", icon: LandPlot },
+  { key: "signup_ws_account", icon: UserRound },
 ] as const;
 
 interface PoolVenue {
@@ -126,6 +148,17 @@ export function SignupForm() {
   const [poolPickerOpen, setPoolPickerOpen] = useState(false);
   const [poolSearch, setPoolSearch] = useState("");
 
+  const [academyName, setAcademyName] = useState("");
+  const [sports, setSports] = useState<string[]>([]);
+  const [account, setAccount] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    password_confirm: "",
+  });
+  const [step, setStep] = useState(0);
+
   useEffect(() => {
     let stale = false;
     (async () => {
@@ -156,19 +189,6 @@ export function SignupForm() {
     defaultValues: { name: "", email: "", phone: "", password: "", academy_code: "" },
   });
 
-  const createForm = useForm<CreateValues>({
-    resolver: zodResolver(createSchema(t)),
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      password: "",
-      password_confirm: "",
-      academy_name: "",
-      sports: [],
-    },
-  });
-
   const finishSignup = async (
     email: string,
     password: string,
@@ -190,9 +210,14 @@ export function SignupForm() {
       if (session) {
         toast.success(t("signup_success"));
         // Members who signed up without an invite code pick their academy
-        // from the public directory next.
-        const hasAcademy = !!academy?.code || !!academy?.newName;
-        router.push(hasAcademy ? "/dashboard" : "/academies");
+        // from the public directory next. Fresh academies continue the setup
+        // wizard (branding + photos) on /onboarding.
+        if (academy?.newName) {
+          router.push("/onboarding");
+        } else {
+          const hasAcademy = !!academy?.code || !!academy?.newName;
+          router.push(hasAcademy ? "/dashboard" : "/academies");
+        }
         router.refresh();
       } else {
         setConfirming(true);
@@ -216,13 +241,26 @@ export function SignupForm() {
     });
   };
 
-  const onCreate = async (values: CreateValues) => {
+  const onCreate = async () => {
     if (!location.country.trim() || !location.governorate.trim() || !location.city.trim()) {
       toast.error(t("field_required"));
       return;
     }
     if (signupVenues.some((v) => !v.name.trim())) {
       toast.error(t("signup_playground_name_required"));
+      return;
+    }
+    const parsed = createSchema(t).safeParse({
+      name: account.name,
+      email: account.email,
+      phone: account.phone,
+      password: account.password,
+      password_confirm: account.password_confirm,
+      academy_name: academyName,
+      sports,
+    });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? t("common_error"));
       return;
     }
     const venues: SignupVenue[] = signupVenues.map((v) => ({
@@ -235,9 +273,9 @@ export function SignupForm() {
       rental_hours:
         v.rental_hours.trim() !== "" ? Number(v.rental_hours) : 1,
     }));
-    await finishSignup(values.email, values.password, values.name, values.phone, {
-      newName: values.academy_name.trim(),
-      sports: values.sports.join(","),
+    await finishSignup(account.email, account.password, account.name, account.phone, {
+      newName: academyName.trim(),
+      sports: sports.join(","),
       country: location.country.trim(),
       governorate: location.governorate.trim(),
       city: location.city.trim(),
@@ -275,19 +313,41 @@ export function SignupForm() {
       [v.name, v.address, v.country, v.governorate, v.area].join(" ").toLowerCase().includes(poolSearch.toLowerCase())
   );
 
-  const submitButton = (
-    <Button type="submit" className="w-full" disabled={loading}>
-      {loading && <Loader2 className="animate-spin" />}
-      {loading ? t("signup_loading") : t("signup_button")}
-    </Button>
-  );
+  const setAccountField = (k: keyof typeof account, v: string) =>
+    setAccount((a) => ({ ...a, [k]: v }));
+
+  const canContinue =
+    step === 0
+      ? academyName.trim().length >= 2
+      : step === 1
+        ? sports.length > 0
+        : step === 2
+          ? !!(location.country.trim() && location.governorate.trim() && location.city.trim())
+          : step === 3
+            ? signupVenues.every((v) => v.name.trim().length > 0)
+            : true;
+
+  const stepTitle = (key: string) => {
+    switch (key) {
+      case "signup_ws_basics":
+        return t("signup_ws_basics_title");
+      case "signup_ws_sports":
+        return t("signup_ws_sports_title");
+      case "signup_ws_location":
+        return t("signup_ws_location_title");
+      case "signup_ws_playgrounds":
+        return t("signup_ws_playgrounds_title");
+      default:
+        return t("signup_ws_account_title");
+    }
+  };
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-6">
       <div className="pointer-events-none absolute inset-0 bg-grid opacity-40" />
       <div className="pointer-events-none absolute -top-32 start-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-blue-500/20 blur-3xl rtl:translate-x-1/2" />
 
-      <div className="relative w-full max-w-md">
+      <div className={cn("relative w-full", isTenant ? "max-w-xl" : "max-w-md")}>
         <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
           {(["member", "tenant"] as const).map((r) => (
             <button
@@ -328,75 +388,128 @@ export function SignupForm() {
           )}
         </div>
 
+        {isTenant && (
+          <div className="mb-4 flex items-center">
+            {WIZARD_STEPS.map((s, i) => (
+              <div
+                key={s.key}
+                className={cn(
+                  "flex items-center",
+                  i < WIZARD_STEPS.length - 1 && "flex-1"
+                )}
+              >
+                <div className="flex flex-col items-center gap-1">
+                  <div
+                    className={cn(
+                      "flex h-9 w-9 items-center justify-center rounded-full border-2 transition-all",
+                      i < step
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : i === step
+                          ? "border-primary bg-background text-primary"
+                          : "border-muted bg-background text-muted-foreground"
+                    )}
+                  >
+                    {i < step ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <s.icon className="h-4 w-4" />
+                    )}
+                  </div>
+                  <p
+                    className={cn(
+                      "text-[10px] font-medium",
+                      i <= step ? "text-foreground" : "text-muted-foreground"
+                    )}
+                  >
+                    {t(s.key)}
+                  </p>
+                </div>
+                {i < WIZARD_STEPS.length - 1 && (
+                  <div
+                    className={cn(
+                      "mx-2 h-0.5 flex-1 rounded-full",
+                      i < step ? "bg-primary" : "bg-muted"
+                    )}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
         <Card>
           <CardContent className="p-6">
             {isTenant ? (
-              <Form {...createForm}>
-                <form onSubmit={createForm.handleSubmit(onCreate)} className="space-y-4">
-                  <FormField
-                    control={createForm.control}
-                    name="academy_name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("signup_new_academy_name")}</FormLabel>
-                        <FormControl>
-                          <Input autoComplete="organization" {...field} />
-                        </FormControl>
-                        <p className="text-xs text-muted-foreground">
-                          {t("signup_create_hint")}
-                        </p>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={createForm.control}
-                    name="sports"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Trophy className="h-4 w-4" />
-                          {t("signup_sports_label")}
-                        </FormLabel>
-                        <FormControl>
-                          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                            {SPORTS.map((s) => {
-                              const active = field.value.includes(s.value);
-                              return (
-                                <button
-                                  key={s.value}
-                                  type="button"
-                                  aria-pressed={active}
-                                  onClick={() =>
-                                    field.onChange(
-                                      active
-                                        ? field.value.filter((v) => v !== s.value)
-                                        : [...field.value, s.value]
-                                    )
-                                  }
-                                  className={cn(
-                                    "flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
-                                    active
-                                      ? "border-primary bg-primary/10 font-medium text-primary"
-                                      : "border-input bg-background text-muted-foreground hover:text-foreground"
-                                  )}
-                                >
-                                  <span className="truncate">{t(s.key)}</span>
-                                  {active && (
-                                    <Check className="h-4 w-4 shrink-0" />
-                                  )}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </FormControl>
-                        <p className="text-xs text-muted-foreground">
-                          {t("signup_sports_hint")}
-                        </p>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <div key={step} className="animate-fade-in-up space-y-4">
+                <div>
+                  <h2 className="text-lg font-bold">{stepTitle(WIZARD_STEPS[step].key)}</h2>
+                  <p className="text-xs text-muted-foreground">
+                    {step === 0 && t("signup_ws_basics_hint")}
+                    {step === 1 && t("signup_ws_sports_hint")}
+                    {step === 2 && t("signup_ws_location_hint")}
+                    {step === 3 && t("signup_ws_playgrounds_hint")}
+                    {step === 4 && t("signup_ws_account_hint")}
+                  </p>
+                </div>
+
+                {step === 0 && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      {t("signup_new_academy_name")}
+                    </label>
+                    <Input
+                      autoComplete="organization"
+                      value={academyName}
+                      onChange={(e) => setAcademyName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (canContinue) setStep(1);
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {t("signup_create_hint")}
+                    </p>
+                  </div>
+                )}
+
+                {step === 1 && (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                      {SPORTS.map((s) => {
+                        const active = sports.includes(s.value);
+                        return (
+                          <button
+                            key={s.value}
+                            type="button"
+                            aria-pressed={active}
+                            onClick={() =>
+                              setSports((prev) =>
+                                active ? prev.filter((v) => v !== s.value) : [...prev, s.value]
+                              )
+                            }
+                            className={cn(
+                              "flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
+                              active
+                                ? "border-primary bg-primary/10 font-medium text-primary"
+                                : "border-input bg-background text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            <span className="truncate">{t(s.key)}</span>
+                            {active && <Check className="h-4 w-4 shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("signup_sports_hint")}
+                    </p>
+                  </div>
+                )}
+
+                {step === 2 && (
                   <LocationFields
                     country={location.country}
                     governorate={location.governorate}
@@ -411,11 +524,10 @@ export function SignupForm() {
                       setLocation((l) => ({ ...l, city: v }))
                     }
                   />
+                )}
+
+                {step === 3 && (
                   <div className="space-y-3">
-                    <p className="text-sm font-semibold text-muted-foreground">
-                      <List className="me-1 inline h-4 w-4" />
-                      {t("signup_playgrounds_label")}
-                    </p>
                     {poolLoaded && poolVenues.length > 0 && (
                       <p className="text-xs text-muted-foreground">
                         {t("signup_playgrounds_available").replace(
@@ -518,86 +630,102 @@ export function SignupForm() {
                       </div>
                     </div>
                   </div>
-                  <FormField
-                    control={createForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("signup_name")}</FormLabel>
-                        <FormControl>
-                          <Input autoComplete="name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={createForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("login_email")}</FormLabel>
-                        <FormControl>
-                          <Input type="email" dir="ltr" autoComplete="email" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={createForm.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t("signup_phone")}</FormLabel>
-                          <FormControl>
-                            <Input dir="ltr" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={createForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t("login_password")}</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              dir="ltr"
-                              autoComplete="new-password"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                )}
+
+                {step === 4 && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">{t("signup_name")}</label>
+                      <Input
+                        autoComplete="name"
+                        value={account.name}
+                        onChange={(e) => setAccountField("name", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">{t("login_email")}</label>
+                      <Input
+                        type="email"
+                        dir="ltr"
+                        autoComplete="email"
+                        value={account.email}
+                        onChange={(e) => setAccountField("email", e.target.value)}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">{t("signup_phone")}</label>
+                        <Input
+                          dir="ltr"
+                          value={account.phone}
+                          onChange={(e) => setAccountField("phone", e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">{t("login_password")}</label>
+                        <Input
+                          type="password"
+                          dir="ltr"
+                          autoComplete="new-password"
+                          value={account.password}
+                          onChange={(e) => setAccountField("password", e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">{t("signup_confirm_password")}</label>
+                      <Input
+                        type="password"
+                        dir="ltr"
+                        autoComplete="new-password"
+                        value={account.password_confirm}
+                        onChange={(e) => setAccountField("password_confirm", e.target.value)}
+                      />
+                    </div>
                   </div>
-                  <FormField
-                    control={createForm.control}
-                    name="password_confirm"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("signup_confirm_password")}</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            dir="ltr"
-                            autoComplete="new-password"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {submitButton}
-                </form>
-              </Form>
+                )}
+
+                {step < WIZARD_STEPS.length - 1 ? (
+                  <div className="flex items-center justify-between gap-3 pt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={step === 0}
+                      onClick={() => setStep((s) => Math.max(0, s - 1))}
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      {t("common_back")}
+                    </Button>
+                    <Button
+                      type="button"
+                      disabled={!canContinue}
+                      onClick={() => setStep((s) => s + 1)}
+                    >
+                      {step === 3 && signupVenues.length === 0
+                        ? t("signup_ws_skip_playgrounds")
+                        : t("signup_ws_continue")}
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    className="w-full"
+                    disabled={loading}
+                    onClick={onCreate}
+                  >
+                    {loading && <Loader2 className="animate-spin" />}
+                    <Rocket className="h-4 w-4" />
+                    {loading ? t("signup_loading") : t("signup_ws_create")}
+                  </Button>
+                )}
+                {step === 3 && (
+                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <LandPlot className="h-3.5 w-3.5" />
+                    {t("signup_ws_playgrounds_optional")}
+                  </p>
+                )}
+              </div>
             ) : (
               <Form {...joinForm}>
                 <form onSubmit={joinForm.handleSubmit(onJoin)} className="space-y-4">
@@ -691,7 +819,10 @@ export function SignupForm() {
                       )}
                     />
                   </div>
-                  {submitButton}
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading && <Loader2 className="animate-spin" />}
+                    {loading ? t("signup_loading") : t("signup_button")}
+                  </Button>
                 </form>
               </Form>
             )}

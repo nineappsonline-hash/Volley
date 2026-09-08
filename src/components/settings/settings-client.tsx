@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   CalendarCheck,
+  Camera,
   Check,
   Copy,
   Crown,
@@ -30,6 +31,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { LocationFields } from "@/components/shared/location-fields";
 import { MapPicker } from "@/components/shared/map-picker";
 import { BranchesCard } from "@/components/settings/branches-card";
+import { AcademyMediaManager } from "@/components/media/academy-media-manager";
 import { DeleteAccountCard } from "@/components/settings/delete-account-card";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
@@ -313,6 +315,21 @@ export function SettingsClient({ isAdmin }: { isAdmin: boolean }) {
       </Card>
 
       <BranchesCard />
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Camera className="h-4 w-4 text-primary" />
+            {t("settings_media_title")}
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            {t("settings_media_subtitle")}
+          </p>
+        </CardHeader>
+        <CardContent>
+          <AcademyMediaManager />
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Invite code */}
