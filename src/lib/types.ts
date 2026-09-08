@@ -532,6 +532,9 @@ export interface FriendlyGame {
   game_date: string;
   start_time: string;
   max_players: number;
+  min_players: number;
+  duration_hours: number;
+  playground_hourly_rate: number | null;
   skill_level: SkillLevel | null;
   is_public: boolean;
   status: CommunityGameStatus;

@@ -25,9 +25,10 @@ import {
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
 import { COMMUNITY_SPORTS, GAME_CREATION_FEE } from "@/lib/constants";
+import { GameCostEstimate } from "@/components/games/game-cost-estimate";
 import { createClient } from "@/lib/supabase/client";
 import { MapPicker } from "@/components/shared/map-picker";
-import { useCreateFriendlyGame } from "@/lib/queries";
+import { useCreateFriendlyGame, usePoolPlaygrounds } from "@/lib/queries";
 import { errorMessage, todayInput } from "@/lib/utils";
 
 type FeeMethod = "instapay" | "e_wallet" | "kashier";
@@ -51,9 +52,11 @@ export function CreateGameDialog({
   onOpenChange: (open: boolean) => void;
   memberPlan?: "free" | "premium";
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const isPro = memberPlan === "premium";
   const create = useCreateFriendlyGame();
+  const { data: playgrounds } = usePoolPlaygrounds();
+  const [playgroundId, setPlaygroundId] = useState("");
   const supabase = createClient();
 
   const [title, setTitle] = useState("");
@@ -65,6 +68,8 @@ export function CreateGameDialog({
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [maxPlayers, setMaxPlayers] = useState("12");
+  const [minPlayers, setMinPlayers] = useState("2");
+  const [duration, setDuration] = useState("1");
   const [skillLevel, setSkillLevel] = useState("any");
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(true);
@@ -85,6 +90,9 @@ export function CreateGameDialog({
       setDate(todayInput());
       setTime("");
       setMaxPlayers("12");
+      setPlaygroundId("");
+      setMinPlayers("2");
+      setDuration("1");
       setSkillLevel("any");
       setDescription("");
       setIsPublic(true);
@@ -121,6 +129,9 @@ export function CreateGameDialog({
   };
 
   const handleCreate = async () => {
+    if (!Number.isInteger(Number(minPlayers)) || !Number.isInteger(Number(maxPlayers)) || Number(minPlayers) < 2 || Number(maxPlayers) < Number(minPlayers) || !Number.isFinite(Number(duration)) || Number(duration) <= 0 || Number(duration) > 24) {
+      toast.error(lang === "ar" ? "راجع الحد الأدنى والأقصى للاعبين والمدة (أكتر من صفر ولحد 24 ساعة)." : "Check player limits and duration (greater than zero, up to 24 hours)."); return;
+    }
     if (!title.trim() || !sport || !date || !time) return;
     if (!feeMethod || feeMethod === "kashier") return;
     if (!receiptUrl) {
@@ -137,7 +148,10 @@ export function CreateGameDialog({
         lng,
         game_date: date,
         start_time: time,
-        max_players: Math.max(2, Number(maxPlayers) || 12),
+        playgroundId: playgroundId || null,
+        max_players: Number(maxPlayers),
+        min_players: Number(minPlayers),
+        duration_hours: Number(duration),
         skill_level: skillLevel === "any" ? undefined : skillLevel,
         description: description.trim() || undefined,
         is_public: isPublic,
@@ -255,6 +269,16 @@ export function CreateGameDialog({
             hint={t("community_map_hint")}
           />
 
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2"><Label htmlFor="game-min-players">{lang === "ar" ? "الحد الأدنى للاعبين" : "Minimum players"}</Label><Input id="game-min-players" type="number" min="2" step="1" value={minPlayers} onChange={e => setMinPlayers(e.target.value)} /></div>
+            <div className="space-y-2"><Label htmlFor="game-duration">{lang === "ar" ? "مدة الجيم بالساعات" : "Duration (hours)"}</Label><Input id="game-duration" type="number" min="0.01" max="24" step="0.25" value={duration} onChange={e => setDuration(e.target.value)} /></div>
+          </div>
+          <div className="space-y-2"><Label htmlFor="community-playground">{lang === "ar" ? "الملعب" : "Playground"}</Label>
+            <select id="community-playground" className="h-10 w-full rounded-md border bg-card px-3 text-sm" value={playgroundId} onChange={e => setPlaygroundId(e.target.value)}>
+              <option value="">{lang === "ar" ? "اختار ملعب لحساب التكلفة" : "Select a playground to estimate cost"}</option>
+              {playgrounds?.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select></div>
+          <GameCostEstimate rate={playgrounds?.find(p => p.id === playgroundId)?.rental_cost} hours={Number(duration)} min={Number(minPlayers)} max={Number(maxPlayers)} />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div className="space-y-2">
               <Label>{t("community_date")}</Label>

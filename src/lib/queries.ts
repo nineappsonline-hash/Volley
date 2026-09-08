@@ -2399,7 +2399,7 @@ export function usePoolPlaygrounds() {
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("venues")
-        .select("*")
+        .select("id, academy_id, name, address, country, governorate, area, lat, lng, capacity, sport_id, school_name, rental_cost, rental_hours, created_at")
         .is("academy_id", null)
         .order("name");
       if (error) throw error;
@@ -2440,6 +2440,8 @@ export function useCreateFriendlyGame() {
       game_date: string;
       start_time: string;
       max_players: number;
+      min_players?: number;
+      duration_hours?: number;
       skill_level?: string;
       description?: string;
       is_public?: boolean;
@@ -2461,6 +2463,8 @@ export function useCreateFriendlyGame() {
         p_game_date: input.game_date,
         p_start_time: input.start_time,
         p_max_players: input.max_players,
+        p_min_players: input.min_players ?? 2,
+        p_duration_hours: input.duration_hours ?? 1,
         p_skill_level: input.skill_level ?? null,
         p_description: input.description ?? null,
         p_is_public: input.is_public ?? true,

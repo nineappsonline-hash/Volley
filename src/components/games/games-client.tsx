@@ -19,6 +19,7 @@ import {
   Users,
   UsersRound,
 } from "lucide-react";
+import { GameCostEstimate } from "@/components/games/game-cost-estimate";
 import { GameChat } from "@/components/games/game-chat";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -354,6 +355,7 @@ function GameCard({
             </DropdownMenu>
           </div>
         </div>
+      <GameCostEstimate rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} max={game.max_players} />
       {joined && <GameChat gameId={game.id} gameTitle={game.title} memberId={profile.id} />}
       </CardContent>
 

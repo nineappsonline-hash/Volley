@@ -1,0 +1,30 @@
+const { PGlite } = require('@electric-sql/pglite');
+const {readFileSync} = require('node:fs');
+const {join} = require('node:path');
+const assert = require('node:assert/strict');
+async function main(){
+const db=new PGlite();
+await db.exec(`CREATE ROLE authenticated; CREATE SCHEMA auth; CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT '00000000-0000-0000-0000-000000000001'::uuid $$;
+CREATE TABLE profiles(id uuid PRIMARY KEY,name text,notify_game_alerts boolean DEFAULT false,interested_sports text[]);
+INSERT INTO profiles(id,name) VALUES(auth.uid(),'Organizer');
+CREATE TABLE venues(id uuid PRIMARY KEY,academy_id uuid,area text,name text,lat float8,lng float8,rental_cost numeric);
+INSERT INTO venues VALUES ('10000000-0000-0000-0000-000000000000',null,'Cairo','Court',null,null,300);
+CREATE TABLE friendly_games(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),creator_id uuid,creator_name text,sport text,title text,description text,area text,location text,lat float8,lng float8,playground_id uuid,game_date date,start_time time,max_players integer,skill_level text,is_public boolean,recurrence text,invite_code text,gender text,min_age integer,max_age integer,creation_fee_paid boolean,fee_status text,fee_method text,fee_receipt_url text,status text DEFAULT 'open',source_game_id uuid);
+CREATE TABLE friendly_game_participants(game_id uuid,member_id uuid,role text,UNIQUE(game_id,member_id));
+CREATE TABLE notifications(recipient_id uuid,type text,title text,body text,link text);
+CREATE TABLE blocks(blocker_id uuid,blocked_id uuid);`);
+const sql=readFileSync(join(__dirname,'../supabase/migrations/20260909020000_game_cost_estimates.sql'),'utf8');await db.exec(sql);await db.exec(sql);
+const create=(min=6,max=12,hours=2)=>db.query(`SELECT create_friendly_game(p_title=>'Test',p_sport=>'Football',p_game_date=>CURRENT_DATE,p_start_time=>'18:00',p_playground_id=>'10000000-0000-0000-0000-000000000000',p_min_players=>$1,p_max_players=>$2,p_duration_hours=>$3,p_fee_method=>'instapay',p_fee_receipt_url=>'test-receipt',p_recurrence=>'weekly') AS id`,[min,max,hours]);
+await create();let row=(await db.query('SELECT * FROM friendly_games')).rows[0];assert.equal(Number(row.min_players),6);assert.equal(Number(row.duration_hours),2);assert.equal(Number(row.playground_hourly_rate),300);
+await db.exec('UPDATE venues SET rental_cost=500');assert.equal(Number((await db.query('SELECT playground_hourly_rate FROM friendly_games')).rows[0].playground_hourly_rate),300);
+await assert.rejects(create(1));await assert.rejects(create(13,12));await assert.rejects(create(6,12,0));await assert.rejects(create(6,12,25));await assert.rejects(create(6,12,'NaN'));
+await db.exec('SELECT materialize_recurring_games()');const children=(await db.query('SELECT * FROM friendly_games WHERE source_game_id IS NOT NULL')).rows;assert.ok(children.length>0);assert.ok(children.every(x=>Number(x.min_players)===6&&Number(x.duration_hours)===2&&Number(x.playground_hourly_rate)===300));
+console.log('PASS: migration rerun, limits, duration validation, price snapshot, recurring estimates');await db.close();
+// Compile the pure TypeScript helper in memory for calculation edge cases.
+const ts=require('typescript'); const moduleValue={exports:{}};
+const code=ts.transpileModule(readFileSync(join(__dirname,'../src/lib/game-costs.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;
+new Function('exports',code)(moduleValue.exports);const estimate=moduleValue.exports.estimateGameCost;
+assert.deepEqual(estimate(300,2,6,12),{total:600,low:50,high:100});assert.equal(estimate(null,2,6,12),null);assert.deepEqual(estimate(0,1,2,4),{total:0,low:0,high:0});assert.deepEqual(estimate(300,1.5,6,6),{total:450,low:75,high:75});assert.equal(estimate(300,1,12,6),null);
+console.log('PASS: per-player range, unknown and zero rates, fractional hours, equal limits, invalid range');
+}
+main().catch(e=>{console.error(e);process.exitCode=1});
