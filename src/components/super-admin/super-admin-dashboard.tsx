@@ -4,6 +4,7 @@ import { PlatformRecords } from "./platform-records";
 import { PlatformAnalytics } from "./platform-analytics";
 import { AcademyEditDialog } from "./academy-edit-dialog";
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -65,6 +66,8 @@ const PLAN_ORDER: AcademyPlan[] = ["starter", "plus", "elite"];
 
 export function SuperAdminDashboard() {
   const { t, lang, locale } = useI18n();
+  const searchParams = useSearchParams();
+  const tab = searchParams.get("tab");
   const { data: academies, isLoading } = useAllAcademies();
   const extendTrial = useExtendTrial();
   const convertToPaid = useConvertToPaid();
@@ -164,11 +167,20 @@ export function SuperAdminDashboard() {
     return Math.max(0, diff);
   };
 
+  // The record browser (Members / Academies / Friendly games / Playgrounds)
+  // is only shown on its dedicated tabbed routes (/admin?tab=...).
+  if (tab) {
+    return (
+      <div className="space-y-6">
+        <PageHeader title={t("super_admin_title")} subtitle={t("super_admin_subtitle")} />
+        <PlatformRecords />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader title={t("super_admin_title")} subtitle={t("super_admin_subtitle")} />
-
-      <PlatformRecords />
 
       <PlatformAnalytics />
 
