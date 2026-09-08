@@ -1060,7 +1060,7 @@ export function useAcademyManagement(academyId: string | null) {
           fetch("/api/platform-admin", { cache: "no-store" }).then(async response => {
             const result = await response.json();
             if (!response.ok) throw new Error(result.error ?? "Could not load playgrounds");
-            return { data: result.venues.filter((venue: Venue) => venue.academy_id === academyId) as Venue[], error: null };
+            return { data: (result.venues ?? []) as Venue[], error: null };
           }),
           supabase()
             .from("coaches")
@@ -1075,12 +1075,14 @@ export function useAcademyManagement(academyId: string | null) {
       const sportsById = Object.fromEntries(
         sportsRows.map((s) => [s.id, s.name])
       );
+      const allVenues = (venuesRes.data ?? []) as Venue[];
       return {
         admin: (adminRes.data?.[0] as Profile) ?? null,
         sports: sportsRows,
         sportsById,
         branches: (branchesRes.data ?? []) as AcademyBranch[],
-        venues: (venuesRes.data ?? []) as Venue[],
+        venues: allVenues.filter((venue) => venue.academy_id === academyId),
+        poolVenues: allVenues.filter((venue) => venue.academy_id == null),
         coaches: (coachesRes.data ?? []) as Coach[],
       };
     },

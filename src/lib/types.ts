@@ -107,7 +107,8 @@ export interface Coach {
 
 export interface Venue {
   id: string;
-  academy_id: string;
+  // Null when the venue sits in the platform's unassigned playground pool.
+  academy_id: string | null;
   name: string;
   address: string | null;
   lat: number | null;

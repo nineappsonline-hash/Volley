@@ -44,7 +44,9 @@ const optionalText = z.string().trim().nullable().optional();
 const optionalNumber = z.preprocess(v => v === "" || v == null ? null : v, z.coerce.number().finite().nonnegative().nullable());
 const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("membership"), id: z.string().uuid(), membership_type: z.enum(["full", "half"]), subscription_sessions: z.number().int().min(0).max(10000), member_plan: z.enum(["free", "premium"]), premium_expires_at: z.string().datetime().nullable(), is_active: z.boolean() }),
-  z.object({ action: z.literal("venue"), id: z.string().uuid(), name: z.string().trim().min(1),
+  z.object({ action: z.literal("venue"), id: z.string().uuid().optional(),
+    academy_id: z.preprocess(v => v === "" || v == null ? null : v, z.string().uuid().nullable().optional()),
+    name: z.string().trim().min(1),
     address: optionalText, capacity: z.preprocess(v => v === "" || v == null ? null : v, z.coerce.number().int().nonnegative().nullable()),
     sport_id: z.preprocess(v => v === "" || v == null ? null : v, z.string().uuid().nullable()),
     school_name: optionalText, rental_cost: optionalNumber, rental_hours: z.coerce.number().finite().positive(),
@@ -77,7 +79,9 @@ export async function POST(request: Request) {
     }
     if (input.action === "venue") {
       const { action, id, city, ...changes } = input;
-      const { error } = await admin.from("venues").update({ ...changes, area: city }).eq("id", id).select("id").single();
+      const { error } = id
+        ? await admin.from("venues").update({ ...changes, area: city }).eq("id", id).select("id").single()
+        : await admin.from("venues").insert({ ...changes, area: city, academy_id: changes.academy_id ?? null }).select("id").single();
       if (error) return NextResponse.json({ error: error.code === "42703" || error.code === "PGRST204"
         ? "Apply the playground location migration (20260907210000_venue_locations.sql), then retry saving."
         : "Could not save playground. Check that the playground and selected sport still exist." }, { status: 400 });

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   Check,
+  List,
   Loader2,
   Pencil,
   Plus,
@@ -95,6 +96,8 @@ interface DraftVenue {
   area: string;
   contact_person: string;
   contact_phone: string;
+  // True when this venue came from the platform's unassigned playground pool.
+  fromPool?: boolean;
 }
 interface DraftCoach {
   id?: string | null;
@@ -107,6 +110,16 @@ interface DraftCoach {
 
 type Plan = "starter" | "plus" | "elite";
 const PLANS: Plan[] = ["starter", "plus", "elite"];
+
+// Venue rows from the admin API carry location/contact fields beyond the
+// base Venue type.
+type AdminVenue = Venue & {
+  country?: string | null;
+  governorate?: string | null;
+  area?: string | null;
+  contact_person?: string | null;
+  contact_phone?: string | null;
+};
 
 interface AcademyEditDialogProps {
   academy: Academy | null;
@@ -140,6 +153,8 @@ export function AcademyEditDialog({
   const [venues, setVenues] = useState<DraftVenue[]>([]);
   const [coaches, setCoaches] = useState<DraftCoach[]>([]);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [poolPickerOpen, setPoolPickerOpen] = useState(false);
+  const [poolSearch, setPoolSearch] = useState("");
 
   useEffect(() => {
     if (!academy) return;
@@ -154,6 +169,8 @@ export function AcademyEditDialog({
     setTrialEndsAt(
       academy.trial_ends_at ? academy.trial_ends_at.slice(0, 10) : ""
     );
+    setPoolPickerOpen(false);
+    setPoolSearch("");
   }, [academy]);
 
   useEffect(() => {
@@ -221,6 +238,33 @@ export function AcademyEditDialog({
         contact_phone: "",
       },
     ]);
+  const addVenueFromPool = (v: AdminVenue) =>
+    setVenues((vs) => [
+      ...vs,
+      {
+        id: v.id,
+        fromPool: true,
+        name: v.name,
+        address: v.address ?? "",
+        capacity: v.capacity != null ? String(v.capacity) : "",
+        sport: v.sport_id ? (detail?.sportsById?.[v.sport_id] ?? "") : "",
+        school_name: v.school_name ?? "",
+        rental_cost: v.rental_cost != null ? String(v.rental_cost) : "",
+        rental_hours: v.rental_hours != null ? String(v.rental_hours) : "1",
+        country: v.country ?? "",
+        governorate: v.governorate ?? "",
+        area: v.area ?? "",
+        contact_person: v.contact_person ?? "",
+        contact_phone: v.contact_phone ?? "",
+      },
+    ]);
+  const takenPoolIds = new Set(venues.map((v) => v.id).filter((id): id is string => !!id));
+  const poolVenues = ((detail?.poolVenues ?? []) as AdminVenue[]).filter(
+    (v) =>
+      !!v.id &&
+      !takenPoolIds.has(v.id) &&
+      [v.name, v.address, v.country, v.governorate, v.area].join(" ").toLowerCase().includes(poolSearch.toLowerCase())
+  );
   const setCoach = (i: number, patch: Partial<DraftCoach>) =>
     setCoaches((cs) => cs.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
   const removeCoach = (i: number) =>
@@ -526,7 +570,10 @@ export function AcademyEditDialog({
                 {venues.map((v, i) => (
                   <div key={v.id ?? `new-${i}`} className="rounded-lg border p-3 space-y-3">
                     <div className="flex items-center justify-between gap-2">
-                      <Label className="mb-0">{v.name || `#${i + 1}`}</Label>
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Label className="mb-0 truncate">{v.name || `#${i + 1}`}</Label>
+                        {v.fromPool && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("sa_form_playground_from_pool")}</span>}
+                      </div>
                       <Button variant="ghost" size="sm" onClick={() => removeVenue(i)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
@@ -596,10 +643,16 @@ export function AcademyEditDialog({
                     </div>
                   </div>
                 ))}
-                <Button variant="outline" size="sm" onClick={addVenue}>
-                  <Plus className="h-4 w-4" />
-                  {t("sa_form_add_playground")}
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" onClick={addVenue}>
+                    <Plus className="h-4 w-4" />
+                    {t("sa_form_add_playground")}
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => { setPoolSearch(""); setPoolPickerOpen(true); }}>
+                    <List className="h-4 w-4" />
+                    {t("sa_form_choose_playground")}
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -682,6 +735,50 @@ export function AcademyEditDialog({
           </div>
         </DialogFooter>
       </DialogContent>
+
+      <Dialog open={poolPickerOpen} onOpenChange={setPoolPickerOpen}>
+        <DialogContent className="max-h-[80vh] max-w-lg overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <List className="h-4 w-4 text-primary" />
+              {t("sa_form_choose_playground")}
+            </DialogTitle>
+            <DialogDescription>
+              {t("sa_form_choose_playground_hint")}
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            className="mb-3"
+            placeholder={t("sa_form_choose_playground_search")}
+            value={poolSearch}
+            onChange={(e) => setPoolSearch(e.target.value)}
+          />
+          <div className="space-y-2">
+            {poolVenues.length === 0 && (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                {t("sa_form_choose_playground_empty")}
+              </p>
+            )}
+            {poolVenues.map((v) => (
+              <div key={v.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{v.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {[v.country, v.governorate, v.area, v.address].filter(Boolean).join(" · ") || v.name}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => { addVenueFromPool(v); setPoolPickerOpen(false); }}
+                >
+                  {t("sa_form_choose_playground_add")}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog
         open={confirmDeleteOpen}

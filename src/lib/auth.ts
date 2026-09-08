@@ -3,6 +3,17 @@
 import { useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+export type SignupVenue =
+  | { id: string }
+  | {
+      name: string;
+      address?: string | null;
+      capacity?: number | null;
+      school_name?: string | null;
+      rental_cost?: number | null;
+      rental_hours?: number | null;
+    };
+
 export function useAuth() {
   const signIn = useCallback(
     async (email: string, password: string) => {
@@ -28,6 +39,7 @@ export function useAuth() {
         country?: string;
         governorate?: string;
         city?: string;
+        venues?: SignupVenue[];
       }
     ) => {
       const { data, error } = await createClient().auth.signUp({
@@ -46,6 +58,9 @@ export function useAuth() {
               ? { new_academy_governorate: academy.governorate }
               : {}),
             ...(academy?.city ? { new_academy_area: academy.city } : {}),
+            ...(academy?.venues?.length
+              ? { new_academy_venues: academy.venues }
+              : {}),
           },
         },
       });

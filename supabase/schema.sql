@@ -157,7 +157,9 @@ CREATE TABLE IF NOT EXISTS public.coaches (
 -- it is rented from, and the cost paid to the school.
 CREATE TABLE IF NOT EXISTS public.venues (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  academy_id UUID NOT NULL REFERENCES public.academies(id) ON DELETE CASCADE
+  -- Nullable so a venue can sit in the platform's unassigned playground pool
+  -- until an academy claims it (via the admin console or academy signup).
+  academy_id UUID REFERENCES public.academies(id) ON DELETE CASCADE
     DEFAULT public.current_academy_id(),
   name TEXT NOT NULL,
   address TEXT,
@@ -661,6 +663,7 @@ DECLARE
   v_new_area TEXT := NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'new_academy_area', '')), '');
   v_code TEXT := NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'academy_code', '')), '');
   v_academy UUID;
+  v_venue JSONB;
 BEGIN
   IF v_new_name <> '' THEN
     -- A phone number is mandatory to create an academy account. Reject the
@@ -705,6 +708,37 @@ BEGIN
       CURRENT_DATE, v_academy, TRUE
     )
     ON CONFLICT (id) DO NOTHING;
+
+    -- Attach the chosen playgrounds to the new academy: an unassigned pool
+    -- playground can be claimed by id, or new ones are created from details.
+    FOR v_venue IN
+      SELECT value FROM jsonb_array_elements(
+        COALESCE(NEW.raw_user_meta_data -> 'new_academy_venues', '[]'::jsonb)
+      )
+    LOOP
+      IF v_venue ? 'id' THEN
+        UPDATE public.venues
+        SET academy_id = v_academy
+        WHERE id = (v_venue ->> 'id')::uuid AND academy_id IS NULL;
+      ELSE
+        INSERT INTO public.venues (
+          academy_id, name, address, capacity, school_name,
+          rental_cost, rental_hours, country, governorate, area
+        )
+        VALUES (
+          v_academy,
+          trim(v_venue ->> 'name'),
+          NULLIF(v_venue ->> 'address', ''),
+          NULLIF(v_venue ->> 'capacity', '')::integer,
+          NULLIF(v_venue ->> 'school_name', ''),
+          NULLIF(v_venue ->> 'rental_cost', '')::numeric,
+          COALESCE(NULLIF(v_venue ->> 'rental_hours', '')::numeric, 1),
+          COALESCE(v_new_country, NULLIF(v_venue ->> 'country', '')),
+          COALESCE(v_new_governorate, NULLIF(v_venue ->> 'governorate', '')),
+          COALESCE(v_new_area, NULLIF(v_venue ->> 'area', ''))
+        );
+      END IF;
+    END LOOP;
   ELSE
     IF v_code IS NOT NULL THEN
       SELECT id INTO v_academy FROM public.academies WHERE UPPER(invite_code) = UPPER(v_code);
@@ -1393,11 +1427,17 @@ CREATE POLICY "Members manage coaches" ON public.coaches
   FOR ALL USING (academy_id = public.current_academy_id())
   WITH CHECK (academy_id = public.current_academy_id());
 
--- venues: admins manage; members read for display.
+-- venues: admins manage; members read for display. Unassigned venues are
+-- selectable by anyone so academy owners can claim them during signup; the
+-- contact columns stay column-restricted (admin API only).
 DROP POLICY IF EXISTS "Members manage venues" ON public.venues;
 CREATE POLICY "Members manage venues" ON public.venues
   FOR ALL USING (academy_id = public.current_academy_id())
   WITH CHECK (academy_id = public.current_academy_id());
+
+DROP POLICY IF EXISTS "Unassigned playgrounds are viewable" ON public.venues;
+CREATE POLICY "Unassigned playgrounds are viewable" ON public.venues
+  FOR SELECT USING (academy_id IS NULL);
 
 DROP POLICY IF EXISTS "Members manage venue rentals" ON public.venue_rentals;
 CREATE POLICY "Members manage venue rentals" ON public.venue_rentals
@@ -3295,9 +3335,10 @@ BEGIN
   END IF;
 
   -- Playgrounds (venues): rows with an id are updated in place, rows without
-  -- one are added, and existing rows that disappear are removed. The console
-  -- is not bound by the per-plan venue limits. Removed rows are deleted first
-  -- so rows added in the same call are never mistaken for removals.
+  -- one are added, and existing rows that disappear are removed. Updating an
+  -- unassigned pool playground assigns it to this academy. The console is not
+  -- bound by the per-plan venue limits. Removed rows are deleted first so rows
+  -- added in the same call are never mistaken for removals.
   IF p_payload ? 'venues' THEN
     ALTER TABLE public.venues DISABLE TRIGGER guard_venue_limit_on_insert;
     BEGIN
@@ -3311,6 +3352,7 @@ BEGIN
       FOR v_item IN SELECT value FROM jsonb_array_elements(p_payload -> 'venues') LOOP
         IF v_item ? 'id' THEN
           UPDATE public.venues SET
+            academy_id    = p_academy_id,
             name         = COALESCE(NULLIF(trim(COALESCE(v_item ->> 'name', '')), ''), name),
             address      = CASE WHEN v_item ? 'address' THEN NULLIF(v_item ->> 'address', '') ELSE address END,
             capacity     = CASE WHEN v_item ? 'capacity' THEN NULLIF(v_item ->> 'capacity', '')::integer ELSE capacity END,
@@ -3324,7 +3366,8 @@ BEGIN
                                       WHERE academy_id = p_academy_id
                                         AND name = v_item ->> 'sport' LIMIT 1)
                                 ELSE sport_id END
-          WHERE id = (v_item ->> 'id')::uuid AND academy_id = p_academy_id;
+          WHERE id = (v_item ->> 'id')::uuid
+            AND (academy_id = p_academy_id OR academy_id IS NULL);
         ELSE
           INSERT INTO public.venues (
             academy_id, name, address, capacity, sport_id, school_name,
