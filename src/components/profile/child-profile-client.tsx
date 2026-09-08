@@ -14,6 +14,7 @@ import {
   UsersRound,
   Zap,
 } from "lucide-react";
+import { CheckinQrCard } from "@/components/profile/checkin-qr-card";
 import { ProfileAvatar } from "@/components/shared/profile-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -85,6 +86,8 @@ export function ChildProfileClient({ child }: { child: Profile }) {
           </Link>
         </Button>
       </PageHeader>
+      {member.checkin_code && <CheckinQrCard code={member.checkin_code} memberName={member.name} />}
+
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Summary */}

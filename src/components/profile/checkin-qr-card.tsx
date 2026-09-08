@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
+import { Button } from "@/components/ui/button";
 import { QrCode } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,7 +14,7 @@ interface CheckinQrCardProps {
 }
 
 export function CheckinQrCard({ code, memberName }: CheckinQrCardProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [dataUrl, setDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,8 +55,9 @@ export function CheckinQrCard({ code, memberName }: CheckinQrCardProps) {
         ) : (
           <Skeleton className="h-52 w-52 rounded-xl" />
         )}
-        <p className="font-mono text-lg font-extrabold tracking-[0.3em]">{code}</p>
+        <p className="max-w-full break-all text-center font-mono text-sm font-extrabold tracking-wider">{code}</p>
         <p className="text-xs text-muted-foreground">{memberName}</p>
+        {dataUrl && <Button asChild variant="outline" size="sm"><a href={dataUrl} download="member-qr.png">{lang === "ar" ? "تحميل كود الحضور" : "Download attendance QR"}</a></Button>}
       </CardContent>
     </Card>
   );
