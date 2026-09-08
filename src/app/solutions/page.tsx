@@ -47,7 +47,7 @@ const solutions = [
     sportAr: "كرة الطائرة",
     emoji: "🏐",
     href: "/solutions/volleyball",
-    gradient: "from-blue-600 to-sky-400",
+    gradient: "from-brand to-interactive-700",
     description:
       "The #1 management platform for volleyball academies — players, sessions, payments and profit tracking.",
   },
@@ -56,7 +56,7 @@ const solutions = [
     sportAr: "كرة القدم",
     emoji: "⚽",
     href: "/solutions/football",
-    gradient: "from-green-600 to-emerald-400",
+    gradient: "from-brand to-interactive-700",
     description:
       "The complete management platform for football academies — training, attendance and finances.",
   },
@@ -65,7 +65,7 @@ const solutions = [
     sportAr: "كرة السلة",
     emoji: "🏀",
     href: "/solutions/basketball",
-    gradient: "from-orange-600 to-amber-400",
+    gradient: "from-brand to-interactive-700",
     description:
       "Run your basketball academy with confidence — scheduling, check-in and automatic profit/loss.",
   },
@@ -74,7 +74,7 @@ const solutions = [
     sportAr: "البادل",
     emoji: "🏓",
     href: "/solutions/padel",
-    gradient: "from-purple-600 to-violet-400",
+    gradient: "from-brand to-interactive-700",
     description:
       "The complete management platform for padel clubs — members, courts, bookings and tournaments.",
   },
@@ -83,7 +83,7 @@ const solutions = [
     sportAr: "السباحة",
     emoji: "🏊",
     href: "/solutions/swimming",
-    gradient: "from-cyan-600 to-teal-400",
+    gradient: "from-brand to-interactive-700",
     description:
       "The complete management platform for swimming academies — students, lessons, payments and profit tracking.",
   },
@@ -93,7 +93,7 @@ export default function SolutionsPage() {
   return (
     <main className="min-h-screen bg-background">
       {/* Hero */}
-      <section className="relative overflow-hidden border-b bg-gradient-to-br from-blue-700 via-blue-600 to-sky-500 py-20 text-white">
+      <section className="relative overflow-hidden border-b bg-gradient-to-br from-brand via-brand to-interactive-800 py-20 text-white">
         <div className="pointer-events-none absolute -top-24 start-1/2 h-72 w-[32rem] -translate-x-1/2 rounded-full bg-white/15 blur-3xl rtl:translate-x-1/2" />
         <div className="relative mx-auto flex max-w-4xl flex-col items-center gap-4 px-6 text-center">
           <h1 className="text-3xl font-extrabold sm:text-5xl">

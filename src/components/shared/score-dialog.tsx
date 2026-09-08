@@ -53,7 +53,7 @@ export function ScoreDialog({ open, onOpenChange, gameId, gameTitle }: Props) {
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Trophy className="h-4 w-4 text-amber-500" />
+            <Trophy className="h-4 w-4 text-warning-ink" />
             {t("score_title")}
           </DialogTitle>
           <DialogDescription>

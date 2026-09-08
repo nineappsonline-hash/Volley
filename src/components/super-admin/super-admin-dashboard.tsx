@@ -229,19 +229,19 @@ export function SuperAdminDashboard() {
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-xs text-muted-foreground">{t("super_admin_active")}</p>
-            <p className="mt-1 font-mono text-2xl font-extrabold text-emerald-600">{stats.paid}</p>
+            <p className="mt-1 font-mono text-2xl font-extrabold text-success-ink">{stats.paid}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-xs text-muted-foreground">{t("super_admin_trial")}</p>
-            <p className="mt-1 font-mono text-2xl font-extrabold text-amber-600">{stats.activeTrials}</p>
+            <p className="mt-1 font-mono text-2xl font-extrabold text-warning-ink">{stats.activeTrials}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-xs text-muted-foreground">{t("super_admin_expired")}</p>
-            <p className="mt-1 font-mono text-2xl font-extrabold text-red-600">{stats.expiredTrials}</p>
+            <p className="mt-1 font-mono text-2xl font-extrabold text-error-ink">{stats.expiredTrials}</p>
           </CardContent>
         </Card>
       </div>
@@ -380,7 +380,7 @@ export function SuperAdminDashboard() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="gap-1 text-emerald-600 hover:text-emerald-600"
+                                className="gap-1 text-success-ink hover:text-success-ink"
                                 onClick={() => handleConvert(academy.id)}
                               >
                                 <Shield className="h-3 w-3" />
@@ -406,7 +406,7 @@ export function SuperAdminDashboard() {
             <Receipt className="h-4 w-4 text-primary" />
             {t("super_admin_game_fees")}
             {(pendingFees ?? []).length > 0 && (
-              <Badge variant="destructive">{(pendingFees ?? []).length}</Badge>
+              <Badge variant="warning">{(pendingFees ?? []).length}</Badge>
             )}
           </CardTitle>
         </CardHeader>
@@ -467,7 +467,7 @@ export function SuperAdminDashboard() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="gap-1 text-emerald-600 hover:text-emerald-600"
+                            className="gap-1 text-success-ink hover:text-success-ink"
                             disabled={reviewGameFee.isPending}
                             onClick={() => handleReviewFee(game.id, true)}
                           >
@@ -502,7 +502,7 @@ export function SuperAdminDashboard() {
             <Wallet className="h-4 w-4 text-primary" />
             {t("super_admin_subscriptions")}
             {(pendingSubs ?? []).length > 0 && (
-              <Badge variant="destructive">{(pendingSubs ?? []).length}</Badge>
+              <Badge variant="warning">{(pendingSubs ?? []).length}</Badge>
             )}
           </CardTitle>
         </CardHeader>
@@ -568,7 +568,7 @@ export function SuperAdminDashboard() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="gap-1 text-emerald-600 hover:text-emerald-600"
+                            className="gap-1 text-success-ink hover:text-success-ink"
                             disabled={reviewSub.isPending}
                             onClick={() => handleReviewSub(sub.id, true)}
                           >
@@ -653,7 +653,7 @@ export function SuperAdminDashboard() {
                       </TableCell>
                       <TableCell>
                         {r.status === "open" ? (
-                          <Badge variant="destructive">{t("moderation_open")}</Badge>
+                          <Badge variant="warning">{t("moderation_open")}</Badge>
                         ) : r.status === "resolved" ? (
                           <Badge variant="success">{t("moderation_resolved")}</Badge>
                         ) : (
@@ -669,7 +669,7 @@ export function SuperAdminDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="gap-1 text-emerald-600 hover:text-emerald-600"
+                              className="gap-1 text-success-ink hover:text-success-ink"
                               onClick={() =>
                                 resolve
                                   .mutateAsync({ reportId: r.id, status: "resolved" })

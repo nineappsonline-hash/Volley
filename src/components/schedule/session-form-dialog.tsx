@@ -338,7 +338,7 @@ export function SessionFormDialog({
             />
           </div>
           {conflict && (
-            <p className="flex items-start gap-2 rounded-md border border-amber-300/60 bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
+            <p className="flex items-start gap-2 rounded-md border border-attention-300/60 bg-attention-50 p-3 text-xs text-warning-ink dark:bg-attention-500/10 dark:text-attention-300">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
               {t("schedule_venue_conflict")}
             </p>

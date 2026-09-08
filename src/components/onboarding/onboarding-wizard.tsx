@@ -109,7 +109,7 @@ export function OnboardingWizard() {
     return (
       <Card>
         <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 animate-pop-in">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-positive-100 text-success-ink dark:bg-positive-500/10 dark:text-positive-400 animate-pop-in">
             <PartyPopper className="h-8 w-8" />
           </div>
           <h2 className="text-xl font-bold">{t("onboarding_welcome")}</h2>

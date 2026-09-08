@@ -90,7 +90,7 @@ export default function MembersPage() {
                   ["Name", "Email", "Phone", "Joined", "Type", "Sessions", "Total Paid", "Status"],
                   members.map((m) => [
                     m.name,
-                    m.email,
+                    m.email ?? "",
                     m.phone ?? "",
                     m.join_date ?? "",
                     m.membership_type,

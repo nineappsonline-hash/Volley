@@ -85,7 +85,7 @@ export function TrialForm({ academyId, sports }: TrialFormProps) {
     return (
       <Card id="trial">
         <CardContent className="flex flex-col items-center gap-3 p-8 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-positive-100 text-success-ink dark:bg-positive-500/15">
             <CalendarCheck className="h-6 w-6" />
           </div>
           <p className="font-medium">{t("trial_success")}</p>

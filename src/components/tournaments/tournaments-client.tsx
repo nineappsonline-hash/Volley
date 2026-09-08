@@ -60,7 +60,7 @@ import type { Tournament, TournamentMatch, TournamentWithMatches } from "@/lib/t
 const STATUS_COLORS: Record<string, string> = {
   upcoming: "secondary",
   in_progress: "default",
-  completed: "outline",
+  completed: "success",
   canceled: "destructive",
 };
 

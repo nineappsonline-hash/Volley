@@ -45,7 +45,7 @@ const createSchema = (t: (k: any) => string, isEdit: boolean) =>
   z.object({
     name: z.string().min(1, t("field_required")),
     email: isEdit
-      ? z.string().email(t("field_invalid_email"))
+      ? z.string().email(t("field_invalid_email")).or(z.literal(""))
       : z.string().min(1, t("field_required")).email(t("field_invalid_email")),
     password: isEdit
       ? z.string().optional()
@@ -173,7 +173,7 @@ export function MemberFormDialog({
   const filteredPending = useMemo(() => {
     const q = search.trim().toLowerCase();
     return (pendingProfiles ?? []).filter(
-      (p) => !q || p.name.toLowerCase().includes(q) || p.email.toLowerCase().includes(q)
+      (p) => !q || p.name.toLowerCase().includes(q) || (p.email ?? "").toLowerCase().includes(q)
     );
   }, [pendingProfiles, search]);
 
@@ -247,6 +247,11 @@ export function MemberFormDialog({
                       <FormControl>
                         <Input type="email" dir="ltr" readOnly disabled {...field} />
                       </FormControl>
+                      {isEdit && member && !member.email && (
+                        <p className="text-xs text-muted-foreground">
+                          {t("member_no_account_hint")}
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}

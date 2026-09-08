@@ -49,7 +49,7 @@ export default function SwimmingPage() {
       sport="Swimming"
       sportAr="السباحة"
       emoji="🏊"
-      heroGradient="from-cyan-700 via-cyan-600 to-teal-500"
+      heroGradient="from-brand via-brand to-interactive-800"
       tagline="The complete management platform for swimming academies — students, lessons, payments and profit tracking."
       taglineAr="منصة الإدارة الشاملة لأكاديميات السباحة — الطلاب والدروس والمدفوعات وتتبع الأرباح."
       description="Managing swimming lessons is uniquely complex — pool lanes, instructor schedules, age groups and skill levels. Volleyra handles it all. Track student subscriptions, schedule lessons with lane assignments, manage QR check-in and see automatic profit/loss for every lesson. No more paper sign-up sheets."

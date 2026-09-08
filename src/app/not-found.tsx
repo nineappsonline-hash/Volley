@@ -9,7 +9,7 @@ export default function NotFound() {
   const { t } = useI18n();
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background p-6 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-sky-400 text-white shadow-lg shadow-blue-500/30">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-interactive-700 text-white shadow-lg shadow-interactive-500/30">
         <Volleyball className="h-9 w-9" />
       </div>
       <div>

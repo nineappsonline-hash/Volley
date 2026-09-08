@@ -63,7 +63,7 @@ export function LoginForm() {
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-6">
       <div className="pointer-events-none absolute inset-0 bg-grid opacity-40" />
-      <div className="pointer-events-none absolute -top-32 start-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-blue-500/20 blur-3xl rtl:translate-x-1/2" />
+      <div className="pointer-events-none absolute -top-32 start-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-interactive-500/20 blur-3xl rtl:translate-x-1/2" />
 
       <div className="relative w-full max-w-md">
         <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
@@ -86,7 +86,7 @@ export function LoginForm() {
         </div>
 
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-sky-400 text-white shadow-lg shadow-blue-500/30">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-interactive-700 text-white shadow-lg shadow-interactive-500/30">
             {isTenant ? (
               <Building2 className="h-8 w-8" />
             ) : (

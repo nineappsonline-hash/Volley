@@ -57,7 +57,7 @@ export default async function PublicAcademyPage({
   return (
     <main className="min-h-screen bg-background">
       {/* Hero */}
-      <section className="relative overflow-hidden border-b bg-gradient-to-br from-blue-700 via-blue-600 to-sky-500 py-14 text-white">
+      <section className="relative overflow-hidden border-b bg-gradient-to-br from-brand via-brand to-interactive-800 py-14 text-white">
         <div className="pointer-events-none absolute -top-24 start-1/2 h-72 w-[32rem] -translate-x-1/2 rounded-full bg-white/15 blur-3xl rtl:translate-x-1/2" />
         <div className="relative mx-auto flex max-w-3xl flex-col items-center gap-4 px-6 text-center">
           {academy.cover_url && (
@@ -93,7 +93,7 @@ export default async function PublicAcademyPage({
                     key={i}
                     className={`h-4 w-4 ${
                       i <= Math.round(avgRating)
-                        ? "fill-amber-300 text-amber-300"
+                        ? "fill-attention-300 text-attention-300"
                         : "text-white/40"
                     }`}
                   />

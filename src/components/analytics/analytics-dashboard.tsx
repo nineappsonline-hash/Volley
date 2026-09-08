@@ -210,11 +210,11 @@ export function AnalyticsDashboard() {
   const totalPaymentAmount = revenueByMethod.reduce((s, r) => s + r.amount, 0);
 
   const METHOD_COLORS: Record<string, string> = {
-    cash: "bg-emerald-500",
-    card: "bg-blue-500",
-    wallet: "bg-purple-500",
-    bank_transfer: "bg-amber-500",
-    other: "bg-gray-500",
+    cash: "bg-positive-500",
+    card: "bg-interactive-500",
+    wallet: "bg-brand-500",
+    bank_transfer: "bg-attention-500",
+    other: "bg-neutral-500",
   };
 
   // ── Expense Breakdown by Category ──
@@ -235,11 +235,11 @@ export function AnalyticsDashboard() {
   }, [expenses]);
 
   const CATEGORY_COLORS: Record<string, string> = {
-    equipment: "bg-blue-500",
-    uniforms: "bg-purple-500",
-    tournament: "bg-orange-500",
-    travel: "bg-emerald-500",
-    other: "bg-gray-400",
+    equipment: "bg-interactive-500",
+    uniforms: "bg-brand-500",
+    tournament: "bg-attention-500",
+    travel: "bg-positive-500",
+    other: "bg-neutral-400",
   };
 
   // ── Revenue Forecast (simple linear trend) ──
@@ -335,9 +335,9 @@ export function AnalyticsDashboard() {
   }, [sessions]);
 
   const STATUS_COLORS: Record<string, string> = {
-    completed: "bg-emerald-500",
-    scheduled: "bg-blue-500",
-    canceled: "bg-red-500",
+    completed: "bg-positive-500",
+    scheduled: "bg-interactive-500",
+    canceled: "bg-negative-500",
   };
 
   // ── Guest Revenue Trend ──
@@ -403,8 +403,8 @@ export function AnalyticsDashboard() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-blue-100 p-2 dark:bg-blue-900/30">
-                <Users className="h-5 w-5 text-blue-600" />
+              <div className="rounded-lg bg-interactive-100 p-2 dark:bg-interactive-900/30">
+                <Users className="h-5 w-5 text-info-ink" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats.activeMembers.length}</p>
@@ -417,8 +417,8 @@ export function AnalyticsDashboard() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-emerald-100 p-2 dark:bg-emerald-900/30">
-                <CalendarCheck className="h-5 w-5 text-emerald-600" />
+              <div className="rounded-lg bg-positive-100 p-2 dark:bg-positive-900/30">
+                <CalendarCheck className="h-5 w-5 text-success-ink" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats.totalSessions}</p>
@@ -431,8 +431,8 @@ export function AnalyticsDashboard() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-amber-100 p-2 dark:bg-amber-900/30">
-                <Target className="h-5 w-5 text-amber-600" />
+              <div className="rounded-lg bg-attention-100 p-2 dark:bg-attention-900/30">
+                <Target className="h-5 w-5 text-warning-ink" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats.attendanceRate}%</p>
@@ -445,14 +445,14 @@ export function AnalyticsDashboard() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className={`rounded-lg p-2 ${stats.profit >= 0 ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-red-100 dark:bg-red-900/30"}`}>
+              <div className={`rounded-lg p-2 ${stats.profit >= 0 ? "bg-positive-100 dark:bg-positive-900/30" : "bg-negative-100 dark:bg-negative-900/30"}`}>
                 {stats.profit >= 0
-                  ? <TrendingUp className="h-5 w-5 text-emerald-600" />
-                  : <TrendingDown className="h-5 w-5 text-red-600" />
+                  ? <TrendingUp className="h-5 w-5 text-success-ink" />
+                  : <TrendingDown className="h-5 w-5 text-error-ink" />
                 }
               </div>
               <div>
-                <p className={`text-2xl font-bold ${stats.profit >= 0 ? "" : "text-red-600"}`}>
+                <p className={`text-2xl font-bold ${stats.profit >= 0 ? "" : "text-error-ink"}`}>
                   {formatMoney(stats.profit, lang)}
                 </p>
                 <p className="text-xs text-muted-foreground">{t("analytics_net_profit")}</p>
@@ -507,14 +507,14 @@ export function AnalyticsDashboard() {
               <div>
                 <div className="flex items-center justify-between text-sm mb-1">
                   <span className="flex items-center gap-1.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-positive-500" />
                     {t("analytics_healthy")}
                   </span>
                   <span className="font-semibold">{retention.healthy}</span>
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
                   <div
-                    className="h-full bg-emerald-500 rounded-full"
+                    className="h-full bg-positive-500 rounded-full"
                     style={{ width: `${retention.total > 0 ? (retention.healthy / retention.total) * 100 : 0}%` }}
                   />
                 </div>
@@ -522,14 +522,14 @@ export function AnalyticsDashboard() {
               <div>
                 <div className="flex items-center justify-between text-sm mb-1">
                   <span className="flex items-center gap-1.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-attention-500" />
                     {t("analytics_at_risk")}
                   </span>
                   <span className="font-semibold">{retention.atRisk}</span>
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
                   <div
-                    className="h-full bg-amber-500 rounded-full"
+                    className="h-full bg-attention-500 rounded-full"
                     style={{ width: `${retention.total > 0 ? (retention.atRisk / retention.total) * 100 : 0}%` }}
                   />
                 </div>
@@ -537,14 +537,14 @@ export function AnalyticsDashboard() {
               <div>
                 <div className="flex items-center justify-between text-sm mb-1">
                   <span className="flex items-center gap-1.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-negative-500" />
                     {t("analytics_churned")}
                   </span>
                   <span className="font-semibold">{retention.churned}</span>
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
                   <div
-                    className="h-full bg-red-500 rounded-full"
+                    className="h-full bg-negative-500 rounded-full"
                     style={{ width: `${retention.total > 0 ? (retention.churned / retention.total) * 100 : 0}%` }}
                   />
                 </div>
@@ -605,7 +605,7 @@ export function AnalyticsDashboard() {
                   <div key={r.method}>
                     <div className="flex items-center justify-between text-sm mb-1">
                       <span className="flex items-center gap-2 capitalize">
-                        <span className={`h-2.5 w-2.5 rounded-full ${METHOD_COLORS[r.method] || "bg-gray-400"}`} />
+                        <span className={`h-2.5 w-2.5 rounded-full ${METHOD_COLORS[r.method] || "bg-neutral-400"}`} />
                         {r.method.replace("_", " ")}
                       </span>
                       <span className="font-mono text-xs font-semibold">
@@ -617,7 +617,7 @@ export function AnalyticsDashboard() {
                     </div>
                     <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                       <div
-                        className={`h-full rounded-full ${METHOD_COLORS[r.method] || "bg-gray-400"}`}
+                        className={`h-full rounded-full ${METHOD_COLORS[r.method] || "bg-neutral-400"}`}
                         style={{ width: `${totalPaymentAmount > 0 ? (r.amount / totalPaymentAmount) * 100 : 0}%` }}
                       />
                     </div>
@@ -751,7 +751,7 @@ export function AnalyticsDashboard() {
                   <div key={e.category}>
                     <div className="flex items-center justify-between text-sm mb-1">
                       <span className="flex items-center gap-2 capitalize">
-                        <span className={`h-2.5 w-2.5 rounded-full ${CATEGORY_COLORS[e.category] || "bg-gray-400"}`} />
+                        <span className={`h-2.5 w-2.5 rounded-full ${CATEGORY_COLORS[e.category] || "bg-neutral-400"}`} />
                         {e.category}
                       </span>
                       <span className="font-mono text-xs font-semibold">
@@ -761,7 +761,7 @@ export function AnalyticsDashboard() {
                     </div>
                     <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                       <div
-                        className={`h-full rounded-full ${CATEGORY_COLORS[e.category] || "bg-gray-400"}`}
+                        className={`h-full rounded-full ${CATEGORY_COLORS[e.category] || "bg-neutral-400"}`}
                         style={{ width: `${e.percent}%` }}
                       />
                     </div>
@@ -792,7 +792,7 @@ export function AnalyticsDashboard() {
                     <div key={s.status} className="space-y-1">
                       <div className="flex items-center justify-between text-sm">
                         <span className="flex items-center gap-2 capitalize">
-                          <span className={`h-2.5 w-2.5 rounded-full ${STATUS_COLORS[s.status] || "bg-gray-400"}`} />
+                          <span className={`h-2.5 w-2.5 rounded-full ${STATUS_COLORS[s.status] || "bg-neutral-400"}`} />
                           {s.status}
                         </span>
                         <span className="font-mono text-xs font-semibold">
@@ -801,7 +801,7 @@ export function AnalyticsDashboard() {
                       </div>
                       <div className="h-2 rounded-full bg-muted overflow-hidden">
                         <div
-                          className={`h-full rounded-full ${STATUS_COLORS[s.status] || "bg-gray-400"}`}
+                          className={`h-full rounded-full ${STATUS_COLORS[s.status] || "bg-neutral-400"}`}
                           style={{ width: `${pct}%` }}
                         />
                       </div>
@@ -864,7 +864,7 @@ export function AnalyticsDashboard() {
                       {m.total}
                     </span>
                     <div
-                      className="w-full bg-emerald-500/80 rounded-t"
+                      className="w-full bg-positive-500/80 rounded-t"
                       style={{ height: `${(m.total / maxMemberGrowth) * 100}%`, minHeight: "4px" }}
                     />
                   </div>

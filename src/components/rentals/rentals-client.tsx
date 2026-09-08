@@ -303,7 +303,7 @@ export function RentalsClient() {
                   </TableCell>
                   <TableCell>
                     {r.is_paid ? (
-                      <Badge className="bg-green-600 text-white">
+                      <Badge className="bg-positive-600 text-white">
                         {t("rentals_paid")}
                       </Badge>
                     ) : (
@@ -322,7 +322,7 @@ export function RentalsClient() {
                       >
                         <CheckCircle2
                           className={`h-4 w-4 ${
-                            r.is_paid ? "text-green-600" : "text-muted-foreground/50"
+                            r.is_paid ? "text-success-ink" : "text-muted-foreground/50"
                           }`}
                         />
                       </Button>
@@ -502,7 +502,7 @@ export function RentalsClient() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <AlertTriangle className="h-4 w-4 text-warning-ink" />
               {t("rentals_conflict_title")}
             </AlertDialogTitle>
             <AlertDialogDescription>

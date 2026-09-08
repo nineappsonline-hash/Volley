@@ -39,6 +39,8 @@ export function useAuth() {
         country?: string;
         governorate?: string;
         city?: string;
+        gender?: string;
+        birth_date?: string;
         venues?: SignupVenue[];
       }
     ) => {
@@ -49,6 +51,8 @@ export function useAuth() {
           data: {
             name,
             phone,
+            ...(academy?.gender ? { gender: academy.gender } : {}),
+            ...(academy?.birth_date ? { birth_date: academy.birth_date } : {}),
             ...(academy?.code ? { academy_code: academy.code } : {}),
             ...(academy?.newName ? { new_academy_name: academy.newName } : {}),
             ...(academy?.sports ? { sports: academy.sports } : {}),

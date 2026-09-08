@@ -78,7 +78,7 @@ function SessionCard({
         </div>
         {session.sport && (
           <div className="flex items-center gap-2 text-sm">
-            <Star className="h-4 w-4 text-amber-500 shrink-0" />
+            <Star className="h-4 w-4 text-warning-ink shrink-0" />
             <span className="truncate">{session.sport.name}</span>
           </div>
         )}
@@ -107,7 +107,7 @@ function SessionCard({
         </div>
         {hasPrice && (
           <div className="flex items-center gap-2 rounded-lg border bg-muted/30 p-3 text-sm">
-            <Coins className="h-4 w-4 shrink-0 text-amber-500" />
+            <Coins className="h-4 w-4 shrink-0 text-warning-ink" />
             <span className="flex-1 font-medium">{t("marketplace_bookable")}</span>
             <Button
               size="sm"
@@ -232,7 +232,7 @@ export function MarketplaceClient({ profile }: { profile: Profile }) {
                       </Button>
                     )}
                     {b.status === "confirmed" && (
-                      <Badge className="bg-emerald-500 text-white">
+                      <Badge className="bg-success text-success-foreground">
                         {t("marketplace_checkin")}
                       </Badge>
                     )}

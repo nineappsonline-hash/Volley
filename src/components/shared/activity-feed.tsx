@@ -16,23 +16,23 @@ import {
 } from "lucide-react";
 
 const ACTIVITY_ICONS: Record<string, React.ReactNode> = {
-  joined: <UserPlus className="h-4 w-4 text-green-500" />,
-  attended: <CheckCircle className="h-4 w-4 text-blue-500" />,
-  payment: <CreditCard className="h-4 w-4 text-emerald-500" />,
-  badge: <Trophy className="h-4 w-4 text-yellow-500" />,
-  evaluation: <ClipboardCheck className="h-4 w-4 text-purple-500" />,
-  rating: <Star className="h-4 w-4 text-orange-500" />,
-  checkin: <QrCode className="h-4 w-4 text-cyan-500" />,
+  joined: <UserPlus className="h-4 w-4 text-success-ink" />,
+  attended: <CheckCircle className="h-4 w-4 text-info-ink" />,
+  payment: <CreditCard className="h-4 w-4 text-success-ink" />,
+  badge: <Trophy className="h-4 w-4 text-warning-ink" />,
+  evaluation: <ClipboardCheck className="h-4 w-4 text-foreground" />,
+  rating: <Star className="h-4 w-4 text-warning-ink" />,
+  checkin: <QrCode className="h-4 w-4 text-info-ink" />,
 };
 
 const ACTIVITY_COLORS: Record<string, string> = {
-  joined: "bg-green-100 text-green-800",
-  attended: "bg-blue-100 text-blue-800",
-  payment: "bg-emerald-100 text-emerald-800",
-  badge: "bg-yellow-100 text-yellow-800",
-  evaluation: "bg-purple-100 text-purple-800",
-  rating: "bg-orange-100 text-orange-800",
-  checkin: "bg-cyan-100 text-cyan-800",
+  joined: "bg-positive-100 text-success-ink",
+  attended: "bg-interactive-100 text-info-ink",
+  payment: "bg-positive-100 text-success-ink",
+  badge: "bg-attention-100 text-warning-ink",
+  evaluation: "bg-brand-100 text-foreground",
+  rating: "bg-attention-100 text-warning-ink",
+  checkin: "bg-interactive-100 text-info-ink",
 };
 
 function timeAgo(dateStr: string): string {
@@ -72,7 +72,7 @@ export function ActivityFeed({ memberId, limit = 20 }: { memberId?: string; limi
             {activities.map((item) => (
               <div key={item.id} className="flex items-start gap-3">
                 <div className="mt-0.5 shrink-0">
-                  {ACTIVITY_ICONS[item.activity_type] || <Activity className="h-4 w-4 text-gray-400" />}
+                  {ACTIVITY_ICONS[item.activity_type] || <Activity className="h-4 w-4 text-neutral-400" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm">{item.description}</p>

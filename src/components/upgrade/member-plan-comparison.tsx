@@ -130,7 +130,7 @@ export function MemberPlanComparison({
     if (cell.kind === "yes") {
       return (
         <Check
-          className="mx-auto h-4 w-4 text-emerald-600 dark:text-emerald-400"
+          className="mx-auto h-4 w-4 text-success-ink dark:text-positive-400"
           aria-label={t("common_yes")}
         />
       );
@@ -188,8 +188,8 @@ export function MemberPlanComparison({
         </Card>
 
         {/* Pro tier */}
-        <Card className="relative border-amber-400/60">
-          <Badge className="absolute -top-2.5 start-1/2 -translate-x-1/2 bg-amber-500 text-white dark:bg-amber-500">
+        <Card className="relative border-interactive-400/60">
+          <Badge className="absolute -top-2.5 start-1/2 -translate-x-1/2 bg-info text-info-foreground dark:bg-interactive-500">
             <Sparkles className="me-1 h-3 w-3" />
             {t("plans_popular")}
           </Badge>
@@ -203,7 +203,7 @@ export function MemberPlanComparison({
               </Badge>
             )}
             <CardTitle className="flex items-center justify-center gap-1.5 text-lg">
-              <Crown className="h-4 w-4 text-amber-500" />
+              <Crown className="h-4 w-4 text-info-ink" />
               {t("mplan_tier_pro")}
             </CardTitle>
             <div className="space-y-0.5">
@@ -219,7 +219,7 @@ export function MemberPlanComparison({
           </CardHeader>
           <CardContent>
             <Button
-              className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700"
+              className="w-full bg-gradient-to-r from-interactive-600 to-interactive-700 text-white hover:from-interactive-700 hover:to-interactive-800"
               disabled={busy || current === "pro"}
               onClick={() => subscribe()}
             >

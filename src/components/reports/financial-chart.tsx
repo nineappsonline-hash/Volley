@@ -1,5 +1,7 @@
 "use client";
 
+import { CHART_COLORS } from "@/lib/brand";
+
 import { useMemo } from "react";
 import {
   Bar,
@@ -53,6 +55,7 @@ export function FinancialChart({ points, height = 300 }: FinancialChartProps) {
           ]}
           contentStyle={{
             background: "hsl(var(--card))",
+                    color: "hsl(var(--foreground))",
             border: "1px solid hsl(var(--border))",
             borderRadius: 8,
             fontSize: 12,
@@ -67,9 +70,9 @@ export function FinancialChart({ points, height = 300 }: FinancialChartProps) {
                 : t("reports_profit")
           }
         />
-        <Bar dataKey="revenue" fill="#2563EB" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="costs" fill="#F59E0B" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="profit" fill="#10B981" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="revenue" fill={CHART_COLORS.interaction} radius={[4, 4, 0, 0]} />
+        <Bar dataKey="costs" fill={CHART_COLORS.attention} radius={[4, 4, 0, 0]} />
+        <Bar dataKey="profit" fill={CHART_COLORS.success} radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

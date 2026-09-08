@@ -28,6 +28,7 @@ import type {
   Payment,
   PlayerEvaluation,
   PlanSubscription,
+  MembershipType,
   Profile,
   RecurringSchedule,
   ScheduleTemplate,
@@ -91,6 +92,8 @@ export const queryKeys = {
   friendlyGames: ["friendly-games"] as const,
   myGameParticipants: ["my-game-participants"] as const,
   poolPlaygrounds: ["pool-playgrounds"] as const,
+  children: (guardianId?: string) =>
+    ["children", guardianId ?? "all"] as const,
   notifications: ["notifications"] as const,
   reports: ["reports"] as const,
   blocks: ["blocks"] as const,
@@ -2510,6 +2513,97 @@ export function useLeaveFriendlyGame() {
   });
 }
 
+// ── Family members (parent-managed children) ────────────────
+
+export function useChildren() {
+  return useQuery({
+    queryKey: queryKeys.children(),
+    queryFn: async () => {
+      const {
+        data: { user },
+      } = await supabase().auth.getUser();
+      if (!user) return [];
+      const { data, error } = await supabase()
+        .from("profiles")
+        .select("*")
+        .eq("guardian_id", user.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Profile[];
+    },
+  });
+}
+
+export function useAddFamilyMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      name: string;
+      gender?: string | null;
+      birth_date?: string | null;
+      phone?: string | null;
+      membership_type: MembershipType;
+      subscription_sessions: number;
+      join_date?: string | null;
+    }) => {
+      const { data, error } = await supabase().rpc("add_family_member", {
+        p_name: input.name,
+        p_gender: input.gender ?? null,
+        p_birth_date: input.birth_date ?? null,
+        p_phone: input.phone ?? null,
+        p_membership_type: input.membership_type,
+        p_subscription_sessions: input.subscription_sessions,
+        p_join_date: input.join_date ?? null,
+      });
+      if (error) throw error;
+      return data as string;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.children() });
+    },
+  });
+}
+
+export function useUpdateFamilyMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      childId: string;
+      name: string;
+      gender?: string | null;
+      birth_date?: string | null;
+      phone?: string | null;
+    }) => {
+      const { error } = await supabase().rpc("update_family_member", {
+        p_child_id: input.childId,
+        p_name: input.name,
+        p_gender: input.gender ?? null,
+        p_birth_date: input.birth_date ?? null,
+        p_phone: input.phone ?? null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.children() });
+    },
+  });
+}
+
+export function useRemoveFamilyMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (childId: string) => {
+      const { error } = await supabase().rpc("remove_family_member", {
+        p_child_id: childId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.children() });
+    },
+  });
+}
+
 export function useCancelFriendlyGame() {
   const qc = useQueryClient();
   return useMutation({
@@ -2767,18 +2861,19 @@ export function useUnblockMember() {
 
 // ── Community record & streaks ───────────────────────────────
 
-export function useMyCommunityRecord() {
+export function useMyCommunityRecord(memberId?: string) {
   return useQuery({
     queryKey: queryKeys.communityRecord,
     queryFn: async () => {
       const {
         data: { user },
       } = await supabase().auth.getUser();
-      if (!user) return { played: 0, wins: 0, losses: 0, draws: 0 };
+      const target = memberId ?? user?.id;
+      if (!target) return { played: 0, wins: 0, losses: 0, draws: 0 };
       const { data: parts } = await supabase()
         .from("friendly_game_participants")
         .select("game_id")
-        .eq("member_id", user.id);
+        .eq("member_id", target);
       const ids = (parts ?? []).map((p) => p.game_id);
       if (ids.length === 0) return { played: 0, wins: 0, losses: 0, draws: 0 };
       const { data: games, error } = await supabase()
@@ -2808,7 +2903,7 @@ export interface StreakStats {
   attendedSessions: number;
 }
 
-export function useMyStreaks() {
+export function useMyStreaks(memberId?: string) {
   return useQuery({
     queryKey: queryKeys.myStreaks,
     queryFn: async () => {
@@ -2816,12 +2911,13 @@ export function useMyStreaks() {
       const {
         data: { user },
       } = await supabase().auth.getUser();
-      if (!user) return stats;
+      const target = memberId ?? user?.id;
+      if (!target) return stats;
 
       const { data, error } = await supabase()
         .from("attendance")
         .select("is_present, session:training_sessions(date)")
-        .eq("member_id", user.id)
+        .eq("member_id", target)
         .eq("is_present", true);
       if (error) throw error;
 

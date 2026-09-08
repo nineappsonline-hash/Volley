@@ -70,7 +70,7 @@ export function CalendarExportDialog({
                 onClick={handleCopy}
               >
                 {copied ? (
-                  <Check className="h-4 w-4 text-green-600" />
+                  <Check className="h-4 w-4 text-success-ink" />
                 ) : (
                   <Copy className="h-4 w-4" />
                 )}
@@ -85,14 +85,14 @@ export function CalendarExportDialog({
           </div>
         ) : (
           <div className="space-y-4 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg shadow-amber-500/30">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-interactive-700 text-white shadow-lg shadow-attention-500/30">
               <Crown className="h-6 w-6" />
             </div>
             <p className="text-sm text-muted-foreground">
               {t("cal_premium_hint")}
             </p>
             <Button
-              className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700"
+              className="w-full bg-gradient-to-r from-brand to-interactive-700 text-white hover:from-brand hover:to-interactive-800"
               onClick={() => {
                 onOpenChange(false);
                 router.push("/upgrade");

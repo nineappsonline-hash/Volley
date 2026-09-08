@@ -14,7 +14,7 @@ import type { LatLng } from "@/lib/geo";
 
 const pinIcon = L.divIcon({
   className: "",
-  html: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z" fill="#2563eb" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="10" r="3" fill="#fff"/></svg>`,
+  html: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z" fill="hsl(var(--info))" stroke="hsl(var(--on-brand))" stroke-width="1.5"/><circle cx="12" cy="10" r="3" fill="hsl(var(--on-brand))"/></svg>`,
   iconSize: [32, 32],
   iconAnchor: [16, 32],
 });

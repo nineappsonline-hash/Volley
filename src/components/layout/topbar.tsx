@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { LogOut, Menu, UserRound } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,13 +18,14 @@ import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { Notifications } from "@/components/layout/notifications";
 import { useI18n } from "@/lib/i18n";
-import { initials } from "@/lib/utils";
 import type { Role } from "@/lib/types";
 import { useAuth } from "@/lib/auth";
+import { ProfileAvatar } from "@/components/shared/profile-avatar";
 
 interface TopbarProps {
   role: Role;
   name: string;
+  avatarUrl?: string | null;
   memberPlan?: "free" | "premium";
   academy?: {
     plan: string;
@@ -34,7 +34,7 @@ interface TopbarProps {
   } | null;
 }
 
-export function Topbar({ role, name, memberPlan, academy }: TopbarProps) {
+export function Topbar({ role, name, avatarUrl, memberPlan, academy }: TopbarProps) {
   const { t } = useI18n();
   const router = useRouter();
   const { signOut } = useAuth();
@@ -55,7 +55,7 @@ export function Topbar({ role, name, memberPlan, academy }: TopbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/80 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b bg-card/95 pt-[env(safe-area-inset-top)] backdrop-blur-md">
       <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
       <Sheet>
         <SheetTrigger asChild>
@@ -90,9 +90,7 @@ export function Topbar({ role, name, memberPlan, academy }: TopbarProps) {
               variant="ghost"
               className="gap-2 rounded-full pe-1 ps-1 sm:pe-2"
             >
-              <Avatar className="h-7 w-7">
-                <AvatarFallback>{initials(name) || "U"}</AvatarFallback>
-              </Avatar>
+              <ProfileAvatar name={name} url={avatarUrl} className="h-7 w-7" />
               <span className="hidden text-sm font-medium sm:inline">
                 {name.split(" ")[0]}
               </span>

@@ -35,6 +35,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LocationFields, CountryField } from "@/components/shared/location-fields";
 import { cn } from "@/lib/utils";
@@ -44,6 +51,8 @@ import { useAuth, type SignupVenue } from "@/lib/auth";
 const joinSchema = (t: (k: any) => string) =>
   z.object({
     name: z.string().min(1, t("field_required")),
+    gender: z.enum(["male", "female"], { message: t("field_required") }),
+    birth_date: z.string().min(1, t("field_required")),
     email: z.string().email(t("field_invalid_email")),
     phone: z.string().trim().min(1, t("field_required")),
     password: z.string().min(6, t("field_min_password")),
@@ -154,6 +163,8 @@ export function SignupForm() {
     name: "",
     email: "",
     phone: "",
+    gender: "",
+    birth_date: "",
     password: "",
     password_confirm: "",
   });
@@ -186,7 +197,7 @@ export function SignupForm() {
 
   const joinForm = useForm<JoinValues>({
     resolver: zodResolver(joinSchema(t)),
-    defaultValues: { name: "", email: "", phone: "", password: "", academy_code: "" },
+    defaultValues: { name: "", gender: "" as JoinValues["gender"], birth_date: "", email: "", phone: "", password: "", academy_code: "" },
   });
 
   const finishSignup = async (
@@ -201,6 +212,8 @@ export function SignupForm() {
       country?: string;
       governorate?: string;
       city?: string;
+      gender?: string;
+      birth_date?: string;
       venues?: SignupVenue[];
     }
   ) => {
@@ -238,11 +251,17 @@ export function SignupForm() {
     await finishSignup(values.email, values.password, values.name, values.phone, {
       code: values.academy_code?.trim() || undefined,
       country: location.country.trim(),
+      gender: values.gender,
+      birth_date: values.birth_date,
     });
   };
 
   const onCreate = async () => {
     if (!location.country.trim() || !location.governorate.trim() || !location.city.trim()) {
+      toast.error(t("field_required"));
+      return;
+    }
+    if (!account.gender || !account.birth_date.trim()) {
       toast.error(t("field_required"));
       return;
     }
@@ -279,6 +298,8 @@ export function SignupForm() {
       country: location.country.trim(),
       governorate: location.governorate.trim(),
       city: location.city.trim(),
+      gender: account.gender,
+      birth_date: account.birth_date,
       venues,
     });
   };
@@ -345,7 +366,7 @@ export function SignupForm() {
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-6">
       <div className="pointer-events-none absolute inset-0 bg-grid opacity-40" />
-      <div className="pointer-events-none absolute -top-32 start-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-blue-500/20 blur-3xl rtl:translate-x-1/2" />
+      <div className="pointer-events-none absolute -top-32 start-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-interactive-500/20 blur-3xl rtl:translate-x-1/2" />
 
       <div className={cn("relative w-full", isTenant ? "max-w-xl" : "max-w-md")}>
         <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
@@ -368,7 +389,7 @@ export function SignupForm() {
         </div>
 
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-sky-400 text-white shadow-lg shadow-blue-500/30">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-interactive-700 text-white shadow-lg shadow-interactive-500/30">
             {isTenant ? (
               <Building2 className="h-8 w-8" />
             ) : (
@@ -654,6 +675,33 @@ export function SignupForm() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
+                        <label className="text-sm font-medium">{t("profile_gender")}</label>
+                        <Select
+                          value={account.gender}
+                          onValueChange={(v) => setAccountField("gender", v)}
+                        >
+                          <SelectTrigger aria-label={t("profile_gender")}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="male">{t("games_gender_male")}</SelectItem>
+                            <SelectItem value="female">{t("games_gender_female")}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">{t("profile_birth_date")}</label>
+                        <Input
+                          type="date"
+                          dir="ltr"
+                          max={new Date().toISOString().slice(0, 10)}
+                          value={account.birth_date}
+                          onChange={(e) => setAccountField("birth_date", e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
                         <label className="text-sm font-medium">{t("signup_phone")}</label>
                         <Input
                           dir="ltr"
@@ -773,6 +821,54 @@ export function SignupForm() {
                       setLocation((l) => ({ ...l, country: v }))
                     }
                   />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={joinForm.control}
+                      name="gender"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("profile_gender")}</FormLabel>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <FormControl>
+                              <SelectTrigger aria-label={t("profile_gender")}>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="male">
+                                {t("games_gender_male")}
+                              </SelectItem>
+                              <SelectItem value="female">
+                                {t("games_gender_female")}
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={joinForm.control}
+                      name="birth_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("profile_birth_date")}</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="date"
+                              dir="ltr"
+                              max={new Date().toISOString().slice(0, 10)}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   <FormField
                     control={joinForm.control}
                     name="email"
@@ -828,7 +924,7 @@ export function SignupForm() {
             )}
 
             {confirming && (
-              <p className="mt-4 rounded-md bg-blue-50 p-3 text-center text-sm text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
+              <p className="mt-4 rounded-md bg-interactive-50 p-3 text-center text-sm text-info-ink dark:bg-interactive-500/10 dark:text-interactive-300">
                 {t("signup_check_email")}
               </p>
             )}

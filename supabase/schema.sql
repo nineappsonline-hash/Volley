@@ -79,17 +79,25 @@ CREATE TABLE IF NOT EXISTS public.academy_branches (
 
 -- Users table (extends Supabase auth.users)
 CREATE TABLE IF NOT EXISTS public.profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  -- auth.users.id for real accounts; a synthetic UUID for family members that
+  -- have no login account (no FK to auth.users).
+  id UUID PRIMARY KEY,
   academy_id UUID REFERENCES public.academies(id) ON DELETE CASCADE
     DEFAULT public.current_academy_id(),
-  email TEXT UNIQUE NOT NULL,
+  -- NULL for family members (children) who have no login account.
+  email TEXT UNIQUE,
   role TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'member')),
   name TEXT NOT NULL,
   phone TEXT,
   country TEXT,
+  -- Object path inside the public "avatars" storage bucket; NULL until the
+  -- member uploads a profile picture.
+  avatar_url TEXT,
   -- Community join criteria: games may restrict players by gender and/or age.
   gender TEXT CHECK (gender IN ('male', 'female')),
   birth_date DATE,
+  -- Set when this profile is managed by a parent member (family member).
+  guardian_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   join_date DATE,
   membership_type TEXT NOT NULL DEFAULT 'full' CHECK (membership_type IN ('full', 'half')),
   -- 0 until the admin records a payment; the sync trigger then sets the real plan.
@@ -112,6 +120,7 @@ ALTER TABLE public.profiles
     DEFAULT public.current_academy_id();
 
 CREATE INDEX IF NOT EXISTS idx_profiles_academy ON public.profiles(academy_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_guardian ON public.profiles(guardian_id);
 
 -- Flexible membership plans defined per academy (Full/Half are just seeds).
 CREATE TABLE IF NOT EXISTS public.membership_plans (
@@ -679,6 +688,8 @@ DECLARE
   v_new_governorate TEXT := NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'new_academy_governorate', '')), '');
   v_new_area TEXT := NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'new_academy_area', '')), '');
   v_code TEXT := NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'academy_code', '')), '');
+  v_gender TEXT := NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'gender', '')), '');
+  v_birth_date DATE := NULLIF(NEW.raw_user_meta_data ->> 'birth_date', '')::date;
   v_academy UUID;
   v_venue JSONB;
 BEGIN
@@ -716,12 +727,13 @@ BEGIN
     WHERE trim(az.name) <> ''
     ON CONFLICT (academy_id, name) DO NOTHING;
 
-    INSERT INTO public.profiles (id, email, role, name, phone, country, join_date, academy_id, is_active)
+    INSERT INTO public.profiles (id, email, role, name, phone, country, gender, birth_date, join_date, academy_id, is_active)
     VALUES (
       NEW.id, NEW.email, 'admin',
       COALESCE(NEW.raw_user_meta_data ->> 'name', split_part(NEW.email, '@', 1)),
       NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'phone', '')), ''),
       COALESCE(v_new_country, NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'country', '')), '')),
+      v_gender, v_birth_date,
       CURRENT_DATE, v_academy, TRUE
     )
     ON CONFLICT (id) DO NOTHING;
@@ -761,12 +773,13 @@ BEGIN
       SELECT id INTO v_academy FROM public.academies WHERE UPPER(invite_code) = UPPER(v_code);
     END IF;
 
-    INSERT INTO public.profiles (id, email, role, name, phone, country, join_date, academy_id, is_active)
+    INSERT INTO public.profiles (id, email, role, name, phone, country, gender, birth_date, join_date, academy_id, is_active)
     VALUES (
       NEW.id, NEW.email, 'member',
       COALESCE(NEW.raw_user_meta_data ->> 'name', split_part(NEW.email, '@', 1)),
       NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'phone', '')), ''),
       NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'country', '')), ''),
+      v_gender, v_birth_date,
       CURRENT_DATE, v_academy, FALSE
     )
     ON CONFLICT (id) DO NOTHING;
@@ -1281,6 +1294,8 @@ CREATE POLICY "Admins full access" ON public.profiles
 
 -- Members may not change role, email, join_date, or academy_id directly.
 -- Subscription counters and check-in code are managed by triggers.
+-- Non-admins also may not re-assign guardian_id (no self-adoption / stealing
+-- another member's child by directly editing the child row).
 CREATE OR REPLACE FUNCTION public.guard_profile_update()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -1288,13 +1303,15 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  IF (auth.uid() IS NULL OR auth.uid() = NEW.id) AND NOT (auth.jwt() -> 'app_metadata' ->> 'role' = 'admin') THEN
-    IF NEW.role IS DISTINCT FROM OLD.role
-       OR NEW.email IS DISTINCT FROM OLD.email
-       OR NEW.id IS DISTINCT FROM OLD.id
-       OR NEW.join_date IS DISTINCT FROM OLD.join_date
-       OR (NEW.academy_id IS DISTINCT FROM OLD.academy_id
-           AND NOT (OLD.academy_id IS NULL AND NEW.is_active = FALSE)) THEN
+  IF NOT (auth.jwt() -> 'app_metadata' ->> 'role' = 'admin') THEN
+    IF NEW.guardian_id IS DISTINCT FROM OLD.guardian_id
+       OR ((auth.uid() IS NULL OR auth.uid() = NEW.id)
+           AND (NEW.role IS DISTINCT FROM OLD.role
+                OR NEW.email IS DISTINCT FROM OLD.email
+                OR NEW.id IS DISTINCT FROM OLD.id
+                OR NEW.join_date IS DISTINCT FROM OLD.join_date
+                OR (NEW.academy_id IS DISTINCT FROM OLD.academy_id
+                    AND NOT (OLD.academy_id IS NULL AND NEW.is_active = FALSE)))) THEN
       RAISE EXCEPTION 'Not allowed to change restricted profile fields';
     END IF;
   END IF;
@@ -2040,6 +2057,12 @@ CREATE POLICY "Members update own profile" ON public.profiles
   FOR UPDATE TO authenticated USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
+-- Guardians (parents) may read their children's profile rows directly.
+-- Creation/editing/deletion of children is RPC-only (add/update/remove_family_member).
+DROP POLICY IF EXISTS "Guardians read children" ON public.profiles;
+CREATE POLICY "Guardians read children" ON public.profiles
+  FOR SELECT TO authenticated USING (guardian_id = auth.uid());
+
 -- ────────────────────────────────────────────────────────────
 -- 7.5 COMMUNITY RPCs
 -- ────────────────────────────────────────────────────────────
@@ -2289,6 +2312,44 @@ DROP POLICY IF EXISTS "Academy media: read" ON storage.objects;
 CREATE POLICY "Academy media: read" ON storage.objects
   FOR SELECT TO authenticated
   USING (bucket_id = 'academy-media');
+
+-- Storage bucket for member profile pictures. Public bucket so avatar images
+-- load in <img> tags; each member may only manage files in their own folder.
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('avatars', 'avatars', TRUE)
+ON CONFLICT (id) DO NOTHING;
+
+DROP POLICY IF EXISTS "Avatars: read" ON storage.objects;
+CREATE POLICY "Avatars: read" ON storage.objects
+  FOR SELECT TO public USING (bucket_id = 'avatars');
+
+DROP POLICY IF EXISTS "Avatars: upload own" ON storage.objects;
+CREATE POLICY "Avatars: upload own" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'avatars'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+DROP POLICY IF EXISTS "Avatars: update own" ON storage.objects;
+CREATE POLICY "Avatars: update own" ON storage.objects
+  FOR UPDATE TO authenticated
+  USING (
+    bucket_id = 'avatars'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  )
+  WITH CHECK (
+    bucket_id = 'avatars'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+DROP POLICY IF EXISTS "Avatars: delete own" ON storage.objects;
+CREATE POLICY "Avatars: delete own" ON storage.objects
+  FOR DELETE TO authenticated
+  USING (
+    bucket_id = 'avatars'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
 
 DROP FUNCTION IF EXISTS public.join_friendly_game(UUID);
 CREATE OR REPLACE FUNCTION public.join_friendly_game(p_game_id UUID, p_invite_code TEXT DEFAULT NULL)
@@ -3586,6 +3647,8 @@ GRANT EXECUTE ON FUNCTION public.toggle_scout_note(UUID) TO authenticated;
 -- record). Academy admins additionally delete the academy they run and
 -- everything under it (all child tables ON DELETE CASCADE from academies).
 -- Runs as SECURITY DEFINER so the caller can remove their auth.users row.
+-- The profile is removed explicitly (profiles.id no longer cascades from
+-- auth.users); its member records still cascade off the profile row.
 CREATE OR REPLACE FUNCTION public.delete_my_account()
 RETURNS VOID
 LANGUAGE plpgsql
@@ -3621,10 +3684,149 @@ BEGIN
   END IF;
 
   -- Cascades to the profile and every member record created by this user.
+  DELETE FROM public.profiles WHERE id = v_uid;
   DELETE FROM auth.users WHERE id = v_uid;
 END;
 $$;
 GRANT EXECUTE ON FUNCTION public.delete_my_account() TO authenticated;
+
+-- ────────────────────────────────────────────────────────────
+-- 8.11 FAMILY MEMBERS (parent-managed children)
+-- ────────────────────────────────────────────────────────────
+
+-- Parents (role 'member') add their children as ordinary academy members
+-- (role 'member', is_active) with a synthetic UUID — no login account, no
+-- email. All mutation runs SECURITY DEFINER and enforces guardian_id = caller.
+
+DROP FUNCTION IF EXISTS public.add_family_member(TEXT, TEXT, DATE, TEXT, TEXT, INTEGER, DATE);
+CREATE OR REPLACE FUNCTION public.add_family_member(
+  p_name                   TEXT,
+  p_gender                 TEXT DEFAULT NULL,
+  p_birth_date             DATE DEFAULT NULL,
+  p_phone                  TEXT DEFAULT NULL,
+  p_membership_type        TEXT DEFAULT 'full',
+  p_subscription_sessions  INTEGER DEFAULT 0,
+  p_join_date              DATE DEFAULT CURRENT_DATE
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_uid      UUID := auth.uid();
+  v_academy  UUID;
+  v_role     TEXT;
+  v_id       UUID := gen_random_uuid();
+BEGIN
+  IF v_uid IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+  IF p_name IS NULL OR btrim(p_name) = '' THEN
+    RAISE EXCEPTION 'Name is required';
+  END IF;
+  IF p_gender IS NOT NULL AND p_gender NOT IN ('male', 'female') THEN
+    RAISE EXCEPTION 'Invalid gender';
+  END IF;
+  IF p_membership_type IS NULL OR p_membership_type NOT IN ('full', 'half') THEN
+    RAISE EXCEPTION 'Invalid membership type';
+  END IF;
+  IF p_subscription_sessions < 0 THEN
+    RAISE EXCEPTION 'Sessions cannot be negative';
+  END IF;
+
+  SELECT role, academy_id INTO v_role, v_academy
+  FROM public.profiles
+  WHERE id = v_uid;
+
+  IF v_role <> 'member' THEN
+    RAISE EXCEPTION 'Only members can add family members';
+  END IF;
+  IF v_academy IS NULL THEN
+    RAISE EXCEPTION 'Join an academy first to add family members';
+  END IF;
+
+  INSERT INTO public.profiles (
+    id, academy_id, email, role, name, phone, gender, birth_date, join_date,
+    membership_type, subscription_sessions, is_active,
+    community_visible, notify_game_alerts, guardian_id
+  ) VALUES (
+    v_id, v_academy, NULL, 'member', btrim(p_name), NULLIF(p_phone, ''),
+    NULLIF(p_gender, ''), p_birth_date, COALESCE(p_join_date, CURRENT_DATE),
+    p_membership_type, p_subscription_sessions, TRUE,
+    FALSE, FALSE, v_uid
+  );
+
+  RETURN v_id;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.add_family_member(TEXT, TEXT, DATE, TEXT, TEXT, INTEGER, DATE) TO authenticated;
+
+DROP FUNCTION IF EXISTS public.update_family_member(UUID, TEXT, TEXT, DATE, TEXT);
+CREATE OR REPLACE FUNCTION public.update_family_member(
+  p_child_id    UUID,
+  p_name        TEXT DEFAULT NULL,
+  p_gender      TEXT DEFAULT NULL,
+  p_birth_date  DATE DEFAULT NULL,
+  p_phone       TEXT DEFAULT NULL
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_uid UUID := auth.uid();
+BEGIN
+  IF v_uid IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+  IF p_name IS NULL OR btrim(p_name) = '' THEN
+    RAISE EXCEPTION 'Name is required';
+  END IF;
+  IF p_gender IS NOT NULL AND p_gender NOT IN ('male', 'female') THEN
+    RAISE EXCEPTION 'Invalid gender';
+  END IF;
+
+  UPDATE public.profiles SET
+    name       = btrim(p_name),
+    gender     = NULLIF(p_gender, ''),
+    birth_date = p_birth_date,
+    phone      = NULLIF(p_phone, '')
+  WHERE id = p_child_id AND guardian_id = v_uid;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Family member not found';
+  END IF;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.update_family_member(UUID, TEXT, TEXT, DATE, TEXT) TO authenticated;
+
+DROP FUNCTION IF EXISTS public.remove_family_member(UUID);
+CREATE OR REPLACE FUNCTION public.remove_family_member(
+  p_child_id UUID
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_uid UUID := auth.uid();
+BEGIN
+  IF v_uid IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  DELETE FROM public.profiles
+  WHERE id = p_child_id AND guardian_id = v_uid;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Family member not found';
+  END IF;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.remove_family_member(UUID) TO authenticated;
 -- Platform administration is tied to a verified Auth email, not profile roles.
 CREATE OR REPLACE FUNCTION public.is_super_admin()
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$

@@ -42,7 +42,7 @@ export function MemberPlanDialog({ open, onOpenChange, member }: MemberPlanDialo
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Crown className="h-5 w-5 text-amber-500" />
+            <Crown className="h-5 w-5 text-warning-ink" />
             {t("members_manage_plan")}
           </DialogTitle>
           <DialogDescription>
@@ -54,10 +54,10 @@ export function MemberPlanDialog({ open, onOpenChange, member }: MemberPlanDialo
           <div className="flex items-center justify-between rounded-lg border p-3">
             <div>
               <p className="font-medium">{member.name}</p>
-              <p className="text-xs text-muted-foreground">{member.email}</p>
+              <p className="text-xs text-muted-foreground">{member.email || t("member_no_account")}</p>
             </div>
             {isPremium && (
-              <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white">
+              <Badge className="bg-info/15 text-info-ink">
                 <Crown className="mr-1 h-3 w-3" />
                 Premium
               </Badge>

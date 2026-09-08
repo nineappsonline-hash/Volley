@@ -96,7 +96,7 @@ export function CalendarView({ sessions, onSelectSession }: CalendarViewProps) {
               className={cn(
                 "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
                 mode === "month"
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-info text-info-foreground"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -107,7 +107,7 @@ export function CalendarView({ sessions, onSelectSession }: CalendarViewProps) {
               className={cn(
                 "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
                 mode === "week"
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-info text-info-foreground"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -136,15 +136,15 @@ export function CalendarView({ sessions, onSelectSession }: CalendarViewProps) {
               key={key}
               onClick={() => daySessions[0] && onSelectSession?.(daySessions[0])}
               className={cn(
-                "flex min-h-16 flex-col items-stretch gap-1 rounded-lg border p-1.5 text-start transition-all hover:border-primary/40 hover:bg-accent/50",
+                "flex min-h-16 flex-col items-stretch gap-1 rounded-lg border p-1.5 text-start transition-all hover:border-info/40 hover:bg-accent/50",
                 !inMonth && "opacity-40",
-                isToday && "border-primary/60 bg-primary/5 ring-1 ring-primary/30"
+                isToday && "border-info/60 bg-info/5 ring-1 ring-info/30"
               )}
             >
               <span
                 className={cn(
                   "text-xs font-semibold",
-                  isToday ? "text-primary" : "text-muted-foreground"
+                  isToday ? "text-info-ink" : "text-muted-foreground"
                 )}
               >
                 {format(day, "d")}
@@ -155,10 +155,10 @@ export function CalendarView({ sessions, onSelectSession }: CalendarViewProps) {
                   className={cn(
                     "truncate rounded px-1 py-0.5 text-[10px] font-medium",
                     s.status === "canceled"
-                      ? "bg-red-100 text-red-700 line-through dark:bg-red-500/20 dark:text-red-300"
+                      ? "bg-negative-100 text-error-ink line-through dark:bg-negative-500/20 dark:text-negative-300"
                       : s.status === "completed"
                         ? "bg-muted text-muted-foreground line-through"
-                        : "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300"
+                        : "bg-interactive-100 text-info-ink dark:bg-interactive-500/20 dark:text-interactive-300"
                   )}
                 >
                   {s.time.slice(0, 5)}

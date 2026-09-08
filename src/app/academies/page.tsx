@@ -50,7 +50,7 @@ function Stars({
           key={i}
           className={`${size} ${
             i <= Math.round(value)
-              ? "fill-amber-400 text-amber-400"
+              ? "fill-attention-400 text-attention-400"
               : "text-muted-foreground/40"
           }`}
         />
@@ -322,7 +322,7 @@ export default function AcademiesDirectoryPage() {
   return (
     <main className="min-h-screen bg-background">
       {/* Header */}
-      <section className="relative overflow-hidden border-b bg-gradient-to-br from-blue-700 via-blue-600 to-sky-500 py-14 text-white">
+      <section className="relative overflow-hidden border-b bg-gradient-to-br from-brand via-brand to-interactive-800 py-14 text-white">
         <div className="pointer-events-none absolute -top-24 start-1/2 h-72 w-[32rem] -translate-x-1/2 rounded-full bg-white/15 blur-3xl rtl:translate-x-1/2" />
         <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-3 px-6 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
@@ -414,7 +414,7 @@ export default function AcademiesDirectoryPage() {
           </div>
         </div>
         {geoError && (
-          <p className="mb-4 rounded-md bg-amber-50 p-3 text-xs text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+          <p className="mb-4 rounded-md bg-attention-50 p-3 text-xs text-warning-ink dark:bg-attention-500/10 dark:text-attention-300">
             {t("geo_location_error")}
           </p>
         )}
@@ -558,7 +558,7 @@ export default function AcademiesDirectoryPage() {
                       />
                     </div>
                   ) : (
-                    <div className="flex aspect-video w-full items-center justify-center bg-gradient-to-br from-blue-600/15 to-sky-400/15">
+                    <div className="flex aspect-video w-full items-center justify-center bg-gradient-to-br from-interactive-600/15 to-interactive-400/15">
                       <Volleyball className="h-10 w-10 text-primary/40" />
                     </div>
                   )}
@@ -631,7 +631,7 @@ export default function AcademiesDirectoryPage() {
                             <Star
                               className={`h-4 w-4 ${
                                 i <= (stat?.mine ?? 0)
-                                  ? "fill-amber-400 text-amber-400"
+                                  ? "fill-attention-400 text-attention-400"
                                   : "text-muted-foreground/40"
                               }`}
                             />

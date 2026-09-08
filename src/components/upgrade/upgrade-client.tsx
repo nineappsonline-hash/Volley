@@ -40,14 +40,14 @@ export function UpgradeClient({ profile }: { profile: Profile }) {
       />
 
       {isPremium && (
-        <div className="flex items-center gap-3 rounded-lg border border-amber-300/60 bg-amber-50 p-4 text-sm dark:bg-amber-500/10">
-          <Crown className="h-5 w-5 shrink-0 text-amber-600" />
+        <div className="flex items-center gap-3 rounded-lg border border-interactive-300/60 bg-interactive-50 p-4 text-sm dark:bg-interactive-500/10">
+          <Crown className="h-5 w-5 shrink-0 text-info-ink" />
           <div>
-            <p className="font-medium text-amber-800 dark:text-amber-300">
+            <p className="font-medium text-info-ink dark:text-interactive-300">
               {t("premium_active_message")}
             </p>
             {expiresAt && (
-              <p className="text-xs text-amber-600/80 dark:text-amber-400/70">
+              <p className="text-xs text-info-ink/80 dark:text-interactive-400/70">
                 {t("premium_expires")}: {expiresAt}
               </p>
             )}

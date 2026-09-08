@@ -28,7 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ProfileAvatar } from "@/components/shared/profile-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -160,7 +160,7 @@ export default function MemberDetailsPage() {
     <div className="space-y-6">
       <PageHeader
         title={member.name}
-        subtitle={`${member.email}${member.phone ? ` · ${member.phone}` : ""}`}
+        subtitle={`${member.email ?? ""}${member.phone ? ` · ${member.phone}` : ""}`}
       >
         <Button asChild variant="outline" size="sm">
           <Link href="/members">
@@ -197,11 +197,7 @@ export default function MemberDetailsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3">
-              <Avatar className="h-12 w-12">
-                <AvatarFallback className="text-base">
-                  {member.name.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <ProfileAvatar name={member.name} url={member.avatar_url} className="h-12 w-12" fallbackClassName="text-base" />
               <div>
                 <p className="font-semibold">{member.name}</p>
                 <div className="mt-0.5 flex flex-wrap gap-1">
@@ -407,7 +403,7 @@ export default function MemberDetailsPage() {
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {attendedSessions.slice(0, 18).map((s) => (
                 <div key={s!.id} className="flex items-center gap-2 rounded-lg border p-2.5 text-sm">
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-success-ink" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">
                       {format(new Date(s!.date + "T00:00:00"), "EEE, MMM d", { locale })}

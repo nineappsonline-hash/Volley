@@ -49,7 +49,7 @@ export default function BasketballPage() {
       sport="Basketball"
       sportAr="كرة السلة"
       emoji="🏀"
-      heroGradient="from-orange-700 via-orange-600 to-amber-500"
+      heroGradient="from-brand via-brand to-interactive-800"
       tagline="The complete management platform for basketball academies — players, training, payments and profit tracking."
       taglineAr="منصة الإدارة الشاملة لأكاديميات كرة سلة — اللاعبين والتدريب والمدفوعات وتتبع الأرباح."
       description="Run your basketball academy with confidence. Volleyra manages player rosters, subscription billing, court scheduling, QR check-in attendance and automatic profit/loss calculations. Whether you coach kids or compete at a high level, our platform gives you the numbers you need to make smart decisions."

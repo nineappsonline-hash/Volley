@@ -13,6 +13,7 @@ import { rentalCoverage, type RentalInterval } from "@/lib/admin-schedule";
 import { PLATFORM_ADMIN_EMAIL, matchesAccountEmail } from "@/lib/platform-admin";
 import { useSuperAdminDeleteAcademy } from "@/lib/queries";
 import type { Academy } from "@/lib/types";
+import { ProfileAvatar } from "@/components/shared/profile-avatar";
 import { AcademyEditDialog } from "./academy-edit-dialog";
 import { LocationFields } from "@/components/shared/location-fields";
 import { COUNTRIES, COUNTRIES_AR } from "@/lib/locations";
@@ -25,6 +26,15 @@ import { Check } from "lucide-react";
 type Row = Record<string, any>;
 type Records = Record<string, Row[]>;
 const tabs = ["Members", "Academies", "Friendly games", "Playgrounds"] as const;
+/** Deletion confirmation phrase: account email, else member email, else the
+ * family member's name (children have no login or email). */
+function confirmPhrase(row: Row | null): string | null {
+  if (!row) return null;
+  return row.account_email ?? row.email ?? row.name ?? null;
+}
+function confirmMatches(confirmation: string, row: Row | null): boolean {
+  return matchesAccountEmail(confirmation, confirmPhrase(row));
+}
 function Details({ row }: { row: Row }) {
   return <dl className="grid gap-3 sm:grid-cols-2">{Object.entries(row).map(([key, value]) => <div key={key} className="min-w-0 rounded-lg bg-muted/40 p-3"><dt className="text-xs capitalize text-muted-foreground">{key.replaceAll("_", " ")}</dt><dd className="mt-1 break-words text-sm">{value == null ? "—" : typeof value === "object" ? JSON.stringify(value) : String(value)}</dd></div>)}</dl>;
 }
@@ -34,12 +44,13 @@ function AcademyMemberRow({ member }: { member: Row }) {
   return <details className="rounded-lg border px-3 py-2">
     <summary className="cursor-pointer text-sm marker:text-muted-foreground">
       <span className="inline-flex max-w-[calc(100%-1.5rem)] items-center gap-2 align-middle">
+        <ProfileAvatar name={member.name ?? ""} url={member.avatar_url} className="h-7 w-7 shrink-0" />
         <span className="truncate font-medium">{member.name || "Unnamed member"}</span>
         <span className="shrink-0 text-xs text-muted-foreground">{status}</span>
       </span>
     </summary>
     <div className="pt-3"><Details row={{
-      Email: member.email || "Not provided",
+      Email: member.email || "No login account",
       Phone: member.phone || "Not provided",
       Membership: member.membership_type === "half" ? "Half" : "Full",
       "Platform plan": member.member_plan === "premium" ? "Premium" : "Free",
@@ -79,7 +90,7 @@ function MemberDetails({ member, data }: { member: Row; data: Records }) {
   const games = data.friendly_game_participants.filter(r => r.member_id === member.id);
   const blocked = member.banned_until && new Date(member.banned_until) > new Date();
   const summary = {
-    Email: member.email,
+    Email: member.email || (member.guardian_id ? "No login account" : "Not provided"),
     Phone: member.phone || "Not provided",
     Academy: data.academies.find(a => a.id === member.academy_id)?.name ?? "Independent",
     "Account status": blocked ? "Blocked" : "Enabled",
@@ -175,11 +186,18 @@ export function PlatformRecords() {
         const { occupied, gaps } = rentalCoverage(data.venue_rentals.filter(r => r.venue_id === row.id) as RentalInterval[], date);
         return <article key={row.id} className="rounded-xl border p-4 space-y-3">
           <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="break-words font-semibold">{row.name ?? row.title}</h3>
-              {tab === "Members" && <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${blocked ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>{blocked ? "Blocked" : "Account enabled"}</span>}
+            <div className="flex items-center gap-2.5">
+              {tab === "Members" && <ProfileAvatar name={row.name ?? ""} url={row.avatar_url} className="h-10 w-10 shrink-0" />}
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="break-words font-semibold">{row.name ?? row.title}</h3>
+                  {tab === "Members" && <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${blocked ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>{blocked ? "Blocked" : "Account enabled"}</span>}
+                  {row.guardian_id && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">Family member</span>}
+                </div>
+                {tab === "Members" ? (row.email ? <p className="mt-1 break-all text-sm text-muted-foreground">{row.email}</p> : <p className="mt-1 text-xs text-muted-foreground">No login account</p>) : <p className="text-sm text-muted-foreground">{tab === "Academies" ? `${row.plan} · ${row.is_trial ? "Trial" : "Paid"} · ${data.profiles.filter(p => p.academy_id === row.id).length} accounts` : tab === "Friendly games" ? `${row.game_date} ${row.start_time} · ${row.sport} · ${row.status} · ${data.friendly_game_participants.filter(p => p.game_id === row.id && !p.is_waitlisted).length}/${row.max_players} players` : `${academy(row.academy_id)} · ${row.address ?? "No address"}`}</p>}
+              </div>
             </div>
-            {tab === "Members" ? <p className="mt-1 break-all text-sm text-muted-foreground">{row.email}</p> : <p className="text-sm text-muted-foreground">{tab === "Academies" ? `${row.plan} · ${row.is_trial ? "Trial" : "Paid"} · ${data.profiles.filter(p => p.academy_id === row.id).length} accounts` : tab === "Friendly games" ? `${row.game_date} ${row.start_time} · ${row.sport} · ${row.status} · ${data.friendly_game_participants.filter(p => p.game_id === row.id && !p.is_waitlisted).length}/${row.max_players} players` : `${academy(row.academy_id)} · ${row.address ?? "No address"}`}</p>}</div>
+          </div>
           <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => setSelected(row)}>Details</Button>{tab === "Members" && <><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => setEditing({ ...row })}>Membership</Button><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => act({ action: "block", id: row.id, blocked: !blocked })}>{blocked ? "Unblock" : "Block"}</Button><Button size="sm" variant="destructive" disabled={busy || protectedAccount} onClick={() => { setDeleting(row); setConfirmation(""); }}>Delete</Button></>}{tab === "Academies" && <><Button size="sm" variant="outline" disabled={busy} onClick={() => setEditingAcademy(row as Academy)}>Edit</Button><Button size="sm" variant="destructive" disabled={busy} onClick={() => { setDeletingAcademy(row as Academy); setConfirmation(""); }}>Delete</Button></>}          {tab === "Playgrounds" && <><Button size="sm" variant="outline" disabled={busy} onClick={() => setEditingVenue({ ...row, lat: row.lat ? String(row.lat) : "", lng: row.lng ? String(row.lng) : "" })}>Edit</Button><Button size="sm" variant="destructive" disabled={busy} onClick={() => { setDeletingVenue(row); setConfirmation(""); }}>Delete</Button></>}</div></div>
           {tab === "Members" && <dl className="grid grid-cols-1 gap-3 rounded-lg bg-muted/40 p-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
             <div className="min-w-0"><dt className="text-xs text-muted-foreground">Academy</dt><dd className="mt-1 break-words font-medium">{academy(row.academy_id)}</dd><dd className="text-xs text-muted-foreground">{row.academy_id ? row.is_active ? "Active academy membership" : "Pending / inactive membership" : "Not joined to an academy"}</dd></div>
@@ -199,7 +217,7 @@ export function PlatformRecords() {
         <label className="flex gap-2 text-sm"><input type="checkbox" checked={editing.is_active} onChange={e => setEditing({ ...editing, is_active: e.target.checked })} />Active academy membership</label>
         <Button type="submit" disabled={busy}>{busy ? "Saving…" : "Save membership"}</Button>
       </form>}</DialogContent></Dialog>
-      <Dialog open={!!deleting} onOpenChange={open => !busy && !open && setDeleting(null)}><DialogContent><DialogHeader><DialogTitle>Permanently delete account?</DialogTitle><DialogDescription>This removes the login and related records according to database deletion rules. This cannot be undone. Type {deleting?.account_email ?? deleting?.email} to confirm.</DialogDescription></DialogHeader><Input aria-label="Account email confirmation" value={confirmation} onChange={e => setConfirmation(e.target.value)} /><Button variant="destructive" disabled={busy || !matchesAccountEmail(confirmation, deleting?.account_email ?? deleting?.email)} onClick={() => act({ action: "delete", id: deleting!.id, confirmation })}>{busy ? "Deleting…" : "Permanently delete"}</Button></DialogContent></Dialog>
+      <Dialog open={!!deleting} onOpenChange={open => !busy && !open && setDeleting(null)}><DialogContent><DialogHeader><DialogTitle>Permanently delete account?</DialogTitle><DialogDescription>This removes the login and related records according to database deletion rules. This cannot be undone. Type {confirmPhrase(deleting)} to confirm.</DialogDescription></DialogHeader><Input aria-label="Confirmation" value={confirmation} onChange={e => setConfirmation(e.target.value)} /><Button variant="destructive" disabled={busy || !confirmMatches(confirmation, deleting)} onClick={() => act({ action: "delete", id: deleting!.id, confirmation })}>{busy ? "Deleting…" : "Permanently delete"}</Button></DialogContent></Dialog>
       <AlertDialog open={!!deletingAcademy} onOpenChange={open => !removeAcademy.isPending && !open && setDeletingAcademy(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Permanently delete academy?</AlertDialogTitle><AlertDialogDescription>This removes the academy and every account and record linked to it (members, sessions, games, payments, branches, sports). This cannot be undone. Type {deletingAcademy?.name} to confirm.</AlertDialogDescription></AlertDialogHeader><Input aria-label="Academy name confirmation" value={confirmation} onChange={e => setConfirmation(e.target.value)} /><AlertDialogFooter><AlertDialogCancel disabled={removeAcademy.isPending}>Cancel</AlertDialogCancel><AlertDialogAction asChild><Button variant="destructive" disabled={removeAcademy.isPending || confirmation !== deletingAcademy?.name} onClick={async () => { try { await removeAcademy.mutateAsync(deletingAcademy!.id); toast.success("Academy deleted"); setDeletingAcademy(null); setConfirmation(""); await cache.invalidateQueries(); } catch (e) { toast.error(e instanceof Error ? e.message : "Deletion failed"); } }}>{removeAcademy.isPending ? "Deleting…" : "Permanently delete"}</Button></AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
       <AcademyEditDialog academy={editingAcademy} onClose={() => setEditingAcademy(null)} onDeleted={() => { setEditingAcademy(null); cache.invalidateQueries(); }} />
       <Dialog open={!!editingVenue} onOpenChange={open => !busy && !open && setEditingVenue(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>{editingVenue?.id ? "Edit playground" : "Add playground"}</DialogTitle><DialogDescription>{editingVenue?.id ? editingVenue.name : "Create a playground in the platform pool or assign it to an academy."}</DialogDescription></DialogHeader>{editingVenue && <form className="space-y-4" onSubmit={e => { e.preventDefault(); act({ action: "venue", ...(editingVenue.id ? { id: editingVenue.id } : {}), academy_id: editingVenue.academy_id ?? null, name: editingVenue.name, address: editingVenue.address, capacity: editingVenue.capacity, sport_id: editingVenue.sport_id ?? "", school_name: editingVenue.school_name, rental_cost: editingVenue.rental_cost, rental_hours: editingVenue.rental_hours, country: editingVenue.country, governorate: editingVenue.governorate, city: editingVenue.area, contact_person: editingVenue.contact_person, contact_phone: editingVenue.contact_phone }); }}>

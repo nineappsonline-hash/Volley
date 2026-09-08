@@ -50,7 +50,7 @@ export default function PadelPage() {
       sport="Padel"
       sportAr="البادل"
       emoji="🏓"
-      heroGradient="from-purple-700 via-purple-600 to-violet-500"
+      heroGradient="from-brand via-brand to-interactive-800"
       tagline="The complete management platform for padel clubs — members, courts, bookings and profit tracking."
       taglineAr="منصة الإدارة الشاملة لأندية البادل — الأعضاء والملاعب والحجوزات وتتبع الأرباح."
       description="Padel is booming across Egypt and the Gulf — and your club needs a system that keeps up. Volleyra handles member subscriptions, court scheduling with conflict detection, QR check-in and automatic profit/loss per session. Focus on growing your padel community, not managing it in spreadsheets."

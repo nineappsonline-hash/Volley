@@ -7,11 +7,11 @@ import { useI18n } from "@/lib/i18n";
 import { Trophy } from "lucide-react";
 
 const BADGE_CONFIG: Record<string, { icon: string; color: string }> = {
-  first_session: { icon: "⭐", color: "bg-yellow-100 border-yellow-300" },
-  ten_sessions: { icon: "🔥", color: "bg-orange-100 border-orange-300" },
-  twenty_five_sessions: { icon: "💪", color: "bg-blue-100 border-blue-300" },
-  fifty_sessions: { icon: "🏆", color: "bg-purple-100 border-purple-300" },
-  hundred_sessions: { icon: "👑", color: "bg-amber-100 border-amber-300" },
+  first_session: { icon: "⭐", color: "bg-attention-100 border-attention-300" },
+  ten_sessions: { icon: "🔥", color: "bg-attention-100 border-attention-300" },
+  twenty_five_sessions: { icon: "💪", color: "bg-interactive-100 border-interactive-300" },
+  fifty_sessions: { icon: "🏆", color: "bg-brand-100 border-brand-300" },
+  hundred_sessions: { icon: "👑", color: "bg-attention-100 border-attention-300" },
 };
 
 export function MemberBadges({ memberId }: { memberId?: string }) {
@@ -40,7 +40,7 @@ export function MemberBadges({ memberId }: { memberId?: string }) {
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {badges.map((badge) => {
-              const config = BADGE_CONFIG[badge.badge_type] || { icon: badge.icon || "🏅", color: "bg-gray-100 border-gray-300" };
+              const config = BADGE_CONFIG[badge.badge_type] || { icon: badge.icon || "🏅", color: "bg-neutral-100 border-neutral-300" };
               return (
                 <div
                   key={badge.id}

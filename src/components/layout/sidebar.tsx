@@ -92,9 +92,9 @@ export function Sidebar({ role, name, memberPlan }: SidebarProps) {
       : memberItems;
 
   return (
-    <div className="flex h-full flex-col gap-6 p-4">
+    <div className="playza-navigation flex h-full flex-col gap-6 p-4">
       <Link href={role === "super_admin" ? "/admin" : "/dashboard"} className="flex items-center gap-3 px-2 pt-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-sky-400 text-white shadow-lg shadow-blue-500/30">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-interactive-700 text-white shadow-lg shadow-interactive-500/30">
           <Volleyball className="h-6 w-6" />
         </div>
         <div className="flex flex-col">
@@ -118,16 +118,16 @@ export function Sidebar({ role, name, memberPlan }: SidebarProps) {
               key={href}
               href={href}
               className={cn(
-                "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                "group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info focus-visible:ring-offset-2 focus-visible:ring-offset-brand flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
                 active
-                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
+                  ? "bg-info text-info-foreground shadow-md shadow-info/25"
                   : "text-muted-foreground hover:bg-accent hover:text-foreground"
               )}
             >
               <Icon
                 className={cn(
                   "h-4 w-4 transition-transform group-hover:scale-110",
-                  active && "text-primary-foreground"
+                  active && "text-info-foreground"
                 )}
               />
               {t(key)}
@@ -147,7 +147,7 @@ export function Sidebar({ role, name, memberPlan }: SidebarProps) {
                 : t("role_member")}
           </span>
           {role === "member" && memberPlan === "premium" && (
-            <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-attention-100 px-1.5 py-0.5 text-[10px] font-semibold text-warning-ink dark:bg-attention-500/15 dark:text-attention-400">
               <Crown className="h-2.5 w-2.5" />
               PRO
             </span>

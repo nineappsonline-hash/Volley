@@ -180,7 +180,7 @@ export function SessionDetailsDialog({
           {attendees.map((m) => (
             <div
               key={m.id}
-              className="flex items-center gap-3 rounded-lg border border-emerald-200/70 bg-emerald-50/60 px-3 py-2 text-sm dark:border-emerald-500/20 dark:bg-emerald-500/5"
+              className="flex items-center gap-3 rounded-lg border border-positive-200/70 bg-positive-50/60 px-3 py-2 text-sm dark:border-positive-500/20 dark:bg-positive-500/5"
             >
               <Avatar className="h-7 w-7">
                 <AvatarFallback>{initials(m.name)}</AvatarFallback>
@@ -188,7 +188,7 @@ export function SessionDetailsDialog({
               <span className="min-w-0 flex-1 truncate font-medium">
                 {m.name}
               </span>
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-success-ink" />
             </div>
           ))}
           {absentees.map((m) => (
@@ -381,7 +381,7 @@ export function SessionDetailsDialog({
                     {t("session_details_cost")}
                   </h4>
                   {!monthCost ? (
-                    <div className="rounded-lg border border-amber-300/60 bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
+                    <div className="rounded-lg border border-attention-300/60 bg-attention-50 p-3 text-sm text-warning-ink dark:bg-attention-500/10 dark:text-attention-300">
                       {t("session_details_no_costs")} — {t("session_details_no_costs_hint")}
                     </div>
                   ) : (
@@ -450,12 +450,12 @@ export function SessionDetailsDialog({
                     {t("session_details_not_marked_you")}
                   </p>
                 ) : myAttendance ? (
-                  <p className="flex items-center gap-2 rounded-lg border border-emerald-200/70 bg-emerald-50/60 p-3 text-sm text-emerald-800 dark:bg-emerald-500/5 dark:text-emerald-300">
+                  <p className="flex items-center gap-2 rounded-lg border border-positive-200/70 bg-positive-50/60 p-3 text-sm text-success-ink dark:bg-positive-500/5 dark:text-positive-300">
                     <CheckCircle2 className="h-4 w-4" />
                     {t("session_details_attended_you")}
                   </p>
                 ) : (
-                  <p className="flex items-center gap-2 rounded-lg border border-red-200/70 bg-red-50/60 p-3 text-sm text-red-800 dark:bg-red-500/5 dark:text-red-300">
+                  <p className="flex items-center gap-2 rounded-lg border border-negative-200/70 bg-negative-50/60 p-3 text-sm text-error-ink dark:bg-negative-500/5 dark:text-negative-300">
                     <XCircle className="h-4 w-4" />
                     {t("session_details_absent_you")}
                   </p>

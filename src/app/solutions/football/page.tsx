@@ -53,7 +53,7 @@ export default function FootballPage() {
       sport="Football"
       sportAr="كرة القدم"
       emoji="⚽"
-      heroGradient="from-green-700 via-green-600 to-emerald-500"
+      heroGradient="from-brand via-brand to-interactive-800"
       tagline="The complete management platform for football academies — players, training, payments and profit tracking."
       taglineAr="منصة الإدارة الشاملة لأكاديميات كرة قدم — اللاعبين والتدريب والمدفوعات وتتبع الأرباح."
       description="Whether you run a grassroots football school or a professional academy, Volleyra handles everything from player registration and subscription management to training schedules, QR check-in and automatic per-session profit calculations. Stop juggling spreadsheets and WhatsApp — get one system that does it all."

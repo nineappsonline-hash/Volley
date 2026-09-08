@@ -231,7 +231,7 @@ export function CostCalculator({ selected }: CostCalculatorProps) {
               {monthLabel ? (lang === "ar" ? monthLabel.ar : monthLabel.en) : ""} {year}
             </p>
             {existing && (
-              <p className="mt-0.5 font-medium text-emerald-600 dark:text-emerald-400">
+              <p className="mt-0.5 font-medium text-success-ink dark:text-positive-400">
                 ✓ {t("costs_edit")} — {formatMoney(existing.cost_per_session, lang)}
               </p>
             )}

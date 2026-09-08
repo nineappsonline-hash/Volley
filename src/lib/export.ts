@@ -1,3 +1,4 @@
+import { PLAYZA } from "@/lib/brand";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -59,7 +60,7 @@ export function createPDF(title: string): PDFDoc {
     12,
     { align: "right" }
   );
-  doc.setDrawColor(200);
+  doc.setDrawColor(PLAYZA.border);
   doc.line(14, 21, pageWidth - 14, 21);
 
   return { doc, pageWidth };
@@ -78,8 +79,8 @@ export function addPDFTable(
     startY,
     margin: { left: 14, right: 14 },
     styles: { fontSize: 8, cellPadding: 2 },
-    headStyles: { fillColor: [37, 99, 235], textColor: 255 },
-    alternateRowStyles: { fillColor: [245, 245, 245] },
+    headStyles: { fillColor: PLAYZA.navy, textColor: 255 },
+    alternateRowStyles: { fillColor: PLAYZA.background },
   });
   // @ts-expect-error jspdf-autotable adds finalY to the doc
   return pdf.doc.lastAutoTable.finalY ?? startY + 10;

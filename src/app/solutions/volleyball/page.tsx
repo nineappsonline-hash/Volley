@@ -53,7 +53,7 @@ export default function VolleyballPage() {
       sport="Volleyball"
       sportAr="الكرة الطائرة"
       emoji="🏐"
-      heroGradient="from-blue-700 via-blue-600 to-sky-500"
+      heroGradient="from-brand via-brand to-interactive-800"
       tagline="The #1 management platform for volleyball academies — track players, attendance and per-session profit automatically."
       taglineAr="منصة الإدارة رقم 1 لأكاديميات الكرة الطائرة — تتبع اللاعبين والحضور والأرباح تلقائياً."
       description="Volleyra was built from the ground up for volleyball academies. Whether you run a single court or a multi-branch operation, our platform handles member management, subscription tracking, training schedules, QR code check-in and automatic profit/loss calculations — so you can focus on coaching, not spreadsheets."

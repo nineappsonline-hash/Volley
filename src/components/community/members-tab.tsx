@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Check, Flag, MoreVertical, Search, ShieldOff, Star, UserRound } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ProfileAvatar } from "@/components/shared/profile-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,7 +39,7 @@ import {
   useUpdateCommunityProfile,
 } from "@/lib/queries";
 import { matchesBilingual } from "@/lib/search";
-import { errorMessage, initials } from "@/lib/utils";
+import { errorMessage } from "@/lib/utils";
 import type { CommunityMember, Profile } from "@/lib/types";
 
 const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
@@ -61,9 +61,7 @@ function MemberCard({
   const show = isBlocked ? (
     <Card className="opacity-60">
       <CardContent className="flex items-center gap-3 p-4">
-        <Avatar className="h-10 w-10 shrink-0">
-          <AvatarFallback>{initials(member.name)}</AvatarFallback>
-        </Avatar>
+        <ProfileAvatar name={member.name} url={member.avatar_url} className="h-10 w-10 shrink-0" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{member.name}</p>
           <p className="text-xs text-muted-foreground">{t("blocked_label")}</p>
@@ -85,15 +83,13 @@ function MemberCard({
   ) : (
     <Card className="animate-fade-in-up hover:border-primary/30 transition-colors">
       <CardContent className="flex items-start gap-3 p-4">
-        <Avatar className="h-10 w-10 shrink-0">
-          <AvatarFallback>{initials(member.name)}</AvatarFallback>
-        </Avatar>
+        <ProfileAvatar name={member.name} url={member.avatar_url} className="h-10 w-10 shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <p className="truncate text-sm font-semibold">{member.name}</p>
             {member.skill_level && (
               <Badge variant="outline" className="gap-1 text-[10px]">
-                <Star className="h-3 w-3 text-amber-500" />
+                <Star className="h-3 w-3 text-warning-ink" />
                 {t(`skill_${member.skill_level}`)}
               </Badge>
             )}
@@ -383,7 +379,7 @@ export function MembersTab({ profile }: { profile: Profile }) {
 
         {!isLoading && filtered.length > 0 && (
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Check className="h-3.5 w-3.5 text-emerald-500" />
+            <Check className="h-3.5 w-3.5 text-success-ink" />
             {filtered.length}{" "}
             {filtered.length === 1
               ? t("community_member_count_one")
@@ -408,9 +404,7 @@ export function MembersTab({ profile }: { profile: Profile }) {
                   key={b.id}
                   className="flex items-center gap-3 rounded-lg border p-3"
                 >
-                  <Avatar className="h-9 w-9 shrink-0">
-                    <AvatarFallback>{initials(b.blocked_name)}</AvatarFallback>
-                  </Avatar>
+                  <ProfileAvatar name={b.blocked_name} className="h-9 w-9 shrink-0" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">
                       {b.blocked_name}

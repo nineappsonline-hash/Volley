@@ -391,7 +391,7 @@ export function CreateGameDialog({
                     <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
                   )}
                   {receiptUrl && !uploading && (
-                    <Upload className="h-4 w-4 shrink-0 text-emerald-600" />
+                    <Upload className="h-4 w-4 shrink-0 text-success-ink" />
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">

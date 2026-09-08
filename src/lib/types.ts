@@ -82,10 +82,16 @@ export interface AcademyBranch {
 export interface Profile {
   id: string;
   academy_id: string | null;
-  email: string;
+  // Null for family members (children) who have no login account.
+  email: string | null;
   role: Role;
   name: string;
   phone: string | null;
+  // Set when this profile is a family member managed by a parent (guardian).
+  guardian_id: string | null;
+  // Object path inside the public "avatars" bucket; null until the member
+  // uploads a profile picture.
+  avatar_url: string | null;
   join_date: string | null;
   membership_type: MembershipType;
   subscription_sessions: number;
@@ -502,6 +508,7 @@ export interface CommunityMember {
   interested_sports: string[] | null;
   lat: number | null;
   lng: number | null;
+  avatar_url: string | null;
 }
 
 export interface FriendlyGame {

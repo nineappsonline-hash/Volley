@@ -1,3 +1,4 @@
+import { PLAYZA } from "@/lib/brand";
 import type { Metadata, Viewport } from "next";
 import { Providers } from "@/providers/providers";
 import "./globals.css";
@@ -172,14 +173,14 @@ export const metadata: Metadata = {
     canonical: "https://volley-academy.vercel.app",
   },
   other: {
-    "theme-color": "#2563EB",
+    "theme-color": PLAYZA.navy,
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "black-translucent",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2563EB",
+  themeColor: PLAYZA.navy,
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

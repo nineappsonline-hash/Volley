@@ -17,7 +17,7 @@ import {
   Wallet,
   XCircle,
 } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ProfileAvatar } from "@/components/shared/profile-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,6 @@ import {
 import { EmptyState } from "@/components/shared/empty-state";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
-import { initials } from "@/lib/utils";
 import type { Profile } from "@/lib/types";
 
 export interface MemberRow extends Profile {
@@ -77,7 +76,7 @@ export function MemberTable({ members, onEdit, onDelete, onRecordPayment, onMana
       const matchesSearch =
         !q ||
         m.name.toLowerCase().includes(q) ||
-        m.email.toLowerCase().includes(q) ||
+        (m.email ?? "").toLowerCase().includes(q) ||
         (m.phone ?? "").toLowerCase().includes(q);
       const matchesFilter =
         filter === "all" ||
@@ -191,13 +190,11 @@ export function MemberTable({ members, onEdit, onDelete, onRecordPayment, onMana
                 <TableRow key={m.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>{initials(m.name)}</AvatarFallback>
-                      </Avatar>
+                      <ProfileAvatar name={m.name} url={m.avatar_url} className="h-8 w-8" />
                       <div className="min-w-0">
                         <p className="truncate font-medium">{m.name}</p>
                         <p className="truncate text-xs text-muted-foreground">
-                          {m.email}
+                          {m.email || t("member_no_account")}
                         </p>
                       </div>
                     </div>
@@ -262,7 +259,7 @@ export function MemberTable({ members, onEdit, onDelete, onRecordPayment, onMana
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-emerald-600 hover:text-emerald-600"
+                        className="text-success-ink hover:text-success-ink"
                         onClick={() => onRecordPayment(m)}
                         aria-label={t("member_add_payment")}
                         title={t("member_add_payment")}

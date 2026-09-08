@@ -57,7 +57,7 @@ export default function ReceiptPage() {
 
       <div className="rounded-2xl border bg-card p-8 shadow-sm print:border-0 print:shadow-none">
         <div className="flex flex-col items-center gap-2 border-b pb-6 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-sky-400 text-white">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-interactive-700 text-white">
             <Volleyball className="h-7 w-7" />
           </div>
           <h1 className="text-lg font-extrabold">{t("appName")}</h1>

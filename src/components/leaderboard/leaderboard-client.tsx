@@ -16,7 +16,7 @@ import { useI18n } from "@/lib/i18n";
 import { useCommunityLeaderboard } from "@/lib/queries";
 import type { Profile } from "@/lib/types";
 
-const MEDAL = ["bg-amber-400/90 text-white", "bg-slate-400/90 text-white", "bg-orange-400/90 text-white"];
+const MEDAL = ["bg-info/15 text-info-ink", "bg-muted text-foreground", "bg-warning/15 text-warning-ink"];
 
 export function LeaderboardClient({ profile }: { profile: Profile }) {
   const { t } = useI18n();
@@ -74,7 +74,7 @@ export function LeaderboardClient({ profile }: { profile: Profile }) {
             <Card className="overflow-hidden">
               <CardHeader className="border-b">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <Trophy className="h-4 w-4 text-amber-500" />
+                  <Trophy className="h-4 w-4 text-info-ink" />
                   {t("leaderboard_top")}
                 </CardTitle>
               </CardHeader>

@@ -151,7 +151,7 @@ export function PlanComparison({
     if (cell.kind === "yes") {
       return (
         <Check
-          className="mx-auto h-4 w-4 text-emerald-600 dark:text-emerald-400"
+          className="mx-auto h-4 w-4 text-success-ink dark:text-positive-400"
           aria-label={t("common_yes")}
         />
       );
@@ -190,12 +190,12 @@ export function PlanComparison({
                 isCurrent
                   ? "border-primary/50 bg-primary/5"
                   : isPopular
-                    ? "border-amber-400/60"
+                    ? "border-interactive-400/60"
                     : ""
               }`}
             >
               {isPopular && (
-                <Badge className="absolute -top-2.5 start-1/2 -translate-x-1/2 bg-amber-500 text-white dark:bg-amber-500">
+                <Badge className="absolute -top-2.5 start-1/2 -translate-x-1/2 bg-info text-info-foreground dark:bg-interactive-500">
                   <Sparkles className="me-1 h-3 w-3" />
                   {t("plans_popular")}
                 </Badge>
@@ -211,7 +211,7 @@ export function PlanComparison({
                 )}
                 <CardTitle className="flex items-center justify-center gap-1.5 text-lg">
                   {tier === "elite" && (
-                    <Crown className="h-4 w-4 text-amber-500" />
+                    <Crown className="h-4 w-4 text-info-ink" />
                   )}
                   {tierName}
                 </CardTitle>
@@ -231,7 +231,7 @@ export function PlanComparison({
                 </div>
                 {tier !== "starter" && onSubscribe && (
                   <Button
-                    className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700"
+                    className="w-full bg-gradient-to-r from-interactive-600 to-interactive-700 text-white hover:from-interactive-700 hover:to-interactive-800"
                     disabled={busy || isCurrent}
                     onClick={() => onSubscribe(tier)}
                   >

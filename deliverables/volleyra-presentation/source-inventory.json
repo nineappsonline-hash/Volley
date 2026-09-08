@@ -1,0 +1,2111 @@
+[
+  {
+    "path": "src/app/(dashboard)/admin/loading.tsx",
+    "lines": 20,
+    "sha256": "6f49a7e73e1086c95ccf2d9b4ecfc3a6813dda22987619931478f8da95d12f6b",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/admin/page.tsx",
+    "lines": 14,
+    "sha256": "fe652aaf039371a42f3dedf6a0af7772c26b4cf486678af70ae209c75c82d5f0",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/analytics/analytics-client.tsx",
+    "lines": 22,
+    "sha256": "7a9a3fd004def1cd3b89765684f2a07bbbdbb86fa592ab9cea09fcbafaf8f949",
+    "exports": [
+      "AnalyticsClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/analytics/loading.tsx",
+    "lines": 28,
+    "sha256": "b8d89bf686d0d3eaf6c4ad348b022684c7172ce468ccd4761469836aa7e38182",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/analytics/page.tsx",
+    "lines": 11,
+    "sha256": "6925292d366a791112cb22c5d4587d8dbf519ad80e15228b087b274c07ddd508",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/attendance/loading.tsx",
+    "lines": 14,
+    "sha256": "310da60dcf58c08e647a82cca020e8b2800d1561526147ac2f12ddbac633d940",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/attendance/page.tsx",
+    "lines": 115,
+    "sha256": "d9e7960db614b160c2fc14e927e01b061c73dd9a4938563f6c380d6c76ce3ce2",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/checkout/page.tsx",
+    "lines": 10,
+    "sha256": "8139e2214c1ce12b9abbaca7cbf3e6f4700d480832ad4aee6b789df1cdfd86c0",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/coaches/loading.tsx",
+    "lines": 16,
+    "sha256": "097ef2c523f342fd42b6204925f5f74c0729385070d3babeee5db36d266130bc",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/coaches/page.tsx",
+    "lines": 11,
+    "sha256": "34b1fdd98fd136d2296a8d717ebea5d79c9f3452b33c75bf6705676dbed2b9ce",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/community/page.tsx",
+    "lines": 10,
+    "sha256": "9ba933a3010ec35ec0d5748b959bf2d817c4937c3fe330d3da1c1a86203e78b8",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/costs/loading.tsx",
+    "lines": 14,
+    "sha256": "0a30c2b4eeb03a8e9b9d85e5c930133f7a50016035d5badda53ad0134c5f7157",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/costs/page.tsx",
+    "lines": 112,
+    "sha256": "4d6b483312272621497cb97dc65e03c5cbafc2e26ab5582a6995d7fb671fda40",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/dashboard/loading.tsx",
+    "lines": 20,
+    "sha256": "6ae220947d97b7a2a0f65852eed7277d342914fc45599aeeb883d0859e064142",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/dashboard/page.tsx",
+    "lines": 24,
+    "sha256": "688454aab9132b698e126edb6c831c0512ce3bb9c7806eefea34fa8d71489610",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/error.tsx",
+    "lines": 39,
+    "sha256": "d635444c1bd7d9bc9317c553f3eb1130e0ef861cb5c7e111c361ce9a25f368f5",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/events/page.tsx",
+    "lines": 10,
+    "sha256": "4488e59d1f363faad1b8df538999f82a0cb06545f8554a7c71a37af80a5998b2",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/games/page.tsx",
+    "lines": 10,
+    "sha256": "698e338ea9fe33edb96ef736f3f172948f8b673662c8473f84bc30731bfae7ce",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/layout.tsx",
+    "lines": 49,
+    "sha256": "c2747bdc7f7fd7552d544105cb6ce3b0f2ffa7d21db12fa822ce7e8c71e0e94b",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/leaderboard/page.tsx",
+    "lines": 10,
+    "sha256": "3c9b778523793e618b8316e19f36acfe055b2723920a565011277ce376289155",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/marketplace/page.tsx",
+    "lines": 10,
+    "sha256": "ebb95f58afb6af0d4dde70e4e276acb50a1fa7cdda3ae8bcc42b2f3349323310",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/members/[id]/loading.tsx",
+    "lines": 22,
+    "sha256": "05dd96db7551adaf29253b13dd36ca2a64a50db35b68d324785ef37c1f426b18",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/members/[id]/page.tsx",
+    "lines": 464,
+    "sha256": "6d8a04090b3c03e812a75fdc8681c479e24d6fe2d54affff0af75a3cd882ddf3",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/members/loading.tsx",
+    "lines": 17,
+    "sha256": "ed823324e16079e0c47b2c99970a0bbeb21f3d4454e44ae02bfec5584b3dd66a",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/members/page.tsx",
+    "lines": 180,
+    "sha256": "6b5441d700f0a7c0d349074bfd93d182e2ab751a3d7c76b2d58cc117ae385209",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/onboarding/page.tsx",
+    "lines": 17,
+    "sha256": "1d5a491fd17b552910459c97a9cfdb77f91b2564418a5485325b006e5e7808f1",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/playgrounds/page.tsx",
+    "lines": 11,
+    "sha256": "778e5a5d5080f57c3672c2b8b3a7261590ffdcdc3c726e5976ac895e5660c4f6",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/profile/loading.tsx",
+    "lines": 16,
+    "sha256": "5be99dd661267c1f1dd253503fdde5da3982693d6b62b1b5cc82ae1c7c5bb3dc",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/profile/page.tsx",
+    "lines": 11,
+    "sha256": "45bd1283a62380bcdb39f3c69916eff35c3341c5dddd7ee61ebbfcee3f246b29",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/rentals/page.tsx",
+    "lines": 11,
+    "sha256": "88c638034446e3368a2daa6c83456c7bc4fc21cc9dfbd62f5963e572741ac5d0",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/reports/loading.tsx",
+    "lines": 14,
+    "sha256": "a571d2d6b69e70fb9e9f8a3ec6c194892482791556d2d0d260b28fe245132905",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/reports/page.tsx",
+    "lines": 383,
+    "sha256": "5944211df3050415ada2d1c871bb1051ce4205abcd7eb66dd44f7a6a7651a2e5",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/schedule/loading.tsx",
+    "lines": 17,
+    "sha256": "1f883dec7294b8f0c4166c46ba16524e2b8c539abfcfde99e96e66a6f18bb0ac",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/schedule/page.tsx",
+    "lines": 17,
+    "sha256": "49eda41583114ec48749418414ada210d7ecc7d99d5e62b51575274903a20feb",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/scouting/page.tsx",
+    "lines": 10,
+    "sha256": "1b2cfd53f8b4c3f3fa645b86b4e19f422c658352b7e3799fa72b89fab5c8db44",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/settings/loading.tsx",
+    "lines": 17,
+    "sha256": "1357eff213c9177b8795d4ca79dc6af646dd186d8229a05cb31953ca63656931",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/settings/page.tsx",
+    "lines": 11,
+    "sha256": "13e1683656c7f958650fc4d663e479d72e80b894eb262557a4d052b5904cef88",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/teams/loading.tsx",
+    "lines": 20,
+    "sha256": "72d43f253bc1b99a004041d83c01b1c8511de0923f1a51b3b5970014799663ba",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/teams/page.tsx",
+    "lines": 11,
+    "sha256": "d511dd7f6a2215fc0cb9f21e8b71ca99ffbfaf005e8b462a2da7fdd053ffe0cf",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/tournaments/loading.tsx",
+    "lines": 20,
+    "sha256": "5ca1685d7c2579e3dad0926ae89e5d73228cb8f77ab8a3c8ea7d7f725dec496b",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/tournaments/page.tsx",
+    "lines": 11,
+    "sha256": "1eb1900e0fd59399f0cfec8508beddb139f171f045dcb649142392369f892b61",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/(dashboard)/upgrade/page.tsx",
+    "lines": 10,
+    "sha256": "4cd964c7ddadc66c11968cd28196657a7b7645f40ce1c1c87a83b7eef783d1cc",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/a/[slug]/loading.tsx",
+    "lines": 25,
+    "sha256": "a0692c1457d2b0ef305dae3d60857dac87cb3e1a16b4a9a9e0ef4793941d48b1",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/a/[slug]/page.tsx",
+    "lines": 168,
+    "sha256": "18c85a84b4866223ff687dfc753bf63743429f3140e6e027f882af2e1612dfcf",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/academies/page.tsx",
+    "lines": 675,
+    "sha256": "6b0dea1f6740796416ae06d56603474a8cf01ee1a6f3bf17b3a398fe77bbc961",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/api/admin/users/route.ts",
+    "lines": 83,
+    "sha256": "13d74b22ebdcbe63cd13abc0896d2adda765d7295b83cd68211db1beebed58d0",
+    "exports": [
+      "POST"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/api/calendar/[token]/route.ts",
+    "lines": 77,
+    "sha256": "e7c44088ff3e90338ece9e28d1a4170eb040b32bb552391d550a8c13d98c46e3",
+    "exports": [
+      "GET"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/api/email/route.ts",
+    "lines": 99,
+    "sha256": "94e31fd6399059cf8bf61d668dbd2ccda7a6eba33ebffaacfd7b52ba99d2ddf1",
+    "exports": [
+      "POST"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/api/platform-admin/route.ts",
+    "lines": 108,
+    "sha256": "21ef597bccbcd833a4316ba053bf5035608a7ba5e2c9757b0f74c6b39370edd4",
+    "exports": [
+      "GET",
+      "POST"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/auth/callback/route.ts",
+    "lines": 22,
+    "sha256": "a14db144c01aeac71f2e9a6f4a9d61a55f3c19e8c1af26b78e7786c0ac1c8af9",
+    "exports": [
+      "GET"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/globals.css",
+    "lines": 138,
+    "sha256": "5bbaae9435d4ede6b2c8c5d0b27707feb1c289cb394df107924fd27ee045a036",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/layout.tsx",
+    "lines": 221,
+    "sha256": "44160a9032e2fb2a870bd88a79e1c9347670122d3ea80e38afe9ee6e025e2c76",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/login/loading.tsx",
+    "lines": 20,
+    "sha256": "bfe279d2a6b870026027ce87f409c6b28856fea5a83f2eb9c62e0b5e9284a1fe",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/login/page.tsx",
+    "lines": 12,
+    "sha256": "2e3959824610550ef3dd032e2704f2409f0be07e41f3fc5c8c2adebf632155cb",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/login/tenant/page.tsx",
+    "lines": 5,
+    "sha256": "d85d17bc3a82dcbc6c45971049305fc07fc3e1d8e8098fac48591505b5ec5381",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/not-found.tsx",
+    "lines": 24,
+    "sha256": "a8472de15a98680da3de650ba675858568be0b8b87922509e72dfb18be20f44a",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/page.tsx",
+    "lines": 103,
+    "sha256": "35575ae2319bd7471b610cc8b88b6400ead21b9fef16a46b7c83c939f37a3eec",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/receipts/[id]/loading.tsx",
+    "lines": 24,
+    "sha256": "43f79a618fc6e714e5d32a027b1079a7f8834019613b3af0e8b4cb55f25e3260",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/receipts/[id]/page.tsx",
+    "lines": 122,
+    "sha256": "3fc6eaf28ecb55a68d1a4217f34460df45b5867c694f6277e092c1ca180544fd",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/robots.ts",
+    "lines": 21,
+    "sha256": "dcdc9212eac9064087f54fcb039574cb67c4936089b7b22a4857de40b5467feb",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/signup/loading.tsx",
+    "lines": 22,
+    "sha256": "a0a5b36bfb87239fc76b18df709babab8834fca258d6db52a181af377e0a96d3",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/signup/page.tsx",
+    "lines": 12,
+    "sha256": "ef8238f21235b1077b2cf27e8968c5518953279b5df21b4d8404934e6a0ee50e",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/signup/tenant/page.tsx",
+    "lines": 5,
+    "sha256": "b9b5425c3952b27d06758d1dbc48bec7e2fe399f9ec4ca9fef62a3c843f2b7ea",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/sitemap.ts",
+    "lines": 71,
+    "sha256": "b33ca15fc3326ae2e3fd294b8714d3ce98c64b8ed26ccdd209802f1deb3d3826",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/solutions/basketball/page.tsx",
+    "lines": 117,
+    "sha256": "c2114ec69e95ae719f2b28134cae9969b9456afd54213472fa80c4cfa9ca3714",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/solutions/football/page.tsx",
+    "lines": 121,
+    "sha256": "c461f9f50b979c9dd7784ebc5cbf16b425317ed583fbc1cc0c00b9b73c810a08",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/solutions/padel/page.tsx",
+    "lines": 118,
+    "sha256": "a9f20120acfe0e041f97311987fa0cb28cc75136c2ed3e0116b2df9b12f1724d",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/solutions/page.tsx",
+    "lines": 162,
+    "sha256": "c8c7b4d099dd98617ae8158f427355c1f4233381c8e48b5897d840e94b557898",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/solutions/solution-page.tsx",
+    "lines": 274,
+    "sha256": "0afc647ac74429ca3c665ff01698b14bceb82c3228703421b2a582ec19d46f55",
+    "exports": [
+      "generateSolutionMetadata",
+      "SolutionPage"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/solutions/swimming/page.tsx",
+    "lines": 117,
+    "sha256": "7a9d7674d6980b839dd719eb745a61654f8305deeaec1302f26531018667142d",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/app/solutions/volleyball/page.tsx",
+    "lines": 121,
+    "sha256": "29d46ec77e3b626c8ece7b220ed99a835ab830d70f2fa912a069bb40738763bd",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/analytics/analytics-dashboard.tsx",
+    "lines": 882,
+    "sha256": "951ad6192e28cdc3127ed3b312e333a9dc495364a5db065b8d4d5c3f8ebb5557",
+    "exports": [
+      "AnalyticsDashboard"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/attendance/attendance-table.tsx",
+    "lines": 385,
+    "sha256": "b85d539df58561d63d36e5b109230da036b6ba5a3b4f7823c5662ba4070e2275",
+    "exports": [
+      "AttendanceTable"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/attendance/quick-checkin-card.tsx",
+    "lines": 74,
+    "sha256": "13bbd82befdbe5959f8fa42bb4f8cd1a1cd1766f4d120df42ac78db52cb1c13c",
+    "exports": [
+      "QuickCheckinCard"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/auth/login-form.tsx",
+    "lines": 161,
+    "sha256": "c0cd5333942064af8e8ee016b701e6522bb59fc37de22d5fdb6ee1f87bd1a0c2",
+    "exports": [
+      "LoginForm"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/auth/signup-form.tsx",
+    "lines": 896,
+    "sha256": "0c94b71187c4f3a1834bba0c97a1a9b0da66437f00fa3dae115a20112f48e5e9",
+    "exports": [
+      "SignupForm"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/checkout/checkout-client.tsx",
+    "lines": 612,
+    "sha256": "919635bbee2d808184aa4633728b01563af9f40dbe0071251c3536d771380940",
+    "exports": [
+      "CheckoutClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/coaches/coach-availability-dialog.tsx",
+    "lines": 187,
+    "sha256": "c6fb4941f0ba321629d60b34a0d22cc95f4b31a0e53148594d592076095bb46c",
+    "exports": [
+      "CoachAvailabilityDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/coaches/coaches-client.tsx",
+    "lines": 290,
+    "sha256": "d1b8c3b3b444526de8906c320c395560fc6a1ca348656d7793db43f27adf319b",
+    "exports": [
+      "CoachesClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/community/community-client.tsx",
+    "lines": 45,
+    "sha256": "9ef8f7e779d78d8eaf7982ee674b9f855935c5a3cf03b9ccbd95aaa512224ceb",
+    "exports": [
+      "CommunityClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/community/create-game-dialog.tsx",
+    "lines": 422,
+    "sha256": "a7109781e0ca9e93f26184d5aa0e81a29a9e019541704370e0069bcd92b89860",
+    "exports": [
+      "CreateGameDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/community/discover-map.tsx",
+    "lines": 341,
+    "sha256": "3f9987b904236b18840194fabfbeb9871cdc1062f7007aac831017c7136ad282",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/community/games-tab.tsx",
+    "lines": 516,
+    "sha256": "ac7b1b595989322b81a5c3f2a76b7ab162ee9ab3f1e43bfd88494a05851a2b82",
+    "exports": [
+      "GamesTab"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/community/members-tab.tsx",
+    "lines": 446,
+    "sha256": "9a452dc79dbb495a922e4e38f3ae38b57f09e85a71a8803b3d00f1e7e1920258",
+    "exports": [
+      "MembersTab"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/costs/cost-calculator.tsx",
+    "lines": 246,
+    "sha256": "3ba566f1e8f61011b49a9c68d88f3c23836bf063603eafbfa6e4678655f3177f",
+    "exports": [
+      "CostCalculator"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/costs/expenses-card.tsx",
+    "lines": 255,
+    "sha256": "823ddeed7d2d3b7a418e79bbeffd2e8bd7b4dd6fb7288c7b55e04a56f7d17082",
+    "exports": [
+      "ExpensesCard"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/dashboard/admin-alerts.tsx",
+    "lines": 221,
+    "sha256": "b4518e90492d4621510d248d1c9ef49c1c36feca6680e15a44943f97fbc40f85",
+    "exports": [
+      "AdminAlerts"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/dashboard/admin-dashboard.tsx",
+    "lines": 190,
+    "sha256": "c9044cf3e47c7ce324241ae54fe3b0566f7b3dbaccce35ea639e42b98590b3ee",
+    "exports": [
+      "AdminDashboard"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/dashboard/announcements-card.tsx",
+    "lines": 199,
+    "sha256": "ae7ada631194caeaa107fb86946a210937f196de2c0e4bf5face8060b95e406a",
+    "exports": [
+      "AnnouncementsCard"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/dashboard/dashboard-header.tsx",
+    "lines": 15,
+    "sha256": "0b8faa677d12f325c8ae152c3ee93c685f8d002e08b738ef090a05eb285e4bbc",
+    "exports": [
+      "DashboardHeader"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/dashboard/member-dashboard.tsx",
+    "lines": 252,
+    "sha256": "abb6cbed6d877e55bb4ec3b69d581df90be305544b53f1e04896b6b7b3340495",
+    "exports": [
+      "MemberDashboard"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/dashboard/trials-card.tsx",
+    "lines": 158,
+    "sha256": "e83920e589d0565597bda86962fffe14ff3d2c7fdac63c7551f42c6d5be817d5",
+    "exports": [
+      "TrialsCard"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/events/events-client.tsx",
+    "lines": 147,
+    "sha256": "e7685b1aeb0ec13434a38f0eec46ce1df7f0d8ddbcbd911ff5ba1419f199b361",
+    "exports": [
+      "EventsClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/games/create-game-dialog.tsx",
+    "lines": 550,
+    "sha256": "f0f3c4a3de032dda5323b1eb95d0a5f12a99c086bb49796916f05eb883364b93",
+    "exports": [
+      "CreateGameDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/games/games-client.tsx",
+    "lines": 680,
+    "sha256": "a3d478c88d1b28d8b442a4379cba7d97fa79eb9e40f8794e5b569ebdf75a63de",
+    "exports": [
+      "GamesClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/layout/language-toggle.tsx",
+    "lines": 22,
+    "sha256": "182440f8a4fa47cbe4ed48f4afa2e23b2ca451e4e35312afc637d2f1e0fe093c",
+    "exports": [
+      "LanguageToggle"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/layout/notifications.tsx",
+    "lines": 172,
+    "sha256": "4832410b2865d59ead4ed49b7d7b8c879ed367b30bbf9e1447541bb2f87a8198",
+    "exports": [
+      "Notifications"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/layout/sidebar.tsx",
+    "lines": 159,
+    "sha256": "230e2223b4e334405aea615ce5eb0b74d17e1f400c03e3c741ec9a0fdccf8c12",
+    "exports": [
+      "Sidebar"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/layout/theme-toggle.tsx",
+    "lines": 39,
+    "sha256": "865ba2818dbcd44e20a8b106a1cb5e1a78f993438c1a553ab928ade39cbf134a",
+    "exports": [
+      "ThemeToggle"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/layout/topbar.tsx",
+    "lines": 128,
+    "sha256": "ca0451356cf48d58685d5a6b0b33672c2c9d3b7b93cf84b7463b1c81e9f9327a",
+    "exports": [
+      "Topbar"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/leaderboard/leaderboard-client.tsx",
+    "lines": 134,
+    "sha256": "31793d9b7978d8048bbb2216c05e144aba583436a5d87aa9cd8e8f89144cf6f3",
+    "exports": [
+      "LeaderboardClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/marketing/landing.tsx",
+    "lines": 106,
+    "sha256": "4d6ee225c7a8925711bee21de4967a2dc70cb0ef10e12ced6b7bec04b86d5791",
+    "exports": [
+      "LandingPage"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/marketplace/marketplace-client.tsx",
+    "lines": 335,
+    "sha256": "f39e53d1ab19853dd132612e6f411b10bfc5c5455cba227e3919fb4d804147ae",
+    "exports": [
+      "MarketplaceClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/media/academy-media-manager.tsx",
+    "lines": 241,
+    "sha256": "d123a290cbe8141ecef8844969c1727610e8f0423b2bd8eaf7c0e6e2d9caf38f",
+    "exports": [
+      "AcademyMediaManager"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/members/attendance-trend-card.tsx",
+    "lines": 93,
+    "sha256": "9354b1e4f2ecae216001ff589be78c77ab0c5455146a38ebf1de283971906753",
+    "exports": [
+      "AttendanceTrendCard"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/members/evaluations-card.tsx",
+    "lines": 275,
+    "sha256": "b971550b3eb9838f69f0882d2ec29ba1f52843aa03c92cf035a44209f4de4bd4",
+    "exports": [
+      "EvaluationsCard"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/members/member-form-dialog.tsx",
+    "lines": 543,
+    "sha256": "866a186d9eff151d368a532aeac50ff0ef92cb9ba588fd894ac4a97394f86298",
+    "exports": [
+      "MemberFormDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/members/member-plan-dialog.tsx",
+    "lines": 140,
+    "sha256": "b5f32a41c92508fe27d40cf23b21ea6a1388d97d8d36e4f0c83760aa2a8ccce3",
+    "exports": [
+      "MemberPlanDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/members/member-table.tsx",
+    "lines": 335,
+    "sha256": "eebfef6b4b4648a882b3c7e492a31660ca4d2dd4629a1fa5d67099d6665a01f5",
+    "exports": [
+      "MemberTable"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/members/payment-form-dialog.tsx",
+    "lines": 341,
+    "sha256": "980c5ecddb3fd7899e97843450482ebc20e7d69ff68b65b019735399474ce2ff",
+    "exports": [
+      "PaymentFormDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/members/plans-manager-dialog.tsx",
+    "lines": 253,
+    "sha256": "793be486db9668babb8a410cd497922568b32e44106d2b6c6d6968f201c6b240",
+    "exports": [
+      "PlansManagerDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/onboarding/onboarding-wizard.tsx",
+    "lines": 331,
+    "sha256": "08e746a6ae2550a2825a83e5fcbc81ee839157d6bc200a6db3c174231d856f01",
+    "exports": [
+      "OnboardingWizard"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/playgrounds/playgrounds-client.tsx",
+    "lines": 351,
+    "sha256": "9b7ff4831df3a37ddd637751c539181dc6cb6c8e24d7ebd77392a062c057a17d",
+    "exports": [
+      "PlaygroundsClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/profile/checkin-qr-card.tsx",
+    "lines": 62,
+    "sha256": "d91c08ea9cb1376551855b31c407bc32dc0cbe1406ae8b67fb520141263e3d08",
+    "exports": [
+      "CheckinQrCard"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/profile/profile-client.tsx",
+    "lines": 872,
+    "sha256": "a3c568ed5697b3ef117ab90951fff820f3f388278dd92becece34fa4dd38e748",
+    "exports": [
+      "ProfileClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/public/trial-form.tsx",
+    "lines": 197,
+    "sha256": "dfffb48e776179624a0a9b2556245192b0f41e8f5b86f282a24ab12044904e2c",
+    "exports": [
+      "TrialForm"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/rentals/rentals-client.tsx",
+    "lines": 556,
+    "sha256": "993f4fbc14f986424dc02afa0e0229755d1197fb2c19d56d0dd18bb806e4b8ed",
+    "exports": [
+      "RentalsClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/reports/financial-chart.tsx",
+    "lines": 157,
+    "sha256": "ce4d49a6a3d30ac0c6cdc68023e1182fc13db698ed2c8675fb3c9308f09ef6d3",
+    "exports": [
+      "FinancialChart",
+      "buildMonthlyPoints"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/reports/financial-summary.tsx",
+    "lines": 101,
+    "sha256": "70acc7bdbdd7209fc5b92c9a4119c83c628984b835a5b9f73665c8a3ee956691",
+    "exports": [
+      "FinancialSummary"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/schedule/calendar-export-dialog.tsx",
+    "lines": 109,
+    "sha256": "6a0288180465479bf2e051a33c4fc40de5d7e5cc0047a6dc803a87c4611a470a",
+    "exports": [
+      "CalendarExportDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/schedule/calendar-view.tsx",
+    "lines": 173,
+    "sha256": "1cbcedc30ea38ec99e4579af526d323a9d9ebd72582cb8afc31b581d1512827b",
+    "exports": [
+      "CalendarView"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/schedule/guest-manager.tsx",
+    "lines": 212,
+    "sha256": "d9dedc71dca331b971ac4a3a4e8f6a9ee1e79712d3734406ad19ab0962a073a5",
+    "exports": [
+      "GuestManager"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/schedule/month-generator-dialog.tsx",
+    "lines": 408,
+    "sha256": "9a6f3bac3e9e10f9e0104d61e4c62024f63ade35d48fa692af36a1ee12756f68",
+    "exports": [
+      "MonthGeneratorDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/schedule/schedule-client.tsx",
+    "lines": 347,
+    "sha256": "71a72bfc32b6aa3f2edab14f25fe7c10089f6c80da11a7f04b3ac12271e0b966",
+    "exports": [
+      "ScheduleClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/schedule/session-card.tsx",
+    "lines": 266,
+    "sha256": "c599d7aabb2e55eeb54620b203b34a775b8e7cd1180a85868eeb0ff039fbe7a8",
+    "exports": [
+      "SessionCard"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/schedule/session-details-dialog.tsx",
+    "lines": 481,
+    "sha256": "dc47db4ba911fac8b2061f5813a0622ce3873ef481bd2ecf612535ba9e73b266",
+    "exports": [
+      "SessionDetailsDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/schedule/session-form-dialog.tsx",
+    "lines": 376,
+    "sha256": "97da98bf634668f363a77f4c1749e3360abe0da8815abb7fa2163c7a12c3b8b7",
+    "exports": [
+      "SessionFormDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/schedule/templates-manager-dialog.tsx",
+    "lines": 283,
+    "sha256": "61038e457f5af38060b79e9aa501fe4c95410244267eee512b436216266b8d7e",
+    "exports": [
+      "TemplatesManagerDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/schedule/upcoming-sessions.tsx",
+    "lines": 78,
+    "sha256": "b6611069d842757de3245f9e0456b1427a85f55f7fa1e109e444a95540b5f515",
+    "exports": [
+      "UpcomingSessions"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/schedule/venues-manager-dialog.tsx",
+    "lines": 360,
+    "sha256": "5e0be688c19de8dee3defdadc80da0814d51a2b697111930aaf3ab20c96fa728",
+    "exports": [
+      "VenuesManagerDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/scouting/scouting-client.tsx",
+    "lines": 226,
+    "sha256": "73f17b8158a36f6b54adee734df04375e74cd47c784fee56a0cfb49e7a5deb3a",
+    "exports": [
+      "ScoutingClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/settings/branches-card.tsx",
+    "lines": 320,
+    "sha256": "f8ef16faf6738e5c80b7c7acb8a2f9bebd3016553964f6801178653eefb93736",
+    "exports": [
+      "BranchesCard"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/settings/delete-account-card.tsx",
+    "lines": 138,
+    "sha256": "156cb8c6e0eb45d55906eedf1b7fc9a49af5864f199b890edff1d52e70e8e251",
+    "exports": [
+      "DeleteAccountCard"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/settings/settings-client.tsx",
+    "lines": 474,
+    "sha256": "450d092980474cce0a6b0859173049e249ea58f8e9aa96ccb0785f3b04d0c5c5",
+    "exports": [
+      "SettingsClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/activity-feed.tsx",
+    "lines": 98,
+    "sha256": "be9fe026c01c656ba690451b1f47c615b4ec4a1244f1e46dfa11c2b2dbdcba08",
+    "exports": [
+      "ActivityFeed"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/attendance-analytics.tsx",
+    "lines": 150,
+    "sha256": "9e3501ba8d887a6da5d3a19654eb337e101ea584bbb29c456c8753ccb65e1817",
+    "exports": [
+      "AttendanceAnalytics"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/batch-toolbar.tsx",
+    "lines": 52,
+    "sha256": "602ae2ea8b8c0739c55652d6b23596fc01ebb9024f2a4e80c018c4b3676ead67",
+    "exports": [
+      "BatchToolbar"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/directions-links.tsx",
+    "lines": 73,
+    "sha256": "a60f941148381d00fc06e9635efd0ada3934c23c5cd07028b2f296b18fdddef5",
+    "exports": [
+      "DirectionsLinks",
+      "directionsUrl"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/empty-state.tsx",
+    "lines": 29,
+    "sha256": "29a9bda2f47769fc1d5ca01bf62a56dc9e03d3621e97e6c7f225bb02e6cc0d74",
+    "exports": [
+      "EmptyState"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/export-menu.tsx",
+    "lines": 48,
+    "sha256": "0b25cbe3eb03518871f80d77217c2b7207955734893d7352e5a8c16f69cb06d3",
+    "exports": [
+      "ExportMenu"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/lang-label.tsx",
+    "lines": 14,
+    "sha256": "8cf539af05c8550d3b125e6fcf2c16436d4fa20d9ec06924cb4d0af0b929a551",
+    "exports": [
+      "LangLabel"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/location-fields.tsx",
+    "lines": 272,
+    "sha256": "1f1edddb457ffcc5076fbc6bca536ecf8910c58883dbe655e964193e0e5c4069",
+    "exports": [
+      "LocationFields",
+      "CountryField"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/map-picker.tsx",
+    "lines": 235,
+    "sha256": "fdd9d0d49e76efa8d7dbe99b2dd7a2a145094afaaab436ad6d43f19e0c8bcd69",
+    "exports": [
+      "MapPicker"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/map-view.tsx",
+    "lines": 103,
+    "sha256": "1d078b10fe5eebc04d103d949a3c8c35e3d1828e1aab38f8138da30767631381",
+    "exports": [
+      "MapView"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/member-badges.tsx",
+    "lines": 62,
+    "sha256": "fd90541e3ae8b5ae3a8b73df16f00b0366571f1e056562e1145190c3bfbf7e75",
+    "exports": [
+      "MemberBadges"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/page-header.tsx",
+    "lines": 21,
+    "sha256": "b217654f28aa7af2353a21fc6e1c1a34d30e3d9356fdd6ea85eea2e65d769ff9",
+    "exports": [
+      "PageHeader"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/photo-gallery.tsx",
+    "lines": 132,
+    "sha256": "af3ac1e09dc693abf1c8f848a76b7839af209bbd4e5f756ac4b989cfc98e849f",
+    "exports": [
+      "PhotoGallery"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/premium-gate.tsx",
+    "lines": 66,
+    "sha256": "c113e866bca604d721a65ca3e5357ec15e3db8d8a867c1bf8e1a255d4b83a3e0",
+    "exports": [
+      "PremiumGate"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/profit-loss-indicator.tsx",
+    "lines": 41,
+    "sha256": "b5081481e7f7960de2cdb9d9a6ca99542e758d9cc8b316e2f7cacd72e94a16d3",
+    "exports": [
+      "ProfitLossIndicator"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/recurring-schedules.tsx",
+    "lines": 160,
+    "sha256": "3bf6e900f64a29fc5b0cf7e7f587472a2f04badec99c392e4b66d5a911e9f43c",
+    "exports": [
+      "RecurringSchedulesList"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/report-dialog.tsx",
+    "lines": 104,
+    "sha256": "c1f583e4623793519d77003a50eb5c160936b51d4eb0737d629a32a2bb99c9f5",
+    "exports": [
+      "ReportDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/score-dialog.tsx",
+    "lines": 113,
+    "sha256": "28792b4a5e2ca7d25800f856a5fe424f22859f632987c986b548729e0f52d54f",
+    "exports": [
+      "ScoreDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/session-ratings.tsx",
+    "lines": 117,
+    "sha256": "f2a0f8b7cc1b8417b6c604d2fa8e197812eedc36a61b2ec0dc4867ae9a9dd3ad",
+    "exports": [
+      "SessionRatings"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/stat-card.tsx",
+    "lines": 53,
+    "sha256": "708627ba2fe6c22c6e5400c704b13ed8414b14345c5d365c93db7cf7aba27801",
+    "exports": [
+      "StatCard"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/trial-gate.tsx",
+    "lines": 82,
+    "sha256": "d91b2b5c2d6a5ab917ba417d374f39274d946d2faca9fc94d3d07c27c088e277",
+    "exports": [
+      "TrialGate"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/shared/waitlist-card.tsx",
+    "lines": 73,
+    "sha256": "57afc79001fef2d2649eb8a5be1fb1f41ccfddd76228b59cac5827c6ae4cfbd8",
+    "exports": [
+      "WaitlistCard"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/super-admin/academy-edit-dialog.tsx",
+    "lines": 818,
+    "sha256": "71ab5bf6115e8760f4e1938118483f0f9b2907e0f3126412b858b2d8b3ffa834",
+    "exports": [
+      "AcademyEditDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/super-admin/platform-analytics.tsx",
+    "lines": 502,
+    "sha256": "49fcf16020b7cf2eaf9badeeb0acd4a221dc0ffcd9ad138a3f1e0053de53ca52",
+    "exports": [
+      "PlatformAnalytics"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/super-admin/platform-records.tsx",
+    "lines": 273,
+    "sha256": "72280d7989c6a863d681c19fb443c917207dde2d4917d9f76036f31745e3f949",
+    "exports": [
+      "PlatformRecords"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/super-admin/super-admin-dashboard.tsx",
+    "lines": 717,
+    "sha256": "c14359b2e3011395efd629789b97f0e1dd4d240f799e7f76cee2a22facc3d9fa",
+    "exports": [
+      "SuperAdminDashboard"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/teams/sports-manager-dialog.tsx",
+    "lines": 260,
+    "sha256": "33b7468b06b28c99e34988ffcba1daaac7e448dbb1ae5f1e9ee03ae7f3c1b281",
+    "exports": [
+      "SportsManagerDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/teams/team-form-dialog.tsx",
+    "lines": 273,
+    "sha256": "23137f57f5c34371faf1c9d99346162ae2cb9a1a82a35a671c1b77935a9b063e",
+    "exports": [
+      "TeamFormDialog"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/teams/teams-client.tsx",
+    "lines": 233,
+    "sha256": "0d0d4041e8333a2ebf465449dfe2c5605a57d31216b16c8cac608896f6603cd1",
+    "exports": [
+      "TeamsClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/tournaments/tournaments-client.tsx",
+    "lines": 720,
+    "sha256": "ba954419331820dcc8c4e291056eaed0bb513a9822d0b21b38060961c3009400",
+    "exports": [
+      "TournamentsClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/alert-dialog.tsx",
+    "lines": 138,
+    "sha256": "75f7c3f1c149c39c0938abe3d1d63dfe279d2f024ff6c77d0250425f5cc17128",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/avatar.tsx",
+    "lines": 49,
+    "sha256": "22e6a2288c3fcf9461ef62922c9d0785ad8eb020f43b8133723b367a6c330784",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/badge.tsx",
+    "lines": 39,
+    "sha256": "43bbaf65b9ec9479aa331fe7ed995d02ed5f5b47de0a513a74369056dac17469",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/button.tsx",
+    "lines": 58,
+    "sha256": "0acea5195ad0403451d8d7ffdafcb2b7295198db1c5d6fadc54c5d29b6fff7cb",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/card.tsx",
+    "lines": 82,
+    "sha256": "2e2b209155eef8d29834b70b0489f6f4e68daec1bde3a8b709690fa296172f28",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/checkbox.tsx",
+    "lines": 29,
+    "sha256": "3841fa332d90f48515bce779cd2c6de298f85092a6e06ff50ed0e60e2c7be871",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/dialog.tsx",
+    "lines": 118,
+    "sha256": "89b409ab6785496928dd68dc0d009b3f2ab694edea13f907f5905716a92c103d",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/dropdown-menu.tsx",
+    "lines": 194,
+    "sha256": "2c172b698855f821452255fe0d425ebf24799b96d847c22a9519f2d01595534a",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/form.tsx",
+    "lines": 178,
+    "sha256": "c61cdd545522c6688632a067f9626a4137d52780ee5fdf0802156e0ccc10690a",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/input.tsx",
+    "lines": 21,
+    "sha256": "937130810e6e4f3a28c7acde85d5f95910c2d577e572b06af43e13d20b041b87",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/label.tsx",
+    "lines": 25,
+    "sha256": "ca8c6f03ca71c9fabf688a76435b50e85b8537a8cfb61f0603d0def3e8076c44",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/popover.tsx",
+    "lines": 30,
+    "sha256": "a1dc220191edfe13f5f5a73ff2258bea80f64dba6ce2ee22f8b00eb2371ef086",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/progress.tsx",
+    "lines": 29,
+    "sha256": "8b52198352a5ad9f566b592047be0a4e4c1697febeab891050460fb1c95775e7",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/select.tsx",
+    "lines": 156,
+    "sha256": "a7549b577eb279b7e581354c1b33de34aa9b6118c51c07cbb92c3b36ed336187",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/separator.tsx",
+    "lines": 30,
+    "sha256": "25ba5c780c58d37ca77308344df359a61d455d0aae6491cbcd9bb2306dd36f1d",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/sheet.tsx",
+    "lines": 133,
+    "sha256": "32be376891d04d2902f9a1954ac5bce2b9122ec7ce1b2e0c53bdf4d962d4df12",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/skeleton.tsx",
+    "lines": 15,
+    "sha256": "8913724bc2d578e429c2adf993f24bd132696e2c561d80d352706a947bc551d2",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/sonner.tsx",
+    "lines": 31,
+    "sha256": "b1747a3543bcd4590acdb8660861988006e7edac01a97676b94e2573f0f9320a",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/switch.tsx",
+    "lines": 28,
+    "sha256": "723d50dd5fa9d38d3d1247b0937fdafd5124552e1d3bae062336aedbc9f4cf54",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/table.tsx",
+    "lines": 116,
+    "sha256": "627af152f15e3c9e6aa00201751116b0958968507deb123608026d307265f0f8",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/tabs.tsx",
+    "lines": 54,
+    "sha256": "7bb776fae8c903f5ef7a7e62cbadf1cd913bb38b463c5a4c9fffc7fdc5d1aa65",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/ui/textarea.tsx",
+    "lines": 21,
+    "sha256": "01bc29cba9af72d9d50ba207b7776d84e028cdfe777fa732b7188093c1d603c7",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/upgrade/member-plan-comparison.tsx",
+    "lines": 290,
+    "sha256": "6330ddfc7f2b6d68a8a5bf8c80ee0da607630595530b99e01a03b1aa9ab07ae5",
+    "exports": [
+      "MemberPlanComparison"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/upgrade/plan-benefit-banner.tsx",
+    "lines": 121,
+    "sha256": "f3e84292068053711cfeef12e6dbe25dc8a2b6ed9af8e054c6476774e7da44f8",
+    "exports": [
+      "AdminPlanBanner",
+      "MemberPlanBanner"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/upgrade/plan-comparison.tsx",
+    "lines": 322,
+    "sha256": "29f70f8868560a1252277d194500cd477ff86822e10b377231df1e45b5acaa51",
+    "exports": [
+      "PlanComparison"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/components/upgrade/upgrade-client.tsx",
+    "lines": 88,
+    "sha256": "3564b25a89af5dc14b28e4d5a30a1a04dcc7b278f1b9196aa5571fa623ee2de6",
+    "exports": [
+      "UpgradeClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/admin-schedule.ts",
+    "lines": 20,
+    "sha256": "4d8e25ce738919fa17f0f5ddc51e0eec8f85e584d33d52bddd825cc3a2f65037",
+    "exports": [
+      "rentalCoverage"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/auth.ts",
+    "lines": 81,
+    "sha256": "af94ac35e8f4935ffdddb572ecbd554ea57387bd27c834fec5e91cc8c6467784",
+    "exports": [
+      "useAuth"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/calculations.ts",
+    "lines": 121,
+    "sha256": "734b28c2ccaf988656f7d8b9e26153b65a3f98a514c998db9551854097a2dc1b",
+    "exports": [
+      "memberPerSessionValue",
+      "computeSessionRevenue",
+      "computeCostPerSession",
+      "computeProfitLoss",
+      "round2",
+      "buildSessionCalculation",
+      "usedSessionsSincePayment",
+      "remainingSessions"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/constants.ts",
+    "lines": 84,
+    "sha256": "cad9556c970bf54e3d4122b06b3711a84a2d3938410d8a3a9b318923c1ae86c5",
+    "exports": [
+      "sessionsForMembership",
+      "formatMoney",
+      "formatMoneyShort"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/email-triggers.ts",
+    "lines": 18,
+    "sha256": "f737af0a530f780f9223f7fcb0d7b00cd2e0425026a1bc4ee74f9f9246835c13",
+    "exports": [
+      "triggerEmail"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/email.ts",
+    "lines": 130,
+    "sha256": "bb35c99165030ab215f847c3fd3c94a3be17086fe74d6d1318b9052e66ef66c0",
+    "exports": [
+      "sendEmail",
+      "paymentConfirmationEmail",
+      "renewalReminderEmail",
+      "sessionScheduledEmail",
+      "welcomeEmail"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/export.ts",
+    "lines": 91,
+    "sha256": "21614c2a405b4fc6447f6000083234d2400fd16d378e00851ce86b0de49ab011",
+    "exports": [
+      "downloadCSV",
+      "createPDF",
+      "addPDFTable",
+      "downloadPDF"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/geo.ts",
+    "lines": 151,
+    "sha256": "6da57b66bfb8bdba358e56d3975a7e25433113d930be8f26c8f456f8d14de7bf",
+    "exports": [
+      "haversineKm",
+      "formatKm",
+      "useGeoLocation",
+      "geocodeQuery",
+      "reverseGeocode"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/i18n/dictionary.ts",
+    "lines": 3424,
+    "sha256": "4224a400b42c41bc1f8f914361897562149404f56c29e5e64a81bb1fc5695503",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/i18n/index.tsx",
+    "lines": 61,
+    "sha256": "0630c039e1c8d8ca557b0e96251f5d895419084d49095c70418b33a3f88cd1de",
+    "exports": [
+      "I18nProvider",
+      "useI18n"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/locations.ts",
+    "lines": 1431,
+    "sha256": "d11e02df0e7759fb4b2c42cf65ba6b90bf78ac4ca6d5658c906e409b6d31d9cb",
+    "exports": [
+      "localizeCountry",
+      "normalizeCountry"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/platform-admin.ts",
+    "lines": 10,
+    "sha256": "8685e0cf8ae2adc5230e2ab32d91059365736acc20f4cb32e6a2efde942bb0e9",
+    "exports": [
+      "isPlatformAdmin",
+      "matchesAccountEmail"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/push.ts",
+    "lines": 117,
+    "sha256": "65c1971eadcfb6f79f8cd59c30802fd14ae52c3b668f2dfd51c730254859bc00",
+    "exports": [
+      "usePushNotifications"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/queries.ts",
+    "lines": 3085,
+    "sha256": "119d6569063df8b33b4022ad312d1a4e3ab13fa813629a7d39f5b528f7c9a969",
+    "exports": [
+      "useProfiles",
+      "usePendingProfiles",
+      "useProfile",
+      "usePayments",
+      "useAllPayments",
+      "useSessions",
+      "useUpcomingSessions",
+      "useAttendance",
+      "useMonthlyCosts",
+      "useMemberSessionCosts",
+      "useMemberRoster",
+      "useSessionCalculations",
+      "useSessionGuests",
+      "useAttendanceCounts",
+      "useSports",
+      "useSaveSport",
+      "useDeleteSport",
+      "useTeams",
+      "useSaveTeam",
+      "useDeleteTeam",
+      "useSetTeamMembers",
+      "useUpsertAttendance",
+      "useSaveSession",
+      "useDeleteSession",
+      "useBulkCreateSessions",
+      "useSaveGuest",
+      "useDeleteGuest",
+      "useSavePayment",
+      "useUpdatePayment",
+      "useDeletePayment",
+      "useUpdateMember",
+      "useDeleteMember",
+      "useSaveCosts",
+      "useUpdateOwnProfile",
+      "useAcademy",
+      "useUpdateAcademy",
+      "useBranches",
+      "useCreateBranch",
+      "useUpdateBranch",
+      "useDeleteBranch",
+      "usePublicAcademies",
+      "usePublicSports",
+      "useAcademyRatings",
+      "useRateAcademy",
+      "joinPublicAcademy",
+      "useActivatePremium",
+      "useAdminSetMemberPlan",
+      "useNearbyTournaments",
+      "useAllAcademies",
+      "useSuperAdminStats",
+      "useAcademyManagement",
+      "useSuperAdminUpdateAcademy",
+      "useSuperAdminDeleteAcademy",
+      "useExtendTrial",
+      "useConvertToPaid",
+      "usePublicAcademy",
+      "useAnnouncements",
+      "useSaveAnnouncement",
+      "useDeleteAnnouncement",
+      "useCoaches",
+      "useSaveCoach",
+      "useDeleteCoach",
+      "useVenues",
+      "useSaveVenue",
+      "useDeleteVenue",
+      "useBookableSessions",
+      "useMyBookings",
+      "useBookSession",
+      "useUpdateBookingStatus",
+      "usePlans",
+      "useSavePlan",
+      "useDeletePlan",
+      "useExpenses",
+      "useSaveExpense",
+      "useDeleteExpense",
+      "useEvaluations",
+      "useSaveEvaluation",
+      "useDeleteEvaluation",
+      "useTemplates",
+      "useSaveTemplate",
+      "useDeleteTemplate",
+      "useCoachAvailability",
+      "useSaveCoachAvailability",
+      "useTournaments",
+      "useSaveTournament",
+      "useDeleteTournament",
+      "useSaveMatch",
+      "useDeleteMatch",
+      "useTrialRequests",
+      "useSubmitTrialRequest",
+      "useUpdateTrialRequest",
+      "useSessionWaitlist",
+      "useJoinWaitlist",
+      "useUpdateWaitlistEntry",
+      "useSessionRatings",
+      "useSubmitRating",
+      "useMemberBadges",
+      "useAwardBadge",
+      "useSessionPhotos",
+      "useUploadPhoto",
+      "useDeletePhoto",
+      "useAcademyPhotos",
+      "useAddAcademyPhoto",
+      "useDeleteAcademyPhoto",
+      "useVenueRentals",
+      "useSaveVenueRental",
+      "useDeleteVenueRental",
+      "useActivityFeed",
+      "useRecurringSchedules",
+      "useCreateRecurringSchedule",
+      "useDeleteRecurringSchedule",
+      "useGenerateSessions",
+      "useCommunityMembers",
+      "useFriendlyGames",
+      "usePoolPlaygrounds",
+      "useMyGameParticipants",
+      "useCreateFriendlyGame",
+      "useJoinFriendlyGame",
+      "useLeaveFriendlyGame",
+      "useCancelFriendlyGame",
+      "useStopRecurringGame",
+      "useUpdateCommunityProfile",
+      "useNotifications",
+      "useMarkNotificationsRead",
+      "useSubmitGameScore",
+      "useFileReport",
+      "useResolveReport",
+      "useReports",
+      "useMyBlocks",
+      "useBlockedMembers",
+      "useBlockMember",
+      "useUnblockMember",
+      "useMyCommunityRecord",
+      "useMyStreaks",
+      "usePendingGameFees",
+      "useReviewGameFee",
+      "useSetAcademyPlan",
+      "usePurchasePlanSubscription",
+      "useMySubscriptions",
+      "usePendingSubscriptions",
+      "useReviewSubscription",
+      "useCommunityLeaderboard",
+      "useScoutNotes",
+      "useToggleScoutNote"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/search.ts",
+    "lines": 78,
+    "sha256": "2cacab23f2c4e945d64778697093ea0b9586b25b7a28a619dadbd59f90437648",
+    "exports": [
+      "normalizeSearch",
+      "matchesBilingual"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/session.ts",
+    "lines": 82,
+    "sha256": "3d6ab3a9c19464552167b0f02d8e99ac1c1d7dd31b50ae4dff08cd711e5c5c7f",
+    "exports": [
+      "requireSession"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/supabase/admin.ts",
+    "lines": 21,
+    "sha256": "1424da05bbb0a60eed22d6f8da9f10a254f788c27c4d79d77f7725848b0aa712",
+    "exports": [
+      "createAdminClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/supabase/client.ts",
+    "lines": 10,
+    "sha256": "7dff9040d4ac15f3b988f9fdea2291210efe6d3d44d001ffaa62d8c0c19f0249",
+    "exports": [
+      "createClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/supabase/middleware.ts",
+    "lines": 102,
+    "sha256": "3a1499eea5620125a4171e2208afe7295dacab6e029f9acc1d18d5e1617216af",
+    "exports": [
+      "updateSession"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/supabase/server.ts",
+    "lines": 30,
+    "sha256": "2c2f1240993503a07cc99ec481b45ae9d0eff1ddb6914c00a4e613fee50c6434",
+    "exports": [
+      "createClient"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/types.ts",
+    "lines": 671,
+    "sha256": "60ae51ba1f72b73bd55ed8c8fada4554e6b4fd3792f448ca097d70ff3f38c1b2",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/useRealtime.ts",
+    "lines": 60,
+    "sha256": "eeb253d0e34f572fdfdc191888782289b8fbd17fc5f91b6325c171a7e80d59ac",
+    "exports": [
+      "useRealtime"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/lib/utils.ts",
+    "lines": 37,
+    "sha256": "1461f39fa64ce2b1be0fcf48cb67399c9e1612b9d5613863ae97ec911ab73c55",
+    "exports": [
+      "cn",
+      "formatDateInput",
+      "todayInput",
+      "initials",
+      "errorMessage"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/middleware.ts",
+    "lines": 19,
+    "sha256": "09241444df7b04099e28fe26ae6cc75bb042bf883619e603e95fa9d5a651956e",
+    "exports": [
+      "middleware"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/providers/providers.tsx",
+    "lines": 36,
+    "sha256": "fc5a16edcddb58da2e7bcf5ef4d8baa6ca4fc4a536b094937c832ba3bdf51bc4",
+    "exports": [
+      "Providers"
+    ],
+    "sql_functions": []
+  },
+  {
+    "path": "src/store/useLanguage.ts",
+    "lines": 38,
+    "sha256": "d625628d2cac4128d04e8fe2f2ad4949206e943c623823eec764265b9b9730f9",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "supabase/.temp/linked-project.json",
+    "lines": 1,
+    "sha256": "57b7abffdac17b4612a4f6916101f9f4a0ebe0a8aa642fadca3ebcc9aa725223",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "supabase/functions/deno.json",
+    "lines": 11,
+    "sha256": "a6ad03713f4169d287aadb55379778949ac62a2b168ad992234677c256689ead",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "supabase/functions/notify-push/index.ts",
+    "lines": 108,
+    "sha256": "ae922c49ee8b6c415b81b83fdfb17c733b3bdd4a800573673a1186e8c7b2dd01",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "supabase/migrations/20260907190000_platform_admin.sql",
+    "lines": 46,
+    "sha256": "653ac5feefadf58be7bb611e478fb3602c9d7fd5bbd180a0df43d0e591dacdf1",
+    "exports": [],
+    "sql_functions": [
+      "public.is_super_admin",
+      "public.is_account_blocked",
+      "public.check_account_access"
+    ]
+  },
+  {
+    "path": "supabase/migrations/20260907210000_venue_locations.sql",
+    "lines": 8,
+    "sha256": "7a2695cc98138269298eb68c08cd868f55dce615e579c6a7288fe7f671b52591",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "supabase/migrations/20260907220000_private_venue_contacts.sql",
+    "lines": 16,
+    "sha256": "798ea7e9bf0dc6e3ce050f73cbf7319320ec2d3ec0561f9d4ebf294ba23a4e84",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "supabase/migrations/20260908110000_platform_admin_email_fix.sql",
+    "lines": 9,
+    "sha256": "16d8735affbe1c6bcf697026b05933c5ef701c652747b9ab9bc2767f6b1f1f22",
+    "exports": [],
+    "sql_functions": [
+      "public.is_super_admin"
+    ]
+  },
+  {
+    "path": "supabase/migrations/20260908130000_playground_assignment.sql",
+    "lines": 327,
+    "sha256": "52940221d10a3d2d722dea1419543222bc0985c5dfa02d84d016055cc2b6aa0e",
+    "exports": [],
+    "sql_functions": [
+      "public.handle_new_user",
+      "public.super_admin_update_academy"
+    ]
+  },
+  {
+    "path": "supabase/migrations/20260908140000_academy_media.sql",
+    "lines": 41,
+    "sha256": "bf054d85e99b5f6f30fdbbc563c80fd3d601a8491bb9ec6fc4a68fee4db459dd",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "supabase/migrations/20260908150000_plan_subscriptions.sql",
+    "lines": 279,
+    "sha256": "56ac88867399cfbe86098ceb1072949a615d66109c156d7cc96508e2302be36b",
+    "exports": [],
+    "sql_functions": [
+      "public.plan_price",
+      "public.purchase_plan_subscription",
+      "public.review_subscription_receipt"
+    ]
+  },
+  {
+    "path": "supabase/migrations/20260908160000_friendly_games_v2.sql",
+    "lines": 411,
+    "sha256": "00935ccde14b691224b0c2526a18bae18ee5829aa5cd13d11e5230a856fd5ca2",
+    "exports": [],
+    "sql_functions": [
+      "public.create_friendly_game",
+      "public.get_game_by_invite",
+      "public.join_friendly_game",
+      "public.review_game_fee"
+    ]
+  },
+  {
+    "path": "supabase/schema.sql",
+    "lines": 4053,
+    "sha256": "7d8daf3c6232046a7aabafb7e6dbad1add0f843f95eb5019699c9368136776c4",
+    "exports": [],
+    "sql_functions": [
+      "public.current_academy_id",
+      "public.handle_new_user",
+      "public.sync_role_claim",
+      "public.recompute_session_calculation",
+      "public.trigger_recompute_on_attendance",
+      "public.trigger_recompute_on_guest",
+      "public.trigger_recompute_on_payment",
+      "public.trigger_recompute_on_costs",
+      "public.trigger_recompute_on_session_status",
+      "public.sync_sessions_attended",
+      "public.sync_membership_from_payment",
+      "public.log_attendance_activity",
+      "public.log_payment_activity",
+      "public.check_and_award_badges",
+      "public.guard_profile_update",
+      "public.join_public_academy",
+      "public.book_session",
+      "public.activate_member_premium",
+      "public.create_friendly_game",
+      "public.get_game_by_invite",
+      "public.join_friendly_game",
+      "public.leave_friendly_game",
+      "public.is_super_admin",
+      "public.cancel_friendly_game",
+      "public.materialize_recurring_games",
+      "public.stop_recurring_game",
+      "public.submit_game_score",
+      "public.mark_notifications_read",
+      "public.file_report",
+      "public.resolve_report",
+      "public.block_member",
+      "public.unblock_member",
+      "public.upsert_push_subscription",
+      "public.remove_push_subscription",
+      "public.notify_push_forward",
+      "public.review_game_fee",
+      "public.set_academy_plan",
+      "public.guard_venue_limit",
+      "public.guard_coach_limit",
+      "public.guard_session_booking_plan",
+      "public.plan_price",
+      "public.purchase_plan_subscription",
+      "public.review_subscription_receipt",
+      "public.toggle_scout_note",
+      "public.delete_my_account",
+      "public.is_super_admin",
+      "public.is_account_blocked",
+      "public.check_account_access",
+      "public.super_admin_stats",
+      "public.super_admin_update_academy",
+      "public.super_admin_delete_academy"
+    ]
+  },
+  {
+    "path": "public/sw.js",
+    "lines": 44,
+    "sha256": "3a38a4d970194d770bc40660df29e08ddf7f04733df472f32cb75095b5329b02",
+    "exports": [],
+    "sql_functions": []
+  },
+  {
+    "path": "tests/platform-admin.cjs",
+    "lines": 68,
+    "sha256": "85476dbca8461d7a18f638cbb4b086ebb84d1dc0528c0095e8690739e503a3a7",
+    "exports": [],
+    "sql_functions": []
+  }
+]

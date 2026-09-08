@@ -80,33 +80,33 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
     <div className="space-y-6">
       <MemberPlanBanner memberPlan={p.member_plan} />
       {p.is_active === false && (
-        <div className="flex items-center gap-3 rounded-lg border border-amber-300/60 bg-amber-50 p-4 text-sm dark:bg-amber-500/10">
-          <Timer className="h-5 w-5 shrink-0 text-amber-600" />
-          <p className="text-amber-800 dark:text-amber-300">
+        <div className="flex items-center gap-3 rounded-lg border border-attention-300/60 bg-attention-50 p-4 text-sm dark:bg-attention-500/10">
+          <Timer className="h-5 w-5 shrink-0 text-warning-ink" />
+          <p className="text-warning-ink dark:text-attention-300">
             {t("members_pending_approval")}
           </p>
         </div>
       )}
       {p.member_plan === "premium" && (
-        <div className="flex items-center gap-3 rounded-lg border border-amber-300/60 bg-amber-50 p-4 text-sm dark:bg-amber-500/10">
-          <Crown className="h-5 w-5 shrink-0 text-amber-600" />
-          <p className="font-medium text-amber-800 dark:text-amber-300">
+        <div className="flex items-center gap-3 rounded-lg border border-attention-300/60 bg-attention-50 p-4 text-sm dark:bg-attention-500/10">
+          <Crown className="h-5 w-5 shrink-0 text-warning-ink" />
+          <p className="font-medium text-warning-ink dark:text-attention-300">
             {t("premium_active_message")}
           </p>
         </div>
       )}
       {hasPlan && remaining > 0 && remaining <= EXPIRY_ALERT_THRESHOLD && (
-        <div className="flex items-center gap-3 rounded-lg border border-amber-300/60 bg-amber-50 p-4 text-sm dark:bg-amber-500/10">
-          <AlarmClock className="h-5 w-5 shrink-0 text-amber-600" />
-          <p className="text-amber-800 dark:text-amber-300">
+        <div className="flex items-center gap-3 rounded-lg border border-attention-300/60 bg-attention-50 p-4 text-sm dark:bg-attention-500/10">
+          <AlarmClock className="h-5 w-5 shrink-0 text-warning-ink" />
+          <p className="text-warning-ink dark:text-attention-300">
             {t("alert_subscription_low").replace("{n}", String(remaining))}
           </p>
         </div>
       )}
       {hasPlan && remaining <= 0 && (
-        <div className="flex items-center gap-3 rounded-lg border border-red-300/60 bg-red-50 p-4 text-sm dark:bg-red-500/10">
-          <AlarmClock className="h-5 w-5 shrink-0 text-red-600" />
-          <p className="text-red-800 dark:text-red-300">
+        <div className="flex items-center gap-3 rounded-lg border border-negative-300/60 bg-negative-50 p-4 text-sm dark:bg-negative-500/10">
+          <AlarmClock className="h-5 w-5 shrink-0 text-error-ink" />
+          <p className="text-error-ink dark:text-negative-300">
             {t("alert_subscription_empty")}
           </p>
         </div>

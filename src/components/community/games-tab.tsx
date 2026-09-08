@@ -61,10 +61,10 @@ import type {
 import { CreateGameDialog } from "./create-game-dialog";
 
 const STATUS_STYLES: Record<string, string> = {
-  open: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
-  full: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400",
-  completed: "bg-muted text-muted-foreground",
-  cancelled: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",
+  open: "bg-positive-100 text-success-ink dark:bg-positive-500/15 dark:text-positive-400",
+  full: "bg-attention-100 text-warning-ink dark:bg-attention-500/15 dark:text-attention-400",
+  completed: "bg-success/15 text-success-ink",
+  cancelled: "bg-negative-100 text-error-ink dark:bg-negative-500/15 dark:text-negative-400",
 };
 
 function gameMatchesProfile(game: FriendlyGameWithDetails, profile: Profile) {
@@ -209,8 +209,8 @@ function GameCard({
               <Badge
                 className={`gap-1 text-[10px] ${
                   game.fee_status === "pending"
-                    ? "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400"
-                    : "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400"
+                    ? "bg-attention-100 text-warning-ink dark:bg-attention-500/15 dark:text-attention-400"
+                    : "bg-negative-100 text-error-ink dark:bg-negative-500/15 dark:text-negative-400"
                 }`}
               >
                 {t(`game_fee_status_${game.fee_status}` as any)}
@@ -224,7 +224,7 @@ function GameCard({
           </div>
         </div>
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Star className="h-3 w-3 text-amber-500" />
+          <Star className="h-3 w-3 text-warning-ink" />
           {game.sport}
           <span className="text-muted-foreground">
             · {isOrganizer ? t("community_organizer") : game.creator_name}
@@ -253,7 +253,7 @@ function GameCard({
 
         {game.result_a != null && game.result_b != null && (
           <div className="flex items-center gap-2">
-            <Trophy className="h-4 w-4 text-amber-500" />
+            <Trophy className="h-4 w-4 text-warning-ink" />
             <span className="text-sm font-semibold">
               {game.result_a} – {game.result_b}
             </span>

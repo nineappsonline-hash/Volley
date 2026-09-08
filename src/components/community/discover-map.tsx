@@ -26,10 +26,10 @@ import type {
 } from "@/lib/types";
 
 function pinFor(kind: "game" | "academy") {
-  const color = kind === "game" ? "#2563eb" : "#7c3aed";
+  const color = kind === "game" ? "hsl(var(--info))" : "hsl(var(--playza-navy))";
   return L.divIcon({
     className: "",
-    html: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z" fill="${color}" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="10" r="3" fill="#fff"/></svg>`,
+    html: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z" fill="${color}" stroke="hsl(var(--on-brand))" stroke-width="1.5"/><circle cx="12" cy="10" r="3" fill="hsl(var(--on-brand))"/></svg>`,
     iconSize: [28, 28],
     iconAnchor: [14, 28],
   });
@@ -170,8 +170,8 @@ export default function DiscoverMap({ profile }: { profile: Profile }) {
                       variant={g.status === "full" ? "secondary" : "outline"}
                       className={`shrink-0 text-[10px] ${
                         g.status === "full"
-                          ? "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400"
-                          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400"
+                          ? "bg-attention-100 text-warning-ink dark:bg-attention-500/15 dark:text-attention-400"
+                          : "bg-positive-100 text-success-ink dark:bg-positive-500/15 dark:text-positive-400"
                       }`}
                     >
                       {t(`community_status_${g.status}`)}

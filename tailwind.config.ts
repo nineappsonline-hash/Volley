@@ -1,5 +1,9 @@
 import type { Config } from "tailwindcss";
 
+const scale = (name: string) => Object.fromEntries(
+  [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950].map(step =>
+    [step, `hsl(var(--playza-${name}-${step}) / <alpha-value>)`])
+);
 const config: Config = {
   darkMode: ["class"],
   content: [
@@ -54,11 +58,20 @@ const config: Config = {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
         },
-        volleyball: {
-          DEFAULT: "#2563EB",
-          yellow: "#FACC15",
-          navy: "#0F172A",
-        },
+        surface: "hsl(var(--surface) / <alpha-value>)",
+        brand: { DEFAULT: "hsl(var(--playza-navy) / <alpha-value>)", ...scale("navy") },
+        interactive: scale("blue"),
+        positive: scale("green"),
+        attention: scale("orange"),
+        negative: scale("red"),
+        neutral: scale("slate"),
+        "success-ink": "hsl(var(--success-ink) / <alpha-value>)",
+        "warning-ink": "hsl(var(--warning-ink) / <alpha-value>)",
+        "info-ink": "hsl(var(--info-ink) / <alpha-value>)",
+        "error-ink": "hsl(var(--error-ink) / <alpha-value>)",
+        warning: { DEFAULT: "hsl(var(--warning) / <alpha-value>)", foreground: "hsl(var(--warning-foreground) / <alpha-value>)" },
+        info: { DEFAULT: "hsl(var(--info) / <alpha-value>)", foreground: "hsl(var(--info-foreground) / <alpha-value>)" },
+        error: "hsl(var(--error) / <alpha-value>)",
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
   Building2,
+  Camera,
   Check,
   CheckCircle2,
   Copy,
@@ -12,6 +13,7 @@ import {
   Crown,
   Flame,
   Link2,
+  Loader2,
   Mail,
   MapPin,
   Phone,
@@ -22,7 +24,6 @@ import {
   UserRound,
   Zap,
 } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,15 +38,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ProfileAvatar } from "@/components/shared/profile-avatar";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { CheckinQrCard } from "@/components/profile/checkin-qr-card";
+import { FamilyCard } from "@/components/profile/family-card";
 import { DeleteAccountCard } from "@/components/settings/delete-account-card";
 import { MapPicker } from "@/components/shared/map-picker";
+import { createClient } from "@/lib/supabase/client";
 import { useI18n, type Dict } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import { usedSessionsSincePayment } from "@/lib/calculations";
-import { initials } from "@/lib/utils";
 import {
   useAcademy,
   useAllPayments,
@@ -153,11 +156,12 @@ function AcademyProfile({ serverProfile }: { serverProfile: Profile }) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16">
-                <AvatarFallback className="text-lg">
-                  {initials(academy.name) || "A"}
-                </AvatarFallback>
-              </Avatar>
+              <ProfileAvatar
+                name={academy.name}
+                url={p.avatar_url}
+                className="h-16 w-16"
+                fallbackClassName="text-lg"
+              />
               <div className="min-w-0">
                 <p className="text-lg font-bold">{academy.name}</p>
                 <div className="mt-1 flex flex-wrap gap-1">
@@ -266,7 +270,7 @@ function AcademyProfile({ serverProfile }: { serverProfile: Profile }) {
                     onClick={() => copy(academy.invite_code, "invite")}
                   >
                     {copied === "invite" ? (
-                      <Check className="h-4 w-4 text-green-600" />
+                      <Check className="h-4 w-4 text-success-ink" />
                     ) : (
                       <Copy className="h-4 w-4" />
                     )}
@@ -289,7 +293,7 @@ function AcademyProfile({ serverProfile }: { serverProfile: Profile }) {
                       onClick={() => copy(publicUrl, "public")}
                     >
                       {copied === "public" ? (
-                        <Check className="h-4 w-4 text-green-600" />
+                        <Check className="h-4 w-4 text-success-ink" />
                       ) : (
                         <Copy className="h-4 w-4" />
                       )}
@@ -330,6 +334,8 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
   const [locLng, setLocLng] = useState<number | null>(p.lng ?? null);
   const [saving, setSaving] = useState(false);
   const [savingLoc, setSavingLoc] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const updateProfile = useUpdateOwnProfile();
 
   const { data: payments, isLoading: loadingPayments } = useAllPayments();
@@ -424,6 +430,37 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
     }
   };
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error(t("avatar_invalid_type"));
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t("avatar_too_large"));
+      return;
+    }
+    setUploadingAvatar(true);
+    try {
+      const ext = (file.name.split(".").pop() || "jpg")
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
+      const path = `avatars/${p.id}/avatar.${ext}`;
+      const { error: uploadError } = await createClient()
+        .storage.from("avatars")
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      await updateProfile.mutateAsync({ id: p.id, avatar_url: path });
+      toast.success(t("profile_saved"));
+    } catch {
+      toast.error(t("common_error"));
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader title={t("profile_title")} subtitle={t("profile_subtitle")} />
@@ -433,7 +470,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
           className={`flex items-center gap-3 rounded-lg border p-3 text-sm ${
             premiumWarning === "expired"
               ? "border-destructive/30 bg-destructive/5 text-destructive"
-              : "border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300"
+              : "border-attention-300 bg-attention-50 text-warning-ink dark:bg-attention-500/10 dark:text-attention-300"
           }`}
         >
           <Crown className="h-4 w-4 shrink-0" />
@@ -465,11 +502,33 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16">
-                <AvatarFallback className="text-lg">
-                  {p.name.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <ProfileAvatar
+                  name={p.name}
+                  url={p.avatar_url}
+                  className="h-16 w-16"
+                  fallbackClassName="text-lg"
+                />
+                <button
+                  type="button"
+                  aria-label={t("avatar_change")}
+                  onClick={() => avatarInputRef.current?.click()}
+                  className="absolute -bottom-1 -end-1 flex h-7 w-7 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm transition-colors hover:text-foreground"
+                >
+                  {uploadingAvatar ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Camera className="h-3.5 w-3.5" />
+                  )}
+                </button>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
+              </div>
               <div>
                 <p className="text-lg font-bold">{p.name}</p>
                 <div className="mt-1 flex flex-wrap gap-1">
@@ -484,7 +543,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                     </Badge>
                   )}
                   {p.member_plan === "premium" && (
-                    <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white">
+                    <Badge className="bg-info/15 text-info-ink">
                       <Crown className="mr-1 h-3 w-3" />
                       Premium
                     </Badge>
@@ -618,7 +677,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
 
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div className="flex items-center gap-2 text-sm">
-                  <Flame className="h-4 w-4 text-orange-500" />
+                  <Flame className="h-4 w-4 text-warning-ink" />
                   <span>{t("streak_current")}</span>
                 </div>
                 <Badge variant="outline">
@@ -627,7 +686,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
               </div>
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div className="flex items-center gap-2 text-sm">
-                  <Zap className="h-4 w-4 text-amber-500" />
+                  <Zap className="h-4 w-4 text-warning-ink" />
                   <span>{t("streak_best")}</span>
                 </div>
                 <Badge variant="outline">
@@ -658,14 +717,14 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                         title={t(b.key as keyof Dict)}
                         className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border text-center ${
                           unlocked
-                            ? "border-amber-300 bg-amber-50 dark:bg-amber-500/10"
+                            ? "border-attention-300 bg-attention-50 dark:bg-attention-500/10"
                             : "border-dashed opacity-50"
                         }`}
                       >
                         <Trophy
                           className={`h-4 w-4 ${
                             unlocked
-                              ? "text-amber-500"
+                              ? "text-warning-ink"
                               : "text-muted-foreground"
                           }`}
                         />
@@ -679,6 +738,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
               </div>
             </CardContent>
           </Card>
+          <FamilyCard />
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
@@ -811,7 +871,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                   key={s!.id}
                   className="flex items-center gap-2 rounded-lg border p-2.5 text-sm"
                 >
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-success-ink" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">
                       {format(new Date(s!.date + "T00:00:00"), "EEE, MMM d", { locale })}

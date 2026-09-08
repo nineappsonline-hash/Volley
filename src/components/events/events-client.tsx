@@ -12,13 +12,13 @@ import { useNearbyTournaments } from "@/lib/queries";
 import type { Profile } from "@/lib/types";
 
 const STATUS_STYLES: Record<string, string> = {
-  upcoming: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400",
+  upcoming: "bg-interactive-100 text-info-ink dark:bg-interactive-500/15 dark:text-interactive-400",
   in_progress:
-    "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
+    "bg-positive-100 text-success-ink dark:bg-positive-500/15 dark:text-positive-400",
   completed:
     "bg-muted text-muted-foreground",
   canceled:
-    "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",
+    "bg-negative-100 text-error-ink dark:bg-negative-500/15 dark:text-negative-400",
 };
 
 export function EventsClient({ profile }: { profile: Profile }) {

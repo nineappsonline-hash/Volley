@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { CheckCircle2, Circle, Save, Users } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ProfileAvatar } from "@/components/shared/profile-avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,7 +26,6 @@ import {
   buildSessionCalculation,
   memberPerSessionValue,
 } from "@/lib/calculations";
-import { initials } from "@/lib/utils";
 import type { TrainingSession } from "@/lib/types";
 
 interface AttendanceTableProps {
@@ -233,7 +232,7 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
           </div>
           <div className="rounded-lg bg-muted/50 p-3">
             <p className="text-xs text-muted-foreground">{t("attendance_revenue")}</p>
-            <p className="mt-1 text-xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400">
+            <p className="mt-1 text-xl font-extrabold font-mono text-success-ink dark:text-positive-400">
               {calc ? formatMoney(calc.total_revenue, lang) : "—"}
             </p>
           </div>
@@ -243,7 +242,7 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
               {calc && monthCost ? formatMoney(calc.cost_per_session, lang) : "—"}
             </p>
             {!monthCost && (
-              <p className="mt-1 text-[11px] leading-tight text-amber-600 dark:text-amber-400">
+              <p className="mt-1 text-[11px] leading-tight text-warning-ink dark:text-attention-400">
                 {t("attendance_no_costs_hint")}
               </p>
             )}
@@ -276,7 +275,7 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
           onClick={() => markAll(true)}
           disabled={saving}
         >
-          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+          <CheckCircle2 className="h-4 w-4 text-success-ink" />
           {t("attendance_mark_all")}
         </Button>
         <Button
@@ -328,7 +327,7 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
                 <tr
                   key={m.id}
                   className={`border-b last:border-0 transition-colors ${
-                    present ? "bg-emerald-50/60 dark:bg-emerald-500/5" : "hover:bg-accent/40"
+                    present ? "bg-positive-50/60 dark:bg-positive-500/5" : "hover:bg-accent/40"
                   }`}
                 >
                   <td className="px-4 py-2.5">
@@ -340,9 +339,7 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
                   </td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>{initials(m.name)}</AvatarFallback>
-                      </Avatar>
+                      <ProfileAvatar name={m.name} url={m.avatar_url} className="h-8 w-8" />
                       <div>
                         <p className="font-medium">{m.name}</p>
                         <p className="text-xs text-muted-foreground">
@@ -361,7 +358,7 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
                       onClick={() => toggle(m.id, !present)}
                       className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
                         present
-                          ? "border-emerald-500 bg-emerald-500"
+                          ? "border-positive-500 bg-positive-500"
                           : "border-input bg-muted"
                       } ${pendingChange ? "opacity-70" : ""}`}
                     >

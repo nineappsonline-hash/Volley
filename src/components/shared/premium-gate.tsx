@@ -29,7 +29,7 @@ export function PremiumGate({ profile, children, description }: PremiumGateProps
         <div className="h-full w-full bg-[radial-gradient(circle_at_30%_40%,hsl(var(--primary)),transparent_60%)]" />
       </div>
       <CardHeader className="relative z-10 text-center">
-        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg shadow-amber-500/30">
+        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-interactive-700 text-white shadow-lg shadow-interactive-500/30">
           <Crown className="h-6 w-6" />
         </div>
         <CardTitle className="text-lg">{t("premium_gate_title")}</CardTitle>
@@ -48,13 +48,13 @@ export function PremiumGate({ profile, children, description }: PremiumGateProps
             "premium_feat_friendlies",
           ].map((key) => (
             <li key={key} className="flex items-center gap-2">
-              <Sparkles className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+              <Sparkles className="h-3.5 w-3.5 shrink-0 text-info-ink" />
               <span>{t(key as keyof Dict)}</span>
             </li>
           ))}
         </ul>
         <Button
-          className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700"
+          className="w-full bg-gradient-to-r from-interactive-600 to-interactive-700 text-white hover:from-interactive-700 hover:to-interactive-800"
           onClick={() => router.push("/upgrade")}
         >
           <Crown className="mr-2 h-4 w-4" />

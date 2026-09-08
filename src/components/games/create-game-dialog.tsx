@@ -291,7 +291,7 @@ export function CreateGameDialog({
             )}
             {selectedPlayground ? (
               <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success-ink" />
                 {t("games_playground_selected")}
                 <span className="truncate">
                   {[selectedPlayground.name, playgroundLines(selectedPlayground)]
@@ -521,14 +521,14 @@ export function CreateGameDialog({
                 <div className="flex items-center gap-2">
                   <Input type="file" accept="image/*" onChange={handleFile} disabled={uploading} />
                   {uploading && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />}
-                  {receiptUrl && !uploading && <Upload className="h-4 w-4 shrink-0 text-emerald-600" />}
+                  {receiptUrl && !uploading && <Upload className="h-4 w-4 shrink-0 text-success-ink" />}
                 </div>
                 <p className="text-xs text-muted-foreground">{t("game_fee_receipt_hint")}</p>
               </div>
             )}
 
             {feeMethod && feeMethod !== "kashier" && (
-              <p className="rounded-lg border border-amber-300/60 bg-amber-50 p-2.5 text-[11px] text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
+              <p className="rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 text-[11px] text-warning-ink dark:bg-attention-500/10 dark:text-attention-300">
                 {t("games_autolive_note")}
               </p>
             )}

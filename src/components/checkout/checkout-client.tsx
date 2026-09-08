@@ -203,13 +203,13 @@ export function CheckoutClient({ profile }: { profile: Profile }) {
         )}
       >
         {tier === "plus" && (
-          <Badge className="absolute -top-2.5 end-2 bg-amber-500 text-white dark:bg-amber-500">
+          <Badge className="absolute -top-2.5 end-2 bg-warning text-warning-foreground dark:bg-attention-500">
             <Sparkles className="me-1 h-3 w-3" />
             {t("plans_popular")}
           </Badge>
         )}
         {tier === "elite" && (
-          <Crown className="absolute -top-2.5 end-3 h-4 w-4 text-amber-500" />
+          <Crown className="absolute -top-2.5 end-3 h-4 w-4 text-warning-ink" />
         )}
         <span className="text-sm font-semibold">
           {t(`plans_tier_${tier}` as keyof Dict)}
@@ -238,9 +238,9 @@ export function CheckoutClient({ profile }: { profile: Profile }) {
   };
 
   const statusStyles: Record<PlanSubscription["receipt_status"], string> = {
-    pending: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
-    verified: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
-    rejected: "bg-red-500/15 text-red-600 dark:text-red-400",
+    pending: "bg-attention-500/15 text-warning-ink dark:text-attention-400",
+    verified: "bg-positive-500/15 text-success-ink dark:text-positive-400",
+    rejected: "bg-negative-500/15 text-error-ink dark:text-negative-400",
   };
 
   const statusIcon: Record<PlanSubscription["receipt_status"], typeof Check> = {
@@ -299,14 +299,14 @@ export function CheckoutClient({ profile }: { profile: Profile }) {
                 </button>
                 <button
                   type="button"
-                  className="relative flex flex-col items-start gap-1 rounded-xl border border-amber-400/60 p-4 text-start"
+                  className="relative flex flex-col items-start gap-1 rounded-xl border border-attention-400/60 p-4 text-start"
                 >
-                  <Badge className="absolute -top-2.5 end-2 bg-amber-500 text-white dark:bg-amber-500">
+                  <Badge className="absolute -top-2.5 end-2 bg-warning text-warning-foreground dark:bg-attention-500">
                     <Sparkles className="me-1 h-3 w-3" />
                     {t("plans_popular")}
                   </Badge>
                   <span className="flex items-center gap-1.5 text-sm font-semibold">
-                    <Crown className="h-4 w-4 text-amber-500" />
+                    <Crown className="h-4 w-4 text-warning-ink" />
                     {t("mplan_tier_pro")}
                   </span>
                   <span className="text-xs text-muted-foreground">
@@ -384,7 +384,7 @@ export function CheckoutClient({ profile }: { profile: Profile }) {
                           {t(`checkout_method_${m}_hint` as keyof Dict)}
                         </p>
                         {disabled && (
-                          <p className="mt-1 text-[11px] font-medium text-amber-600">
+                          <p className="mt-1 text-[11px] font-medium text-warning-ink">
                             {t("checkout_method_kashier_soon")}
                           </p>
                         )}
@@ -435,15 +435,15 @@ export function CheckoutClient({ profile }: { profile: Profile }) {
                   </span>
                 </div>
                 <Button
-                  className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700"
+                  className="w-full bg-gradient-to-r from-brand to-interactive-700 text-white hover:from-brand hover:to-interactive-800"
                   disabled={!canPay || purchase.isPending}
                   onClick={handlePay}
                 >
                   {purchase.isPending ? "…" : t("checkout_pay_now")}
                 </Button>
-                <div className="flex items-start gap-2 rounded-lg border border-amber-300/60 bg-amber-50 p-3 text-xs dark:bg-amber-500/10">
-                  <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-                  <p className="text-amber-800 dark:text-amber-300">
+                <div className="flex items-start gap-2 rounded-lg border border-attention-300/60 bg-attention-50 p-3 text-xs dark:bg-attention-500/10">
+                  <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning-ink" />
+                  <p className="text-warning-ink dark:text-attention-300">
                     <span className="font-semibold">{t("checkout_warning_title")}: </span>
                     {t("checkout_warning_body")}
                   </p>
@@ -599,7 +599,7 @@ function selectedMethodInstructions(
             {uploading ? "…" : t("checkout_screenshot")}
           </Button>
           {receiptUrl && (
-            <span className="flex items-center gap-1 text-xs font-medium text-emerald-600">
+            <span className="flex items-center gap-1 text-xs font-medium text-success-ink">
               <CheckCircle2 className="h-3.5 w-3.5" />
               {t("checkout_screenshot_ok")}
             </span>

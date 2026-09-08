@@ -104,11 +104,11 @@ export function AdminAlerts() {
       <Card>
         <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <AlarmClock className="h-4 w-4 text-amber-500" />
+            <AlarmClock className="h-4 w-4 text-warning-ink" />
             {t("dash_expiring_members")}
           </CardTitle>
           {expiring.length > 0 && (
-            <Badge variant="outline" className="text-amber-600">
+            <Badge variant="outline" className="text-warning-ink">
               {expiring.length}
             </Badge>
           )}
@@ -148,7 +148,7 @@ export function AdminAlerts() {
       <Card>
         <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <HandCoins className="h-4 w-4 text-red-500" />
+            <HandCoins className="h-4 w-4 text-error-ink" />
             {t("dash_debtors")}
           </CardTitle>
           {debtors.length > 0 && (
@@ -188,11 +188,11 @@ export function AdminAlerts() {
       <Card>
         <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <TrendingDown className="h-4 w-4 text-orange-500" />
+            <TrendingDown className="h-4 w-4 text-warning-ink" />
             {t("dash_at_risk")}
           </CardTitle>
           {atRisk.length > 0 && (
-            <Badge variant="outline" className="text-orange-600">
+            <Badge variant="outline" className="text-warning-ink">
               {atRisk.length}
             </Badge>
           )}
@@ -208,7 +208,7 @@ export function AdminAlerts() {
                 className="flex items-center justify-between rounded-lg border p-3 text-sm hover:bg-muted/50"
               >
                 <p className="truncate font-medium">{profile.name}</p>
-                <Badge variant="outline" className="font-mono text-orange-600">
+                <Badge variant="outline" className="font-mono text-warning-ink">
                   {Math.round(rate * 100)}%
                 </Badge>
               </Link>

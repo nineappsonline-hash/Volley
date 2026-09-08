@@ -1,3 +1,4 @@
+import { PLAYZA } from "@/lib/brand";
 import { Resend } from "resend";
 
 const resend = process.env.RESEND_API_KEY
@@ -35,15 +36,15 @@ function baseLayout(content: string): string {
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:system-ui,-apple-system,sans-serif;">
-  <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-    <div style="background:linear-gradient(135deg,#2563EB,#0EA5E9);padding:24px;text-align:center;">
-      <h1 style="color:#fff;margin:0;font-size:20px;">🏐 Volleyra</h1>
+<body style="margin:0;padding:0;background:${PLAYZA.background};font-family:system-ui,-apple-system,sans-serif;">
+  <div style="max-width:560px;margin:40px auto;background:${PLAYZA.surface};border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+    <div style="background:linear-gradient(135deg,${PLAYZA.navy},${PLAYZA.blue});padding:24px;text-align:center;">
+      <h1 style="color:${PLAYZA.surface};margin:0;font-size:20px;">🏐 Volleyra</h1>
     </div>
     <div style="padding:32px 24px;">
       ${content}
     </div>
-    <div style="padding:16px 24px;background:#f9fafb;text-align:center;color:#9ca3af;font-size:12px;">
+    <div style="padding:16px 24px;background:${PLAYZA.background};text-align:center;color:${PLAYZA.secondaryText};font-size:12px;">
       This is an automated message from Volleyra.
     </div>
   </div>
@@ -62,12 +63,12 @@ export function paymentConfirmationEmail(opts: {
     to: "", // caller fills this
     subject: `Payment confirmed — ${opts.sessions} sessions`,
     html: baseLayout(`
-      <h2 style="margin:0 0 8px;color:#111;">Payment Confirmed ✓</h2>
-      <p style="color:#6b7280;margin:0 0 24px;">Hi ${opts.memberName}, your payment has been recorded.</p>
+      <h2 style="margin:0 0 8px;color:${PLAYZA.navy};">Payment Confirmed ✓</h2>
+      <p style="color:${PLAYZA.secondaryText};margin:0 0 24px;">Hi ${opts.memberName}, your payment has been recorded.</p>
       <table style="width:100%;border-collapse:collapse;">
-        <tr><td style="padding:8px 0;color:#6b7280;">Amount</td><td style="padding:8px 0;text-align:right;font-weight:bold;font-size:18px;">EGP ${opts.amount.toFixed(2)}</td></tr>
-        <tr><td style="padding:8px 0;color:#6b7280;">Sessions</td><td style="padding:8px 0;text-align:right;font-weight:600;">${opts.sessions}</td></tr>
-        <tr><td style="padding:8px 0;color:#6b7280;">Date</td><td style="padding:8px 0;text-align:right;">${opts.date}</td></tr>
+        <tr><td style="padding:8px 0;color:${PLAYZA.secondaryText};">Amount</td><td style="padding:8px 0;text-align:right;font-weight:bold;font-size:18px;">EGP ${opts.amount.toFixed(2)}</td></tr>
+        <tr><td style="padding:8px 0;color:${PLAYZA.secondaryText};">Sessions</td><td style="padding:8px 0;text-align:right;font-weight:600;">${opts.sessions}</td></tr>
+        <tr><td style="padding:8px 0;color:${PLAYZA.secondaryText};">Date</td><td style="padding:8px 0;text-align:right;">${opts.date}</td></tr>
       </table>
     `),
   };
@@ -82,10 +83,10 @@ export function renewalReminderEmail(opts: {
     to: "",
     subject: `Renewal reminder — ${opts.remaining} sessions left`,
     html: baseLayout(`
-      <h2 style="margin:0 0 8px;color:#111;">Renewal Reminder</h2>
-      <p style="color:#6b7280;margin:0 0 16px;">Hi ${opts.memberName},</p>
-      <p style="color:#6b7280;margin:0 0 24px;">You have <strong>${opts.remaining} session${opts.remaining === 1 ? "" : "s"}</strong> remaining. Please renew your subscription to keep attending.</p>
-      <p style="color:#6b7280;margin:0;">Contact your academy to renew.</p>
+      <h2 style="margin:0 0 8px;color:${PLAYZA.navy};">Renewal Reminder</h2>
+      <p style="color:${PLAYZA.secondaryText};margin:0 0 16px;">Hi ${opts.memberName},</p>
+      <p style="color:${PLAYZA.secondaryText};margin:0 0 24px;">You have <strong>${opts.remaining} session${opts.remaining === 1 ? "" : "s"}</strong> remaining. Please renew your subscription to keep attending.</p>
+      <p style="color:${PLAYZA.secondaryText};margin:0;">Contact your academy to renew.</p>
     `),
   };
 }
@@ -101,12 +102,12 @@ export function sessionScheduledEmail(opts: {
     to: "",
     subject: `New training session — ${opts.date}`,
     html: baseLayout(`
-      <h2 style="margin:0 0 8px;color:#111;">New Training Session</h2>
-      <p style="color:#6b7280;margin:0 0 16px;">Hi ${opts.memberName}, a new session has been scheduled:</p>
+      <h2 style="margin:0 0 8px;color:${PLAYZA.navy};">New Training Session</h2>
+      <p style="color:${PLAYZA.secondaryText};margin:0 0 16px;">Hi ${opts.memberName}, a new session has been scheduled:</p>
       <table style="width:100%;border-collapse:collapse;">
-        <tr><td style="padding:8px 0;color:#6b7280;">Date</td><td style="padding:8px 0;text-align:right;font-weight:600;">${opts.date}</td></tr>
-        <tr><td style="padding:8px 0;color:#6b7280;">Time</td><td style="padding:8px 0;text-align:right;">${opts.time}</td></tr>
-        ${opts.location ? `<tr><td style="padding:8px 0;color:#6b7280;">Location</td><td style="padding:8px 0;text-align:right;">${opts.location}</td></tr>` : ""}
+        <tr><td style="padding:8px 0;color:${PLAYZA.secondaryText};">Date</td><td style="padding:8px 0;text-align:right;font-weight:600;">${opts.date}</td></tr>
+        <tr><td style="padding:8px 0;color:${PLAYZA.secondaryText};">Time</td><td style="padding:8px 0;text-align:right;">${opts.time}</td></tr>
+        ${opts.location ? `<tr><td style="padding:8px 0;color:${PLAYZA.secondaryText};">Location</td><td style="padding:8px 0;text-align:right;">${opts.location}</td></tr>` : ""}
       </table>
     `),
   };
@@ -121,10 +122,10 @@ export function welcomeEmail(opts: {
     to: "",
     subject: `Welcome to ${opts.academyName}!`,
     html: baseLayout(`
-      <h2 style="margin:0 0 8px;color:#111;">Welcome! 🎉</h2>
-      <p style="color:#6b7280;margin:0 0 16px;">Hi ${opts.memberName},</p>
-      <p style="color:#6b7280;margin:0 0 24px;">Welcome to <strong>${opts.academyName}</strong>! Your account has been created and you've been added to the roster.</p>
-      <p style="color:#6b7280;margin:0;">Sign in at your academy's portal to view your schedule, attendance, and more.</p>
+      <h2 style="margin:0 0 8px;color:${PLAYZA.navy};">Welcome! 🎉</h2>
+      <p style="color:${PLAYZA.secondaryText};margin:0 0 16px;">Hi ${opts.memberName},</p>
+      <p style="color:${PLAYZA.secondaryText};margin:0 0 24px;">Welcome to <strong>${opts.academyName}</strong>! Your account has been created and you've been added to the roster.</p>
+      <p style="color:${PLAYZA.secondaryText};margin:0;">Sign in at your academy's portal to view your schedule, attendance, and more.</p>
     `),
   };
 }

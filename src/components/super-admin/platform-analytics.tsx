@@ -1,5 +1,7 @@
 "use client";
 
+import { CHART_COLORS } from "@/lib/brand";
+
 import { useMemo } from "react";
 import { format } from "date-fns";
 import {
@@ -37,9 +39,9 @@ import { useI18n } from "@/lib/i18n";
 import { useSuperAdminStats } from "@/lib/queries";
 
 const PLAN_COLORS: Record<string, string> = {
-  free: "#64748B",
-  plus: "#2563EB",
-  enterprise: "#10B981",
+  free: CHART_COLORS.neutral,
+  plus: CHART_COLORS.interaction,
+  enterprise: CHART_COLORS.success,
 };
 
 const STATUS_ORDER = ["open", "full", "completed", "cancelled"] as const;
@@ -236,8 +238,8 @@ export function PlatformAnalytics() {
               <AreaChart data={membersChart} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
                 <defs>
                   <linearGradient id="fillMembers" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#2563EB" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#2563EB" stopOpacity={0} />
+                    <stop offset="0%" stopColor={CHART_COLORS.interaction} stopOpacity={0.3} />
+                    <stop offset="100%" stopColor={CHART_COLORS.interaction} stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -247,6 +249,7 @@ export function PlatformAnalytics() {
                   formatter={(value: number | string) => [String(value), t("sa_members")]}
                   contentStyle={{
                     background: "hsl(var(--card))",
+                    color: "hsl(var(--foreground))",
                     border: "1px solid hsl(var(--border))",
                     borderRadius: 8,
                     fontSize: 12,
@@ -255,7 +258,7 @@ export function PlatformAnalytics() {
                 <Area
                   type="monotone"
                   dataKey="count"
-                  stroke="#2563EB"
+                  stroke={CHART_COLORS.interaction}
                   fill="url(#fillMembers)"
                   strokeWidth={2}
                 />
@@ -294,6 +297,7 @@ export function PlatformAnalytics() {
                     ]}
                     contentStyle={{
                       background: "hsl(var(--card))",
+                    color: "hsl(var(--foreground))",
                       border: "1px solid hsl(var(--border))",
                       borderRadius: 8,
                       fontSize: 12,
@@ -341,12 +345,13 @@ export function PlatformAnalytics() {
                   formatter={(value: number | string) => [String(value), t("sa_games")]}
                   contentStyle={{
                     background: "hsl(var(--card))",
+                    color: "hsl(var(--foreground))",
                     border: "1px solid hsl(var(--border))",
                     borderRadius: 8,
                     fontSize: 12,
                   }}
                 />
-                <Bar dataKey="count" fill="#8B5CF6" radius={[4, 4, 0, 0]} maxBarSize={28} />
+                <Bar dataKey="count" fill={CHART_COLORS.brand} radius={[4, 4, 0, 0]} maxBarSize={28} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -380,7 +385,7 @@ export function PlatformAnalytics() {
                       <span className="w-32 shrink-0 truncate">{s.sport}</span>
                       <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
                         <div
-                          className="h-full rounded-full bg-violet-500"
+                          className="h-full rounded-full bg-brand-500"
                           style={{ width: `${(s.count / max) * 100}%` }}
                         />
                       </div>
@@ -421,27 +426,28 @@ export function PlatformAnalytics() {
                   ]}
                   contentStyle={{
                     background: "hsl(var(--card))",
+                    color: "hsl(var(--foreground))",
                     border: "1px solid hsl(var(--border))",
                     borderRadius: 8,
                     fontSize: 12,
                   }}
                 />
-                <Bar dataKey="session" stackId="a" fill="#2563EB" radius={[0, 0, 0, 0]} maxBarSize={28} />
-                <Bar dataKey="game" stackId="a" fill="#10B981" radius={[0, 0, 0, 0]} maxBarSize={28} />
-                <Bar dataKey="payments" fill="#F59E0B" radius={[4, 4, 0, 0]} maxBarSize={28} />
+                <Bar dataKey="session" stackId="a" fill={CHART_COLORS.interaction} radius={[0, 0, 0, 0]} maxBarSize={28} />
+                <Bar dataKey="game" stackId="a" fill={CHART_COLORS.success} radius={[0, 0, 0, 0]} maxBarSize={28} />
+                <Bar dataKey="payments" fill={CHART_COLORS.attention} radius={[4, 4, 0, 0]} maxBarSize={28} />
               </BarChart>
             </ResponsiveContainer>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-blue-600" />
+                <span className="h-2 w-2 rounded-full bg-interactive-600" />
                 {t("sa_session_fees")} · {money(platformFees.session)}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="h-2 w-2 rounded-full bg-positive-500" />
                 {t("sa_game_fees")} · {money(platformFees.game)}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-amber-500" />
+                <span className="h-2 w-2 rounded-full bg-attention-500" />
                 {t("sa_member_payments")} · {money(Number(stats.fees.payments_total))}
               </span>
             </div>
@@ -466,7 +472,7 @@ export function PlatformAnalytics() {
             </div>
             <div className="flex items-center justify-between rounded-lg border p-3">
               <span className="flex items-center gap-2 text-sm">
-                <Gamepad2 className="h-4 w-4 text-violet-500" />
+                <Gamepad2 className="h-4 w-4 text-foreground" />
                 {t("sa_game_fees")}
                 <span className="text-xs text-muted-foreground">
                   ({stats.fees.game_count})
@@ -478,7 +484,7 @@ export function PlatformAnalytics() {
             </div>
             <div className="flex items-center justify-between rounded-lg border p-3">
               <span className="flex items-center gap-2 text-sm">
-                <Users className="h-4 w-4 text-amber-500" />
+                <Users className="h-4 w-4 text-warning-ink" />
                 {t("sa_member_payments")}
                 <span className="text-xs text-muted-foreground">
                   ({stats.fees.payments_count})

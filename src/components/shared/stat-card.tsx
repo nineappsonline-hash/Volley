@@ -13,13 +13,13 @@ interface StatCardProps {
 }
 
 const toneClasses: Record<string, string> = {
-  default: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400",
+  default: "bg-interactive-50 text-info-ink dark:bg-interactive-500/10 dark:text-interactive-400",
   success:
-    "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400",
+    "bg-positive-50 text-success-ink dark:bg-positive-500/10 dark:text-positive-400",
   destructive:
-    "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400",
+    "bg-negative-50 text-error-ink dark:bg-negative-500/10 dark:text-negative-400",
   warning:
-    "bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10 dark:text-yellow-400",
+    "bg-attention-50 text-warning-ink dark:bg-attention-500/10 dark:text-attention-400",
 };
 
 export function StatCard({

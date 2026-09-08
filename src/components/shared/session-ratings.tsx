@@ -40,7 +40,7 @@ export function SessionRatings({ sessionId, currentUserId }: { sessionId: string
       <div className="flex items-center justify-between">
         <h4 className="font-medium">{t("rate_session")}</h4>
         <div className="text-sm text-muted-foreground flex items-center gap-1">
-          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+          <Star className="h-4 w-4 fill-attention-400 text-attention-400" />
           <span>{avgRating}</span>
           <span>({ratings.length} {t("rate_reviews")})</span>
         </div>
@@ -63,8 +63,8 @@ export function SessionRatings({ sessionId, currentUserId }: { sessionId: string
                 <Star
                   className={`h-6 w-6 transition-colors ${
                     star <= (hoveredStar || myRating)
-                      ? "fill-yellow-400 text-yellow-400"
-                      : "text-gray-300"
+                      ? "fill-attention-400 text-attention-400"
+                      : "text-neutral-300"
                   }`}
                 />
               </button>
@@ -100,7 +100,7 @@ export function SessionRatings({ sessionId, currentUserId }: { sessionId: string
                 {[1, 2, 3, 4, 5].map((s) => (
                   <Star
                     key={s}
-                    className={`h-3 w-3 ${s <= rating.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}`}
+                    className={`h-3 w-3 ${s <= rating.rating ? "fill-attention-400 text-attention-400" : "text-neutral-200"}`}
                   />
                 ))}
               </div>

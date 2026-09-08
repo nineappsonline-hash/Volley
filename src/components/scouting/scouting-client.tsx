@@ -165,7 +165,7 @@ export function ScoutingClient({ profile }: { profile: Profile }) {
                         <Star
                           className={
                             noted
-                              ? "h-4 w-4 fill-amber-400 text-amber-400"
+                              ? "h-4 w-4 fill-interactive-400 text-interactive-400"
                               : "h-4 w-4"
                           }
                         />

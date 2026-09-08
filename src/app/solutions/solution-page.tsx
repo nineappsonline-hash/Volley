@@ -113,7 +113,7 @@ export function SolutionPage({
             {taglineAr}
           </p>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-            <Button asChild size="lg" className="bg-white text-blue-700 hover:bg-white/90">
+            <Button asChild size="lg" className="bg-white text-info-ink hover:bg-white/90">
               <Link href="/signup">
                 Start Free Trial
                 <ArrowRight className="ms-2 h-5 w-5 rtl:rotate-180" />
@@ -182,7 +182,7 @@ export function SolutionPage({
               <ul className="mt-3 space-y-2">
                 {useCases.map((uc) => (
                   <li key={uc} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-success-ink" />
                     {uc}
                   </li>
                 ))}
@@ -193,7 +193,7 @@ export function SolutionPage({
               <ul className="mt-3 space-y-2">
                 {useCasesAr.map((uc) => (
                   <li key={uc} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-success-ink" />
                     {uc}
                   </li>
                 ))}

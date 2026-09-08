@@ -25,7 +25,7 @@ export function ProfitLossIndicator({
       variant={isProfit ? "success" : "destructive"}
       className={cn(
         "gap-1 font-mono text-xs",
-        isProfit ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400" : "",
+        isProfit ? "bg-positive-100 text-success-ink dark:bg-positive-500/15 dark:text-positive-400" : "",
         className
       )}
     >

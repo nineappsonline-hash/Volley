@@ -29,14 +29,15 @@ export default async function DashboardLayout({
     : null;
 
   return (
-    <div className="min-h-screen bg-muted/20 pb-[env(safe-area-inset-bottom)]">
-      <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 border-e bg-card lg:block">
+    <div className="min-h-screen bg-background pb-[env(safe-area-inset-bottom)]">
+      <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 border-e bg-brand lg:block">
         <Sidebar role={profile.role} name={profile.name} memberPlan={profile.member_plan} />
       </aside>
       <div className="lg:ps-64">
         <Topbar
           role={profile.role}
           name={profile.name}
+          avatarUrl={profile.avatar_url}
           memberPlan={profile.member_plan}
           academy={academy}
         />
