@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpLeft, Check, CalendarDays, QrCode, Users, TrendingUp, MessageCircle, MapPin, Wallet, Trophy, Heart, Volleyball, Menu, X } from "lucide-react";
 import { AppLogo } from "@/components/shared/app-logo";
 import styles from "./landing.module.css";
@@ -49,11 +50,9 @@ export function LandingPage() {
 
       <section id="about" className={styles.hero}>
         <div className={styles.heroCopy}><span className={styles.eyebrow}><span /> لعب أكتر. تنظيم أسهل.</span><h1>نفسك تلعب؟<br /><em>لاقي لَمّتك مع بلايزا.</em></h1><p>دور على ماتش ودي، اتعرف على لاعبين بيحبوا نفس رياضتك، أو اكتشف أكاديمية تتمرن فيها. ولو بتتابع ولادك أو بتدير أكاديمية، هتلاقي أدوات تسهّل عليك المواعيد والحضور ومتابعة التطور.</p><div className={styles.actions}><Link className={styles.cta} href="/signup">يلا نبدأ <ArrowUpLeft size={20} /></Link><Link className={styles.secondary} href="/academies">اكتشف الأكاديميات <MapPin size={18} /></Link></div><p className={styles.heroNote}>مش لازم تكون مشترك في أكاديمية عشان تبدأ.</p></div>
-        <div className={styles.visual} role="img" aria-label="رسم توضيحي لملعب مع بطاقات تمثل تنظيم التدريب ومتابعة الأداء">
-          <span className={styles.orbit} /><div className={styles.court}><div className={styles.courtInner}><span className={styles.centerLine} /><span className={styles.centerCircle} /><span className={styles.goalOne} /><span className={styles.goalTwo} /><i className={styles.playerOne} /><i className={styles.playerTwo} /><i className={styles.playerThree} /><i className={styles.playerFour} /><Volleyball className={styles.ball} size={44} /></div><span className={styles.courtLabel}>اللعبة بتحلى باللّمّة</span></div>
-          <div className={styles.floatingCard}><span className={styles.iconGreen}><Check size={20} /></span><div><strong>خطوة في الملعب</strong><small>وخطوة لقدّام في مستواك</small></div></div>
-          <div className={styles.progressCard}><TrendingUp size={22} /><strong>كل تمرينة بتفرق</strong><div className={styles.bars}>{[30, 48, 40, 65, 72, 94].map((height, i) => <span key={i} style={{ height: `${height}%`, animationDelay: `${i * 100}ms` }} />)}</div><small>تابع رحلتك، وشوف تطورك</small></div>
-          <span className={styles.visualCaption}>رسم توضيحي للمميزات، مش بيانات فعلية</span>
+        <div className={styles.editorialHero}>
+          <Image src="/images/playza-sports-editorial.png" alt="مشاهد رياضية توضيحية لكرة القدم والبادل والسباحة والكرة الطايرة" width={1536} height={1024} priority sizes="(max-width: 700px) 100vw, 50vw" />
+          <div className={styles.editorialCaption}><span>أربع رياضات. شغف واحد.</span><strong>اللّمّة بتبدأ هنا.</strong></div>
         </div>
       </section>
       <div className={styles.sports} aria-label="رياضات مختلفة"><span>رياضتك إيه؟</span>{["كرة قدم", "كرة طايرة", "بادل", "باسكت", "سباحة"].map(sport => <span key={sport}><Volleyball size={16} />{sport}</span>)}</div>
@@ -66,8 +65,8 @@ export function LandingPage() {
       <section className={styles.arenaSection}>
         <div className={styles.arenaCopy}><span className={styles.kicker}>كلنا بنبدأ بخطوة</span><h2>من «نفسي ألعب»<br />لـ «معادي في الملعب».</h2><p>رياضتك، أصحابك، وتمرينتك الجاية. بلايزا بيقرّبك من اللّمّة اللي بتستناها.</p><Link className={styles.cta} href="/signup">خد أول خطوة <ArrowUpLeft size={20} /></Link></div>
         <div className={styles.arenaArt}>
-          <div className={styles.sportSelector} role="group" aria-label="اختار رياضة للرسم المتحرك">{[["football", "كرة قدم"], ["padel", "بادل"], ["swimming", "سباحة"], ["volleyball", "كرة طايرة"]].map(([id, label]) => <button key={id} aria-pressed={sport === id} onClick={() => setSport(id)}>{label}</button>)}</div>
-          <SportScene sport={sport} /><span>اللعب بيجمعنا — اختار رياضتك وشوف الحركة</span>
+          <div className={styles.sportSelector} role="group" aria-label="اختار رياضتك">{[["football", "كرة قدم"], ["padel", "بادل"], ["swimming", "سباحة"], ["volleyball", "كرة طايرة"]].map(([id, label]) => <button key={id} aria-pressed={sport === id} onClick={() => setSport(id)}>{label}</button>)}</div>
+          <SportScene sport={sport} /><span>صور تعبيرية للرياضات، مش صور لأكاديميات مسجلة</span>
         </div>
       </section>
 
@@ -90,33 +89,12 @@ export function LandingPage() {
 
 
 function SportScene({ sport }: { sport: string }) {
-  const swimming = sport === "swimming";
-  const football = sport === "football";
-  const padel = sport === "padel";
-  const label = swimming ? "سباحة" : football ? "كرة قدم" : padel ? "بادل" : "كرة طايرة";
-  return <div className={styles.precisionScene} key={sport}>
-    <div className={styles.sceneHeading}><span>{label}</span><span dir="ltr">PLAYZA / SPORT COLLECTION</span></div>
-    <svg viewBox="0 0 640 400" role="img" aria-label={`رسم هندسي ل${swimming ? "حمام سباحة" : `ملعب ${label}`} من أعلى`}>
-      <defs>
-        <linearGradient id="sport-surface" x1="0" y1="0" x2="1" y2="1"><stop stopColor={swimming ? "#278baa" : "#326458"}/><stop offset="1" stopColor={swimming ? "#13516d" : "#183e37"}/></linearGradient>
-        <pattern id="surface-grain" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".5" fill="#fff" opacity=".09"/></pattern>
-        <linearGradient id="water-reflection"><stop stopColor="#fff" stopOpacity="0"/><stop offset=".5" stopColor="#fff" stopOpacity=".12"/><stop offset="1" stopColor="#fff" stopOpacity="0"/></linearGradient>
-      </defs>
-      <rect x="25" y="35" width="590" height="330" rx="12" fill="#ffffff04" stroke="#fff" strokeOpacity=".12"/>
-      <rect x="42" y="52" width="556" height="296" rx="3" fill="url(#sport-surface)"/>
-      <rect x="42" y="52" width="556" height="296" fill="url(#surface-grain)"/>
-      {swimming ? <>
-        {[0,1,2,3,4,5].map(i=><g key={i}><path d={`M58 ${76+i*46}H582`} stroke="#b9e5e9" strokeWidth="3" strokeDasharray="4 6" opacity=".65"/><path d={`M85 ${99+i*46}H555m-470-9v18m470-18v18`} stroke="#093f59" strokeWidth="3"/><text x="63" y={104+i*46} fill="#dbf2f5" fontSize="10" fontFamily="sans-serif">{i+1}</text></g>)}
-        <rect className={styles.waterSheen} x="80" y="54" width="160" height="292" fill="url(#water-reflection)"/>
-        <g className={styles.laneMarker}><path d="M245 191h-35m35 8h-49m49 8h-30" stroke="#b9f3ff" strokeOpacity=".65" strokeLinecap="round"/><ellipse cx="259" cy="199" rx="13" ry="5" fill="#e6faff"/><circle cx="275" cy="199" r="4" fill="#ffa960"/></g>
-      </> : <g fill="none" stroke="#d9e9df" strokeWidth="1.8" strokeOpacity=".8">
-        <path d="M63 72H577V328H63Z M320 72V328"/>
-        {football ? <><circle cx="320" cy="200" r="47"/><circle cx="320" cy="200" r="2" fill="#fff"/><path d="M63 119h84v162H63m0-120h32v78H63m514-120h-84v162h84m0-120h-32v78h32M42 175h21m-21 50h21m514-50h21m-21 50h21"/><path d="M147 166q34 34 0 68m346-68q-34 34 0 68"/></> : <><path d={padel ? "M191 72v256m258-256v256M191 200h258" : "M235 72v256m170-256v256"}/><path d="M320 64v272" strokeWidth="4" strokeDasharray="2 4"/>{padel && <rect x="51" y="60" width="538" height="280" stroke="#9cc9e6" strokeOpacity=".5"/>}</>}
-        <path className={styles.playRoute} d={football ? "M185 267Q310 115 481 199" : "M179 137Q320 243 459 155"} stroke="#afdccc" strokeDasharray="5 8" strokeOpacity=".45"/>
-        <circle cx="185" cy="267" r="7" fill="#e2f4eb" stroke="#fff"/><circle cx="460" cy="135" r="7" fill="#dfa978" stroke="#f3cfaf"/>
-        <circle className={styles.precisionBall} cx="320" cy="200" r="5" fill={padel ? "#dbec91" : "#fff"} stroke="none"/>
-      </g>}
-    </svg>
-    <div className={styles.sceneFoot}><span>مساحة لشغفك.</span><span>{swimming ? "نَفَس أطول. خطوة أبعد." : "اللعبة تبدأ من هنا."}</span></div>
-  </div>;
+  const scenes: Record<string, { label: string; position: string }> = {
+    football: { label: "كرة قدم", position: "0% 0%" },
+    padel: { label: "بادل", position: "100% 0%" },
+    swimming: { label: "سباحة", position: "0% 100%" },
+    volleyball: { label: "كرة طايرة", position: "100% 100%" },
+  };
+  const scene = scenes[sport] ?? scenes.football;
+  return <div className={styles.sportPhoto} key={sport} role="img" aria-label={`صورة تعبيرية لرياضة ${scene.label}`} style={{ backgroundPosition: scene.position }}><span>{scene.label}</span></div>;
 }
