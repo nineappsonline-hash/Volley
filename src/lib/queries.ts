@@ -1566,12 +1566,15 @@ export function useEvaluations(memberId?: string) {
       let q = supabase()
         .from("player_evaluations")
         .select("*")
-        .order("evaluation_date", { ascending: false });
+        .order("evaluation_date", { ascending: false })
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false });
       if (memberId) q = q.eq("member_id", memberId);
       const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as PlayerEvaluation[];
     },
+    refetchInterval: 30000,
     enabled: memberId ? !!memberId : true,
   });
 }

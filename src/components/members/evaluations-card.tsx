@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/shared/empty-state";
+import { useRealtime } from "@/lib/useRealtime";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage, todayInput } from "@/lib/utils";
 import {
@@ -47,8 +48,10 @@ interface EvaluationsCardProps {
 }
 
 export function EvaluationsCard({ memberId, isAdmin }: EvaluationsCardProps) {
-  const { t, locale } = useI18n();
-  const { data: evaluations } = useEvaluations(memberId);
+  const { t, locale, lang } = useI18n();
+  const ar = lang === "ar";
+  useRealtime(["player_evaluations"]);
+  const { data: evaluations, isLoading, isError, refetch } = useEvaluations(memberId);
   const { data: coaches } = useCoaches();
   const save = useSaveEvaluation();
   const remove = useDeleteEvaluation();
@@ -120,6 +123,9 @@ export function EvaluationsCard({ memberId, isAdmin }: EvaluationsCardProps) {
   const avg = (e: PlayerEvaluation) =>
     Math.round(((e.technique + e.tactics + e.fitness + e.attitude) / 4) * 10) / 10;
 
+  const latest = evaluations?.[0];
+  const previous = evaluations?.[1];
+
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
@@ -135,12 +141,24 @@ export function EvaluationsCard({ memberId, isAdmin }: EvaluationsCardProps) {
         )}
       </CardHeader>
       <CardContent className="space-y-2">
-        {!evaluations || evaluations.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{ar ? "تابع تقييم المدرب وملاحظاته، وقارن آخر تقييم باللي قبله. كل درجة من 5." : "Review coach feedback and compare the latest evaluation with the previous one. Scores are out of 5."}</p>
+        {isLoading ? <p role="status" className="text-sm text-muted-foreground">{ar ? "جاري تحميل التقييمات…" : "Loading evaluations…"}</p>
+          : isError ? <div role="alert"><p className="text-sm text-error-ink">{ar ? "تعذر تحميل التقييمات" : "Could not load evaluations"}</p><Button variant="outline" onClick={() => void refetch()}>{ar ? "حاول تاني" : "Retry"}</Button></div>
+          : !evaluations || evaluations.length === 0 ? (
           <EmptyState message={t("eval_empty")} icon={ClipboardList} />
         ) : (
-          [...evaluations]
-            .sort((a, b) => b.evaluation_date.localeCompare(a.evaluation_date))
-            .map((e) => (
+          <>
+            {latest && <div className="rounded-lg border bg-info/5 p-3 space-y-3">
+              <h3 className="text-sm font-semibold">{ar ? "التطور من آخر تقييم" : "Change since previous evaluation"}</h3>
+              {previous ? <p className="text-xs text-muted-foreground">{format(new Date(previous.evaluation_date + "T00:00:00"), "MMM d, yyyy", { locale })} → {format(new Date(latest.evaluation_date + "T00:00:00"), "MMM d, yyyy", { locale })}</p> : <p className="text-xs text-muted-foreground">{ar ? "ده أول تقييم. التغير هيظهر بعد التقييم الجاي." : "This is the first evaluation. Changes appear after the next assessment."}</p>}
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{AXES.map(({key, label}) => {
+                const change = previous ? latest[key] - previous[key] : null;
+                return <div key={key}><p className="text-xs text-muted-foreground">{t(label)}</p><p className="font-semibold">{latest[key]}/5</p>
+                  {change != null && <p className={`text-xs ${change > 0 ? "text-success-ink" : change < 0 ? "text-warning-ink" : "text-muted-foreground"}`}>{change > 0 ? "+" : ""}{change} {ar ? "نقطة" : "points"}</p>}
+                </div>;
+              })}</div>
+            </div>}
+          {evaluations.map((e) => (
               <div key={e.id} className="rounded-lg border p-3 text-sm">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
@@ -152,7 +170,7 @@ export function EvaluationsCard({ memberId, isAdmin }: EvaluationsCardProps) {
                       {e.evaluated_by && (
                         <span className="text-xs text-muted-foreground">
                           {t("eval_by")}{" "}
-                          {(coaches ?? []).find((c) => c.id === e.evaluated_by)?.name ?? ""}
+                          {(coaches ?? []).find((c) => c.id === e.evaluated_by)?.name ?? (ar ? "المدرب" : "Coach")}
                         </span>
                       )}
                     </p>
@@ -199,7 +217,8 @@ export function EvaluationsCard({ memberId, isAdmin }: EvaluationsCardProps) {
                   )}
                 </div>
               </div>
-            ))
+            ))}
+          </>
         )}
       </CardContent>
 

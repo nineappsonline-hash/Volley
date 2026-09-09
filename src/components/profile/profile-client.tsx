@@ -41,6 +41,7 @@ import {
 import { ProfileAvatar } from "@/components/shared/profile-avatar";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
+import { EvaluationsCard } from "@/components/members/evaluations-card";
 import { CheckinQrCard } from "@/components/profile/checkin-qr-card";
 import { FamilyCard } from "@/components/profile/family-card";
 import { DeleteAccountCard } from "@/components/settings/delete-account-card";
@@ -617,6 +618,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
 
         {/* Middle column: subscription + payments */}
         <div className="space-y-6 lg:col-span-2">
+{p.role === "member" && <EvaluationsCard memberId={p.id} isAdmin={false} />}
 {p.checkin_code && (
             <CheckinQrCard code={p.checkin_code} memberName={p.name} />
           )}
