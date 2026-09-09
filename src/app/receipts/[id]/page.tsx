@@ -1,5 +1,6 @@
 "use client";
 
+import { AppLogo } from "@/components/shared/app-logo";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -57,9 +58,7 @@ export default function ReceiptPage() {
 
       <div className="rounded-2xl border bg-card p-8 shadow-sm print:border-0 print:shadow-none">
         <div className="flex flex-col items-center gap-2 border-b pb-6 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-interactive-700 text-white">
-            <Volleyball className="h-7 w-7" />
-          </div>
+          <AppLogo />
           <h1 className="text-lg font-extrabold">{t("appName")}</h1>
           <p className="text-sm font-medium text-muted-foreground">
             {t("receipt_title")}

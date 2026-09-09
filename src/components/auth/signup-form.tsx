@@ -24,6 +24,7 @@ import {
   Volleyball,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { AppLogo } from "@/components/shared/app-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -389,13 +390,7 @@ export function SignupForm() {
         </div>
 
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-interactive-700 text-white shadow-lg shadow-interactive-500/30">
-            {isTenant ? (
-              <Building2 className="h-8 w-8" />
-            ) : (
-              <Volleyball className="h-8 w-8" />
-            )}
-          </div>
+          <AppLogo className="w-44" />
           <h1 className="text-2xl font-extrabold">
             {isTenant ? t("signup_tenant_title") : t("signup_title")}
           </h1>

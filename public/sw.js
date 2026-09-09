@@ -1,4 +1,4 @@
-/* Volley push service worker. */
+/* Playza push service worker. */
 self.addEventListener("install", () => {
   self.skipWaiting();
 });
@@ -8,18 +8,18 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  let data = { title: "Volley", body: "", data: {} };
+  let data = { title: "Playza", body: "", data: {} };
   try {
     const parsed = event.data ? event.data.json() : {};
-    data = { title: "Volley", body: "", ...parsed };
+    data = { title: "Playza", body: "", ...parsed };
   } catch {
     /* fall back to defaults */
   }
 
   const options = {
     body: data.body,
-    icon: data.icon || "/favicon.ico",
-    badge: data.badge || "/favicon.ico",
+    icon: data.icon || "/favicon.png",
+    badge: data.badge || "/favicon.png",
     data: data.data || {},
     vibrate: [100, 50, 100],
   };

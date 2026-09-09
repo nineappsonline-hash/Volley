@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Building2, Loader2, Volleyball } from "lucide-react";
+import { AppLogo } from "@/components/shared/app-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -86,13 +87,7 @@ export function LoginForm() {
         </div>
 
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-interactive-700 text-white shadow-lg shadow-interactive-500/30">
-            {isTenant ? (
-              <Building2 className="h-8 w-8" />
-            ) : (
-              <Volleyball className="h-8 w-8" />
-            )}
-          </div>
+          <AppLogo className="w-44" />
           <h1 className="text-2xl font-extrabold">
             {isTenant ? t("login_tenant_title") : t("login_member_title")}
           </h1>

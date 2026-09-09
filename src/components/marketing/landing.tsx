@@ -1,5 +1,6 @@
 "use client";
 
+import { AppLogo } from "@/components/shared/app-logo";
 import Link from "next/link";
 import {
   ClipboardCheck,
@@ -46,11 +47,9 @@ export function LandingPage() {
       <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col px-6 py-8">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-interactive-700 text-white shadow-lg shadow-interactive-500/30">
-              <Volleyball className="h-6 w-6" />
-            </div>
+            <AppLogo />
             <div className="flex flex-col leading-tight">
-              <span className="text-sm font-extrabold">{t("appName")}</span>
+
               <span className="text-[11px] text-muted-foreground">
                 {t("landing_tagline")}
               </span>

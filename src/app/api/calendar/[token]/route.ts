@@ -48,7 +48,7 @@ export async function GET(
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Volleyra//Schedule//EN",
+    "PRODID:-//Playza//Schedule//EN",
     "CALSCALE:GREGORIAN",
     `X-WR-CALNAME:${icsEscape(academy.name)}`,
   ];

@@ -17,7 +17,7 @@ import {
 export const metadata: Metadata = generateSolutionMetadata(
   "Football",
   "كرة القدم",
-  "Volleyra is the complete management platform for football academies. Track players, training sessions, payments and per-session profitability.",
+  "Playza is the complete management platform for football academies. Track players, training sessions, payments and per-session profitability.",
   [
     "football academy management",
     "soccer academy software",
@@ -56,8 +56,8 @@ export default function FootballPage() {
       heroGradient="from-brand via-brand to-interactive-800"
       tagline="The complete management platform for football academies — players, training, payments and profit tracking."
       taglineAr="منصة الإدارة الشاملة لأكاديميات كرة قدم — اللاعبين والتدريب والمدفوعات وتتبع الأرباح."
-      description="Whether you run a grassroots football school or a professional academy, Volleyra handles everything from player registration and subscription management to training schedules, QR check-in and automatic per-session profit calculations. Stop juggling spreadsheets and WhatsApp — get one system that does it all."
-      descriptionAr="سواء كنت تدير مدرسة كرة قدم محلية أو أكاديمية احترافية، تتعامل فوليرا مع كل شيء من تسجيل اللاعبين وإدارة الاشتراكات إلى جداول التدريب والدخول بالباركود وحسابات الأرباح التلقائية لكل حصة. توقف عن استخدام جداول البيانات وواتساب — احصل على نظام واحد يفعل كل شيء."
+      description="Whether you run a grassroots football school or a professional academy, Playza handles everything from player registration and subscription management to training schedules, QR check-in and automatic per-session profit calculations. Stop juggling spreadsheets and WhatsApp — get one system that does it all."
+      descriptionAr="سواء كنت تدير مدرسة كرة قدم محلية أو أكاديمية احترافية، تتعامل بلايزا مع كل شيء من تسجيل اللاعبين وإدارة الاشتراكات إلى جداول التدريب والدخول بالباركود وحسابات الأرباح التلقائية لكل حصة. توقف عن استخدام جداول البيانات وواتساب — احصل على نظام واحد يفعل كل شيء."
       features={[
         {
           icon: Users,

@@ -1,6 +1,6 @@
 export const dictionary = {
   en: {
-    appName: "Volleyra",
+    appName: "Playza",
     appTagline: "إدارة أكاديميات الرياضة",
     // Navigation
     nav_dashboard: "Dashboard",
@@ -21,7 +21,7 @@ export const dictionary = {
     nav_member_area: "Member area",
     // Auth
     login_title: "Welcome back",
-    login_subtitle: "Sign in to your Volleyra account",
+    login_subtitle: "Sign in to your Playza account",
     login_member_title: "Member sign in",
     login_member_subtitle: "Sign in to your member account",
     login_tenant_title: "Academy owner sign in",
@@ -467,7 +467,7 @@ export const dictionary = {
     achievement_streak: "30-day attendance streak",
     premium_expired_banner: "Your Premium benefits have expired. Renew to keep the perks.",
     premium_expiring_banner: "Your Premium expires in {days} days.",
-    onboarding_title: "Welcome to Volley",
+    onboarding_title: "Welcome to Playza",
     onboarding_subtitle: "A 4-step setup to get your academy live, with branding & photos.",
 onboarding_step_basics: "Basics",
   onboarding_step_location: "Location",
@@ -1070,7 +1070,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     trial_expired_title: "Trial Period Expired",
     trial_expired_message: "Your free trial has ended. Please contact the app administrator to extend your trial or upgrade to a paid plan.",
     trial_expired_contact: "Once you receive payment, your admin can extend your trial immediately.",
-    trial_expiring_soon: "Your trial expires in {n} day{n === 1 ? '' : 's'}. Contact us to continue using Volleyra.",
+    trial_expiring_soon: "Your trial expires in {n} day{n === 1 ? '' : 's'}. Contact us to continue using Playza.",
     trial_badge: "Trial",
     trial_days_left: "{n} days left",
     plan_starter: "Starter",
@@ -1428,7 +1428,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     mplan_choose_pro: "Get Pro",
     member_banner_free_title: "Go Pro",
     member_banner_free_desc:
-      "Unlock the competitive side of Volleyra: events & tournaments, the leaderboard, scouting, and priority alerts.",
+      "Unlock the competitive side of Playza: events & tournaments, the leaderboard, scouting, and priority alerts.",
     member_banner_cta: "See Pro benefits",
     // ── Checkout / plan subscription ──
     checkout_page_title: "Subscribe",
@@ -1658,7 +1658,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     landing_tagline: "Sports academy management",
     landing_signin: "Sign in",
     landing_signup: "Sign up",
-    landing_badge: "🏐 All-in-one CRM & ERP for Sports Academies",
+    landing_badge: "All-in-one CRM & ERP for Sports Academies",
     landing_hero: "Manage your academy with",
     landing_hero_highlight: "automatic profit tracking",
     landing_hero_desc:
@@ -1735,7 +1735,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
   },
 
   ar: {
-    appName: "فوليرا",
+    appName: "بلايزا",
     appTagline: "إدارة أكاديميات الرياضة",
     // Navigation
     nav_dashboard: "الرئيسية",
@@ -2202,7 +2202,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     achievement_streak: "سلسلة حضور 30 يوم",
     premium_expired_banner: "انتهت مزايا بريميوم الخاصة بك. جدّد للاستمرار في الاستفادة.",
     premium_expiring_banner: "تنتهي اشتراكتك في بريميوم خلال {days} أيام.",
-    onboarding_title: "مرحبًا بك في فولي",
+    onboarding_title: "مرحبًا بك في بلايزا",
     onboarding_subtitle: "إعداد من 4 خطوات لتفعيل أكاديميتك، مع الشعار والصور.",
     onboarding_step_basics: "أساسيات",
     onboarding_step_location: "الموقع",
@@ -2804,7 +2804,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     trial_expired_title: "انتهت الفترة التجريبية",
     trial_expired_message: "انتهت فترة التجريب المجانية. يُرجى التواصل مع مسؤول التطبيق لتمديد الفترة أو الترقية إلى خطة مدفوعة.",
     trial_expired_contact: "بمجرد استلام الدفعة، يمكن للمدير تمديد الفترة فوراً.",
-    trial_expiring_soon: "تنتهي فترتك التجريبية خلال {n} يوم{n === 1 ? '' : 'ًا'}. تواصل معنا لمواصلة استخدام فوليرا.",
+    trial_expiring_soon: "تنتهي فترتك التجريبية خلال {n} يوم{n === 1 ? '' : 'ًا'}. تواصل معنا لمواصلة استخدام بلايزا.",
     trial_badge: "تجريبي",
     trial_days_left: "{n} يوم متبقي",
     plan_starter: "ستارتر",
@@ -3392,7 +3392,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     landing_tagline: "إدارة أكاديميات الرياضة",
     landing_signin: "تسجيل الدخول",
     landing_signup: "التسجيل",
-    landing_badge: "🏐 نظام متكامل لإدارة أكاديميات الرياضة",
+    landing_badge: "نظام متكامل لإدارة أكاديميات الرياضة",
     landing_hero: "أدر أكاديميتك مع",
     landing_hero_highlight: "تتبع الأرباح تلقائياً",
     landing_hero_desc:

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title:
     "Sports Academy Management Solutions | حلول إدارة أكاديميات الرياضة",
   description:
-    "Discover how Volleyra helps you manage volleyball, football, basketball, padel and swimming academies. Members, attendance, payments and profit tracking. اكتشف كيف تساعدك فوليرا في إدارة أكاديميات الرياضة.",
+    "Discover how Playza helps you manage volleyball, football, basketball, padel and swimming academies. Members, attendance, payments and profit tracking. اكتشف كيف تساعدك بلايزا في إدارة أكاديميات الرياضة.",
   keywords: [
     "sports academy management",
     "academy management software",
@@ -27,12 +27,12 @@ export const metadata: Metadata = {
     "أكاديمية رياضية الخليج",
   ],
   openGraph: {
-    title: "Volleyra — Sports Academy Management Solutions",
+    title: "Playza — Sports Academy Management Solutions",
     description:
       "The complete management platform for volleyball, football, basketball, padel and swimming academies.",
     url: "https://volley-academy.vercel.app/solutions",
-    siteName: "Volleyra",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    siteName: "Playza",
+    images: [{ url: "/logo.webp", width: 1200, height: 630 }],
     locale: "en_US",
     type: "website",
   },

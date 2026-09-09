@@ -39,19 +39,19 @@ export function generateSolutionMetadata(
     description: `${description} Manage ${sport.toLowerCase()} academy members, attendance, payments and training schedules. منصة إدارة أكاديمية ${sportAr}.`,
     keywords,
     openGraph: {
-      title: `Volleyra — ${sport} Academy Management`,
+      title: `Playza — ${sport} Academy Management`,
       description: `The complete management platform for ${sport.toLowerCase()} academies. Members, attendance, payments and automatic profit tracking.`,
       url: `https://volley-academy.vercel.app/solutions/${sport.toLowerCase()}`,
-      siteName: "Volleyra",
-      images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+      siteName: "Playza",
+      images: [{ url: "/logo.webp", width: 1200, height: 630 }],
       locale: "en_US",
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: `Volleyra — ${sport} Academy Management`,
+      title: `Playza — ${sport} Academy Management`,
       description: `The complete management platform for ${sport.toLowerCase()} academies.`,
-      images: ["/og-image.png"],
+      images: ["/logo.webp"],
     },
     alternates: {
       canonical: `https://volley-academy.vercel.app/solutions/${sport.toLowerCase()}`,
@@ -74,7 +74,7 @@ export function SolutionPage({
 }: SolutionPageProps) {
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",      name: `Volleyra — ${sport}`,
+    "@type": "SoftwareApplication",      name: `Playza — ${sport}`,
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     description: `${description} ${descriptionAr}`,
@@ -207,7 +207,7 @@ export function SolutionPage({
       <section className="border-t bg-muted/30 py-16">
         <div className="mx-auto max-w-4xl px-6">
           <h2 className="mb-8 text-center text-2xl font-bold">
-            Why Volleyra?
+            Why Playza?
           </h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[

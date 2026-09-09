@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     .select("name")
     .single();
 
-  const academyName = academy?.name ?? "Volleyra";
+  const academyName = academy?.name ?? "Playza";
 
   try {
     let emailData;

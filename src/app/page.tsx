@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title:
-    "Volleyra — Sports Academy Management Platform | إدارة أكاديميات الرياضة",
+    "Playza — Sports Academy Management Platform | إدارة أكاديميات الرياضة",
   description:
     "The all-in-one platform for sports academies in Egypt and the Gulf. Manage members, attendance, payments, scheduling and automatic profit/loss tracking for volleyball, football, basketball, padel and swimming. منصة شاملة لإدارة أكاديميات الرياضة.",
   keywords: [
@@ -27,22 +27,22 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title:
-      "Volleyra — Sports Academy Management",
+      "Playza — Sports Academy Management",
     description:
       "All-in-one management platform for sports academies in Egypt and the Gulf. Members, attendance, payments, scheduling and automatic profit tracking.",
     url: "https://volley-academy.vercel.app",
-    siteName: "Volleyra",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    siteName: "Playza",
+    images: [{ url: "/logo.webp", width: 1200, height: 630 }],
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title:
-      "Volleyra — Sports Academy Management",
+      "Playza — Sports Academy Management",
     description:
       "All-in-one management platform for sports academies. Members, attendance, payments and automatic profit tracking.",
-    images: ["/og-image.png"],
+    images: ["/logo.webp"],
   },
 };
 
@@ -57,7 +57,7 @@ export default async function HomePage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'Volleyra',
+    name: 'Playza',
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web',
     description:

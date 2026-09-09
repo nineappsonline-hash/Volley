@@ -17,7 +17,7 @@ import {
 export const metadata: Metadata = generateSolutionMetadata(
   "Volleyball",
   "الكرة الطائرة",
-  "Volleyra is the #1 management platform built specifically for volleyball academies. Track players, subscriptions, attendance and per-session profitability — all in one place.",
+  "Playza is the #1 management platform built specifically for volleyball academies. Track players, subscriptions, attendance and per-session profitability — all in one place.",
   [
     "volleyball academy management",
     "volleyball club management software",
@@ -56,8 +56,8 @@ export default function VolleyballPage() {
       heroGradient="from-brand via-brand to-interactive-800"
       tagline="The #1 management platform for volleyball academies — track players, attendance and per-session profit automatically."
       taglineAr="منصة الإدارة رقم 1 لأكاديميات الكرة الطائرة — تتبع اللاعبين والحضور والأرباح تلقائياً."
-      description="Volleyra was built from the ground up for volleyball academies. Whether you run a single court or a multi-branch operation, our platform handles member management, subscription tracking, training schedules, QR code check-in and automatic profit/loss calculations — so you can focus on coaching, not spreadsheets."
-      descriptionAr="تم بناء فوليرا من الأساس لأكاديميات الكرة الطائرة. سواء كنت تدير ملعباً واحداً أو عمليات فرعية متعددة، تعتمد منصتنا على إدارة الأعضاء وتتبع الاشتراكات وجداول التدريب والدخول بالباركود وحسابات الأرباح والخسائر التلقائية — حتى تتمكن من التركيز على التدريب."
+      description="Playza was built from the ground up for volleyball academies. Whether you run a single court or a multi-branch operation, our platform handles member management, subscription tracking, training schedules, QR code check-in and automatic profit/loss calculations — so you can focus on coaching, not spreadsheets."
+      descriptionAr="تم بناء بلايزا من الأساس لأكاديميات الكرة الطائرة. سواء كنت تدير ملعباً واحداً أو عمليات فرعية متعددة، تعتمد منصتنا على إدارة الأعضاء وتتبع الاشتراكات وجداول التدريب والدخول بالباركود وحسابات الأرباح والخسائر التلقائية — حتى تتمكن من التركيز على التدريب."
       features={[
         {
           icon: Users,

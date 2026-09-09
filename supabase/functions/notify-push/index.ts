@@ -73,10 +73,10 @@ Deno.serve(async (req) => {
   }
 
   const data = {
-    title: payload.title ?? "Volley",
+    title: payload.title ?? "Playza",
     body: payload.body ?? "",
-    icon: `${supabaseUrl}/favicon.ico`,
-    badge: `${supabaseUrl}/favicon.ico`,
+    icon: "/favicon.png",
+    badge: "/favicon.png",
     data: { url: payload.link ?? "/community", type: payload.type ?? "" },
   };
 

@@ -1,6 +1,6 @@
 # Playza color system
 
-The website uses Playza navy, green, blue and orange through the existing shadcn/Tailwind theme. The app name and product behavior are unchanged.
+The website uses Playza navy, green, blue and orange through the existing shadcn/Tailwind theme. The app is branded Playza. The shared AppLogo component displays the original root Logo.webp from public/logo.webp; the matching root favicon.png is served from public/favicon.png. Product behavior is unchanged.
 
 - `src/app/playza-palette.css`: core colors and derived shades. HSL channels support Tailwind opacity modifiers. Light shades mix with white; dark shades mix with navy.
 - `src/app/globals.css`: semantic light/dark tokens, persistent navy navigation and notification colors.

@@ -1,5 +1,6 @@
 "use client";
 
+import { AppLogo } from "@/components/shared/app-logo";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
@@ -93,14 +94,10 @@ export function Sidebar({ role, name, memberPlan }: SidebarProps) {
 
   return (
     <div className="playza-navigation flex h-full flex-col gap-6 p-4">
-      <Link href={role === "super_admin" ? "/admin" : "/dashboard"} className="flex items-center gap-3 px-2 pt-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-interactive-700 text-white shadow-lg shadow-interactive-500/30">
-          <Volleyball className="h-6 w-6" />
-        </div>
+      <Link href={role === "super_admin" ? "/admin" : "/dashboard"} className="flex flex-col items-start gap-1 px-2 pt-2">
+        <AppLogo />
         <div className="flex flex-col">
-          <span className="text-sm font-extrabold tracking-tight">
-            {t("appName")}
-          </span>
+
           <span className="text-[11px] text-muted-foreground">
             {t("appTagline")}
           </span>

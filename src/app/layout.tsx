@@ -6,8 +6,8 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: {
     default:
-      "Volleyra — إدارة أكاديميات الرياضة",
-    template: "%s · Volleyra",
+      "Playza — إدارة أكاديميات الرياضة",
+    template: "%s · Playza",
   },
   description:
     "The complete management platform for sports academies in Egypt and the Gulf. Manage members, attendance, payments, scheduling and automatic profit tracking for volleyball, football, basketball, padel, swimming and more. منصة شاملة لإدارة أكاديميات الرياضة.",
@@ -136,27 +136,27 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     alternateLocale: "ar_EG",
-    siteName: "Volleyra",
+    siteName: "Playza",
     title:
-      "Volleyra — إدارة أكاديميات الرياضة",
+      "Playza — إدارة أكاديميات الرياضة",
     description:
       "The complete management platform for sports academies in Egypt and the Gulf. Manage members, attendance, payments and profit tracking.",
     images: [
       {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Volleyra — Sports Academy Management CRM",
+        url: "/logo.webp",
+        width: 1792,
+        height: 896,
+        alt: "Playza — Sports Academy Management CRM",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title:
-      "Volleyra — إدارة أكاديميات الرياضة",
+      "Playza — إدارة أكاديميات الرياضة",
     description:
       "The complete management platform for sports academies. Manage members, attendance, payments and automatic profit tracking.",
-    images: ["/og-image.png"],
+    images: ["/logo.webp"],
   },
   robots: {
     index: true,
@@ -209,9 +209,10 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
+        <link rel="apple-touch-icon" href="/favicon.png" />
         <link
           rel="icon"
-          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏐</text></svg>"
+          href="/favicon.png"
         />
       </head>
       <body className="font-sans">

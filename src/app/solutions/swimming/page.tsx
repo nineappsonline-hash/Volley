@@ -17,7 +17,7 @@ import {
 export const metadata: Metadata = generateSolutionMetadata(
   "Swimming",
   "السباحة",
-  "Volleyra is the complete management platform for swimming academies and schools. Track students, lesson schedules, payments and per-session profitability.",
+  "Playza is the complete management platform for swimming academies and schools. Track students, lesson schedules, payments and per-session profitability.",
   [
     "swimming academy management",
     "swimming school software",
@@ -52,8 +52,8 @@ export default function SwimmingPage() {
       heroGradient="from-brand via-brand to-interactive-800"
       tagline="The complete management platform for swimming academies — students, lessons, payments and profit tracking."
       taglineAr="منصة الإدارة الشاملة لأكاديميات السباحة — الطلاب والدروس والمدفوعات وتتبع الأرباح."
-      description="Managing swimming lessons is uniquely complex — pool lanes, instructor schedules, age groups and skill levels. Volleyra handles it all. Track student subscriptions, schedule lessons with lane assignments, manage QR check-in and see automatic profit/loss for every lesson. No more paper sign-up sheets."
-      descriptionAr="إدارة دروس السباحة تعقد بشكل فريد — مسارات المسبح وجدول المدربين ومجموعات الأعمار ومستويات المهارة. تتعامل فوليرا مع كل شيء. تتبع اشتراكات الطلاب وجدول الدروس مع تخصيص المسارات وإدارة الدخول بالباركود ورؤية الأرباح والخسائر التلقائية لكل درس. لا مزيد من أوراق التسجيل الورقية."
+      description="Managing swimming lessons is uniquely complex — pool lanes, instructor schedules, age groups and skill levels. Playza handles it all. Track student subscriptions, schedule lessons with lane assignments, manage QR check-in and see automatic profit/loss for every lesson. No more paper sign-up sheets."
+      descriptionAr="إدارة دروس السباحة تعقد بشكل فريد — مسارات المسبح وجدول المدربين ومجموعات الأعمار ومستويات المهارة. تتعامل بلايزا مع كل شيء. تتبع اشتراكات الطلاب وجدول الدروس مع تخصيص المسارات وإدارة الدخول بالباركود ورؤية الأرباح والخسائر التلقائية لكل درس. لا مزيد من أوراق التسجيل الورقية."
       features={[
         {
           icon: Users,
