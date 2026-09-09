@@ -1,0 +1,18 @@
+const assert = require('node:assert/strict');
+const ts = require('typescript');
+const fs = require('node:fs');
+const path = require('node:path');
+const output = ts.transpileModule(fs.readFileSync(path.join(__dirname, '../src/lib/admin-record-search.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
+const api = {}; new Function('exports', output)(api);
+const {matchesAdminSearch: matches} = api;
+assert.ok(matches(' NAYERA ', ['Nayera Ahmed']));
+assert.ok(matches('LOGIN@EXAMPLE.COM', ['name', 'profile@example.com', 'login@example.com']));
+assert.ok(matches('01012345678', [], ['010 1234-5678']));
+assert.ok(matches('٠١٠ ١٢٣٤ ٥٦٧٨', [], ['010-1234-5678']));
+assert.ok(matches('+20 (10) 1234-5678', [], ['+201012345678']));
+assert.ok(matches('Academy owner@example.com', ['My Academy', 'owner@example.com']));
+assert.ok(matches('  ', [null]));
+assert.ok(!matches('01099999999', ['Nayera'], ['01012345678']));
+assert.ok(!matches('missing@example.com', ['owner@example.com']));
+assert.ok(!matches('---', [], []));
+console.log('PASS: names, emails, formatted phones, Arabic digits, combined terms, empty and unmatched queries');

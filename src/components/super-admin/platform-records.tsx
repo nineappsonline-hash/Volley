@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { matchesAdminSearch } from "@/lib/admin-record-search";
 import { rentalCoverage, type RentalInterval } from "@/lib/admin-schedule";
 import { PLATFORM_ADMIN_EMAIL, matchesAccountEmail } from "@/lib/platform-admin";
 import { useSuperAdminDeleteAcademy } from "@/lib/queries";
@@ -167,15 +168,40 @@ export function PlatformRecords() {
   if (error || !data) return <Card><CardContent className="p-6"><p role="alert">{error?.message ?? "Could not load records"}</p><Button onClick={() => refetch()}>Retry</Button></CardContent></Card>;
   const academy = (id: string) => data.academies.find(a => a.id === id)?.name ?? (id ? "Academy unavailable" : "Independent");
   const source = tab === "Members" ? data.profiles : tab === "Academies" ? data.academies : tab === "Friendly games" ? data.friendly_games : data.venues;
-  const rows = source.filter(row => [row.name, row.email, row.title, row.phone, row.id, academy(row.academy_id)].join(" ").toLowerCase().includes(search.toLowerCase()));
+  const academyContacts = new Map<string, { fields: unknown[]; phones: unknown[] }>();
+  if (tab === "Academies") {
+    for (const person of data.profiles) {
+      if (person.role !== "admin" || !person.academy_id) continue;
+      const contact = academyContacts.get(person.academy_id) ?? { fields: [], phones: [] };
+      contact.fields.push(person.name, person.email, person.account_email, person.phone);
+      contact.phones.push(person.phone);
+      academyContacts.set(person.academy_id, contact);
+    }
+    for (const branch of data.academy_branches) {
+      const contact = academyContacts.get(branch.academy_id) ?? { fields: [], phones: [] };
+      contact.fields.push(branch.phone);
+      contact.phones.push(branch.phone);
+      academyContacts.set(branch.academy_id, contact);
+    }
+  }
+  const rows = source.filter(row => {
+    const contacts = tab === "Academies" ? academyContacts.get(row.id) : undefined;
+    return matchesAdminSearch(search,
+      [row.name, row.email, row.account_email, row.title, row.phone, row.id,
+        ...(tab === "Academies" ? contacts?.fields ?? [] : [academy(row.academy_id)])],
+      [row.phone, ...(contacts?.phones ?? [])]);
+  });
+  const searchLabel = tab === "Members" ? "Search members by name, email or phone"
+    : tab === "Academies" ? "Search academies by name, admin email or phone"
+    : "Search name, email, phone or academy";
   const related = selected ? (tab === "Members" ? { Payments: data.payments.filter(r => r.member_id === selected.id), Attendance: data.attendance.filter(r => r.member_id === selected.id), Games: data.friendly_game_participants.filter(r => r.member_id === selected.id) } : tab === "Academies" ? { Members: data.profiles.filter(r => r.academy_id === selected.id), Branches: data.academy_branches.filter(r => r.academy_id === selected.id), Plans: data.membership_plans.filter(r => r.academy_id === selected.id), Playgrounds: data.venues.filter(r => r.academy_id === selected.id) } : tab === "Friendly games" ? { Participants: data.friendly_game_participants.filter(r => r.game_id === selected.id).map(r => ({ ...r, name: data.profiles.find(p => p.id === r.member_id)?.name })) } : {}) : {};
   return <Card>
     <CardHeader><CardTitle>Platform management</CardTitle><p className="text-sm text-muted-foreground">{data.profiles.length} accounts · {data.academies.length} academies · {data.friendly_games.length} games · {data.venues.length} playgrounds</p></CardHeader>
     <CardContent className="space-y-4">
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Platform records">{tabs.map(item => <Button key={item} role="tab" aria-selected={tab === item} variant={tab === item ? "default" : "outline"} onClick={() => { router.push(`/admin?tab=${encodeURIComponent(item)}`, { scroll: false }); }}>{item}</Button>)}</div>
-      <div className="flex flex-wrap gap-2"><Input className="max-w-sm" aria-label="Search records" placeholder="Search name, email, phone or academy…" value={search} onChange={e => setSearch(e.target.value)} />{tab === "Playgrounds" && <Input className="w-auto" type="date" aria-label="Schedule date" value={date} onChange={e => setDate(e.target.value)} />}{tab === "Playgrounds" && <Button disabled={busy} onClick={() => setEditingVenue({ name: "", address: "", capacity: "", sport_id: "", school_name: "", rental_cost: "", rental_hours: "1", country: "", governorate: "", area: "", contact_person: "", contact_phone: "", lat: "", lng: "", academy_id: null })}><Plus className="mr-1 h-4 w-4" />Add playground</Button>}<Button variant="outline" onClick={() => refetch()}>Refresh</Button></div>
+      <div className="flex flex-wrap gap-2"><Input className="max-w-sm" type="search" aria-label={searchLabel} placeholder={`${searchLabel}…`} value={search} onChange={e => setSearch(e.target.value)} />{tab === "Playgrounds" && <Input className="w-auto" type="date" aria-label="Schedule date" value={date} onChange={e => setDate(e.target.value)} />}{tab === "Playgrounds" && <Button disabled={busy} onClick={() => setEditingVenue({ name: "", address: "", capacity: "", sport_id: "", school_name: "", rental_cost: "", rental_hours: "1", country: "", governorate: "", area: "", contact_person: "", contact_phone: "", lat: "", lng: "", academy_id: null })}><Plus className="mr-1 h-4 w-4" />Add playground</Button>}<Button variant="outline" onClick={() => refetch()}>Refresh</Button></div>
       {tab === "Playgrounds" && <p className="text-sm text-muted-foreground">Schedules use recorded local times. Rentals have known durations; training and tournament end times are not stored. Gaps are unbooked rental time, not confirmed availability. Opening hours and friendly-game venue links are not recorded.</p>}
-      <p className="text-xs text-muted-foreground">{rows.length} records</p>
+      <p className="text-xs text-muted-foreground">{rows.length} of {source.length} records</p>
       <div className="max-h-[650px] space-y-3 overflow-auto">
       {rows.length === 0 && <p className="py-8 text-center text-muted-foreground">No matching records.</p>}
       {rows.map(row => {
