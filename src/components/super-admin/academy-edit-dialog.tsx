@@ -51,6 +51,7 @@ import {
   useSuperAdminUpdateAcademy,
 } from "@/lib/queries";
 import type { Academy, Coach, Venue } from "@/lib/types";
+import { AcademyTrainingPrices } from "@/components/settings/academy-training-prices";
 import { LocationFields } from "@/components/shared/location-fields";
 
 const SPORT_OPTIONS = [
@@ -370,6 +371,7 @@ export function AcademyEditDialog({
           </DialogTitle>
           <DialogDescription>{academy.name}</DialogDescription>
         </DialogHeader>
+        <AcademyTrainingPrices key={academy.id} academy={academy} />
 
         {isLoading && !detail ? (
           <div className="space-y-3">

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CalendarDays, MapPin, Star, Trophy, Volleyball } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { dictionary } from "@/lib/i18n/dictionary";
+import { AcademyTrainingSummary } from "@/components/settings/academy-training-prices";
 import { TrialForm } from "@/components/public/trial-form";
 import { LangLabel } from "@/components/shared/lang-label";
 
@@ -18,7 +19,7 @@ export default async function PublicAcademyPage({
 
   const { data: academy } = await admin
     .from("academies")
-    .select("id, name, description, country, governorate, area, cover_url, is_public")
+    .select("id, name, description, country, governorate, area, cover_url, is_public, monthly_sessions, monthly_price, tryout_price")
     .eq("slug", slug)
     .eq("is_public", true)
     .single();
@@ -161,6 +162,7 @@ export default async function PublicAcademyPage({
         )}
 
         {/* Trial booking */}
+        <AcademyTrainingSummary academy={academy} />
         <TrialForm academyId={academy.id} sports={sports ?? []} />
       </div>
     </main>

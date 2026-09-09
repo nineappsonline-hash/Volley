@@ -42,6 +42,9 @@ export type ExpenseCategory =
 export type TrialStatus = "new" | "contacted" | "converted" | "declined";
 
 export interface Academy {
+  monthly_sessions?: number | null;
+  monthly_price?: number | null;
+  tryout_price?: number | null;
   id: string;
   name: string;
   invite_code: string;

@@ -30,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/shared/page-header";
 import { LocationFields } from "@/components/shared/location-fields";
 import { MapPicker } from "@/components/shared/map-picker";
+import { AcademyTrainingPrices } from "./academy-training-prices";
 import { BranchesCard } from "@/components/settings/branches-card";
 import { AcademyMediaManager } from "@/components/media/academy-media-manager";
 import { DeleteAccountCard } from "@/components/settings/delete-account-card";
@@ -164,6 +165,7 @@ export function SettingsClient({ isAdmin }: { isAdmin: boolean }) {
           {update.isPending ? t("common_saving") : t("common_save")}
         </Button>
       </PageHeader>
+      {isAdmin && <AcademyTrainingPrices academy={academy} />}
 
       <Card>
         <CardHeader className="pb-3">
