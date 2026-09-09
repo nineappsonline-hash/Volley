@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import {
   AlarmClock,
   CalendarDays,
-  CalendarClock,
   CreditCard,
   Crown,
   Receipt,
@@ -26,7 +27,6 @@ import { usedSessionsSincePayment } from "@/lib/calculations";
 import {
   useAllPayments,
   useAttendance,
-  useMemberSessionCosts,
   useProfile,
   useSessions,
   useUpcomingSessions,
@@ -44,7 +44,6 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
   const { data: attendance } = useAttendance();
   const { data: sessions } = useSessions();
   const { data: upcoming } = useUpcomingSessions();
-  const { data: costs } = useMemberSessionCosts();
 
   const p = ownProfile ?? profile;
   const myPayments = (payments ?? []).filter((x) => x.member_id === p.id);
@@ -68,9 +67,6 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
   const attendanceRate =
     pastSessions.length > 0 ? Math.round((attendedCount / pastSessions.length) * 100) : 0;
 
-  const m = now.getMonth() + 1;
-  const y = now.getFullYear();
-  const monthCost = (costs ?? []).find((c) => c.month === m && c.year === y);
   const perSessionValue =
     myPayments.length > 0
       ? Number(myPayments[0].amount) / Math.max(myPayments[0].subscription_sessions, 1)
@@ -78,6 +74,12 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
 
   return (
     <div className="space-y-6">
+      <nav aria-label={lang === "ar" ? "اختصارات" : "Quick links"} className="flex flex-wrap gap-2">
+        <Button asChild variant="outline"><Link href="/profile#family">{lang === "ar" ? "عيلتي" : "My family"}</Link></Button>
+        <Button asChild variant="outline"><Link href="/profile#evaluations">{lang === "ar" ? "تقييمي وتطوري" : "My feedback & progress"}</Link></Button>
+        {p.checkin_code && <Button asChild variant="outline"><Link href="/profile#checkin">{lang === "ar" ? "كود الحضور" : "Attendance QR"}</Link></Button>}
+        <Button asChild variant="outline"><Link href="/schedule">{t("nav_schedule")}</Link></Button>
+      </nav>
       <MemberPlanBanner memberPlan={p.member_plan} />
       {p.is_active === false && (
         <div className="flex items-center gap-3 rounded-lg border border-attention-300/60 bg-attention-50 p-4 text-sm dark:bg-attention-500/10">
@@ -199,17 +201,7 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
                 </p>
               </div>
             </div>
-            {monthCost && (
-              <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm">
-                <span className="flex items-center gap-2 text-muted-foreground">
-                  <CalendarClock className="h-4 w-4 text-primary" />
-                  {t("dash_session_cost_info")}
-                </span>
-                <Badge variant="outline" className="font-mono">
-                  {formatMoney(Number(monthCost.cost_per_session), lang)}
-                </Badge>
-              </div>
-            )}
+
           </CardContent>
         </Card>
 

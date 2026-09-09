@@ -54,7 +54,6 @@ import {
   useAcademy,
   useAllPayments,
   useAttendance,
-  useMemberSessionCosts,
   useMyCommunityRecord,
   useMyStreaks,
   useProfile,
@@ -343,7 +342,6 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
   const { data: attendance } = useAttendance();
   const { data: sessions } = useSessions();
   const { data: upcoming } = useUpcomingSessions();
-  const { data: costs } = useMemberSessionCosts();
   const { data: record } = useMyCommunityRecord();
   const { data: streaks } = useMyStreaks();
 
@@ -387,11 +385,6 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
   const lastPayment = myPayments[0];
   const totalPaid = myPayments.reduce((s, x) => s + Number(x.amount), 0);
   const hasPlan = myPayments.length > 0;
-
-  const now = new Date();
-  const m = now.getMonth() + 1;
-  const y = now.getFullYear();
-  const monthCost = (costs ?? []).find((c) => c.month === m && c.year === y);
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -465,6 +458,15 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
   return (
     <div className="space-y-6">
       <PageHeader title={t("profile_title")} subtitle={t("profile_subtitle")} />
+      <nav aria-label={lang === "ar" ? "أقسام الملف" : "Profile sections"} className="flex flex-wrap gap-2">
+        {[
+          ["family", lang === "ar" ? "عيلتي" : "My family"],
+          ["evaluations", lang === "ar" ? "التقييم والتطور" : "Feedback & progress"],
+          ...(p.checkin_code ? [["checkin", lang === "ar" ? "كود الحضور" : "Attendance QR"]] : []),
+          ["payments", t("profile_payment_status")],
+          ["attendance-history", t("profile_attendance_title")],
+        ].map(([id, label]) => <Button key={id} asChild variant="outline" size="sm"><a href={`#${id}`}>{label}</a></Button>)}
+      </nav>
 
       {premiumWarning && (
         <div
@@ -618,9 +620,10 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
 
         {/* Middle column: subscription + payments */}
         <div className="space-y-6 lg:col-span-2">
-{p.role === "member" && <EvaluationsCard memberId={p.id} isAdmin={false} />}
+<section id="family" className="scroll-mt-24"><FamilyCard /></section>
+<section id="evaluations" className="scroll-mt-24"><EvaluationsCard memberId={p.id} isAdmin={false} /></section>
 {p.checkin_code && (
-            <CheckinQrCard code={p.checkin_code} memberName={p.name} />
+            <section id="checkin" className="scroll-mt-24"><CheckinQrCard code={p.checkin_code} memberName={p.name} /></section>
           )}
           <Card>
             <CardHeader className="pb-3">
@@ -740,7 +743,6 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
               </div>
             </CardContent>
           </Card>
-          <FamilyCard />
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
@@ -801,18 +803,11 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                     : t("common_never")}
                 </span>
               </div>
-              {monthCost && (
-                <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm">
-                  <span className="text-muted-foreground">{t("dash_session_cost_info")}</span>
-                  <span className="font-mono font-semibold">
-                    {formatMoney(Number(monthCost.cost_per_session), lang)}
-                  </span>
-                </div>
-              )}
+
             </CardContent>
           </Card>
 
-          <Card>
+          <Card id="payments" className="scroll-mt-24">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <CreditCard className="h-4 w-4 text-primary" />
@@ -856,7 +851,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
       </div>
 
       {/* Attendance history */}
-      <Card>
+      <Card id="attendance-history" className="scroll-mt-24">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <CheckCircle2 className="h-4 w-4 text-primary" />
@@ -928,7 +923,10 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
         </CardContent>
       </Card>
 
-      <DeleteAccountCard isAdmin={false} />
+      <details className="rounded-lg border p-4">
+        <summary className="cursor-pointer text-sm font-medium">{lang === "ar" ? "إدارة الحساب وحذفه" : "Account management & deletion"}</summary>
+        <div className="mt-4"><DeleteAccountCard isAdmin={false} /></div>
+      </details>
     </div>
   );
 }

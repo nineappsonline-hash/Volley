@@ -5,9 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title:
-    "Playza — Sports Academy Management Platform | إدارة أكاديميات الرياضة",
+    "بلايزا Playza — لعب أكتر وتنظيم أسهل",
   description:
-    "The all-in-one platform for sports academies in Egypt and the Gulf. Manage members, attendance, payments, scheduling and automatic profit/loss tracking for volleyball, football, basketball, padel and swimming. منصة شاملة لإدارة أكاديميات الرياضة.",
+    "اكتشف أكاديمية أو جيم مناسب، تابع تدريب ولادك وتطورهم، ونظم أكاديميتك من مكان واحد. بلايزا بيجمع اللاعبين وأولياء الأمور وأصحاب الأكاديميات.",
   keywords: [
     "sports academy management",
     "academy management software",
@@ -27,21 +27,21 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title:
-      "Playza — Sports Academy Management",
+      "بلايزا Playza — مكانك في الملعب",
     description:
-      "All-in-one management platform for sports academies in Egypt and the Gulf. Members, attendance, payments, scheduling and automatic profit tracking.",
+      "العب واتابع تطورك، تابع تمرين ولادك، أو نظم أكاديميتك. اكتشف المواعيد والحضور والتقييمات والجيمز الودية مع بلايزا.",
     url: "https://volley-academy.vercel.app",
     siteName: "Playza",
     images: [{ url: "/logo.webp", width: 1200, height: 630 }],
-    locale: "en_US",
+    locale: "ar_EG",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title:
-      "Playza — Sports Academy Management",
+      "بلايزا Playza — مكانك في الملعب",
     description:
-      "All-in-one management platform for sports academies. Members, attendance, payments and automatic profit tracking.",
+      "بلايزا بيجمع رحلتك الرياضية: أكاديميات، جيمز ودية، حضور، اشتراكات ومتابعة تطور اللاعبين.",
     images: ["/logo.webp"],
   },
 };
@@ -63,18 +63,6 @@ export default async function HomePage() {
     description:
       'The all-in-one management platform for sports academies in Egypt and the Gulf. Manage members, attendance, payments, scheduling and automatic profit tracking.',
     url: 'https://volley-academy.vercel.app',
-    offers: {
-      '@type': 'Offer',
-      priceCurrency: 'EGP',
-      price: '500',
-      priceValidUntil: '2026-12-31',
-      availability: 'https://schema.org/InStock',
-    },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      ratingCount: '150',
-    },
     featureList: [
       'Sports academy management',
       'Member and subscription management',

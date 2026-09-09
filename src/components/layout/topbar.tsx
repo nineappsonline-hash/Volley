@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { LogOut, Menu, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Sidebar } from "@/components/layout/sidebar";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { LanguageToggle } from "@/components/layout/language-toggle";
@@ -35,7 +35,8 @@ interface TopbarProps {
 }
 
 export function Topbar({ role, name, avatarUrl, memberPlan, academy }: TopbarProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
   const { signOut } = useAuth();
 
@@ -57,14 +58,15 @@ export function Topbar({ role, name, avatarUrl, memberPlan, academy }: TopbarPro
   return (
     <header className="sticky top-0 z-40 border-b bg-card/95 pt-[env(safe-area-inset-top)] backdrop-blur-md">
       <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
-      <Sheet>
+      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="lg:hidden">
+          <Button variant="ghost" size="icon" className="lg:hidden" aria-label={lang === "ar" ? "افتح القائمة" : "Open navigation"}>
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-72 p-0">
-          <Sidebar role={role} name={name} memberPlan={memberPlan} />
+        <SheetContent side={lang === "ar" ? "right" : "left"} className="w-72 p-0" aria-describedby={undefined}>
+          <SheetTitle className="sr-only">{lang === "ar" ? "القائمة الرئيسية" : "Main navigation"}</SheetTitle>
+          <Sidebar onNavigate={() => setMenuOpen(false)} role={role} name={name} memberPlan={memberPlan} />
         </SheetContent>
       </Sheet>
 
@@ -88,6 +90,7 @@ export function Topbar({ role, name, avatarUrl, memberPlan, academy }: TopbarPro
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
+              aria-label={lang === "ar" ? "قائمة الحساب" : "Account menu"}
               className="gap-2 rounded-full pe-1 ps-1 sm:pe-2"
             >
               <ProfileAvatar name={name} url={avatarUrl} className="h-7 w-7" />

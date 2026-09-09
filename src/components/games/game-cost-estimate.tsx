@@ -3,7 +3,7 @@ import { useI18n } from "@/lib/i18n";
 import { estimateGameCost } from "@/lib/game-costs";
 import { formatMoney } from "@/lib/constants";
 
-export function GameCostEstimate({ rate, hours, min, max }: { rate: number | null | undefined; hours: number; min: number; max: number }) {
+export function GameCostEstimate({ rate, hours, min, max, compact = false }: { compact?: boolean; rate: number | null | undefined; hours: number; min: number; max: number }) {
   const { lang } = useI18n();
   const ar = lang === "ar";
   const estimate = estimateGameCost(rate, hours, min, max);
@@ -12,8 +12,11 @@ export function GameCostEstimate({ rate, hours, min, max }: { rate: number | nul
     <p className="text-muted-foreground">{ar ? `عدد اللاعبين: من ${min} لـ ${max} · المدة: ${hours} ساعة` : `${min}–${max} players · ${hours} hours`}</p>
     {estimate ? <>
       <p className="font-semibold text-info-ink">{formatMoney(estimate.low)} – {formatMoney(estimate.high)}</p>
+      <details open={compact ? undefined : true}>
+      <summary className="cursor-pointer text-xs font-medium">{ar ? "تفاصيل حساب التكلفة" : "Cost breakdown"}</summary>
       <p>{ar ? `عند اكتمال ${max} لاعب: ${formatMoney(estimate.low)} للفرد. عند الحد الأدنى ${min}: ${formatMoney(estimate.high)} للفرد.` : `At ${max} players: ${formatMoney(estimate.low)} each. At ${min} players: ${formatMoney(estimate.high)} each.`}</p>
       <p className="text-xs text-muted-foreground">{ar ? `إجمالي الملعب: ${formatMoney(rate!)} × ${hours} ساعة = ${formatMoney(estimate.total)}` : `Playground total: ${formatMoney(rate!)} × ${hours} hours = ${formatMoney(estimate.total)}`}</p>
+      </details>
     </> : <p className="text-muted-foreground">{ar ? "التقدير مش متاح. اختار ملعب بسعر معروف وأدخل عدد لاعبين ومدة صحيحين." : "Estimate unavailable. Choose a priced playground and valid player limits and duration."}</p>}
     <p className="text-xs text-muted-foreground">{ar ? "تقسيم بالتساوي شامل المنظم. تقدير فقط حسب سعر الملعب وقت إنشاء الجيم؛ رسوم إنشاء الجيم وأي إضافات مش داخلة." : "Split equally, including the organizer. Estimate based on the playground price when created; excludes the game-creation fee and extras."}</p>
   </div>;

@@ -51,7 +51,7 @@ const superAdminItems = [
   { href: "/admin", key: "super_admin_title", icon: Crown },
   { href: "/admin?tab=Members", key: "nav_members", icon: Users },
   { href: "/admin?tab=Academies", key: "nav_academies", icon: Building2 },
-  { href: "/admin?tab=Friendly%20games", key: "nav_community", icon: Volleyball },
+  { href: "/admin?tab=Friendly%20games", key: "nav_games", icon: Volleyball },
   { href: "/admin?tab=Playgrounds", key: "nav_playgrounds", icon: LandPlot },
 ] as const;
 
@@ -77,24 +77,35 @@ interface SidebarProps {
   role: Role;
   name: string;
   memberPlan?: "free" | "premium";
+  onNavigate?: () => void;
 }
 
-export function Sidebar({ role, name, memberPlan }: SidebarProps) {
+export function Sidebar({ role, name, memberPlan, onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { t } = useI18n();
-  // Admins manage the academy's own pages; members see the member feature set.
-  // Platform admins navigate within their cross-academy panel.
-  const items =
-    role === "super_admin"
-      ? superAdminItems
-      : role === "admin"
-      ? [...adminItems, ...academyItems]
-      : memberItems;
+  const { t, lang } = useI18n();
+  const catalog = [...adminItems, ...academyItems, ...memberItems];
+  const group = (en: string, ar: string, paths: string[]) => ({
+    label: lang === "ar" ? ar : en,
+    items: paths.map(path => catalog.find(item => item.href === path)!),
+  });
+  const groups = role === "super_admin"
+    ? [{ label: lang === "ar" ? "إدارة المنصة" : "Platform management", items: superAdminItems }]
+    : role === "admin" ? [
+      group("Daily operations", "الإدارة اليومية", ["/dashboard", "/schedule", "/attendance", "/members"]),
+      group("Academy & training", "الأكاديمية والتدريب", ["/teams", "/coaches", "/tournaments", "/playgrounds", "/rentals"]),
+      group("Finance & insights", "الماليات والإحصائيات", ["/costs", "/reports", "/analytics"]),
+      group("Academy settings", "إعدادات الأكاديمية", ["/profile", "/settings", "/upgrade"]),
+    ] : [
+      group("My training", "تدريبي", ["/dashboard", "/schedule", "/profile"]),
+      group("Find a place to play", "اكتشف مكان تلعب فيه", ["/academies", "/marketplace", "/games", "/events"]),
+      group("Community", "المجتمع", ["/community", "/leaderboard", "/scouting"]),
+      group("Membership", "الاشتراك", ["/upgrade"]),
+    ];
 
   return (
-    <div className="playza-navigation flex h-full flex-col gap-6 p-4">
-      <Link href={role === "super_admin" ? "/admin" : "/dashboard"} className="flex flex-col items-start gap-1 px-2 pt-2">
+    <div className="playza-navigation flex h-full min-h-0 flex-col gap-4 p-4">
+      <Link onClick={onNavigate} href={role === "super_admin" ? "/admin" : "/dashboard"} className="flex flex-col items-start gap-1 px-2 pt-2">
         <AppLogo />
         <div className="flex flex-col">
 
@@ -104,16 +115,20 @@ export function Sidebar({ role, name, memberPlan }: SidebarProps) {
         </div>
       </Link>
 
-      <nav className="flex flex-1 flex-col gap-1">
-        {items.map(({ href, key, icon: Icon }) => {
+      <nav aria-label={lang === "ar" ? "القائمة الرئيسية" : "Main navigation"} className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain">
+        {groups.map(group => <div key={group.label}>
+          <p className="mb-1 px-3 text-xs font-semibold text-muted-foreground">{group.label}</p>
+        {group.items.map(({ href, key, icon: Icon }) => {
           const active =
             role === "super_admin"
               ? pathname === "/admin" && (new URLSearchParams(href.split("?")[1]).get("tab") ?? "") === (searchParams.get("tab") ?? "")
-              : pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+              : pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`));
           return (
             <Link
               key={href}
               href={href}
+              onClick={onNavigate}
+              aria-current={active ? "page" : undefined}
               className={cn(
                 "group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info focus-visible:ring-offset-2 focus-visible:ring-offset-brand flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
                 active
@@ -127,10 +142,11 @@ export function Sidebar({ role, name, memberPlan }: SidebarProps) {
                   active && "text-info-foreground"
                 )}
               />
-              {t(key)}
+              {href === "/profile" && role === "member" ? (lang === "ar" ? "ملفي وعيلتي" : "My profile & family") : t(key)}
             </Link>
           );
         })}
+        </div>)}
       </nav>
 
       <div className="rounded-lg border bg-muted/40 p-3 text-xs text-muted-foreground">

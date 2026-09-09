@@ -326,7 +326,8 @@ export default function AcademiesDirectoryPage() {
       <section className="relative overflow-hidden border-b bg-gradient-to-br from-brand via-brand to-interactive-800 py-14 text-white">
         <div className="pointer-events-none absolute -top-24 start-1/2 h-72 w-[32rem] -translate-x-1/2 rounded-full bg-white/15 blur-3xl rtl:translate-x-1/2" />
         <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-3 px-6 text-center">
-          <AppLogo />
+          <Link href={myId ? "/dashboard" : "/"} aria-label={t("nav_dashboard")}><AppLogo /></Link>
+          {myId && <Button asChild variant="secondary"><Link href="/dashboard">{t("nav_dashboard")}</Link></Button>}
           <h1 className="text-2xl font-extrabold sm:text-3xl">
             {t("directory_title")}
           </h1>

@@ -42,7 +42,7 @@ export default async function DashboardLayout({
           academy={academy}
         />
         <main className="mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-8">
-          {profile.role === "super_admin" ? children : <TrialGate>{children}</TrialGate>}
+          {profile.role === "super_admin" ? children : <TrialGate isAdmin={profile.role === "admin"}>{children}</TrialGate>}
         </main>
       </div>
     </div>

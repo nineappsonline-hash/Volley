@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import { AlertTriangle, Clock, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,9 +11,11 @@ import { useAcademy } from "@/lib/queries";
 
 interface TrialGateProps {
   children: React.ReactNode;
+  isAdmin?: boolean;
 }
 
-export function TrialGate({ children }: TrialGateProps) {
+export function TrialGate({ children, isAdmin = false }: TrialGateProps) {
+  const pathname = usePathname();
   const { t, lang } = useI18n();
   const { data: academy } = useAcademy();
 
@@ -35,6 +39,8 @@ export function TrialGate({ children }: TrialGateProps) {
     };
   }, [academy]);
 
+  if (isAdmin && ["/upgrade", "/checkout"].includes(pathname)) return <>{children}</>;
+
   if (!academy) return <>{children}</>;
 
   // Trial expired — show upgrade prompt
@@ -52,6 +58,7 @@ export function TrialGate({ children }: TrialGateProps) {
             <p className="text-sm text-muted-foreground">
               {t("trial_expired_message")}
             </p>
+            {isAdmin && <Button asChild><Link href="/upgrade">{lang === "ar" ? "جدد اشتراك الأكاديمية" : "Renew academy subscription"}</Link></Button>}
             <p className="text-xs text-muted-foreground">
               {t("trial_expired_contact")}
             </p>
