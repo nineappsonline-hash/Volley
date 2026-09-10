@@ -17,6 +17,8 @@ import { cn } from "@/lib/utils";
 import {
   COUNTRIES,
   COUNTRIES_AR,
+  CITIES_BY_STATE,
+  STATES_BY_COUNTRY,
   normalizeCountry,
   localizeCountry,
 } from "@/lib/locations";
@@ -31,6 +33,14 @@ interface Option {
 function venueLine(v: Venue) {
   return [v.governorate, v.area].filter(Boolean).join(" · ");
 }
+
+const isArabicScript = (s: string) => /[\u0600-\u06FF]/.test(s);
+
+/** Keep only options written in the active UI language, like the sign-up modal. */
+const localizedFor = (lang: string, arr: string[]) => {
+  const isArabicLocale = lang === "ar";
+  return arr.filter((s) => isArabicLocale === isArabicScript(s));
+};
 
 export function PlaygroundPicker({
   value,
@@ -81,20 +91,13 @@ export function PlaygroundPicker({
     );
   }, [playgrounds, country]);
 
-  const governorates = useMemo(() => {
-    const seen = new Set<string>();
-    return byCountry
-      .map((p) => p.governorate)
-      .filter((g): g is string => !!g && !seen.has(g) && !!seen.add(g));
-  }, [byCountry]);
-
-  const areas = useMemo(() => {
-    const seen = new Set<string>();
-    return byCountry
-      .filter((p) => governorate === "all" || p.governorate === governorate)
-      .map((p) => p.area)
-      .filter((a): a is string => !!a && !seen.has(a) && !!seen.add(a));
-  }, [byCountry, governorate]);
+  // Governorate/city suggestions come from the shared country→governorate→city
+  // datasets (same as the sign-up modal), localized to the active language.
+  const states = localizedFor(lang, STATES_BY_COUNTRY[country] ?? []);
+  const cities = localizedFor(
+    lang,
+    governorate === "all" ? [] : (CITIES_BY_STATE[governorate] ?? []),
+  );
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -111,13 +114,14 @@ export function PlaygroundPicker({
 
   const selected = playgrounds.find((p) => p.id === value);
 
+  const allLabel = t("games_playground_all");
   const governateOptions: Option[] = [
-    { value: "all", label: t("games_playground_all"), search: t("games_playground_all").toLowerCase() },
-    ...governorates.map((g) => ({ value: g, label: g, search: g.toLowerCase() })),
+    { value: "all", label: allLabel, search: allLabel.toLowerCase() },
+    ...states.map((g) => ({ value: g, label: g, search: g.toLowerCase() })),
   ];
   const areaOptions: Option[] = [
-    { value: "all", label: t("games_playground_all"), search: t("games_playground_all").toLowerCase() },
-    ...areas.map((a) => ({ value: a, label: a, search: a.toLowerCase() })),
+    { value: "all", label: allLabel, search: allLabel.toLowerCase() },
+    ...cities.map((a) => ({ value: a, label: a, search: a.toLowerCase() })),
   ];
   const countryOptions: Option[] = COUNTRIES.map((en) => ({
     value: en,
