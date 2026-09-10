@@ -29,6 +29,23 @@ interface MemberAlert {
   remaining: number;
 }
 
+function ListFooter({ total, shown }: { total: number; shown: number }) {
+  const { t } = useI18n();
+  if (total <= shown) return null;
+  return (
+    <div className="flex items-center justify-between border-t pt-2 text-xs text-muted-foreground">
+      <span>
+        {t("dash_showing_count")
+          .replace("{shown}", String(shown))
+          .replace("{total}", String(total))}
+      </span>
+      <Link href="/members" className="font-medium text-primary hover:underline">
+        {t("dash_view_all_members")}
+      </Link>
+    </div>
+  );
+}
+
 export function AdminAlerts() {
   const { t, lang, locale } = useI18n();
   const { data: profiles } = useProfiles();
@@ -141,6 +158,7 @@ export function AdminAlerts() {
               </Link>
             ))
           )}
+          <ListFooter total={expiring.length} shown={Math.min(expiring.length, 6)} />
         </CardContent>
       </Card>
 
@@ -181,6 +199,7 @@ export function AdminAlerts() {
               </div>
             ))
           )}
+          <ListFooter total={debtors.length} shown={Math.min(debtors.length, 6)} />
         </CardContent>
       </Card>
 
@@ -214,6 +233,7 @@ export function AdminAlerts() {
               </Link>
             ))
           )}
+          <ListFooter total={atRisk.length} shown={Math.min(atRisk.length, 6)} />
         </CardContent>
       </Card>
     </div>

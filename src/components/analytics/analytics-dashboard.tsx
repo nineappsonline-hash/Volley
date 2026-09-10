@@ -27,43 +27,68 @@ import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import { downloadCSV } from "@/lib/export";
-import { useSessions, useAttendance, useProfiles, useAllPayments, useExpenses, useMonthlyCosts, useCoaches, useSessionCalculations, useSports, useSessionGuests } from "@/lib/queries";
-import type { TrainingSession, Attendance, Profile, Payment, Expense, Coach } from "@/lib/types";
+import { useSessions, useAttendance, useProfiles, useAllPayments, useExpenses, useMonthlyCosts, useCoaches, useSessionCalculations, useSports, useSessionGuests, useVenueRentals } from "@/lib/queries";
+import { buildMonthlyPoints } from "@/lib/financial-summary";
+import { QueryState } from "@/components/shared/query-state";
 
 export function AnalyticsDashboard() {
   const { t, lang } = useI18n();
-  const { data: sessions = [] } = useSessions();
-  const { data: attendance = [] } = useAttendance();
-  const { data: profiles = [] } = useProfiles();
-  const { data: payments = [] } = useAllPayments();
-  const { data: expenses = [] } = useExpenses();
-  const { data: monthlyCosts = [] } = useMonthlyCosts();
-  const { data: coaches = [] } = useCoaches();
-  const { data: calculations = [] } = useSessionCalculations();
-  const { data: sports = [] } = useSports();
+  const sessionsQuery = useSessions();
+  const attendanceQuery = useAttendance();
+  const profilesQuery = useProfiles();
+  const paymentsQuery = useAllPayments();
+  const expensesQuery = useExpenses();
+  const costsQuery = useMonthlyCosts();
+  const coachesQuery = useCoaches();
+  const calculationsQuery = useSessionCalculations();
+  const sportsQuery = useSports();
+  const rentalsQuery = useVenueRentals();
+  const guestsQuery = useSessionGuests();
+  const { data: sessions = [] } = sessionsQuery;
+  const { data: attendance = [] } = attendanceQuery;
+  const { data: profiles = [] } = profilesQuery;
+  const { data: payments = [] } = paymentsQuery;
+  const { data: expenses = [] } = expensesQuery;
+  const { data: monthlyCosts = [] } = costsQuery;
+  const { data: coaches = [] } = coachesQuery;
+  const { data: calculations = [] } = calculationsQuery;
+  const { data: rentals = [] } = rentalsQuery;
+  const { data: guests = [] } = guestsQuery;
+
+  // Attendance eligibility: only completed (held) sessions count toward rates,
+  // so cancelled sessions can never penalise or inflate a member's percentage.
+  const completedSessionIds = useMemo(
+    () => new Set(sessions.filter((s) => s.status === "completed").map((s) => s.id)),
+    [sessions]
+  );
 
   // ── Overview Stats ──
   const stats = useMemo(() => {
     const activeMembers = profiles.filter((p) => p.is_active && p.role === "member");
     const totalMembers = profiles.filter((p) => p.role === "member").length;
     const completedSessions = sessions.filter((s) => s.status === "completed");
-    const totalRevenue = payments.reduce((sum, p) => sum + Number(p.amount), 0);
-    const totalExpenses = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
-    const totalCosts = monthlyCosts.reduce((sum, c) => sum + Number(c.coach_fee) + Number(c.court_rental), 0);
-    const profit = totalRevenue - totalExpenses - totalCosts;
+    // Use the same reconciled source as the financial reports page: revenue =
+    // payments + paid rentals + guest walk-ins; costs = monthly overhead + expenses.
+    const points = buildMonthlyPoints(
+      payments, monthlyCosts, [], sessions, expenses, rentals, guests
+    );
+    const totalRevenue = points.reduce((s, p) => s + p.revenue, 0);
+    const totalCosts = points.reduce((s, p) => s + p.costs, 0);
+    const profit = totalRevenue - totalCosts;
+    const totalPresent = attendance.filter((a) => a.is_present && completedSessionIds.has(a.session_id)).length;
 
     return {
       activeMembers,
       totalMembers,
       totalSessions: completedSessions.length,
       totalRevenue,
-      totalExpenses: totalExpenses + totalCosts,
+      totalExpenses: totalCosts,
       profit,
       attendanceRate: completedSessions.length > 0
-        ? ((attendance.filter((a) => a.is_present).length / (completedSessions.length * activeMembers.length)) * 100).toFixed(0)
+        ? ((totalPresent / (completedSessions.length * activeMembers.length)) * 100).toFixed(0)
         : "0",
     };
-  }, [profiles, sessions, attendance, payments, expenses, monthlyCosts]);
+  }, [profiles, sessions, attendance, payments, expenses, monthlyCosts, rentals, guests, completedSessionIds]);
 
   // ── Weekly Attendance Trend (last 12 weeks) ──
   const weeklyTrend = useMemo(() => {
@@ -113,6 +138,14 @@ export function AnalyticsDashboard() {
       monthMap.set(key, existing);
     });
 
+    // Monthly overhead (coach fee + court rental) is a recurring cost each month.
+    monthlyCosts.forEach((c) => {
+      const key = `${c.year}-${String(c.month).padStart(2, "0")}`;
+      const existing = monthMap.get(key) || { revenue: 0, expenses: 0 };
+      existing.expenses += Number(c.coach_fee) + Number(c.court_rental);
+      monthMap.set(key, existing);
+    });
+
     return Array.from(monthMap.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .slice(-6)
@@ -120,7 +153,7 @@ export function AnalyticsDashboard() {
         label: format(new Date(month + "-01"), "MMM yyyy"),
         ...data,
       }));
-  }, [payments, expenses]);
+  }, [payments, expenses, monthlyCosts]);
 
   const maxMonthlyRevenue = Math.max(...monthlyFinancials.map((m) => m.revenue), 1);
 
@@ -134,13 +167,13 @@ export function AnalyticsDashboard() {
 
     const recentAttendees = new Set(
       attendance
-        .filter((a) => a.is_present && new Date(a.marked_at) >= fourteenDaysAgo)
+        .filter((a) => a.is_present && completedSessionIds.has(a.session_id) && new Date(a.marked_at) >= fourteenDaysAgo)
         .map((a) => a.member_id)
     );
 
     const monthAttendees = new Set(
       attendance
-        .filter((a) => a.is_present && new Date(a.marked_at) >= thirtyDaysAgo)
+        .filter((a) => a.is_present && completedSessionIds.has(a.session_id) && new Date(a.marked_at) >= thirtyDaysAgo)
         .map((a) => a.member_id)
     );
 
@@ -154,7 +187,7 @@ export function AnalyticsDashboard() {
       churned: atRisk.length,
       total: activeMembers.length,
     };
-  }, [profiles, attendance]);
+  }, [profiles, attendance, completedSessionIds]);
 
   // ── Top Attendees ──
   const topAttendees = useMemo(() => {
@@ -162,17 +195,20 @@ export function AnalyticsDashboard() {
     const completedSessions = sessions.filter((s) => s.status === "completed");
 
     return activeMembers
-      .map((m) => ({
-        name: m.name,
-        attended: attendance.filter((a) => a.member_id === m.id && a.is_present).length,
-        total: completedSessions.length,
-        rate: completedSessions.length > 0
-          ? Math.round((attendance.filter((a) => a.member_id === m.id && a.is_present).length / completedSessions.length) * 100)
-          : 0,
-      }))
+      .map((m) => {
+        const attended = attendance.filter((a) => a.member_id === m.id && a.is_present && completedSessionIds.has(a.session_id)).length;
+        return {
+          name: m.name,
+          attended,
+          total: completedSessions.length,
+          rate: completedSessions.length > 0
+            ? Math.round((attended / completedSessions.length) * 100)
+            : 0,
+        };
+      })
       .sort((a, b) => b.attended - a.attended)
       .slice(0, 8);
-  }, [profiles, sessions, attendance]);
+  }, [profiles, sessions, attendance, completedSessionIds]);
 
   // ── Coach Performance ──
   const coachPerformance = useMemo(() => {
@@ -389,6 +425,7 @@ export function AnalyticsDashboard() {
   };
 
   return (
+    <QueryState queries={[sessionsQuery, attendanceQuery, profilesQuery, paymentsQuery, expensesQuery, costsQuery, coachesQuery, calculationsQuery, sportsQuery, rentalsQuery, guestsQuery]}>
     <div className="space-y-6">
       {/* Export */}
       <div className="flex justify-end">
@@ -878,5 +915,6 @@ export function AnalyticsDashboard() {
         </Card>
       )}
     </div>
+    </QueryState>
   );
 }

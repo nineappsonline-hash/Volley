@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { COMMUNITY_SPORTS } from "@/lib/constants";
 import type {
   Academy,
   AcademyBranch,
@@ -40,6 +41,7 @@ import type {
   SessionWaitlist,
   ScoutNote,
   Sport,
+  SportLeaderboardRow,
   TeamWithDetails,
   Tournament,
   TournamentWithMatches,
@@ -100,6 +102,8 @@ export const queryKeys = {
   blockedMembers: ["blocked-members"] as const,
   communityRecord: ["community-record"] as const,
   myStreaks: ["my-streaks"] as const,
+  communitySports: ["community-sports"] as const,
+  sportLeaderboard: (sport: string) => ["sport-leaderboard", sport] as const,
 };
 
 const supabase = () => createClient();
@@ -3148,6 +3152,46 @@ export function useCommunityLeaderboard() {
       if (error) throw error;
       return (data ?? []) as CommunityLeaderboardRow[];
     },
+  });
+}
+
+export function useCommunitySports() {
+  return useQuery({
+    queryKey: queryKeys.communitySports,
+    queryFn: async () => {
+      const { data } = await supabase()
+        .from("friendly_games")
+        .select("sport")
+        .eq("status", "completed")
+        .not("sport", "is", null);
+      const set = new Set<string>();
+      for (const r of data ?? []) {
+        const s = (r as { sport?: string }).sport?.trim();
+        if (s) set.add(s);
+      }
+      const ordered = COMMUNITY_SPORTS.filter((c) => set.has(c));
+      const extra = [...set]
+        .filter((s) => !COMMUNITY_SPORTS.includes(s as (typeof COMMUNITY_SPORTS)[number]))
+        .sort();
+      return [...ordered, ...extra];
+    },
+  });
+}
+
+export function useSportLeaderboard(sport: string) {
+  return useQuery({
+    queryKey: queryKeys.sportLeaderboard(sport),
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("sport_leaderboard")
+        .select("member_id, name, sport, games_played, points, rank")
+        .eq("sport", sport)
+        .order("rank")
+        .limit(100);
+      if (error) throw error;
+      return (data ?? []) as SportLeaderboardRow[];
+    },
+    enabled: !!sport,
   });
 }
 

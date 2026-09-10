@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, PartyPopper, Sparkles, MapPin } from "lucide-react";
+import { Check, Copy, KeyRound, PartyPopper, Sparkles, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,6 +26,7 @@ const STEPS = [
   "onboarding_step_basics",
   "onboarding_step_location",
   "onboarding_step_sports",
+  "onboarding_step_pricing",
   "onboarding_step_photos",
 ] as const;
 
@@ -50,6 +51,16 @@ export function OnboardingWizard() {
   const [address, setAddress] = useState<string | null>(academy?.address ?? null);
   const [selectedSports, setSelectedSports] = useState<string[]>([]);
   const [newSport, setNewSport] = useState("");
+  const [monthlySessions, setMonthlySessions] = useState(
+    academy?.monthly_sessions != null ? String(academy.monthly_sessions) : ""
+  );
+  const [monthlyPrice, setMonthlyPrice] = useState(
+    academy?.monthly_price != null ? String(academy.monthly_price) : ""
+  );
+  const [tryoutPrice, setTryoutPrice] = useState(
+    academy?.tryout_price != null ? String(academy.tryout_price) : ""
+  );
+  const [copied, setCopied] = useState(false);
 
   const picking = useMemo(
     () => new Set(selectedSports),
@@ -76,6 +87,12 @@ export function OnboardingWizard() {
         ? lat != null && lng != null
         : true;
 
+  const toNumOrNull = (v: string): number | null => {
+    if (v.trim() === "") return null;
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  };
+
   const finish = async () => {
     setSaving(true);
     try {
@@ -89,6 +106,9 @@ export function OnboardingWizard() {
           lat,
           lng,
           address: address ?? null,
+          monthly_sessions: toNumOrNull(monthlySessions),
+          monthly_price: toNumOrNull(monthlyPrice),
+          tryout_price: toNumOrNull(tryoutPrice),
         });
       }
       const newNames = selectedSports
@@ -271,6 +291,89 @@ export function OnboardingWizard() {
 
           {step === 3 && (
             <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>{t("onboarding_pricing_label")}</Label>
+                <p className="text-xs text-muted-foreground">
+                  {t("onboarding_pricing_hint")}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="space-y-2">
+                  <Label>{t("onboarding_monthly_sessions")}</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    step="1"
+                    dir="ltr"
+                    value={monthlySessions}
+                    onChange={(e) => setMonthlySessions(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("onboarding_monthly_price")}</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="1"
+                    dir="ltr"
+                    value={monthlyPrice}
+                    onChange={(e) => setMonthlyPrice(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("onboarding_tryout_price")}</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="1"
+                    dir="ltr"
+                    value={tryoutPrice}
+                    onChange={(e) => setTryoutPrice(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {academy?.invite_code && (
+                <div className="rounded-lg border bg-muted/30 p-4">
+                  <p className="flex items-center gap-1.5 text-sm font-medium">
+                    <KeyRound className="h-4 w-4 text-primary" />
+                    {t("onboarding_invite_label")}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {t("onboarding_invite_hint")}
+                  </p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <Input dir="ltr" readOnly value={academy.invite_code} />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      aria-label={t("cal_copy")}
+                      onClick={() => {
+                        navigator.clipboard
+                          .writeText(academy.invite_code)
+                          .then(() => {
+                            setCopied(true);
+                            toast.success(t("cal_copied"));
+                            setTimeout(() => setCopied(false), 2000);
+                          })
+                          .catch(() => toast.error(t("common_error")));
+                      }}
+                    >
+                      {copied ? (
+                        <Check className="h-4 w-4 text-success-ink" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="space-y-4">
               <AcademyMediaManager />
               <p className="text-xs text-muted-foreground">
                 {t("onboarding_photos_hint")}
@@ -279,14 +382,23 @@ export function OnboardingWizard() {
           )}
 
           <div className="mt-6 flex items-center justify-between gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={step === 0}
-              onClick={() => setStep((s) => Math.max(0, s - 1))}
-            >
-              {t("common_back")}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={step === 0}
+                onClick={() => setStep((s) => Math.max(0, s - 1))}
+              >
+                {t("common_back")}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => router.push("/dashboard")}
+              >
+                {t("onboarding_skip")}
+              </Button>
+            </div>
             {step === STEPS.length - 1 ? (
               <div className="flex items-center gap-2">
                 <Button
@@ -302,19 +414,9 @@ export function OnboardingWizard() {
                 </Button>
               </div>
             ) : (
-              <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={step === 0}
-                  onClick={() => setStep((s) => Math.max(0, s - 1))}
-                >
-                  {t("common_back")}
-                </Button>
-                <Button type="button" disabled={!canNext} onClick={() => setStep((s) => s + 1)}>
-                  {t("onboarding_next")}
-                </Button>
-              </>
+              <Button type="button" disabled={!canNext} onClick={() => setStep((s) => s + 1)}>
+                {t("onboarding_next")}
+              </Button>
             )}
           </div>
         </CardContent>

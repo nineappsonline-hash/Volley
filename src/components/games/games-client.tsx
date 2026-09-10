@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import {
   CalendarDays,
   Check,
+  CheckCircle2,
   Clock,
   Flag,
   LandPlot,
@@ -112,6 +113,9 @@ function GameCard({
   const count = game.participants_count;
   const full = game.status === "full" || count >= game.max_players;
   const slotsLeft = Math.max(game.max_players - count, 0);
+  const minPlayers = game.min_players ?? 2;
+  const ready = game.status === "open" && count >= minPlayers;
+  const moreNeeded = Math.max(minPlayers - count, 0);
   const needsResult =
     isOrganizer &&
     game.status !== "cancelled" &&
@@ -265,6 +269,28 @@ function GameCard({
             </span>
           </div>
           <Progress value={game.max_players > 0 ? (count / game.max_players) * 100 : 0} />
+          {game.status === "open" && (
+            <div className="flex items-center justify-between gap-2">
+              <Badge
+                variant={ready ? "success" : "outline"}
+                className="gap-1 text-[10px]"
+              >
+                {ready ? (
+                  <CheckCircle2 className="h-3 w-3" />
+                ) : (
+                  <UsersRound className="h-3 w-3" />
+                )}
+                {ready
+                  ? t("games_ready_to_play")
+                  : moreNeeded === 1
+                    ? t("games_more_to_start").replace("{n}", String(moreNeeded))
+                    : t("games_more_to_start_plural").replace("{n}", String(moreNeeded))}
+              </Badge>
+              <span className="text-xs text-muted-foreground">
+                {t("games_min_players")}: {minPlayers}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-2 pt-1">

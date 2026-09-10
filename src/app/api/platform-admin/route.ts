@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isPlatformAdmin, matchesAccountEmail } from "@/lib/platform-admin";
 
-const tables = ["profiles", "academies", "friendly_games", "friendly_game_participants", "venues", "venue_rentals", "training_sessions", "tournament_matches", "payments", "attendance", "academy_branches", "membership_plans"] as const;
+const tables = ["profiles", "academies", "friendly_games", "friendly_game_participants", "venues", "venue_rentals", "training_sessions", "tournament_matches", "payments", "attendance", "academy_branches", "membership_plans", "sports"] as const;
 export async function GET() {
   const { data: { user } } = await createClient().auth.getUser();
   if (!isPlatformAdmin(user)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });

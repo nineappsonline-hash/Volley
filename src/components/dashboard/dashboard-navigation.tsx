@@ -15,7 +15,7 @@ export function DashboardNavigation({ admin = false, hasQr = false }: { admin?: 
     { href: "/reports", icon: Wallet, title: ar ? "التقارير المالية" : "Financial reports", hint: ar ? "راجع الإيرادات والمصروفات" : "Review income and expenses" },
   ] : [
     { href: hasQr ? "/profile#checkin" : "/academies", icon: hasQr ? QrCode : Building2, title: hasQr ? (ar ? "كود الحضور" : "Attendance QR") : (ar ? "اكتشف أكاديمية" : "Find an academy"), hint: ar ? "خطوتك الجاية في التدريب" : "Your next training step" },
-    { href: "/profile#family", icon: Users, title: ar ? "ملفات عيلتي" : "My family", hint: ar ? "تابع ولادك من مكان واحد" : "Follow your children in one place" },
+    { href: "/parent", icon: Users, title: ar ? "لوحة عيلتي" : "My family", hint: ar ? "تابع ولادك من مكان واحد" : "Follow your children in one place" },
     { href: "/profile#evaluations", icon: TrendingUp, title: ar ? "تقييمي وتطوري" : "Feedback & progress", hint: ar ? "ملاحظات المدرب وتقييمات الأداء" : "Coach feedback and evaluations" },
     { href: "/games", icon: Volleyball, title: ar ? "لاقي ماتش" : "Find a game", hint: ar ? "العب واتعرف على لاعبين" : "Play and meet other players" },
   ];

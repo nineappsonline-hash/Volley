@@ -1,0 +1,37 @@
+"use client";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { QueryState } from "@/components/shared/query-state";
+import { toast } from "sonner";
+import { formatMoney } from "@/lib/constants";
+const db = () => createClient();
+export function useWorkflowMutation(name: string) {
+ const cache=useQueryClient();
+ return useMutation({mutationFn:async(params:Record<string,unknown>)=>{const {data,error}=await db().rpc(name,params);if(error)throw error;return data;},onSuccess:()=>{cache.invalidateQueries();toast.success("✓");},onError:(e)=>toast.error(e.message)});
+}
+export function TrainingGoals({memberId,canEdit=false}:{memberId:string;canEdit?:boolean}) {
+ const {lang}=useI18n();const ar=lang==='ar';const [title,setTitle]=useState('');const [notes,setNotes]=useState('');const [date,setDate]=useState('');
+ const query=useQuery({queryKey:['training-goals',memberId],queryFn:async()=>{const {data,error}=await db().from('training_goals').select('*').eq('member_id',memberId).order('updated_at',{ascending:false});if(error)throw error;return data;}});
+ const save=useWorkflowMutation('save_training_goal');
+ return <Card><CardHeader><CardTitle>{ar?'أهداف التدريب':'Training goals'}</CardTitle></CardHeader><CardContent className="space-y-4"><QueryState queries={[query]}>
+ {!query.data?.length&&<p className="text-sm text-muted-foreground">{ar?'لسه مفيش أهداف مسجلة.':'No training goals yet.'}</p>}
+ {query.data?.map(g=><article key={g.id} className="space-y-2 rounded-lg border p-4"><strong>{g.title}</strong><p className="whitespace-pre-wrap text-sm">{g.notes}</p><p className="text-xs text-muted-foreground">{g.target_date} · {g.progress}%</p><Progress value={g.progress}/>{canEdit&&<label className="block text-sm">{ar?'حدّث نسبة التقدم':'Update progress'}<select className="ms-2 rounded border bg-background p-2" disabled={save.isPending} value={g.progress} onChange={e=>save.mutate({p_member:memberId,p_id:g.id,p_title:g.title,p_notes:g.notes,p_target:g.target_date,p_progress:Number(e.target.value)})}>{Array.from(new Set([0,25,50,75,100,g.progress])).sort((a,b)=>a-b).map(n=><option key={n} value={n}>{n}%</option>)}</select></label>}</article>)}
+ </QueryState>{canEdit&&<form className="space-y-3 border-t pt-4" onSubmit={async e=>{e.preventDefault();try{await save.mutateAsync({p_member:memberId,p_title:title,p_notes:notes,p_target:date||null,p_progress:0});setTitle('');setNotes('');setDate('');}catch{}}}><label className="block text-sm">{ar?'هدف جديد':'New goal'}<Input required maxLength={160} value={title} onChange={e=>setTitle(e.target.value)}/></label><label className="block text-sm">{ar?'ملاحظات وخطوات عملية':'Notes and action steps'}<Input maxLength={2000} value={notes} onChange={e=>setNotes(e.target.value)}/></label><label className="block text-sm">{ar?'التاريخ المستهدف':'Target date'}<Input type="date" value={date} onChange={e=>setDate(e.target.value)}/></label><Button disabled={save.isPending}>{ar?'أضف الهدف':'Add goal'}</Button></form>}</CardContent></Card>;
+}
+export function TrainingRenewal({memberId,academyId,admin=false}:{memberId?:string;academyId?:string|null;admin?:boolean}) {
+ const {lang}=useI18n();const ar=lang==='ar';const [plan,setPlan]=useState('');const [method,setMethod]=useState('cash');
+ const query=useQuery({queryKey:['renewals',memberId,admin],queryFn:async()=>{let q=db().from('renewal_requests').select('*').order('created_at',{ascending:false});if(memberId)q=q.eq('member_id',memberId);const {data,error}=await q;if(error)throw error;return data;}});
+ const plans=useQuery({queryKey:['renewal-plans',academyId],enabled:!!academyId&&!admin,queryFn:async()=>{const {data,error}=await db().from('membership_plans').select('id,name,price,sessions_count').eq('academy_id',academyId!).eq('is_active',true).not('price','is',null);if(error)throw error;return data;}});
+ const request=useWorkflowMutation('request_training_renewal');const resolve=useWorkflowMutation('resolve_training_renewal');
+ return <Card><CardHeader><CardTitle>{ar?'تجديد باقة التدريب':'Training renewals'}</CardTitle></CardHeader><CardContent className="space-y-4"><QueryState queries={[query]}>
+ {admin&&<label className="block text-sm">{ar?'طريقة التحصيل':'Collection method'}<select value={method} onChange={e=>setMethod(e.target.value)} className="ms-2 rounded border bg-background p-2">{[['cash','كاش'],['card','بطاقة'],['wallet','محفظة'],['bank_transfer','تحويل بنكي'],['other','أخرى']].map(([v,label])=><option key={v} value={v}>{ar?label:v}</option>)}</select></label>}
+ {!query.data?.length&&<p className="text-sm text-muted-foreground">{ar?'لا توجد طلبات تجديد.':'No renewal requests.'}</p>}
+ {query.data?.map(r=><div key={r.id} className="rounded border p-3 space-y-2"><p>{r.plan_name} · {r.sessions} {ar?'حصة':'sessions'} · {formatMoney(Number(r.amount),lang)}</p><p className="text-xs">{ar?({pending:'بانتظار التحصيل',completed:'تم التحصيل والتجديد',declined:'مرفوض',cancelled:'ملغي'} as Record<string,string>)[r.status]:r.status}</p>{admin&&<p className="text-xs"><a className="underline" href={`/members/${r.member_id}`}>{ar?'افتح ملف العضو':'Open member profile'}</a></p>}{admin&&r.status==='pending'&&<div className="flex flex-wrap gap-2"><Button disabled={resolve.isPending} onClick={()=>{if(window.confirm(ar?'تؤكد استلام المبلغ؟ هيتسجل الدفع وتتجدد الحصص.':'Confirm money received? This records a payment and renews sessions.'))resolve.mutate({p_id:r.id,p_status:'completed',p_method:method});}}>{ar?'تأكيد استلام المبلغ':'Confirm collection'}</Button><Button variant="outline" disabled={resolve.isPending} onClick={()=>resolve.mutate({p_id:r.id,p_status:'declined'})}>{ar?'رفض':'Decline'}</Button></div>}</div>)}
+ </QueryState>{!admin&&academyId&&<QueryState queries={[plans]}><form className="space-y-3" onSubmit={e=>{e.preventDefault();request.mutate({p_member:memberId,p_plan:plan});}}><p className="text-sm text-muted-foreground">{ar?'ده اشتراك التدريب في الأكاديمية، مش باقة المنصة. الحصص بتتجدد بعد تأكيد الإدارة لاستلام المبلغ.':'This is your academy training package, separate from your platform plan. Sessions renew after the academy confirms payment.'}</p><label className="block text-sm">{ar?'اختار الباقة':'Choose a package'}<select required className="block w-full rounded border bg-background p-2" value={plan} onChange={e=>setPlan(e.target.value)}><option value="">{ar?'اختار':'Select'}</option>{plans.data?.map(p=><option key={p.id} value={p.id}>{p.name} · {p.sessions_count} · {formatMoney(Number(p.price),lang)}</option>)}</select></label><Button disabled={request.isPending||!plan||query.data?.some(r=>r.status==='pending')}>{ar?'اطلب التجديد':'Request renewal'}</Button></form></QueryState>}</CardContent></Card>;
+}

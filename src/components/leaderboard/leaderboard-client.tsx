@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Medal, Trophy, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,18 +15,32 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { PremiumGate } from "@/components/shared/premium-gate";
 import { useI18n } from "@/lib/i18n";
-import { useCommunityLeaderboard } from "@/lib/queries";
+import {
+  useCommunityLeaderboard,
+  useCommunitySports,
+  useSportLeaderboard,
+} from "@/lib/queries";
 import type { Profile } from "@/lib/types";
 
 const MEDAL = ["bg-info/15 text-info-ink", "bg-muted text-foreground", "bg-warning/15 text-warning-ink"];
 
 export function LeaderboardClient({ profile }: { profile: Profile }) {
   const { t } = useI18n();
-  const { data: rows, isLoading } = useCommunityLeaderboard();
+  const [sport, setSport] = useState<string | null>(null);
 
-  const ownIndex =
-    rows?.findIndex((r) => r.member_id === profile.id) ?? -1;
-  const myRank = ownIndex >= 0 ? ownIndex + 1 : null;
+  const { data: sports } = useCommunitySports();
+  const { data: overall, isLoading: loadingOverall } = useCommunityLeaderboard();
+  const { data: perSport, isLoading: loadingSport } = useSportLeaderboard(sport ?? "");
+
+  const isLoading = sport ? loadingSport : loadingOverall;
+  const rows = sport ? perSport : overall;
+  const ownIndex = rows?.findIndex((r) => r.member_id === profile.id) ?? -1;
+  const myRank =
+    "rank" in (rows?.[0] ?? {})
+      ? (rows as any).find((r: any) => r.member_id === profile.id)?.rank
+      : ownIndex >= 0
+        ? ownIndex + 1
+        : null;
 
   return (
     <div className="space-y-6">
@@ -51,6 +67,27 @@ export function LeaderboardClient({ profile }: { profile: Profile }) {
           />
         ) : (
           <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                key="all"
+                size="sm"
+                variant={sport === null ? "default" : "outline"}
+                onClick={() => setSport(null)}
+              >
+                {t("leaderboard_all")}
+              </Button>
+              {(sports ?? []).map((s) => (
+                <Button
+                  key={s}
+                  size="sm"
+                  variant={sport === s ? "default" : "outline"}
+                  onClick={() => setSport(s)}
+                >
+                  {s}
+                </Button>
+              ))}
+            </div>
+
             {myRank != null && (
               <Card className="border-primary/40 bg-primary/5">
                 <CardContent className="flex items-center justify-between gap-3 p-4">
@@ -85,18 +122,17 @@ export function LeaderboardClient({ profile }: { profile: Profile }) {
                       const mine = row.member_id === profile.id;
                       return (
                         <div
-                          key={row.member_id}
+                          key={`${row.member_id}-${sport ?? "all"}`}
                           className={`flex items-center gap-3 border-b px-4 py-3 last:border-0 ${
                             mine ? "bg-primary/5" : "hover:bg-accent/40"
                           }`}
                         >
                           <span
                             className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                              MEDAL[i] ??
-                              "bg-muted text-muted-foreground"
+                              MEDAL[i] ?? "bg-muted text-muted-foreground"
                             }`}
                           >
-                            {i + 1}
+                            {"rank" in row ? (row as any).rank : i + 1}
                           </span>
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-medium">
@@ -112,9 +148,14 @@ export function LeaderboardClient({ profile }: { profile: Profile }) {
                             <span title={t("leaderboard_games_played")}>
                               {row.games_played} {t("leaderboard_games")}
                             </span>
-                            <span title={t("leaderboard_sessions_attended")}>
-                              {row.sessions_attended} {t("leaderboard_sessions")}
-                            </span>
+                            {!("rank" in row) && (
+                              <span title={t("leaderboard_sessions_attended")}>
+                                {"sessions_attended" in row
+                                  ? (row as any).sessions_attended
+                                  : 0}{" "}
+                                {t("leaderboard_sessions")}
+                              </span>
+                            )}
                             <Badge variant="outline" className="gap-0.5">
                               {row.points} {t("leaderboard_pts")}
                             </Badge>

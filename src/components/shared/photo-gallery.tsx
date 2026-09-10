@@ -107,6 +107,7 @@ export function PhotoGallery({ sessionId }: { sessionId?: string }) {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {photos.map((photo) => (
             <div key={photo.id} className="group relative rounded-lg overflow-hidden border">
+              {/* eslint-disable-next-line @next/next/no-img-element -- remote gallery images without fixed dimensions; next/image is not used */}
               <img
                 src={photo.photo_url}
                 alt={photo.caption || "Session photo"}

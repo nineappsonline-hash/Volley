@@ -994,7 +994,8 @@ CREATE TRIGGER session_status_recompute
   AFTER UPDATE OF status ON public.training_sessions
   FOR EACH ROW EXECUTE FUNCTION public.trigger_recompute_on_session_status();
 
--- Keep profiles.sessions_attended in sync
+-- Keep profiles.sessions_attended in sync (count only completed sessions so
+-- cancelled sessions never inflate attendance).
 CREATE OR REPLACE FUNCTION public.sync_sessions_attended()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -1004,8 +1005,10 @@ AS $$
 BEGIN
   UPDATE public.profiles p
   SET sessions_attended = (
-    SELECT COUNT(*) FROM public.attendance a
-    WHERE a.member_id = p.id AND a.is_present
+    SELECT COUNT(*)::int
+    FROM public.attendance a
+    JOIN public.training_sessions s ON s.id = a.session_id
+    WHERE a.member_id = p.id AND a.is_present AND s.status = 'completed'
   )
   WHERE p.id = COALESCE(NEW.member_id, OLD.member_id);
   RETURN COALESCE(NEW, OLD);
@@ -1016,6 +1019,36 @@ DROP TRIGGER IF EXISTS attendance_sync_count ON public.attendance;
 CREATE TRIGGER attendance_sync_count
   AFTER INSERT OR UPDATE OR DELETE ON public.attendance
   FOR EACH ROW EXECUTE FUNCTION public.sync_sessions_attended();
+
+-- Resync attended counts when a session transitions scheduled -> completed (or
+-- back to cancelled), keeping stored counts consistent with dashboard logic.
+CREATE OR REPLACE FUNCTION public.sync_sessions_attended_for_status()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF OLD.status IS DISTINCT FROM NEW.status THEN
+    UPDATE public.profiles p
+    SET sessions_attended = (
+      SELECT COUNT(*)::int
+      FROM public.attendance a
+      JOIN public.training_sessions s ON s.id = a.session_id
+      WHERE a.member_id = p.id AND a.is_present AND s.status = 'completed'
+    )
+    WHERE p.id IN (
+      SELECT a.member_id FROM public.attendance a WHERE a.session_id = NEW.id
+    );
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS training_sessions_sync_attended ON public.training_sessions;
+CREATE TRIGGER training_sessions_sync_attended
+  AFTER UPDATE OF status ON public.training_sessions
+  FOR EACH ROW EXECUTE FUNCTION public.sync_sessions_attended_for_status();
 
 -- Keep the member's plan in sync with their latest payment.
 -- No payments = no plan yet (0 sessions).
@@ -3561,7 +3594,8 @@ GRANT EXECUTE ON FUNCTION public.review_subscription_receipt(UUID, BOOLEAN) TO a
 -- ── Community leaderboard ──
 -- Points = 2 per completed friendly game + 1 per attended session. Only
 -- community-visible members rank. The plain view runs with owner privileges,
--- so it can aggregate across academies/RLS for this public ranking.
+-- so it can aggregate across academies/RLS for this public ranking. Sessions
+-- count only when their session status is 'completed' (cancelled never count).
 DROP VIEW IF EXISTS public.community_leaderboard;
 CREATE VIEW public.community_leaderboard AS
 WITH played AS (
@@ -3574,6 +3608,8 @@ WITH played AS (
 attend AS (
   SELECT a.member_id, count(*)::int AS sessions_attended
   FROM public.attendance a
+  JOIN public.training_sessions s ON s.id = a.session_id
+  WHERE s.status = 'completed'
   GROUP BY a.member_id
 )
 SELECT
@@ -3589,6 +3625,36 @@ WHERE pr.name IS NOT NULL
   AND pr.community_visible = TRUE
 ORDER BY points DESC;
 GRANT SELECT ON public.community_leaderboard TO authenticated;
+
+-- ── Per-sport community ranking ──
+-- Friendly games carry a sport; training sessions do not (yet), so per-sport
+-- points come from completed friendly games only. Rank is computed per sport.
+DROP VIEW IF EXISTS public.sport_leaderboard;
+CREATE VIEW public.sport_leaderboard AS
+SELECT
+  pr.id AS member_id,
+  pr.name,
+  played.sport::TEXT AS sport,
+  played.games_played,
+  played.games_played * 2 AS points,
+  row_number() OVER (
+    PARTITION BY played.sport
+    ORDER BY played.games_played DESC, pr.name ASC
+  ) AS rank
+FROM (
+  SELECT p.member_id, g.sport, count(*)::int AS games_played
+  FROM public.friendly_game_participants p
+  JOIN public.friendly_games g ON g.id = p.game_id
+  WHERE g.status = 'completed'
+    AND g.sport IS NOT NULL
+    AND btrim(g.sport) <> ''
+  GROUP BY p.member_id, g.sport
+) played
+JOIN public.profiles pr ON pr.id = played.member_id
+WHERE pr.name IS NOT NULL
+  AND pr.community_visible = TRUE
+ORDER BY played.sport, played.games_played DESC;
+GRANT SELECT ON public.sport_leaderboard TO authenticated;
 
 -- ── Scouting: player shortlist ──
 -- A member can "note" players they want to scout; the note is private.

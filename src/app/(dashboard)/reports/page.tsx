@@ -27,6 +27,7 @@ import { FinancialSummary } from "@/components/reports/financial-summary";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import {
+  useVenueRentals, useSessionGuests,
   useAllPayments,
   useAttendance,
   useExpenses,
@@ -48,14 +49,16 @@ export default function ReportsPage() {
   const { data: profiles } = useProfiles();
   const { data: attendance } = useAttendance();
   const { data: expenses } = useExpenses();
+  const {data: rentals} = useVenueRentals();
+  const {data: guests} = useSessionGuests();
   const { data: venues } = useVenues();
 
   const loading =
     loadingPayments || loadingCosts || loadingCalc || loadingSessions;
 
   const points = useMemo(
-    () => buildMonthlyPoints(payments ?? [], costs ?? [], calculations ?? [], sessions ?? [], expenses ?? []),
-    [payments, costs, calculations, sessions, expenses]
+    () => buildMonthlyPoints(payments ?? [], costs ?? [], calculations ?? [], sessions ?? [], expenses ?? [], rentals ?? [], guests ?? []),
+    [payments, costs, calculations, sessions, expenses, rentals, guests]
   );
 
   const avgProfitPerSession = useMemo(() => {

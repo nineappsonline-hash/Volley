@@ -110,6 +110,7 @@ export function AcademyMediaManager() {
         <div className="flex items-center gap-4">
           <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border bg-muted/50">
             {academy?.logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element -- remote logo/images without fixed dimensions; next/image is not used
               <img
                 src={academy.logo_url}
                 alt={t("media_logo_alt")}
@@ -214,6 +215,7 @@ export function AcademyMediaManager() {
                 key={photo.id}
                 className="group relative overflow-hidden rounded-xl border"
               >
+{/* eslint-disable-next-line @next/next/no-img-element -- remote gallery images without fixed dimensions; next/image is not used */}
                 <img
                   src={photo.photo_url}
                   alt={photo.caption || t("media_photo_alt")}

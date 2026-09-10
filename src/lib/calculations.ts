@@ -110,12 +110,20 @@ export function usedSessionsSincePayment(
       b.created_at.localeCompare(a.created_at)
   )[0];
   if (!latest) return 0;
-  const paidDates = new Set(attendance.filter((a) => a.is_present).map((a) => a.session_id));
+  const paidDates = new Set(attendance.filter((a) => a.is_present && a.member_id === latest.member_id).map((a) => a.session_id));
   return sessions.filter(
-    (s) => paidDates.has(s.id) && s.date >= latest.payment_date
+    (s) => s.status !== "canceled" && paidDates.has(s.id) && s.date >= latest.payment_date
   ).length;
 }
 
 export function remainingSessions(profile: Profile): number {
   return Math.max(profile.subscription_sessions - profile.sessions_attended, 0);
+}
+
+export function attendanceSummary(memberId: string, sessions: TrainingSession[], attendance: Attendance[], joinDate: string | null, today: string) {
+  // Only explicitly completed sessions after joining count; cancelled/upcoming never penalize members.
+  const eligible = sessions.filter(s => s.status === "completed" && s.date <= today && (!joinDate || s.date >= joinDate));
+  const present = new Set(attendance.filter(a => a.member_id === memberId && a.is_present).map(a => a.session_id));
+  const attended = eligible.filter(s => present.has(s.id)).length;
+  return { attended, total: eligible.length, rate: eligible.length ? Math.round(attended / eligible.length * 100) : null };
 }

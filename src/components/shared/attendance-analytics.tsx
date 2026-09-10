@@ -17,9 +17,11 @@ export function AttendanceAnalytics({ sessions, attendance, profiles }: Analytic
 
   const completedSessions = sessions.filter((s) => s.status === "completed");
   const totalSessions = completedSessions.length;
+  const completedIds = new Set(completedSessions.map((s) => s.id));
 
-  // Overall stats
-  const totalPresent = attendance.filter((a) => a.is_present).length;
+  // Overall stats — only count attendance against completed (held) sessions so
+  // cancelled sessions never inflate the rate.
+  const totalPresent = attendance.filter((a) => a.is_present && completedIds.has(a.session_id)).length;
   const avgAttendance = totalSessions > 0 ? (totalPresent / totalSessions).toFixed(1) : "0";
   const totalPossible = totalSessions * profiles.filter((p) => p.is_active).length;
   const attendanceRate = totalPossible > 0 ? ((totalPresent / totalPossible) * 100).toFixed(0) : "0";
@@ -52,13 +54,16 @@ export function AttendanceAnalytics({ sessions, attendance, profiles }: Analytic
   // Per-member attendance
   const memberAttendance = profiles
     .filter((p) => p.is_active)
-    .map((p) => ({
-      name: p.name,
-      attended: attendance.filter((a) => a.member_id === p.id && a.is_present).length,
-      rate: totalSessions > 0
-        ? ((attendance.filter((a) => a.member_id === p.id && a.is_present).length / totalSessions) * 100).toFixed(0)
-        : "0",
-    }))
+    .map((p) => {
+      const attended = attendance.filter((a) => a.member_id === p.id && a.is_present && completedIds.has(a.session_id)).length;
+      return {
+        name: p.name,
+        attended,
+        rate: totalSessions > 0
+          ? ((attended / totalSessions) * 100).toFixed(0)
+          : "0",
+      };
+    })
     .sort((a, b) => b.attended - a.attended);
 
   if (totalSessions === 0) {

@@ -167,7 +167,7 @@ export function SettingsClient({ isAdmin }: { isAdmin: boolean }) {
       </PageHeader>
       {isAdmin && <AcademyTrainingPrices academy={academy} />}
 
-      <Card>
+      <Card id="settings-academy-info" className="scroll-mt-24">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <SettingsIcon className="h-4 w-4 text-primary" />
@@ -335,7 +335,7 @@ export function SettingsClient({ isAdmin }: { isAdmin: boolean }) {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Invite code */}
-        <Card>
+        <Card id="settings-invite" className="scroll-mt-24">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">{t("settings_invite_code")}</CardTitle>
             <p className="text-xs text-muted-foreground">

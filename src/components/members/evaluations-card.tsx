@@ -1,5 +1,6 @@
 "use client";
 
+import { TrainingGoals } from "@/components/workflows/player-workflows";
 import { useState } from "react";
 import { format } from "date-fns";
 import { ClipboardList, Pencil, Plus, Trash2 } from "lucide-react";
@@ -127,7 +128,7 @@ export function EvaluationsCard({ memberId, isAdmin }: EvaluationsCardProps) {
   const previous = evaluations?.[1];
 
   return (
-    <Card>
+    <><TrainingGoals memberId={memberId} canEdit={isAdmin}/><Card>
       <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <ClipboardList className="h-4 w-4 text-primary" />
@@ -289,6 +290,6 @@ export function EvaluationsCard({ memberId, isAdmin }: EvaluationsCardProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Card>
+    </Card></>
   );
 }

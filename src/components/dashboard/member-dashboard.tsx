@@ -1,5 +1,8 @@
 "use client";
 
+import { QueryState } from "@/components/shared/query-state";
+import { attendanceSummary } from "@/lib/calculations";
+import { ParentDashboard } from "@/components/workflows/parent-dashboard";
 import Link from "next/link";
 import { DashboardNavigation, DashboardSection } from "./dashboard-navigation";
 import { Button } from "@/components/ui/button";
@@ -41,10 +44,14 @@ interface MemberDashboardProps {
 export function MemberDashboard({ profile }: MemberDashboardProps) {
   const { t, lang, locale } = useI18n();
   const { data: ownProfile } = useProfile(profile.id);
-  const { data: payments } = useAllPayments();
-  const { data: attendance } = useAttendance();
-  const { data: sessions } = useSessions();
-  const { data: upcoming } = useUpcomingSessions();
+  const paymentsQuery = useAllPayments();
+  const {data: payments} = paymentsQuery;
+  const attendanceQuery = useAttendance();
+  const {data: attendance} = attendanceQuery;
+  const sessionsQuery = useSessions();
+  const {data: sessions} = sessionsQuery;
+  const upcomingQuery = useUpcomingSessions();
+  const {data: upcoming} = upcomingQuery;
 
   const p = ownProfile ?? profile;
   const myPayments = (payments ?? []).filter((x) => x.member_id === p.id);
@@ -60,13 +67,7 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
       : 0;
 
   const now = new Date();
-  const pastSessions = (sessions ?? []).filter((s) => s.date < now.toISOString().slice(0, 10));
-  const attendedIds = new Set(
-    (attendance ?? []).filter((a) => a.member_id === p.id && a.is_present).map((a) => a.session_id)
-  );
-  const attendedCount = pastSessions.filter((s) => attendedIds.has(s.id)).length;
-  const attendanceRate =
-    pastSessions.length > 0 ? Math.round((attendedCount / pastSessions.length) * 100) : 0;
+  const {attended: attendedCount, rate: attendanceRate} = attendanceSummary(p.id, sessions ?? [], attendance ?? [], p.join_date, format(now,"yyyy-MM-dd"));
 
   const perSessionValue =
     myPayments.length > 0
@@ -74,8 +75,9 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
       : 0;
 
   return (
-    <div className="space-y-8">
+    <QueryState queries={[paymentsQuery,attendanceQuery,sessionsQuery,upcomingQuery]}><div className="space-y-8">
       <DashboardNavigation hasQr={!!p.checkin_code} />
+      <ParentDashboard />
       <MemberPlanBanner memberPlan={p.member_plan} />
       {p.is_active === false && (
         <div className="flex items-center gap-3 rounded-lg border border-attention-300/60 bg-attention-50 p-4 text-sm dark:bg-attention-500/10">
@@ -131,9 +133,9 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
         />
         <StatCard
           title={t("dash_my_attendance_rate")}
-          value={`${attendanceRate}%`}
+          value={attendanceRate === null ? "—" : `${attendanceRate}%`}
           icon={TrendingUp}
-          tone={attendanceRate >= 70 ? "success" : "warning"}
+          tone={(attendanceRate ?? 0) >= 70 ? "success" : "warning"}
           hint={`${attendedCount} ${t("schedule_attending")}`}
         />
         <StatCard
@@ -241,6 +243,6 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
       <DashboardSection id="updates" title={lang === "ar" ? "الأخبار والتنبيهات" : "Updates"}>
         <div className="space-y-5"><AnnouncementsCard isAdmin={false} /></div>
       </DashboardSection>
-    </div>
+    </div></QueryState>
   );
 }

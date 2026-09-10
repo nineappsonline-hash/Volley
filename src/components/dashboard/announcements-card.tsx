@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/shared/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
 import {
@@ -37,7 +38,8 @@ interface AnnouncementsCardProps {
 
 export function AnnouncementsCard({ isAdmin }: AnnouncementsCardProps) {
   const { t, locale } = useI18n();
-  const { data: announcements } = useAnnouncements();
+  const announcementsQuery = useAnnouncements();
+  const { data: announcements, isPending, isError, refetch } = announcementsQuery;
   const save = useSaveAnnouncement();
   const remove = useDeleteAnnouncement();
 
@@ -101,7 +103,19 @@ export function AnnouncementsCard({ isAdmin }: AnnouncementsCardProps) {
         )}
       </CardHeader>
       <CardContent className="space-y-2">
-        {!announcements || announcements.length === 0 ? (
+        {isPending ? (
+          <div className="space-y-2">
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </div>
+        ) : isError ? (
+          <div role="alert" className="rounded-lg border border-destructive/30 p-4 text-sm">
+            <p className="text-muted-foreground">{t("common_error")}</p>
+            <Button className="mt-2 h-7 px-2 text-xs" variant="outline" onClick={() => refetch()}>
+              {t("common_retry")}
+            </Button>
+          </div>
+        ) : !announcements || announcements.length === 0 ? (
           <EmptyState message={t("ann_empty")} icon={Megaphone} />
         ) : (
           announcements.map((a) => (

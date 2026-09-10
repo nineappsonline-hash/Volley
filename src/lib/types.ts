@@ -627,6 +627,15 @@ export interface CommunityLeaderboardRow {
   points: number;
 }
 
+export interface SportLeaderboardRow {
+  member_id: string;
+  name: string;
+  sport: string;
+  games_played: number;
+  points: number;
+  rank: number;
+}
+
 export interface ScoutNote {
   id: string;
   scout_id: string;

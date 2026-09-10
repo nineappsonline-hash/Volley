@@ -1,14 +1,13 @@
 "use client";
 
+import { TrainingGoals, TrainingRenewal } from "@/components/workflows/player-workflows";
 import { useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
   Building2,
   Camera,
-  Check,
   CheckCircle2,
-  Copy,
   CreditCard,
   Crown,
   Flame,
@@ -18,6 +17,7 @@ import {
   MapPin,
   Phone,
   Save,
+  Settings as SettingsIcon,
   Swords,
   Timer,
   Trophy,
@@ -44,7 +44,6 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EvaluationsCard } from "@/components/members/evaluations-card";
 import { CheckinQrCard } from "@/components/profile/checkin-qr-card";
 import { FamilyCard } from "@/components/profile/family-card";
-import { DeleteAccountCard } from "@/components/settings/delete-account-card";
 import { MapPicker } from "@/components/shared/map-picker";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n, type Dict } from "@/lib/i18n";
@@ -79,7 +78,6 @@ function AcademyProfile({ serverProfile }: { serverProfile: Profile }) {
   const [name, setName] = useState(p.name);
   const [phone, setPhone] = useState(p.phone ?? "");
   const [saving, setSaving] = useState(false);
-  const [copied, setCopied] = useState<string | null>(null);
   const updateProfile = useUpdateOwnProfile();
 
   const handleSave = async () => {
@@ -102,17 +100,6 @@ function AcademyProfile({ serverProfile }: { serverProfile: Profile }) {
     }
   };
 
-  const copy = async (value: string, key: string) => {
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(key);
-      toast.success(t("cal_copied"));
-      setTimeout(() => setCopied(null), 2000);
-    } catch {
-      toast.error(t("common_error"));
-    }
-  };
-
   if (isLoading || !academy) {
     return (
       <div className="space-y-6">
@@ -125,18 +112,17 @@ function AcademyProfile({ serverProfile }: { serverProfile: Profile }) {
     );
   }
 
-  const location = [
-    academy.country,
-    academy.governorate,
-    academy.area,
-    academy.address,
-  ]
-    .filter(Boolean)
-    .join(" · ");
-  const publicUrl =
-    typeof window !== "undefined" && academy.slug
-      ? `${window.location.origin}/a/${academy.slug}`
-      : "";
+  if (isLoading || !academy) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title={t("profile_academy_title")}
+          subtitle={t("profile_academy_subtitle")}
+        />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -173,27 +159,12 @@ function AcademyProfile({ serverProfile }: { serverProfile: Profile }) {
               </div>
             </div>
 
-            <div className="space-y-3 border-t pt-4 text-sm">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">
-                  {t("profile_location")}
-                </p>
-                <p className="mt-0.5 flex items-start gap-1.5 text-muted-foreground">
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>{location || t("common_not_set")}</span>
-                </p>
-              </div>
-              {academy.description && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {t("profile_about")}
-                  </p>
-                  <p className="mt-0.5 text-muted-foreground">
-                    {academy.description}
-                  </p>
-                </div>
-              )}
-            </div>
+            <Button asChild variant="outline" size="sm" className="w-full">
+              <a href="/settings#settings-academy-info">
+                <SettingsIcon className="h-4 w-4" />
+                {t("profile_manage_settings_title")}
+              </a>
+            </Button>
           </CardContent>
         </Card>
 
@@ -253,70 +224,38 @@ function AcademyProfile({ serverProfile }: { serverProfile: Profile }) {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
-                <Link2 className="h-4 w-4 text-primary" />
-                {t("profile_public_link")}
+                <SettingsIcon className="h-4 w-4 text-primary" />
+                {t("profile_manage_settings_title")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>{t("settings_invite_code")}</Label>
-                <div className="flex items-center gap-2">
-                  <Input dir="ltr" readOnly value={academy.invite_code} />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    aria-label={t("cal_copy")}
-                    onClick={() => copy(academy.invite_code, "invite")}
-                  >
-                    {copied === "invite" ? (
-                      <Check className="h-4 w-4 text-success-ink" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("settings_invite_hint")}
-                </p>
-              </div>
-              {publicUrl && (
-                <div className="space-y-2">
-                  <Label>{t("settings_slug")}</Label>
-                  <div className="flex items-center gap-2">
-                    <Input dir="ltr" readOnly value={publicUrl} />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      aria-label={t("cal_copy")}
-                      onClick={() => copy(publicUrl, "public")}
-                    >
-                      {copied === "public" ? (
-                        <Check className="h-4 w-4 text-success-ink" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                  <a
-                    href={publicUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1.5 text-xs text-primary hover:underline"
-                    dir="ltr"
-                  >
-                    <Link2 className="h-3 w-3" />
-                    {publicUrl}
-                  </a>
-                </div>
-              )}
+            <CardContent className="space-y-2">
+              <p className="text-xs text-muted-foreground">
+                {t("profile_manage_settings_hint")}
+              </p>
+              <Button
+                asChild
+                variant="outline"
+                className="w-full justify-start"
+              >
+                <a href="/settings#settings-academy-info">
+                  <Building2 className="h-4 w-4" />
+                  {t("settings_academy_info")}
+                </a>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="w-full justify-start"
+              >
+                <a href="/settings#settings-invite">
+                  <Link2 className="h-4 w-4" />
+                  {t("settings_invite_code")}
+                </a>
+              </Button>
             </CardContent>
           </Card>
         </div>
       </div>
-
-      <DeleteAccountCard isAdmin />
     </div>
   );
 }
@@ -621,7 +560,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
         {/* Middle column: subscription + payments */}
         <div className="space-y-6 lg:col-span-2">
 <section id="family" className="scroll-mt-24"><FamilyCard /></section>
-<section id="evaluations" className="scroll-mt-24"><EvaluationsCard memberId={p.id} isAdmin={false} /></section>
+<TrainingRenewal memberId={p.id} academyId={p.academy_id}/><TrainingGoals memberId={p.id}/><section id="evaluations" className="scroll-mt-24"><EvaluationsCard memberId={p.id} isAdmin={false} /></section>
 {p.checkin_code && (
             <section id="checkin" className="scroll-mt-24"><CheckinQrCard code={p.checkin_code} memberName={p.name} /></section>
           )}
@@ -923,10 +862,22 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
         </CardContent>
       </Card>
 
-      <details className="rounded-lg border p-4">
-        <summary className="cursor-pointer text-sm font-medium">{lang === "ar" ? "إدارة الحساب وحذفه" : "Account management & deletion"}</summary>
-        <div className="mt-4"><DeleteAccountCard isAdmin={false} /></div>
-      </details>
+      <div className="flex items-center justify-between gap-3 rounded-lg border p-4">
+        <div className="text-sm">
+          <p className="font-medium">{t("profile_manage_settings_title")}</p>
+          <p className="text-xs text-muted-foreground">
+            {lang === "ar"
+              ? "حسابك وإعدادات الأكاديمية وحذف الحساب"
+              : "Your account, academy settings and account deletion"}
+          </p>
+        </div>
+        <Button asChild variant="outline" size="sm" className="shrink-0">
+          <a href="/settings">
+            <SettingsIcon className="h-4 w-4" />
+            {t("nav_settings")}
+          </a>
+        </Button>
+      </div>
     </div>
   );
 }

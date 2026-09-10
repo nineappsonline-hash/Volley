@@ -1,5 +1,6 @@
 "use client";
 
+import { TrainingGoals, TrainingRenewal } from "@/components/workflows/player-workflows";
 import { useMemo } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -86,6 +87,7 @@ export function ChildProfileClient({ child }: { child: Profile }) {
           </Link>
         </Button>
       </PageHeader>
+      <TrainingRenewal memberId={member.id} academyId={member.academy_id}/><TrainingGoals memberId={member.id}/>
       {member.checkin_code && <CheckinQrCard code={member.checkin_code} memberName={member.name} />}
 
 

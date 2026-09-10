@@ -37,11 +37,17 @@ export function FamilyCard() {
 
   return (
     <Card>
-      <CardHeader className="pb-3">
+      <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <UsersRound className="h-4 w-4 text-primary" />
           {t("family_title")}
         </CardTitle>
+        <Button variant="ghost" size="sm" asChild className="h-8 gap-1 px-2 text-xs">
+          <Link href="/parent">
+            {t("family_overview")}
+            <ArrowRight className="ms-1 h-3 w-3 rtl:rotate-180" />
+          </Link>
+        </Button>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-xs text-muted-foreground">{t("family_subtitle")}</p>

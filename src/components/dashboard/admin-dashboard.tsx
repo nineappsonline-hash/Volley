@@ -1,5 +1,9 @@
 "use client";
 
+import { QueryState } from "@/components/shared/query-state";
+import { buildMonthlyPoints } from "@/lib/financial-summary";
+import { useExpenses, useVenueRentals, useSessionGuests } from "@/lib/queries";
+import { TrainingRenewal } from "@/components/workflows/player-workflows";
 import Link from "next/link";
 import { DashboardNavigation, DashboardSection } from "./dashboard-navigation";
 import { format } from "date-fns";
@@ -36,13 +40,21 @@ import {
 
 export function AdminDashboard() {
   const { t, lang, locale } = useI18n();
-  const { data: profiles, isLoading: loadingProfiles } = useProfiles();
-  const { data: payments } = useAllPayments();
-  const { data: costs } = useMonthlyCosts();
-  const { data: sessions } = useSessions();
-  const { data: calculations } = useSessionCalculations();
+  const profilesQuery = useProfiles();
+  const { data: profiles, isLoading: loadingProfiles } = profilesQuery;
+  const paymentsQuery = useAllPayments();
+  const { data: payments } = paymentsQuery;
+  const costsQuery = useMonthlyCosts();
+  const { data: costs } = costsQuery;
+  const sessionsQuery = useSessions();
+  const { data: sessions } = sessionsQuery;
+  const calculationsQuery = useSessionCalculations();
+  const { data: calculations } = calculationsQuery;
   const { data: academy } = useAcademy();
 
+  const expensesQuery = useExpenses();
+  const rentalsQuery = useVenueRentals();
+  const guestsQuery = useSessionGuests();
   const now = new Date();
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
@@ -52,11 +64,11 @@ export function AdminDashboard() {
     const d = new Date(p.payment_date + "T00:00:00");
     return d.getMonth() + 1 === month && d.getFullYear() === year;
   });
-  const monthlyRevenue = monthlyPayments.reduce((s, p) => s + Number(p.amount), 0);
-  const monthCost = (costs ?? []).find((c) => c.month === month && c.year === year);
-  const monthlyCosts = monthCost
-    ? Number(monthCost.coach_fee) + Number(monthCost.court_rental)
-    : 0;
+  const point = buildMonthlyPoints(
+    payments ?? [], costs ?? [], calculations ?? [], sessions ?? [], expensesQuery.data ?? [], rentalsQuery.data ?? [], guestsQuery.data ?? []
+  ).find(p => p.label === `${now.toLocaleString("en-US", {month:"short"})} ${year}`);
+  const monthlyRevenue = point?.revenue ?? 0;
+  const monthlyCosts = point?.costs ?? 0;
   const net = monthlyRevenue - monthlyCosts;
 
   const recentSessions = (sessions ?? [])
@@ -72,7 +84,7 @@ export function AdminDashboard() {
     (!academy.name.trim() || academy.lat == null || academy.lng == null);
 
   return (
-    <div className="space-y-8">
+    <QueryState queries={[profilesQuery,paymentsQuery,costsQuery,sessionsQuery,calculationsQuery,expensesQuery,rentalsQuery,guestsQuery]}><div className="space-y-8">
       <DashboardNavigation admin />
       {incomplete && (
         <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
@@ -93,6 +105,7 @@ export function AdminDashboard() {
       {academy && (
         <AdminPlanBanner plan={academy.plan} isTrial={academy.is_trial} />
       )}
+      <AdminAlerts />
       <DashboardSection id="overview" title={lang === "ar" ? "نظرة عامة" : "Overview"} hint={lang === "ar" ? "أهم الأرقام في مكان واحد" : "Your key numbers at a glance"}>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {loadingProfiles ? (
@@ -128,10 +141,17 @@ export function AdminDashboard() {
               value={formatMoney(net, lang)}
               icon={PiggyBank}
               tone={net >= 0 ? "success" : "destructive"}
+              hint={t("dash_net_profit_hint")}
             />
           </>
         )}
       </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        {t("dash_net_profit_note")}
+        <Link href="/reports" className="font-medium text-primary hover:underline">
+          {t("dash_financial_report_link")}
+        </Link>
+      </p>
 
       </DashboardSection>
 
@@ -189,8 +209,8 @@ export function AdminDashboard() {
       </div>
       </DashboardSection>
       <DashboardSection id="updates" title={lang === "ar" ? "الأخبار والتنبيهات" : "Updates"}>
-        <div className="space-y-5"><AdminAlerts /><AnnouncementsCard isAdmin /><TrialsCard /></div>
+        <div className="space-y-5"><TrainingRenewal admin /><AnnouncementsCard isAdmin /><TrialsCard /></div>
       </DashboardSection>
-    </div>
+    </div></QueryState>
   );
 }

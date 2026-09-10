@@ -120,21 +120,23 @@ export function SessionFormDialog({
     }
   };
 
+  // Watch at render top-level so the conflict check re-runs when they change.
+  const watchedVenue = form.watch("venue_id");
+  const watchedDate = form.watch("date");
+  const watchedTime = form.watch("time");
+
   // Venue conflict: another session at the same venue, date & time.
   const conflict = useMemo(() => {
-    const venueId = form.watch("venue_id");
-    const date = form.watch("date");
-    const time = form.watch("time");
-    if (!venueId || venueId === "none" || !date || !time) return false;
+    if (!watchedVenue || watchedVenue === "none" || !watchedDate || !watchedTime) return false;
     return (sessions ?? []).some(
       (s) =>
         s.id !== session?.id &&
         s.status !== "canceled" &&
-        s.venue_id === venueId &&
-        s.date === date &&
-        s.time.slice(0, 5) === time
+        s.venue_id === watchedVenue &&
+        s.date === watchedDate &&
+        s.time.slice(0, 5) === watchedTime
     );
-  }, [form, venues, sessions, session]);
+  }, [watchedVenue, watchedDate, watchedTime, sessions, session]);
 
   const onSubmit = async (values: FormValues) => {
     setSubmitting(true);

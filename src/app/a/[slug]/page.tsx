@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CalendarDays, MapPin, Star, Trophy, Volleyball } from "lucide-react";
+import { CalendarDays, Camera, MapPin, MessageSquareText, Star, Trophy, Volleyball } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { dictionary } from "@/lib/i18n/dictionary";
 import { AcademyTrainingSummary } from "@/components/settings/academy-training-prices";
@@ -27,7 +27,7 @@ export default async function PublicAcademyPage({
   if (!academy) notFound();
 
   const today = new Date().toISOString().slice(0, 10);
-  const [{ data: sports }, { data: sessions }, { data: ratings }] =
+  const [{ data: sports }, { data: sessions }, { data: ratings }, { data: photos }] =
     await Promise.all([
       admin
         .from("sports")
@@ -45,8 +45,15 @@ export default async function PublicAcademyPage({
         .limit(6),
       admin
         .from("academy_ratings")
-        .select("rating")
-        .eq("academy_id", academy.id),
+        .select("id, rating, comment, created_at, member:profiles(name)")
+        .eq("academy_id", academy.id)
+        .order("created_at", { ascending: false })
+        .limit(20),
+      admin
+        .from("academy_photos")
+        .select("id, photo_url, caption")
+        .eq("academy_id", academy.id)
+        .order("created_at"),
     ]);
 
   const ratingCount = (ratings ?? []).length;
@@ -54,6 +61,11 @@ export default async function PublicAcademyPage({
     ratingCount > 0
       ? (ratings ?? []).reduce((sum, r) => sum + r.rating, 0) / ratingCount
       : 0;
+  const reviews = (ratings ?? []).filter((r) => r.comment?.trim());
+  const fmtDate = (iso: string, locale: "en" | "ar") =>
+    new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-US", {
+      dateStyle: "medium",
+    }).format(new Date(iso));
 
   return (
     <main className="min-h-screen bg-background">
@@ -115,6 +127,16 @@ export default async function PublicAcademyPage({
               </span>
             </div>
           )}
+          <a
+            href="#trial"
+            className="mt-1 inline-flex items-center gap-2 rounded-full bg-white px-6 py-2.5 text-sm font-bold text-brand shadow-lg transition-transform hover:scale-105"
+          >
+            <Trophy className="h-4 w-4" />
+            <LangLabel
+              en={dictionary.en.public_book_trial}
+              ar={dictionary.ar.public_book_trial}
+            />
+          </a>
         </div>
       </section>
 
@@ -161,9 +183,83 @@ export default async function PublicAcademyPage({
           </section>
         )}
 
+        {/* Photos */}
+        {(photos ?? []).length > 0 && (
+          <section>
+            <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
+              <Camera className="h-5 w-5 text-primary" />
+              <LangLabel en={dictionary.en.public_photos} ar={dictionary.ar.public_photos} />
+            </h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {(photos ?? []).map((p) => (
+                <figure key={p.id} className="overflow-hidden rounded-xl border">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={p.photo_url}
+                    alt={p.caption ?? academy.name}
+                    className="aspect-[4/3] w-full object-cover"
+                    loading="lazy"
+                  />
+                  {p.caption && (
+                    <figcaption className="px-3 py-2 text-xs text-muted-foreground">
+                      {p.caption}
+                    </figcaption>
+                  )}
+                </figure>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Reviews */}
+        {reviews.length > 0 && (
+          <section>
+            <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
+              <MessageSquareText className="h-5 w-5 text-primary" />
+              <LangLabel en={dictionary.en.public_reviews} ar={dictionary.ar.public_reviews} />
+            </h2>
+            <div className="space-y-3">
+              {reviews.map((r) => (
+                <div key={r.id ?? `${r.created_at}-${r.rating}`} className="rounded-xl border p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-semibold">
+                      {(r as { member?: { name?: string } }).member?.name ?? "—"}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center gap-0.5" dir="ltr">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <Star
+                            key={i}
+                            className={`h-3.5 w-3.5 ${
+                              i <= r.rating
+                                ? "fill-attention-300 text-attention-300"
+                                : "text-muted-foreground/40"
+                            }`}
+                          />
+                        ))}
+                      </span>
+                      <time className="text-xs text-muted-foreground" dir="ltr">
+                        <LangLabel
+                          en={fmtDate(r.created_at, "en")}
+                          ar={fmtDate(r.created_at, "ar")}
+                        />
+                      </time>
+                    </div>
+                  </div>
+                  {r.comment && (
+                    <p className="mt-1.5 text-sm text-muted-foreground">{r.comment}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Trial booking */}
         <AcademyTrainingSummary academy={academy} />
-        <TrialForm academyId={academy.id} sports={sports ?? []} />
+        <div id="trial" className="scroll-mt-6">
+          <TrialForm academyId={academy.id} sports={sports ?? []} />
+        </div>
       </div>
     </main>
   );
