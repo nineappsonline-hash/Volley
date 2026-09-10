@@ -1355,6 +1355,8 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     // ── Upgrade page ──
     premium_page_title: "Go Premium",
     premium_page_subtitle: "Unlock features that go beyond your academy",
+    plans_page_title: "Academy plans",
+    plans_page_subtitle: "Billing plans designed for academies",
     premium_active_message: "You're a premium member!",
     members_pending_approval: "Your account is waiting to be added to the roster by the academy. You'll get full access once approved.",
     premium_expires: "Expires",
@@ -3281,6 +3283,8 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     // ── Upgrade page ──
     premium_page_title: "كن مميزاً",
     premium_page_subtitle: "افتح مميزات تتجاوز أكاديميتك",
+    plans_page_title: "باقات الأكاديمية",
+    plans_page_subtitle: "باقات اشتراك مصممة للأكاديميات",
     premium_active_message: "أنت عضو مميز!",
     members_pending_approval: "حسابك بانتظار إضافته إلى قائمة الأعضاء من قِبل الأكاديمية. ستحصل على الوصول الكامل بعد الموافقة.",
     premium_expires: "ينتهي في",

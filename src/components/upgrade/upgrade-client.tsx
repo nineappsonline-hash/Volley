@@ -6,13 +6,19 @@ import { useRouter } from "next/navigation";
 import { Crown } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { useI18n } from "@/lib/i18n";
-import type { Profile } from "@/lib/types";
+import type { Profile, Role } from "@/lib/types";
 import { PlanComparison } from "./plan-comparison";
 import { MemberPlanComparison } from "./member-plan-comparison";
 
 type Tier = "starter" | "plus" | "elite";
 
-export function UpgradeClient({ profile }: { profile: Profile }) {
+export function UpgradeClient({
+  profile,
+  role,
+}: {
+  profile: Profile;
+  role: Role;
+}) {
   const { t, lang } = useI18n();
   const router = useRouter();
 
@@ -32,14 +38,19 @@ export function UpgradeClient({ profile }: { profile: Profile }) {
     router.push("/checkout?kind=member&plan=pro");
   };
 
+  const isOwner = role === "admin" || role === "super_admin";
+  const isMember = role === "member" || role === "super_admin";
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t("premium_page_title")}
-        subtitle={t("premium_page_subtitle")}
+        title={t(isOwner && !isMember ? "plans_page_title" : "premium_page_title")}
+        subtitle={t(
+          isOwner && !isMember ? "plans_page_subtitle" : "premium_page_subtitle"
+        )}
       />
 
-      {isPremium && (
+      {isPremium && role !== "super_admin" && (
         <div className="flex items-center gap-3 rounded-lg border border-interactive-300/60 bg-interactive-50 p-4 text-sm dark:bg-interactive-500/10">
           <Crown className="h-5 w-5 shrink-0 text-info-ink" />
           <div>
@@ -55,27 +66,35 @@ export function UpgradeClient({ profile }: { profile: Profile }) {
         </div>
       )}
 
-      <p className="text-sm text-muted-foreground">
-        {t("plans_compare_subtitle")}
-      </p>
+      {isOwner && (
+        <>
+          <p className="text-sm text-muted-foreground">
+            {t("plans_compare_subtitle")}
+          </p>
 
-      <PlanComparison
-        current={current}
-        busy={false}
-        onSubscribe={onSubscribe}
-      />
+          <PlanComparison
+            current={current}
+            busy={false}
+            onSubscribe={onSubscribe}
+          />
+        </>
+      )}
 
-      <p className="pt-4 text-sm font-semibold text-foreground">
-        {t("mplan_page_title")}
-      </p>
-      <p className="text-sm text-muted-foreground">
-        {t("mplan_page_subtitle")}
-      </p>
+      {isMember && (
+        <>
+          <p className="pt-4 text-sm font-semibold text-foreground">
+            {t("mplan_page_title")}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {t("mplan_page_subtitle")}
+          </p>
 
-      <MemberPlanComparison
-        currentPlan={profile.member_plan}
-        onSubscribe={onMemberSubscribe}
-      />
+          <MemberPlanComparison
+            currentPlan={profile.member_plan}
+            onSubscribe={onMemberSubscribe}
+          />
+        </>
+      )}
 
       <p className="text-center text-xs text-muted-foreground">
         {t("premium_payment_note")}
