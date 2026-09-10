@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { DashboardNavigation, DashboardSection } from "./dashboard-navigation";
 import { format } from "date-fns";
 import {
   CalendarClock,
@@ -71,7 +72,8 @@ export function AdminDashboard() {
     (!academy.name.trim() || academy.lat == null || academy.lng == null);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      <DashboardNavigation admin />
       {incomplete && (
         <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
           <div className="flex items-center gap-3">
@@ -91,6 +93,7 @@ export function AdminDashboard() {
       {academy && (
         <AdminPlanBanner plan={academy.plan} isTrial={academy.is_trial} />
       )}
+      <DashboardSection id="overview" title={lang === "ar" ? "نظرة عامة" : "Overview"} hint={lang === "ar" ? "أهم الأرقام في مكان واحد" : "Your key numbers at a glance"}>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {loadingProfiles ? (
           <>
@@ -130,10 +133,9 @@ export function AdminDashboard() {
         )}
       </div>
 
-      <AdminAlerts />
-      <AnnouncementsCard isAdmin />
-      <TrialsCard />
+      </DashboardSection>
 
+      <DashboardSection id="training" title={lang === "ar" ? "التدريب والمتابعة" : "Training & activity"} hint={lang === "ar" ? "مواعيدك وتفاصيل المتابعة" : "Schedules and activity details"}>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <UpcomingSessions isAdmin />
         <Card>
@@ -185,6 +187,10 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+      </DashboardSection>
+      <DashboardSection id="updates" title={lang === "ar" ? "الأخبار والتنبيهات" : "Updates"}>
+        <div className="space-y-5"><AdminAlerts /><AnnouncementsCard isAdmin /><TrialsCard /></div>
+      </DashboardSection>
     </div>
   );
 }

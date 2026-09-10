@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { DashboardNavigation, DashboardSection } from "./dashboard-navigation";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import {
@@ -73,13 +74,8 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
       : 0;
 
   return (
-    <div className="space-y-6">
-      <nav aria-label={lang === "ar" ? "اختصارات" : "Quick links"} className="flex flex-wrap gap-2">
-        <Button asChild variant="outline"><Link href="/profile#family">{lang === "ar" ? "عيلتي" : "My family"}</Link></Button>
-        <Button asChild variant="outline"><Link href="/profile#evaluations">{lang === "ar" ? "تقييمي وتطوري" : "My feedback & progress"}</Link></Button>
-        {p.checkin_code && <Button asChild variant="outline"><Link href="/profile#checkin">{lang === "ar" ? "كود الحضور" : "Attendance QR"}</Link></Button>}
-        <Button asChild variant="outline"><Link href="/schedule">{t("nav_schedule")}</Link></Button>
-      </nav>
+    <div className="space-y-8">
+      <DashboardNavigation hasQr={!!p.checkin_code} />
       <MemberPlanBanner memberPlan={p.member_plan} />
       {p.is_active === false && (
         <div className="flex items-center gap-3 rounded-lg border border-attention-300/60 bg-attention-50 p-4 text-sm dark:bg-attention-500/10">
@@ -113,6 +109,7 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
           </p>
         </div>
       )}
+      <DashboardSection id="overview" title={lang === "ar" ? "نظرة عامة" : "Overview"} hint={lang === "ar" ? "أهم الأرقام في مكان واحد" : "Your key numbers at a glance"}>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title={t("dash_my_remaining")}
@@ -149,8 +146,9 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
         />
       </div>
 
-      <AnnouncementsCard isAdmin={false} />
+      </DashboardSection>
 
+      <DashboardSection id="training" title={lang === "ar" ? "التدريب والمتابعة" : "Training & activity"} hint={lang === "ar" ? "مواعيدك وتفاصيل المتابعة" : "Schedules and activity details"}>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader className="pb-3">
@@ -239,6 +237,10 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
           </CardContent>
         </Card>
       </div>
+      </DashboardSection>
+      <DashboardSection id="updates" title={lang === "ar" ? "الأخبار والتنبيهات" : "Updates"}>
+        <div className="space-y-5"><AnnouncementsCard isAdmin={false} /></div>
+      </DashboardSection>
     </div>
   );
 }
