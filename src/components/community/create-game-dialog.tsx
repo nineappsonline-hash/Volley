@@ -26,9 +26,10 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { COMMUNITY_SPORTS, GAME_CREATION_FEE } from "@/lib/constants";
 import { GameCostEstimate } from "@/components/games/game-cost-estimate";
+import { PlaygroundPicker } from "@/components/shared/playground-picker";
 import { createClient } from "@/lib/supabase/client";
 import { MapPicker } from "@/components/shared/map-picker";
-import { useCreateFriendlyGame, usePoolPlaygrounds } from "@/lib/queries";
+import { useCreateFriendlyGame, usePlaygrounds } from "@/lib/queries";
 import { errorMessage, todayInput } from "@/lib/utils";
 
 type FeeMethod = "instapay" | "e_wallet" | "kashier";
@@ -55,7 +56,7 @@ export function CreateGameDialog({
   const { t, lang } = useI18n();
   const isPro = memberPlan === "premium";
   const create = useCreateFriendlyGame();
-  const { data: playgrounds } = usePoolPlaygrounds();
+  const { data: playgrounds } = usePlaygrounds();
   const [playgroundId, setPlaygroundId] = useState("");
   const supabase = createClient();
 
@@ -274,10 +275,11 @@ export function CreateGameDialog({
             <div className="space-y-2"><Label htmlFor="game-duration">{lang === "ar" ? "مدة الجيم بالساعات" : "Duration (hours)"}</Label><Input id="game-duration" type="number" min="0.01" max="24" step="0.25" value={duration} onChange={e => setDuration(e.target.value)} /></div>
           </div>
           <div className="space-y-2"><Label htmlFor="community-playground">{lang === "ar" ? "الملعب" : "Playground"}</Label>
-            <select id="community-playground" className="h-10 w-full rounded-md border bg-card px-3 text-sm" value={playgroundId} onChange={e => setPlaygroundId(e.target.value)}>
-              <option value="">{lang === "ar" ? "اختار ملعب لحساب التكلفة" : "Select a playground to estimate cost"}</option>
-              {playgrounds?.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select></div>
+            <PlaygroundPicker
+              value={playgroundId}
+              onChange={setPlaygroundId}
+              playgrounds={playgrounds ?? []}
+            /></div>
           <GameCostEstimate rate={playgrounds?.find(p => p.id === playgroundId)?.rental_cost} hours={Number(duration)} min={Number(minPlayers)} max={Number(maxPlayers)} />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div className="space-y-2">

@@ -43,8 +43,9 @@ import {
   INSTAPAY_LINK,
 } from "@/lib/constants";
 import { GameCostEstimate } from "@/components/games/game-cost-estimate";
+import { PlaygroundPicker } from "@/components/shared/playground-picker";
 import { createClient } from "@/lib/supabase/client";
-import { useCreateFriendlyGame, usePoolPlaygrounds } from "@/lib/queries";
+import { useCreateFriendlyGame, usePlaygrounds } from "@/lib/queries";
 import { errorMessage, todayInput } from "@/lib/utils";
 
 type FeeMethod = "instapay" | "e_wallet" | "kashier";
@@ -54,14 +55,6 @@ const FEE_METHODS: { value: FeeMethod; icon: typeof Wallet; disabled?: boolean }
   { value: "e_wallet", icon: Wallet },
   { value: "kashier", icon: CreditCard, disabled: true },
 ];
-
-function playgroundLines(venue: {
-  name: string;
-  area?: string | null;
-  governorate?: string | null;
-}) {
-  return [venue.area, venue.governorate].filter(Boolean).join(" · ");
-}
 
 export function CreateGameDialog({
   open,
@@ -75,7 +68,7 @@ export function CreateGameDialog({
   const { t, lang } = useI18n();
   const isPro = memberPlan === "premium";
   const create = useCreateFriendlyGame();
-  const { data: playgrounds } = usePoolPlaygrounds();
+  const { data: playgrounds } = usePlaygrounds();
   const supabase = createClient();
 
   const [title, setTitle] = useState("");
@@ -282,34 +275,12 @@ export function CreateGameDialog({
               <LandPlot className="h-3.5 w-3.5 text-primary" />
               {t("games_playground")}
             </Label>
-            <Select value={playgroundId} onValueChange={setPlaygroundId}>
-              <SelectTrigger aria-label={t("games_playground")}>
-                <SelectValue placeholder={t("games_playground_any")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">{t("games_playground_any")}</SelectItem>
-                {(playgrounds ?? []).map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name}
-                    {playgroundLines(p) && ` — ${playgroundLines(p)}`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {playgrounds && playgrounds.length === 0 && (
-              <p className="text-xs text-muted-foreground">{t("games_playground_empty")}</p>
-            )}
-            {selectedPlayground ? (
-              <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success-ink" />
-                {t("games_playground_selected")}
-                <span className="truncate">
-                  {[selectedPlayground.name, playgroundLines(selectedPlayground)]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </span>
-              </p>
-            ) : (
+            <PlaygroundPicker
+              value={playgroundId}
+              onChange={setPlaygroundId}
+              playgrounds={playgrounds ?? []}
+            />
+            {!selectedPlayground && (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label className="text-xs">{t("community_area")}</Label>

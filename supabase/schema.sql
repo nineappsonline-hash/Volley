@@ -1495,17 +1495,19 @@ CREATE POLICY "Members manage coaches" ON public.coaches
   FOR ALL USING (academy_id = public.current_academy_id())
   WITH CHECK (academy_id = public.current_academy_id());
 
--- venues: admins manage; members read for display. Unassigned venues are
--- selectable by anyone so academy owners can claim them during signup; the
--- contact columns stay column-restricted (admin API only).
+-- venues: admins manage; members read for display (any playground, so they can
+-- pick a court for community games or see where a game is held). Unassigned
+-- venues are selectable by anyone so academy owners can claim them during
+-- signup; the contact columns stay column-restricted (admin API only).
 DROP POLICY IF EXISTS "Members manage venues" ON public.venues;
 CREATE POLICY "Members manage venues" ON public.venues
   FOR ALL USING (academy_id = public.current_academy_id())
   WITH CHECK (academy_id = public.current_academy_id());
 
 DROP POLICY IF EXISTS "Unassigned playgrounds are viewable" ON public.venues;
-CREATE POLICY "Unassigned playgrounds are viewable" ON public.venues
-  FOR SELECT USING (academy_id IS NULL);
+DROP POLICY IF EXISTS "Playgrounds are viewable" ON public.venues;
+CREATE POLICY "Playgrounds are viewable" ON public.venues
+  FOR SELECT TO anon, authenticated USING (true);
 
 DROP POLICY IF EXISTS "Members manage venue rentals" ON public.venue_rentals;
 CREATE POLICY "Members manage venue rentals" ON public.venue_rentals
@@ -2156,11 +2158,11 @@ BEGIN
     RAISE EXCEPTION 'Date and time are required';
   END IF;
 
-  -- Playground must be one of the platform's selectable pool venues.
+  -- Playground must be a selectable venue (pool or academy playground).
   IF p_playground_id IS NOT NULL THEN
     SELECT * INTO v_venue
     FROM public.venues
-    WHERE id = p_playground_id AND academy_id IS NULL;
+    WHERE id = p_playground_id;
     IF NOT FOUND THEN
       RAISE EXCEPTION 'Playground not available';
     END IF;
@@ -4531,11 +4533,11 @@ BEGIN
     RAISE EXCEPTION 'Date and time are required';
   END IF;
 
-  -- Playground must be one of the platform's selectable pool venues.
+  -- Playground must be a selectable venue (pool or academy playground).
   IF p_playground_id IS NOT NULL THEN
     SELECT * INTO v_venue
     FROM public.venues
-    WHERE id = p_playground_id AND academy_id IS NULL;
+    WHERE id = p_playground_id;
     IF NOT FOUND THEN
       RAISE EXCEPTION 'Playground not available';
     END IF;

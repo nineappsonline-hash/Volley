@@ -93,7 +93,7 @@ export const queryKeys = {
   communityMembers: ["community-members"] as const,
   friendlyGames: ["friendly-games"] as const,
   myGameParticipants: ["my-game-participants"] as const,
-  poolPlaygrounds: ["pool-playgrounds"] as const,
+  poolPlaygrounds: ["playgrounds"] as const,
   children: (guardianId?: string) =>
     ["children", guardianId ?? "all"] as const,
   notifications: ["notifications"] as const,
@@ -2400,14 +2400,14 @@ export function useFriendlyGames() {
   });
 }
 
-export function usePoolPlaygrounds() {
+/** All playgrounds (unassigned pool + academy venues) that members can pick for community games. */
+export function usePlaygrounds() {
   return useQuery({
     queryKey: queryKeys.poolPlaygrounds,
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("venues")
         .select("id, academy_id, name, address, country, governorate, area, lat, lng, capacity, sport_id, school_name, rental_cost, rental_hours, created_at")
-        .is("academy_id", null)
         .order("name");
       if (error) throw error;
       return (data ?? []) as Venue[];

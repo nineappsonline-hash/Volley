@@ -54,7 +54,7 @@ import {
   useJoinFriendlyGame,
   useLeaveFriendlyGame,
   useMyGameParticipants,
-  usePoolPlaygrounds,
+  usePlaygrounds,
 } from "@/lib/queries";
 import { useRealtime } from "@/lib/useRealtime";
 import { errorMessage } from "@/lib/utils";
@@ -488,7 +488,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
   const supabase = createClient();
   const { data: games, isLoading } = useFriendlyGames();
   const { data: myParticipants } = useMyGameParticipants();
-  const { data: poolPlaygrounds } = usePoolPlaygrounds();
+  const { data: poolPlaygrounds } = usePlaygrounds();
   useRealtime(["friendly_games"]);
 
   const [sportFilter, setSportFilter] = useState("all");
