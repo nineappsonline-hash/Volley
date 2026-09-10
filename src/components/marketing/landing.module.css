@@ -19,3 +19,54 @@
 
 /* Arabic typography: spacious headings and comfortable paragraph rhythm. */
 .page{font-family:"Tajawal",Arial,sans-serif}.page h1,.page h2,.page h3,.heroCopy h1{letter-spacing:normal}.hero h1{font-weight:800;line-height:1.4}.page h2{font-weight:800}.heroCopy>p{line-height:1.95;font-weight:400}.page button,.page summary{font-family:inherit}
+
+/* Give the section labels their own clear visual hierarchy. */
+.page .kicker {
+  display: inline-block;
+  position: relative;
+  max-width: 100%;
+  font-size: clamp(24px, 2.5vw, 36px);
+  font-weight: 800;
+  line-height: 1.55;
+  letter-spacing: normal;
+  padding-bottom: 12px;
+  margin-bottom: 10px;
+  text-wrap: balance;
+}
+.page .kicker::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: 0;
+  width: 44px;
+  height: 3px;
+  border-radius: 3px;
+  background: currentColor;
+  opacity: .45;
+  transform-origin: right center;
+}
+.sectionHeading .kicker::after {
+  inset-inline-start: calc(50% - 22px);
+  transform-origin: center;
+}
+.page .kicker[data-visible="true"] {
+  animation: headingEntrance .75s cubic-bezier(.22, 1, .36, 1) both;
+}
+.page .kicker[data-visible="true"]::after {
+  animation: headingUnderline .8s .15s cubic-bezier(.22, 1, .36, 1) both;
+}
+.audiencePanel .kicker { font-size: 20px; padding-bottom: 0; margin-bottom: 0; }
+.audiencePanel .kicker::after { display: none; }
+@keyframes headingEntrance {
+  from { opacity: .2; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes headingUnderline {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page .kicker[data-visible="true"],
+  .page .kicker[data-visible="true"]::after { animation: none !important; }
+}
+.page[data-paused="true"] .kicker::after { animation: none !important; }

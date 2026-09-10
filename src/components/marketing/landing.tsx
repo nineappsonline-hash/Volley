@@ -32,7 +32,7 @@ export function LandingPage() {
         observer.unobserve(entry.target);
       }
     }), { threshold: 0.08 });
-    pageRef.current?.querySelectorAll("section, article").forEach(element => observer.observe(element));
+    pageRef.current?.querySelectorAll(`section, article, .${styles.kicker}`).forEach(element => observer.observe(element));
     return () => observer.disconnect();
   }, []);
   const [audience, setAudience] = useState(0);
