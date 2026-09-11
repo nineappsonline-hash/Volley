@@ -1990,7 +1990,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     login_no_account: "ليس لديك حساب؟",
     login_signup_link: "سجّل كعضو",
     login_error: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
-    signup_title: "انضم إلى الأكاديمية",
+    signup_title: "ابتدي اللعب!",
     signup_subtitle: "أنشئ حسابك كعضو للبدء",
     signup_tenant_title: "أنشئ أكاديميتك",
     signup_tenant_subtitle: "أنشئ أكاديميتك وابدأ بإدارة الأعضاء والحصص والمدفوعات",
