@@ -77,10 +77,10 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
-  /* Tajawal for Arabic pages, including Arabic sections in the English UI. */
+  /* Alexandria for Arabic pages, including Arabic sections in the English UI. */
   [dir="rtl"] body,
   [dir="rtl"] {
-    font-family: "Tajawal", ui-sans-serif, system-ui, -apple-system,
+    font-family: "Alexandria", ui-sans-serif, system-ui, -apple-system,
       "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
   :lang(ar) :is(h1, h2, h3, h4) {
