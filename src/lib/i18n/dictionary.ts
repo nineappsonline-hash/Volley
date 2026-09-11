@@ -1875,6 +1875,15 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
       "Playza — a place that brings us together around our love of sports.",
     landing_motion_pause: "Stop motion",
     landing_motion_play: "Play motion",
+    // ── Install banner ──
+    landing_install_title: "Playza, always one tap away.",
+    landing_install_desc: "Add Playza to your home screen and open it like an app — no store needed.",
+    landing_install_cta: "Add to Home Screen",
+    landing_install_ios_title: "Add to Home Screen",
+    landing_install_ios_step1: "Tap the Share button below the address bar.",
+    landing_install_ios_step2: 'Scroll down and tap "Add to Home Screen".',
+    landing_install_ios_close: "Got it",
+    landing_install_dismiss: "Not now",
     landing_footer_academies: "Academies",
     landing_footer_top: "Back to top ↑",
     // ── Auth role selector ──
@@ -3967,6 +3976,15 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     landing_footer_desc: "بلايزا — مكان يجمعنا على حب الرياضة.",
     landing_motion_pause: "إيقاف الحركة",
     landing_motion_play: "تشغيل الحركة",
+    // ── شريط تثبيت التطبيق ──
+    landing_install_title: "بلايزا، على بعد ضغطة واحدة.",
+    landing_install_desc: "أضف بلايزا للشاشة الرئيسية وافتحها زي أي تطبيق — من غير متجر.",
+    landing_install_cta: "أضف للشاشة الرئيسية",
+    landing_install_ios_title: "أضف للشاشة الرئيسية",
+    landing_install_ios_step1: "اضغط زر المشاركة تحت شريط العنوان.",
+    landing_install_ios_step2: 'نزّل لتحت واضغط "إضافة للشاشة الرئيسية".',
+    landing_install_ios_close: "تمام",
+    landing_install_dismiss: "مش دلوقتي",
     landing_footer_academies: "الأكاديميات",
     landing_footer_top: "ارجع لفوق ↑",
     // ── اختيار الدور في تسجيل الدخول ──

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ArrowUpLeft, Check, CalendarDays, QrCode, Users, TrendingUp, MessageCircle, MapPin, Wallet, Trophy, Heart, Volleyball, Menu, X } from "lucide-react";
 import { AppLogo } from "@/components/shared/app-logo";
 import { LanguageToggle } from "@/components/layout/language-toggle";
+import { InstallBanner } from "@/components/marketing/install-banner";
 import { useI18n } from "@/lib/i18n";
 import styles from "./landing.module.css";
 
@@ -93,6 +94,7 @@ export function LandingPage() {
           <div className={styles.editorialCaption}><span>{t("landing_editorial_span")}</span><strong>{t("landing_editorial_strong")}</strong></div>
         </div>
       </section>
+      <InstallBanner />
       <div className={styles.sports} aria-label={t("landing_sports_prompt")}><span>{t("landing_sports_prompt")}</span>{sportList.map(([id, name]) => <span key={id}><Volleyball size={16} />{name}</span>)}</div>
 
       <section className={`${styles.section} ${styles.playTogether}`}>

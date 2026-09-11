@@ -176,6 +176,7 @@ export const metadata: Metadata = {
     "theme-color": PLAYZA.navy,
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "black-translucent",
+    "apple-mobile-web-app-title": "Playza",
   },
 };
 
@@ -210,7 +211,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
-        <link rel="apple-touch-icon" href="/favicon.png" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <link
           rel="icon"
           href="/favicon.png"
