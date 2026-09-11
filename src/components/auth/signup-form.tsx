@@ -44,25 +44,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { LocationFields, CountryField } from "@/components/shared/location-fields";
+import { LocationFields } from "@/components/shared/location-fields";
 import { UsernameField } from "@/components/shared/username-field";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { useAuth, type SignupVenue } from "@/lib/auth";
 
 const joinSchema = (t: (k: any) => string) =>
-  z.object({
-    name: z.string().min(1, t("field_required")),
-    username: z
-      .string()
-      .regex(/^[a-z0-9_]{3,20}$/, t("field_username_invalid")),
-    gender: z.enum(["male", "female"], { message: t("field_required") }),
-    birth_date: z.string().min(1, t("field_required")),
-    email: z.string().email(t("field_invalid_email")),
-    phone: z.string().trim().min(1, t("field_required")),
-    password: z.string().min(6, t("field_min_password")),
-    academy_code: z.string().optional(),
-  });
+  z
+    .object({
+      name: z.string().min(1, t("field_required")),
+      username: z
+        .string()
+        .regex(/^[a-z0-9_]{3,20}$/, t("field_username_invalid")),
+      gender: z.enum(["male", "female"], { message: t("field_required") }),
+      birth_date: z.string().min(1, t("field_required")),
+      email: z.string().email(t("field_invalid_email")),
+      phone: z.string().trim().min(1, t("field_required")),
+      password: z.string().min(6, t("field_min_password")),
+      password_confirm: z.string().min(6, t("field_min_password")),
+      academy_code: z.string().optional(),
+    })
+    .refine((d) => d.password === d.password_confirm, {
+      message: t("field_password_mismatch"),
+      path: ["password_confirm"],
+    });
 
 const createSchema = (t: (k: any) => string) =>
   z.object({
@@ -203,7 +209,7 @@ export function SignupForm() {
 
   const joinForm = useForm<JoinValues>({
     resolver: zodResolver(joinSchema(t)),
-    defaultValues: { name: "", username: "", gender: "" as JoinValues["gender"], birth_date: "", email: "", phone: "", password: "", academy_code: "" },
+    defaultValues: { name: "", username: "", gender: "" as JoinValues["gender"], birth_date: "", email: "", phone: "", password: "", password_confirm: "", academy_code: "" },
   });
 
   const finishSignup = async (
@@ -835,10 +841,18 @@ export function SignupForm() {
                       </FormItem>
                     )}
                   />
-                  <CountryField
+                  <LocationFields
                     country={location.country}
+                    governorate={location.governorate}
+                    city={location.city}
                     onCountryChange={(v) =>
                       setLocation((l) => ({ ...l, country: v }))
+                    }
+                    onGovernorateChange={(v) =>
+                      setLocation((l) => ({ ...l, governorate: v }))
+                    }
+                    onCityChange={(v) =>
+                      setLocation((l) => ({ ...l, city: v }))
                     }
                   />
                   <div className="grid grid-cols-2 gap-4">
@@ -935,6 +949,24 @@ export function SignupForm() {
                       )}
                     />
                   </div>
+                  <FormField
+                    control={joinForm.control}
+                    name="password_confirm"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("signup_confirm_password")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            dir="ltr"
+                            autoComplete="new-password"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="animate-spin" />}
                     {loading ? t("signup_loading") : t("signup_button")}
