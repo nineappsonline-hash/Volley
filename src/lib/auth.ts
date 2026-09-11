@@ -31,6 +31,7 @@ export function useAuth() {
       email: string,
       password: string,
       name: string,
+      username: string,
       phone?: string,
       academy?: {
         code?: string;
@@ -50,6 +51,7 @@ export function useAuth() {
         options: {
           data: {
             name,
+            username,
             phone,
             ...(academy?.gender ? { gender: academy.gender } : {}),
             ...(academy?.birth_date ? { birth_date: academy.birth_date } : {}),

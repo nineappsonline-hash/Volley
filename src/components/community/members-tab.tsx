@@ -87,6 +87,11 @@ function MemberCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <p className="truncate text-sm font-semibold">{member.name}</p>
+            {member.username && (
+              <span className="truncate text-xs text-muted-foreground">
+                @{member.username}
+              </span>
+            )}
             {member.skill_level && (
               <Badge variant="outline" className="gap-1 text-[10px]">
                 <Star className="h-3 w-3 text-warning-ink" />
@@ -183,7 +188,7 @@ export function MembersTab({ profile }: { profile: Profile }) {
     const list = (members ?? []).filter((m) => m.id !== profile.id);
     if (!q) return list;
     return list.filter((m) =>
-      matchesBilingual(`${m.name} ${m.academy_name ?? ""} ${m.area ?? ""}`, q)
+      matchesBilingual(`${m.name} ${m.username ?? ""} ${m.academy_name ?? ""} ${m.area ?? ""}`, q)
     );
   }, [members, search, profile.id]);
 

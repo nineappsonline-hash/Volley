@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
 
-type Message = { id: string; sender_id: string; sender_name: string; body: string; created_at: string };
+type Message = { id: string; sender_id: string; sender_name: string; sender_username: string | null; body: string; created_at: string };
 
 function ChatContent({ gameId, memberId }: { gameId: string; memberId: string }) {
   const { lang } = useI18n();
@@ -27,7 +27,7 @@ function ChatContent({ gameId, memberId }: { gameId: string; memberId: string })
     queryKey: ["game-chat", gameId, memberId, limit],
     queryFn: async () => {
       const { data, error } = await createClient().from("friendly_game_messages")
-        .select("id,sender_id,sender_name,body,created_at").eq("game_id", gameId)
+        .select("id,sender_id,sender_name,sender_username,body,created_at").eq("game_id", gameId)
         .order("created_at", { ascending: false }).order("id", { ascending: false }).limit(limit);
       if (error) throw error;
       return (data as Message[]).reverse();
@@ -80,7 +80,7 @@ function ChatContent({ gameId, memberId }: { gameId: string; memberId: string })
       {messages.data?.length === 0 && <p className="text-sm text-muted-foreground">{ar ? "لسه مفيش رسائل. ابدأ الكلام مع الفريق!" : "No messages yet. Start the conversation!"}</p>}
       {messages.data?.map(message => <div key={message.id} className={`max-w-[90%] rounded-lg p-3 ${message.sender_id === memberId ? "ms-auto bg-info/10" : "me-auto bg-muted"}`}>
         <div className="flex flex-wrap justify-between gap-2 text-xs text-muted-foreground">
-          <span className="font-semibold text-foreground">{message.sender_id === memberId ? (ar ? "أنت" : "You") : message.sender_name}</span>
+          <span className="font-semibold text-foreground">{message.sender_id === memberId ? (ar ? "أنت" : "You") : message.sender_name}{message.sender_id !== memberId && message.sender_username && <span className="ms-1 font-normal text-muted-foreground">@{message.sender_username}</span>}</span>
           <time dateTime={message.created_at}>{new Date(message.created_at).toLocaleString(ar ? "ar-EG" : "en-GB", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</time>
         </div>
         <p dir="auto" className="mt-1 whitespace-pre-wrap break-words text-sm">{message.body}</p>

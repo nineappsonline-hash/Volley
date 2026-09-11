@@ -6,7 +6,8 @@
 -- Add a per-player share snapshot to the game.
 ALTER TABLE public.friendly_games
   ADD COLUMN IF NOT EXISTS share_price NUMERIC
-  CHECK (share_price >= 0 AND share_price <> 'NaN'::numeric);
+  CHECK (share_price >= 0 AND share_price <> 'NaN'::numeric),
+  ADD COLUMN IF NOT EXISTS creator_username TEXT;
 
 -- Per-participant share payment columns.
 ALTER TABLE public.friendly_game_participants
@@ -51,6 +52,7 @@ DECLARE
   v_member UUID;
   v_game   UUID;
   v_name   TEXT;
+  v_username TEXT;
   v_venue  public.venues%ROWTYPE;
   v_code   TEXT;
   v_share  NUMERIC;
@@ -106,7 +108,7 @@ BEGIN
     RAISE EXCEPTION 'Invalid age range';
   END IF;
 
-  SELECT name INTO v_name FROM public.profiles WHERE id = v_member;
+  SELECT name, username INTO v_name, v_username FROM public.profiles WHERE id = v_member;
   v_name := COALESCE(NULLIF(btrim(v_name), ''), 'Member');
 
   -- Private games get a shareable invite code (generated when not provided).
@@ -126,12 +128,13 @@ BEGIN
   END IF;
 
   INSERT INTO public.friendly_games
-    (creator_id, creator_name, sport, title, description, area, location, lat, lng,
+    (creator_id, creator_name, creator_username, sport, title, description, area, location, lat, lng,
      playground_id, game_date, start_time, max_players, min_players, duration_hours, playground_hourly_rate, share_price, skill_level, is_public,
      recurrence, invite_code, gender, min_age, max_age)
   VALUES
     (v_member,
      v_name,
+     v_username,
      btrim(p_sport),
      btrim(p_title),
      NULLIF(btrim(COALESCE(p_description, '')), ''),

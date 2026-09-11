@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LocationFields, CountryField } from "@/components/shared/location-fields";
+import { UsernameField } from "@/components/shared/username-field";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { useAuth, type SignupVenue } from "@/lib/auth";
@@ -52,6 +53,9 @@ import { useAuth, type SignupVenue } from "@/lib/auth";
 const joinSchema = (t: (k: any) => string) =>
   z.object({
     name: z.string().min(1, t("field_required")),
+    username: z
+      .string()
+      .regex(/^[a-z0-9_]{3,20}$/, t("field_username_invalid")),
     gender: z.enum(["male", "female"], { message: t("field_required") }),
     birth_date: z.string().min(1, t("field_required")),
     email: z.string().email(t("field_invalid_email")),
@@ -162,6 +166,7 @@ export function SignupForm() {
   const [sports, setSports] = useState<string[]>([]);
   const [account, setAccount] = useState({
     name: "",
+    username: "",
     email: "",
     phone: "",
     gender: "",
@@ -198,13 +203,14 @@ export function SignupForm() {
 
   const joinForm = useForm<JoinValues>({
     resolver: zodResolver(joinSchema(t)),
-    defaultValues: { name: "", gender: "" as JoinValues["gender"], birth_date: "", email: "", phone: "", password: "", academy_code: "" },
+    defaultValues: { name: "", username: "", gender: "" as JoinValues["gender"], birth_date: "", email: "", phone: "", password: "", academy_code: "" },
   });
 
   const finishSignup = async (
     email: string,
     password: string,
     name: string,
+    username: string,
     phone: string | undefined,
     academy?: {
       code?: string;
@@ -220,7 +226,7 @@ export function SignupForm() {
   ) => {
     setLoading(true);
     try {
-      const { session } = await signUp(email, password, name, phone, academy);
+      const { session } = await signUp(email, password, name, username, phone, academy);
       if (session) {
         toast.success(t("signup_success"));
         // Members who signed up without an invite code pick their academy
@@ -249,7 +255,7 @@ export function SignupForm() {
       toast.error(t("field_required"));
       return;
     }
-    await finishSignup(values.email, values.password, values.name, values.phone, {
+    await finishSignup(values.email, values.password, values.name, values.username, values.phone, {
       code: values.academy_code?.trim() || undefined,
       country: location.country.trim(),
       gender: values.gender,
@@ -293,7 +299,7 @@ export function SignupForm() {
       rental_hours:
         v.rental_hours.trim() !== "" ? Number(v.rental_hours) : 1,
     }));
-    await finishSignup(account.email, account.password, account.name, account.phone, {
+    await finishSignup(account.email, account.password, account.name, account.username, account.phone, {
       newName: academyName.trim(),
       sports: sports.join(","),
       country: location.country.trim(),
@@ -658,6 +664,10 @@ export function SignupForm() {
                         onChange={(e) => setAccountField("name", e.target.value)}
                       />
                     </div>
+                    <UsernameField
+                      value={account.username}
+                      onChange={(v) => setAccountField("username", v)}
+                    />
                     <div className="space-y-2">
                       <label className="text-sm font-medium">{t("login_email")}</label>
                       <Input
@@ -805,6 +815,21 @@ export function SignupForm() {
                         <FormLabel>{t("signup_name")}</FormLabel>
                         <FormControl>
                           <Input autoComplete="name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={joinForm.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <UsernameField
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

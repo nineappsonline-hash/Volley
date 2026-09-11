@@ -90,6 +90,10 @@ export function SuperAdminDashboard() {
 
   const memberName = (id: string) =>
     (members ?? []).find((m) => m.id === id)?.name ?? id.slice(0, 8);
+  const memberHandle = (id: string) => {
+    const u = (members ?? []).find((m) => m.id === id)?.username;
+    return u ? `@${u}` : null;
+  };
 
   const stats = useMemo(() => {
     const list = academies ?? [];
@@ -442,7 +446,10 @@ export function SuperAdminDashboard() {
                         </p>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {memberName(p.member_id)}
+                        <p>{memberName(p.member_id)}</p>
+                        {memberHandle(p.member_id) && (
+                          <p className="text-xs text-muted-foreground">{memberHandle(p.member_id)}</p>
+                        )}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
                         {p.game?.sport ?? p.game?.title ?? "—"}
@@ -548,9 +555,16 @@ export function SuperAdminDashboard() {
                         </p>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {sub.kind === "academy"
-                          ? t("sub_kind_academy")
-                          : memberName(sub.user_id)}
+                        {sub.kind === "academy" ? (
+                          t("sub_kind_academy")
+                        ) : (
+                          <>
+                            <p>{memberName(sub.user_id)}</p>
+                            {memberHandle(sub.user_id) && (
+                              <p className="text-xs text-muted-foreground">{memberHandle(sub.user_id)}</p>
+                            )}
+                          </>
+                        )}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
                         {sub.amount} {t("currency_egp")}
@@ -647,8 +661,12 @@ export function SuperAdminDashboard() {
                                 ? memberName(r.target_id)
                                 : r.target_id.slice(0, 8)}
                             </p>
+                            {r.target_type === "member" && memberHandle(r.target_id) && (
+                              <p className="text-xs text-muted-foreground">{memberHandle(r.target_id)}</p>
+                            )}
                             <p className="text-xs text-muted-foreground">
                               {t("moderation_reported_by")} {memberName(r.reporter_id)}
+                              {memberHandle(r.reporter_id) && <> ({memberHandle(r.reporter_id)})</>}
                             </p>
                           </div>
                         </div>

@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { UsernameField } from "@/components/shared/username-field";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -76,6 +77,7 @@ function AcademyProfile({ serverProfile }: { serverProfile: Profile }) {
   const p = profile ?? serverProfile;
 
   const [name, setName] = useState(p.name);
+  const [username, setUsername] = useState(p.username);
   const [phone, setPhone] = useState(p.phone ?? "");
   const [saving, setSaving] = useState(false);
   const updateProfile = useUpdateOwnProfile();
@@ -90,11 +92,16 @@ function AcademyProfile({ serverProfile }: { serverProfile: Profile }) {
       await updateProfile.mutateAsync({
         id: p.id,
         name: name.trim(),
+        username,
         phone: phone || null,
       });
       toast.success(t("profile_saved"));
-    } catch {
-      toast.error(t("common_error"));
+    } catch (e) {
+      toast.error(
+        e instanceof Error && /duplicate key|already exists/i.test(e.message)
+          ? t("field_username_taken")
+          : t("common_error")
+      );
     } finally {
       setSaving(false);
     }
@@ -185,6 +192,9 @@ function AcademyProfile({ serverProfile }: { serverProfile: Profile }) {
                   <Input value={name} onChange={(e) => setName(e.target.value)} />
                 </div>
                 <div className="space-y-2">
+                  <UsernameField value={username} onChange={setUsername} />
+                </div>
+                <div className="space-y-2">
                   <Label>{t("profile_phone")}</Label>
                   <Input
                     value={phone}
@@ -266,6 +276,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
   const p = profile ?? serverProfile;
 
   const [name, setName] = useState(p.name);
+  const [username, setUsername] = useState(p.username);
   const [phone, setPhone] = useState(p.phone ?? "");
   const [gender, setGender] = useState<Profile["gender"]>(p.gender ?? null);
   const [birthDate, setBirthDate] = useState(p.birth_date ?? "");
@@ -335,13 +346,18 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
       await updateProfile.mutateAsync({
         id: p.id,
         name: name.trim(),
+        username,
         phone: phone || null,
         gender,
         birth_date: birthDate || null,
       });
       toast.success(t("profile_saved"));
-    } catch {
-      toast.error(t("common_error"));
+    } catch (e) {
+      toast.error(
+        e instanceof Error && /duplicate key|already exists/i.test(e.message)
+          ? t("field_username_taken")
+          : t("common_error")
+      );
     } finally {
       setSaving(false);
     }
@@ -497,6 +513,9 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
             <div className="space-y-2">
               <Label>{t("signup_name")}</Label>
               <Input value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <UsernameField value={username} onChange={setUsername} />
             </div>
             <div className="space-y-2">
               <Label>{t("signup_phone")}</Label>

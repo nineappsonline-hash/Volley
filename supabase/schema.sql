@@ -88,6 +88,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   email TEXT UNIQUE,
   role TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'member')),
   name TEXT NOT NULL,
+  -- Unique lowercase handle (@username) — the primary way members are
+  -- distinguished across the community.
+  username TEXT NOT NULL UNIQUE,
   phone TEXT,
   country TEXT,
   -- Object path inside the public "avatars" storage bucket; NULL until the
@@ -727,10 +730,11 @@ BEGIN
     WHERE trim(az.name) <> ''
     ON CONFLICT (academy_id, name) DO NOTHING;
 
-    INSERT INTO public.profiles (id, email, role, name, phone, country, gender, birth_date, join_date, academy_id, is_active)
+    INSERT INTO public.profiles (id, email, role, name, username, phone, country, gender, birth_date, join_date, academy_id, is_active)
     VALUES (
       NEW.id, NEW.email, 'admin',
       COALESCE(NEW.raw_user_meta_data ->> 'name', split_part(NEW.email, '@', 1)),
+      NULLIF(lower(btrim(COALESCE(NEW.raw_user_meta_data ->> 'username', ''))), ''),
       NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'phone', '')), ''),
       COALESCE(v_new_country, NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'country', '')), '')),
       v_gender, v_birth_date,
@@ -773,10 +777,11 @@ BEGIN
       SELECT id INTO v_academy FROM public.academies WHERE UPPER(invite_code) = UPPER(v_code);
     END IF;
 
-    INSERT INTO public.profiles (id, email, role, name, phone, country, gender, birth_date, join_date, academy_id, is_active)
+    INSERT INTO public.profiles (id, email, role, name, username, phone, country, gender, birth_date, join_date, academy_id, is_active)
     VALUES (
       NEW.id, NEW.email, 'member',
       COALESCE(NEW.raw_user_meta_data ->> 'name', split_part(NEW.email, '@', 1)),
+      NULLIF(lower(btrim(COALESCE(NEW.raw_user_meta_data ->> 'username', ''))), ''),
       NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'phone', '')), ''),
       NULLIF(trim(COALESCE(NEW.raw_user_meta_data ->> 'country', '')), ''),
       v_gender, v_birth_date,
@@ -792,6 +797,75 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- A BEFORE INSERT/UPDATE trigger guarantees every profile row has a unique
+-- handle. Explicitly chosen handles are lowercased and kept; blank ones are
+-- generated from the member's display name (or email local part).
+CREATE OR REPLACE FUNCTION public.make_unique_username(p_base TEXT)
+RETURNS TEXT
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_base      TEXT;
+  v_candidate TEXT;
+  v_n         INTEGER := 0;
+BEGIN
+  v_base := lower(btrim(COALESCE(p_base, '')));
+  v_base := regexp_replace(v_base, '[^a-z0-9_]+', '_', 'g');
+  v_base := trim(both '_' FROM v_base);
+  IF char_length(v_base) < 3 THEN
+    v_base := 'player';
+  END IF;
+  v_base := left(v_base, 20);
+  LOOP
+    v_candidate := CASE WHEN v_n = 0 THEN v_base ELSE v_base || '_' || v_n END;
+    EXIT WHEN NOT EXISTS (
+      SELECT 1 FROM public.profiles WHERE username = v_candidate
+    );
+    v_n := v_n + 1;
+  END LOOP;
+  RETURN v_candidate;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.make_unique_username(TEXT) TO authenticated;
+
+-- Client-facing availability check (profiles are RLS-restricted to self-reads,
+-- so this must be SECURITY DEFINER to see other members' handles).
+CREATE OR REPLACE FUNCTION public.is_username_taken(p_username TEXT)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (SELECT 1 FROM public.profiles WHERE username = lower(btrim(p_username)));
+$$;
+GRANT EXECUTE ON FUNCTION public.is_username_taken(TEXT) TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.profiles_assign_username()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_base TEXT;
+BEGIN
+  IF NEW.username IS NOT NULL AND btrim(NEW.username) <> '' THEN
+    NEW.username := lower(btrim(NEW.username));
+    RETURN NEW;
+  END IF;
+  v_base := COALESCE(NULLIF(btrim(NEW.name), ''), split_part(COALESCE(NEW.email, ''), '@', 1));
+  NEW.username := public.make_unique_username(v_base);
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS profiles_assign_username_trigger ON public.profiles;
+CREATE TRIGGER profiles_assign_username_trigger
+  BEFORE INSERT OR UPDATE OF username ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.profiles_assign_username();
 
 -- Keep the JWT `app_metadata.role` claim in sync with profiles.role
 -- so middleware can read the role without a database round-trip.
@@ -1957,6 +2031,8 @@ CREATE VIEW public.community_members AS
 SELECT
   p.id,
   p.name,
+  p.username,
+  p.avatar_url,
   p.bio,
   p.academy_id,
   a.name AS academy_name,
@@ -1980,6 +2056,7 @@ CREATE TABLE IF NOT EXISTS public.friendly_games (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   creator_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   creator_name TEXT NOT NULL,
+  creator_username TEXT,
   sport TEXT NOT NULL,
   title TEXT NOT NULL,
   description TEXT,
@@ -2143,6 +2220,7 @@ DECLARE
   v_member UUID;
   v_game   UUID;
   v_name   TEXT;
+  v_username TEXT;
   v_venue  public.venues%ROWTYPE;
   v_code   TEXT;
 BEGIN
@@ -2186,7 +2264,7 @@ BEGIN
     RAISE EXCEPTION 'Invalid age range';
   END IF;
 
-  SELECT name INTO v_name FROM public.profiles WHERE id = v_member;
+  SELECT name, username INTO v_name, v_username FROM public.profiles WHERE id = v_member;
   v_name := COALESCE(NULLIF(btrim(v_name), ''), 'Member');
 
   -- Private games get a shareable invite code (generated when not provided).
@@ -2206,12 +2284,13 @@ BEGIN
   END IF;
 
   INSERT INTO public.friendly_games
-    (creator_id, creator_name, sport, title, description, area, location, lat, lng,
+    (creator_id, creator_name, creator_username, sport, title, description, area, location, lat, lng,
      playground_id, game_date, start_time, max_players, skill_level, is_public,
      recurrence, invite_code, gender, min_age, max_age)
   VALUES
     (v_member,
      v_name,
+     v_username,
      btrim(p_sport),
      btrim(p_title),
      NULLIF(btrim(COALESCE(p_description, '')), ''),
@@ -3727,6 +3806,7 @@ attend AS (
 SELECT
   pr.id AS member_id,
   pr.name,
+  pr.username,
   COALESCE(played.games_played, 0) AS games_played,
   COALESCE(attend.sessions_attended, 0) AS sessions_attended,
   COALESCE(played.games_played, 0) * 2 + COALESCE(attend.sessions_attended, 0) AS points
@@ -3746,6 +3826,7 @@ CREATE VIEW public.sport_leaderboard AS
 SELECT
   pr.id AS member_id,
   pr.name,
+  pr.username,
   played.sport::TEXT AS sport,
   played.games_played,
   played.games_played * 2 AS points,
@@ -4523,6 +4604,7 @@ CREATE TABLE IF NOT EXISTS public.friendly_game_messages (
   game_id UUID NOT NULL REFERENCES public.friendly_games(id) ON DELETE CASCADE,
   sender_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   sender_name TEXT NOT NULL,
+  sender_username TEXT,
   body TEXT NOT NULL CHECK (char_length(btrim(body)) BETWEEN 1 AND 2000),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -4546,6 +4628,7 @@ RETURNS UUID LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
   v_uid UUID := auth.uid();
   v_name TEXT;
+  v_username TEXT;
   v_existing public.friendly_game_messages%ROWTYPE;
 BEGIN
   IF v_uid IS NULL OR public.is_account_blocked() THEN
@@ -4567,9 +4650,9 @@ BEGIN
     END IF;
     RAISE EXCEPTION 'Message identifier already used';
   END IF;
-  SELECT name INTO v_name FROM public.profiles WHERE id = v_uid;
-  INSERT INTO public.friendly_game_messages(id, game_id, sender_id, sender_name, body)
-  VALUES (p_message_id, p_game_id, v_uid, COALESCE(NULLIF(btrim(v_name), ''), 'Member'), btrim(p_body));
+  SELECT name, username INTO v_name, v_username FROM public.profiles WHERE id = v_uid;
+  INSERT INTO public.friendly_game_messages(id, game_id, sender_id, sender_name, sender_username, body)
+  VALUES (p_message_id, p_game_id, v_uid, COALESCE(NULLIF(btrim(v_name), ''), 'Member'), v_username, btrim(p_body));
   RETURN p_message_id;
 END;
 $$;
@@ -4623,6 +4706,7 @@ DECLARE
   v_member UUID;
   v_game   UUID;
   v_name   TEXT;
+  v_username TEXT;
   v_venue  public.venues%ROWTYPE;
   v_code   TEXT;
   v_share  NUMERIC;
@@ -4680,7 +4764,7 @@ BEGIN
     RAISE EXCEPTION 'Invalid age range';
   END IF;
 
-  SELECT name INTO v_name FROM public.profiles WHERE id = v_member;
+  SELECT name, username INTO v_name, v_username FROM public.profiles WHERE id = v_member;
   v_name := COALESCE(NULLIF(btrim(v_name), ''), 'Member');
 
   -- Private games get a shareable invite code (generated when not provided).
@@ -4700,12 +4784,13 @@ BEGIN
   END IF;
 
   INSERT INTO public.friendly_games
-    (creator_id, creator_name, sport, title, description, area, location, lat, lng,
+    (creator_id, creator_name, creator_username, sport, title, description, area, location, lat, lng,
      playground_id, game_date, start_time, max_players, min_players, duration_hours, playground_hourly_rate, share_price, skill_level, is_public,
      recurrence, invite_code, gender, min_age, max_age)
   VALUES
     (v_member,
      v_name,
+     v_username,
      btrim(p_sport),
      btrim(p_title),
      NULLIF(btrim(COALESCE(p_description, '')), ''),

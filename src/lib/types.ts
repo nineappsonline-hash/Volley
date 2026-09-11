@@ -89,6 +89,8 @@ export interface Profile {
   email: string | null;
   role: Role;
   name: string;
+  // Unique lowercase handle (@username) used as the primary identifier.
+  username: string;
   phone: string | null;
   // Set when this profile is a family member managed by a parent (guardian).
   guardian_id: string | null;
@@ -501,6 +503,7 @@ export type CommunityGameStatus = "open" | "full" | "completed" | "cancelled";
 export interface CommunityMember {
   id: string;
   name: string;
+  username: string | null;
   bio: string | null;
   academy_id: string | null;
   academy_name: string | null;
@@ -518,6 +521,7 @@ export interface FriendlyGame {
   id: string;
   creator_id: string;
   creator_name: string;
+  creator_username: string | null;
   sport: string;
   title: string;
   description: string | null;
@@ -623,6 +627,7 @@ export interface BlockedMember {
 export interface CommunityLeaderboardRow {
   member_id: string;
   name: string;
+  username: string | null;
   games_played: number;
   sessions_attended: number;
   points: number;
@@ -631,6 +636,7 @@ export interface CommunityLeaderboardRow {
 export interface SportLeaderboardRow {
   member_id: string;
   name: string;
+  username: string | null;
   sport: string;
   games_played: number;
   points: number;

@@ -189,6 +189,9 @@ function GameCard({
           {game.sport}
           <span>
             · {isOrganizer ? t("community_organizer") : game.creator_name}
+            {!isOrganizer && game.creator_username && (
+              <span className="text-muted-foreground/70"> @{game.creator_username}</span>
+            )}
           </span>
         </p>
       </CardHeader>

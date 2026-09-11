@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { COMMUNITY_SPORTS } from "@/lib/constants";
+import { isValidUsername } from "@/lib/username";
 import type {
   Academy,
   AcademyBranch,
@@ -760,7 +761,31 @@ export function useUpdateOwnProfile() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["profiles"] });
+      qc.invalidateQueries({ queryKey: queryKeys.communityMembers });
+      qc.invalidateQueries({ queryKey: ["community-leaderboard"] });
+      qc.refetchQueries({ queryKey: ["sport-leaderboard"] });
     },
+  });
+}
+
+export type UsernameAvailability =
+  | "idle"
+  | "checking"
+  | "available"
+  | "taken"
+  | "invalid";
+
+export function useUsernameAvailability(username: string | undefined) {
+  return useQuery({
+    queryKey: ["username-availability", username ?? ""],
+    queryFn: async () => {
+      const { data, error } = await supabase().rpc("is_username_taken", {
+        p_username: username,
+      });
+      if (error) throw error;
+      return data ? "taken" : "available";
+    },
+    enabled: Boolean(username && isValidUsername(username)),
   });
 }
 
@@ -3240,7 +3265,7 @@ export function useSportLeaderboard(sport: string) {
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("sport_leaderboard")
-        .select("member_id, name, sport, games_played, points, rank")
+        .select("member_id, name, username, sport, games_played, points, rank")
         .eq("sport", sport)
         .order("rank")
         .limit(100);

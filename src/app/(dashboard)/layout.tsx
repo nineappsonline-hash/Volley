@@ -37,6 +37,7 @@ export default async function DashboardLayout({
         <Topbar
           role={profile.role}
           name={profile.name}
+          username={profile.username}
           avatarUrl={profile.avatar_url}
           memberPlan={profile.member_plan}
           academy={academy}

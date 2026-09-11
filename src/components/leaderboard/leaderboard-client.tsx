@@ -137,6 +137,11 @@ export function LeaderboardClient({ profile }: { profile: Profile }) {
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-medium">
                               {row.name}
+                              {"username" in row && row.username && (
+                                <span className="ms-1 text-xs font-normal text-muted-foreground">
+                                  @{row.username}
+                                </span>
+                              )}
                               {mine && (
                                 <span className="ms-1 text-xs font-semibold text-primary">
                                   ({t("leaderboard_you")})

@@ -47,6 +47,9 @@ export async function requireSession(): Promise<SessionData> {
       (user.user_metadata?.name as string | undefined) ??
       user.email?.split("@")[0] ??
       "User",
+    username:
+      (user.user_metadata?.username as string | undefined) ??
+      "player",
     phone: (user.user_metadata?.phone as string | null) ?? null,
     guardian_id: null,
     avatar_url: null,

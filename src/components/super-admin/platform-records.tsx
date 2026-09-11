@@ -91,6 +91,7 @@ function AcademyMemberRow({ member }: { member: Row }) {
       <span className="inline-flex max-w-[calc(100%-1.5rem)] items-center gap-2 align-middle">
         <ProfileAvatar name={member.name ?? ""} url={member.avatar_url} className="h-7 w-7 shrink-0" />
         <span className="truncate font-medium">{member.name || t("sa_unnamed_member")}</span>
+        {member.username && <span className="shrink-0 text-xs text-muted-foreground">@{member.username}</span>}
         <span className="shrink-0 text-xs text-muted-foreground">{status}</span>
       </span>
     </summary>

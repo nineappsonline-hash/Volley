@@ -25,6 +25,7 @@ import { ProfileAvatar } from "@/components/shared/profile-avatar";
 interface TopbarProps {
   role: Role;
   name: string;
+  username: string;
   avatarUrl?: string | null;
   memberPlan?: "free" | "premium";
   academy?: {
@@ -34,7 +35,7 @@ interface TopbarProps {
   } | null;
 }
 
-export function Topbar({ role, name, avatarUrl, memberPlan, academy }: TopbarProps) {
+export function Topbar({ role, name, username, avatarUrl, memberPlan, academy }: TopbarProps) {
   const { t, lang } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
@@ -102,6 +103,11 @@ export function Topbar({ role, name, avatarUrl, memberPlan, academy }: TopbarPro
           <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuLabel>
               <p className="truncate font-medium">{name}</p>
+              {username && (
+                <p className="truncate text-xs font-normal text-primary">
+                  @{username}
+                </p>
+              )}
               <p className="text-xs font-normal text-muted-foreground">
                 {role === "super_admin" ? t("role_super_admin") : role === "admin" ? t("role_admin") : t("role_member")}
               </p>
