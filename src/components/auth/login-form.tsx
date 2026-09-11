@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
+import { LanguageToggle } from "@/components/layout/language-toggle";
 import { useAuth } from "@/lib/auth";
 
 const schema = (t: (k: any) => string) =>
@@ -65,6 +66,9 @@ export function LoginForm() {
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-6">
       <div className="pointer-events-none absolute inset-0 bg-grid opacity-40" />
       <div className="pointer-events-none absolute -top-32 start-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-interactive-500/20 blur-3xl rtl:translate-x-1/2" />
+      <div className="absolute end-4 top-4">
+        <LanguageToggle />
+      </div>
 
       <div className="relative w-full max-w-md">
         <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
