@@ -93,6 +93,15 @@
   .text-gradient {
     @apply bg-gradient-to-r from-foreground via-interactive-700 to-info-ink bg-clip-text text-transparent;
   }
+  /* Extra top clearance when the PWA runs from the home screen. */
+  .pwa-pad-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  @media (display-mode: standalone) {
+    .pwa-pad-top {
+      padding-top: calc(env(safe-area-inset-top, 0px) + 32px);
+    }
+  }
   .bg-grid {
     background-image: linear-gradient(
         to right,

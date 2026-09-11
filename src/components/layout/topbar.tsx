@@ -57,7 +57,7 @@ export function Topbar({ role, name, username, avatarUrl, memberPlan, academy }:
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-card/95 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+    <header className="pwa-pad-top sticky top-0 z-40 border-b bg-card/95 backdrop-blur-md">
       <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
         <SheetTrigger asChild>

@@ -345,3 +345,9 @@
   }
   .installCta { flex: 1; justify-content: center; }
 }
+
+/* Extra top clearance when the PWA runs from the home screen (notched devices). */
+@media (display-mode: standalone) {
+  .header { padding-top: calc(env(safe-area-inset-top, 0px) + 12px); }
+  .hero { padding-top: calc(env(safe-area-inset-top, 0px) + 20px); }
+}

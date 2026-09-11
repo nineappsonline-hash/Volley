@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { TrialGate } from "@/components/shared/trial-gate";
+import { InstallBanner } from "@/components/marketing/install-banner";
 
 export default async function DashboardLayout({
   children,
@@ -43,6 +44,7 @@ export default async function DashboardLayout({
           academy={academy}
         />
         <main className="mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-8">
+          {profile.role !== "super_admin" && <InstallBanner />}
           {profile.role === "super_admin" ? children : <TrialGate isAdmin={profile.role === "admin"}>{children}</TrialGate>}
         </main>
       </div>
