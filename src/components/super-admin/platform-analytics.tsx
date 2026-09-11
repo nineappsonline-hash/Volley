@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { GAME_CREATION_FEE, formatMoneyShort } from "@/lib/constants";
+import { GAME_PLATFORM_FEE, formatMoneyShort } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n";
 import { useSuperAdminStats } from "@/lib/queries";
 
@@ -97,7 +97,7 @@ export function PlatformAnalytics() {
       if (map.has(s.month)) map.get(s.month)!.session = Number(s.total);
     for (const s of stats?.fees.game_by_month ?? [])
       if (map.has(s.month))
-        map.get(s.month)!.game = Number(s.count) * GAME_CREATION_FEE;
+        map.get(s.month)!.game = Number(s.count) * GAME_PLATFORM_FEE;
     for (const s of stats?.fees.payments_by_month ?? [])
       if (map.has(s.month)) map.get(s.month)!.payments = Number(s.total);
     return months.map((m, i) => ({
@@ -112,7 +112,7 @@ export function PlatformAnalytics() {
 
   const platformFees = useMemo(() => {
     const session = Number(stats?.fees.session_total ?? 0);
-    const game = Number(stats?.fees.game_count ?? 0) * GAME_CREATION_FEE;
+    const game = Number(stats?.fees.game_count ?? 0) * GAME_PLATFORM_FEE;
     return { session, game, total: session + game };
   }, [stats]);
 

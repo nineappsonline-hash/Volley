@@ -5,8 +5,9 @@ export const DEFAULT_SUBSCRIPTION_SESSIONS = 8;
 export const INSTAPAY_LINK = "https://ipn.eg/S/jimmydodo3/instapay/45APuk";
 export const E_WALLET_NUMBER = "01023862436";
 
-// Fee charged to create a friendly game (both plans).
-export const GAME_CREATION_FEE = 50;
+// Per-player margin folded into each friendly-game share price. It is hidden
+// from members: the standalone per-player price already includes it.
+export const GAME_PLATFORM_FEE = 20;
 
 // Membership plans: full = 8 sessions, half = 4 sessions (per payment cycle).
 export const MEMBERSHIP_SESSIONS: Record<"full" | "half", number> = {

@@ -547,10 +547,7 @@ export interface FriendlyGame {
   result_b: number | null;
   completed_by: string | null;
   completed_at: string | null;
-  creation_fee_paid: boolean;
-  fee_method: "instapay" | "e_wallet" | "kashier" | "visa" | null;
-  fee_receipt_url: string | null;
-  fee_status: "pending" | "approved" | "rejected";
+  share_price: number | null;
   invite_code: string | null;
   gender: "male" | "female" | "mixed";
   min_age: number | null;
@@ -569,6 +566,10 @@ export interface FriendlyGameParticipant {
   role: "organizer" | "player";
   is_waitlisted: boolean;
   joined_at: string;
+  share_amount: number | null;
+  pay_method: "instapay" | "e_wallet" | "kashier" | "visa" | null;
+  pay_receipt_url: string | null;
+  pay_status: "unpaid" | "pending" | "approved" | "rejected";
 }
 
 export type NotificationType =

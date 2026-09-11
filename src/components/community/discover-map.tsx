@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
-import { toast } from "sonner";
 import { Building2, CalendarDays, Clock, MapPin, Navigation, Users } from "lucide-react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -11,13 +10,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/i18n";
+import { JoinGameDialog } from "@/components/games/join-game-dialog";
 import {
   useFriendlyGames,
-  useJoinFriendlyGame,
   useMyGameParticipants,
   usePublicAcademies,
 } from "@/lib/queries";
-import { errorMessage } from "@/lib/utils";
 import type {
   Academy,
   FriendlyGameParticipant,
@@ -51,7 +49,7 @@ export default function DiscoverMap({ profile }: { profile: Profile }) {
   const { data: games, isLoading: loadingGames } = useFriendlyGames();
   const { data: academies, isLoading: loadingAcademies } = usePublicAcademies();
   const { data: myParticipants } = useMyGameParticipants();
-  const join = useJoinFriendlyGame();
+  const [joinGame, setJoinGame] = useState<FriendlyGameWithDetails | null>(null);
 
   const [showGames, setShowGames] = useState(true);
   const [showAcademies, setShowAcademies] = useState(true);
@@ -93,15 +91,6 @@ export default function DiscoverMap({ profile }: { profile: Profile }) {
   );
   const isOrganizer = (game: FriendlyGameWithDetails, p: FriendlyGameParticipant[]) =>
     game.creator_id === profile.id || p.some((x) => x.game_id === game.id);
-
-  const handleJoin = async (gameId: string) => {
-    try {
-      await join.mutateAsync({ gameId });
-      toast.success(t("community_joined"));
-    } catch (err) {
-      toast.error(errorMessage(err, t("common_error")));
-    }
-  };
 
   if (loadingGames || loadingAcademies || points.length === 0) {
     return (
@@ -206,9 +195,8 @@ export default function DiscoverMap({ profile }: { profile: Profile }) {
                       className="mt-2"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleJoin(g.id);
+                        setJoinGame(g);
                       }}
-                      disabled={join.isPending}
                     >
                       {t("community_join")}
                     </Button>
@@ -336,6 +324,17 @@ export default function DiscoverMap({ profile }: { profile: Profile }) {
               ))}
         </MapContainer>
       </div>
+      {joinGame && (
+        <JoinGameDialog
+          open={true}
+          onOpenChange={(o) => {
+            if (!o) setJoinGame(null);
+          }}
+          game={joinGame}
+          inviteCode={null}
+          mode="join"
+        />
+      )}
     </div>
   );
 }

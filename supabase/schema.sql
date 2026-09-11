@@ -1995,17 +1995,12 @@ CREATE TABLE IF NOT EXISTS public.friendly_games (
 );
 ALTER TABLE public.friendly_games
   ADD COLUMN IF NOT EXISTS creator_name TEXT NOT NULL DEFAULT 'Member';
+-- Per-player share charged to each participant upfront: (playground rental ×
+-- duration ÷ minimum players) plus the hidden platform fee. Snapshot taken at
+-- creation so joins always quote the same amount.
 ALTER TABLE public.friendly_games
-  ADD COLUMN IF NOT EXISTS creation_fee_paid BOOLEAN NOT NULL DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS fee_method TEXT CHECK (fee_method IN ('instapay', 'e_wallet', 'visa', 'kashier')),
-  ADD COLUMN IF NOT EXISTS fee_receipt_url TEXT;
--- Fee-review workflow: games start "pending" super-admin review of the receipt;
--- approved => creation_fee_paid = TRUE, rejected cancels the game (same rule as
--- plan subscriptions — the game goes live immediately and is cancelled if the
--- payment turns out to be fake).
-ALTER TABLE public.friendly_games
-  ADD COLUMN IF NOT EXISTS fee_status TEXT NOT NULL DEFAULT 'pending'
-  CHECK (fee_status IN ('pending', 'approved', 'rejected'));
+  ADD COLUMN IF NOT EXISTS share_price NUMERIC
+  CHECK (share_price >= 0 AND share_price <> 'NaN'::numeric);
 -- Playground the game is booked at (a selectable pool venue).
 ALTER TABLE public.friendly_games
   ADD COLUMN IF NOT EXISTS playground_id UUID REFERENCES public.venues(id) ON DELETE SET NULL;
@@ -2041,6 +2036,16 @@ CREATE TABLE IF NOT EXISTS public.friendly_game_participants (
   joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(game_id, member_id)
 );
+-- Per-participant share payment: everyone pays their portion upfront before the
+-- spot counts; super admins verify the uploaded receipt.
+ALTER TABLE public.friendly_game_participants
+  ADD COLUMN IF NOT EXISTS share_amount NUMERIC
+    CHECK (share_amount >= 0 AND share_amount <> 'NaN'::numeric),
+  ADD COLUMN IF NOT EXISTS pay_method TEXT
+    CHECK (pay_method IN ('instapay', 'e_wallet', 'visa', 'kashier')),
+  ADD COLUMN IF NOT EXISTS pay_receipt_url TEXT,
+  ADD COLUMN IF NOT EXISTS pay_status TEXT NOT NULL DEFAULT 'unpaid'
+    CHECK (pay_status IN ('unpaid', 'pending', 'approved', 'rejected'));
 CREATE INDEX IF NOT EXISTS idx_fgp_game ON public.friendly_game_participants(game_id);
 CREATE INDEX IF NOT EXISTS idx_fgp_member ON public.friendly_game_participants(member_id);
 
@@ -2123,8 +2128,6 @@ CREATE OR REPLACE FUNCTION public.create_friendly_game(
   p_description    TEXT DEFAULT NULL,
   p_is_public      BOOLEAN DEFAULT TRUE,
   p_recurrence     TEXT DEFAULT NULL,
-  p_fee_method     TEXT DEFAULT NULL,
-  p_fee_receipt_url TEXT DEFAULT NULL,
   -- Join criteria: who may join this game.
   p_gender         TEXT DEFAULT 'mixed',
   p_min_age        INTEGER DEFAULT NULL,
@@ -2168,16 +2171,8 @@ BEGIN
     END IF;
   END IF;
 
-  -- Payment: same three methods as subscriptions; kashier is not live yet.
-  IF p_fee_method IS NULL OR p_fee_method NOT IN ('instapay', 'e_wallet', 'kashier') THEN
-    RAISE EXCEPTION 'A payment method is required to create a friendly game';
-  END IF;
-  IF p_fee_method = 'kashier' THEN
-    RAISE EXCEPTION 'Kashier gateway is not available yet';
-  END IF;
-  IF p_fee_receipt_url IS NULL OR btrim(p_fee_receipt_url) = '' THEN
-    RAISE EXCEPTION 'A receipt is required to confirm the game creation fee';
-  END IF;
+  -- There is no game-creation fee; each participant pays their share when they
+  -- join, so games can be created freely.
 
   -- Join criteria.
   IF p_gender IS NULL OR p_gender NOT IN ('male', 'female', 'mixed') THEN
@@ -2213,8 +2208,7 @@ BEGIN
   INSERT INTO public.friendly_games
     (creator_id, creator_name, sport, title, description, area, location, lat, lng,
      playground_id, game_date, start_time, max_players, skill_level, is_public,
-     recurrence, invite_code, gender, min_age, max_age,
-     creation_fee_paid, fee_status, fee_method, fee_receipt_url)
+     recurrence, invite_code, gender, min_age, max_age)
   VALUES
     (v_member,
      v_name,
@@ -2238,11 +2232,7 @@ BEGIN
      v_code,
      p_gender,
      p_min_age,
-     p_max_age,
-     FALSE,
-     'pending',
-     p_fee_method,
-     p_fee_receipt_url)
+     p_max_age)
   RETURNING id INTO v_game;
 
   -- The creator is always the organizer participant.
@@ -2387,7 +2377,12 @@ CREATE POLICY "Avatars: delete own" ON storage.objects
   );
 
 DROP FUNCTION IF EXISTS public.join_friendly_game(UUID);
-CREATE OR REPLACE FUNCTION public.join_friendly_game(p_game_id UUID, p_invite_code TEXT DEFAULT NULL)
+CREATE OR REPLACE FUNCTION public.join_friendly_game(
+  p_game_id UUID,
+  p_invite_code TEXT DEFAULT NULL,
+  p_pay_method TEXT DEFAULT NULL,
+  p_pay_receipt_url TEXT DEFAULT NULL
+)
 RETURNS UUID
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -2463,8 +2458,20 @@ BEGIN
     RAISE EXCEPTION 'This game is full';
   END IF;
 
-  INSERT INTO public.friendly_game_participants (game_id, member_id, role)
-  VALUES (p_game_id, v_member, 'player');
+  -- Every player pays their share (playground portion + hidden platform fee)
+  -- upfront, then uploads a receipt for super-admin verification. The spot
+  -- counts right away and is removed again if the payment turns out fake.
+  IF p_pay_method IS NULL OR p_pay_method NOT IN ('instapay', 'e_wallet') THEN
+    RAISE EXCEPTION 'A payment method is required to join a friendly game';
+  END IF;
+  IF p_pay_receipt_url IS NULL OR btrim(p_pay_receipt_url) = '' THEN
+    RAISE EXCEPTION 'A receipt is required to confirm your share payment';
+  END IF;
+
+  INSERT INTO public.friendly_game_participants
+    (game_id, member_id, role, share_amount, pay_method, pay_receipt_url, pay_status)
+  VALUES (p_game_id, v_member, 'player', v_game.share_price, p_pay_method,
+          btrim(p_pay_receipt_url), 'pending');
 
   -- Tell the organizer someone joined (unless it's their own game).
   IF v_game.creator_id <> v_member THEN
@@ -2496,7 +2503,7 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.join_friendly_game(UUID, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.join_friendly_game(UUID, TEXT, TEXT, TEXT) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.leave_friendly_game(p_game_id UUID)
 RETURNS VOID
@@ -2552,6 +2559,110 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.leave_friendly_game(UUID) TO authenticated;
+
+-- The organizer (or any already-joined participant) pays their outstanding
+-- share: unpaid -> pending (super admin verifies the receipt).
+CREATE OR REPLACE FUNCTION public.pay_game_share(
+  p_game_id UUID,
+  p_pay_method TEXT,
+  p_pay_receipt_url TEXT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_game friendly_games;
+  v_pid  UUID;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  SELECT * INTO v_game FROM public.friendly_games WHERE id = p_game_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Game not found';
+  END IF;
+  IF v_game.status NOT IN ('open', 'full') THEN
+    RAISE EXCEPTION 'This game is no longer open';
+  END IF;
+
+  SELECT id INTO v_pid
+  FROM public.friendly_game_participants
+  WHERE game_id = p_game_id AND member_id = auth.uid() AND pay_status = 'unpaid';
+  IF v_pid IS NULL THEN
+    RAISE EXCEPTION 'Nothing to pay';
+  END IF;
+
+  IF p_pay_method IS NULL OR p_pay_method NOT IN ('instapay', 'e_wallet') THEN
+    RAISE EXCEPTION 'A valid payment method is required';
+  END IF;
+  IF p_pay_receipt_url IS NULL OR btrim(p_pay_receipt_url) = '' THEN
+    RAISE EXCEPTION 'A receipt is required to confirm your share payment';
+  END IF;
+
+  UPDATE public.friendly_game_participants
+  SET share_amount = v_game.share_price,
+      pay_method = p_pay_method,
+      pay_receipt_url = btrim(p_pay_receipt_url),
+      pay_status = 'pending'
+  WHERE id = v_pid;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.pay_game_share(UUID, TEXT, TEXT) TO authenticated;
+
+-- Super admin verifies a participant's share payment. Approving confirms it;
+-- rejecting removes the participant (frees the spot) and lets the game go back
+-- to open if it had filled up.
+CREATE OR REPLACE FUNCTION public.review_participant_share(p_participant_id UUID, p_approve BOOLEAN)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_row    friendly_game_participants%ROWTYPE;
+  v_member UUID;
+  v_title  TEXT;
+BEGIN
+  IF NOT public.is_super_admin() THEN RAISE EXCEPTION 'Not authorized'; END IF;
+
+  SELECT * INTO v_row FROM public.friendly_game_participants WHERE id = p_participant_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Participant not found';
+  END IF;
+  v_member := v_row.member_id;
+
+  IF p_approve THEN
+    UPDATE public.friendly_game_participants SET pay_status = 'approved'
+    WHERE id = p_participant_id;
+    INSERT INTO public.notifications (recipient_id, type, title, body, link)
+    VALUES (
+      v_member,
+      'game_fee_reviewed',
+      'Game share payment approved',
+      'Your share payment for a friendly game was verified.',
+      '/games'
+    );
+  ELSE
+    DELETE FROM public.friendly_game_participants WHERE id = p_participant_id;
+    SELECT title INTO v_title FROM public.friendly_games WHERE id = v_row.game_id;
+    INSERT INTO public.notifications (recipient_id, type, title, body, link)
+    VALUES (
+      v_member,
+      'game_fee_reviewed',
+      'Removed from game — payment not verified',
+      COALESCE(v_title, 'Your game') || ': your share payment could not be verified, so you were removed from the game.',
+      '/games'
+    );
+    UPDATE public.friendly_games SET status = 'open'
+    WHERE id = v_row.game_id AND status = 'full';
+  END IF;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.review_participant_share(UUID, BOOLEAN) TO authenticated;
+NOTIFY pgrst, 'reload schema';
 
 -- Realtime for the community so games load without a page refresh.
 DO $$
@@ -3158,56 +3269,55 @@ CREATE POLICY "Game fee receipts: super admin read" ON storage.objects
     AND public.is_super_admin()
   );
 
--- Super-admin reviews the receipt uploaded for a friendly game: approving sets
--- creation_fee_paid = TRUE; rejecting marks the fee rejected and cancels the
--- game (same rule as plan subscriptions — the game went live immediately, so a
--- fake payment cancels it). Both the organizer and players are notified.
-CREATE OR REPLACE FUNCTION public.review_game_fee(p_game_id UUID, p_approve BOOLEAN)
+-- Super-admin verifies a participant's share payment. Approving marks the
+-- payment verified; rejecting removes the participant (frees the spot).
+CREATE OR REPLACE FUNCTION public.review_participant_share(p_participant_id UUID, p_approve BOOLEAN)
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_game friendly_games;
+  v_row    friendly_game_participants%ROWTYPE;
+  v_member UUID;
+  v_title  TEXT;
 BEGIN
   IF NOT public.is_super_admin() THEN RAISE EXCEPTION 'Not authorized'; END IF;
 
-  SELECT * INTO v_game FROM public.friendly_games WHERE id = p_game_id;
+  SELECT * INTO v_row FROM public.friendly_game_participants WHERE id = p_participant_id;
   IF NOT FOUND THEN
-    RAISE EXCEPTION 'Game not found';
+    RAISE EXCEPTION 'Participant not found';
   END IF;
+  v_member := v_row.member_id;
 
   IF p_approve THEN
-    UPDATE public.friendly_games
-    SET fee_status = 'approved', creation_fee_paid = TRUE
-    WHERE id = p_game_id;
+    UPDATE public.friendly_game_participants SET pay_status = 'approved'
+    WHERE id = p_participant_id;
     INSERT INTO public.notifications (recipient_id, type, title, body, link)
     VALUES (
-      v_game.creator_id,
+      v_member,
       'game_fee_reviewed',
-      'Game fee approved',
-      'The ' || btrim(v_game.title) || ' creation fee was verified.',
+      'Game share payment approved',
+      'Your share payment for a friendly game was verified.',
       '/games'
     );
   ELSE
-    -- Fake / unverified payment: cancel the game and tell everyone.
-    UPDATE public.friendly_games
-    SET fee_status = 'rejected', creation_fee_paid = FALSE, status = 'cancelled'
-    WHERE id = p_game_id;
+    DELETE FROM public.friendly_game_participants WHERE id = p_participant_id;
+    SELECT title INTO v_title FROM public.friendly_games WHERE id = v_row.game_id;
     INSERT INTO public.notifications (recipient_id, type, title, body, link)
-    SELECT
-      member_id,
+    VALUES (
+      v_member,
       'game_fee_reviewed',
-      'Game cancelled — payment not verified',
-      btrim(v_game.title) ||
-        ' was cancelled because the creation fee could not be verified.',
+      'Removed from game — payment not verified',
+      COALESCE(v_title, 'Your game') || ': your share payment could not be verified, so you were removed from the game.',
       '/games'
-    FROM public.friendly_game_participants WHERE game_id = p_game_id;
+    );
+    UPDATE public.friendly_games SET status = 'open'
+    WHERE id = v_row.game_id AND status = 'full';
   END IF;
 END;
 $$;
-GRANT EXECUTE ON FUNCTION public.review_game_fee(UUID, BOOLEAN) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.review_participant_share(UUID, BOOLEAN) TO authenticated;
 
 -- ── Academy subscription plan ──
 -- Display-only before; now real: the super admin assigns a plan and the
@@ -3973,7 +4083,9 @@ BEGIN
     ),
     'games', jsonb_build_object(
       'total',    (SELECT count(*) FROM public.friendly_games),
-      'approved', (SELECT count(*) FROM public.friendly_games WHERE creation_fee_paid),
+      'approved', (SELECT count(DISTINCT p.game_id) FROM public.friendly_game_participants p
+                   JOIN public.friendly_games g ON g.id = p.game_id
+                   WHERE p.pay_status = 'approved' AND g.status = 'accepted'),
       'by_month', COALESCE((SELECT jsonb_agg(jsonb_build_object('month', m, 'count', c) ORDER BY m)
         FROM (SELECT to_char(created_at, 'YYYY-MM') AS m, count(*) AS c
               FROM public.friendly_games GROUP BY 1) s), '[]'::jsonb),
@@ -4001,10 +4113,14 @@ BEGIN
       'session_by_month', COALESCE((SELECT jsonb_agg(jsonb_build_object('month', m, 'total', t, 'count', c) ORDER BY m)
         FROM (SELECT to_char(booked_at, 'YYYY-MM') AS m, sum(platform_fee) AS t, count(*) AS c
               FROM public.session_bookings WHERE status <> 'cancelled' GROUP BY 1) s), '[]'::jsonb),
-      'game_count', (SELECT count(*) FROM public.friendly_games WHERE creation_fee_paid),
+      'game_count', (SELECT count(*) FROM public.friendly_game_participants p
+                     JOIN public.friendly_games g ON g.id = p.game_id
+                     WHERE p.pay_status = 'approved' AND g.status = 'accepted'),
       'game_by_month', COALESCE((SELECT jsonb_agg(jsonb_build_object('month', m, 'count', c) ORDER BY m)
-        FROM (SELECT to_char(created_at, 'YYYY-MM') AS m, count(*) AS c
-              FROM public.friendly_games WHERE creation_fee_paid GROUP BY 1) s), '[]'::jsonb),
+        FROM (SELECT to_char(g.created_at, 'YYYY-MM') AS m, count(*) AS c
+              FROM public.friendly_game_participants p
+              JOIN public.friendly_games g ON g.id = p.game_id
+              WHERE p.pay_status = 'approved' AND g.status = 'accepted' GROUP BY 1) s), '[]'::jsonb),
       'payments_total', COALESCE((SELECT sum(amount) FROM public.payments), 0),
       'payments_count', (SELECT count(*) FROM public.payments),
       'payments_by_month', COALESCE((SELECT jsonb_agg(jsonb_build_object('month', m, 'total', t, 'count', c) ORDER BY m)
@@ -4491,13 +4607,11 @@ CREATE OR REPLACE FUNCTION public.create_friendly_game(
   p_description    TEXT DEFAULT NULL,
   p_is_public      BOOLEAN DEFAULT TRUE,
   p_recurrence     TEXT DEFAULT NULL,
-  p_fee_method     TEXT DEFAULT NULL,
-  p_fee_receipt_url TEXT DEFAULT NULL,
   p_gender         TEXT DEFAULT 'mixed',
   p_min_age        INTEGER DEFAULT NULL,
   p_max_age        INTEGER DEFAULT NULL,
   p_invite_code    TEXT DEFAULT NULL,
-  p_min_players INTEGER DEFAULT 2,
+  p_min_players    INTEGER DEFAULT 2,
   p_duration_hours NUMERIC DEFAULT 1
 )
 RETURNS UUID
@@ -4511,6 +4625,7 @@ DECLARE
   v_name   TEXT;
   v_venue  public.venues%ROWTYPE;
   v_code   TEXT;
+  v_share  NUMERIC;
 BEGIN
   IF p_min_players IS NULL OR p_max_players IS NULL OR p_min_players < 2 OR p_max_players < p_min_players THEN
     RAISE EXCEPTION 'Minimum players must be at least 2 and no greater than maximum players';
@@ -4534,6 +4649,8 @@ BEGIN
   END IF;
 
   -- Playground must be a selectable venue (pool or academy playground).
+  -- There is no game-creation fee; each participant pays their share upfront
+  -- when they join, so the game can be created freely.
   IF p_playground_id IS NOT NULL THEN
     SELECT * INTO v_venue
     FROM public.venues
@@ -4543,15 +4660,12 @@ BEGIN
     END IF;
   END IF;
 
-  -- Payment: same three methods as subscriptions; kashier is not live yet.
-  IF p_fee_method IS NULL OR p_fee_method NOT IN ('instapay', 'e_wallet', 'kashier') THEN
-    RAISE EXCEPTION 'A payment method is required to create a friendly game';
-  END IF;
-  IF p_fee_method = 'kashier' THEN
-    RAISE EXCEPTION 'Kashier gateway is not available yet';
-  END IF;
-  IF p_fee_receipt_url IS NULL OR btrim(p_fee_receipt_url) = '' THEN
-    RAISE EXCEPTION 'A receipt is required to confirm the game creation fee';
+  -- Per-player share = playground portion (rental × duration ÷ min players)
+  -- plus the hidden platform fee, folded into a single price.
+  IF v_venue.rental_cost IS NOT NULL AND v_venue.rental_cost >= 0 THEN
+    v_share := round((v_venue.rental_cost * p_duration_hours) / p_min_players, 2) + 20;
+  ELSE
+    v_share := 20;
   END IF;
 
   -- Join criteria.
@@ -4587,9 +4701,8 @@ BEGIN
 
   INSERT INTO public.friendly_games
     (creator_id, creator_name, sport, title, description, area, location, lat, lng,
-     playground_id, game_date, start_time, max_players, min_players, duration_hours, playground_hourly_rate, skill_level, is_public,
-     recurrence, invite_code, gender, min_age, max_age,
-     creation_fee_paid, fee_status, fee_method, fee_receipt_url)
+     playground_id, game_date, start_time, max_players, min_players, duration_hours, playground_hourly_rate, share_price, skill_level, is_public,
+     recurrence, invite_code, gender, min_age, max_age)
   VALUES
     (v_member,
      v_name,
@@ -4609,6 +4722,7 @@ BEGIN
      p_min_players,
      p_duration_hours,
      CASE WHEN v_venue.rental_cost >= 0 THEN v_venue.rental_cost ELSE NULL END,
+     v_share,
      CASE WHEN p_skill_level IN ('beginner', 'intermediate', 'advanced')
           THEN p_skill_level ELSE NULL END,
      COALESCE(p_is_public, TRUE),
@@ -4616,15 +4730,13 @@ BEGIN
      v_code,
      p_gender,
      p_min_age,
-     p_max_age,
-     FALSE,
-     'pending',
-     p_fee_method,
-     p_fee_receipt_url)
+     p_max_age)
   RETURNING id INTO v_game;
 
-  INSERT INTO public.friendly_game_participants (game_id, member_id, role)
-  VALUES (v_game, v_member, 'organizer');
+  -- The creator is always the organizer participant; they owe their share too.
+  INSERT INTO public.friendly_game_participants
+    (game_id, member_id, role, share_amount, pay_status)
+  VALUES (v_game, v_member, 'organizer', v_share, 'unpaid');
 
   -- Alert members who opted in to matching-sport game alerts (capped).
   INSERT INTO public.notifications (recipient_id, type, title, body, link)

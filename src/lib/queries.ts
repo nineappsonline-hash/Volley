@@ -2425,7 +2425,9 @@ export function useMyGameParticipants() {
       if (!user) return [];
       const { data, error } = await supabase()
         .from("friendly_game_participants")
-        .select("id, game_id, member_id, role, is_waitlisted, joined_at")
+        .select(
+          "id, game_id, member_id, role, is_waitlisted, joined_at, share_amount, pay_method, pay_receipt_url, pay_status"
+        )
         .eq("member_id", user.id);
       if (error) throw error;
       return (data ?? []) as FriendlyGameParticipant[];
@@ -2456,8 +2458,6 @@ export function useCreateFriendlyGame() {
       gender?: "male" | "female" | "mixed";
       min_age?: number | null;
       max_age?: number | null;
-      fee_method: "instapay" | "e_wallet" | "kashier";
-      fee_receipt_url: string;
     }) => {
       const { error } = await supabase().rpc("create_friendly_game", {
         p_title: input.title,
@@ -2476,8 +2476,6 @@ export function useCreateFriendlyGame() {
         p_description: input.description ?? null,
         p_is_public: input.is_public ?? true,
         p_recurrence: input.recurrence ?? null,
-        p_fee_method: input.fee_method,
-        p_fee_receipt_url: input.fee_receipt_url,
         p_gender: input.gender ?? "mixed",
         p_min_age: input.min_age ?? null,
         p_max_age: input.max_age ?? null,
@@ -2494,10 +2492,39 @@ export function useCreateFriendlyGame() {
 export function useJoinFriendlyGame() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { gameId: string; inviteCode?: string | null }) => {
+    mutationFn: async (input: {
+      gameId: string;
+      inviteCode?: string | null;
+      payMethod: "instapay" | "e_wallet" | "kashier";
+      payReceiptUrl: string;
+    }) => {
       const { error } = await supabase().rpc("join_friendly_game", {
         p_game_id: input.gameId,
         p_invite_code: input.inviteCode ?? null,
+        p_pay_method: input.payMethod,
+        p_pay_receipt_url: input.payReceiptUrl,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
+      qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
+    },
+  });
+}
+
+export function usePayGameShare() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      gameId: string;
+      payMethod: "instapay" | "e_wallet" | "kashier";
+      payReceiptUrl: string;
+    }) => {
+      const { error } = await supabase().rpc("pay_game_share", {
+        p_game_id: input.gameId,
+        p_pay_method: input.payMethod,
+        p_pay_receipt_url: input.payReceiptUrl,
       });
       if (error) throw error;
     },
@@ -2977,43 +3004,72 @@ export function useMyStreaks(memberId?: string) {
   });
 }
 
-// ── Super admin: game-fee review ───────────────────────────
+// ── Super admin: game share-payment review ─────────────────
 
-export function usePendingGameFees() {
+export function usePendingGamePayments() {
   return useQuery({
-    queryKey: ["pending-game-fees"],
+    queryKey: ["pending-game-payments"],
     queryFn: async () => {
       const { data, error } = await supabase()
-        .from("friendly_games")
-        .select("*")
-        .eq("fee_status", "pending")
-        .order("created_at", { ascending: false })
+        .from("friendly_game_participants")
+        .select(
+          "id, game_id, member_id, share_amount, pay_method, pay_receipt_url, pay_status, game:friendly_games(title, sport, game_date, start_time)"
+        )
+        .eq("pay_status", "pending")
+        .order("joined_at", { ascending: false })
         .limit(100);
       if (error) throw error;
-      return (data ?? []) as FriendlyGame[];
+      const rows = (data ?? []) as unknown as {
+        id: string;
+        game_id: string;
+        member_id: string;
+        share_amount: number | null;
+        pay_method: string | null;
+        pay_receipt_url: string | null;
+        pay_status: string;
+        game:
+          | {
+              title: string | null;
+              sport: string | null;
+              game_date: string | null;
+              start_time: string | null;
+            }
+          | {
+              title: string | null;
+              sport: string | null;
+              game_date: string | null;
+              start_time: string | null;
+            }[]
+          | null;
+      }[];
+      return rows.map((r) => ({
+        ...r,
+        game: Array.isArray(r.game) ? (r.game[0] ?? null) : r.game,
+      }));
     },
   });
 }
 
-export function useReviewGameFee() {
+export function useReviewParticipantShare() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({
-      gameId,
+      participantId,
       approve,
     }: {
-      gameId: string;
+      participantId: string;
       approve: boolean;
     }) => {
-      const { error } = await supabase().rpc("review_game_fee", {
-        p_game_id: gameId,
+      const { error } = await supabase().rpc("review_participant_share", {
+        p_participant_id: participantId,
         p_approve: approve,
       });
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["pending-game-fees"] });
-      qc.invalidateQueries({ queryKey: ["friendly-games"] });
+      qc.invalidateQueries({ queryKey: ["pending-game-payments"] });
+      qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
+      qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
     },
   });
 }

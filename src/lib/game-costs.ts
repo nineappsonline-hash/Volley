@@ -1,6 +1,28 @@
-export function estimateGameCost(rate: number | null | undefined, hours: number, min: number, max: number) {
-  if (rate == null || !Number.isFinite(rate) || rate < 0 || !Number.isFinite(hours) || hours <= 0 || hours > 24
-    || !Number.isInteger(min) || !Number.isInteger(max) || min < 2 || max < min) return null;
-  const total = Math.round(rate * hours * 100) / 100;
-  return { total, low: total / max, high: total / min };
+import { GAME_PLATFORM_FEE } from "@/lib/constants";
+
+/**
+ * Per-player price for a friendly game, folded into a single number:
+ * playground portion (rental × hours ÷ min players) plus the hidden platform
+ * fee. The 20 EGP fee is intentionally NOT shown separately to members.
+ */
+export function estimateSharePrice(
+  rate: number | null | undefined,
+  hours: number,
+  min: number
+): { rent: number; fee: number; total: number } | null {
+  if (
+    rate == null ||
+    !Number.isFinite(rate) ||
+    rate < 0 ||
+    !Number.isFinite(hours) ||
+    hours <= 0 ||
+    hours > 24 ||
+    !Number.isInteger(min) ||
+    min < 2
+  ) {
+    return null;
+  }
+  const rent = Math.round(((rate * hours) / min) * 100) / 100;
+  const total = Math.round((rent + GAME_PLATFORM_FEE) * 100) / 100;
+  return { rent, fee: GAME_PLATFORM_FEE, total };
 }

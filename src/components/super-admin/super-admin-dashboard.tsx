@@ -49,16 +49,17 @@ import { PageHeader } from "@/components/shared/page-header";
 import type { Academy } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
+import { formatMoneyShort } from "@/lib/constants";
 import {
   useAllAcademies,
   useCommunityMembers,
   useConvertToPaid,
   useExtendTrial,
-  usePendingGameFees,
+  usePendingGamePayments,
   usePendingSubscriptions,
   useReports,
   useResolveReport,
-  useReviewGameFee,
+  useReviewParticipantShare,
   useReviewSubscription,
   useSetAcademyPlan,
 } from "@/lib/queries";
@@ -69,6 +70,7 @@ const PLAN_ORDER: AcademyPlan[] = ["starter", "plus", "elite"];
 
 export function SuperAdminDashboard() {
   const { t, lang, locale } = useI18n();
+  const money = (v: number) => formatMoneyShort(v, lang);
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab");
   const { data: academies, isLoading } = useAllAcademies();
@@ -77,8 +79,8 @@ export function SuperAdminDashboard() {
   const { data: reports } = useReports();
   const { data: members } = useCommunityMembers();
   const resolve = useResolveReport();
-  const { data: pendingFees } = usePendingGameFees();
-  const reviewGameFee = useReviewGameFee();
+  const { data: pendingFees } = usePendingGamePayments();
+  const reviewGameFee = useReviewParticipantShare();
   const setAcademyPlan = useSetAcademyPlan();
   const { data: pendingSubs } = usePendingSubscriptions();
   const reviewSub = useReviewSubscription();
@@ -131,9 +133,9 @@ export function SuperAdminDashboard() {
     }
   };
 
-  const handleReviewFee = async (gameId: string, approve: boolean) => {
+  const handleReviewFee = async (participantId: string, approve: boolean) => {
     try {
-      await reviewGameFee.mutateAsync({ gameId, approve });
+      await reviewGameFee.mutateAsync({ participantId, approve });
       toast.success(
         approve ? t("super_admin_fee_approved") : t("super_admin_fee_rejected")
       );
@@ -425,29 +427,32 @@ export function SuperAdminDashboard() {
                     <TableHead>{t("community_game_title")}</TableHead>
                     <TableHead className="hidden sm:table-cell">{t("community_organizer")}</TableHead>
                     <TableHead className="hidden md:table-cell">{t("community_sport")}</TableHead>
-                    <TableHead className="hidden md:table-cell">{t("game_fee_title")}</TableHead>
+                    <TableHead className="hidden md:table-cell">{t("games_share_per_player")}</TableHead>
+                    <TableHead className="hidden lg:table-cell">{t("checkout_method")}</TableHead>
                     <TableHead className="text-end">{t("super_admin_actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(pendingFees ?? []).map((game) => (
-                    <TableRow key={game.id}>
+                  {(pendingFees ?? []).map((p) => (
+                    <TableRow key={p.id}>
                       <TableCell>
-                        <p className="truncate font-medium">{game.title}</p>
+                        <p className="truncate font-medium">{p.game?.title ?? "—"}</p>
                         <p className="text-xs text-muted-foreground">
-                          {game.game_date} · {game.start_time}
+                          {p.game?.game_date ?? ""} · {p.game?.start_time ?? ""}
                         </p>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {memberName(game.creator_id)}
+                        {memberName(p.member_id)}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {game.sport}
-                        {game.area ? ` · ${game.area}` : ""}
+                        {p.game?.sport ?? p.game?.title ?? "—"}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {game.fee_method
-                          ? t(`game_fee_method_${game.fee_method}` as any)
+                        {money(p.share_amount ?? 0)}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {p.pay_method
+                          ? t(`game_fee_method_${p.pay_method}` as any)
                           : "—"}
                       </TableCell>
                       <TableCell className="text-end">
@@ -458,7 +463,7 @@ export function SuperAdminDashboard() {
                             className="gap-1"
                             disabled={openingReceipt !== null}
                             onClick={() =>
-                              handleViewReceipt(game.fee_receipt_url)
+                              handleViewReceipt(p.pay_receipt_url)
                             }
                           >
                             <Eye className="h-3 w-3" />
@@ -469,7 +474,7 @@ export function SuperAdminDashboard() {
                             size="sm"
                             className="gap-1 text-success-ink hover:text-success-ink"
                             disabled={reviewGameFee.isPending}
-                            onClick={() => handleReviewFee(game.id, true)}
+                            onClick={() => handleReviewFee(p.id, true)}
                           >
                             <CheckCircle2 className="h-3 w-3" />
                             {t("super_admin_fee_approve")}
@@ -479,7 +484,7 @@ export function SuperAdminDashboard() {
                             size="sm"
                             className="gap-1 text-muted-foreground"
                             disabled={reviewGameFee.isPending}
-                            onClick={() => handleReviewFee(game.id, false)}
+                            onClick={() => handleReviewFee(p.id, false)}
                           >
                             <XCircle className="h-3 w-3" />
                             {t("super_admin_fee_reject")}

@@ -15,9 +15,11 @@ import {
   Star,
   Trophy,
   Users,
+  Wallet,
 } from "lucide-react";
 import { GameCostEstimate } from "@/components/games/game-cost-estimate";
 import { GameChat } from "@/components/games/game-chat";
+import { JoinGameDialog } from "@/components/games/join-game-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,7 +49,6 @@ import { COMMUNITY_SPORTS } from "@/lib/constants";
 import {
   useCancelFriendlyGame,
   useFriendlyGames,
-  useJoinFriendlyGame,
   useLeaveFriendlyGame,
   useMyGameParticipants,
   useStopRecurringGame,
@@ -91,12 +92,12 @@ function GameCard({
 }) {
   const router = useRouter();
   const { t, locale } = useI18n();
-  const join = useJoinFriendlyGame();
   const leave = useLeaveFriendlyGame();
   const cancel = useCancelFriendlyGame();
   const stopRecurring = useStopRecurringGame();
   const [reportOpen, setReportOpen] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
+  const [payOpen, setPayOpen] = useState<"join" | "pay" | null>(null);
 
   const isPro = profile.member_plan === "premium";
 
@@ -136,12 +137,7 @@ function GameCard({
   };
 
   const handleJoin = async () => {
-    try {
-      await join.mutateAsync({ gameId: game.id });
-      toast.success(t("community_joined"));
-    } catch (err) {
-      toast.error(errorMessage(err, t("common_error")));
-    }
+    setPayOpen("join");
   };
 
   const handleLeave = async () => {
@@ -205,17 +201,6 @@ function GameCard({
               >
                 <Lamp className="h-3 w-3" />
                 {t("community_recommended")}
-              </Badge>
-            )}
-            {isOrganizer && game.fee_status && game.fee_status !== "approved" && (
-              <Badge
-                className={`gap-1 text-[10px] ${
-                  game.fee_status === "pending"
-                    ? "bg-attention-100 text-warning-ink dark:bg-attention-500/15 dark:text-attention-400"
-                    : "bg-negative-100 text-error-ink dark:bg-negative-500/15 dark:text-negative-400"
-                }`}
-              >
-                {t(`game_fee_status_${game.fee_status}` as any)}
               </Badge>
             )}
             <Badge
@@ -317,12 +302,18 @@ function GameCard({
               <Button
                 size="sm"
                 onClick={handleJoin}
-                disabled={join.isPending}
               >
                 <Plus className="me-1 h-3.5 w-3.5" />
                 {t("community_join")}
               </Button>
             ) : null)}
+
+          {isOrganizer && mine?.pay_status === "unpaid" && (
+            <Button size="sm" onClick={() => setPayOpen("pay")}>
+              <Wallet className="me-1 h-3.5 w-3.5" />
+              {t("games_share_pay_now")}
+            </Button>
+          )}
 
           {isOrganizer && (
             <>
@@ -399,7 +390,7 @@ function GameCard({
             </DropdownMenu>
           </div>
         </div>
-      <GameCostEstimate compact rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} max={game.max_players} />
+      <GameCostEstimate compact rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} />
       {joined && <GameChat gameId={game.id} gameTitle={game.title} memberId={profile.id} />}
       </CardContent>
 
@@ -415,6 +406,15 @@ function GameCard({
         onOpenChange={setScoreOpen}
         gameId={game.id}
         gameTitle={game.title}
+      />
+      <JoinGameDialog
+        open={payOpen !== null}
+        onOpenChange={(o) => {
+          if (!o) setPayOpen(null);
+        }}
+        game={game}
+        inviteCode={game.is_public ? null : game.invite_code}
+        mode={payOpen ?? "join"}
       />
     </Card>
   );
