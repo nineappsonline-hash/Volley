@@ -1,7 +1,11 @@
 -- User usernames: a unique, slug-style handle (@username) collected at signup
 -- and used as the primary way to distinguish members across the community.
 
--- 1. Helper: turn arbitrary text into a guaranteed-unique lowercase handle.
+-- 1. The column itself (added before the functions below: Postgres validates
+-- SQL-language function bodies at creation time, so the column must exist first).
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS username TEXT;
+
+-- 2. Helper: turn arbitrary text into a guaranteed-unique lowercase handle.
 CREATE OR REPLACE FUNCTION public.make_unique_username(p_base TEXT)
 RETURNS TEXT
 LANGUAGE plpgsql
@@ -32,7 +36,7 @@ END;
 $$;
 GRANT EXECUTE ON FUNCTION public.make_unique_username(TEXT) TO authenticated;
 
--- 2. Byte-for-byte availability check a client can call before submitting.
+-- 3. Byte-for-byte availability check a client can call before submitting.
 -- SECURITY DEFINER so members can verify other handles despite profiles RLS.
 CREATE OR REPLACE FUNCTION public.is_username_taken(p_username TEXT)
 RETURNS BOOLEAN
@@ -44,9 +48,6 @@ AS $$
   SELECT EXISTS (SELECT 1 FROM public.profiles WHERE username = lower(btrim(p_username)));
 $$;
 GRANT EXECUTE ON FUNCTION public.is_username_taken(TEXT) TO authenticated;
-
--- 3. The column itself.
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS username TEXT;
 
 -- 4. Backfill existing members from their display name (or email local part).
 DO $$
