@@ -1,5 +1,5 @@
 -- Full platform reset: delete every user (auth account, profile, all their
--- content, their academies, and their storage files) EXCEPT the platform
+-- content, and their academies) EXCEPT the platform
 -- super-admin (mo.dowaik).
 --
 -- Result: only mo.dowaik remains; every deleted email is freed so those users
@@ -61,17 +61,7 @@ BEGIN
   -- 3. Moderation reports: targets have no FK, so remove them explicitly.
   DELETE FROM public.reports;
 
-  -- 4. Storage files uploaded by deleted users/academies (receipts, avatars,
-  -- photos). The super-admin's own avatar and receipts are kept.
-  DELETE FROM storage.objects
-  WHERE bucket_id IN ('avatars', 'session-photos', 'academy-media',
-                      'game-fee-receipts', 'subscription-receipts')
-    AND NOT (
-      name LIKE 'avatars/' || v_survive_profile_ids[1]::text || '/%'
-      OR name LIKE v_survive_profile_ids[1]::text || '/%'
-    );
-
-  -- 5. Free the deleted emails (and any orphaned accounts) for re-signup.
+  -- 4. Free the deleted emails (and any orphaned accounts) for re-signup.
   DELETE FROM auth.users WHERE id <> v_survive_auth_id;
   GET DIAGNOSTICS v_deleted_auth = ROW_COUNT;
 
