@@ -3908,6 +3908,8 @@ GRANT EXECUTE ON FUNCTION public.toggle_scout_note(UUID) TO authenticated;
 -- Runs as SECURITY DEFINER so the caller can remove their auth.users row.
 -- The profile is removed explicitly (profiles.id no longer cascades from
 -- auth.users); its member records still cascade off the profile row.
+-- The platform super-admin is the last line of defense and cannot be deleted
+-- through this path.
 CREATE OR REPLACE FUNCTION public.delete_my_account()
 RETURNS VOID
 LANGUAGE plpgsql
@@ -3923,21 +3925,54 @@ BEGIN
     RAISE EXCEPTION 'Not authenticated';
   END IF;
 
+  -- Never let the platform super-administrator delete the only admin account.
+  IF EXISTS (
+    SELECT 1 FROM auth.users
+    WHERE id = v_uid AND lower(email) = 'mo.dowaik@gmail.com'
+  ) THEN
+    RAISE EXCEPTION 'The platform administrator account cannot delete itself';
+  END IF;
+
   SELECT role, COALESCE(academy_id, public.current_academy_id())
     INTO v_role, v_academy
     FROM public.profiles
     WHERE id = v_uid;
 
-  -- Remove subscription payment screenshots uploaded by this user.
-  DELETE FROM storage.objects
-  WHERE bucket_id = 'subscription-receipts'
-    AND (storage.foldername(name))[1] = v_uid::text;
+  -- Direct deletes from storage.objects are blocked by a guard trigger
+  -- (storage.protect_delete). Disable it only around our cleanup: the
+  -- function runs as the table owner, so the ALTER is permitted. It is
+  -- re-enabled even if a statement below fails.
+  ALTER TABLE storage.objects DISABLE TRIGGER protect_delete;
+  BEGIN
+    -- Subscription payment screenshots (subfolder = this user's uid).
+    DELETE FROM storage.objects
+    WHERE bucket_id = 'subscription-receipts'
+      AND (storage.foldername(name))[1] = v_uid::text;
 
-  IF v_role = 'admin' AND v_academy IS NOT NULL THEN
-    -- Remove fee-receipt files the admin uploaded (subfolder = their uid).
+    -- Game-fee receipts uploaded by this user.
     DELETE FROM storage.objects
     WHERE bucket_id = 'game-fee-receipts'
       AND (storage.foldername(name))[1] = v_uid::text;
+
+    -- Profile picture (<uid>/…).
+    DELETE FROM storage.objects
+    WHERE bucket_id = 'avatars'
+      AND name LIKE 'avatars/' || v_uid::text || '/%';
+
+    IF v_role = 'admin' AND v_academy IS NOT NULL THEN
+      -- Academy logo + gallery files live under academies/<academy-id>/.
+      DELETE FROM storage.objects
+      WHERE bucket_id = 'academy-media'
+        AND name LIKE 'academies/' || v_academy::text || '/%';
+    END IF;
+  EXCEPTION
+    WHEN OTHERS THEN
+      ALTER TABLE storage.objects ENABLE TRIGGER protect_delete;
+      RAISE;
+  END;
+  ALTER TABLE storage.objects ENABLE TRIGGER protect_delete;
+
+  IF v_role = 'admin' AND v_academy IS NOT NULL THEN
     -- Cascades to branches, venues, coaches, members, sessions, payments…
     DELETE FROM public.academies WHERE id = v_academy;
   END IF;

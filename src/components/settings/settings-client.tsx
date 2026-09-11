@@ -38,7 +38,13 @@ import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
 import { useAcademy, useUpdateAcademy } from "@/lib/queries";
 
-export function SettingsClient({ isAdmin }: { isAdmin: boolean }) {
+export function SettingsClient({
+  isAdmin,
+  canDelete = true,
+}: {
+  isAdmin: boolean;
+  canDelete?: boolean;
+}) {
   const { t } = useI18n();
   const { data: academy, isLoading } = useAcademy();
   const update = useUpdateAcademy();
@@ -470,7 +476,7 @@ export function SettingsClient({ isAdmin }: { isAdmin: boolean }) {
         </Card>
       </div>
 
-      <DeleteAccountCard isAdmin={isAdmin} />
+      {canDelete && <DeleteAccountCard isAdmin={isAdmin} />}
     </div>
   );
 }
