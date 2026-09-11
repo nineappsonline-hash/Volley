@@ -75,8 +75,8 @@
 .hero h1 {
   font-size: clamp(44px, 5.2vw, 82px);
   font-weight: 900;
-  line-height: 1.25;
-  letter-spacing: -2px;
+  line-height: 1.55;
+  letter-spacing: -1px;
 }
 .heroCopy h1 em {
   font-style: normal;
