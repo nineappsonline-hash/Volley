@@ -80,12 +80,13 @@
 }
 .heroCopy h1 em {
   font-style: normal;
+  display: inline-block;
   background: linear-gradient(110deg, #0b7690, #12995e 35%, #22d48b 50%, #2d9bba 70%, #12995e);
   background-size: 300% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  padding: 0.14em 0;
+  padding: 0.26em 0.05em 0.1em 0.05em;
   animation: titleShine 7s ease-in-out infinite;
 }
 .page h2 {
@@ -95,12 +96,13 @@
 }
 .page h2 em {
   font-style: normal;
+  display: inline-block;
   background: linear-gradient(110deg, #12995e, #22d48b 45%, #2d9bba);
   background-size: 250% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  padding: 0.14em 0;
+  padding: 0.22em 0.05em 0.08em 0.05em;
   animation: titleShine 8s ease-in-out infinite;
 }
 .arenaCopy h2 em {
@@ -109,7 +111,7 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  padding: 0.14em 0;
+  padding: 0.22em 0.05em 0.08em 0.05em;
   animation: titleShine 8s ease-in-out infinite;
 }
 .page .eyebrow {
