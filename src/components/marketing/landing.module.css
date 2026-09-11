@@ -80,14 +80,19 @@
 }
 .heroCopy h1 em {
   font-style: normal;
-  display: inline-block;
   background: linear-gradient(110deg, #0b7690, #12995e 35%, #22d48b 50%, #2d9bba 70%, #12995e);
-  background-size: 300% 100%;
+  background-size: 300% 200%;
+  background-position: 0 50%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  padding: 0.26em 0.05em 0.1em 0.05em;
-  animation: titleShine 7s ease-in-out infinite;
+  animation: titleShineTall 7s ease-in-out infinite;
+}
+.heroCopy h1 em,
+.page h2 em,
+.arenaCopy h2 em {
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 .page h2 {
   font-weight: 900;
@@ -96,23 +101,22 @@
 }
 .page h2 em {
   font-style: normal;
-  display: inline-block;
   background: linear-gradient(110deg, #12995e, #22d48b 45%, #2d9bba);
-  background-size: 250% 100%;
+  background-size: 250% 200%;
+  background-position: 0 50%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  padding: 0.22em 0.05em 0.08em 0.05em;
-  animation: titleShine 8s ease-in-out infinite;
+  animation: titleShineTall 8s ease-in-out infinite;
 }
 .arenaCopy h2 em {
   background: linear-gradient(110deg, #6ee7b7, #a7f3d0 45%, #fff);
-  background-size: 250% 100%;
+  background-size: 250% 200%;
+  background-position: 0 50%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  padding: 0.22em 0.05em 0.08em 0.05em;
-  animation: titleShine 8s ease-in-out infinite;
+  animation: titleShineTall 8s ease-in-out infinite;
 }
 .page .eyebrow {
   font-weight: 700;
@@ -165,6 +169,10 @@
 .page [data-visible="true"] .faq h2,
 .page [data-visible="true"] .finalCta h2 {
   animation: headReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes titleShineTall {
+  0%, 100% { background-position: 0 50%; }
+  50% { background-position: 100% 50%; }
 }
 @keyframes headReveal {
   from { opacity: 0; transform: translateY(28px); }
