@@ -41,6 +41,7 @@ export type PublicTournament = {
   id: string;
   name: string;
   description: string | null;
+  prize: string | null;
   start_date: string;
   end_date: string | null;
   status: string;
@@ -128,7 +129,7 @@ export async function getPublicTournaments(sport?: string): Promise<PublicTourna
   let query = admin
     .from("tournaments")
     .select(
-      `id, name, description, start_date, end_date, status,
+      `id, name, description, prize, start_date, end_date, status,
        sport:sports(name),
        academy:academies!inner(id, name, slug, area, governorate, is_public)`
     )
@@ -150,6 +151,7 @@ export async function getPublicTournaments(sport?: string): Promise<PublicTourna
         id: row.id,
         name: row.name,
         description: row.description,
+        prize: row.prize,
         start_date: row.start_date,
         end_date: row.end_date,
         status: row.status,

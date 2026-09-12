@@ -323,6 +323,7 @@ export interface Tournament {
   academy_id: string;
   name: string;
   description: string | null;
+  prize: string | null;
   sport_id: string | null;
   start_date: string;
   end_date: string | null;

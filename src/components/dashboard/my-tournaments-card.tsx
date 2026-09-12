@@ -144,6 +144,12 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
                         ? ` · ${format(new Date(tournament.start_date + "T00:00:00"), "MMM d, yyyy", { locale })}`
                         : ""}
                     </p>
+                    {tournament.prize && (
+                      <p className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-amber-600">
+                        <Trophy className="h-3 w-3" />
+                        {tournament.prize}
+                      </p>
+                    )}
                   </div>
                   <Badge variant={(STATUS_COLORS[tournament.status] as "secondary") ?? "secondary"}>
                     {t(`tournament_status_${tournament.status}`)}

@@ -1845,6 +1845,7 @@ export function useSaveTournament() {
       const payload = {
         name: tournament.name,
         description: tournament.description ?? null,
+        prize: tournament.prize ?? null,
         sport_id: tournament.sport_id ?? null,
         start_date: tournament.start_date,
         end_date: tournament.end_date ?? null,

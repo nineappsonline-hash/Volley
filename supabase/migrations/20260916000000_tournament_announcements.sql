@@ -21,7 +21,10 @@ BEGIN
       p.id,
       'tournament_announced',
       'New tournament announced',
-      'A new tournament "' || NEW.name || '" has been announced. Register your team!',
+      'A new tournament "' || NEW.name || '" has been announced. Register your team!'
+        || CASE WHEN NEW.prize IS NOT NULL AND btrim(NEW.prize) <> ''
+                THEN ' Prize: ' || btrim(NEW.prize) || '.'
+                ELSE '' END,
       '/tournaments'
     FROM public.profiles p
     WHERE p.academy_id = NEW.academy_id

@@ -215,6 +215,13 @@ export default async function TournamentsPage({ searchParams }: { searchParams: 
                     </p>
                   )}
 
+                  {t.prize && (
+                    <p className="mt-2 flex items-center gap-1.5 text-sm font-bold text-amber-600">
+                      <Trophy className="h-4 w-4 shrink-0" />
+                      الجائزة: {t.prize}
+                    </p>
+                  )}
+
                   <div className="mt-auto pt-4">
                     <Link
                       href={t.academy?.slug ? `/a/${t.academy.slug}` : "/academies"}

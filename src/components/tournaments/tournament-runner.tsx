@@ -276,6 +276,7 @@ export function TournamentRunner({ tournament }: { tournament: TournamentWithMat
                 {t(`tr_format_${tournament.format}`)}
               </Badge>
             )}
+            {tournament.prize && <Badge variant="outline">{tournament.prize}</Badge>}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">

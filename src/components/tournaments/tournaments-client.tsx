@@ -204,6 +204,12 @@ export function TournamentsClient() {
                       {tournament.description}
                     </p>
                   )}
+                  {tournament.prize && (
+                    <span className="flex items-center gap-1.5 text-sm font-semibold text-amber-600">
+                      <Trophy className="h-4 w-4" />
+                      {tournament.prize}
+                    </span>
+                  )}
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <CalendarClock className="h-3.5 w-3.5" />
@@ -265,6 +271,7 @@ export function TournamentsClient() {
                 {details.end_date
                   ? ` – ${format(new Date(details.end_date + "T00:00:00"), "MMM d, yyyy", { locale })}`
                   : ""}
+                {details.prize ? ` · ${details.prize}` : ""}
               </DialogDescription>
             </DialogHeader>
 
@@ -383,6 +390,7 @@ function TournamentFormDialog({
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [prize, setPrize] = useState("");
   const [sportId, setSportId] = useState<string>("none");
   const [startDate, setStartDate] = useState(todayInput());
   const [endDate, setEndDate] = useState("");
@@ -395,6 +403,7 @@ function TournamentFormDialog({
       if (tournament) {
         setName(tournament.name);
         setDescription(tournament.description ?? "");
+        setPrize(tournament.prize ?? "");
         setSportId(tournament.sport_id ?? "none");
         setStartDate(tournament.start_date);
         setEndDate(tournament.end_date ?? "");
@@ -403,6 +412,7 @@ function TournamentFormDialog({
       } else {
         setName("");
         setDescription("");
+        setPrize("");
         setSportId("none");
         setStartDate(todayInput());
         setEndDate("");
@@ -420,6 +430,7 @@ function TournamentFormDialog({
         id: tournament?.id,
         name: name.trim(),
         description: description.trim() || null,
+        prize: prize.trim() || null,
         sport_id: sportId === "none" ? null : sportId,
         start_date: startDate,
         end_date: endDate || null,
@@ -454,6 +465,14 @@ function TournamentFormDialog({
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>{t("tournament_prize")}</Label>
+            <Input
+              value={prize}
+              onChange={(e) => setPrize(e.target.value)}
+              placeholder={t("tournament_prize_placeholder")}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
