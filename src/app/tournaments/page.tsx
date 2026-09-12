@@ -249,6 +249,9 @@ export default async function TournamentsPage({ searchParams }: { searchParams: 
             <Link href="/solutions" className="rounded-full border bg-background px-4 py-1.5 font-medium hover:bg-accent">
               حلول الأكاديميات
             </Link>
+            <Link href="/faq" className="rounded-full border bg-background px-4 py-1.5 font-medium hover:bg-accent">
+              أسئلة شائعة
+            </Link>
           </div>
         </nav>
       </div>

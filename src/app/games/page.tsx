@@ -252,6 +252,9 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
             <Link href="/solutions" className="rounded-full border bg-background px-4 py-1.5 font-medium hover:bg-accent">
               حلول الأكاديميات
             </Link>
+            <Link href="/faq" className="rounded-full border bg-background px-4 py-1.5 font-medium hover:bg-accent">
+              أسئلة شائعة
+            </Link>
           </div>
         </nav>
       </div>

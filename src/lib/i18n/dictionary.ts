@@ -1948,6 +1948,110 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     landing_install_dismiss: "Not now",
     landing_footer_academies: "Academies",
     landing_footer_top: "Back to top ↑",
+    landing_footer_faq: "FAQs",
+    landing_faq_more: "More questions? See the full FAQ",
+    landing_faq_more_cta: "View all FAQs",
+    // ── FAQ page ──
+    faq_hero_title: "Frequently asked questions",
+    faq_hero_subtitle:
+      "Everything about Playza, in one place — accounts, memberships, friendly games, tournaments and academy tools.",
+    faq_hero_note:
+      "Didn't find your answer? Create a free account and the Playza team will be happy to help you.",
+    faq_hero_cta: "Create your account",
+    faq_back_home: "Home",
+    faq_cat_general: "About Playza & accounts",
+    faq_cat_members: "For players & parents",
+    faq_cat_games: "Friendly games & tournaments",
+    faq_cat_owners: "For academy owners",
+    faq_cat_technical: "Technical & security",
+    faq_still_title: "Still have a question?",
+    faq_still_desc:
+      "Create your free account and start exploring — or sign in and contact us through the support button in your profile.",
+    faq_still_cta: "Try Playza free",
+    faq_item_general_what_q: "What is Playza?",
+    faq_item_general_what_a:
+      "Playza is one platform that brings players, parents and academy owners together. You can discover and join sports academies, book a spot in friendly matches and tournaments, follow training and attendance, and — for academy owners — manage memberships, payments and profit in one place.",
+    faq_item_general_free_q: "Is Playza free to use?",
+    faq_item_general_free_a:
+      "Yes. Members get a free account, and the academy Starter plan is free. Optional paid plans — member Pro at 100 EGP/month, academy Plus at 200 EGP/month or Elite at 350 EGP/month — add advanced features like calendar sync, analytics, leaderboards and scouting.",
+    faq_item_general_roles_q:
+      "What's the difference between a player, parent, and academy owner account?",
+    faq_item_general_roles_a:
+      "A player account is the member's own file with schedule, attendance, payments and evaluations. A parent can add family members and follow each child from his or her own file. An academy owner creates the academy, manages the members and runs the management features.",
+    faq_item_general_member_needed_q:
+      "Do I need to be a member of an academy to use Playza?",
+    faq_item_general_member_needed_a:
+      "No. You can create an account and explore the community and friendly matches without being tied to an academy. Some features depend on your subscription type, and you can see plan details from your account.",
+    faq_item_members_children_q:
+      "Can I follow more than one child from the same account?",
+    faq_item_members_children_a:
+      "Yes. After joining an academy, you can add family members and open each child's own file to follow their data, attendance, payments and available evaluations.",
+    faq_item_members_plans_q:
+      "What membership plans are there for members?",
+    faq_item_members_plans_a:
+      "There are two member plans. The Free plan includes your dashboard, personal QR code, schedule, academies directory and joining friendly games. The Pro plan (100 EGP/month, 500 EGP for 6 months, or 1000 EGP/year) adds calendar (.ics) sync, recurring games, score entry, events, leaderboards and scouting.",
+    faq_item_members_payment_q: "How do I pay for a Playza plan?",
+    faq_item_members_payment_a:
+      "You pay through Instapay or an e-wallet, and card payments (Kashier) are coming soon. After transferring, upload the payment screenshot in the checkout page and the team verifies it, then upgrades your account. Academies can also record cash, card, wallet or bank-transfer payments directly for their members.",
+    faq_item_members_qr_q: "Where do I find my personal QR code?",
+    faq_item_members_qr_a:
+      "Sign in and open your profile from the member area. Every member has a personal QR check-in code that the academy scans at the door to mark attendance. A parent can open a child's QR from the child's file.",
+    faq_item_members_remaining_q:
+      "How do I see my remaining sessions and payment status?",
+    faq_item_members_remaining_a:
+      "The member dashboard shows your remaining sessions, attendance rate, next sessions and payment status. Full membership typically equals 8 sessions and half membership 4 per payment cycle, depending on what your academy offers. Payments you make are approved by the academy.",
+    faq_item_games_find_q: "How do I find a friendly match near me?",
+    faq_item_games_find_a:
+      "Open the Friendly games page, pick your sport, and skim the upcoming matches with dates, location, players and the per-player share. You can join any open match after a free sign up, and match chat lets players agree on the details.",
+    faq_item_games_price_q: "Is the price shown for a match a final price?",
+    faq_item_games_price_a:
+      "It's an estimate of each player's share of the court rent based on the hourly rate, match duration and minimum/maximum players, with the organiser counted in the number. Match creation fees and any extras are not included.",
+    faq_item_games_chat_q: "What is the match chat?",
+    faq_item_games_chat_a:
+      "Each friendly match has a private chat for its current participants, so you can arrange the details and put the team together without the conversation getting lost in other groups.",
+    faq_item_games_tournament_join_q: "How do I join a tournament?",
+    faq_item_games_tournament_join_a:
+      "Browse the Tournaments page — they're listed by sport with dates, locations and requirements. Sign up free and join the organizing academy, or contact them through the tournament page to participate.",
+    faq_item_games_tournament_type_q:
+      "Are tournaments for teams or for solo players?",
+    faq_item_games_tournament_type_a:
+      "Both. There are team tournaments (5×5, 7×7, 11-a-side) and individual ones such as padel and tennis. Each tournament page states the format and participation rules.",
+    faq_item_games_tournament_organize_q: "Can I organize my own tournament?",
+    faq_item_games_tournament_organize_a:
+      "Yes. Academy owners can create tournaments and manage the full bracket — rounds, teams, scores, dates and venues — from the academy dashboard.",
+    faq_item_owners_create_q: "How do I create my academy on Playza?",
+    faq_item_owners_create_a:
+      "Sign up and choose 'Academy owner'. Set your academy name, sports, location and description, then add your coaches, venues and training schedule. You get a public academy page that visitors can use to send trial requests.",
+    faq_item_owners_trial_q: "What free trial do new academies get?",
+    faq_item_owners_trial_a:
+      "When you create an academy you start a free trial with the full feature set — no credit card required. After the trial, you can stay on the free Starter plan or upgrade to Plus or Elite.",
+    faq_item_owners_plans_q: "What are the academy plans?",
+    faq_item_owners_plans_a:
+      "Three plans: Starter (free), Plus (200 EGP/month or 2100 EGP/year) and Elite (350 EGP/month or 3800 EGP/year). Higher plans unlock member management, attendance, payments, analytics, events, marketplace, scouting and support.",
+    faq_item_owners_collect_q: "How do I collect payments from my members?",
+    faq_item_owners_collect_a:
+      "Record each payment with amount, date, plan and method (cash, card, wallet, bank transfer or other). There's a printable receipt for every payment and a CSV export for your accountant. For online subscriptions, members pay via Instapay or e-wallet and upload a screenshot.",
+    faq_item_owners_attendance_q: "Who records attendance and evaluations?",
+    faq_item_owners_attendance_a:
+      "The academy management records performance evaluations and coach notes, and can use a QR scanner for attendance. Members and their parents can view their own evaluations.",
+    faq_item_owners_profit_q: "How does the per-session profit engine work?",
+    faq_item_owners_profit_a:
+      "Playza calculates cost per session as (coach salary + court rent) divided by the sessions per month. Session revenue is the sum of attending members' per-session value plus guest payments. Profit = revenue − cost, recalculated automatically in the background whenever a payment, cost or attendance record changes.",
+    faq_item_owners_public_page_q: "Do I get a public page for my academy?",
+    faq_item_owners_public_page_a:
+      "Yes. Every academy gets an optional public page at /a/your-name where visitors can read your description and sports, and submit trial requests that land directly in your dashboard's trial pipeline.",
+    faq_item_tech_devices_q: "Which devices can I use Playza on?",
+    faq_item_tech_devices_a:
+      "Playza runs in any web browser — mobile, tablet or desktop. No store needed; you can add it to your home screen and open it like an app.",
+    faq_item_tech_install_q: "How do I install Playza as an app?",
+    faq_item_tech_install_a:
+      "On mobile, open the browser menu and choose 'Add to Home Screen' (on iPhone: tap Share, then 'Add to Home Screen'). Playza opens full-screen like a native app.",
+    faq_item_tech_security_q: "Is my data safe?",
+    faq_item_tech_security_a:
+      "Every academy's data is isolated with PostgreSQL Row Level Security — one academy can never see another's data. Role-based access is enforced at the database and route level, and hosting runs on globally-managed infrastructure with automatic backups.",
+    faq_item_tech_calendar_q: "Can I sync training schedules to my phone calendar?",
+    faq_item_tech_calendar_a:
+      "Yes. Academies can share a read-only .ics calendar feed; members on the Pro plan can subscribe once and see sessions in Google Calendar or Apple Calendar, automatically kept in sync.",
     // ── Auth role selector ──
     auth_role_member: "Member",
     auth_role_tenant: "Academy owner",
@@ -4116,6 +4220,104 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     landing_install_dismiss: "مش دلوقتي",
     landing_footer_academies: "الأكاديميات",
     landing_footer_top: "ارجع لفوق ↑",
+    landing_footer_faq: "الأسئلة الشائعة",
+    landing_faq_more: "عندك أسئلة أكتر؟ شوف الأسئلة الشائعة كاملة",
+    landing_faq_more_cta: "عرض كل الأسئلة",
+    // ── صفحة الأسئلة الشائعة ──
+    faq_hero_title: "الأسئلة الشائعة",
+    faq_hero_subtitle:
+      "كل حاجة عن بلايزا في مكان واحد — الحسابات، الاشتراكات، الماتشات الودية، البطولات وأدوات الأكاديميات.",
+    faq_hero_note:
+      "مش لاقي إجابتك؟ اعمل حساب مجاني وفريق بلايزا هيساعدك بكل حب.",
+    faq_hero_cta: "اعمل حسابك",
+    faq_back_home: "الرئيسية",
+    faq_cat_general: "عن بلايزا والحسابات",
+    faq_cat_members: "لللاعب وولي الأمر",
+    faq_cat_games: "الماتشات الودية والبطولات",
+    faq_cat_owners: "لأصحاب الأكاديميات",
+    faq_cat_technical: "تقني والأمان",
+    faq_still_title: "لسه عندك سؤال؟",
+    faq_still_desc:
+      "اعمل حسابك المجاني وابدأ تكتشف — أو سجّل دخولك وتواصل معانا من زر الدعم في ملفك.",
+    faq_still_cta: "جرّب بلايزا مجاناً",
+    faq_item_general_what_q: "إيه هي بلايزا؟",
+    faq_item_general_what_a:
+      "بلايزا منصة واحدة بتيجمع اللاعبين وأولياء الأمور وأصحاب الأكاديميات مع بعض. تقدر تكتشف الأكاديميات وتنضم ليها، تحجز مكانك في ماتشات وبطولات، تتابع التدريب والحضور، ولو بتدير أكاديمية — تدير العضوية والمدفوعات والأرباح من مكان واحد.",
+    faq_item_general_free_q: "هل بلايزا مجاني؟",
+    faq_item_general_free_a:
+      "أيوه. حساب العضو مجاني، وباقة البداية للأكاديميات (Starter) مجانية. في باقات مدفوعة اختيارية — Pro للعضو بـ100 جنيه شهرياً، Plus للأكاديمية بـ200 جنيه شهرياً أو Elite بـ350 جنيه — بتضيف مميزات متقدمة زي مزامنة التقويم والتحليلات ولوحات الصدارة والاسكاوتنج.",
+    faq_item_general_roles_q: "إيه الفرق بين حساب اللاعب وولي الأمر وصاحب الأكاديمية؟",
+    faq_item_general_roles_a:
+      "حساب اللاعب هو ملف العضو نفسه بمواعيده وحضوره ومدفوعاته وتقييماته. ولي الأمر يقدر يضيف أفراد عيلته ويتابع كل طفل من ملفه الخاص. وصاحب الأكاديمية بيعمل الأكاديمية ويدير الأعضاء وكل أدوات الإدارة.",
+    faq_item_general_member_needed_q: "لازم أكون مشترك في أكاديمية عشان أستخدم بلايزا؟",
+    faq_item_general_member_needed_a:
+      "لأ، تقدر تعمل حساب وتكتشف المجتمع والماتشات الودية من غير ما تكون تابع لأكاديمية. بعض المميزات مرتبطة بنوع اشتراكك، وتقدر تشوف تفاصيل الباقات من حسابك.",
+    faq_item_members_children_q: "أقدر أتابع أكتر من طفل من نفس الحساب؟",
+    faq_item_members_children_a:
+      "أيوه. بعد ما تنضم لأكاديمية، تقدر تضيف أفراد عيلتك وتفتح ملف كل طفل لوحده لمتابعة بياناته وحضوره ومدفوعاته وتقييماته المتاحة.",
+    faq_item_members_plans_q: "إيه باقات العضوية المتاحة للعضو؟",
+    faq_item_members_plans_a:
+      "في بابتين للعضو. الباقة المجانية بتشمل لوحة التحكم بتاعتك وكود الـQR الشخصي والجدول ودليل الأكاديميات والانضمام للماتشات. باقة Pro (100 جنيه شهرياً، 500 كل 6 شهور أو 1000 سنوياً) بتضيف مزامنة التقويم والجيمز المتكررة وإدخال النتايج والفعاليات ولوحات الصدارة والاسكاوتنج.",
+    faq_item_members_payment_q: "بدفع إزاي لاشتراك بلايزا؟",
+    faq_item_members_payment_a:
+      "بتدفع عن طريق إنستاباي أو محفظة إلكترونية، وكروت Kashier قريباً. بعد التحويل ارفع لقطة الشاشة في صفحة الدفع، وفريقنا بيتأكدها ويفعّل حسابك. الأكاديمية كمان تقدر تسجل مدفوعات كاش أو كارت أو محفظة أو تحويل بنكي لعضوها على طول.",
+    faq_item_members_qr_q: "بلاقي كود الـQR الشخصي فين؟",
+    faq_item_members_qr_a:
+      "سجّل دخولك وافتح ملفك الشخصي من منطقة العضو. كل عضو ليه كود QR خاص بيه بيتسجل بيه الحضور عند الباب. وولي الأمر يقدر يفتح كود ابنه من ملفه.",
+    faq_item_members_remaining_q: "أعرف باقي الحصص وحالة الدفع إزاي؟",
+    faq_item_members_remaining_a:
+      "لوحة العضو بتعرض الحصص المتبقية ونسبة الحضور والمواعيد الجاية وحالة الدفع. غالباً الاشتراك الكامل = 8 حصص والنص = 4 حصص لكل دورة دفع، حسب ما الأكاديمية بتقدمه. المدفوعات اللي بتعملها بتتأكد من الأكاديمية.",
+    faq_item_games_find_q: "ألاقي ماتش ودية قريب مني إزاي؟",
+    faq_item_games_find_a:
+      "افتح صفحة الماتشات، اختار رياضتك، واطلع على الماتشات القادمة بالمواعيد والمكان وعدد اللاعبين ونصيب اللاعب. تقدر تنضم لأي ماتش مفتوح بعد تسجيل مجاني، وشات الماتش بيخلي اللاعبين يتفقوا على التفاصيل.",
+    faq_item_games_price_q: "السعر اللي ظاهر للماتش ده سعر نهائي؟",
+    faq_item_games_price_a:
+      "ده تقدير لنصيب اللاعب من إيجار الملعب حسب سعر الساعة ومدة الماتش والحد الأدنى والأقصى للاعبين، والمنظم محسوب ضمن العدد. رسوم إنشاء الماتش وأي إضافات مش داخلة في التقدير.",
+    faq_item_games_chat_q: "إيه هو شات الماتش؟",
+    faq_item_games_chat_a:
+      "كل ماتش ودية ليه شات خاص بالمشاركين الحاليين عشان تتفقوا على التفاصيل وتجمعوا الفريق من غير ما الكلام يضيع وسط جروبات تانية.",
+    faq_item_games_tournament_join_q: "أشارك في بطولة إزاي؟",
+    faq_item_games_tournament_join_a:
+      "افتح صفحة البطولات — معروضة حسب الرياضة بالمواعيد والأماكن والشروط. سجّل مجاناً وانضم لأكاديمية المنظمة أو تواصل معاهم من صفحة البطولة للمشاركة.",
+    faq_item_games_tournament_type_q: "البطولات لفرق ولا للاعبين أفراد؟",
+    faq_item_games_tournament_type_a:
+      "الاتنين. في بطولات فرق (5×5 و7×7 و11) وبطولات فردية زي البادل والتنس. كل بطولة بتوضح نظامها وشروط المشاركة.",
+    faq_item_games_tournament_organize_q: "أقدر أنظم بطولة أنا؟",
+    faq_item_games_tournament_organize_a:
+      "أيوه. صاحب الأكاديمية يقدر ينشئ بطولة ويدير دوراتها كاملة — الجولات والفرق والنتائج والمواعيد والملاعب — من لوحة تحكم الأكاديمية.",
+    faq_item_owners_create_q: "اعمل أكاديميتي على بلايزا إزاي؟",
+    faq_item_owners_create_a:
+      "سجّل واختار 'صاحب أكاديمية'. حدد اسم الأكاديمية والرياضات والموقع والنبذة، وبعدين ضيف المدربين والملاعب وجدول التدريب. هتاخد صفحة عامة لأكاديميتك يقدر الزوار من خلالها يبعتوا طلبات تجربة.",
+    faq_item_owners_trial_q: "إيه الفترة التجريبية للأكاديميات الجديدة؟",
+    faq_item_owners_trial_a:
+      "لما تعمل أكاديمية جديدة بتشتغل بفترة تجريبية مجانية بالمميزات كاملة — من غير كارت ائتمان. بعد التجربة تقدر تكمل على باقة البداية المجانية أو ترقي لـ Plus أو Elite.",
+    faq_item_owners_plans_q: "إيه باقات الأكاديميات؟",
+    faq_item_owners_plans_a:
+      "3 باقات: البداية (مجانية)، Plus (200 جنيه شهرياً أو 2100 سنوياً) وElite (350 جنيه شهرياً أو 3800 سنوياً). الباقات الأعلى بتفتح إدارة الأعضاء والحضور والمدفوعات والتحليلات والفعاليات والسوق والاسكاوتنج والدعم.",
+    faq_item_owners_collect_q: "أجمع مدفوعات الأعضاء إزاي؟",
+    faq_item_owners_collect_a:
+      "سجّل كل دفعة بالمبلغ والتاريخ والباقة وطريقة الدفع (كاش، كارت، محفظة، تحويل بنكي أو غيرها). في إيصال جاهز للطباعة لكل دفعة وتصدير CSV لمحاسبك. وللاشتراكات أونلاين، العضو بيدفع عن طريق إنستاباي أو محفظة ويرفع لقطة.",
+    faq_item_owners_attendance_q: "مين بيسجّل التقييم والحضور؟",
+    faq_item_owners_attendance_a:
+      "إدارة الأكاديمية بتسجّل تقييمات الأداء وملاحظات المدرب، وبتقدر تستخدم ماسح QR لتسجيل الحضور. العضو وولي أمره يقدروا يشوفوا التقييمات الخاصة بيهم.",
+    faq_item_owners_profit_q: "نظام حساب الربح لكل حصة بيشتغل إزاي؟",
+    faq_item_owners_profit_a:
+      "بلايزا بيحسب تكلفة الحصة الواحدة على إنها (مرتب المدرب + إيجار الملعب) مقسومة على عدد الحصص في الشهر. إيراد الحصة = مجموع قيمة حصة الحاضرين + مدفوعات الضيوف. الربح = الإيراد − التكلفة، وبيتحسب تلقائياً في الخلفية أي ما تتغير دفعة أو مصروف أو حضور.",
+    faq_item_owners_public_page_q: "هل بأخد صفحة عامة لأكاديميتي؟",
+    faq_item_owners_public_page_a:
+      "أيوه. كل أكاديمية ليها صفحة عامة اختيارية على /a/اسمك يقرأ فيها الزوار النبذة والرياضات ويبعتوا طلبات التجربة اللي بتوصل مباشرة لقناة التجارب في لوحة التحكم.",
+    faq_item_tech_devices_q: "بستخدم بلايزا على أي أجهزة؟",
+    faq_item_tech_devices_a:
+      "بلايزا شغالة على أي متصفح — موبايل أو تابلت أو كمبيوتر. من غير متجر؛ تضيفها للشاشة الرئيسية وتفتحها زي أي تطبيق.",
+    faq_item_tech_install_q: "أثبّت بلايزا كتطبيق إزاي؟",
+    faq_item_tech_install_a:
+      "من الموبايل افتح قائمة المتصفح واختار 'أضف للشاشة الرئيسية' (على الآيفون: اضغط مشاركة ثم 'أضف للشاشة الرئيسية'). بلايزا بتفتح بشاشة كاملة زي تطبيق عادي.",
+    faq_item_tech_security_q: "بياناتي آمنة؟",
+    faq_item_tech_security_a:
+      "بيانات كل أكاديمية معزولة تماماً بنظام أمان قاعدة البيانات (Row Level Security) — مفيش أكاديمية تقدر تشوف بيانات غيرها. التحكم بالصلاحيات متطبق على قاعدة البيانات وعلى مستوى الصفحات، والاستضافة على بنية تحتية مدارة عالمياً مع نسخ احتياطي تلقائي.",
+    faq_item_tech_calendar_q: "أقدر أزامن الجدول مع تقويم الموبايل؟",
+    faq_item_tech_calendar_a:
+      "أيوه. الأكاديمية بتشارك رابط تقويم .ics للقراءة فقط، والعضو على باقة Pro يشترك مرة واحدة ويشوف الحصص في تقويم جوجل أو آبل، متزامنة تلقائياً.",
     // ── اختيار الدور في تسجيل الدخول ──
     auth_role_member: "عضو",
     auth_role_tenant: "صاحب أكاديمية",
