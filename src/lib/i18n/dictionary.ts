@@ -4373,7 +4373,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     sport_taekwondo: "التايكوندو",
     sport_crossfit: "الكروس فيت",
     sport_judo: "الجودو",
-    sport_kickboxing: "الكيك بوكسينغ",
+    sport_kickboxing: "الكيك بوكسينج",
     sport_wrestling: "المصارعة",
     sport_archery: "الرماية",
     sport_fencing: "السلاح",

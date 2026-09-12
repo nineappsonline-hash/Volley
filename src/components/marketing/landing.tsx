@@ -8,6 +8,7 @@ import { AppLogo } from "@/components/shared/app-logo";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { InstallBanner } from "@/components/marketing/install-banner";
 import { useI18n } from "@/lib/i18n";
+import { SportIcon } from "./sport-icons";
 import styles from "./landing.module.css";
 
 function audiences(t: (k: any) => string) {
@@ -116,7 +117,7 @@ export function LandingPage() {
         </div>
       </section>
       <InstallBanner />
-      <div className={styles.sports} aria-label={t("landing_sports_prompt")}><span>{t("landing_sports_prompt")}</span>{sportList.map(([id, name]) => <span key={id}><Volleyball size={16} />{name}</span>)}</div>
+      <div className={styles.sports} aria-label={t("landing_sports_prompt")}><span>{t("landing_sports_prompt")}</span>{sportList.map(([id, name]) => <span key={id}><SportIcon id={id} size={16} />{name}</span>)}</div>
 
       <section id="about" className={`${styles.section}`}>
         <div className={styles.sectionHeading}><span className={styles.kicker}>{t("landing_about_kicker")}</span><h2>{t("landing_about_title")}</h2><p>{t("landing_about_desc")}</p></div>
