@@ -62,10 +62,10 @@ export function LandingPage() {
     ["volleyball", t("landing_sport_volleyball")],
   ];
   const navLinks: [string, string][] = [
-    ["about", t("landing_nav_about")],
-    ["for-you", t("landing_nav_for_you")],
-    ["features", t("landing_nav_features")],
-    ["questions", t("landing_nav_faq")],
+    [t("landing_nav_about"), "/faq"],
+    [t("landing_nav_for_you"), "#for-you"],
+    [t("landing_nav_features"), "#features"],
+    [t("landing_nav_faq"), "#questions"],
   ];
   const steps: [string, string][] = [
     [t("landing_step1_title"), t("landing_step1_text")],
@@ -82,9 +82,9 @@ export function LandingPage() {
     <main ref={pageRef} dir={dir} lang={lang === "ar" ? "ar-EG" : "en"} data-paused={paused} className={styles.page}>
       <header className={styles.header}>
         <Link href="/" aria-label={t("landing_aria_home")}><AppLogo className="w-28" /></Link>
-        <nav aria-label={t("landing_nav_about")} className={styles.desktopNav}>{navLinks.map(([id, text]) => <a key={id} href={`#${id}`}>{text}</a>)}</nav>
+        <nav aria-label={t("landing_nav_about")} className={styles.desktopNav}>{navLinks.map(([text, href]) => href.startsWith("#") ? <a key={href} href={href}>{text}</a> : <Link key={href} href={href}>{text}</Link>)}</nav>
         <div className={styles.headerActions}><LanguageToggle /><Link href="/login">{t("landing_signin")}</Link><Link className={styles.smallCta} href="/signup">{t("landing_cta_start")} <ArrowUpLeft size={16} /></Link><button className={styles.menuButton} aria-label={menuOpen ? t("landing_menu_close") : t("landing_menu_open")} aria-expanded={menuOpen} aria-controls="home-menu" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</button></div>
-        {menuOpen && <nav id="home-menu" className={styles.mobileNav} aria-label={t("landing_nav_about")}>{navLinks.map(([id, text]) => <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)}>{text}</a>)}</nav>}
+        {menuOpen && <nav id="home-menu" className={styles.mobileNav} aria-label={t("landing_nav_about")}>{navLinks.map(([text, href]) => href.startsWith("#") ? <a key={href} href={href} onClick={() => setMenuOpen(false)}>{text}</a> : <Link key={href} href={href} onClick={() => setMenuOpen(false)}>{text}</Link>)}</nav>}
       </header>
 
       <section id="about" className={styles.hero}>
