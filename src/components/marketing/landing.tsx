@@ -117,7 +117,7 @@ export function LandingPage() {
         </div>
       </section>
       <InstallBanner />
-      <div className={styles.sports} aria-label={t("landing_sports_prompt")}><span>{t("landing_sports_prompt")}</span>{sportList.map(([id, name]) => <span key={id}><SportIcon id={id} size={16} />{name}</span>)}</div>
+      <div className={styles.sports} aria-label={t("landing_sports_prompt")}><span>{t("landing_sports_prompt")}</span>{sportList.map(([id, name]) => <span key={id}><SportIcon id={id} size={18} />{name}</span>)}</div>
 
       <section id="about" className={`${styles.section}`}>
         <div className={styles.sectionHeading}><span className={styles.kicker}>{t("landing_about_kicker")}</span><h2>{t("landing_about_title")}</h2><p>{t("landing_about_desc")}</p></div>
