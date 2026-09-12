@@ -1809,6 +1809,13 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
       "Find a friendly match, meet players who love your sport, or discover an academy to train in. Following your kids or running an academy? You'll find tools that simplify scheduling, attendance and progress.",
     landing_cta_discover: "Discover academies",
     landing_hero_note: "No academy membership needed to get started.",
+    landing_about_kicker: "About the platform",
+    landing_about_title: "What is Playza?",
+    landing_about_desc:
+      "Playza is the place that brings players, parents and academy owners together around the love of sports. Whether you are looking for a pickup match, a place to train, or a way to run an academy, everything happens from one account.",
+    landing_about_point1: "Find a friendly match or a team to play with — the dates, place and your share of the court are clear from the start.",
+    landing_about_point2: "Follow every training session, attendance record, payment and personal evaluation from your dashboard.",
+    landing_about_point3: "Run an academy like a business: members, subscriptions, attendance, costs and automatic profit per session, all in one place.",
     landing_editorial_alt:
       "Editorial sports illustration of football, padel, swimming and volleyball",
     landing_editorial_span: "More than ten sports. One passion.",
@@ -4083,6 +4090,13 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
       "دور على ماتش ودي، اتعرف على لاعبين بيحبوا نفس رياضتك، أو اكتشف أكاديمية تتمرن فيها. ولو بتتابع ولادك أو بتدير أكاديمية، هتلاقي أدوات تسهّل عليك المواعيد والحضور ومتابعة التطور.",
     landing_cta_discover: "اكتشف الأكاديميات",
     landing_hero_note: "مش لازم تكون مشترك في أكاديمية عشان تبدأ.",
+    landing_about_kicker: "عن المنصة",
+    landing_about_title: "إيه هي بلايزا؟",
+    landing_about_desc:
+      "بلايزا هو المكان اللي بيجمع اللاعبين وأولياء الأمور وأصحاب الأكاديميات على حب الرياضة. لو بتدور على ماتش، أو مكان تتمرن فيه، أو طريقة تدير بيها أكاديمية — كل حاجة بتحصل من حساب واحد.",
+    landing_about_point1: "دور على ماتش ودي أو فريق تلعب معاه — المواعيد والمكان ونصيبك من الملعب واضحين من الأول.",
+    landing_about_point2: "تابع كل حصة تدريب وكل حضور وكل دفعة وتقييمك الشخصي من لوحة تحكمك.",
+    landing_about_point3: "إدارة الأكاديمية زي أي مشروع: أعضاء واشتراكات وحضور وتكاليف وأرباح لكل حصة، كله في مكان واحد.",
     landing_editorial_alt:
       "مشاهد رياضية توضيحية لكرة القدم والبادل والسباحة والكرة الطايرة",
     landing_editorial_span: "أكتر من عشر رياضات. شغف واحد.",

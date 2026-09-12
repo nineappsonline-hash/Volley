@@ -62,10 +62,10 @@ export function LandingPage() {
     ["volleyball", t("landing_sport_volleyball")],
   ];
   const navLinks: [string, string][] = [
-    [t("landing_nav_about"), "/faq"],
+    [t("landing_nav_about"), "#about"],
     [t("landing_nav_for_you"), "#for-you"],
     [t("landing_nav_features"), "#features"],
-    [t("landing_nav_faq"), "#questions"],
+    [t("landing_nav_faq"), "/faq"],
   ];
   const steps: [string, string][] = [
     [t("landing_step1_title"), t("landing_step1_text")],
@@ -87,7 +87,7 @@ export function LandingPage() {
         {menuOpen && <nav id="home-menu" className={styles.mobileNav} aria-label={t("landing_nav_about")}>{navLinks.map(([text, href]) => href.startsWith("#") ? <a key={href} href={href} onClick={() => setMenuOpen(false)}>{text}</a> : <Link key={href} href={href} onClick={() => setMenuOpen(false)}>{text}</Link>)}</nav>}
       </header>
 
-      <section id="about" className={styles.hero}>
+      <section id="top" className={styles.hero}>
         <div className={styles.heroCopy}><span className={styles.eyebrow}><span /> {t("landing_hero_eyebrow")}</span><h1>{t("landing_hero_title_a")}<br /><em>{t("landing_hero_title_b")}</em></h1><p>{t("landing_hero_desc_alt")}</p><div className={styles.actions}><Link className={styles.cta} href="/signup">{t("landing_cta_start")} <ArrowUpLeft size={20} /></Link><Link className={styles.secondary} href="/academies">{t("landing_cta_discover")} <MapPin size={18} /></Link></div><p className={styles.heroNote}>{t("landing_hero_note")}</p></div>
         <div className={styles.editorialHero}>
           <Image src="/images/playza-sports-editorial.webp" alt={t("landing_editorial_alt")} width={1200} height={800} priority sizes="(max-width: 700px) 100vw, 50vw" />
@@ -96,6 +96,11 @@ export function LandingPage() {
       </section>
       <InstallBanner />
       <div className={styles.sports} aria-label={t("landing_sports_prompt")}><span>{t("landing_sports_prompt")}</span>{sportList.map(([id, name]) => <span key={id}><Volleyball size={16} />{name}</span>)}</div>
+
+      <section id="about" className={`${styles.section}`}>
+        <div className={styles.sectionHeading}><span className={styles.kicker}>{t("landing_about_kicker")}</span><h2>{t("landing_about_title")}</h2><p>{t("landing_about_desc")}</p></div>
+        <div className={styles.aboutGrid}>{[t("landing_about_point1"), t("landing_about_point2"), t("landing_about_point3")].map((point, i) => <div className={styles.aboutCard} key={point}><span>0{i + 1}</span><p>{point}</p></div>)}</div>
+      </section>
 
       <section className={`${styles.section} ${styles.playTogether}`}>
         <div><span className={styles.kicker}>{t("landing_play_kicker")}</span><h2>{t("landing_play_title_a")}<br /><em>{t("landing_play_title_b")}</em></h2><p>{t("landing_play_desc1")}</p><p>{t("landing_play_desc2")}</p><Link className={styles.cta} href="/signup">{t("landing_play_cta")} <ArrowUpLeft size={20} /></Link></div>
@@ -122,7 +127,7 @@ export function LandingPage() {
 
       <section id="questions" className={`${styles.section} ${styles.faq}`}><div><span className={styles.kicker}>{t("landing_faq_kicker")}</span><h2>{t("landing_faq_title")}</h2><p>{t("landing_faq_desc")}</p></div><div>{faq.map(([q, a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}<Link className={styles.textLink} href="/faq">{t("landing_faq_more_cta")} <ArrowUpLeft size={18} /></Link></div></section>
       <section className={styles.finalCta}><div><span className={styles.kicker}>{t("landing_final_kicker")}</span><h2>{t("landing_final_title")}</h2><p>{t("landing_final_desc")}</p></div><Link className={styles.cta} href="/signup">{t("landing_final_cta")} <ArrowUpLeft size={22} /></Link></section>
-      <footer className={styles.footer}><AppLogo className="w-24" /><p>{t("landing_footer_desc")}</p><button className={styles.motionToggle} aria-pressed={paused} onClick={() => setPaused(!paused)}>{paused ? t("landing_motion_play") : t("landing_motion_pause")}</button><div><span className={styles.footerHeading}>{t("landing_footer_solutions")}</span><Link href="/games">{t("landing_footer_games")}</Link><Link href="/tournaments">{t("landing_footer_tournaments")}</Link><Link href="/academies">{t("landing_footer_academies")}</Link><Link href="/faq">{t("landing_footer_faq")}</Link><Link href="/solutions/football">{t("landing_sport_football")}</Link><Link href="/solutions/volleyball">{t("landing_sport_volleyball")}</Link><Link href="/solutions/padel">{t("landing_sport_padel")}</Link><Link href="/login">{t("landing_signin")}</Link><a href="#about">{t("landing_footer_top")}</a></div></footer>
+      <footer className={styles.footer}><AppLogo className="w-24" /><p>{t("landing_footer_desc")}</p><button className={styles.motionToggle} aria-pressed={paused} onClick={() => setPaused(!paused)}>{paused ? t("landing_motion_play") : t("landing_motion_pause")}</button><div><span className={styles.footerHeading}>{t("landing_footer_solutions")}</span><Link href="/games">{t("landing_footer_games")}</Link><Link href="/tournaments">{t("landing_footer_tournaments")}</Link><Link href="/academies">{t("landing_footer_academies")}</Link><Link href="/faq">{t("landing_footer_faq")}</Link><Link href="/solutions/football">{t("landing_sport_football")}</Link><Link href="/solutions/volleyball">{t("landing_sport_volleyball")}</Link><Link href="/solutions/padel">{t("landing_sport_padel")}</Link><Link href="/login">{t("landing_signin")}</Link><a href="#top">{t("landing_footer_top")}</a></div></footer>
     </main>
   );
 }
