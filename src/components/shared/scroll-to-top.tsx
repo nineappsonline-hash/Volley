@@ -5,10 +5,10 @@ import { useEffect } from "react";
 /**
  * Forces the page to open at the top on a full reload.
  *
- * Browsers normally restore the previous scroll offset on refresh, so a long
- * page (e.g. the marketing landing) reloads mid-page. We switch scroll
- * restoration to manual and jump to the top, while still letting deep links
- * like `/#about` land on their anchor.
+ * The root layout also runs a synchronous head script that disables native
+ * scroll restoration and strips any persisted anchor (e.g. `/#features`), so
+ * this component is a safety net that re-scrolls to the top once the page is
+ * hydrated and after every resource finishes loading / bfcache restore.
  */
 export function ScrollToTop() {
   useEffect(() => {
@@ -17,14 +17,17 @@ export function ScrollToTop() {
     }
 
     const reset = () => {
-      if (!window.location.hash) {
-        window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-      }
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     };
 
     reset();
-    window.addEventListener("load", reset);
-    return () => window.removeEventListener("load", reset);
+    const onLoad = () => window.requestAnimationFrame(reset);
+    window.addEventListener("load", onLoad);
+    window.addEventListener("pageshow", onLoad);
+    return () => {
+      window.removeEventListener("load", onLoad);
+      window.removeEventListener("pageshow", onLoad);
+    };
   }, []);
 
   return null;

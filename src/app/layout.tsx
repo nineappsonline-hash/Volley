@@ -223,6 +223,11 @@ export default function RootLayout({
             __html: `try{var s=localStorage.getItem('volley-lang');var lang=s&&JSON.parse(s).state?JSON.parse(s).state.lang:'ar';document.documentElement.setAttribute('lang',lang);document.documentElement.setAttribute('dir',lang==='ar'?'rtl':'ltr');}catch(e){}`,
           }}
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if("scrollRestoration" in history){history.scrollRestoration="manual";}if(location.hash){history.replaceState(null,"",location.pathname+location.search);}window.scrollTo(0,0);}catch(e){}`,
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
