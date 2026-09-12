@@ -2,11 +2,20 @@ import type { Metadata } from "next";
 import { OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  // The root layout template appends the brand: "… | بلايزا Playza".
-  title: "دليل أكاديميات الرياضة في مصر — ابحث حسب المنطقة والرياضة",
+  // The root layout template appends the brand.
+  title: "Sports Academy Directory in Egypt — Search by Area & Sport",
   description:
-    "دليل أكاديميات الرياضة في مصر والخليج: كرة قدم، طائرة، سلة، بادل وسباحة. ابحث حسب المحافظة والمنطقة والرياضة والتقييمات، وشوف مواعيد التدريب واحجز حصة تجريبية مجاناً.",
+    "The sports academy directory for Egypt & the Gulf: football, volleyball, basketball, padel and swimming. Search by governorate, area, sport and ratings, view training schedules and book a free tryout session.",
   keywords: [
+    "sports academies Egypt",
+    "sports academy directory",
+    "find sports academy near me",
+    "football academy in Cairo",
+    "kids football academy",
+    "volleyball academy Egypt",
+    "swimming academy Egypt",
+    "padel academy",
+    "book a tryout session",
     "أكاديميات رياضية في مصر",
     "أكاديمية كرة قدم في القاهرة",
     "أكاديمية كرة قدم للأطفال",
@@ -16,28 +25,25 @@ export const metadata: Metadata = {
     "دليل الأكاديميات الرياضية",
     "أقرب أكاديمية رياضية",
     "حجز حصة تجريبية",
-    "sports academies Egypt",
-    "sports academy directory",
-    "find sports academy near me",
   ],
   alternates: {
     canonical: "/academies",
   },
   openGraph: {
-    title: "دليل أكاديميات الرياضة في مصر | بلايزا",
+    title: "Sports Academy Directory in Egypt | Playza",
     description:
-      "ابحث عن أكاديمية رياضية قريبة منك حسب المنطقة والرياضة والتقييمات، واحجز حصة تجريبية مجاناً مع بلايزا.",
+      "Find a sports academy near you by area, sport and ratings, and book a free tryout session with Playza.",
     url: `${SITE_URL}/academies`,
     siteName: "Playza",
     images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
-    locale: "ar_EG",
+    locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "دليل أكاديميات الرياضة في مصر | بلايزا",
+    title: "Sports Academy Directory in Egypt | Playza",
     description:
-      "ابحث عن أكاديمية رياضية قريبة منك حسب المنطقة والرياضة والتقييمات.",
+      "Find a sports academy near you by area, sport and ratings.",
     images: [OG_IMAGE],
   },
 };

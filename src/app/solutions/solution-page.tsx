@@ -17,47 +17,41 @@ import { OG_IMAGE, SITE_URL, breadcrumbsJsonLd, jsonLdStringify } from "@/lib/se
 
 interface SolutionPageProps {
   sport: string;
-  sportAr: string;
   emoji: string;
   heroGradient: string;
   tagline: string;
-  taglineAr: string;
   description: string;
-  descriptionAr: string;
   features: { title: string; desc: string; icon: React.ElementType }[];
   useCases: string[];
-  useCasesAr: string[];
 }
 
 export function generateSolutionMetadata(
   sport: string,
-  sportAr: string,
   description: string,
   keywords: string[]
 ): Metadata {
   const slug = sport.toLowerCase();
   return {
-    // The root layout template appends the brand: "… | بلايزا Playza".
-    title: `إدارة أكاديميات ${sportAr} — برنامج أكاديمية ${sportAr} في مصر`,
-    description: `برنامج إدارة أكاديمية ${sportAr} في مصر والخليج: الأعضاء والاشتراكات والحضور بالـQR والجدول التدريبي والمدفوعات وتتبع الأرباح تلقائياً. ${description}`,
+    title: `${sport} Academy Management — ${sport} Academy Software | Playza`,
+    description: `${sport} academy management software for Egypt & the Gulf: members, subscriptions, QR attendance, training schedules, payments and automatic profit tracking. ${description}`,
     keywords,
     alternates: {
       canonical: `/solutions/${slug}`,
     },
     openGraph: {
-      title: `بلايزا — إدارة أكاديميات ${sportAr}`,
-      description: `منصة إدارة أكاديميات ${sportAr}: الأعضاء والاشتراكات والحضور والمدفوعات وتتبع الأرباح تلقائياً.`,
+      title: `Playza — ${sport} Academy Management`,
+      description: `The platform for managing ${sport} academies: members, subscriptions, attendance, payments and automatic profit tracking.`,
       url: `${SITE_URL}/solutions/${slug}`,
       siteName: "Playza",
       images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
-      locale: "ar_EG",
-      alternateLocale: ["en_US"],
+      locale: "en_US",
+      alternateLocale: ["ar_EG"],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: `بلايزا — إدارة أكاديميات ${sportAr}`,
-      description: `منصة إدارة أكاديميات ${sportAr} الأكثر اكتمالاً: الأعضاء والحضور والمدفوعات والأرباح تلقائياً.`,
+      title: `Playza — ${sport} Academy Management`,
+      description: `The most complete platform for ${sport} academy management: members, attendance, payments and automatic profits.`,
       images: [OG_IMAGE],
     },
   };
@@ -65,41 +59,38 @@ export function generateSolutionMetadata(
 
 export function SolutionPage({
   sport,
-  sportAr,
   emoji,
   heroGradient,
   tagline,
-  taglineAr,
   description,
-  descriptionAr,
   features,
   useCases,
-  useCasesAr,
 }: SolutionPageProps) {
   const slug = sport.toLowerCase();
   const jsonLd = [
     breadcrumbsJsonLd([
-      { name: "الرئيسية", url: SITE_URL },
-      { name: "الحلول", url: `${SITE_URL}/solutions` },
-      { name: sportAr, url: `${SITE_URL}/solutions/${slug}` },
+      { name: "Home", url: SITE_URL },
+      { name: "Solutions", url: `${SITE_URL}/solutions` },
+      { name: sport, url: `${SITE_URL}/solutions/${slug}` },
     ]),
     {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: `Playza — ${sport}`,
-    applicationCategory: "BusinessApplication",
-    operatingSystem: "Web",
-    description: `${description} ${descriptionAr}`,
-    url: `${SITE_URL}/solutions/${slug}`,
-    offers: {
-      "@type": "Offer",
-      priceCurrency: "EGP",
-      price: "500",
-      priceValidUntil: "2027-12-31",
-      availability: "https://schema.org/InStock",
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: `Playza — ${sport}`,
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      description,
+      url: `${SITE_URL}/solutions/${slug}`,
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "EGP",
+        price: "500",
+        priceValidUntil: "2027-12-31",
+        availability: "https://schema.org/InStock",
+      },
+      featureList: features.map((f) => f.title),
     },
-    featureList: features.map((f) => f.title),
-  }];
+  ];
 
   return (
     <main className="min-h-screen bg-background">
@@ -116,11 +107,8 @@ export function SolutionPage({
         <div className="relative mx-auto flex max-w-4xl flex-col items-center gap-4 px-6 text-center">
           <span className="text-5xl">{emoji}</span>
           <h1 className="text-3xl font-extrabold sm:text-5xl">
-            إدارة أكاديميات {sportAr}
+            Manage Your {sport} Academy
           </h1>
-          <p className="text-lg font-semibold text-white/95" dir="rtl">
-            {taglineAr}
-          </p>
           <p className="max-w-2xl text-base text-white/85 sm:text-lg">
             {tagline}
           </p>
@@ -151,11 +139,11 @@ export function SolutionPage({
             <p className="mt-4 text-muted-foreground">{description}</p>
           </div>
           <div>
-            <h2 className="text-2xl font-bold" dir="rtl">
-              لماذا تحب أكاديميات {sportAr} منصتنا
-            </h2>
-            <p className="mt-4 text-muted-foreground" dir="rtl">
-              {descriptionAr}
+            <h2 className="text-2xl font-bold">Built for Growth</h2>
+            <p className="mt-4 text-muted-foreground">
+              From your first player to your full roster, Playza scales with you —
+              one system for members, sessions, payments and profitability, so you
+              can focus on coaching.
             </p>
           </div>
         </div>
@@ -185,32 +173,16 @@ export function SolutionPage({
       {/* Use Cases */}
       <section className="py-16">
         <div className="mx-auto max-w-4xl px-6">
-          <h2 className="mb-8 text-center text-2xl font-bold">
-            Perfect For
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl border bg-card p-6">
-              <h3 className="font-semibold">English</h3>
-              <ul className="mt-3 space-y-2">
-                {useCases.map((uc) => (
-                  <li key={uc} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-success-ink" />
-                    {uc}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="rounded-xl border bg-card p-6" dir="rtl">
-              <h3 className="font-semibold">العربية</h3>
-              <ul className="mt-3 space-y-2">
-                {useCasesAr.map((uc) => (
-                  <li key={uc} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-success-ink" />
-                    {uc}
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <h2 className="mb-8 text-center text-2xl font-bold">Perfect For</h2>
+          <div className="mx-auto max-w-2xl rounded-xl border bg-card p-6">
+            <ul className="space-y-2">
+              {useCases.map((uc) => (
+                <li key={uc} className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-success-ink" />
+                  {uc}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>

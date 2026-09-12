@@ -2,8 +2,8 @@
  * Central SEO helpers: canonical site URL, bilingual metadata builders and
  * JSON-LD structured-data generators used across public pages.
  *
- * The site is bilingual (default Arabic / Egypt), so every public page exposes
- * an Arabic-primary title + description with the English variants as
+ * The site is bilingual (default English), so every public page exposes an
+ * English-primary title + description with the Arabic variants as
  * alternateLocale. Structured data follows schema.org so Google, Bing and
  * WhatsApp/Telegram link previews can render rich results.
  */
@@ -37,7 +37,7 @@ export function organizationJsonLd(): JsonLd {
     logo: `${SITE_URL}/icons/icon-512.png`,
     image: `${SITE_URL}${OG_IMAGE}`,
     description:
-      "منصة بلايزا لإدارة أكاديميات الرياضة في مصر والخليج: إدارة الأعضاء، الاشتراكات، الحضور، الجدول التدريبي وتتبع الأرباح تلقائياً.",
+      "Playza is the sports academy management platform for Egypt & the Gulf: members, subscriptions, attendance, training schedules and automatic profit tracking.",
     areaServed: [
       { "@type": "Country", name: "Egypt" },
       { "@type": "Country", name: "Saudi Arabia" },
@@ -54,8 +54,8 @@ export function websiteJsonLd(): JsonLd {
     "@type": "WebSite",
     name: "Playza",
     alternateName: "بلايزا",
-    url: SITE_URL,
-    inLanguage: ["ar-EG", "en"],
+url: SITE_URL,
+    inLanguage: ["en", "ar-EG"],
   };
 }
 
@@ -71,16 +71,16 @@ export function softwareAppJsonLd(): JsonLd {
     url: SITE_URL,
     image: `${SITE_URL}${OG_IMAGE}`,
     description:
-      "منصة إدارة أكاديميات الرياضة الأكثر اكتمالاً في مصر والخليج: الأعضاء، الاشتراكات، الحضور بالـQR، الجدول التدريبي، المدفوعات وتتبع الأرباح والخسائر تلقائياً.",
-    inLanguage: ["ar-EG", "en"],
+      "The most complete sports academy management platform in Egypt & the Gulf: members, subscriptions, QR attendance, training schedules, payments and automatic profit & loss tracking.",
+    inLanguage: ["en", "ar-EG"],
     featureList: [
-      "إدارة الأعضاء والاشتراكات",
-      "حضور وغياب بمسح QR",
-      "جدول تدريب وجدولة الملاعب",
-      "تتبع المدفوعات والإيصالات",
-      "حساب الأرباح والخسائر تلقائياً لكل حصة",
-      "تقارير مالية وتحليلات",
-      "دعم كامل للعربية والإنجليزية",
+      "Member and subscription management",
+      "QR check-in attendance",
+      "Training schedules and court booking",
+      "Payment and receipt tracking",
+      "Automatic per-session profit & loss",
+      "Financial reports and analytics",
+      "Full Arabic and English support",
     ],
     offers: {
       "@type": "Offer",

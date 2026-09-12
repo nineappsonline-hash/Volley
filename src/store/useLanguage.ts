@@ -6,7 +6,7 @@ import { persist } from "zustand/middleware";
 export type Lang = "en" | "ar";
 
 function readStoredLang(): Lang {
-  if (typeof window === "undefined") return "ar";
+  if (typeof window === "undefined") return "en";
   try {
     const raw = localStorage.getItem("volley-lang");
     if (raw) {
@@ -15,7 +15,7 @@ function readStoredLang(): Lang {
       if (l === "en" || l === "ar") return l;
     }
   } catch {}
-  return "ar";
+  return "en";
 }
 
 interface LanguageState {

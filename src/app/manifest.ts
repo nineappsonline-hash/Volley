@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "بلايزا Playza — إدارة أكاديميات الرياضة",
-    short_name: "بلايزا Playza",
+    name: "Playza — Sports Academy Management",
+    short_name: "Playza",
     description:
-      "منصة إدارة أكاديميات الرياضة في مصر والخليج: الأعضاء والاشتراكات والحضور والمدفوعات والأرباح، مع دليل الأكاديميات والماتشات الودية.",
+      "The sports academy management platform for Egypt & the Gulf: members, subscriptions, attendance, payments and profits, plus an academy directory and friendly matches.",
     start_url: "/",
     scope: "/",
     display: "standalone",
@@ -13,7 +13,7 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#0B1F3B",
     orientation: "any",
     categories: ["sports", "productivity", "business"],
-    lang: "ar-EG",
+    lang: "en",
     dir: "auto",
     icons: [
       {

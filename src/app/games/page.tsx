@@ -23,7 +23,6 @@ import {
   jsonLdStringify,
   landingFaqItems,
 } from "@/lib/seo";
-import { dictionary } from "@/lib/i18n/dictionary";
 
 export const revalidate = 300; // refresh listing every 5 minutes
 
@@ -33,32 +32,32 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
   const { sport: sportParam } = await searchParams;
   const sport = sportParam ? slugToSport(sportParam) : undefined;
 
-  // The root layout template appends the brand: "… | بلايزا Playza".
   const title = sport
-    ? `ماتشات ${SPORT_AR[sport] ?? sport} الودية القادمة في مصر`
-    : "ماتشات ودية وأهلي في مصر — كورة، طائرة، سلة، بادل";
+    ? `Upcoming ${sport} Friendly Games in Egypt`
+    : "Friendly & Casual Games in Egypt — Football, Volleyball, Basketball, Padel";
   const description = sport
-    ? `اعرض ماتشات ${SPORT_AR[sport] ?? sport} الودية القادمة في مصر: المواعيد، المكان، عدد اللاعبين وسهم الحصة. جرّب ماتش قريب منك مع بلايزا.`
-    : "دور على ماتش ودية قريب منك: كورة، طائرة، سلة، بادل وسباحة. المواعيد، المكان، عدد اللاعبين وسهم الحصة واضح من البداية. سجّل مجاناً وانضم لأقرب ماتش.";
+    ? `Browse upcoming ${sport} friendly games in Egypt: dates, location, player count and share price. Jump into a game near you with Playza.`
+    : "Find a friendly game near you: football, volleyball, basketball, padel and swimming. Dates, location, player count and share price are clear from the start. Sign up free and join the nearest game.";
 
   return {
     title,
     description,
     keywords: sport
-      ? [`ماتشات ${sport} ودية`, `لعب ${SPORT_AR[sport] ?? sport}`, "ماتشات أهلي", "جيمز ودية"]
+      ? [`${sport} friendly games`, "friendly matches", "casual games"]
       : [
+          "friendly games Egypt",
+          "friendly football matches",
+          "casual games",
+          "football games near me",
+          "volleyball games",
+          "padel matches Egypt",
+          "basketball games",
+          "playground near me",
           "ماتشات ودية",
-          "ماتشات أهلي",
           "حجز ماتش كرة قدم",
           "جيمز ودية",
           "لعب كرة قدم",
-          "لعب كرة طائرة",
-          "لعب بادل",
-          "ماتشات أهلي كورة",
-          "ماتشات كرة سلة",
           "ماتشات بادل مصر",
-          "ملعب قريب مني",
-          "friendly games Egypt",
         ],
     alternates: { canonical: sport ? `/games?sport=${sportToSlug(sport)}` : "/games" },
     openGraph: {
@@ -67,26 +66,27 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
       url: `${SITE_URL}/games`,
       siteName: "Playza",
       images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
-      locale: "ar_EG",
+      locale: "en_US",
       type: "website",
     },
     twitter: { card: "summary_large_image", title, description, images: [OG_IMAGE] },
   };
 }
 
-const SPORT_AR: Record<string, string> = {
-  Football: "كرة القدم",
-  Volleyball: "الكرة الطائرة",
-  Basketball: "كرة السلة",
-  Padel: "البادل",
-  Swimming: "السباحة",
-  Handball: "كرة اليد",
-  Tennis: "التنس",
-  Squash: "الإسكواش",
+const SKILL_EN: Record<string, string> = {
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
+};
+
+const GENDER_EN: Record<string, string> = {
+  male: "Men's",
+  female: "Women's",
+  mixed: "Mixed",
 };
 
 function fmtDate(iso: string): string {
-  return new Intl.DateTimeFormat("ar-EG", { dateStyle: "medium" }).format(new Date(iso));
+  return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(iso));
 }
 
 function fmtTime(t: string): string {
@@ -104,29 +104,29 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
 
   const jsonLd = [
     breadcrumbsJsonLd([
-      { name: "الرئيسية", url: SITE_URL },
-      { name: "ماتشات ودية", url: `${SITE_URL}/games` },
+      { name: "Home", url: SITE_URL },
+      { name: "Friendly Games", url: `${SITE_URL}/games` },
     ]),
     faqPageJsonLd(
       landingFaqItems([
         [
-          "إزاي ألاقي ماتش ودية قريب مني؟",
-          "افتح صفحة الماتشات على بلايزا، اختار رياضتك ومنطقتك، وشوف الماتشات القادمة بالمواعيد والمكان وسهم الحصة. سجّل مجاناً وانضم للماتش اللي يناسبك.",
+          "How do I find a friendly game near me?",
+          "Open the games page on Playza, choose your sport and area, and browse upcoming games with dates, location and share price. Sign up free and join the game that suits you.",
         ],
         [
-          "هل محتاج تكون في أكاديمية عشان تلعب؟",
-          "لأ. الماتشات على بلايزا مفتوحة لأي حد — سجّل حساب مجاني، اختار ماتش قريب منك، واحجز مكانك. بعض الماتشات ليها شرط سن أو مستوى، مكتوب على كل ماتش.",
+          "Do I need to be in an academy to play?",
+          "No. Games on Playza are open to everyone — create a free account, pick a game near you and book your spot. Some games have age or skill requirements, which are stated on the game page.",
         ],
         [
-          "بكام سهم الماتش الودي؟",
-          "كل ماتش بيوضح نصيب اللاعب من إيجار الملعب بناءً على سعر الساعة ومدة الماتش وأقل عدد لاعبين. السعر ظاهر قبل ما تنضم ومش بيتغير بعد التسجيل.",
+          "How much is the share per player?",
+          "Each game shows the players' share of the court rental based on the hourly rate, duration and minimum players. The price is shown before you join and won't change after you sign up.",
         ],
       ])
     ),
     {
       "@context": "https://schema.org",
       "@type": "ItemList",
-      name: "ماتشات ودية قادمة في مصر",
+      name: "Upcoming friendly games in Egypt",
       numberOfItems: games.length,
       itemListElement: games.slice(0, 20).map((g, i) => ({
         "@type": "ListItem",
@@ -146,10 +146,10 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
 
       <PublicListHero
         emoji="🎮"
-        title={sport ? `ماتشات ${SPORT_AR[sport] ?? sport} الودية` : "ماتشات ودية وأهلي في مصر"}
-        subtitle="الناس موجودة، وناقص بس تتجمعوا. اختار ماتش قريب منك — المواعيد والمكان والسعر واضحين من البداية."
-        note="سجّل حساب مجاني وانضم لأي ماتش مفتوح. بعض الماتشات ليها شرط سن أو مستوى — مكتوب قبل ما تنضم."
-        ctaLabel="سجّل مجاناً واطلع ملعب"
+        title={sport ? `Upcoming ${sport} Friendly Games` : "Friendly & Casual Games in Egypt"}
+        subtitle="The players are out there — you just need to gather. Pick a game near you, with dates, location and price clear from the start."
+        note="Sign up free and join any open game. Some games have age or skill requirements — shown before you join."
+        ctaLabel="Sign up free and get playing"
       />
 
       <div className="mx-auto max-w-5xl px-6 py-10">
@@ -157,7 +157,7 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
           sports={sports}
           to={(s) => (s ? `/games?sport=${sportToSlug(s)}` : "/games")}
           current={sport}
-          allLabel="كل الرياضات"
+          allLabel="All sports"
         />
 
         {games.length === 0 ? (
@@ -171,7 +171,7 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
                 g.playground?.governorate,
               ]
                 .filter(Boolean)
-                .join("، ");
+                .join(", ");
               const full = g.joined >= g.max_players;
               return (
                 <article
@@ -182,8 +182,8 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
                     <div>
                       <h2 className="text-lg font-bold">{g.title}</h2>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {SPORT_AR[g.sport] ?? g.sport}
-                        {g.skill_level ? ` · ${SKILL_AR[g.skill_level] ?? g.skill_level}` : ""}
+                        {g.sport}
+                        {g.skill_level ? ` · ${SKILL_EN[g.skill_level] ?? g.skill_level}` : ""}
                       </p>
                     </div>
                     <span
@@ -191,40 +191,40 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
                         full ? "bg-muted text-muted-foreground" : "bg-success-ink/10 text-success-ink"
                       }`}
                     >
-                      {full ? "اتمأت" : `${g.max_players - g.joined} أماكن فاضية`}
+                      {full ? "Full" : `${g.max_players - g.joined} spots left`}
                     </span>
                   </div>
 
                   <dl className="mt-3 space-y-1.5 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                       <CalendarDays className="h-3.5 w-3.5 shrink-0" />
-                      <dt className="sr-only">التاريخ</dt>
+                      <dt className="sr-only">Date</dt>
                       <dd>{fmtDate(g.game_date)}</dd>
                       <Clock className="ms-2 h-3.5 w-3.5 shrink-0" />
-                      <dt className="sr-only">الوقت</dt>
+                      <dt className="sr-only">Time</dt>
                       <dd>{fmtTime(g.start_time)}</dd>
                     </div>
                     {place && (
                       <div className="flex items-center gap-1.5">
                         <MapPin className="h-3.5 w-3.5 shrink-0" />
-                        <dt className="sr-only">المكان</dt>
+                        <dt className="sr-only">Location</dt>
                         <dd>{place}</dd>
                       </div>
                     )}
                     <div className="flex items-center gap-1.5">
                       <Users className="h-3.5 w-3.5 shrink-0" />
-                      <dt className="sr-only">اللاعبون</dt>
+                      <dt className="sr-only">Players</dt>
                       <dd>
-                        {g.joined}/{g.max_players} لاعب
-                        {g.gender !== "mixed" ? ` · ${GENDER_AR[g.gender] ?? ""}` : ""}
+                        {g.joined}/{g.max_players} players
+                        {g.gender !== "mixed" ? ` · ${GENDER_EN[g.gender] ?? ""}` : ""}
                       </dd>
                     </div>
                     {g.share_price != null && (
                       <div className="flex items-center gap-1.5">
                         <Coins className="h-3.5 w-3.5 shrink-0" />
-                        <dt className="sr-only">السهم</dt>
+                        <dt className="sr-only">Share</dt>
                         <dd className="font-semibold text-foreground">
-                          سهم {g.share_price} ج.م
+                          EGP {g.share_price} share
                         </dd>
                       </div>
                     )}
@@ -241,19 +241,19 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
 
         {/* Cross-links keep crawlers (and users) moving between listings. */}
         <nav className="mt-12 border-t pt-6 text-center text-sm">
-          <p className="mb-3 font-semibold text-muted-foreground">كمّل بحثك</p>
+          <p className="mb-3 font-semibold text-muted-foreground">Keep exploring</p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link href="/academies" className="rounded-full border bg-background px-4 py-1.5 font-medium hover:bg-accent">
-              أكاديميات رياضية
+              Sports academies
             </Link>
             <Link href="/tournaments" className="rounded-full border bg-background px-4 py-1.5 font-medium hover:bg-accent">
-              بطولات
+              Tournaments
             </Link>
             <Link href="/solutions" className="rounded-full border bg-background px-4 py-1.5 font-medium hover:bg-accent">
-              حلول الأكاديميات
+              Academy solutions
             </Link>
             <Link href="/faq" className="rounded-full border bg-background px-4 py-1.5 font-medium hover:bg-accent">
-              أسئلة شائعة
+              FAQ
             </Link>
           </div>
         </nav>
@@ -262,27 +262,16 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
   );
 }
 
-const SKILL_AR: Record<string, string> = {
-  beginner: "مبتدئ",
-  intermediate: "متوسط",
-  advanced: "متقدم",
-};
-
-const GENDER_AR: Record<string, string> = {
-  male: "رجالي",
-  female: "بناتي",
-  mixed: "مختلط",
-};
-
 function EmptyState({ sport }: { sport?: string }) {
   return (
     <div className="rounded-xl border bg-muted/30 p-10 text-center">
       <Volleyball className="mx-auto h-10 w-10 text-primary/40" />
       <p className="mt-4 font-semibold">
-        {sport ? `مفيش ماتشات ${SPORT_AR[sport] ?? sport} مفتوحة حالياً` : "مفيش ماتشات مفتوحة حالياً"}
+        {sport ? `No open ${sport} games right now` : "No open games right now"}
       </p>
       <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-        الماتشات بتظهر هنا أول ما اللاعبين ينشروها. كن أول من ينشر ماتش في منطقتك — سجّل وابدأ.
+        Games appear here as soon as players publish them. Be the first to post a game in
+        your area — sign up and start.
       </p>
     </div>
   );
@@ -292,7 +281,7 @@ function EmptyState({ sport }: { sport?: string }) {
 function JoinCta() {
   return (
     <Button asChild className="w-full">
-      <Link href="/signup">انضم للماتش</Link>
+      <Link href="/signup">Join game</Link>
     </Button>
   );
 }

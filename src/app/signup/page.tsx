@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { SignupForm } from "@/components/auth/signup-form";
 
 export const metadata: Metadata = {
-  title: "إنشاء حساب",
+  title: "Create an account",
   description:
-    "أنشئ حسابك في بلايزا مجاناً: انضم لأكاديمية رياضية، أو ابدأ في تنظيم أكاديميتك — أعضاء، اشتراكات، حضور وأرباح من مكان واحد.",
+    "Create your free Playza account: join a sports academy, or start managing your own academy — members, subscriptions, attendance and profits from one place.",
   alternates: {
     canonical: "/signup",
   },

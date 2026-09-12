@@ -11,37 +11,37 @@ import {
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "الأسئلة الشائعة — بلايزا",
+  title: "Frequently Asked Questions — Playza",
   description:
-    "إجابات الأسئلة الشائعة عن بلايزا: الحسابات، اشتراكات الأعضاء والأكاديميات، الماتشات الودية والبطولات، الحضور والمدفوعات، وأمان بياناتك. FAQ Playza.",
+    "Answers to your questions about Playza: accounts, member and academy subscriptions, friendly matches and tournaments, attendance and payments, and data security.",
   keywords: [
-    "بلايزا أسئلة شائعة",
-    "بلايزا FAQ",
-    "إزاي انضم لأكاديمية",
-    "باقات بلايزا",
-    "اشتراك بلايزا",
-    "ماتشات ودية بلايزا",
-    "بطولات بلايزا",
-    "حضور QR",
     "playza faq",
     "playza help",
+    "playza accounts",
+    "playza subscription",
+    "playza membership",
+    "friendly matches playza",
+    "playza tournaments",
+    "QR attendance",
+    "بلايزا أسئلة شائعة",
+    "بلايزا FAQ",
   ],
   alternates: { canonical: "/faq" },
   openGraph: {
-    title: "الأسئلة الشائعة — بلايزا",
+    title: "Frequently Asked Questions — Playza",
     description:
-      "إجابات كل أسئلتك عن بلايزا: الحسابات، الاشتراكات، الماتشات، البطولات، الحضور، المدفوعات والأمان.",
+      "Answers to all your Playza questions: accounts, subscriptions, matches, tournaments, attendance, payments and security.",
     url: `${SITE_URL}/faq`,
     siteName: "Playza",
     images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
-    locale: "ar_EG",
-    alternateLocale: ["en_US"],
+    locale: "en_US",
+    alternateLocale: ["ar_EG"],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "الأسئلة الشائعة — بلايزا",
-    description: "إجابات كل أسئلتك عن بلايزا في صفحة الأسئلة الشائعة.",
+    title: "Frequently Asked Questions — Playza",
+    description: "Answers to your Playza questions on the FAQ page.",
     images: [OG_IMAGE],
   },
 };
@@ -83,17 +83,17 @@ const FAQ_KEYS: [keyof typeof dictionary["ar"], keyof typeof dictionary["ar"]][]
 ];
 
 export default function FaqRoute() {
-  const faqAr: [string, string][] = FAQ_KEYS.map(([q, a]) => [
-    dictionary.ar[q] as string,
-    dictionary.ar[a] as string,
+  const faqEn: [string, string][] = FAQ_KEYS.map(([q, a]) => [
+    dictionary.en[q] as string,
+    dictionary.en[a] as string,
   ]);
 
   const jsonLd = [
     breadcrumbsJsonLd([
-      { name: "الرئيسية", url: SITE_URL },
-      { name: "الأسئلة الشائعة", url: `${SITE_URL}/faq` },
+      { name: "Home", url: SITE_URL },
+      { name: "FAQ", url: `${SITE_URL}/faq` },
     ]),
-    faqPageJsonLd(landingFaqItems(faqAr)),
+    faqPageJsonLd(landingFaqItems(faqEn)),
   ];
 
   return (

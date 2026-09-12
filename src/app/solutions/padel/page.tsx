@@ -16,7 +16,6 @@ import {
 
 export const metadata: Metadata = generateSolutionMetadata(
   "Padel",
-  "البادل",
   "Playza is the complete management platform for padel clubs and academies. Track members, court bookings, payments and per-session profitability.",
   [
     "padel academy management",
@@ -51,13 +50,10 @@ export default function PadelPage() {
   return (
     <SolutionPage
       sport="Padel"
-      sportAr="البادل"
       emoji="🏓"
       heroGradient="from-brand via-brand to-interactive-800"
       tagline="The complete management platform for padel clubs — members, courts, bookings and profit tracking."
-      taglineAr="منصة الإدارة الشاملة لأندية البادل — الأعضاء والملاعب والحجوزات وتتبع الأرباح."
       description="Padel is booming across Egypt and the Gulf — and your club needs a system that keeps up. Playza handles member subscriptions, court scheduling with conflict detection, QR check-in and automatic profit/loss per session. Focus on growing your padel community, not managing it in spreadsheets."
-      descriptionAr="البادل ينتشر بسرعة في مصر والخليج — وين клубك يحتاج نظام يواكب هذا النمو. تتعامل بلايزا مع اشتراكات الأعضاء وجدولة الملاعب مع كشف التعارضات والدخول بالباركود وحساب الأرباح والخسائر التلقائية لكل حصة. ركّز على تنمية مجتمع البادل الخاص بك، لا على إدارته في جداول بيانات."
       features={[
         {
           icon: Users,
@@ -107,14 +103,6 @@ export default function PadelPage() {
         "Corporate padel facilities",
         "Padel tournament organizers",
         "Independent padel coaches",
-      ]}
-      useCasesAr={[
-        "نوادي بادل متخصصة",
-        "أندية رياضية متعددة بها ملاعب بادل",
-        "أكاديميات وبرامج تدريب بادل",
-        "مرافق بادل للشركات",
-        "منظمو بطولات البادل",
-        "مدربو بادل مستقلون",
       ]}
     />
   );

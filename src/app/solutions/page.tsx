@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title:
-    "حلول إدارة أكاديميات الرياضة — كرة قدم، طائرة، سلة، بادل، سباحة | بلايزا",
+  title: "Sports Academy Management Solutions — Football, Volleyball, Basketball, Padel, Swimming | Playza",
   description:
-    "اكتشف كيف تساعدك بلايزا في إدارة أكاديميات كرة القدم والطائرة والسلة والبادل والسباحة: الأعضاء والاشتراكات والحضور والمدفوعات وتتبع الأرباح تلقائياً في مصر والخليج.",
+    "Discover how Playza helps you manage football, volleyball, basketball, padel and swimming academies: members, subscriptions, attendance, payments and automatic profit tracking in Egypt & the Gulf.",
   keywords: [
     "sports academy management",
     "academy management software",
@@ -30,21 +29,20 @@ export const metadata: Metadata = {
     "حلول إدارة الأندية",
   ],
   openGraph: {
-    title: "بلايزا — حلول إدارة أكاديميات الرياضة",
+    title: "Playza — Sports Academy Management Solutions",
     description:
-      "منصة إدارة أكاديميات كرة القدم والطائرة والسلة والبادل والسباحة: الأعضاء والحضور والمدفوعات والأرباح تلقائياً.",
+      "The platform for managing football, volleyball, basketball, padel and swimming academies: members, attendance, payments and automatic profits.",
     url: `${SITE_URL}/solutions`,
     siteName: "Playza",
     images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
-    locale: "ar_EG",
-    alternateLocale: ["en_US"],
+    locale: "en_US",
+    alternateLocale: ["ar_EG"],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "بلايزا — حلول إدارة أكاديميات الرياضة",
-    description:
-      "منصة إدارة أكاديميات كرة القدم والطائرة والسلة والبادل والسباحة.",
+    title: "Playza — Sports Academy Management Solutions",
+    description: "The platform for managing football, volleyball, basketball, padel and swimming academies.",
     images: [OG_IMAGE],
   },
   alternates: {
@@ -55,7 +53,6 @@ export const metadata: Metadata = {
 const solutions = [
   {
     sport: "Volleyball",
-    sportAr: "كرة الطائرة",
     emoji: "🏐",
     href: "/solutions/volleyball",
     gradient: "from-brand to-interactive-700",
@@ -64,7 +61,6 @@ const solutions = [
   },
   {
     sport: "Football",
-    sportAr: "كرة القدم",
     emoji: "⚽",
     href: "/solutions/football",
     gradient: "from-brand to-interactive-700",
@@ -73,7 +69,6 @@ const solutions = [
   },
   {
     sport: "Basketball",
-    sportAr: "كرة السلة",
     emoji: "🏀",
     href: "/solutions/basketball",
     gradient: "from-brand to-interactive-700",
@@ -82,7 +77,6 @@ const solutions = [
   },
   {
     sport: "Padel",
-    sportAr: "البادل",
     emoji: "🏓",
     href: "/solutions/padel",
     gradient: "from-brand to-interactive-700",
@@ -91,7 +85,6 @@ const solutions = [
   },
   {
     sport: "Swimming",
-    sportAr: "السباحة",
     emoji: "🏊",
     href: "/solutions/swimming",
     gradient: "from-brand to-interactive-700",
@@ -115,11 +108,6 @@ export default function SolutionsPage() {
             padel and swimming academies — members, attendance, payments and
             automatic profit tracking.
           </p>
-          <p className="max-w-2xl text-sm text-white/70" dir="rtl">
-            منصة واحدة. كل رياضة. إدارة أكاديميات الكرة الطائرة وكرة القدم
-            وكرة السلة والبادل والسباحة — الأعضاء والحضور والمدفوعات وتتبع
-            الأرباح التلقائي.
-          </p>
         </div>
       </section>
 
@@ -136,9 +124,6 @@ export default function SolutionsPage() {
               <h2 className="mt-3 text-xl font-bold group-hover:text-primary">
                 {s.sport}
               </h2>
-              <p className="text-sm text-muted-foreground" dir="rtl">
-                {s.sportAr}
-              </p>
               <p className="mt-2 text-sm text-muted-foreground">
                 {s.description}
               </p>

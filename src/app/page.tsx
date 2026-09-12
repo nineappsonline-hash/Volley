@@ -16,11 +16,19 @@ import {
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "بلايزا Playza — أكاديميات وجيمز وماتشات في مصر | مكانك في الملعب",
+  title: "Playza — Sports Academies, Games & Matches in Egypt | Your Place on the Field",
   description:
-    "اكتشف أكاديمية كرة قدم أو طائرة أو سلة أو بادل أو سباحة قريبة منك في مصر، تابع تدريب ولادك وتطورهم، ونظم أكاديميتك من مكان واحد: اشتراكات، حضور، مدفوعات وأرباح. بلايزا بيجمع اللاعبين وأولياء الأمور وأصحاب الأكاديميات.",
+    "Discover a football, volleyball, basketball, padel or swimming academy near you in Egypt, track your kids' training and progress, and manage your academy from one place: subscriptions, attendance, payments and profits. Playza brings players, parents and academy owners together.",
   keywords: [
-    // Egypt local intent (Arabic-first)
+    // English
+    "sports academy management",
+    "academy management software",
+    "football academy Egypt",
+    "volleyball academy",
+    "padel academy",
+    "friendly football matches",
+    "find sports academy",
+    // Egypt local intent (Arabic)
     "أكاديميات رياضية في مصر",
     "أكاديمية كرة قدم في القاهرة",
     "أكاديمية كرة قدم للأطفال",
@@ -40,34 +48,26 @@ export const metadata: Metadata = {
     "نظام حضور وغياب",
     "تتبع أرباح الأكاديمية",
     "إدارة المدفوعات",
-    // English
-    "sports academy management",
-    "academy management software",
-    "football academy Egypt",
-    "volleyball academy",
-    "padel academy",
-    "friendly football matches",
-    "find sports academy",
   ],
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "بلايزا Playza — مكانك في الملعب",
+    title: "Playza — Your Place on the Field",
     description:
-      "العب واتابع تطورك، تابع تمرين ولادك، أو نظم أكاديميتك. اكتشف المواعيد والحضور والتقييمات والجيمز الودية مع بلايزا.",
+      "Play, track your progress, follow your kids' training, or manage your academy. Discover schedules, attendance, feedback and friendly games with Playza.",
     url: SITE_URL,
     siteName: "Playza",
     images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
-    locale: "ar_EG",
-    alternateLocale: ["en_US"],
+    locale: "en_US",
+    alternateLocale: ["ar_EG"],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "بلايزا Playza — مكانك في الملعب",
+    title: "Playza — Your Place on the Field",
     description:
-      "بلايزا بيجمع رحلتك الرياضية: أكاديميات، ماتشات ودية، حضور، اشتراكات ومتابعة تطور اللاعبين.",
+      "Playza brings your sports journey together: academies, friendly matches, attendance, subscriptions and player progress tracking.",
     images: [OG_IMAGE],
   },
 };
@@ -88,21 +88,15 @@ export default async function HomePage() {
     [dictionary.en.landing_faq3_q, dictionary.en.landing_faq3_a],
     [dictionary.en.landing_faq4_q, dictionary.en.landing_faq4_a],
   ];
-  const faqAr: [string, string][] = [
-    [dictionary.ar.landing_faq1_q, dictionary.ar.landing_faq1_a],
-    [dictionary.ar.landing_faq2_q, dictionary.ar.landing_faq2_a],
-    [dictionary.ar.landing_faq3_q, dictionary.ar.landing_faq3_a],
-    [dictionary.ar.landing_faq4_q, dictionary.ar.landing_faq4_a],
-  ];
 
   const jsonLd = [
     organizationJsonLd(),
     websiteJsonLd(),
     softwareAppJsonLd(),
-    // Only the visible (default Arabic) FAQ qualifies for the rich result;
-    // English is emitted in-session when the user toggles language.
-    faqPageJsonLd(landingFaqItems(faqAr)),
-    breadcrumbsJsonLd([{ name: "الرئيسية", url: SITE_URL }]),
+    // Only the visible (default English) FAQ qualifies for the rich result;
+    // Arabic is emitted in-session when the user toggles language.
+    faqPageJsonLd(landingFaqItems(faqEn)),
+    breadcrumbsJsonLd([{ name: "Home", url: SITE_URL }]),
   ];
 
   return (

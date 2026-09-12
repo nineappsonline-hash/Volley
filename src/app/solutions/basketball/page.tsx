@@ -16,7 +16,6 @@ import {
 
 export const metadata: Metadata = generateSolutionMetadata(
   "Basketball",
-  "كرة السلة",
   "Playza is the complete management platform for basketball academies. Track players, training sessions, payments and per-session profitability.",
   [
     "basketball academy management",
@@ -50,13 +49,10 @@ export default function BasketballPage() {
   return (
     <SolutionPage
       sport="Basketball"
-      sportAr="كرة السلة"
       emoji="🏀"
       heroGradient="from-brand via-brand to-interactive-800"
       tagline="The complete management platform for basketball academies — players, training, payments and profit tracking."
-      taglineAr="منصة الإدارة الشاملة لأكاديميات كرة سلة — اللاعبين والتدريب والمدفوعات وتتبع الأرباح."
       description="Run your basketball academy with confidence. Playza manages player rosters, subscription billing, court scheduling, QR check-in attendance and automatic profit/loss calculations. Whether you coach kids or compete at a high level, our platform gives you the numbers you need to make smart decisions."
-      descriptionAr="درّ أكاديمية كرة سلتك بثقة. تدير بلايزا قوائم اللاعبين وفوترة الاشتراكات وجدولة الملاعب والحضور بالباركود وحسابات الأرباح والخسائر التلقائية. سواء كنت تدرب أطفالاً أو تنافس على مستوى عالي، تمنحك منصتنا الأرقام التي تحتاجها لاتخاذ قرارات ذكية."
       features={[
         {
           icon: Users,
@@ -106,14 +102,6 @@ export default function BasketballPage() {
         "Multi-sport clubs with basketball",
         "Basketball camps and clinics",
         "Independent basketball coaches",
-      ]}
-      useCasesAr={[
-        "أكاديميات كرة سلة للناشئين",
-        "مراكز تدريب كرة سلة احترافية",
-        "برامج كرة سلة في المدارس",
-        "أندية رياضية متعددة تشمل كرة سلة",
-        "مخيمات وعيادات كرة سلة",
-        "مدربو كرة سلة مستقلون",
       ]}
     />
   );

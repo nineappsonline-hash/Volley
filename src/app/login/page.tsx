@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { LoginForm } from "@/components/auth/login-form";
 
 export const metadata: Metadata = {
-  title: "تسجيل الدخول",
-  description:
-    "سجّل الدخول إلى حسابك في بلايزا: تابع تدريبك أو ولادك، أو نظّم أكاديميتك الرياضية.",
+  title: "Sign in",
+  description: "Sign in to your Playza account to follow your training or your children's, or manage your sports academy.",
   alternates: {
     canonical: "/login",
   },

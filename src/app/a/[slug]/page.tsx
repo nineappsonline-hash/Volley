@@ -32,13 +32,13 @@ export async function generateMetadata({
 
   const place = [academy.area, academy.governorate, academy.country]
     .filter(Boolean)
-    .join("، ");
+    .join(", ");
   const title = place
-    ? `${academy.name} — ${place} | بلايزا Playza`
-    : `${academy.name} | بلايزا Playza`;
+    ? `${academy.name} — ${place} | Playza`
+    : `${academy.name} | Playza`;
   const description =
     academy.description ||
-    `أكاديمية ${academy.name}${place ? ` في ${place}` : ""}. اعرف مواعيد التدريب والرياضات والاشتراكات، واحجز حصة تجريبية مع بلايزا.`;
+    `${academy.name} academy${place ? ` in ${place}` : ""}. Learn about training schedules, sports and subscriptions, and book a tryout session with Playza.`;
 
   return {
     title,
@@ -50,7 +50,7 @@ export async function generateMetadata({
       description: description.slice(0, 200),
       url: `${SITE_URL}/a/${slug}`,
       siteName: "Playza",
-      locale: "ar_EG",
+      locale: "en_US",
       images: [
         {
           url: academy.cover_url || OG_IMAGE,
@@ -142,8 +142,8 @@ export default async function PublicAcademyPage({
       ratingCount,
     }),
     breadcrumbsJsonLd([
-      { name: "الرئيسية", url: SITE_URL },
-      { name: "الأكاديميات", url: `${SITE_URL}/academies` },
+      { name: "Home", url: SITE_URL },
+      { name: "Academies", url: `${SITE_URL}/academies` },
       { name: academy.name, url: `${SITE_URL}/a/${slug}` },
     ]),
   ];

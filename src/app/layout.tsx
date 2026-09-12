@@ -8,12 +8,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default:
-      "بلايزا Playza — منصة إدارة أكاديميات الرياضة في مصر والخليج",
-    template: "%s | بلايزا Playza",
+    default: "Playza — Sports Academy Management Platform for Egypt & the Gulf",
+    template: "%s | Playza",
   },
   description:
-    "منصة بلايزا لإدارة أكاديميات الرياضة في مصر والخليج: الأعضاء والاشتراكات والحضور بالـQR والجدول التدريبي والمدفوعات وتتبع الأرباح تلقائياً لكرة القدم والطائرة والسلة والبادل والسباحة. The complete sports academy management platform for Egypt & the Gulf.",
+    "The complete sports academy management platform for Egypt & the Gulf: members, subscriptions, QR attendance, training schedules, payments, and automated profit tracking for football, volleyball, basketball, padel, and swimming. منصة بلايزا لإدارة أكاديميات الرياضة في مصر والخليج.",
   keywords: [
     // ── Sports Academy Management ──
     "sports academy management",
@@ -145,12 +144,12 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     type: "website",
-    locale: "ar_EG",
-    alternateLocale: ["en_US"],
+    locale: "en_US",
+    alternateLocale: ["ar_EG"],
     siteName: "Playza",
-    title: "بلايزا Playza — منصة إدارة أكاديميات الرياضة في مصر والخليج",
+    title: "Playza — Sports Academy Management Platform for Egypt & the Gulf",
     description:
-      "إدارة أكاديميتك الرياضية بالكامل: الأعضاء والاشتراكات والحضور والمدفوعات والأرباح — من مكان واحد.",
+      "The complete sports academy management platform for Egypt & the Gulf: members, subscriptions, attendance, payments, and profit tracking — all in one place.",
     url: SITE_URL,
     images: [
       {
@@ -163,9 +162,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "بلايزا Playza — منصة إدارة أكاديميات الرياضة في مصر والخليج",
+    title: "Playza — Sports Academy Management Platform for Egypt & the Gulf",
     description:
-      "إدارة أكاديميتك الرياضية بالكامل: الأعضاء والاشتراكات والحضور والمدفوعات والأرباح — من مكان واحد.",
+      "The complete sports academy management platform for Egypt & the Gulf: members, subscriptions, attendance, payments, and profit tracking — all in one place.",
     images: [OG_IMAGE],
   },
   robots: {
@@ -216,11 +215,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
+    <html lang="en" dir="ltr" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var s=localStorage.getItem('volley-lang');var lang=s&&JSON.parse(s).state?JSON.parse(s).state.lang:'ar';document.documentElement.setAttribute('lang',lang);document.documentElement.setAttribute('dir',lang==='ar'?'rtl':'ltr');}catch(e){}`,
+            __html: `try{var s=localStorage.getItem('volley-lang');var lang=s&&JSON.parse(s).state?JSON.parse(s).state.lang:'en';document.documentElement.setAttribute('lang',lang);document.documentElement.setAttribute('dir',lang==='ar'?'rtl':'ltr');}catch(e){}`,
           }}
         />
         <script
