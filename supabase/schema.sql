@@ -2095,10 +2095,16 @@ ALTER TABLE public.friendly_games
   ADD COLUMN IF NOT EXISTS min_age INTEGER
     CHECK (min_age IS NULL OR (min_age BETWEEN 0 AND 120)),
   ADD COLUMN IF NOT EXISTS max_age INTEGER
-    CHECK (max_age IS NULL OR (max_age BETWEEN 0 AND 120)),
-  ADD CONSTRAINT friendly_games_age_order CHECK (
-    min_age IS NULL OR max_age IS NULL OR min_age <= max_age
-  );
+    CHECK (max_age IS NULL OR (max_age BETWEEN 0 AND 120));
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'friendly_games_age_order'
+  ) THEN
+    ALTER TABLE public.friendly_games ADD CONSTRAINT friendly_games_age_order CHECK (
+      min_age IS NULL OR max_age IS NULL OR min_age <= max_age
+    );
+  END IF;
+END $$;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_friendly_games_invite_code
   ON public.friendly_games(invite_code) WHERE invite_code IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_friendly_games_playground
@@ -5385,18 +5391,22 @@ BEGIN
           (SELECT public.player_display_name(p) FROM public.profiles p WHERE p.id = v_member),
           v_game.share_price, p_pay_method, btrim(p_pay_receipt_url), 'pending');
 
-  -- Tell the organizer someone joined (unless it's their own game).
-  IF v_game.creator_id <> v_member THEN
-    INSERT INTO public.notifications (recipient_id, type, title, body, link)
-    VALUES (
-      v_game.creator_id,
-      'game_join',
-      'Someone joined your game',
-      (SELECT public.player_display_name(p) FROM public.profiles p WHERE p.id = v_member)
-        || ' joined ' || btrim(v_game.title) || '.',
-      '/games'
+  -- Tell everyone already in the game someone new joined (skip anyone who
+  -- blocked the joiner so they don't get bothered).
+  INSERT INTO public.notifications (recipient_id, type, title, body, link)
+  SELECT DISTINCT p.member_id,
+         'game_join',
+         'Someone joined your game',
+         (SELECT public.player_display_name(pp) FROM public.profiles pp WHERE pp.id = v_member)
+           || ' joined ' || btrim(v_game.title) || '.',
+         '/games'
+  FROM public.friendly_game_participants p
+  WHERE p.game_id = p_game_id
+    AND p.member_id <> v_member
+    AND NOT EXISTS (
+      SELECT 1 FROM public.blocks b
+      WHERE b.blocker_id = p.member_id AND b.blocked_id = v_member
     );
-  END IF;
 
   SELECT COUNT(*) INTO v_count
   FROM public.friendly_game_participants WHERE game_id = p_game_id;
