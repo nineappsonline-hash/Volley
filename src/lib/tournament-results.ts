@@ -80,3 +80,57 @@ export function matchDepths(matches: TournamentMatch[]): Map<string, number> {
   for (const m of matches) depth(m.id);
   return memo;
 }
+
+export interface RemainingOpponent {
+  team_id: string;
+  name: string;
+}
+
+export interface RemainingGames {
+  team_id: string;
+  name: string;
+  count: number;
+  opponents: RemainingOpponent[];
+}
+
+/**
+ * For a single round-robin league: how many fixtures each team still has to
+ * play (scheduled, not completed/canceled) and which opponents remain.
+ * Teams that never got paired against an opponent (e.g. fewer than 2 real
+ * matchups scheduled) report zero remaining games.
+ */
+export function computeRemainingGames(
+  matches: TournamentMatch[],
+  teams: { id: string; name: string }[]
+): RemainingGames[] {
+  const nameById = new Map(teams.map((tm) => [tm.id, tm.name]));
+
+  const upcoming = matches.filter(
+    (m) =>
+      m.status === "scheduled" &&
+      m.team_a_id &&
+      m.team_b_id
+  );
+
+  const byTeam = new Map<string, Set<string>>();
+  for (const m of upcoming) {
+    const a = m.team_a_id!;
+    const b = m.team_b_id!;
+    if (!byTeam.has(a)) byTeam.set(a, new Set());
+    if (!byTeam.has(b)) byTeam.set(b, new Set());
+    byTeam.get(a)!.add(b);
+    byTeam.get(b)!.add(a);
+  }
+
+  return teams.map((tm) => {
+    const oppIds = [...(byTeam.get(tm.id) ?? [])];
+    return {
+      team_id: tm.id,
+      name: tm.name,
+      count: oppIds.length,
+      opponents: oppIds
+        .map((id) => ({ team_id: id, name: nameById.get(id) ?? "?" }))
+        .sort((x, y) => x.name.localeCompare(y.name)),
+    };
+  });
+}

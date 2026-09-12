@@ -8,7 +8,7 @@
 --  3. "Generate fixtures" creates the matches:
 --     - knockout: seeded single-elimination bracket; winners auto-
 --       advance as scores are entered (byes resolved automatically)
---     - league: full double round-robin via the circle method
+--     - league: single round-robin via the circle method
 --  4. Scores are entered per match; standings track played/won/
 --     drawn/lost, points (3/1/0) and goals for/against/difference.
 -- ═══════════════════════════════════════════════════════════════
@@ -335,7 +335,7 @@ BEGIN
       END LOOP;
     END LOOP;
 
-  -- ── League: double round-robin (circle method) ──
+  -- ── League: round-robin via the circle method (each pair plays ONCE) ──
   ELSE
     -- Odd number of teams → add a NULL "bye" pseudo-team.
     IF v_n % 2 = 1 THEN
@@ -359,25 +359,6 @@ BEGIN
           (tournament_id, round_name, team_a_id, team_b_id, slot, status)
         VALUES
           (p_tournament_id, 'Matchday ' || (v_round + 1), v_a, v_b, v_match_no, 'scheduled');
-        v_created := v_created + 1;
-      END LOOP;
-    END LOOP;
-
-    -- Second half of the season: return legs with swapped home/away.
-    FOR v_round IN 0..(v_n - 2) LOOP
-      v_seats[1] := v_team_ids[1];
-      FOR v_i IN 2..v_n LOOP
-        v_seats[v_i] := v_team_ids[(((v_i - 2 + v_round) % (v_n - 1)) + 2)];
-      END LOOP;
-      FOR v_i IN 1..(v_n / 2) LOOP
-        v_j := v_n + 1 - v_i;
-        v_a := v_seats[v_j];
-        v_b := v_seats[v_i];
-        v_match_no := v_match_no + 1;
-        INSERT INTO public.tournament_matches
-          (tournament_id, round_name, team_a_id, team_b_id, slot, status)
-        VALUES
-          (p_tournament_id, 'Matchday ' || (v_round + v_n), v_a, v_b, v_match_no, 'scheduled');
         v_created := v_created + 1;
       END LOOP;
     END LOOP;

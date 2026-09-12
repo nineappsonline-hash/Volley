@@ -9,6 +9,7 @@ import {
   Play,
   Plus,
   Shuffle,
+  Swords,
   Trash2,
   Trophy,
   UserMinus,
@@ -36,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
+import { computeRemainingGames } from "@/lib/tournament-results";
 import { cn, errorMessage } from "@/lib/utils";
 import {
   useAddTournamentParticipants,
@@ -157,6 +159,11 @@ export function TournamentRunner({ tournament }: { tournament: TournamentWithMat
         .filter((m) => m.status === "scheduled")
         .sort((a, b) => (a.slot ?? 0) - (b.slot ?? 0)),
     [tournament.tournament_matches]
+  );
+
+  const remaining = useMemo(
+    () => computeRemainingGames(tournament.tournament_matches, teams ?? []),
+    [tournament.tournament_matches, teams]
   );
 
   const participantIds = useMemo(
@@ -478,6 +485,48 @@ export function TournamentRunner({ tournament }: { tournament: TournamentWithMat
                 </tbody>
               </table>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Remaining games: how many fixtures are left per team and against whom */}
+      {tournament.format === "league" && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">{t("tr_remaining")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {remaining.length === 0 ? (
+              <p className="rounded-lg border border-dashed p-3 text-center text-sm text-muted-foreground">
+                {t("tr_team_empty")}
+              </p>
+            ) : (
+              <div className="grid gap-2">
+                {remaining.map((r) => (
+                  <div
+                    key={r.team_id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm"
+                  >
+                    <span className="font-medium">{r.name}</span>
+                    {r.count === 0 ? (
+                      <span className="text-xs text-muted-foreground">{t("tr_remaining_done")}</span>
+                    ) : (
+                      <span className="flex flex-wrap items-center gap-1">
+                        <span className="me-1 text-xs font-semibold">
+                          {t("tr_remaining_count").replace("{count}", String(r.count))}
+                        </span>
+                        {r.opponents.map((o) => (
+                          <Badge key={o.team_id} variant="outline" className="gap-1">
+                            <Swords className="h-3 w-3" />
+                            {o.name}
+                          </Badge>
+                        ))}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
