@@ -1423,6 +1423,14 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     premium_feat_analytics: "Personal performance analytics",
     premium_feat_card: "Digital player card & passport",
     premium_upgrade_cta: "Upgrade to Premium",
+    // ── Enterprise gate ──
+    enterprise_gate_title: "Enterprise Feature",
+    enterprise_gate_description:
+      "Organizing tournaments is part of the Enterprise plan. Upgrade to create brackets, schedule matches, and run the full competition for your academy.",
+    enterprise_gate_feat_tournaments: "Create & organize tournaments",
+    enterprise_gate_feat_teams: "Manage teams & participants",
+    enterprise_gate_feat_scoreboard: "Live scorekeeping, standings & brackets",
+    enterprise_gate_cta: "View Plans",
     // ── Upgrade page ──
     premium_page_title: "Go Premium",
     premium_page_subtitle: "Unlock features that go beyond your academy",
@@ -2025,7 +2033,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
       "Both. There are team tournaments (5×5, 7×7, 11-a-side) and individual ones such as padel and tennis. Each tournament page states the format and participation rules.",
     faq_item_games_tournament_organize_q: "Can I organize my own tournament?",
     faq_item_games_tournament_organize_a:
-      "Yes. Academy owners can create tournaments and manage the full bracket — rounds, teams, scores, dates and venues — from the academy dashboard.",
+      "Yes, on the Enterprise plan. Academy owners on Enterprise can create tournaments and manage the full bracket — rounds, teams, scores, dates and venues — from the academy dashboard.",
     faq_item_owners_create_q: "How do I create my academy on Playza?",
     faq_item_owners_create_a:
       "Sign up and choose 'Academy owner'. Set your academy name, sports, location and description, then add your coaches, venues and training schedule. You get a public academy page that visitors can use to send trial requests.",
@@ -3704,6 +3712,14 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     premium_feat_analytics: "تحليلات أداء شخصية",
     premium_feat_card: "بطاقة لاعب رقمية وجواز سفر",
     premium_upgrade_cta: "ترقية إلى المميزة",
+    // ── Enterprise gate ──
+    enterprise_gate_title: "ميزة من خطة المؤسسة",
+    enterprise_gate_description:
+      "تنظيم البطولات ضمن خطة المؤسسة. حدّث خطتك لإنشاء نظام خروج المغلوب وجدولة المباريات وإدارة البطولة كاملة لأكاديميتك.",
+    enterprise_gate_feat_tournaments: "إنشاء وتنظيم البطولات",
+    enterprise_gate_feat_teams: "إدارة الفرق والمشاركين",
+    enterprise_gate_feat_scoreboard: "نتائج مباشرة وجداول ترتيب ونظام خروج المغلوب",
+    enterprise_gate_cta: "شاهد الخطط",
     // ── Upgrade page ──
     premium_page_title: "كن مميزاً",
     premium_page_subtitle: "افتح مميزات تتجاوز أكاديميتك",
@@ -4298,7 +4314,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
       "الاتنين. في بطولات فرق (5×5 و7×7 و11) وبطولات فردية زي البادل والتنس. كل بطولة بتوضح نظامها وشروط المشاركة.",
     faq_item_games_tournament_organize_q: "أقدر أنظم بطولة أنا؟",
     faq_item_games_tournament_organize_a:
-      "أيوه. صاحب الأكاديمية يقدر ينشئ بطولة ويدير دوراتها كاملة — الجولات والفرق والنتائج والمواعيد والملاعب — من لوحة تحكم الأكاديمية.",
+      "أيوه، بخطة المؤسسة. صاحب الأكاديمية على خطة المؤسسة يقدر ينشئ بطولة ويدير دوراتها كاملة — الجولات والفرق والنتائج والمواعيد والملاعب — من لوحة تحكم الأكاديمية.",
     faq_item_owners_create_q: "اعمل أكاديميتي على بلايزا إزاي؟",
     faq_item_owners_create_a:
       "سجّل واختار 'صاحب أكاديمية'. حدد اسم الأكاديمية والرياضات والموقع والنبذة، وبعدين ضيف المدربين والملاعب وجدول التدريب. هتاخد صفحة عامة لأكاديميتك يقدر الزوار من خلالها يبعتوا طلبات تجربة.",

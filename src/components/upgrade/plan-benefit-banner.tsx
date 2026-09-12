@@ -43,7 +43,7 @@ export function AdminPlanBanner({ plan, isTrial }: AdminPlanBannerProps) {
   const highlights: (keyof Dict)[] =
     plan === "starter"
       ? ["plan_feat_attendance", "plan_feat_invite_signup", "plan_feat_recurring"]
-      : ["plan_feat_evaluations", "plan_feat_forecast", "plan_feat_marketplace"];
+      : ["plan_feat_evaluations", "plan_feat_forecast", "plan_feat_marketplace", "plan_feat_teams"];
 
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-interactive-300/60 bg-gradient-to-br from-interactive-50 to-attention-50 p-4 dark:bg-interactive-500/10 animate-fade-in-up sm:flex-row sm:items-center sm:justify-between">

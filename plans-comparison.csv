@@ -23,7 +23,7 @@ Community & engagement,Discover map,Yes,Yes,Yes,
 Community & engagement,Leaderboard,No,Yes,Yes,
 Community & engagement,Browser push notifications,Yes,Yes,Yes,
 Community & engagement,Realtime notification bell,Yes,Yes,Yes,
-Marketplace & competition,Teams & tournaments records,No,Yes,Yes,
+Marketplace & competition,Teams & tournaments records,No,No,Yes,Organizing tournaments (brackets, fixtures, scoreboard) is Enterprise-only
 Marketplace & competition,Cross-academy paid session listings (marketplace),No,No,Yes,
 Marketplace & competition,Events / tournament discovery feed,No,No,Yes,
 Marketplace & competition,Scouting features,No,No,Yes,
