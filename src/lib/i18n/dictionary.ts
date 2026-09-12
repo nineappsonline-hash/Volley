@@ -1,7 +1,7 @@
 export const dictionary = {
   en: {
     appName: "Playza",
-    appTagline: "إدارة أكاديميات الرياضة",
+    appTagline: "All Play. No Hassle",
     // Navigation
     nav_dashboard: "Dashboard",
     nav_members: "Members",
@@ -1812,7 +1812,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     landing_menu_open: "Open menu",
     landing_hero_eyebrow: "More play. Less admin.",
     landing_hero_title_a: "Want to play?",
-    landing_hero_title_b: "Find your squad on Playza.",
+    landing_hero_title_b: "All Play. No Hassle.",
     landing_hero_desc_alt:
       "Find a friendly match, meet players who love your sport, or discover an academy to train in. Following your kids or running an academy? You'll find tools that simplify scheduling, attendance and progress.",
     landing_cta_discover: "Discover academies",
@@ -1964,6 +1964,10 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     landing_footer_academies: "Academies",
     landing_footer_top: "Back to top ↑",
     landing_footer_faq: "FAQs",
+    landing_footer_sports: "Sports",
+    landing_footer_solutions_all: "All academy solutions",
+    landing_footer_account: "Account",
+    landing_footer_start_free: "Start free",
     landing_faq_more: "More questions? See the full FAQ",
     landing_faq_more_cta: "View all FAQs",
     // ── FAQ page ──
@@ -2291,7 +2295,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
 
   ar: {
     appName: "بلايزا",
-    appTagline: "إدارة أكاديميات الرياضة",
+    appTagline: "All Play. No Hassle",
     // Navigation
     nav_dashboard: "الرئيسية",
     nav_members: "الأعضاء",
@@ -4251,6 +4255,10 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     landing_footer_academies: "الأكاديميات",
     landing_footer_top: "ارجع لفوق ↑",
     landing_footer_faq: "الأسئلة الشائعة",
+    landing_footer_sports: "الرياضات",
+    landing_footer_solutions_all: "كل حلول الأكاديميات",
+    landing_footer_account: "الحساب",
+    landing_footer_start_free: "ابدأ مجاناً",
     landing_faq_more: "عندك أسئلة أكتر؟ شوف الأسئلة الشائعة كاملة",
     landing_faq_more_cta: "عرض كل الأسئلة",
     // ── صفحة الأسئلة الشائعة ──

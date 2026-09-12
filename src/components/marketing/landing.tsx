@@ -33,7 +33,6 @@ function features(t: (k: any) => string) {
 export function LandingPage() {
   const { t, lang, dir } = useI18n();
   const pageRef = useRef<HTMLElement>(null);
-  const [paused, setPaused] = useState(false);
   useEffect(() => {
     if (!("IntersectionObserver" in window)) return;
     const observer = new IntersectionObserver(entries => entries.forEach(entry => {
@@ -101,7 +100,7 @@ export function LandingPage() {
     [t("landing_faq4_q"), t("landing_faq4_a")],
   ];
   return (
-    <main ref={pageRef} dir={dir} lang={lang === "ar" ? "ar-EG" : "en"} data-paused={paused} className={styles.page}>
+    <main ref={pageRef} dir={dir} lang={lang === "ar" ? "ar-EG" : "en"} className={styles.page}>
       <header className={styles.header}>
         <Link href="/" aria-label={t("landing_aria_home")}><AppLogo className="w-28" /></Link>
         <nav aria-label={t("landing_nav_about")} className={styles.desktopNav}>{navLinks.map(([text, href]) => href.startsWith("#") ? <a key={href} href={href}>{text}</a> : <Link key={href} href={href}>{text}</Link>)}</nav>
@@ -149,7 +148,42 @@ export function LandingPage() {
 
       <section id="questions" className={`${styles.section} ${styles.faq}`}><div><span className={styles.kicker}>{t("landing_faq_kicker")}</span><h2>{t("landing_faq_title")}</h2><p>{t("landing_faq_desc")}</p></div><div>{faq.map(([q, a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}<Link className={styles.textLink} href="/faq">{t("landing_faq_more_cta")} <ArrowUpLeft size={18} /></Link></div></section>
       <section className={styles.finalCta}><div><span className={styles.kicker}>{t("landing_final_kicker")}</span><h2>{t("landing_final_title")}</h2><p>{t("landing_final_desc")}</p></div><Link className={styles.cta} href="/signup">{t("landing_final_cta")} <ArrowUpLeft size={22} /></Link></section>
-      <footer className={styles.footer}><AppLogo className="w-24" /><p>{t("landing_footer_desc")}</p><button className={styles.motionToggle} aria-pressed={paused} onClick={() => setPaused(!paused)}>{paused ? t("landing_motion_play") : t("landing_motion_pause")}</button><div><span className={styles.footerHeading}>{t("landing_footer_solutions")}</span><Link href="/games">{t("landing_footer_games")}</Link><Link href="/tournaments">{t("landing_footer_tournaments")}</Link><Link href="/academies">{t("landing_footer_academies")}</Link><Link href="/faq">{t("landing_footer_faq")}</Link><Link href="/solutions/football">{t("landing_sport_football")}</Link><Link href="/solutions/volleyball">{t("landing_sport_volleyball")}</Link><Link href="/solutions/padel">{t("landing_sport_padel")}</Link><Link href="/login">{t("landing_signin")}</Link><a href="#top">{t("landing_footer_top")}</a></div></footer>
+      <footer className={styles.footer}>
+        <div className={styles.footerTop}>
+          <div className={styles.footerBrand}>
+            <AppLogo className="w-28" />
+            <p>{t("appTagline")}</p>
+            <small>{t("landing_footer_desc")}</small>
+          </div>
+          <nav aria-label={t("landing_footer_solutions")} className={styles.footerNav}>
+            <span className={styles.footerHeading}>{t("landing_footer_solutions")}</span>
+            <Link href="/games">{t("landing_footer_games")}</Link>
+            <Link href="/tournaments">{t("landing_footer_tournaments")}</Link>
+            <Link href="/academies">{t("landing_footer_academies")}</Link>
+            <Link href="/faq">{t("landing_footer_faq")}</Link>
+          </nav>
+          <nav aria-label={t("landing_footer_sports")} className={styles.footerNav}>
+            <span className={styles.footerHeading}>{t("landing_footer_sports")}</span>
+            <Link href="/solutions/football">{t("landing_sport_football")}</Link>
+            <Link href="/solutions/volleyball">{t("landing_sport_volleyball")}</Link>
+            <Link href="/solutions/padel">{t("landing_sport_padel")}</Link>
+            <Link href="/solutions">{t("landing_footer_solutions_all")}</Link>
+          </nav>
+          <nav aria-label={t("landing_footer_account")} className={styles.footerNav}>
+            <span className={styles.footerHeading}>{t("landing_footer_account")}</span>
+            <Link href="/signup">{t("landing_footer_start_free")}</Link>
+            <Link href="/login">{t("landing_signin")}</Link>
+          </nav>
+        </div>
+        <div className={styles.footerBottom}>
+          <span>
+            © {new Date().getFullYear()} Playza. {t("appTagline")}.
+          </span>
+          <a href="#top" className={styles.backToTop}>
+            {t("landing_footer_top")}
+          </a>
+        </div>
+      </footer>
     </main>
   );
 }
