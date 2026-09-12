@@ -21,7 +21,7 @@ export function CommunityClient({ profile }: { profile: Profile }) {
   return (
     <div className="space-y-6">
       <PageHeader title={t("community_title")} subtitle={lang === "ar" ? "اتعرف على لاعبين واكتشف المجتمع حواليك." : "Meet players and discover your local community."}>
-        <Button asChild variant="outline"><Link href="/games">{t("nav_games")}</Link></Button>
+        <Button asChild variant="outline"><Link href="/dashboard/games">{t("nav_games")}</Link></Button>
       </PageHeader>
 
       <Tabs defaultValue="members">

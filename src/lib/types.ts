@@ -91,6 +91,10 @@ export interface Profile {
   name: string;
   // Unique lowercase handle (@username) used as the primary identifier.
   username: string;
+  // Optional free-form display name ("الصقر", "Bebo") shown wherever the
+  // member appears as a *participant* — game rosters, game chat, teams.
+  // Falls back to `name` when unset (resolved server-side).
+  nickname: string | null;
   phone: string | null;
   // Set when this profile is a family member managed by a parent (guardian).
   guardian_id: string | null;
@@ -247,7 +251,7 @@ export interface Team {
 
 export interface TeamMemberRow {
   member_id: string;
-  profile: { id: string; name: string } | null;
+  profile: { id: string; name: string; nickname: string | null } | null;
 }
 
 export interface TeamWithDetails extends Team {
@@ -312,6 +316,8 @@ export interface CoachAvailability {
   created_at: string;
 }
 
+export type TournamentFormat = "knockout" | "league";
+
 export interface Tournament {
   id: string;
   academy_id: string;
@@ -321,6 +327,9 @@ export interface Tournament {
   start_date: string;
   end_date: string | null;
   status: "upcoming" | "in_progress" | "completed" | "canceled";
+  // knockout = seeded single-elimination bracket; league = round-robin
+  // with points. NULL until the organizer picks a format.
+  format: TournamentFormat | null;
   created_at: string;
 }
 
@@ -332,6 +341,15 @@ export interface TournamentMatch {
   team_b_id: string | null;
   score_a: number | null;
   score_b: number | null;
+  // Goal totals (can differ from score when the sport counts sub-goals);
+  // default to the score when the organizer enters only a result.
+  goals_a: number | null;
+  goals_b: number | null;
+  // Bracket wiring (knockout): which earlier matches feed this one.
+  prev_match_a_id: string | null;
+  prev_match_b_id: string | null;
+  // Ordering slot within the round (knockout) or global order (league).
+  slot: number | null;
   match_date: string | null;
   match_time: string | null;
   venue_id: string | null;
@@ -343,6 +361,44 @@ export interface TournamentMatch {
 export interface TournamentWithMatches extends Tournament {
   sport: Pick<Sport, "id" | "name"> | null;
   tournament_matches: TournamentMatch[];
+}
+
+// ── Tournament runner (pool → teams → fixtures → standings) ──
+
+export interface TournamentParticipant {
+  id: string;
+  tournament_id: string;
+  member_id: string;
+  added_at: string;
+}
+
+export interface TournamentTeam {
+  id: string;
+  tournament_id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface TournamentTeamWithMembers extends TournamentTeam {
+  members: {
+    id: string;
+    participant_id: string;
+    member_id: string;
+    display_name: string;
+  }[];
+}
+
+export interface TournamentStanding {
+  team_id: string;
+  name: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goals_for: number;
+  goals_against: number;
+  goal_diff: number;
+  points: number;
 }
 
 export interface AcademyRating {
@@ -503,6 +559,8 @@ export type CommunityGameStatus = "open" | "full" | "completed" | "cancelled";
 export interface CommunityMember {
   id: string;
   name: string;
+  // Display name (nickname → name) resolved by the community_members view.
+  display_name: string;
   username: string | null;
   bio: string | null;
   academy_id: string | null;
@@ -522,6 +580,8 @@ export interface FriendlyGame {
   creator_id: string;
   creator_name: string;
   creator_username: string | null;
+  // Snapshot of the creator's nickname when they set one (NULL otherwise).
+  creator_nickname: string | null;
   sport: string;
   title: string;
   description: string | null;
@@ -568,6 +628,9 @@ export interface FriendlyGameParticipant {
   game_id: string;
   member_id: string;
   role: "organizer" | "player";
+  // Display name snapshotted at join time (nickname → name); renders without
+  // a profile lookup so rosters work across academies.
+  player_name: string;
   is_waitlisted: boolean;
   joined_at: string;
   share_amount: number | null;
@@ -582,7 +645,8 @@ export type NotificationType =
   | "game_filled"
   | "game_alert"
   | "game_cancelled"
-  | "game_result";
+  | "game_result"
+  | "tournament_announced";
 
 export interface AppNotification {
   id: string;

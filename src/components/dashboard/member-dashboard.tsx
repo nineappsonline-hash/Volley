@@ -24,6 +24,7 @@ import { Progress } from "@/components/ui/progress";
 import { StatCard } from "@/components/shared/stat-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { AnnouncementsCard } from "@/components/dashboard/announcements-card";
+import { MyTournamentsCard } from "@/components/dashboard/my-tournaments-card";
 import { MemberPlanBanner } from "@/components/upgrade/plan-benefit-banner";
 import { useI18n } from "@/lib/i18n";
 import { EXPIRY_ALERT_THRESHOLD, formatMoney } from "@/lib/constants";
@@ -239,6 +240,9 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
           </CardContent>
         </Card>
       </div>
+      </DashboardSection>
+      <DashboardSection id="tournaments" title={t("td_my_tournaments")} hint={lang === "ar" ? "بطولاتك ونتائجك في مكان واحد" : "Your tournaments and results in one place"}>
+        <MyTournamentsCard memberId={p.id} />
       </DashboardSection>
       <DashboardSection id="updates" title={lang === "ar" ? "الأخبار والتنبيهات" : "Updates"}>
         <div className="space-y-5"><AnnouncementsCard isAdmin={false} /></div>

@@ -40,7 +40,7 @@ const adminItems = [
   { href: "/costs", key: "nav_costs", icon: CreditCard },
   { href: "/reports", key: "nav_reports", icon: LineChart },
   { href: "/analytics", key: "nav_analytics", icon: BarChart3 },
-  { href: "/tournaments", key: "nav_tournaments", icon: Swords },
+  { href: "/dashboard/tournaments", key: "nav_tournaments", icon: Swords },
   { href: "/playgrounds", key: "nav_playgrounds", icon: LandPlot },
   { href: "/rentals", key: "nav_rentals", icon: HandCoins },
   { href: "/settings", key: "nav_settings", icon: Settings },
@@ -52,6 +52,7 @@ const superAdminItems = [
   { href: "/admin?tab=Members", key: "nav_members", icon: Users },
   { href: "/admin?tab=Academies", key: "nav_academies", icon: Building2 },
   { href: "/admin?tab=Friendly%20games", key: "nav_games", icon: Volleyball },
+  { href: "/admin?tab=Tournaments", key: "nav_tournaments", icon: Trophy },
   { href: "/admin?tab=Playgrounds", key: "nav_playgrounds", icon: LandPlot },
 ] as const;
 
@@ -64,7 +65,7 @@ const memberItems = [
   { href: "/academies", key: "nav_academies", icon: Search },
   { href: "/schedule", key: "nav_schedule", icon: CalendarDays },
   { href: "/events", key: "nav_events", icon: Map },
-  { href: "/games", key: "nav_games", icon: Volleyball },
+  { href: "/dashboard/games", key: "nav_games", icon: Volleyball },
   { href: "/community", key: "nav_community", icon: Network },
   { href: "/leaderboard", key: "nav_leaderboard", icon: Trophy },
   { href: "/scouting", key: "nav_scouting", icon: Radar },
@@ -93,12 +94,12 @@ export function Sidebar({ role, name, memberPlan, onNavigate }: SidebarProps) {
     ? [{ label: lang === "ar" ? "إدارة المنصة" : "Platform management", items: superAdminItems }]
     : role === "admin" ? [
       group("Daily operations", "الإدارة اليومية", ["/dashboard", "/schedule", "/attendance", "/members"]),
-      group("Academy & training", "الأكاديمية والتدريب", ["/teams", "/coaches", "/tournaments", "/playgrounds", "/rentals"]),
+      group("Academy & training", "الأكاديمية والتدريب", ["/teams", "/coaches", "/dashboard/tournaments", "/playgrounds", "/rentals"]),
       group("Finance & insights", "الماليات والإحصائيات", ["/costs", "/reports", "/analytics"]),
       group("Academy settings", "إعدادات الأكاديمية", ["/profile", "/settings", "/upgrade"]),
     ] : [
       group("My training", "تدريبي", ["/dashboard", "/schedule", "/profile"]),
-      group("Find a place to play", "اكتشف مكان تلعب فيه", ["/academies", "/marketplace", "/games", "/events"]),
+      group("Find a place to play", "اكتشف مكان تلعب فيه", ["/academies", "/marketplace", "/dashboard/games", "/events"]),
       group("Community", "المجتمع", ["/community", "/leaderboard", "/scouting"]),
       group("Membership", "الاشتراك", ["/upgrade"]),
     ];

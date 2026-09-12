@@ -90,7 +90,7 @@ export function LandingPage() {
       <section id="about" className={styles.hero}>
         <div className={styles.heroCopy}><span className={styles.eyebrow}><span /> {t("landing_hero_eyebrow")}</span><h1>{t("landing_hero_title_a")}<br /><em>{t("landing_hero_title_b")}</em></h1><p>{t("landing_hero_desc_alt")}</p><div className={styles.actions}><Link className={styles.cta} href="/signup">{t("landing_cta_start")} <ArrowUpLeft size={20} /></Link><Link className={styles.secondary} href="/academies">{t("landing_cta_discover")} <MapPin size={18} /></Link></div><p className={styles.heroNote}>{t("landing_hero_note")}</p></div>
         <div className={styles.editorialHero}>
-          <Image src="/images/playza-sports-editorial.png" alt={t("landing_editorial_alt")} width={1536} height={1024} priority sizes="(max-width: 700px) 100vw, 50vw" />
+          <Image src="/images/playza-sports-editorial.webp" alt={t("landing_editorial_alt")} width={1200} height={800} priority sizes="(max-width: 700px) 100vw, 50vw" />
           <div className={styles.editorialCaption}><span>{t("landing_editorial_span")}</span><strong>{t("landing_editorial_strong")}</strong></div>
         </div>
       </section>
@@ -122,7 +122,7 @@ export function LandingPage() {
 
       <section id="questions" className={`${styles.section} ${styles.faq}`}><div><span className={styles.kicker}>{t("landing_faq_kicker")}</span><h2>{t("landing_faq_title")}</h2><p>{t("landing_faq_desc")}</p></div><div>{faq.map(([q, a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div></section>
       <section className={styles.finalCta}><div><span className={styles.kicker}>{t("landing_final_kicker")}</span><h2>{t("landing_final_title")}</h2><p>{t("landing_final_desc")}</p></div><Link className={styles.cta} href="/signup">{t("landing_final_cta")} <ArrowUpLeft size={22} /></Link></section>
-      <footer className={styles.footer}><AppLogo className="w-24" /><p>{t("landing_footer_desc")}</p><button className={styles.motionToggle} aria-pressed={paused} onClick={() => setPaused(!paused)}>{paused ? t("landing_motion_play") : t("landing_motion_pause")}</button><div><Link href="/academies">{t("landing_footer_academies")}</Link><Link href="/login">{t("landing_signin")}</Link><a href="#about">{t("landing_footer_top")}</a></div></footer>
+      <footer className={styles.footer}><AppLogo className="w-24" /><p>{t("landing_footer_desc")}</p><button className={styles.motionToggle} aria-pressed={paused} onClick={() => setPaused(!paused)}>{paused ? t("landing_motion_play") : t("landing_motion_pause")}</button><div><span className={styles.footerHeading}>{t("landing_footer_solutions")}</span><Link href="/games">{t("landing_footer_games")}</Link><Link href="/tournaments">{t("landing_footer_tournaments")}</Link><Link href="/academies">{t("landing_footer_academies")}</Link><Link href="/solutions/football">{t("landing_sport_football")}</Link><Link href="/solutions/volleyball">{t("landing_sport_volleyball")}</Link><Link href="/solutions/padel">{t("landing_sport_padel")}</Link><Link href="/login">{t("landing_signin")}</Link><a href="#about">{t("landing_footer_top")}</a></div></footer>
     </main>
   );
 }

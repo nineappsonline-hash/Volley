@@ -214,7 +214,7 @@ function GameCard({
           <Star className="h-3 w-3 text-warning-ink" />
           {game.sport}
           <span className="text-muted-foreground">
-            · {isOrganizer ? t("community_organizer") : game.creator_name}
+            · {isOrganizer ? t("community_organizer") : game.creator_nickname || game.creator_name}
             {!isOrganizer && game.creator_username && (
               <span className="text-muted-foreground/70"> @{game.creator_username}</span>
             )}

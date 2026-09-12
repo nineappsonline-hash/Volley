@@ -175,6 +175,7 @@ export function PlatformRecords() {
     { value: "Members", label: t("sa_records_members") },
     { value: "Academies", label: t("sa_records_academies") },
     { value: "Friendly games", label: t("sa_records_games") },
+    { value: "Tournaments", label: t("sa_records_tournaments") },
     { value: "Playgrounds", label: t("sa_records_playgrounds") },
   ] as const;
   const { data, isLoading, error, refetch } = useQuery<Records>({ queryKey: ["platform-records"], queryFn: async () => {
@@ -224,7 +225,7 @@ export function PlatformRecords() {
   const sports = data.sports ?? [];
   const sportById = new Map(sports.map((s) => [s.id, s.name]));
   const academy = (id: string) => data.academies.find(a => a.id === id)?.name ?? (id ? t("sa_academy_unavailable") : t("sa_independent"));
-  const source = tab === "Members" ? data.profiles : tab === "Academies" ? data.academies : tab === "Friendly games" ? data.friendly_games : data.venues;
+  const source = tab === "Members" ? data.profiles : tab === "Academies" ? data.academies : tab === "Friendly games" ? data.friendly_games : tab === "Tournaments" ? data.tournaments : data.venues;
   const academyContacts = new Map<string, { fields: unknown[]; phones: unknown[] }>();
   if (tab === "Academies") {
     for (const person of data.profiles) {
@@ -251,7 +252,11 @@ export function PlatformRecords() {
   const searchLabel = tab === "Members" ? t("sa_records_search_members")
     : tab === "Academies" ? t("sa_records_search_academies")
     : t("sa_records_search_general");
-  const related = selected ? (tab === "Members" ? { Payments: data.payments.filter(r => r.member_id === selected.id), Attendance: data.attendance.filter(r => r.member_id === selected.id), Games: data.friendly_game_participants.filter(r => r.member_id === selected.id) } : tab === "Academies" ? { [t("sa_members")]: data.profiles.filter(r => r.academy_id === selected.id), [t("sa_branches")]: data.academy_branches.filter(r => r.academy_id === selected.id), [t("sa_membership_plans")]: data.membership_plans.filter(r => r.academy_id === selected.id), [t("sa_playgrounds")]: data.venues.filter(r => r.academy_id === selected.id) } : tab === "Friendly games" ? { Participants: data.friendly_game_participants.filter(r => r.game_id === selected.id).map(r => ({ ...r, name: data.profiles.find(p => p.id === r.member_id)?.name })) } : {}) : {};
+  const related = selected ? (tab === "Members" ? { Payments: data.payments.filter(r => r.member_id === selected.id), Attendance: data.attendance.filter(r => r.member_id === selected.id), Games: data.friendly_game_participants.filter(r => r.member_id === selected.id) } : tab === "Academies" ? { [t("sa_members")]: data.profiles.filter(r => r.academy_id === selected.id), [t("sa_branches")]: data.academy_branches.filter(r => r.academy_id === selected.id), [t("sa_membership_plans")]: data.membership_plans.filter(r => r.academy_id === selected.id), [t("sa_playgrounds")]: data.venues.filter(r => r.academy_id === selected.id) } : tab === "Friendly games" ? { Participants: data.friendly_game_participants.filter(r => r.game_id === selected.id).map(r => ({ ...r, name: data.profiles.find(p => p.id === r.member_id)?.name })) } : tab === "Tournaments" ? {
+    [t("sa_records_teams")]: data.tournament_teams.filter(r => r.tournament_id === selected.id).map(r => ({ id: r.id, name: r.name, players: data.tournament_team_members.filter(m => m.team_id === r.id).length })),
+    [t("sa_records_participants")]: data.tournament_participants.filter(r => r.tournament_id === selected.id).map(r => ({ id: r.id, member: data.profiles.find(p => p.id === r.member_id)?.name ?? r.member_id })),
+    [t("sa_records_matches")]: data.tournament_matches.filter(r => r.tournament_id === selected.id).sort((a, b) => (a.slot ?? 0) - (b.slot ?? 0)).map(r => ({ id: r.id, round: r.round_name, matchup: `${data.tournament_teams.find(x => x.id === r.team_a_id)?.name ?? "TBD"} vs ${data.tournament_teams.find(x => x.id === r.team_b_id)?.name ?? "TBD"}`, score: r.score_a != null ? `${r.score_a} – ${r.score_b}` : "—", status: r.status })),
+  } : {}) : {};
   return <Card>
     <CardHeader><CardTitle>{t("sa_records_title")}</CardTitle><p className="text-sm text-muted-foreground">{t("sa_records_counts").replace("{accounts}", String(data.profiles.length)).replace("{academies}", String(data.academies.length)).replace("{games}", String(data.friendly_games.length)).replace("{playgrounds}", String(data.venues.length))}</p></CardHeader>
     <CardContent className="space-y-4">
@@ -277,7 +282,7 @@ export function PlatformRecords() {
                   {tab === "Members" && <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${blocked ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>{blocked ? t("sa_blocked") : t("sa_enabled")}</span>}
                   {row.guardian_id && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{t("sa_family_member")}</span>}
                 </div>
-                {tab === "Members" ? (row.email ? <p className="mt-1 break-all text-sm text-muted-foreground">{row.email}</p> : <p className="mt-1 text-xs text-muted-foreground">{t("sa_no_login")}</p>) : <p className="text-sm text-muted-foreground">{tab === "Academies" ? `${row.plan} · ${row.is_trial ? t("sa_trial") : t("sa_records_paid")} · ${data.profiles.filter(p => p.academy_id === row.id).length} ${t("sa_records_accounts")}` : tab === "Friendly games" ? `${row.game_date} ${row.start_time} · ${row.sport} · ${row.status} · ${data.friendly_game_participants.filter(p => p.game_id === row.id && !p.is_waitlisted).length}/${row.max_players} ${t("sa_records_players")}` : `${academy(row.academy_id)} · ${row.address ?? t("sa_no_address")}`}</p>}
+                {tab === "Members" ? (row.email ? <p className="mt-1 break-all text-sm text-muted-foreground">{row.email}</p> : <p className="mt-1 text-xs text-muted-foreground">{t("sa_no_login")}</p>) : <p className="text-sm text-muted-foreground">{tab === "Academies" ? `${row.plan} · ${row.is_trial ? t("sa_trial") : t("sa_records_paid")} · ${data.profiles.filter(p => p.academy_id === row.id).length} ${t("sa_records_accounts")}` : tab === "Friendly games" ? `${row.game_date} ${row.start_time} · ${row.sport} · ${row.status} · ${data.friendly_game_participants.filter(p => p.game_id === row.id && !p.is_waitlisted).length}/${row.max_players} ${t("sa_records_players")}` : tab === "Tournaments" ? `${academy(row.academy_id)} · ${row.format ?? "—"} · ${row.status} · ${data.tournament_matches.filter(m => m.tournament_id === row.id).length} ${t("sa_records_matches_short")}` : `${academy(row.academy_id)} · ${row.address ?? t("sa_no_address")}`}</p>}
               </div>
             </div>
           </div>

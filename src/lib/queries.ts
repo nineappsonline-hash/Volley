@@ -47,6 +47,9 @@ import type {
   Tournament,
   TournamentWithMatches,
   TournamentMatch,
+  TournamentParticipant,
+  TournamentTeamWithMembers,
+  TournamentStanding,
   TrainingSession,
   TrialRequest,
   Venue,
@@ -412,7 +415,7 @@ export function useTeams() {
         .select(
           `*,
            sport:sports(id, name),
-           team_members(member_id, profile:profiles(id, name))`
+           team_members(member_id, profile:profiles(id, name, nickname))`
         )
         .order("name");
       if (error) throw error;
@@ -1766,6 +1769,61 @@ export function useSaveCoachAvailability() {
 
 // ── Tournaments ────────────────────────────────────────────
 
+/** Tournaments the current member participates in, with matches, the
+ *  member's team, and the roster of every team (for standings). */
+export function useMyTournaments(memberId: string | null) {
+  return useQuery({
+    queryKey: ["my-tournaments", memberId],
+    enabled: !!memberId,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("tournament_participants")
+        .select(
+          `id,
+           tournament_id,
+           tournament:tournaments(
+             *, sport:sports(id, name), tournament_matches(*),
+             teams:tournament_teams(
+               id, name, created_at,
+               members:tournament_team_members(id, participant_id)
+             )
+           )`
+        )
+        .eq("member_id", memberId!)
+        .order("added_at", { ascending: false });
+      if (error) throw error;
+      const rows = (
+        (data ?? []) as unknown as {
+          id: string;
+          tournament: TournamentWithMatches & {
+            teams: {
+              id: string;
+              name: string;
+              created_at: string;
+              members: { id: string; participant_id: string }[];
+            }[];
+          } | null;
+        }[]
+      );
+      return rows
+        .filter((r) => r.tournament)
+        .map((r) => {
+          const tournament = r.tournament!;
+          const myTeam = tournament.teams.find((t) =>
+            t.members.some((m) => m.participant_id === r.id)
+          );
+          return {
+            participant_id: r.id,
+            tournament,
+            myTeam: myTeam
+              ? { id: myTeam.id, name: myTeam.name, tournament_id: tournament.id, created_at: myTeam.created_at }
+              : null,
+          };
+        });
+    },
+  });
+}
+
 export function useTournaments() {
   return useQuery({
     queryKey: ["tournaments"],
@@ -1791,6 +1849,7 @@ export function useSaveTournament() {
         start_date: tournament.start_date,
         end_date: tournament.end_date ?? null,
         status: tournament.status ?? "upcoming",
+        format: tournament.format ?? null,
       };
       const { error } = tournament.id
         ? await supabase().from("tournaments").update(payload).eq("id", tournament.id)
@@ -1850,6 +1909,248 @@ export function useDeleteMatch() {
     mutationFn: async (id: string) => {
       const { error } = await supabase().from("tournament_matches").delete().eq("id", id);
       if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tournaments"] });
+    },
+  });
+}
+
+// ── Tournament runner: pool → teams → fixtures → scores ─────────────
+
+function invalidateTournamentRunner(qc: ReturnType<typeof useQueryClient>, tournamentId?: string) {
+  qc.invalidateQueries({ queryKey: ["tournaments"] });
+  qc.invalidateQueries({ queryKey: ["tournament-participants"] });
+  qc.invalidateQueries({ queryKey: ["tournament-teams"] });
+  if (tournamentId) {
+    qc.invalidateQueries({ queryKey: ["tournament-participants", tournamentId] });
+    qc.invalidateQueries({ queryKey: ["tournament-teams", tournamentId] });
+  }
+}
+
+/** Pool of members participating in a tournament. */
+export function useTournamentParticipants(tournamentId: string | null) {
+  return useQuery({
+    queryKey: ["tournament-participants", tournamentId],
+    enabled: !!tournamentId,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("tournament_participants")
+        .select("*, member:profiles(id, name, nickname, username)")
+        .eq("tournament_id", tournamentId!)
+        .order("added_at");
+      if (error) throw error;
+      return (data ?? []) as (TournamentParticipant & {
+        member: Pick<Profile, "id" | "name" | "nickname" | "username"> | null;
+      })[];
+    },
+  });
+}
+
+export function useAddTournamentParticipants() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ tournamentId, memberIds }: { tournamentId: string; memberIds: string[] }) => {
+      const { error } = await supabase()
+        .from("tournament_participants")
+        .upsert(
+          memberIds.map((member_id) => ({ tournament_id: tournamentId, member_id })),
+          { onConflict: "tournament_id,member_id", ignoreDuplicates: true }
+        );
+      if (error) throw error;
+    },
+    onSuccess: (_data, vars) => invalidateTournamentRunner(qc, vars.tournamentId),
+  });
+}
+
+export function useRemoveTournamentParticipant() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (participantId: string) => {
+      const { error } = await supabase()
+        .from("tournament_participants")
+        .delete()
+        .eq("id", participantId);
+      if (error) throw error;
+    },
+    onSuccess: () => invalidateTournamentRunner(qc),
+  });
+}
+
+/** Named teams created inside a tournament (with their rosters). */
+export function useTournamentTeams(tournamentId: string | null) {
+  return useQuery({
+    queryKey: ["tournament-teams", tournamentId],
+    enabled: !!tournamentId,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("tournament_teams")
+        .select(
+          `*,
+           members:tournament_team_members(
+             id, participant_id,
+             participant:tournament_participants(member_id)
+           )`
+        )
+        .eq("tournament_id", tournamentId!)
+        .order("created_at");
+      if (error) throw error;
+      const teams = (data ?? []) as unknown as {
+        id: string;
+        tournament_id: string;
+        name: string;
+        created_at: string;
+        members: {
+          id: string;
+          participant_id: string;
+          participant: { member_id: string } | null;
+        }[];
+      }[];
+      // Resolve display names through the participants' profiles.
+      const memberIds = [
+        ...new Set(teams.flatMap((tm) => tm.members.map((m) => m.participant?.member_id).filter(Boolean))),
+      ] as string[];
+      let names = new Map<string, string>();
+      if (memberIds.length > 0) {
+        const { data: profs } = await supabase()
+          .from("profiles")
+          .select("id, name, nickname")
+          .in("id", memberIds);
+        names = new Map(
+          (profs ?? []).map((p: { id: string; name: string; nickname: string | null }) => [
+            p.id,
+            p.nickname?.trim() || p.name,
+          ])
+        );
+      }
+      return teams.map((tm) => ({
+        id: tm.id,
+        tournament_id: tm.tournament_id,
+        name: tm.name,
+        created_at: tm.created_at,
+        members: tm.members
+          .filter((m) => m.participant)
+          .map((m) => ({
+            id: m.id,
+            participant_id: m.participant_id,
+            member_id: m.participant!.member_id,
+            display_name: names.get(m.participant!.member_id) ?? "?",
+          })),
+      })) as TournamentTeamWithMembers[];
+    },
+  });
+}
+
+export function useCreateTournamentTeam() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ tournamentId, name }: { tournamentId: string; name: string }) => {
+      const { data, error } = await supabase()
+        .from("tournament_teams")
+        .insert({ tournament_id: tournamentId, name })
+        .select("id")
+        .single();
+      if (error) throw error;
+      return (data as { id: string }).id;
+    },
+    onSuccess: (_data, vars) => invalidateTournamentRunner(qc, vars.tournamentId),
+  });
+}
+
+export function useRenameTournamentTeam() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ teamId, name }: { teamId: string; name: string }) => {
+      const { error } = await supabase()
+        .from("tournament_teams")
+        .update({ name })
+        .eq("id", teamId);
+      if (error) throw error;
+    },
+    onSuccess: () => invalidateTournamentRunner(qc),
+  });
+}
+
+export function useDeleteTournamentTeam() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (teamId: string) => {
+      const { error } = await supabase()
+        .from("tournament_teams")
+        .delete()
+        .eq("id", teamId);
+      if (error) throw error;
+    },
+    onSuccess: () => invalidateTournamentRunner(qc),
+  });
+}
+
+export function useAddTournamentTeamMembers() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ teamId, participantIds }: { teamId: string; participantIds: string[] }) => {
+      const { error } = await supabase()
+        .from("tournament_team_members")
+        .upsert(
+          participantIds.map((participant_id) => ({ team_id: teamId, participant_id })),
+          { onConflict: "team_id,participant_id", ignoreDuplicates: true }
+        );
+      if (error) throw error;
+    },
+    onSuccess: () => invalidateTournamentRunner(qc),
+  });
+}
+
+export function useRemoveTournamentTeamMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (membershipId: string) => {
+      const { error } = await supabase()
+        .from("tournament_team_members")
+        .delete()
+        .eq("id", membershipId);
+      if (error) throw error;
+    },
+    onSuccess: () => invalidateTournamentRunner(qc),
+  });
+}
+
+/** Enter a result: sets the score, marks complete, advances knockout winners. */
+export function useSubmitTournamentScore() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      matchId: string;
+      scoreA: number;
+      scoreB: number;
+      goalsA?: number | null;
+      goalsB?: number | null;
+    }) => {
+      const { error } = await supabase().rpc("submit_tournament_score", {
+        p_match_id: input.matchId,
+        p_score_a: input.scoreA,
+        p_score_b: input.scoreB,
+        p_goals_a: input.goalsA ?? input.scoreA,
+        p_goals_b: input.goalsB ?? input.scoreB,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tournaments"] });
+    },
+  });
+}
+
+/** Generate the bracket (knockout) or the matchday schedule (league). */
+export function useGenerateTournamentFixtures() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (tournamentId: string) => {
+      const { data, error } = await supabase().rpc("generate_tournament_fixtures", {
+        p_tournament_id: tournamentId,
+      });
+      if (error) throw error;
+      return data as number;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["tournaments"] });
@@ -2451,7 +2752,7 @@ export function useMyGameParticipants() {
       const { data, error } = await supabase()
         .from("friendly_game_participants")
         .select(
-          "id, game_id, member_id, role, is_waitlisted, joined_at, share_amount, pay_method, pay_receipt_url, pay_status"
+          "id, game_id, member_id, role, player_name, is_waitlisted, joined_at, share_amount, pay_method, pay_receipt_url, pay_status"
         )
         .eq("member_id", user.id);
       if (error) throw error;
@@ -2602,6 +2903,7 @@ export function useAddFamilyMember() {
   return useMutation({
     mutationFn: async (input: {
       name: string;
+      nickname?: string | null;
       gender?: string | null;
       birth_date?: string | null;
       phone?: string | null;
@@ -2611,6 +2913,7 @@ export function useAddFamilyMember() {
     }) => {
       const { data, error } = await supabase().rpc("add_family_member", {
         p_name: input.name,
+        p_nickname: input.nickname ?? null,
         p_gender: input.gender ?? null,
         p_birth_date: input.birth_date ?? null,
         p_phone: input.phone ?? null,
@@ -2633,6 +2936,7 @@ export function useUpdateFamilyMember() {
     mutationFn: async (input: {
       childId: string;
       name: string;
+      nickname?: string | null;
       gender?: string | null;
       birth_date?: string | null;
       phone?: string | null;
@@ -2640,6 +2944,8 @@ export function useUpdateFamilyMember() {
       const { error } = await supabase().rpc("update_family_member", {
         p_child_id: input.childId,
         p_name: input.name,
+        // Distinct null/undefined semantics: undefined = keep, "" = clear.
+        p_nickname: input.nickname === undefined ? null : input.nickname,
         p_gender: input.gender ?? null,
         p_birth_date: input.birth_date ?? null,
         p_phone: input.phone ?? null,

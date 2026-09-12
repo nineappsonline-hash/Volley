@@ -62,7 +62,9 @@ export async function updateSession(request: NextRequest) {
     "/coaches",
     "/settings",
     "/receipts",
-    "/tournaments",
+    // NOTE: /tournaments has a public SEO listing page at the same path; the
+    // authenticated tournaments console lives at /dashboard/tournaments, so
+    // protecting the prefix here would redirect Googlebot to /login.
     "/playgrounds",
     "/rentals",
     "/admin",
@@ -70,7 +72,9 @@ export async function updateSession(request: NextRequest) {
     "/events",
     "/marketplace",
     "/community",
-    "/academies",
+    // NOTE: /academies is intentionally public — anonymous visitors can browse
+    // the directory (join/rate require login inside the page). Keeping it here
+    // would redirect Googlebot to /login and hide the directory from search.
   ];
   const isProtected = protectedPages.some(
     (p) => pathname === p || pathname.startsWith(p + "/")

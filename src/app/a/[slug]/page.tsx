@@ -3,11 +3,71 @@ import { notFound } from "next/navigation";
 import { CalendarDays, Camera, MapPin, MessageSquareText, Star, Trophy, Volleyball } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { dictionary } from "@/lib/i18n/dictionary";
+import {
+  OG_IMAGE,
+  SITE_URL,
+  breadcrumbsJsonLd,
+  jsonLdStringify,
+  sportsClubJsonLd,
+} from "@/lib/seo";
 import { AcademyTrainingSummary } from "@/components/settings/academy-training-prices";
 import { TrialForm } from "@/components/public/trial-form";
 import { LangLabel } from "@/components/shared/lang-label";
 
-export const metadata: Metadata = { title: "Academy" };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const admin = createAdminClient();
+  const { data: academy } = await admin
+    .from("academies")
+    .select("name, description, country, governorate, area, cover_url, is_public")
+    .eq("slug", slug)
+    .eq("is_public", true)
+    .single();
+
+  if (!academy) return { title: "Academy" };
+
+  const place = [academy.area, academy.governorate, academy.country]
+    .filter(Boolean)
+    .join("، ");
+  const title = place
+    ? `${academy.name} — ${place} | بلايزا Playza`
+    : `${academy.name} | بلايزا Playza`;
+  const description =
+    academy.description ||
+    `أكاديمية ${academy.name}${place ? ` في ${place}` : ""}. اعرف مواعيد التدريب والرياضات والاشتراكات، واحجز حصة تجريبية مع بلايزا.`;
+
+  return {
+    title,
+    description: description.slice(0, 300),
+    alternates: { canonical: `/a/${slug}` },
+    openGraph: {
+      type: "website",
+      title,
+      description: description.slice(0, 200),
+      url: `${SITE_URL}/a/${slug}`,
+      siteName: "Playza",
+      locale: "ar_EG",
+      images: [
+        {
+          url: academy.cover_url || OG_IMAGE,
+          width: 1200,
+          height: 630,
+          alt: academy.name,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: description.slice(0, 200),
+      images: [academy.cover_url || OG_IMAGE],
+    },
+  };
+}
 
 export default async function PublicAcademyPage({
   params,
@@ -19,7 +79,7 @@ export default async function PublicAcademyPage({
 
   const { data: academy } = await admin
     .from("academies")
-    .select("id, name, description, country, governorate, area, cover_url, is_public, monthly_sessions, monthly_price, tryout_price")
+    .select("id, name, description, country, governorate, area, lat, lng, cover_url, is_public, monthly_sessions, monthly_price, tryout_price")
     .eq("slug", slug)
     .eq("is_public", true)
     .single();
@@ -67,8 +127,33 @@ export default async function PublicAcademyPage({
       dateStyle: "medium",
     }).format(new Date(iso));
 
+  const jsonLd = [
+    sportsClubJsonLd({
+      name: academy.name,
+      description: academy.description,
+      country: academy.country,
+      governorate: academy.governorate,
+      area: academy.area,
+      lat: academy.lat ?? null,
+      lng: academy.lng ?? null,
+      slug,
+      sports: (sports ?? []).map((s) => s.name),
+      ratingValue: avgRating,
+      ratingCount,
+    }),
+    breadcrumbsJsonLd([
+      { name: "الرئيسية", url: SITE_URL },
+      { name: "الأكاديميات", url: `${SITE_URL}/academies` },
+      { name: academy.name, url: `${SITE_URL}/a/${slug}` },
+    ]),
+  ];
+
   return (
     <main className="min-h-screen bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@graph": jsonLd }) }}
+      />
       {/* Hero */}
       <section className="relative overflow-hidden border-b bg-gradient-to-br from-brand via-brand to-interactive-800 py-14 text-white">
         <div className="pointer-events-none absolute -top-24 start-1/2 h-72 w-[32rem] -translate-x-1/2 rounded-full bg-white/15 blur-3xl rtl:translate-x-1/2" />

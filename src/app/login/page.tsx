@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import { LoginForm } from "@/components/auth/login-form";
 
 export const metadata: Metadata = {
-  title: "Sign in — Playza",
+  title: "تسجيل الدخول",
   description:
-    "Sign in to your Playza account as a member or an academy owner.",
+    "سجّل الدخول إلى حسابك في بلايزا: تابع تدريبك أو ولادك، أو نظّم أكاديميتك الرياضية.",
+  alternates: {
+    canonical: "/login",
+  },
 };
 
 export default function LoginPage() {

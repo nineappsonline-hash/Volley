@@ -40,6 +40,7 @@ export function AddChildDialog({ open, onOpenChange, child }: AddChildDialogProp
   const [saving, setSaving] = useState(false);
 
   const [name, setName] = useState("");
+  const [nickname, setNickname] = useState("");
   const [gender, setGender] = useState<Profile["gender"]>(null);
   const [birthDate, setBirthDate] = useState("");
   const [phone, setPhone] = useState("");
@@ -50,6 +51,7 @@ export function AddChildDialog({ open, onOpenChange, child }: AddChildDialogProp
   useEffect(() => {
     if (open) {
       setName(child?.name ?? "");
+      setNickname(child?.nickname ?? "");
       setGender(child?.gender ?? null);
       setBirthDate(child?.birth_date ?? "");
       setPhone(child?.phone ?? "");
@@ -70,6 +72,7 @@ export function AddChildDialog({ open, onOpenChange, child }: AddChildDialogProp
         await updateChild.mutateAsync({
           childId: child.id,
           name: name.trim(),
+          nickname: nickname.trim(),
           gender,
           birth_date: birthDate || null,
           phone: phone || null,
@@ -77,6 +80,7 @@ export function AddChildDialog({ open, onOpenChange, child }: AddChildDialogProp
       } else {
         await addChild.mutateAsync({
           name: name.trim(),
+          nickname: nickname.trim() || null,
           gender,
           birth_date: birthDate || null,
           phone: phone || null,
@@ -114,6 +118,15 @@ export function AddChildDialog({ open, onOpenChange, child }: AddChildDialogProp
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t("profile_nickname")}</Label>
+            <Input
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              placeholder={t("profile_nickname_hint")}
             />
           </div>
 

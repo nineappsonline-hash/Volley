@@ -240,10 +240,10 @@ export function TeamFormDialog({
                     )}
                   >
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback>{initials(m.name)}</AvatarFallback>
+                      <AvatarFallback>{initials(m.nickname || m.name)}</AvatarFallback>
                     </Avatar>
                     <span className="min-w-0 flex-1 truncate font-medium">
-                      {m.name}
+                      {m.nickname || m.name}
                     </span>
                     {memberIds.includes(m.id) && (
                       <Check className="h-4 w-4 shrink-0 text-primary" />

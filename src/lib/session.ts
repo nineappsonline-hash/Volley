@@ -50,6 +50,7 @@ export async function requireSession(): Promise<SessionData> {
     username:
       (user.user_metadata?.username as string | undefined) ??
       "player",
+    nickname: null,
     phone: (user.user_metadata?.phone as string | null) ?? null,
     guardian_id: null,
     avatar_url: null,

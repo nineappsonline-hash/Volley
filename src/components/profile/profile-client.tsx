@@ -277,6 +277,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
 
   const [name, setName] = useState(p.name);
   const [username, setUsername] = useState(p.username);
+  const [nickname, setNickname] = useState(p.nickname ?? "");
   const [phone, setPhone] = useState(p.phone ?? "");
   const [gender, setGender] = useState<Profile["gender"]>(p.gender ?? null);
   const [birthDate, setBirthDate] = useState(p.birth_date ?? "");
@@ -347,6 +348,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
         id: p.id,
         name: name.trim(),
         username,
+        nickname: nickname.trim() || null,
         phone: phone || null,
         gender,
         birth_date: birthDate || null,
@@ -488,7 +490,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                 />
               </div>
               <div>
-                <p className="text-lg font-bold">{p.name}</p>
+                <p className="text-lg font-bold">{p.nickname || p.name}</p>
                 <div className="mt-1 flex flex-wrap gap-1">
                   <Badge variant="secondary">{t("role_member")}</Badge>
                   {hasPlan ? (
@@ -513,6 +515,15 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
             <div className="space-y-2">
               <Label>{t("signup_name")}</Label>
               <Input value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("profile_nickname")}</Label>
+              <Input
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder={t("profile_nickname_hint")}
+              />
+              <p className="text-xs text-muted-foreground">{t("profile_nickname_help")}</p>
             </div>
             <div className="space-y-2">
               <UsernameField value={username} onChange={setUsername} />

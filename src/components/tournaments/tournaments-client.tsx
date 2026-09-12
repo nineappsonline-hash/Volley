@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
+  ArrowLeft,
   CalendarClock,
   Edit3,
+  Play,
   Plus,
   Swords,
   Trash2,
@@ -55,7 +57,13 @@ import {
   useTournaments,
   useVenues,
 } from "@/lib/queries";
-import type { Tournament, TournamentMatch, TournamentWithMatches } from "@/lib/types";
+import { TournamentRunner } from "@/components/tournaments/tournament-runner";
+import type {
+  Tournament,
+  TournamentFormat,
+  TournamentMatch,
+  TournamentWithMatches,
+} from "@/lib/types";
 
 const STATUS_COLORS: Record<string, string> = {
   upcoming: "secondary",
@@ -79,6 +87,7 @@ export function TournamentsClient() {
   const [matchFormOpen, setMatchFormOpen] = useState(false);
   const [editingMatch, setEditingMatch] = useState<TournamentMatch | null>(null);
   const [matchTournamentId, setMatchTournamentId] = useState<string>("");
+  const [running, setRunning] = useState<TournamentWithMatches | null>(null);
 
   const sportName = useMemo(
     () => new Map((sports ?? []).map((s) => [s.id, s.name])),
@@ -106,6 +115,18 @@ export function TournamentsClient() {
     setEditingMatch(null);
     setMatchFormOpen(true);
   };
+
+  if (running) {
+    return (
+      <div className="space-y-6">
+        <Button variant="outline" size="sm" className="w-fit gap-1.5" onClick={() => setRunning(null)}>
+          <ArrowLeft className="h-4 w-4" />
+          {t("tr_back")}
+        </Button>
+        <TournamentRunner tournament={running} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -195,15 +216,26 @@ export function TournamentsClient() {
                       {tournament.tournament_matches.length} {t("match_title").toLowerCase()}
                     </span>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full gap-1.5"
-                    onClick={() => setDetails(tournament)}
-                  >
-                    <Swords className="h-4 w-4" />
-                    {t("match_title")}
-                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => setRunning(tournament)}
+                    >
+                      <Play className="h-4 w-4" />
+                      {t("tr_run")}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => setDetails(tournament)}
+                    >
+                      <Swords className="h-4 w-4" />
+                      {t("match_title")}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -355,6 +387,7 @@ function TournamentFormDialog({
   const [startDate, setStartDate] = useState(todayInput());
   const [endDate, setEndDate] = useState("");
   const [status, setStatus] = useState<string>("upcoming");
+  const [format, setFormat] = useState<string>("none");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -366,6 +399,7 @@ function TournamentFormDialog({
         setStartDate(tournament.start_date);
         setEndDate(tournament.end_date ?? "");
         setStatus(tournament.status);
+        setFormat(tournament.format ?? "none");
       } else {
         setName("");
         setDescription("");
@@ -373,6 +407,7 @@ function TournamentFormDialog({
         setStartDate(todayInput());
         setEndDate("");
         setStatus("upcoming");
+        setFormat("none");
       }
     }
   }, [open, tournament]);
@@ -389,6 +424,7 @@ function TournamentFormDialog({
         start_date: startDate,
         end_date: endDate || null,
         status: status as any,
+        format: format === "none" ? null : (format as TournamentFormat),
       });
       toast.success(t("tournament_saved"));
       onOpenChange(false);
@@ -451,6 +487,19 @@ function TournamentFormDialog({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label>{t("tr_format")}</Label>
+            <Select value={format} onValueChange={setFormat}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">{t("tr_format_none")}</SelectItem>
+                <SelectItem value="knockout">{t("tr_format_knockout")}</SelectItem>
+                <SelectItem value="league">{t("tr_format_league")}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

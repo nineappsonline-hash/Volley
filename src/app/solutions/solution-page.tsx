@@ -13,6 +13,7 @@ import {
   Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { OG_IMAGE, SITE_URL, breadcrumbsJsonLd, jsonLdStringify } from "@/lib/seo";
 
 interface SolutionPageProps {
   sport: string;
@@ -34,27 +35,30 @@ export function generateSolutionMetadata(
   description: string,
   keywords: string[]
 ): Metadata {
+  const slug = sport.toLowerCase();
   return {
-    title: `${sport} Academy Management Software | إدارة أكاديمية ${sportAr}`,
-    description: `${description} Manage ${sport.toLowerCase()} academy members, attendance, payments and training schedules. منصة إدارة أكاديمية ${sportAr}.`,
+    // The root layout template appends the brand: "… | بلايزا Playza".
+    title: `إدارة أكاديميات ${sportAr} — برنامج أكاديمية ${sportAr} في مصر`,
+    description: `برنامج إدارة أكاديمية ${sportAr} في مصر والخليج: الأعضاء والاشتراكات والحضور بالـQR والجدول التدريبي والمدفوعات وتتبع الأرباح تلقائياً. ${description}`,
     keywords,
+    alternates: {
+      canonical: `/solutions/${slug}`,
+    },
     openGraph: {
-      title: `Playza — ${sport} Academy Management`,
-      description: `The complete management platform for ${sport.toLowerCase()} academies. Members, attendance, payments and automatic profit tracking.`,
-      url: `https://volley-academy.vercel.app/solutions/${sport.toLowerCase()}`,
+      title: `بلايزا — إدارة أكاديميات ${sportAr}`,
+      description: `منصة إدارة أكاديميات ${sportAr}: الأعضاء والاشتراكات والحضور والمدفوعات وتتبع الأرباح تلقائياً.`,
+      url: `${SITE_URL}/solutions/${slug}`,
       siteName: "Playza",
-      images: [{ url: "/logo.webp", width: 1200, height: 630 }],
-      locale: "en_US",
+      images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
+      locale: "ar_EG",
+      alternateLocale: ["en_US"],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: `Playza — ${sport} Academy Management`,
-      description: `The complete management platform for ${sport.toLowerCase()} academies.`,
-      images: ["/logo.webp"],
-    },
-    alternates: {
-      canonical: `https://volley-academy.vercel.app/solutions/${sport.toLowerCase()}`,
+      title: `بلايزا — إدارة أكاديميات ${sportAr}`,
+      description: `منصة إدارة أكاديميات ${sportAr} الأكثر اكتمالاً: الأعضاء والحضور والمدفوعات والأرباح تلقائياً.`,
+      images: [OG_IMAGE],
     },
   };
 }
@@ -72,28 +76,36 @@ export function SolutionPage({
   useCases,
   useCasesAr,
 }: SolutionPageProps) {
-  const jsonLd = {
+  const slug = sport.toLowerCase();
+  const jsonLd = [
+    breadcrumbsJsonLd([
+      { name: "الرئيسية", url: SITE_URL },
+      { name: "الحلول", url: `${SITE_URL}/solutions` },
+      { name: sportAr, url: `${SITE_URL}/solutions/${slug}` },
+    ]),
+    {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",      name: `Playza — ${sport}`,
+    "@type": "SoftwareApplication",
+    name: `Playza — ${sport}`,
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     description: `${description} ${descriptionAr}`,
-    url: `https://volley-academy.vercel.app/solutions/${sport.toLowerCase()}`,
+    url: `${SITE_URL}/solutions/${slug}`,
     offers: {
       "@type": "Offer",
       priceCurrency: "EGP",
       price: "500",
-      priceValidUntil: "2026-12-31",
+      priceValidUntil: "2027-12-31",
       availability: "https://schema.org/InStock",
     },
     featureList: features.map((f) => f.title),
-  };
+  }];
 
   return (
     <main className="min-h-screen bg-background">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@graph": jsonLd }) }}
       />
 
       {/* Hero */}
@@ -104,13 +116,13 @@ export function SolutionPage({
         <div className="relative mx-auto flex max-w-4xl flex-col items-center gap-4 px-6 text-center">
           <span className="text-5xl">{emoji}</span>
           <h1 className="text-3xl font-extrabold sm:text-5xl">
-            {sport} Academy Management
+            إدارة أكاديميات {sportAr}
           </h1>
+          <p className="text-lg font-semibold text-white/95" dir="rtl">
+            {taglineAr}
+          </p>
           <p className="max-w-2xl text-base text-white/85 sm:text-lg">
             {tagline}
-          </p>
-          <p className="max-w-2xl text-sm text-white/70" dir="rtl">
-            {taglineAr}
           </p>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
             <Button asChild size="lg" className="bg-white text-info-ink hover:bg-white/90">

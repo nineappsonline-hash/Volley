@@ -61,9 +61,9 @@ function MemberCard({
   const show = isBlocked ? (
     <Card className="opacity-60">
       <CardContent className="flex items-center gap-3 p-4">
-        <ProfileAvatar name={member.name} url={member.avatar_url} className="h-10 w-10 shrink-0" />
+        <ProfileAvatar name={member.display_name} url={member.avatar_url} className="h-10 w-10 shrink-0" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">{member.name}</p>
+          <p className="truncate text-sm font-semibold">{member.display_name}</p>
           <p className="text-xs text-muted-foreground">{t("blocked_label")}</p>
         </div>
         <Button
@@ -83,10 +83,10 @@ function MemberCard({
   ) : (
     <Card className="animate-fade-in-up hover:border-primary/30 transition-colors">
       <CardContent className="flex items-start gap-3 p-4">
-        <ProfileAvatar name={member.name} url={member.avatar_url} className="h-10 w-10 shrink-0" />
+        <ProfileAvatar name={member.display_name} url={member.avatar_url} className="h-10 w-10 shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <p className="truncate text-sm font-semibold">{member.name}</p>
+            <p className="truncate text-sm font-semibold">{member.display_name}</p>
             {member.username && (
               <span className="truncate text-xs text-muted-foreground">
                 @{member.username}
@@ -188,7 +188,7 @@ export function MembersTab({ profile }: { profile: Profile }) {
     const list = (members ?? []).filter((m) => m.id !== profile.id);
     if (!q) return list;
     return list.filter((m) =>
-      matchesBilingual(`${m.name} ${m.username ?? ""} ${m.academy_name ?? ""} ${m.area ?? ""}`, q)
+      matchesBilingual(`${m.display_name} ${m.name} ${m.username ?? ""} ${m.academy_name ?? ""} ${m.area ?? ""}`, q)
     );
   }, [members, search, profile.id]);
 

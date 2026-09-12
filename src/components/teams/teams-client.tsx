@@ -177,7 +177,7 @@ export function TeamsClient() {
                       {team.team_members.slice(0, 5).map((m) => (
                         <Avatar key={m.member_id} className="h-7 w-7 border-2 border-background">
                           <AvatarFallback className="text-[10px]">
-                            {initials(m.profile?.name ?? "?")}
+                            {initials(m.profile?.nickname || (m.profile?.name ?? "?"))}
                           </AvatarFallback>
                         </Avatar>
                       ))}

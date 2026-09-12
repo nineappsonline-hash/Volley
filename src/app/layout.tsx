@@ -1,16 +1,18 @@
 import { PLAYZA } from "@/lib/brand";
+import { OG_IMAGE, SITE_URL } from "@/lib/seo";
 import type { Metadata, Viewport } from "next";
 import { Providers } from "@/providers/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default:
-      "Playza — إدارة أكاديميات الرياضة",
-    template: "%s · Playza",
+      "بلايزا Playza — منصة إدارة أكاديميات الرياضة في مصر والخليج",
+    template: "%s | بلايزا Playza",
   },
   description:
-    "The complete management platform for sports academies in Egypt and the Gulf. Manage members, attendance, payments, scheduling and automatic profit tracking for volleyball, football, basketball, padel, swimming and more. منصة شاملة لإدارة أكاديميات الرياضة.",
+    "منصة بلايزا لإدارة أكاديميات الرياضة في مصر والخليج: الأعضاء والاشتراكات والحضور بالـQR والجدول التدريبي والمدفوعات وتتبع الأرباح تلقائياً لكرة القدم والطائرة والسلة والبادل والسباحة. The complete sports academy management platform for Egypt & the Gulf.",
   keywords: [
     // ── Sports Academy Management ──
     "sports academy management",
@@ -98,7 +100,7 @@ export const metadata: Metadata = {
     "تحليلات أداء",
     "تقارير تحليلية",
     "تحليل بيانات",
-    // ── Egypt & Gulf Market ──
+    // ── Egypt & Gulf Market (highest intent) ──
     "sports software Egypt",
     "academy software Egypt",
     "sports management Saudi Arabia",
@@ -107,10 +109,18 @@ export const metadata: Metadata = {
     "software Egypt",
     "برمجيات إدارة رياضية مصر",
     "إدارة أكاديميات الخليج",
-    // ── Bilingual / Arabic ──
-    "bilingual academy software",
-    "RTL management platform",
-    "software bilingual English Arabic",
+    // ── Arabic search intent (Egypt-first phrasing) ──
+    "برنامج إدارة أكاديمية",
+    "نظام إدارة أندية",
+    "برنامج إدارة نادٍ رياضي",
+    "تطبيق أكاديمية رياضية",
+    "إدارة أكاديمية في مصر",
+    "نظام اشتراكات أكاديمية",
+    "برنامج حسابات أكاديمية رياضية",
+    "تسجيل حضور اللاعبين",
+    "متابعة المدفوعات الأكاديمية",
+    "أكاديميات رياضية في مصر",
+    "أكاديميات رياضية القاهرة",
     "برمجيات عربية",
     "نظام إدارة ثنائية اللغة",
     // ── SaaS / Cloud ──
@@ -134,29 +144,28 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     type: "website",
-    locale: "en_US",
-    alternateLocale: "ar_EG",
+    locale: "ar_EG",
+    alternateLocale: ["en_US"],
     siteName: "Playza",
-    title:
-      "Playza — إدارة أكاديميات الرياضة",
+    title: "بلايزا Playza — منصة إدارة أكاديميات الرياضة في مصر والخليج",
     description:
-      "The complete management platform for sports academies in Egypt and the Gulf. Manage members, attendance, payments and profit tracking.",
+      "إدارة أكاديميتك الرياضية بالكامل: الأعضاء والاشتراكات والحضور والمدفوعات والأرباح — من مكان واحد.",
+    url: SITE_URL,
     images: [
       {
-        url: "/logo.webp",
-        width: 1792,
-        height: 896,
-        alt: "Playza — Sports Academy Management CRM",
+        url: OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: "بلايزا Playza — منصة إدارة أكاديميات الرياضة",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title:
-      "Playza — إدارة أكاديميات الرياضة",
+    title: "بلايزا Playza — منصة إدارة أكاديميات الرياضة في مصر والخليج",
     description:
-      "The complete management platform for sports academies. Manage members, attendance, payments and automatic profit tracking.",
-    images: ["/logo.webp"],
+      "إدارة أكاديميتك الرياضية بالكامل: الأعضاء والاشتراكات والحضور والمدفوعات والأرباح — من مكان واحد.",
+    images: [OG_IMAGE],
   },
   robots: {
     index: true,
@@ -170,14 +179,27 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://volley-academy.vercel.app",
+    // Page-level canonicals live in each route's metadata; setting one here
+    // would leak onto every child page.
   },
   other: {
     "theme-color": PLAYZA.navy,
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "black-translucent",
     "apple-mobile-web-app-title": "Playza",
+    // Geo signals for Egypt-first local search.
+    "geo.region": "EG",
+    "geo.placename": "Cairo",
+    "ICBM": "30.0444, 31.2357",
   },
+};
+
+/** Optional: wire Google Search Console / Bing via env vars without code changes. */
+export const verification = {
+  google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+    ? { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
+    : undefined,
 };
 
 export const viewport: Viewport = {

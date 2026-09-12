@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title:
-    "Sports Academy Management Solutions | حلول إدارة أكاديميات الرياضة",
+    "حلول إدارة أكاديميات الرياضة — كرة قدم، طائرة، سلة، بادل، سباحة | بلايزا",
   description:
-    "Discover how Playza helps you manage volleyball, football, basketball, padel and swimming academies. Members, attendance, payments and profit tracking. اكتشف كيف تساعدك بلايزا في إدارة أكاديميات الرياضة.",
+    "اكتشف كيف تساعدك بلايزا في إدارة أكاديميات كرة القدم والطائرة والسلة والبادل والسباحة: الأعضاء والاشتراكات والحضور والمدفوعات وتتبع الأرباح تلقائياً في مصر والخليج.",
   keywords: [
     "sports academy management",
     "academy management software",
@@ -25,19 +26,29 @@ export const metadata: Metadata = {
     "سباحة",
     "أكاديمية رياضية مصر",
     "أكاديمية رياضية الخليج",
+    "برنامج إدارة أكاديمية",
+    "حلول إدارة الأندية",
   ],
   openGraph: {
-    title: "Playza — Sports Academy Management Solutions",
+    title: "بلايزا — حلول إدارة أكاديميات الرياضة",
     description:
-      "The complete management platform for volleyball, football, basketball, padel and swimming academies.",
-    url: "https://volley-academy.vercel.app/solutions",
+      "منصة إدارة أكاديميات كرة القدم والطائرة والسلة والبادل والسباحة: الأعضاء والحضور والمدفوعات والأرباح تلقائياً.",
+    url: `${SITE_URL}/solutions`,
     siteName: "Playza",
-    images: [{ url: "/logo.webp", width: 1200, height: 630 }],
-    locale: "en_US",
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
+    locale: "ar_EG",
+    alternateLocale: ["en_US"],
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "بلايزا — حلول إدارة أكاديميات الرياضة",
+    description:
+      "منصة إدارة أكاديميات كرة القدم والطائرة والسلة والبادل والسباحة.",
+    images: [OG_IMAGE],
+  },
   alternates: {
-    canonical: "https://volley-academy.vercel.app/solutions",
+    canonical: "/solutions",
   },
 };
 

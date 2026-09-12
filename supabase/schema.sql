@@ -91,6 +91,10 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   -- Unique lowercase handle (@username) — the primary way members are
   -- distinguished across the community.
   username TEXT NOT NULL UNIQUE,
+  -- Optional free-form display name ("الصقر", "Bebo") shown wherever the
+  -- member appears as a *participant*: game rosters, game chat, tournament
+  -- teams. Not unique, not the handle; falls back to name when unset.
+  nickname TEXT,
   phone TEXT,
   country TEXT,
   -- Object path inside the public "avatars" storage bucket; NULL until the
@@ -2968,11 +2972,11 @@ BEGIN
          )
       THEN
         INSERT INTO public.friendly_games
-          (creator_id, creator_name, sport, title, description, area, location,
+          (creator_id, creator_name, creator_nickname, sport, title, description, area, location,
            lat, lng, game_date, start_time, max_players, skill_level, is_public,
            status, source_game_id, recurrence)
         VALUES
-          (v_parent.creator_id, v_parent.creator_name, v_parent.sport,
+          (v_parent.creator_id, v_parent.creator_name, v_parent.creator_nickname, v_parent.sport,
            v_parent.title, v_parent.description, v_parent.area, v_parent.location,
            v_parent.lat, v_parent.lng, v_dt, v_parent.start_time,
            v_parent.max_players, v_parent.skill_level, v_parent.is_public,
@@ -2985,8 +2989,8 @@ BEGIN
         WHERE (f2.source_game_id = v_parent.id OR f2.id = v_parent.id)
           AND f2.game_date < v_dt AND f2.status <> 'cancelled';
         IF v_anchor IS NOT NULL THEN
-          INSERT INTO public.friendly_game_participants (game_id, member_id, role)
-          SELECT v_new_id, member_id, role
+          INSERT INTO public.friendly_game_participants (game_id, member_id, role, player_name)
+          SELECT v_new_id, member_id, role, player_name
           FROM public.friendly_game_participants
           WHERE game_id = v_anchor
           ON CONFLICT DO NOTHING;
@@ -4917,11 +4921,11 @@ BEGIN
          )
       THEN
         INSERT INTO public.friendly_games
-          (creator_id, creator_name, sport, title, description, area, location,
+          (creator_id, creator_name, creator_nickname, sport, title, description, area, location,
            lat, lng, game_date, start_time, max_players, skill_level, is_public,
            status, source_game_id, recurrence, playground_id, min_players, duration_hours, playground_hourly_rate)
         VALUES
-          (v_parent.creator_id, v_parent.creator_name, v_parent.sport,
+          (v_parent.creator_id, v_parent.creator_name, v_parent.creator_nickname, v_parent.sport,
            v_parent.title, v_parent.description, v_parent.area, v_parent.location,
            v_parent.lat, v_parent.lng, v_dt, v_parent.start_time,
            v_parent.max_players, v_parent.skill_level, v_parent.is_public,
@@ -4935,8 +4939,8 @@ BEGIN
           AND f2.game_date < v_dt AND f2.status <> 'cancelled'
         ORDER BY f2.game_date DESC, f2.id DESC LIMIT 1;
         IF v_anchor IS NOT NULL THEN
-          INSERT INTO public.friendly_game_participants (game_id, member_id, role)
-          SELECT v_new_id, member_id, role
+          INSERT INTO public.friendly_game_participants (game_id, member_id, role, player_name)
+          SELECT v_new_id, member_id, role, player_name
           FROM public.friendly_game_participants
           WHERE game_id = v_anchor
           ON CONFLICT DO NOTHING;
@@ -5042,4 +5046,978 @@ DO $$ BEGIN
     EXCEPTION WHEN duplicate_object THEN NULL; END;
   END IF;
 END $$;
+NOTIFY pgrst, 'reload schema';
+
+-- ═══════════════════════════════════════════════════════════════
+-- Player nicknames (display names) for games & tournaments surfaces.
+-- Mirrors migrations/20260914000000_player_nicknames.sql
+-- ═══════════════════════════════════════════════════════════════
+-- Player nicknames for games and tournaments.
+--
+-- A nickname is an optional, free-form display name (e.g. "الصقر", "Bebo")
+-- shown wherever a member appears as a *participant*: friendly-game rosters,
+-- game chat, tournament team rosters. It is deliberately NOT unique and NOT
+-- the @username handle: the handle stays the technical identifier, the
+-- nickname is what teammates actually call you. Falls back to profile name
+-- when unset.
+--
+-- Resolution order everywhere: nickname → name.
+
+-- 1. The column (family members without logins get one too, via the RPCs).
+
+
+-- Backfill: none — nickname starts empty for everyone; name remains shown
+-- until a member chooses one.
+
+-- 2. Single resolution helper so every surface agrees on the display name.
+CREATE OR REPLACE FUNCTION public.player_display_name(p_profile public.profiles)
+RETURNS TEXT
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT COALESCE(
+    NULLIF(btrim(COALESCE(p_profile.nickname, '')), ''),
+    NULLIF(btrim(COALESCE(p_profile.name, '')), ''),
+    'Member'
+  );
+$$;
+
+-- 3. Friendly games: snapshot the creator's display name at creation.
+--    (Snapshots keep rosters readable without cross-academy profile reads —
+--    the same reason chat already snapshots sender_name.)
+ALTER TABLE public.friendly_games
+  ADD COLUMN IF NOT EXISTS creator_nickname TEXT;
+
+UPDATE public.friendly_games f
+SET creator_nickname = p.nickname
+FROM public.profiles p
+WHERE p.id = f.creator_id AND f.creator_nickname IS NULL;
+
+-- 4. Participants: snapshot the player's display name when they join.
+--    This is the column rosters render; it needs no profile lookup at read
+--    time, so rosters work for any authenticated member regardless of the
+--    per-academy profile RLS.
+ALTER TABLE public.friendly_game_participants
+  ADD COLUMN IF NOT EXISTS player_name TEXT;
+
+UPDATE public.friendly_game_participants fp
+SET player_name = public.player_display_name(p)
+FROM public.profiles p
+WHERE p.id = fp.member_id AND fp.player_name IS NULL;
+
+-- 5. create_friendly_game: snapshot creator display name + nickname, and
+--    stamp the organizer's player_name on their participant row.
+--    (Full re-declaration: only the name-resolution lines changed.)
+CREATE OR REPLACE FUNCTION public.create_friendly_game(
+  p_title          TEXT,
+  p_sport          TEXT,
+  p_game_date      DATE,
+  p_start_time     TIME,
+  p_playground_id  UUID DEFAULT NULL,
+  p_area           TEXT DEFAULT NULL,
+  p_location       TEXT DEFAULT NULL,
+  p_lat            DOUBLE PRECISION DEFAULT NULL,
+  p_lng            DOUBLE PRECISION DEFAULT NULL,
+  p_max_players    INTEGER DEFAULT 12,
+  p_skill_level    TEXT DEFAULT NULL,
+  p_description    TEXT DEFAULT NULL,
+  p_is_public      BOOLEAN DEFAULT TRUE,
+  p_recurrence     TEXT DEFAULT NULL,
+  p_gender         TEXT DEFAULT 'mixed',
+  p_min_age        INTEGER DEFAULT NULL,
+  p_max_age        INTEGER DEFAULT NULL,
+  p_invite_code    TEXT DEFAULT NULL,
+  p_min_players    INTEGER DEFAULT 2,
+  p_duration_hours NUMERIC DEFAULT 1
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_member UUID;
+  v_game   UUID;
+  v_name   TEXT;
+  v_username TEXT;
+  v_venue  public.venues%ROWTYPE;
+  v_code   TEXT;
+  v_share  NUMERIC;
+BEGIN
+  IF p_min_players IS NULL OR p_max_players IS NULL OR p_min_players < 2 OR p_max_players < p_min_players THEN
+    RAISE EXCEPTION 'Minimum players must be at least 2 and no greater than maximum players';
+  END IF;
+  IF p_duration_hours IS NULL OR p_duration_hours <= 0 OR p_duration_hours > 24 OR p_duration_hours = 'NaN'::numeric THEN
+    RAISE EXCEPTION 'Duration must be greater than zero and at most 24 hours';
+  END IF;
+  v_member := auth.uid();
+  IF v_member IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  IF p_title IS NULL OR btrim(p_title) = '' THEN
+    RAISE EXCEPTION 'Title is required';
+  END IF;
+  IF p_sport IS NULL OR btrim(p_sport) = '' THEN
+    RAISE EXCEPTION 'Sport is required';
+  END IF;
+  IF p_game_date IS NULL OR p_start_time IS NULL THEN
+    RAISE EXCEPTION 'Date and time are required';
+  END IF;
+
+  -- Playground must be a selectable venue (pool or academy playground).
+  -- There is no game-creation fee; each participant pays their share upfront
+  -- when they join, so the game can be created freely.
+  IF p_playground_id IS NOT NULL THEN
+    SELECT * INTO v_venue
+    FROM public.venues
+    WHERE id = p_playground_id;
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'Playground not available';
+    END IF;
+  END IF;
+
+  -- Per-player share = playground portion (rental × duration ÷ min players)
+  -- plus the hidden platform fee, folded into a single price.
+  IF v_venue.rental_cost IS NOT NULL AND v_venue.rental_cost >= 0 THEN
+    v_share := round((v_venue.rental_cost * p_duration_hours) / p_min_players, 2) + 20;
+  ELSE
+    v_share := 20;
+  END IF;
+
+  -- Join criteria.
+  IF p_gender IS NULL OR p_gender NOT IN ('male', 'female', 'mixed') THEN
+    RAISE EXCEPTION 'Invalid gender criteria';
+  END IF;
+  IF (p_min_age IS NOT NULL AND (p_min_age < 0 OR p_min_age > 120))
+     OR (p_max_age IS NOT NULL AND (p_max_age < 0 OR p_max_age > 120)) THEN
+    RAISE EXCEPTION 'Invalid age range';
+  END IF;
+  IF p_min_age IS NOT NULL AND p_max_age IS NOT NULL AND p_min_age > p_max_age THEN
+    RAISE EXCEPTION 'Invalid age range';
+  END IF;
+
+  SELECT name, username INTO v_name, v_username FROM public.profiles WHERE id = v_member;
+  v_name := public.player_display_name(
+    (SELECT p FROM public.profiles p WHERE p.id = v_member)
+  );
+
+  -- Private games get a shareable invite code (generated when not provided).
+  IF p_is_public = FALSE THEN
+    v_code := upper(btrim(COALESCE(p_invite_code, '')));
+    IF v_code = '' THEN
+      LOOP
+        v_code := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 6));
+        EXIT WHEN NOT EXISTS (
+          SELECT 1 FROM public.friendly_games WHERE invite_code = v_code
+        );
+      END LOOP;
+    END IF;
+    IF v_code !~ '^[A-Z0-9]{4,16}$' THEN
+      RAISE EXCEPTION 'Invalid invite code';
+    END IF;
+  END IF;
+
+  INSERT INTO public.friendly_games
+    (creator_id, creator_name, creator_username, creator_nickname, sport, title, description, area, location, lat, lng,
+     playground_id, game_date, start_time, max_players, min_players, duration_hours, playground_hourly_rate, share_price, skill_level, is_public,
+     recurrence, invite_code, gender, min_age, max_age)
+  VALUES
+    (v_member,
+     v_name,
+     v_username,
+     NULLIF(btrim(COALESCE((SELECT nickname FROM public.profiles WHERE id = v_member), '')), ''),
+     btrim(p_sport),
+     btrim(p_title),
+     NULLIF(btrim(COALESCE(p_description, '')), ''),
+     COALESCE(NULLIF(btrim(COALESCE(p_area, '')), ''), v_venue.area),
+     COALESCE(NULLIF(btrim(COALESCE(p_location, '')), ''), v_venue.name),
+     CASE WHEN v_venue.lat IS NOT NULL THEN v_venue.lat
+          WHEN p_lat BETWEEN -90 AND 90 THEN p_lat ELSE NULL END,
+     CASE WHEN v_venue.lng IS NOT NULL THEN v_venue.lng
+          WHEN p_lng BETWEEN -180 AND 180 THEN p_lng ELSE NULL END,
+     p_playground_id,
+     p_game_date,
+     p_start_time,
+     p_max_players,
+     p_min_players,
+     p_duration_hours,
+     CASE WHEN v_venue.rental_cost >= 0 THEN v_venue.rental_cost ELSE NULL END,
+     v_share,
+     CASE WHEN p_skill_level IN ('beginner', 'intermediate', 'advanced')
+          THEN p_skill_level ELSE NULL END,
+     COALESCE(p_is_public, TRUE),
+     CASE WHEN p_recurrence IN ('weekly') THEN p_recurrence ELSE NULL END,
+     v_code,
+     p_gender,
+     p_min_age,
+     p_max_age)
+  RETURNING id INTO v_game;
+
+  -- The creator is always the organizer participant; they owe their share too.
+  INSERT INTO public.friendly_game_participants
+    (game_id, member_id, role, player_name, share_amount, pay_status)
+  VALUES (v_game, v_member, 'organizer', v_name, v_share, 'unpaid');
+
+  -- Alert members who opted in to matching-sport game alerts (capped).
+  INSERT INTO public.notifications (recipient_id, type, title, body, link)
+  SELECT
+    p.id,
+    'game_alert',
+    'New ' || btrim(p_sport) || ' game',
+    btrim(p_title),
+    '/games'
+  FROM public.profiles p
+  WHERE p.id <> v_member
+    AND p.notify_game_alerts = TRUE
+    AND p.interested_sports @> ARRAY[btrim(p_sport)]
+    AND NOT EXISTS (
+      SELECT 1 FROM public.blocks b
+      WHERE b.blocker_id = p.id AND b.blocked_id = v_member
+    )
+  LIMIT 100;
+
+  RETURN v_game;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.create_friendly_game(
+  TEXT, TEXT, DATE, TIME, UUID, TEXT, TEXT, DOUBLE PRECISION, DOUBLE PRECISION,
+  INTEGER, TEXT, TEXT, BOOLEAN, TEXT, TEXT, INTEGER, INTEGER, TEXT, INTEGER, NUMERIC
+) TO authenticated;
+
+-- 6. join_friendly_game: snapshot the joiner's display name on their row and
+--    use it in the organizer notification.
+CREATE OR REPLACE FUNCTION public.join_friendly_game(
+  p_game_id UUID,
+  p_invite_code TEXT DEFAULT NULL,
+  p_pay_method TEXT DEFAULT NULL,
+  p_pay_receipt_url TEXT DEFAULT NULL
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_member UUID;
+  v_game   friendly_games;
+  v_count  INTEGER;
+  v_prof   profiles%ROWTYPE;
+  v_age    INTEGER;
+BEGIN
+  v_member := auth.uid();
+  IF v_member IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  SELECT * INTO v_game FROM public.friendly_games WHERE id = p_game_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Game not found';
+  END IF;
+
+  -- Private games require the invite code from the shared link.
+  IF NOT v_game.is_public THEN
+    IF p_invite_code IS NULL
+       OR upper(btrim(p_invite_code)) <> v_game.invite_code THEN
+      RAISE EXCEPTION 'This game is private — use the invite link to join';
+    END IF;
+  END IF;
+
+  IF v_game.status NOT IN ('open', 'full') THEN
+    RAISE EXCEPTION 'This game is no longer open';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM public.friendly_game_participants
+    WHERE game_id = p_game_id AND member_id = v_member
+  ) THEN
+    RAISE EXCEPTION 'You already joined this game';
+  END IF;
+
+  -- Gender criteria.
+  IF v_game.gender IN ('male', 'female') THEN
+    SELECT * INTO v_prof FROM public.profiles WHERE id = v_member;
+    IF v_prof.gender IS NULL THEN
+      RAISE EXCEPTION 'Add your gender to your profile to join this game';
+    END IF;
+    IF v_prof.gender <> v_game.gender THEN
+      RAISE EXCEPTION 'This game is for % players only', v_game.gender;
+    END IF;
+  END IF;
+
+  -- Age criteria.
+  IF v_game.min_age IS NOT NULL OR v_game.max_age IS NOT NULL THEN
+    IF v_prof.id IS NULL THEN
+      SELECT * INTO v_prof FROM public.profiles WHERE id = v_member;
+    END IF;
+    IF v_prof.birth_date IS NULL THEN
+      RAISE EXCEPTION 'Add your birth date to your profile to join this game';
+    END IF;
+    v_age := date_part('year', age(current_date, v_prof.birth_date))::INTEGER;
+    IF v_game.min_age IS NOT NULL AND v_age < v_game.min_age THEN
+      RAISE EXCEPTION 'This game is for ages % and up', v_game.min_age;
+    END IF;
+    IF v_game.max_age IS NOT NULL AND v_age > v_game.max_age THEN
+      RAISE EXCEPTION 'This game is for ages up to %', v_game.max_age;
+    END IF;
+  END IF;
+
+  SELECT COUNT(*) INTO v_count
+  FROM public.friendly_game_participants WHERE game_id = p_game_id;
+  IF v_count >= v_game.max_players THEN
+    RAISE EXCEPTION 'This game is full';
+  END IF;
+
+  -- Every player pays their share (playground portion + hidden platform fee)
+  -- upfront, then uploads a receipt for super-admin verification. The spot
+  -- counts right away and is removed again if the payment turns out fake.
+  IF p_pay_method IS NULL OR p_pay_method NOT IN ('instapay', 'e_wallet') THEN
+    RAISE EXCEPTION 'A payment method is required to join a friendly game';
+  END IF;
+  IF p_pay_receipt_url IS NULL OR btrim(p_pay_receipt_url) = '' THEN
+    RAISE EXCEPTION 'A receipt is required to confirm your share payment';
+  END IF;
+
+  INSERT INTO public.friendly_game_participants
+    (game_id, member_id, role, player_name, share_amount, pay_method, pay_receipt_url, pay_status)
+  VALUES (p_game_id, v_member, 'player',
+          (SELECT public.player_display_name(p) FROM public.profiles p WHERE p.id = v_member),
+          v_game.share_price, p_pay_method, btrim(p_pay_receipt_url), 'pending');
+
+  -- Tell the organizer someone joined (unless it's their own game).
+  IF v_game.creator_id <> v_member THEN
+    INSERT INTO public.notifications (recipient_id, type, title, body, link)
+    VALUES (
+      v_game.creator_id,
+      'game_join',
+      'Someone joined your game',
+      (SELECT public.player_display_name(p) FROM public.profiles p WHERE p.id = v_member)
+        || ' joined ' || btrim(v_game.title) || '.',
+      '/games'
+    );
+  END IF;
+
+  SELECT COUNT(*) INTO v_count
+  FROM public.friendly_game_participants WHERE game_id = p_game_id;
+  IF v_count >= v_game.max_players AND v_game.status = 'open' THEN
+    UPDATE public.friendly_games SET status = 'full' WHERE id = p_game_id;
+    INSERT INTO public.notifications (recipient_id, type, title, body, link)
+    VALUES (
+      v_game.creator_id,
+      'game_filled',
+      'Your game is full',
+      btrim(v_game.title) || ' just filled up — get ready to play!',
+      '/games'
+    );
+  END IF;
+
+  RETURN p_game_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.join_friendly_game(UUID, TEXT, TEXT, TEXT) TO authenticated;
+
+-- 7. send_game_message: chat shows the nickname too.
+CREATE OR REPLACE FUNCTION public.send_game_message(p_game_id UUID, p_body TEXT, p_message_id UUID)
+RETURNS UUID LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+  v_uid UUID := auth.uid();
+  v_name TEXT;
+  v_username TEXT;
+  v_existing public.friendly_game_messages%ROWTYPE;
+BEGIN
+  IF v_uid IS NULL OR public.is_account_blocked() THEN
+    RAISE EXCEPTION 'Not authorized' USING ERRCODE = '42501';
+  END IF;
+  -- Lock membership until insertion finishes so leaving cannot race this send.
+  PERFORM 1 FROM public.friendly_game_participants p
+    WHERE p.game_id = p_game_id AND p.member_id = v_uid FOR SHARE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Only current game participants can send messages' USING ERRCODE = '42501';
+  END IF;
+  IF p_body IS NULL OR char_length(btrim(p_body)) NOT BETWEEN 1 AND 2000 OR p_message_id IS NULL THEN
+    RAISE EXCEPTION 'Message must contain 1 to 2000 characters';
+  END IF;
+  SELECT * INTO v_existing FROM public.friendly_game_messages WHERE id = p_message_id;
+  IF FOUND THEN
+    IF v_existing.sender_id = v_uid AND v_existing.game_id = p_game_id AND v_existing.body = btrim(p_body) THEN
+      RETURN p_message_id;
+    END IF;
+    RAISE EXCEPTION 'Message identifier already used';
+  END IF;
+  SELECT name, username INTO v_name, v_username FROM public.profiles WHERE id = v_uid;
+  -- Chat shows the nickname (falls back to name) like every other surface.
+  v_name := public.player_display_name(
+    (SELECT p FROM public.profiles p WHERE p.id = v_uid)
+  );
+  INSERT INTO public.friendly_game_messages(id, game_id, sender_id, sender_name, sender_username, body)
+  VALUES (p_message_id, p_game_id, v_uid, COALESCE(v_name, 'Member'), v_username, btrim(p_body));
+  RETURN p_message_id;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.send_game_message(UUID, TEXT, UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.send_game_message(UUID, TEXT, UUID) TO authenticated;
+
+-- 8. Keep creator_nickname fresh on the game row when the member changes it.
+CREATE OR REPLACE FUNCTION public.sync_participant_display_names()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  UPDATE public.friendly_game_participants fp
+  SET player_name = public.player_display_name(p)
+  FROM public.profiles p
+  WHERE p.id = fp.member_id AND fp.member_id = NEW.id;
+
+  UPDATE public.friendly_games g
+  SET creator_nickname = NULLIF(btrim(COALESCE(NEW.nickname, '')), ''),
+      creator_name = public.player_display_name(NEW)
+  WHERE g.creator_id = NEW.id;
+
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS profiles_sync_display_names_trigger ON public.profiles;
+CREATE TRIGGER profiles_sync_display_names_trigger
+AFTER UPDATE OF nickname, name ON public.profiles
+FOR EACH ROW
+EXECUTE FUNCTION public.sync_participant_display_names();
+
+-- 9. add/update family member RPCs: parents can set a child's nickname.
+--    (Faithful re-declaration of the existing RPCs; nickname param appended.)
+DROP FUNCTION IF EXISTS public.add_family_member(TEXT, TEXT, DATE, TEXT, TEXT, INTEGER, DATE);
+CREATE OR REPLACE FUNCTION public.add_family_member(
+  p_name                   TEXT,
+  p_gender                 TEXT DEFAULT NULL,
+  p_birth_date             DATE DEFAULT NULL,
+  p_phone                  TEXT DEFAULT NULL,
+  p_membership_type        TEXT DEFAULT 'full',
+  p_subscription_sessions  INTEGER DEFAULT 0,
+  p_join_date              DATE DEFAULT CURRENT_DATE,
+  p_nickname               TEXT DEFAULT NULL
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_uid      UUID := auth.uid();
+  v_academy  UUID;
+  v_role     TEXT;
+  v_id       UUID := gen_random_uuid();
+BEGIN
+  IF v_uid IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+  IF p_name IS NULL OR btrim(p_name) = '' THEN
+    RAISE EXCEPTION 'Name is required';
+  END IF;
+  IF p_gender IS NOT NULL AND p_gender NOT IN ('male', 'female') THEN
+    RAISE EXCEPTION 'Invalid gender';
+  END IF;
+  IF p_membership_type IS NULL OR p_membership_type NOT IN ('full', 'half') THEN
+    RAISE EXCEPTION 'Invalid membership type';
+  END IF;
+  IF p_subscription_sessions < 0 THEN
+    RAISE EXCEPTION 'Sessions cannot be negative';
+  END IF;
+
+  SELECT role, academy_id INTO v_role, v_academy
+  FROM public.profiles
+  WHERE id = v_uid;
+
+  IF v_role <> 'member' THEN
+    RAISE EXCEPTION 'Only members can add family members';
+  END IF;
+  IF v_academy IS NULL THEN
+    RAISE EXCEPTION 'Join an academy first to add family members';
+  END IF;
+
+  INSERT INTO public.profiles (
+    id, academy_id, email, role, name, nickname, phone, gender, birth_date, join_date,
+    membership_type, subscription_sessions, is_active,
+    community_visible, notify_game_alerts, guardian_id
+  ) VALUES (
+    v_id, v_academy, NULL, 'member', btrim(p_name),
+    NULLIF(btrim(COALESCE(p_nickname, '')), ''), NULLIF(p_phone, ''),
+    NULLIF(p_gender, ''), p_birth_date, COALESCE(p_join_date, CURRENT_DATE),
+    p_membership_type, p_subscription_sessions, TRUE,
+    FALSE, FALSE, v_uid
+  );
+
+  RETURN v_id;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.add_family_member(TEXT, TEXT, DATE, TEXT, TEXT, INTEGER, DATE, TEXT) TO authenticated;
+
+DROP FUNCTION IF EXISTS public.update_family_member(UUID, TEXT, TEXT, DATE, TEXT);
+CREATE OR REPLACE FUNCTION public.update_family_member(
+  p_child_id    UUID,
+  p_name        TEXT DEFAULT NULL,
+  p_gender      TEXT DEFAULT NULL,
+  p_birth_date  DATE DEFAULT NULL,
+  p_phone       TEXT DEFAULT NULL,
+  p_nickname    TEXT DEFAULT NULL
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_uid UUID := auth.uid();
+BEGIN
+  IF v_uid IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+  IF p_name IS NULL OR btrim(p_name) = '' THEN
+    RAISE EXCEPTION 'Name is required';
+  END IF;
+  IF p_gender IS NOT NULL AND p_gender NOT IN ('male', 'female') THEN
+    RAISE EXCEPTION 'Invalid gender';
+  END IF;
+
+  UPDATE public.profiles SET
+    name       = btrim(p_name),
+    nickname   = CASE
+      WHEN p_nickname IS NULL THEN nickname        -- param omitted → keep
+      WHEN btrim(p_nickname) = '' THEN NULL        -- empty string → clear
+      ELSE btrim(p_nickname)                        -- set
+    END,
+    gender     = NULLIF(p_gender, ''),
+    birth_date = p_birth_date,
+    phone      = NULLIF(p_phone, '')
+  WHERE id = p_child_id AND guardian_id = v_uid;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Family member not found';
+  END IF;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.update_family_member(UUID, TEXT, TEXT, DATE, TEXT, TEXT) TO authenticated;
+
+-- 10. Community views show the nickname too (fallback order handled above).
+DROP VIEW IF EXISTS public.community_members;
+CREATE VIEW public.community_members AS
+SELECT
+  p.id,
+  p.name,
+  p.username,
+  public.player_display_name(p) AS display_name,
+  p.avatar_url,
+  p.bio,
+  p.academy_id,
+  a.name AS academy_name,
+  COALESCE(a.area, a.governorate) AS area,
+  p.skill_level,
+  p.position,
+  p.availability_days,
+  p.interested_sports,
+  p.lat,
+  p.lng
+FROM public.profiles p
+LEFT JOIN public.academies a ON a.id = p.academy_id
+WHERE p.community_visible = TRUE
+  AND p.name IS NOT NULL;
+GRANT SELECT ON public.community_members TO authenticated;
+
+NOTIFY pgrst, 'reload schema';
+
+-- ═══════════════════════════════════════════════════════════════
+-- Tournament runner (mirrors migrations/20260915000000_tournament_runner.sql)
+-- ═══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
+-- Tournament runner: participants pool → named teams → fixtures →
+-- scores → standings / knockout progression.
+--
+-- A tournament can be run as KNOCKOUT or LEAGUE (round-robin):
+--  1. The organizer builds a pool of participating members.
+--  2. They create named teams and add pool members to each team.
+--  3. "Generate fixtures" creates the matches:
+--     - knockout: seeded single-elimination bracket; winners auto-
+--       advance as scores are entered (byes resolved automatically)
+--     - league: full double round-robin via the circle method
+--  4. Scores are entered per match; standings track played/won/
+--     drawn/lost, points (3/1/0) and goals for/against/difference.
+-- ═══════════════════════════════════════════════════════════════
+
+ALTER TABLE IF EXISTS public.tournaments
+  ADD COLUMN IF NOT EXISTS format TEXT CHECK (format IN ('knockout', 'league'));
+
+ALTER TABLE public.tournament_matches
+  ADD COLUMN IF NOT EXISTS goals_a INTEGER,
+  ADD COLUMN IF NOT EXISTS goals_b INTEGER,
+  -- Bracket wiring (knockout only): which earlier matches feed this one,
+  -- and which position (1 = first leg / round-1 order) for scheduling.
+  ADD COLUMN IF NOT EXISTS prev_match_a_id UUID REFERENCES public.tournament_matches(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS prev_match_b_id UUID REFERENCES public.tournament_matches(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS slot INTEGER;
+
+CREATE INDEX IF NOT EXISTS idx_tmatch_next_a ON public.tournament_matches(prev_match_a_id);
+CREATE INDEX IF NOT EXISTS idx_tmatch_next_b ON public.tournament_matches(prev_match_b_id);
+
+-- A team cannot play itself.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'tournament_matches_teams_distinct'
+  ) THEN
+    ALTER TABLE public.tournament_matches ADD CONSTRAINT tournament_matches_teams_distinct
+      CHECK (team_a_id IS NULL OR team_b_id IS NULL OR team_a_id <> team_b_id);
+  END IF;
+END $$;
+
+-- ── 1. Participants pool ───────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.tournament_participants (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tournament_id UUID NOT NULL REFERENCES public.tournaments(id) ON DELETE CASCADE,
+  member_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  added_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (tournament_id, member_id)
+);
+CREATE INDEX IF NOT EXISTS idx_tournament_participants_tournament
+  ON public.tournament_participants(tournament_id);
+
+-- ── 2. Tournament-scoped teams (independent from academy teams) ─
+CREATE TABLE IF NOT EXISTS public.tournament_teams (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tournament_id UUID NOT NULL REFERENCES public.tournaments(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (tournament_id, name)
+);
+CREATE INDEX IF NOT EXISTS idx_tournament_teams_tournament
+  ON public.tournament_teams(tournament_id);
+
+-- Roster of a tournament team, drawn from the pool.
+CREATE TABLE IF NOT EXISTS public.tournament_team_members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  team_id UUID NOT NULL REFERENCES public.tournament_teams(id) ON DELETE CASCADE,
+  participant_id UUID NOT NULL REFERENCES public.tournament_participants(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (team_id, participant_id)
+);
+CREATE INDEX IF NOT EXISTS idx_tt_members_team
+  ON public.tournament_team_members(team_id);
+
+-- ── 3. RLS (same academy scoping as tournaments/matches) ───────
+DROP POLICY IF EXISTS "Members manage tournament participants" ON public.tournament_participants;
+CREATE POLICY "Members manage tournament participants" ON public.tournament_participants
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.tournaments t
+      WHERE t.id = tournament_id AND t.academy_id = public.current_academy_id()
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.tournaments t
+      WHERE t.id = tournament_id AND t.academy_id = public.current_academy_id()
+    )
+  );
+
+DROP POLICY IF EXISTS "Members manage tournament teams" ON public.tournament_teams;
+CREATE POLICY "Members manage tournament teams" ON public.tournament_teams
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.tournaments t
+      WHERE t.id = tournament_id AND t.academy_id = public.current_academy_id()
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.tournaments t
+      WHERE t.id = tournament_id AND t.academy_id = public.current_academy_id()
+    )
+  );
+
+DROP POLICY IF EXISTS "Members manage tournament team members" ON public.tournament_team_members;
+CREATE POLICY "Members manage tournament team members" ON public.tournament_team_members
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1
+      FROM public.tournament_teams tt
+      JOIN public.tournaments t ON t.id = tt.tournament_id
+      WHERE tt.id = team_id AND t.academy_id = public.current_academy_id()
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1
+      FROM public.tournament_teams tt
+      JOIN public.tournaments t ON t.id = tt.tournament_id
+      WHERE tt.id = team_id AND t.academy_id = public.current_academy_id()
+    )
+  );
+
+-- ── 4. Score entry + knockout advancement ──────────────────────
+CREATE OR REPLACE FUNCTION public.submit_tournament_score(
+  p_match_id UUID,
+  p_score_a INTEGER,
+  p_score_b INTEGER,
+  p_goals_a INTEGER DEFAULT NULL,
+  p_goals_b INTEGER DEFAULT NULL
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_match public.tournament_matches%ROWTYPE;
+  v_format public.tournaments.format%TYPE;
+  v_winner UUID;
+  v_next_id UUID;
+BEGIN
+  SELECT * INTO v_match FROM public.tournament_matches WHERE id = p_match_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Match not found';
+  END IF;
+
+  -- Authorization: the tournament's academy, or the platform admin.
+  IF NOT public.is_tournament_organizer(v_match.tournament_id)
+     AND NOT public.is_super_admin() THEN
+    RAISE EXCEPTION 'Not authorized' USING ERRCODE = '42501';
+  END IF;
+
+  SELECT format INTO v_format FROM public.tournaments WHERE id = v_match.tournament_id;
+
+  IF p_score_a IS NULL OR p_score_b IS NULL
+     OR p_score_a < 0 OR p_score_b < 0 THEN
+    RAISE EXCEPTION 'Scores must be non-negative numbers';
+  END IF;
+  IF v_format = 'knockout' THEN
+    IF v_match.team_a_id IS NULL OR v_match.team_b_id IS NULL THEN
+      RAISE EXCEPTION 'Both teams must be decided before entering a score';
+    END IF;
+    IF p_score_a = p_score_b THEN
+      RAISE EXCEPTION 'Knockout matches cannot end in a draw';
+    END IF;
+  END IF;
+
+  UPDATE public.tournament_matches SET
+    score_a = p_score_a,
+    score_b = p_score_b,
+    goals_a = COALESCE(p_goals_a, p_score_a),
+    goals_b = COALESCE(p_goals_b, p_score_b),
+    status = 'completed'
+  WHERE id = p_match_id;
+
+  -- Knockout: the winner fills the next-round slot that points at us.
+  IF v_format = 'knockout' THEN
+    v_winner := CASE WHEN p_score_a > p_score_b
+                     THEN v_match.team_a_id ELSE v_match.team_b_id END;
+
+    SELECT m.id INTO v_next_id
+    FROM public.tournament_matches m
+    WHERE m.prev_match_a_id = p_match_id OR m.prev_match_b_id = p_match_id
+    LIMIT 1;
+    IF v_next_id IS NOT NULL THEN
+      UPDATE public.tournament_matches SET
+        team_a_id = CASE WHEN prev_match_a_id = p_match_id THEN v_winner ELSE team_a_id END,
+        team_b_id = CASE WHEN prev_match_b_id = p_match_id THEN v_winner ELSE team_b_id END
+      WHERE id = v_next_id;
+    END IF;
+  END IF;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.submit_tournament_score(UUID, INTEGER, INTEGER, INTEGER, INTEGER) TO authenticated;
+
+-- ── 5. Fixture generation (knockout bracket / league schedule) ──
+CREATE OR REPLACE FUNCTION public.generate_tournament_fixtures(p_tournament_id UUID)
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_format   public.tournaments.format%TYPE;
+  v_team     RECORD;
+  v_team_ids UUID[];
+  v_seats    UUID[];
+  v_n        INTEGER;
+  v_padded   INTEGER;
+  v_span     INTEGER;
+  v_rounds   INTEGER;
+  v_round    INTEGER;
+  v_slot     INTEGER;
+  v_match_no INTEGER := 0;
+  v_a        UUID;
+  v_b        UUID;
+  v_name     TEXT;
+  v_id       UUID;
+  v_created  INTEGER := 0;
+  v_i        INTEGER;
+  v_j        INTEGER;
+  v_next_id  UUID;
+  v_winner   UUID;
+  v_pass     INTEGER;
+BEGIN
+  IF NOT public.is_tournament_organizer(p_tournament_id)
+     AND NOT public.is_super_admin() THEN
+    RAISE EXCEPTION 'Not authorized' USING ERRCODE = '42501';
+  END IF;
+
+  SELECT format INTO v_format FROM public.tournaments WHERE id = p_tournament_id;
+  IF v_format IS NULL THEN
+    RAISE EXCEPTION 'Choose a format (knockout or league) first';
+  END IF;
+
+  -- Regeneration: clear previous matches (teams and rosters are kept).
+  DELETE FROM public.tournament_matches WHERE tournament_id = p_tournament_id;
+
+  SELECT array_agg(id ORDER BY created_at, id) INTO v_team_ids
+  FROM public.tournament_teams
+  WHERE tournament_id = p_tournament_id;
+  v_n := COALESCE(array_length(v_team_ids, 1), 0);
+  IF v_n < 2 THEN
+    RAISE EXCEPTION 'Add at least 2 teams before generating fixtures';
+  END IF;
+
+  -- ── Knockout: seeded single-elimination bracket ──
+  IF v_format = 'knockout' THEN
+    v_padded := 2 ^ ceil(log(2, v_n::numeric))::int;  -- next power of two
+    v_rounds := ceil(log(2, v_padded::numeric))::int;
+
+    -- (round, slot) → match id scratch table for wiring the bracket.
+    CREATE TEMP TABLE _bracket ON COMMIT DROP AS
+      SELECT NULL::INTEGER AS round, NULL::INTEGER AS slot, NULL::UUID AS id
+      WHERE false;
+
+    -- Build from the final down to round 1; leafs get the seeded teams.
+    FOR v_round IN REVERSE v_rounds..1 LOOP
+      FOR v_slot IN 1..(2 ^ (v_round - 1)) LOOP
+        v_a := NULL;
+        v_b := NULL;
+        IF v_round = 1 THEN
+          -- Slot s plays leaf positions 2s-1 vs 2s (1-indexed).
+          IF (2 * v_slot - 1) <= v_n THEN v_a := v_team_ids[2 * v_slot - 1]; END IF;
+          IF (2 * v_slot)     <= v_n THEN v_b := v_team_ids[2 * v_slot];     END IF;
+        END IF;
+
+        v_span := (v_padded / (2 ^ (v_round - 1)))::INTEGER;
+        v_name := CASE v_span
+          WHEN 2 THEN 'Final'
+          WHEN 4 THEN 'Semi-final'
+          WHEN 8 THEN 'Quarter-final'
+          ELSE 'Round of ' || v_span
+        END;
+
+        -- Round 1 pairs play in slot order; later rounds wait for both feeds.
+        INSERT INTO public.tournament_matches
+          (tournament_id, round_name, team_a_id, team_b_id, prev_match_a_id, prev_match_b_id, slot, status)
+        VALUES
+          (p_tournament_id, v_name, v_a, v_b,
+           CASE WHEN v_round < v_rounds THEN NULL ELSE NULL END,  -- wired below
+           NULL, v_slot, 'scheduled')
+        RETURNING id INTO v_id;
+
+        INSERT INTO _bracket (round, slot, id) VALUES (v_round, v_slot, v_id);
+        v_created := v_created + 1;
+      END LOOP;
+    END LOOP;
+
+    -- Wire prev_match_a/b: match (r, s) is fed by (r+1, 2s-1) and (r+1, 2s).
+    FOR v_round IN 1..(v_rounds - 1) LOOP
+      FOR v_slot IN 1..(2 ^ (v_round - 1)) LOOP
+        SELECT id INTO v_id FROM _bracket WHERE round = v_round AND slot = v_slot;
+        UPDATE public.tournament_matches SET
+          prev_match_a_id = (SELECT id FROM _bracket WHERE round = v_round + 1 AND slot = 2 * v_slot - 1),
+          prev_match_b_id = (SELECT id FROM _bracket WHERE round = v_round + 1 AND slot = 2 * v_slot)
+        WHERE id = v_id;
+      END LOOP;
+    END LOOP;
+
+    -- Resolve byes: first, round-1 leaves with no teams at all (double
+    -- byes, e.g. a 5-team 8-bracket) are dead matches — cancel them.
+    UPDATE public.tournament_matches
+    SET status = 'canceled', notes = 'bye'
+    WHERE tournament_id = p_tournament_id
+      AND prev_match_a_id IS NULL AND prev_match_b_id IS NULL
+      AND team_a_id IS NULL AND team_b_id IS NULL;
+
+    -- Then walk over one-sided leaves (a real team vs a bye): the winner
+    -- advances and the bye leg is canceled. Repeat: advancing can make the
+    -- next round one-sided too (cascading byes up to the final).
+    FOR v_pass IN 1..v_rounds LOOP
+      FOR v_match_no IN 1..v_created LOOP
+        SELECT * INTO v_team FROM public.tournament_matches
+        WHERE tournament_id = p_tournament_id
+          AND status = 'scheduled'
+          AND (team_a_id IS NULL) <> (team_b_id IS NULL)
+        LIMIT 1;
+        EXIT WHEN NOT FOUND;
+        v_winner := COALESCE(v_team.team_a_id, v_team.team_b_id);
+        UPDATE public.tournament_matches
+        SET status = 'canceled', notes = 'bye'
+        WHERE id = v_team.id;
+        SELECT id INTO v_next_id
+        FROM public.tournament_matches
+        WHERE prev_match_a_id = v_team.id OR prev_match_b_id = v_team.id
+        LIMIT 1;
+        IF v_next_id IS NOT NULL THEN
+          UPDATE public.tournament_matches SET
+            team_a_id = CASE WHEN prev_match_a_id = v_team.id THEN v_winner ELSE team_a_id END,
+            team_b_id = CASE WHEN prev_match_b_id = v_team.id THEN v_winner ELSE team_b_id END
+          WHERE id = v_next_id;
+        END IF;
+      END LOOP;
+    END LOOP;
+
+  -- ── League: double round-robin (circle method) ──
+  ELSE
+    -- Odd number of teams → add a NULL "bye" pseudo-team.
+    IF v_n % 2 = 1 THEN
+      v_team_ids := array_append(v_team_ids, NULL);
+      v_n := v_n + 1;
+    END IF;
+
+    -- Circle method: seat 1 is fixed, seats 2..n rotate one step per round.
+    -- Seating in round r (0-based): seats[k] = rotating team (k - 2 + r) mod (n-1) + 2.
+    FOR v_round IN 0..(v_n - 2) LOOP
+      v_seats[1] := v_team_ids[1];
+      FOR v_i IN 2..v_n LOOP
+        v_seats[v_i] := v_team_ids[(((v_i - 2 + v_round) % (v_n - 1)) + 2)];
+      END LOOP;
+      FOR v_i IN 1..(v_n / 2) LOOP
+        v_j := v_n + 1 - v_i;
+        v_a := v_seats[v_i];
+        v_b := v_seats[v_j];
+        v_match_no := v_match_no + 1;
+        INSERT INTO public.tournament_matches
+          (tournament_id, round_name, team_a_id, team_b_id, slot, status)
+        VALUES
+          (p_tournament_id, 'Matchday ' || (v_round + 1), v_a, v_b, v_match_no, 'scheduled');
+        v_created := v_created + 1;
+      END LOOP;
+    END LOOP;
+
+    -- Second half of the season: return legs with swapped home/away.
+    FOR v_round IN 0..(v_n - 2) LOOP
+      v_seats[1] := v_team_ids[1];
+      FOR v_i IN 2..v_n LOOP
+        v_seats[v_i] := v_team_ids[(((v_i - 2 + v_round) % (v_n - 1)) + 2)];
+      END LOOP;
+      FOR v_i IN 1..(v_n / 2) LOOP
+        v_j := v_n + 1 - v_i;
+        v_a := v_seats[v_j];
+        v_b := v_seats[v_i];
+        v_match_no := v_match_no + 1;
+        INSERT INTO public.tournament_matches
+          (tournament_id, round_name, team_a_id, team_b_id, slot, status)
+        VALUES
+          (p_tournament_id, 'Matchday ' || (v_round + v_n), v_a, v_b, v_match_no, 'scheduled');
+        v_created := v_created + 1;
+      END LOOP;
+    END LOOP;
+  END IF;
+
+  RETURN v_created;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.generate_tournament_fixtures(UUID) TO authenticated;
+
 NOTIFY pgrst, 'reload schema';

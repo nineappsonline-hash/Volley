@@ -37,6 +37,7 @@ const TYPE_ICONS: Record<NotificationType, typeof Bell> = {
   game_alert: Bell,
   game_cancelled: Flag,
   game_result: Trophy,
+  tournament_announced: Trophy,
 };
 
 export function Notifications() {

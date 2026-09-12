@@ -2,47 +2,73 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LandingPage } from "@/components/marketing/landing";
 import { createClient } from "@/lib/supabase/server";
+import { dictionary } from "@/lib/i18n/dictionary";
+import {
+  OG_IMAGE,
+  SITE_URL,
+  breadcrumbsJsonLd,
+  faqPageJsonLd,
+  jsonLdStringify,
+  landingFaqItems,
+  organizationJsonLd,
+  softwareAppJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title:
-    "بلايزا Playza — لعب أكتر وتنظيم أسهل",
+  title: "بلايزا Playza — أكاديميات وجيمز وماتشات في مصر | مكانك في الملعب",
   description:
-    "اكتشف أكاديمية أو جيم مناسب، تابع تدريب ولادك وتطورهم، ونظم أكاديميتك من مكان واحد. بلايزا بيجمع اللاعبين وأولياء الأمور وأصحاب الأكاديميات.",
+    "اكتشف أكاديمية كرة قدم أو طائرة أو سلة أو بادل أو سباحة قريبة منك في مصر، تابع تدريب ولادك وتطورهم، ونظم أكاديميتك من مكان واحد: اشتراكات، حضور، مدفوعات وأرباح. بلايزا بيجمع اللاعبين وأولياء الأمور وأصحاب الأكاديميات.",
   keywords: [
+    // Egypt local intent (Arabic-first)
+    "أكاديميات رياضية في مصر",
+    "أكاديمية كرة قدم في القاهرة",
+    "أكاديمية كرة قدم للأطفال",
+    "مدرب كرة قدم للأطفال",
+    "أكاديمية كرة طائرة مصر",
+    "أكاديمية بادل مصر",
+    "حجز ماتش كرة قدم",
+    "لعب كرة القدم",
+    "ماتشات ودية",
+    "تدريب رياضي للأطفال",
+    "جيم ودية",
+    "إيجار ملعب",
+    // Management-intent (owners)
+    "برنامج إدارة أكاديمية",
+    "نظام إدارة أكاديمية رياضية",
+    "إدارة اشتراكات الأكاديمية",
+    "نظام حضور وغياب",
+    "تتبع أرباح الأكاديمية",
+    "إدارة المدفوعات",
+    // English
     "sports academy management",
     "academy management software",
+    "football academy Egypt",
     "volleyball academy",
-    "football academy",
-    "basketball academy",
     "padel academy",
-    "swimming academy",
-    "نظام إدارة أكاديمية",
-    "إدارة أعضاء أكاديمية",
-    "نظام حضور وغياب",
-    "إدارة المدفوعات",
-    "تتبع أرباح",
-    "Egypt sports software",
-    "Gulf academy management",
-    "multi-sport academy",
+    "friendly football matches",
+    "find sports academy",
   ],
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    title:
-      "بلايزا Playza — مكانك في الملعب",
+    title: "بلايزا Playza — مكانك في الملعب",
     description:
       "العب واتابع تطورك، تابع تمرين ولادك، أو نظم أكاديميتك. اكتشف المواعيد والحضور والتقييمات والجيمز الودية مع بلايزا.",
-    url: "https://volley-academy.vercel.app",
+    url: SITE_URL,
     siteName: "Playza",
-    images: [{ url: "/logo.webp", width: 1200, height: 630 }],
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
     locale: "ar_EG",
+    alternateLocale: ["en_US"],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title:
-      "بلايزا Playza — مكانك في الملعب",
+    title: "بلايزا Playza — مكانك في الملعب",
     description:
-      "بلايزا بيجمع رحلتك الرياضية: أكاديميات، جيمز ودية، حضور، اشتراكات ومتابعة تطور اللاعبين.",
-    images: ["/logo.webp"],
+      "بلايزا بيجمع رحلتك الرياضية: أكاديميات، ماتشات ودية، حضور، اشتراكات ومتابعة تطور اللاعبين.",
+    images: [OG_IMAGE],
   },
 };
 
@@ -54,36 +80,36 @@ export default async function HomePage() {
 
   if (user) redirect("/dashboard");
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
-    name: 'Playza',
-    applicationCategory: 'BusinessApplication',
-    operatingSystem: 'Web',
-    description:
-      'The all-in-one management platform for sports academies in Egypt and the Gulf. Manage members, attendance, payments, scheduling and automatic profit tracking.',
-    url: 'https://volley-academy.vercel.app',
-    featureList: [
-      'Sports academy management',
-      'Member and subscription management',
-      'Attendance tracking with QR code check-in',
-      'Automatic profit and loss calculation',
-      'Training schedule and calendar management',
-      'Payment and receipt management',
-      'Multi-sport support: volleyball, football, basketball, padel, swimming',
-      'Bilingual English and Arabic (RTL)',
-      'Financial reports and analytics',
-      'Bilingual English and Arabic support',
-    ],
-    keywords:
-      'sports academy, volleyball academy, football academy, basketball, padel, swimming, membership management, attendance tracking, أكاديمية رياضية إدارة',
-  };
+  // The FAQ lives in the client i18n dictionary; schema.org needs it at build
+  // time, so read both languages from the dictionary directly.
+  const faqEn: [string, string][] = [
+    [dictionary.en.landing_faq1_q, dictionary.en.landing_faq1_a],
+    [dictionary.en.landing_faq2_q, dictionary.en.landing_faq2_a],
+    [dictionary.en.landing_faq3_q, dictionary.en.landing_faq3_a],
+    [dictionary.en.landing_faq4_q, dictionary.en.landing_faq4_a],
+  ];
+  const faqAr: [string, string][] = [
+    [dictionary.ar.landing_faq1_q, dictionary.ar.landing_faq1_a],
+    [dictionary.ar.landing_faq2_q, dictionary.ar.landing_faq2_a],
+    [dictionary.ar.landing_faq3_q, dictionary.ar.landing_faq3_a],
+    [dictionary.ar.landing_faq4_q, dictionary.ar.landing_faq4_a],
+  ];
+
+  const jsonLd = [
+    organizationJsonLd(),
+    websiteJsonLd(),
+    softwareAppJsonLd(),
+    // Only the visible (default Arabic) FAQ qualifies for the rich result;
+    // English is emitted in-session when the user toggles language.
+    faqPageJsonLd(landingFaqItems(faqAr)),
+    breadcrumbsJsonLd([{ name: "الرئيسية", url: SITE_URL }]),
+  ];
 
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@graph": jsonLd }) }}
       />
       <LandingPage />
     </>

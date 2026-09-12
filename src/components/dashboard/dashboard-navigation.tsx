@@ -17,12 +17,12 @@ export function DashboardNavigation({ admin = false, hasQr = false }: { admin?: 
     { href: hasQr ? "/profile#checkin" : "/academies", icon: hasQr ? QrCode : Building2, title: hasQr ? (ar ? "كود الحضور" : "Attendance QR") : (ar ? "اكتشف أكاديمية" : "Find an academy"), hint: ar ? "خطوتك الجاية في التدريب" : "Your next training step" },
     { href: "/parent", icon: Users, title: ar ? "لوحة عيلتي" : "My family", hint: ar ? "تابع ولادك من مكان واحد" : "Follow your children in one place" },
     { href: "/profile#evaluations", icon: TrendingUp, title: ar ? "تقييمي وتطوري" : "Feedback & progress", hint: ar ? "ملاحظات المدرب وتقييمات الأداء" : "Coach feedback and evaluations" },
-    { href: "/games", icon: Volleyball, title: ar ? "لاقي ماتش" : "Find a game", hint: ar ? "العب واتعرف على لاعبين" : "Play and meet other players" },
+    { href: "/dashboard/games", icon: Volleyball, title: ar ? "لاقي ماتش" : "Find a game", hint: ar ? "العب واتعرف على لاعبين" : "Play and meet other players" },
   ];
   return <div className={styles.intro}>
     <div className={styles.introTop}><div><span className={styles.eyebrow}>{ar ? "خطوتك الجاية" : "Your next step"}</span><h2>{admin ? (ar ? "إدارة أوضح. يوم أسهل." : "Clearer management. A smoother day.") : (ar ? "جاهز لتمرينتك الجاية؟" : "Ready for your next session?")}</h2><p>{admin ? (ar ? "ابدأ بالمهمة اللي محتاجها، وتابع باقي أكاديميتك من الأقسام تحت." : "Start with a task, then explore your academy overview below.") : (ar ? "حضورك، تطورك، وعيلتك… كل حاجة قريبة منك." : "Your attendance, progress and family, all within reach.")}</p></div><CalendarDays className={styles.heroIcon} aria-hidden="true" /></div>
     <nav className={styles.actions} aria-label={ar ? "إجراءات سريعة" : "Quick actions"}>{actions.map(({href, icon: Icon, title, hint}) => <Link key={href} href={href} className={styles.action}><span className={styles.actionIcon}><Icon size={22} /></span><span><strong>{title}</strong><small>{hint}</small></span><ArrowUpRight size={16} className={styles.arrow} aria-hidden="true" /></Link>)}</nav>
-    <nav className={styles.sections} aria-label={ar ? "أقسام لوحة التحكم" : "Dashboard sections"}>{[["overview", ar ? "نظرة عامة" : "Overview"], ["training", ar ? "التدريب والمتابعة" : "Training & activity"], ["updates", ar ? "الأخبار والتنبيهات" : "Updates"]].map(([id, label]) => <a key={id} href={`#${id}`}>{label}</a>)}</nav>
+    <nav className={styles.sections} aria-label={ar ? "أقسام لوحة التحكم" : "Dashboard sections"}>{[["overview", ar ? "نظرة عامة" : "Overview"], ["training", ar ? "التدريب والمتابعة" : "Training & activity"], ["tournaments", ar ? "بطولاتي" : "Tournaments"], ["updates", ar ? "الأخبار والتنبيهات" : "Updates"]].map(([id, label]) => <a key={id} href={`#${id}`}>{label}</a>)}</nav>
   </div>;
 }
 
