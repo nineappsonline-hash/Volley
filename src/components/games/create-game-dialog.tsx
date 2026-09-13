@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   LandPlot,
   Plus,
+  AlertTriangle,
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,8 +33,10 @@ import { useI18n } from "@/lib/i18n";
 import { COMMUNITY_SPORTS } from "@/lib/constants";
 import { GameCostEstimate } from "@/components/games/game-cost-estimate";
 import { PlaygroundPicker } from "@/components/shared/playground-picker";
-import { useCreateFriendlyGame, usePlaygrounds } from "@/lib/queries";
+import { useCreateFriendlyGame, useFriendlyGames, usePlaygrounds } from "@/lib/queries";
 import { errorMessage, todayInput } from "@/lib/utils";
+import { findBlockedOverlap, formatBlockedSlot, timeSlotsOverlap } from "@/lib/venue-slots";
+import type { Dict } from "@/lib/i18n/dictionary";
 
 export function CreateGameDialog({
   open,
@@ -48,6 +51,7 @@ export function CreateGameDialog({
   const isPro = memberPlan === "premium";
   const create = useCreateFriendlyGame();
   const { data: playgrounds } = usePlaygrounds();
+  const { data: allGames } = useFriendlyGames();
 
   const [title, setTitle] = useState("");
   const [sport, setSport] = useState("");
@@ -94,6 +98,27 @@ export function CreateGameDialog({
 
   const selectedPlayground = playgrounds?.find((p) => p.id === playgroundId);
 
+  const blockedSlot = (() => {
+    if (!selectedPlayground?.unavailable_slots?.length || !date || !time) return null;
+    return findBlockedOverlap(selectedPlayground.unavailable_slots, date, time, Number(duration) || 1);
+  })();
+
+  const gameCourt = (() => {
+    if (!selectedPlayground || !date || !time) return { court: 0, courtCount: 1 };
+    const courtCount = selectedPlayground.court_count ?? 1;
+    const durationH = Number(duration) || 1;
+    for (let court = 1; court <= courtCount; court++) {
+      const taken = (allGames ?? []).some((g) => {
+        if (g.playground_id !== playgroundId || g.game_date !== date) return false;
+        if ((g.court_number ?? 1) !== court) return false;
+        return timeSlotsOverlap(time, durationH, g.start_time, Number(g.duration_hours) || 1);
+      });
+      if (!taken) return { court, courtCount };
+    }
+    return { court: 0, courtCount };
+  })();
+  const gamesBooked = gameCourt.court === 0 && !!selectedPlayground && !!date && !!time;
+
   const handleCreate = async () => {
     if (!Number.isInteger(Number(minPlayers)) || !Number.isInteger(Number(maxPlayers)) || Number(minPlayers) < 2 || Number(maxPlayers) < Number(minPlayers) || !Number.isFinite(Number(duration)) || Number(duration) <= 0 || Number(duration) > 24) {
       toast.error(lang === "ar" ? "راجع الحد الأدنى والأقصى للاعبين والمدة (أكتر من صفر ولحد 24 ساعة)." : "Check player limits and duration (greater than zero, up to 24 hours)."); return;
@@ -107,6 +132,14 @@ export function CreateGameDialog({
     }
     if (min != null && max != null && min > max) {
       toast.error(t("games_age_invalid"));
+      return;
+    }
+    if (blockedSlot) {
+      toast.error(t("unavail_blocked_msg").replace("{slot}", formatBlockedSlot(blockedSlot, d => t(`avail_day_${d}` as keyof Dict))));
+      return;
+    }
+    if (gamesBooked) {
+      toast.error(t("games_all_booked").replace("{count}", String(gameCourt.courtCount)));
       return;
     }
     try {
@@ -142,6 +175,8 @@ export function CreateGameDialog({
     !!sport &&
     !!date &&
     !!time &&
+    !blockedSlot &&
+    !gamesBooked &&
     !create.isPending;
 
   return (
@@ -249,38 +284,56 @@ export function CreateGameDialog({
           </div>
 
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <div className="space-y-2">
-              <Label>{t("community_date")}</Label>
-              <Input
-                type="date"
-                dir="ltr"
-                min={todayInput()}
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
+              <div className="space-y-2">
+                <Label>{t("community_date")}</Label>
+                <Input
+                  type="date"
+                  dir="ltr"
+                  min={todayInput()}
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("community_time")}</Label>
+                <Input
+                  type="time"
+                  dir="ltr"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("community_max_players")}</Label>
+                <Input
+                  type="number"
+                  min="2"
+                  max="30"
+                  dir="ltr"
+                  value={maxPlayers}
+                  onChange={(e) => setMaxPlayers(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2" />
             </div>
-            <div className="space-y-2">
-              <Label>{t("community_time")}</Label>
-              <Input
-                type="time"
-                dir="ltr"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t("community_max_players")}</Label>
-              <Input
-                type="number"
-                min="2"
-                max="30"
-                dir="ltr"
-                value={maxPlayers}
-                onChange={(e) => setMaxPlayers(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2" />
-          </div>
+
+            {blockedSlot && (
+              <p className="flex items-center gap-1.5 rounded bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                {t("unavail_inline").replace("{slot}", formatBlockedSlot(blockedSlot, (d) => t(`avail_day_${d}` as keyof Dict)))}
+              </p>
+            )}
+            {gamesBooked && (
+              <p className="flex items-center gap-1.5 rounded bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                {t("games_all_booked").replace("{count}", String(gameCourt.courtCount))}
+              </p>
+            )}
+            {!gamesBooked && !!selectedPlayground && !!date && !!time && gameCourt.court > 0 && (
+              <p className="flex items-center gap-1.5 rounded bg-muted px-3 py-2 text-xs text-muted-foreground">
+                {t("games_court_preview").replace("{court}", String(gameCourt.court))}
+              </p>
+            )}
 
           <div className="space-y-2">
             <Label>{t("community_description")}</Label>

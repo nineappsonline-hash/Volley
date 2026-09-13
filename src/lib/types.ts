@@ -163,7 +163,18 @@ export interface Venue {
   country: string | null;
   governorate: string | null;
   area: string | null;
+  /** Weekly windows when the playground is always unavailable.
+   * weekday: 0 = Sunday … 6 = Saturday; start/end are "HH:MM" 24h. */
+  unavailable_slots?: VenueUnavailableSlot[];
+  // How many simultaneous courts the playground has (default 1).
+  court_count?: number;
   created_at: string;
+}
+
+export interface VenueUnavailableSlot {
+  weekday: number;
+  start: string;
+  end: string;
 }
 
 export type RentalPaymentMethod = "cash" | "bank_transfer" | "e_wallet";
@@ -193,6 +204,8 @@ export interface VenueRental {
   is_paid: boolean;
   payment_method: RentalPaymentMethod | null;
   notes: string | null;
+  // Which court this rental occupies (1 = first court, set automatically).
+  court_number?: number;
   created_at: string;
   // Embedded select: venue name (via venues(name)).
   venues?: { name: string } | null;
@@ -591,6 +604,8 @@ export interface FriendlyGame {
   lat: number | null;
   lng: number | null;
   playground_id: string | null;
+  // Which court this game occupies (NULL when no playground is assigned).
+  court_number?: number | null;
   playground: {
     name: string | null;
     area: string | null;

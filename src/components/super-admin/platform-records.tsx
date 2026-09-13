@@ -13,17 +13,24 @@ import { matchesAdminSearch } from "@/lib/admin-record-search";
 import { rentalCoverage, type RentalInterval } from "@/lib/admin-schedule";
 import { PLATFORM_ADMIN_EMAIL, matchesAccountEmail } from "@/lib/platform-admin";
 import { useSuperAdminDeleteAcademy } from "@/lib/queries";
-import type { Academy } from "@/lib/types";
+import type { Academy, VenueUnavailableSlot } from "@/lib/types";
 import type { Dict } from "@/lib/i18n/dictionary";
 import { useI18n } from "@/lib/i18n";
+import { blockedIntervalsForDate, formatBlockedSlot, isValidSlotList, weekdayOf } from "@/lib/venue-slots";
 import { ProfileAvatar } from "@/components/shared/profile-avatar";
 import { AcademyEditDialog } from "./academy-edit-dialog";
 import { LocationFields } from "@/components/shared/location-fields";
 import { Label } from "@/components/ui/label";
-import { Plus } from "lucide-react";
+import { Ban, Plus, Trash2 } from "lucide-react";
 
 type Row = Record<string, any>;
 type Records = Record<string, Row[]>;
+
+/** Venue draft (create/edit dialog state) with a typed excluded-times list. */
+interface VenueDraft extends Row {
+  unavailable_slots?: VenueUnavailableSlot[];
+  court_count?: string | number;
+}
 
 /** Label lookup for detail rows built with canonical English keys. */
 const ROW_LABELS: Record<string, keyof Dict> = {
@@ -192,7 +199,7 @@ export function PlatformRecords() {
   const [deletingVenue, setDeletingVenue] = useState<Row | null>(null);
   const [deleting, setDeleting] = useState<Row | null>(null);
   const [editingAcademy, setEditingAcademy] = useState<Academy | null>(null);
-  const [editingVenue, setEditingVenue] = useState<Row | null>(null);
+  const [editingVenue, setEditingVenue] = useState<VenueDraft | null>(null);
   const [deletingAcademy, setDeletingAcademy] = useState<Academy | null>(null);
   const [confirmation, setConfirmation] = useState("");
   const [busy, setBusy] = useState(false);
@@ -261,7 +268,7 @@ export function PlatformRecords() {
     <CardHeader><CardTitle>{t("sa_records_title")}</CardTitle><p className="text-sm text-muted-foreground">{t("sa_records_counts").replace("{accounts}", String(data.profiles.length)).replace("{academies}", String(data.academies.length)).replace("{games}", String(data.friendly_games.length)).replace("{playgrounds}", String(data.venues.length))}</p></CardHeader>
     <CardContent className="space-y-4">
       <div className="flex flex-wrap gap-2" role="tablist" aria-label={t("sa_records_title")}>{tabs.map(item => <Button key={item.value} role="tab" aria-selected={tab === item.value} variant={tab === item.value ? "default" : "outline"} onClick={() => { router.push(`/admin?tab=${encodeURIComponent(item.value)}`, { scroll: false }); }}>{item.label}</Button>)}</div>
-      <div className="flex flex-wrap gap-2"><Input className="max-w-sm" type="search" aria-label={searchLabel} placeholder={`${searchLabel}…`} value={search} onChange={e => setSearch(e.target.value)} />{tab === "Playgrounds" && <Input className="w-auto" type="date" aria-label={t("sa_records_schedule_date")} value={date} onChange={e => setDate(e.target.value)} />}{tab === "Playgrounds" && <Button disabled={busy} onClick={() => setEditingVenue({ name: "", address: "", capacity: "", sport_id: null, school_name: "", rental_cost: "", rental_hours: "1", country: "", governorate: "", area: "", contact_person: "", contact_phone: "", lat: "", lng: "", academy_id: null })}><Plus className="mr-1 h-4 w-4 rtl:ml-1 rtl:mr-0" />{t("sa_records_add_playground")}</Button>}<Button variant="outline" onClick={() => refetch()}>{t("sa_records_refresh")}</Button></div>
+      <div className="flex flex-wrap gap-2"><Input className="max-w-sm" type="search" aria-label={searchLabel} placeholder={`${searchLabel}…`} value={search} onChange={e => setSearch(e.target.value)} />{tab === "Playgrounds" && <Input className="w-auto" type="date" aria-label={t("sa_records_schedule_date")} value={date} onChange={e => setDate(e.target.value)} />}{tab === "Playgrounds" && <Button disabled={busy} onClick={() => setEditingVenue({ name: "", address: "", capacity: "", sport_id: null, school_name: "", rental_cost: "", rental_hours: "1", country: "", governorate: "", area: "", contact_person: "", contact_phone: "", lat: "", lng: "", academy_id: null, court_count: "1", unavailable_slots: [] })}><Plus className="mr-1 h-4 w-4 rtl:ml-1 rtl:mr-0" />{t("sa_records_add_playground")}</Button>}<Button variant="outline" onClick={() => refetch()}>{t("sa_records_refresh")}</Button></div>
       {tab === "Playgrounds" && <p className="text-sm text-muted-foreground">{t("sa_records_schedule_note")}</p>}
       <p className="text-xs text-muted-foreground">{t("sa_records_results").replace("{shown}", String(rows.length)).replace("{total}", String(source.length))}</p>
       <div className="max-h-[650px] space-y-3 overflow-auto">
@@ -271,7 +278,8 @@ export function PlatformRecords() {
         const protectedAccount = row.email?.toLowerCase() === PLATFORM_ADMIN_EMAIL;
         const rentals = data.venue_rentals.filter(r => r.venue_id === row.id && r.rental_date === date);
         const events = [...rentals.map(r => ({ time: r.start_time, label: `${t("sa_rental")} · ${r.customer_name} · ${r.hours} ${t("sa_records_hours")} · ${r.is_paid ? t("sa_records_paid") : t("sa_records_unpaid")}` })), ...data.training_sessions.filter(r => r.venue_id === row.id && r.date === date && r.status !== "canceled").map(r => ({ time: r.time, label: `${t("sa_training")} · ${t(STATUS_LABELS[r.status] ?? "sa_records_scheduled")} · ${t("sa_records_end_time_unknown")}` })), ...data.tournament_matches.filter(r => r.venue_id === row.id && r.match_date === date && r.status !== "canceled").map(r => ({ time: r.match_time ?? "", label: `${t("sa_tournament")} · ${r.round_name} · ${t("sa_records_end_time_unknown")}` }))].sort((a,b) => a.time.localeCompare(b.time));
-        const { occupied, gaps } = rentalCoverage(data.venue_rentals.filter(r => r.venue_id === row.id) as RentalInterval[], date);
+        const blockedToday = ((row.unavailable_slots ?? []) as VenueUnavailableSlot[]).filter(s => weekdayOf(date) === s.weekday);
+        const { occupied, gaps } = rentalCoverage(data.venue_rentals.filter(r => r.venue_id === row.id) as RentalInterval[], date, blockedIntervalsForDate((row.unavailable_slots ?? []) as VenueUnavailableSlot[], date));
         return <article key={row.id} className="rounded-xl border p-4 space-y-3">
           <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 flex-1">
             <div className="flex items-center gap-2.5">
@@ -293,7 +301,7 @@ export function PlatformRecords() {
             <div><dt className="text-xs text-muted-foreground">{t("sa_academy_subscription")}</dt><dd className="mt-1 font-medium">{row.academy_id && row.subscription_sessions > 0 ? `${row.membership_type === "half" ? t("sa_half") : t("sa_full")} · ${row.subscription_sessions} ${t("sa_records_sessions")}` : t("sa_no_subscription")}</dd></div>
             <div><dt className="text-xs text-muted-foreground">{t("sa_sessions_attended")}</dt><dd className="mt-1 font-medium">{row.sessions_attended ?? 0}</dd></div>
           </dl>}
-          {tab === "Playgrounds" && <div className="space-y-2 text-sm"><p className="font-medium">{t("sa_records_rental_hours_today").replace("{hours}", (occupied / 60).toFixed(1)).replace("{percent}", String(Math.round(occupied / 1440 * 100)))}</p>{events.map((event,i) => <p key={i} className="rounded bg-muted p-2">{event.time.slice(0,5) || t("sa_records_time_unknown")} · {event.label}</p>)}{events.length === 0 && <p>{t("sa_records_no_bookings")}</p>}<p className="text-muted-foreground">{t("sa_records_rental_gaps").replace("{gaps}", gaps.join(", ") || t("sa_records_none_gaps"))}</p></div>}
+          {tab === "Playgrounds" && <div className="space-y-2 text-sm"><p className="font-medium">{t("sa_records_rental_hours_today").replace("{hours}", (occupied / 60).toFixed(1)).replace("{percent}", String(Math.round(occupied / 1440 * 100)))}</p>{events.map((event,i) => <p key={i} className="rounded bg-muted p-2">{event.time.slice(0,5) || t("sa_records_time_unknown")} · {event.label}</p>)}{blockedToday.map((slot,i) => <p key={`blocked-${i}`} className="flex items-center gap-1.5 rounded bg-destructive/10 p-2 text-destructive"><Ban className="h-3.5 w-3.5" />{t("sa_records_blocked_slot").replace("{slot}", formatBlockedSlot(slot, d => t(`avail_day_${d}` as keyof Dict)))}</p>)}{events.length === 0 && blockedToday.length === 0 && <p>{t("sa_records_no_bookings")}</p>}<p className="text-muted-foreground">{t("sa_records_rental_gaps").replace("{gaps}", gaps.join(", ") || t("sa_records_none_gaps"))}</p></div>}
         </article>;
       })}</div>
       <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle>{selected?.name ?? selected?.title ?? t("sa_records_record_details")}</DialogTitle><DialogDescription>{tab === "Members" ? t("sa_records_detail_member") : tab === "Academies" ? t("sa_records_detail_academy") : t("sa_records_detail_other")}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails member={selected} data={data} /> : tab === "Academies" ? <AcademyDetails academy={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && tab !== "Academies" && Object.entries(related).map(([label, records]) => <details key={label}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => label === "Participants" ? <AcademyMemberRow key={r.id} member={r} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
@@ -308,7 +316,7 @@ export function PlatformRecords() {
       <Dialog open={!!deleting} onOpenChange={open => !busy && !open && setDeleting(null)}><DialogContent><DialogHeader><DialogTitle>{t("sa_delete_account_title")}</DialogTitle><DialogDescription>{t("sa_delete_account_body").replace("{phrase}", confirmPhrase(deleting) ?? "")}</DialogDescription></DialogHeader><Input aria-label={t("sa_confirmation")} value={confirmation} onChange={e => setConfirmation(e.target.value)} /><Button variant="destructive" disabled={busy || !confirmMatches(confirmation, deleting)} onClick={() => act({ action: "delete", id: deleting!.id, confirmation })}>{busy ? t("sa_deleting") : t("sa_permanently_delete")}</Button></DialogContent></Dialog>
       <AlertDialog open={!!deletingAcademy} onOpenChange={open => !removeAcademy.isPending && !open && setDeletingAcademy(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{t("sa_delete_academy_title")}</AlertDialogTitle><AlertDialogDescription>{t("sa_delete_academy_body").replace("{name}", deletingAcademy?.name ?? "")}</AlertDialogDescription></AlertDialogHeader><Input aria-label={t("sa_academy")} value={confirmation} onChange={e => setConfirmation(e.target.value)} /><AlertDialogFooter><AlertDialogCancel disabled={removeAcademy.isPending}>{t("sa_cancel")}</AlertDialogCancel><AlertDialogAction asChild><Button variant="destructive" disabled={removeAcademy.isPending || confirmation !== deletingAcademy?.name} onClick={async () => { try { await removeAcademy.mutateAsync(deletingAcademy!.id); toast.success(t("sa_academy_deleted")); setDeletingAcademy(null); setConfirmation(""); await cache.invalidateQueries(); } catch (e) { toast.error(e instanceof Error ? e.message : t("sa_deletion_failed")); } }}>{removeAcademy.isPending ? t("sa_deleting") : t("sa_permanently_delete")}</Button></AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
       <AcademyEditDialog academy={editingAcademy} onClose={() => setEditingAcademy(null)} onDeleted={() => { setEditingAcademy(null); cache.invalidateQueries(); }} />
-      <Dialog open={!!editingVenue} onOpenChange={open => !busy && !open && setEditingVenue(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>{editingVenue?.id ? t("sa_edit_playground") : t("sa_add_playground")}</DialogTitle><DialogDescription>{editingVenue?.id ? editingVenue.name : t("sa_add_playground_desc")}</DialogDescription></DialogHeader>{editingVenue && <form className="space-y-4" onSubmit={e => { e.preventDefault(); act({ action: "venue", ...(editingVenue.id ? { id: editingVenue.id } : {}), academy_id: editingVenue.academy_id ?? null, name: editingVenue.name, address: editingVenue.address, capacity: editingVenue.capacity, sport_id: editingVenue.sport_id ?? "", school_name: editingVenue.school_name, rental_cost: editingVenue.rental_cost, rental_hours: editingVenue.rental_hours, country: editingVenue.country, governorate: editingVenue.governorate, city: editingVenue.area, contact_person: editingVenue.contact_person, contact_phone: editingVenue.contact_phone }); }}>
+      <Dialog open={!!editingVenue} onOpenChange={open => !busy && !open && setEditingVenue(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>{editingVenue?.id ? t("sa_edit_playground") : t("sa_add_playground")}</DialogTitle><DialogDescription>{editingVenue?.id ? editingVenue.name : t("sa_add_playground_desc")}</DialogDescription></DialogHeader>{editingVenue && <form className="space-y-4" onSubmit={e => { e.preventDefault(); if (!isValidSlotList(editingVenue.unavailable_slots)) { toast.error(t("sa_unavail_invalid")); return; } act({ action: "venue", ...(editingVenue.id ? { id: editingVenue.id } : {}), academy_id: editingVenue.academy_id ?? null, name: editingVenue.name, address: editingVenue.address, capacity: editingVenue.capacity, sport_id: editingVenue.sport_id ?? "", school_name: editingVenue.school_name, rental_cost: editingVenue.rental_cost, rental_hours: editingVenue.rental_hours, country: editingVenue.country, governorate: editingVenue.governorate, city: editingVenue.area, contact_person: editingVenue.contact_person, contact_phone: editingVenue.contact_phone, court_count: Number(editingVenue.court_count) || 1, unavailable_slots: ((editingVenue.unavailable_slots ?? []) as VenueUnavailableSlot[]).map(s => ({ weekday: Number(s.weekday), start: s.start, end: s.end })) }); }}>
         <label className="block text-sm">{t("sa_academy")}
           <select className="mt-1 w-full rounded border bg-background p-2" value={editingVenue.academy_id ?? ""} onChange={e => setEditingVenue({ ...editingVenue, academy_id: e.target.value || null })}>
             <option value="">{t("sa_unassigned")}</option>
@@ -371,6 +379,10 @@ export function PlatformRecords() {
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
+            <Label>{t("sa_court_count")}</Label>
+            <Input type="number" min="1" step="1" value={editingVenue.court_count ?? "1"} onChange={e => setEditingVenue({ ...editingVenue, court_count: e.target.value })} />
+          </div>
+          <div className="space-y-2">
             <Label>{t("sa_contact_person")}</Label>
             <Input value={editingVenue.contact_person ?? ""} onChange={e => setEditingVenue({ ...editingVenue, contact_person: e.target.value })} placeholder={t("sa_contact_person_placeholder")} />
           </div>
@@ -378,6 +390,22 @@ export function PlatformRecords() {
             <Label>{t("sa_contact_phone")}</Label>
             <Input value={editingVenue.contact_phone ?? ""} onChange={e => setEditingVenue({ ...editingVenue, contact_phone: e.target.value })} placeholder={t("sa_contact_phone_placeholder")} />
           </div>
+        </div>
+        <div className="space-y-2 rounded-lg border p-3">
+          <p className="flex items-center gap-1.5 text-sm font-semibold"><Ban className="h-4 w-4 text-destructive" />{t("sa_unavail_title")}</p>
+          <p className="text-xs text-muted-foreground">{t("sa_unavail_desc")}</p>
+          {(editingVenue.unavailable_slots ?? []).length === 0 && <p className="text-xs text-muted-foreground">{t("sa_unavail_empty")}</p>}
+          {(editingVenue.unavailable_slots ?? []).map((slot, idx) => (
+            <div key={idx} className="grid grid-cols-[auto_1fr_1fr_auto] items-center gap-2">
+              <select aria-label={t("sa_unavail_day")} className="rounded border bg-background p-2 text-sm" value={String(slot.weekday)} onChange={e => setEditingVenue(c => c ? ({ ...c, unavailable_slots: (c.unavailable_slots ?? []).map((s, i) => i === idx ? { ...s, weekday: Number(e.target.value) } : s) }) : c)}>
+                {[0, 1, 2, 3, 4, 5, 6].map(d => <option key={d} value={d}>{t(`avail_day_${d}` as keyof Dict)}</option>)}
+              </select>
+              <Input aria-label={t("sa_unavail_start")} dir="ltr" type="time" className="p-1.5 text-sm" value={slot.start} onChange={e => setEditingVenue(c => c ? ({ ...c, unavailable_slots: (c.unavailable_slots ?? []).map((s, i) => i === idx ? { ...s, start: e.target.value } : s) }) : c)} />
+              <Input aria-label={t("sa_unavail_end")} dir="ltr" type="time" className="p-1.5 text-sm" value={slot.end} onChange={e => setEditingVenue(c => c ? ({ ...c, unavailable_slots: (c.unavailable_slots ?? []).map((s, i) => i === idx ? { ...s, end: e.target.value } : s) }) : c)} />
+              <Button type="button" variant="ghost" size="icon" aria-label={t("sa_unavail_remove")} onClick={() => setEditingVenue(c => c ? ({ ...c, unavailable_slots: (c.unavailable_slots ?? []).filter((_, i) => i !== idx) }) : c)}><Trash2 className="h-4 w-4" /></Button>
+            </div>
+          ))}
+          <Button type="button" variant="outline" size="sm" onClick={() => setEditingVenue(c => c ? ({ ...c, unavailable_slots: [...(c.unavailable_slots ?? []), { weekday: 0, start: "08:00", end: "10:00" }] }) : c)}><Plus className="mr-1 h-3.5 w-3.5 rtl:ml-1 rtl:mr-0" />{t("sa_unavail_add")}</Button>
         </div>
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={() => setEditingVenue(null)}>{t("sa_cancel")}</Button>

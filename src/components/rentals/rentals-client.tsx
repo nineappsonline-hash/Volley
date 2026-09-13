@@ -54,6 +54,11 @@ import {
   useVenues,
 } from "@/lib/queries";
 import type { RentalPaymentMethod, VenueRental } from "@/lib/types";
+import {
+  findBlockedOverlap,
+  formatBlockedSlot,
+  timeSlotsOverlap,
+} from "@/lib/venue-slots";
 
 const PAYMENT_METHODS = ["cash", "bank_transfer", "e_wallet"] as const;
 
@@ -78,25 +83,32 @@ export function RentalsClient() {
   const [method, setMethod] = useState<RentalPaymentMethod | "none">("none");
   const [notes, setNotes] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<VenueRental | null>(null);
-  const [pendingSave, setPendingSave] = useState<boolean>(false);
 
-  const minutesOf = (t: string) => {
-    const [h, m] = t.split(":").map((x) => Number(x) || 0);
-    return h * 60 + m;
-  };
+  const assignedCourt = useMemo(() => {
+    if (venueId === "none" || !date || !time) return null;
+    const courtCount = (venues ?? []).find((v) => v.id === venueId)?.court_count ?? 1;
+    const duration = Number(hours) || 1;
+    for (let court = 1; court <= courtCount; court++) {
+      const taken = (rentals ?? []).some((r) => {
+        if (editing && r.id === editing.id) return false;
+        if (r.venue_id !== venueId || r.rental_date !== date) return false;
+        if ((r.court_number ?? 1) !== court) return false;
+        return timeSlotsOverlap(time, duration, r.start_time, Number(r.hours) || 1);
+      });
+      if (!taken) return court;
+    }
+    return null;
+  }, [rentals, venues, venueId, date, time, hours, editing]);
 
-  const findConflicts = (): VenueRental[] => {
-    if (venueId === "none" || !date || !time) return [];
-    const myStart = minutesOf(time);
-    const myEnd = myStart + (Number(hours) || 1) * 60;
-    return (rentals ?? []).filter((r) => {
-      if (editing && r.id === editing.id) return false;
-      if (r.venue_id !== venueId || r.rental_date !== date) return false;
-      const other = minutesOf(r.start_time);
-      const otherEnd = other + (Number(r.hours) || 1) * 60;
-      return myStart < otherEnd && other < myEnd;
-    });
-  };
+  const courtCount = (venues ?? []).find((v) => v.id === venueId)?.court_count ?? 1;
+  const courtBooked = venueId !== "none" && !!date && !!time && assignedCourt === null;
+
+  const blockedSlot = (() => {
+    if (venueId === "none" || !date || !time) return null;
+    const venue = (venues ?? []).find((v) => v.id === venueId);
+    if (!venue?.unavailable_slots?.length) return null;
+    return findBlockedOverlap(venue.unavailable_slots, date, time, Number(hours) || 1);
+  })();
 
   useEffect(() => {
     if (dialogOpen && !editing) {
@@ -147,11 +159,14 @@ export function RentalsClient() {
     return { total, collected, outstanding: total - collected };
   }, [rentals]);
 
-  const handleSave = async (force = false) => {
+  const handleSave = async () => {
     if (!customerName.trim() || !date || !time) return;
-    const conflicts = findConflicts();
-    if (conflicts.length > 0 && !force) {
-      setPendingSave(true);
+    if (blockedSlot) {
+      toast.error(t("unavail_blocked_msg").replace("{slot}", formatBlockedSlot(blockedSlot, d => t(`avail_day_${d}` as any))));
+      return;
+    }
+    if (courtBooked) {
+      toast.error(t("rentals_all_booked").replace("{count}", String(courtCount)));
       return;
     }
     try {
@@ -172,7 +187,6 @@ export function RentalsClient() {
       toast.success(t("rentals_saved"));
       setDialogOpen(false);
       setEditing(null);
-      setPendingSave(false);
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
     }
@@ -260,6 +274,7 @@ export function RentalsClient() {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>{t("rentals_venue")}</TableHead>
+                <TableHead>{t("rentals_court")}</TableHead>
                 <TableHead>{t("rentals_customer")}</TableHead>
                 <TableHead>{t("rentals_date")} / {t("rentals_time")}</TableHead>
                 <TableHead className="text-end">{t("rentals_amount")}</TableHead>
@@ -272,6 +287,15 @@ export function RentalsClient() {
               {(rentals ?? []).map((r) => (
                 <TableRow key={r.id}>
                   <TableCell className="font-medium">{venueName(r.venue_id)}</TableCell>
+                  <TableCell>
+                    {r.venue_id ? (
+                      <Badge variant="outline">
+                        {t("rentals_court_short")} {r.court_number ?? 1}
+                      </Badge>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <p className="font-medium">{r.customer_name}</p>
                     {(r.customer_phone || r.customer_email) && (
@@ -370,6 +394,9 @@ export function RentalsClient() {
                   {(venues ?? []).map((v) => (
                     <SelectItem key={v.id} value={v.id}>
                       {v.name}
+                      {Number(v.court_count) > 1
+                        ? ` (${v.court_count} ${t("rentals_courts_short")})`
+                        : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -424,6 +451,23 @@ export function RentalsClient() {
                   />
                 </div>
               </div>
+              {blockedSlot && (
+                <p className="flex items-center gap-1.5 rounded bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  {t("unavail_inline").replace("{slot}", formatBlockedSlot(blockedSlot, (d) => t(`avail_day_${d}` as any)))}
+                </p>
+              )}
+              {courtBooked && (
+                <p className="flex items-center gap-1.5 rounded bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  {t("rentals_all_booked").replace("{count}", String(courtCount))}
+                </p>
+              )}
+              {!courtBooked && venueId !== "none" && !!date && !!time && assignedCourt != null && (
+                <p className="flex items-center gap-1.5 rounded bg-muted px-3 py-2 text-xs text-muted-foreground">
+                  {t("rentals_court_preview").replace("{court}", String(assignedCourt))}
+                </p>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>{t("rentals_price")}</Label>
@@ -485,7 +529,7 @@ export function RentalsClient() {
               {t("common_cancel")}
             </Button>
             <Button
-              disabled={!customerName.trim() || !date || !time || save.isPending}
+              disabled={!customerName.trim() || !date || !time || !!blockedSlot || courtBooked || save.isPending}
               onClick={() => handleSave()}
             >
               {save.isPending ? t("common_saving") : t("common_save")}
@@ -493,41 +537,6 @@ export function RentalsClient() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Booking conflict confirmation */}
-      <AlertDialog
-        open={pendingSave}
-        onOpenChange={(o) => !o && setPendingSave(false)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-warning-ink" />
-              {t("rentals_conflict_title")}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("rentals_conflict_desc")
-                .replace(
-                  "{venue}",
-                  venueName(venueId === "none" ? null : venueId)
-                )
-                .replace("{count}", String(findConflicts().length))}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t("common_cancel")}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                setPendingSave(false);
-                void handleSave(true);
-              }}
-            >
-              {t("rentals_conflict_override")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Delete confirmation */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>

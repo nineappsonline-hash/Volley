@@ -47,6 +47,7 @@ export function VenuesManagerDialog({
   const [schoolName, setSchoolName] = useState("");
   const [rentalCost, setRentalCost] = useState("");
   const [rentalHours, setRentalHours] = useState("1");
+  const [courtCount, setCourtCount] = useState("1");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -68,6 +69,7 @@ export function VenuesManagerDialog({
     setSchoolName("");
     setRentalCost("");
     setRentalHours("1");
+    setCourtCount("1");
   };
 
   const startEdit = (v: Venue) => {
@@ -79,6 +81,7 @@ export function VenuesManagerDialog({
     setSchoolName(v.school_name ?? "");
     setRentalCost(v.rental_cost != null ? String(v.rental_cost) : "");
     setRentalHours(v.rental_hours != null ? String(v.rental_hours) : "1");
+    setCourtCount(v.court_count != null ? String(v.court_count) : "1");
     setConfirmDeleteId(null);
   };
 
@@ -94,6 +97,7 @@ export function VenuesManagerDialog({
         school_name: schoolName.trim() || null,
         rental_cost: rentalCost ? Number(rentalCost) : null,
         rental_hours: rentalHours ? Number(rentalHours) : null,
+        court_count: Number(courtCount) || 1,
       });
       toast.success(t("venues_saved"));
       resetForm();
@@ -117,6 +121,7 @@ export function VenuesManagerDialog({
         school_name: schoolName.trim() || null,
         rental_cost: rentalCost ? Number(rentalCost) : null,
         rental_hours: rentalHours ? Number(rentalHours) : null,
+        court_count: Number(courtCount) || 1,
       });
       toast.success(t("venues_saved"));
       setEditingId(null);
@@ -204,20 +209,37 @@ export function VenuesManagerDialog({
                   {t("venues_rental_cost_hint")}
                 </p>
               </div>
-            <div className="space-y-1.5">
-              <Label>{t("venues_rental_hours")}</Label>
-              <Input
-                type="number"
-                min="0"
-                step="0.5"
-                dir="ltr"
-                value={rentalHours}
-                onChange={(e) => setRentalHours(e.target.value)}
-                placeholder="1"
-              />
-              <p className="text-[11px] text-muted-foreground">
-                {t("venues_rental_hours_hint")}
-              </p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <Label>{t("venues_rental_hours")}</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  dir="ltr"
+                  value={rentalHours}
+                  onChange={(e) => setRentalHours(e.target.value)}
+                  placeholder="1"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  {t("venues_rental_hours_hint")}
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label>{t("venues_court_count")}</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  step="1"
+                  dir="ltr"
+                  value={courtCount}
+                  onChange={(e) => setCourtCount(e.target.value)}
+                  placeholder="1"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  {t("venues_court_count_hint")}
+                </p>
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label>{t("venues_school")}</Label>
@@ -309,7 +331,8 @@ export function VenuesManagerDialog({
                       {(venue.address ||
                         venue.capacity != null ||
                         venue.school_name ||
-                        venue.rental_cost != null) && (
+                        venue.rental_cost != null ||
+                        (venue.court_count ?? 1) > 1) && (
                         <p className="truncate text-xs text-muted-foreground">
                           {[
                             venue.address,
@@ -319,6 +342,9 @@ export function VenuesManagerDialog({
                               ? `${venue.rental_cost}/h × ${
                                   venue.rental_hours ?? 1
                                 }h`
+                              : null,
+                            (venue.court_count ?? 1) > 1
+                              ? `${venue.court_count} ${t("rentals_courts_short")}`
                               : null,
                           ]
                             .filter(Boolean)

@@ -42,6 +42,11 @@ export async function GET() {
 }
 const optionalText = z.string().trim().nullable().optional();
 const optionalNumber = z.preprocess(v => v === "" || v == null ? null : v, z.coerce.number().finite().nonnegative().nullable());
+const unavailableSlot = z.object({
+  weekday: z.number().int().min(0).max(6),
+  start: z.string().regex(/^\d{2}:\d{2}$/, "expected HH:MM"),
+  end: z.string().regex(/^\d{2}:\d{2}$/, "expected HH:MM"),
+}).refine(slot => slot.start < slot.end, { message: "excluded time must end after it starts" });
 const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("membership"), id: z.string().uuid(), membership_type: z.enum(["full", "half"]), subscription_sessions: z.number().int().min(0).max(10000), member_plan: z.enum(["free", "premium"]), premium_expires_at: z.string().datetime().nullable(), is_active: z.boolean() }),
   z.object({ action: z.literal("venue"), id: z.string().uuid().optional(),
@@ -50,7 +55,9 @@ const actionSchema = z.discriminatedUnion("action", [
     address: optionalText, capacity: z.preprocess(v => v === "" || v == null ? null : v, z.coerce.number().int().nonnegative().nullable()),
     sport_id: z.preprocess(v => v === "" || v == null ? null : v, z.string().uuid().nullable()),
     school_name: optionalText, rental_cost: optionalNumber, rental_hours: z.coerce.number().finite().positive(),
-    country: optionalText, governorate: optionalText, city: optionalText, contact_person: optionalText, contact_phone: optionalText }),
+    country: optionalText, governorate: optionalText, city: optionalText, contact_person: optionalText, contact_phone: optionalText,
+    court_count: z.preprocess(v => v === "" || v == null ? 1 : v, z.coerce.number().int().min(1).max(100)),
+    unavailable_slots: z.array(unavailableSlot).default([]) }),
   z.object({ action: z.literal("block"), id: z.string().uuid(), blocked: z.boolean() }),
   z.object({ action: z.literal("delete_venue"), id: z.string().uuid(), confirmation: z.string() }),
   z.object({ action: z.literal("delete"), id: z.string().uuid(), confirmation: z.string() }),

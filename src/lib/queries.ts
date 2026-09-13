@@ -1347,7 +1347,7 @@ export function useVenues() {
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("venues")
-        .select("id, academy_id, name, address, lat, lng, capacity, sport_id, school_name, rental_cost, rental_hours, created_at")
+        .select("id, academy_id, name, address, lat, lng, capacity, sport_id, school_name, rental_cost, rental_hours, unavailable_slots, court_count, created_at")
         .order("name");
       if (error) throw error;
       return (data ?? []) as Venue[];
@@ -1368,6 +1368,8 @@ export function useSaveVenue() {
         sport_id: venue.sport_id ?? null,
         school_name: venue.school_name ?? null,
         rental_cost: venue.rental_cost ?? null,
+        rental_hours: venue.rental_hours ?? null,
+        court_count: venue.court_count ?? 1,
       };
       const { error } = id
         ? await supabase().from("venues").update(payload).eq("id", id)
@@ -2515,22 +2517,20 @@ export function useSaveVenueRental() {
       rental_date: string;
       start_time: string;
     }) => {
-      const payload = {
-        venue_id: rental.venue_id ?? null,
-        customer_name: rental.customer_name,
-        customer_phone: rental.customer_phone ?? null,
-        customer_email: rental.customer_email ?? null,
-        price: rental.price,
-        hours: rental.hours ?? 1,
-        rental_date: rental.rental_date,
-        start_time: rental.start_time,
-        is_paid: rental.is_paid ?? false,
-        payment_method: rental.payment_method ?? null,
-        notes: rental.notes ?? null,
-      };
-      const { error } = id
-        ? await supabase().from("venue_rentals").update(payload).eq("id", id)
-        : await supabase().from("venue_rentals").insert(payload);
+      const { error } = await supabase().rpc("save_venue_rental", {
+        p_id: id ?? null,
+        p_venue_id: rental.venue_id ?? null,
+        p_customer_name: rental.customer_name,
+        p_customer_phone: rental.customer_phone ?? null,
+        p_customer_email: rental.customer_email ?? null,
+        p_price: rental.price,
+        p_hours: rental.hours ?? 1,
+        p_rental_date: rental.rental_date,
+        p_start_time: rental.start_time,
+        p_is_paid: rental.is_paid ?? false,
+        p_payment_method: rental.payment_method ?? null,
+        p_notes: rental.notes ?? null,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -2734,7 +2734,7 @@ export function usePlaygrounds() {
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("venues")
-        .select("id, academy_id, name, address, country, governorate, area, lat, lng, capacity, sport_id, school_name, rental_cost, rental_hours, created_at")
+        .select("id, academy_id, name, address, country, governorate, area, lat, lng, capacity, sport_id, school_name, rental_cost, rental_hours, unavailable_slots, court_count, created_at")
         .order("name");
       if (error) throw error;
       return (data ?? []) as Venue[];

@@ -65,6 +65,7 @@ export function PlaygroundsClient() {
   const [schoolName, setSchoolName] = useState("");
   const [rentalCost, setRentalCost] = useState("");
   const [rentalHours, setRentalHours] = useState("1");
+  const [courtCount, setCourtCount] = useState("1");
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Venue | null>(null);
@@ -81,6 +82,7 @@ export function PlaygroundsClient() {
     setSchoolName("");
     setRentalCost("");
     setRentalHours("1");
+    setCourtCount("1");
     setLat(null);
     setLng(null);
     setDialogOpen(true);
@@ -95,6 +97,7 @@ export function PlaygroundsClient() {
     setSchoolName(v.school_name ?? "");
     setRentalCost(v.rental_cost != null ? String(v.rental_cost) : "");
     setRentalHours(v.rental_hours != null ? String(v.rental_hours) : "1");
+    setCourtCount(v.court_count != null ? String(v.court_count) : "1");
     setLat(v.lat ?? null);
     setLng(v.lng ?? null);
     setDialogOpen(true);
@@ -112,6 +115,7 @@ export function PlaygroundsClient() {
         school_name: schoolName.trim() || null,
         rental_cost: rentalCost ? Number(rentalCost) : null,
         rental_hours: rentalHours ? Number(rentalHours) : null,
+        court_count: Number(courtCount) || 1,
         lat,
         lng,
       });
@@ -163,7 +167,14 @@ export function PlaygroundsClient() {
               {(venues ?? []).map((v) => (
                 <TableRow key={v.id}>
                   <TableCell>
-                    <p className="font-medium">{v.name}</p>
+                  <p className="font-medium">
+                    {v.name}
+                    {Number(v.court_count) > 1 && (
+                      <span className="ms-1 text-xs font-normal text-muted-foreground">
+                        ({v.court_count} {t("rentals_courts_short")})
+                      </span>
+                    )}
+                  </p>
                     {v.address && (
                       <p className="text-xs text-muted-foreground">{v.address}</p>
                     )}
@@ -246,7 +257,7 @@ export function PlaygroundsClient() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label>{t("venues_rental_cost")}</Label>
                 <Input
@@ -275,6 +286,21 @@ export function PlaygroundsClient() {
                 />
                 <p className="text-[11px] text-muted-foreground">
                   {t("venues_rental_hours_hint")}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label>{t("venues_court_count")}</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  step="1"
+                  dir="ltr"
+                  value={courtCount}
+                  onChange={(e) => setCourtCount(e.target.value)}
+                  placeholder="1"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  {t("venues_court_count_hint")}
                 </p>
               </div>
             </div>

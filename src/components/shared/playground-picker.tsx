@@ -203,6 +203,11 @@ export function PlaygroundPicker({
               <span className="min-w-0">
                 <span dir="auto" className="block truncate font-medium">
                   {p.name}
+                  {Number(p.court_count) > 1 && (
+                    <span className="ms-1 text-xs font-normal text-muted-foreground">
+                      ({p.court_count} {t("games_playground_courts")})
+                    </span>
+                  )}
                 </span>
                 <span
                   dir="auto"
