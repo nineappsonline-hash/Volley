@@ -207,7 +207,9 @@ export function AcademyEditDialog({
 
   if (!academy) return null;
 
-  const sportNames = (detail?.sports ?? []).map((s) => s.name);
+  const sportNames = (detail?.sports ?? [])
+    .map((s) => s.name)
+    .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
   const trialAutoDate = isTrial && !trialEndsAt && academy.created_at
     ? new Date(
         new Date(academy.created_at).getTime() + 30 * 24 * 60 * 60 * 1000

@@ -1347,7 +1347,7 @@ export function useVenues() {
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("venues")
-        .select("id, academy_id, name, address, lat, lng, capacity, sport_id, school_name, rental_cost, rental_hours, unavailable_slots, court_count, created_at")
+        .select("id, academy_id, name, address, lat, lng, location_link, capacity, sport_id, school_name, rental_cost, rental_hours, unavailable_slots, court_count, created_at")
         .order("name");
       if (error) throw error;
       return (data ?? []) as Venue[];
@@ -1369,6 +1369,7 @@ export function useSaveVenue() {
         school_name: venue.school_name ?? null,
         rental_cost: venue.rental_cost ?? null,
         rental_hours: venue.rental_hours ?? null,
+        location_link: venue.location_link ?? null,
         court_count: venue.court_count ?? 1,
       };
       const { error } = id
@@ -2708,7 +2709,7 @@ export function useFriendlyGames() {
       const { data, error } = await supabase()
         .from("friendly_games")
         .select(
-          "*, participants:friendly_game_participants(id, member_id, role, player_name, is_waitlisted, share_amount, pay_status, joined_at, kickoff_remind_opt_in), playground:venues(name, area, governorate, address)"
+          "*, participants:friendly_game_participants(id, member_id, role, player_name, is_waitlisted, share_amount, pay_status, joined_at, kickoff_remind_opt_in), playground:venues(name, area, governorate, address, location_link)"
         )
         .neq("status", "cancelled")
         .gte("game_date", today)
@@ -2741,7 +2742,7 @@ export function usePlaygrounds() {
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("venues")
-        .select("id, academy_id, name, address, country, governorate, area, lat, lng, capacity, sport_id, school_name, rental_cost, rental_hours, unavailable_slots, court_count, created_at")
+        .select("id, academy_id, name, address, country, governorate, area, lat, lng, location_link, capacity, sport_id, school_name, rental_cost, rental_hours, unavailable_slots, court_count, created_at")
         .order("name");
       if (error) throw error;
       return (data ?? []) as Venue[];

@@ -14,6 +14,7 @@ import {
   LandPlot,
   Link as LinkIcon,
   MapPin,
+  Navigation,
   Plus,
   Repeat,
   Share2,
@@ -284,6 +285,14 @@ function GameCard({
               </p>
             )}
           </div>
+          {game.playground?.location_link && (
+            <Button asChild variant="outline" size="sm" className="shrink-0">
+              <a href={game.playground.location_link} target="_blank" rel="noopener noreferrer">
+                <Navigation className="me-1 h-3.5 w-3.5" />
+                {t("directions")}
+              </a>
+            </Button>
+          )}
           {isPrivate && (
             <Badge variant="secondary" className="shrink-0 gap-1 text-[10px]">
               <UsersRound className="h-3 w-3" />

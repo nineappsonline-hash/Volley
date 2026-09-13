@@ -7904,3 +7904,16 @@ GRANT EXECUTE ON FUNCTION public.join_friendly_game(
 ) TO authenticated;
 
 NOTIFY pgrst, 'reload schema';
+
+-- ────────────────────────────────────────────────────────────
+-- VENUE LOCATION LINKS
+-- Mirrors supabase/migrations/20260929000000_venue_location_links.sql.
+-- Optional map/navigation link for a playground, surfaced to members as a
+-- "Directions" button next to the playground's name.
+-- ────────────────────────────────────────────────────────────
+ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS location_link TEXT;
+-- Column-level SELECT was granted per-column (table-level was revoked by the
+-- private contacts migration), so a brand-new column is invisible to members
+-- unless explicitly granted.
+GRANT SELECT (location_link) ON public.venues TO anon, authenticated;
+NOTIFY pgrst, 'reload schema';

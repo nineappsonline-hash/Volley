@@ -160,6 +160,9 @@ export interface Venue {
   rental_cost: number | null;
   // Number of time units (hours) the academy rents this venue from the owner.
   rental_hours: number | null;
+  /** Map/navigation link (e.g. Google Maps share URL) shown to members as a
+   * "Directions" button. */
+  location_link: string | null;
   country: string | null;
   governorate: string | null;
   area: string | null;
@@ -611,6 +614,7 @@ export interface FriendlyGame {
     area: string | null;
     governorate: string | null;
     address: string | null;
+    location_link: string | null;
   } | null;
   game_date: string;
   start_time: string;
