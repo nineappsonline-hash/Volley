@@ -119,7 +119,7 @@ export function LandingPage() {
       <div className={styles.sports} aria-label={t("landing_sports_prompt")}><span>{t("landing_sports_prompt")}</span>{sportList.map(([id, name]) => <span key={id}><SportIcon id={id} size={18} />{name}</span>)}</div>
 
       <section id="about" className={`${styles.section}`}>
-        <div className={styles.sectionHeading}><span className={styles.kicker}>{t("landing_about_kicker")}</span><h2>{t("landing_about_title")}</h2><p>{t("landing_about_desc")}</p></div>
+        <div className={styles.sectionHeading}><h2>{t("landing_about_title")}</h2><p>{t("landing_about_desc")}</p></div>
         <div className={styles.aboutGrid}>{[t("landing_about_point1"), t("landing_about_point2"), t("landing_about_point3")].map((point, i) => <div className={styles.aboutCard} key={point}><span>0{i + 1}</span><p>{point}</p></div>)}</div>
       </section>
 

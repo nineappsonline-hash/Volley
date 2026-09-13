@@ -1875,7 +1875,6 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
       "Find a friendly match, meet players who love your sport, or discover an academy to train in. Following your kids or running an academy? You'll find tools that simplify scheduling, attendance and progress.",
     landing_cta_discover: "Discover academies",
     landing_hero_note: "No academy membership needed to get started.",
-    landing_about_kicker: "About the platform",
     landing_about_title: "What is Playza?",
     landing_about_desc:
       "Playza is the place that brings players, parents and academy owners together around the love of sports. Whether you are looking for a pickup match, a place to train, or a way to run an academy, everything happens from one account.",
@@ -4239,7 +4238,6 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
       "دور على ماتش ودي، اتعرف على لاعبين بيحبوا نفس رياضتك، أو اكتشف أكاديمية تتمرن فيها. ولو بتتابع ولادك أو بتدير أكاديمية، هتلاقي أدوات تسهّل عليك المواعيد والحضور ومتابعة التطور.",
     landing_cta_discover: "اكتشف الأكاديميات",
     landing_hero_note: "مش لازم تكون مشترك في أكاديمية عشان تبدأ.",
-    landing_about_kicker: "عن المنصة",
     landing_about_title: "إيه هي بلايزا؟",
     landing_about_desc:
       "بلايزا هو المكان اللي بيجمع اللاعبين وأولياء الأمور وأصحاب الأكاديميات على حب الرياضة. لو بتدور على ماتش، أو مكان تتمرن فيه، أو طريقة تدير بيها أكاديمية — كل حاجة بتحصل من حساب واحد.",
