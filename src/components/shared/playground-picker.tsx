@@ -106,7 +106,7 @@ export function PlaygroundPicker({
       .filter((p) => area === "all" || p.area === area)
       .filter((p) => {
         if (!q) return true;
-        return [p.name, p.address, p.governorate, p.area]
+        return [p.name, p.governorate, p.area]
           .filter(Boolean)
           .some((s) => (s as string).toLowerCase().includes(q));
       });
@@ -214,7 +214,7 @@ export function PlaygroundPicker({
                   className="flex items-center gap-1 truncate text-xs text-muted-foreground"
                 >
                   <MapPin className="h-3 w-3 shrink-0" />
-                  {venueLine(p) || p.address || t("games_playground_none")}
+                  {venueLine(p) || t("games_playground_none")}
                 </span>
               </span>
               {value === p.id && <Check className="h-4 w-4 shrink-0 opacity-70" />}

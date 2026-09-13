@@ -105,7 +105,7 @@ const isWeekend = (date: string) => {
 };
 
 function playgroundLabel(playground: NonNullable<FriendlyGame["playground"]>) {
-  return [playground.name, playground.governorate, playground.area, playground.address]
+  return [playground.governorate, playground.area]
     .filter(Boolean)
     .join(" · ");
 }

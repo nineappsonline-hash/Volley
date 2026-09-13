@@ -86,7 +86,6 @@ const SPORT_OPTIONS = [
 interface DraftVenue {
   id?: string | null;
   name: string;
-  address: string;
   capacity: string;
   sport: string;
   school_name: string;
@@ -180,10 +179,9 @@ export function AcademyEditDialog({
     setAdminName(detail.admin?.name ?? "");
     setAdminEmail(detail.admin?.email ?? "");
     setAdminPhone(detail.admin?.phone ?? "");
-    setVenues((detail.venues ?? []).map((v: Venue & { contact_person?: string | null; contact_phone?: string | null }) => ({
+    setVenues((detail.venues ?? []).map((v: Venue & { contact_person?: string | null; contact_phone?: string | null; location_link?: string | null }) => ({
       id: v.id,
       name: v.name,
-      address: v.address ?? "",
       capacity: v.capacity != null ? String(v.capacity) : "",
       sport: v.sport_id ? (detail.sportsById?.[v.sport_id] ?? "") : "",
       school_name: v.school_name ?? "",
@@ -228,7 +226,6 @@ export function AcademyEditDialog({
       {
         id: null,
         name: "",
-        address: "",
         capacity: "",
         sport: "",
         school_name: "",
@@ -248,7 +245,6 @@ export function AcademyEditDialog({
         id: v.id,
         fromPool: true,
         name: v.name,
-        address: v.address ?? "",
         capacity: v.capacity != null ? String(v.capacity) : "",
         sport: v.sport_id ? (detail?.sportsById?.[v.sport_id] ?? "") : "",
         school_name: v.school_name ?? "",
@@ -266,7 +262,7 @@ export function AcademyEditDialog({
     (v) =>
       !!v.id &&
       !takenPoolIds.has(v.id) &&
-      [v.name, v.address, v.country, v.governorate, v.area].join(" ").toLowerCase().includes(poolSearch.toLowerCase())
+      [v.name, v.country, v.governorate, v.area].join(" ").toLowerCase().includes(poolSearch.toLowerCase())
   );
   const setCoach = (i: number, patch: Partial<DraftCoach>) =>
     setCoaches((cs) => cs.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
@@ -312,8 +308,7 @@ export function AcademyEditDialog({
     venues: venues.map((v) => ({
       ...(v.id ? { id: v.id } : {}),
       name: v.name,
-      address: v.address || null,
-          capacity: v.capacity !== "" ? Number(v.capacity) : null,
+      capacity: v.capacity !== "" ? Number(v.capacity) : null,
       sport: v.sport || null,
       school_name: v.school_name || null,
       rental_cost: v.rental_cost !== "" ? Number(v.rental_cost) : null,
@@ -603,10 +598,6 @@ export function AcademyEditDialog({
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label>{t("sa_form_playground_address")}</Label>
-                        <Input value={v.address} onChange={(e) => setVenue(i, { address: e.target.value })} placeholder="e.g. 123 Street Name, City" />
-                      </div>
-                      <div className="space-y-2">
                         <Label>{t("sa_form_playground_capacity")}</Label>
                         <Input type="number" min="0" value={v.capacity} onChange={(e) => setVenue(i, { capacity: e.target.value })} />
                       </div>
@@ -768,7 +759,7 @@ export function AcademyEditDialog({
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{v.name}</p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {[v.country, v.governorate, v.area, v.address].filter(Boolean).join(" · ") || v.name}
+                    {[v.country, v.governorate, v.area].filter(Boolean).join(" · ") || v.name}
                   </p>
                 </div>
                 <Button
