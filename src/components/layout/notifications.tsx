@@ -30,7 +30,7 @@ import { usePushNotifications } from "@/lib/push";
 import { useRealtime } from "@/lib/useRealtime";
 import type { NotificationType } from "@/lib/types";
 
-const TYPE_ICONS: Record<NotificationType, typeof Bell> = {
+export const TYPE_ICONS: Record<NotificationType, typeof Bell> = {
   game_join: UserPlus,
   game_left: UserRoundX,
   game_filled: PlusCircle,
