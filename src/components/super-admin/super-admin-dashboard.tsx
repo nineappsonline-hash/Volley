@@ -14,6 +14,7 @@ import {
   ExternalLink,
   Eye,
   Flag,
+  Megaphone,
   Pencil,
   Plus,
   Receipt,
@@ -30,6 +31,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +65,7 @@ import {
   useResolveReport,
   useReviewParticipantShare,
   useReviewSubscription,
+  useSendBroadcast,
   useSetAcademyPlan,
 } from "@/lib/queries";
 
@@ -87,6 +92,10 @@ export function SuperAdminDashboard() {
   const [openingReceipt, setOpeningReceipt] = useState<string | null>(null);
   const [openingSubReceipt, setOpeningSubReceipt] = useState<string | null>(null);
   const [editing, setEditing] = useState<Academy | null>(null);
+  const sendBroadcast = useSendBroadcast();
+  const [broadcastTitle, setBroadcastTitle] = useState("");
+  const [broadcastBody, setBroadcastBody] = useState("");
+  const [broadcastLink, setBroadcastLink] = useState("");
 
   const memberName = (id: string) =>
     (members ?? []).find((m) => m.id === id)?.name ?? id.slice(0, 8);
@@ -188,6 +197,26 @@ export function SuperAdminDashboard() {
       toast.success(
         approve ? t("super_admin_sub_approved") : t("super_admin_sub_rejected")
       );
+    } catch {
+      toast.error(t("common_error"));
+    }
+  };
+
+  const handleBroadcast = async () => {
+    if (!broadcastTitle.trim()) {
+      toast.error(t("super_admin_broadcast_title_required"));
+      return;
+    }
+    try {
+      const n = await sendBroadcast.mutateAsync({
+        title: broadcastTitle.trim(),
+        body: broadcastBody.trim(),
+        link: broadcastLink.trim() || null,
+      });
+      toast.success(t("super_admin_broadcast_sent").replace("{n}", String(n)));
+      setBroadcastTitle("");
+      setBroadcastBody("");
+      setBroadcastLink("");
     } catch {
       toast.error(t("common_error"));
     }
@@ -612,6 +641,62 @@ export function SuperAdminDashboard() {
               </Table>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Broadcast to all users */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Megaphone className="h-4 w-4 text-primary" />
+            {t("super_admin_broadcast")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            {t("super_admin_broadcast_hint")}
+          </p>
+          <div className="space-y-2">
+            <Label htmlFor="broadcast-title">{t("super_admin_broadcast_title")}</Label>
+            <Input
+              id="broadcast-title"
+              value={broadcastTitle}
+              onChange={(e) => setBroadcastTitle(e.target.value)}
+              placeholder={t("super_admin_broadcast_title_placeholder")}
+              maxLength={120}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="broadcast-body">{t("super_admin_broadcast_body")}</Label>
+            <Textarea
+              id="broadcast-body"
+              value={broadcastBody}
+              onChange={(e) => setBroadcastBody(e.target.value)}
+              placeholder={t("super_admin_broadcast_body_placeholder")}
+              rows={4}
+              maxLength={500}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="broadcast-link">{t("super_admin_broadcast_link")}</Label>
+            <Input
+              id="broadcast-link"
+              value={broadcastLink}
+              onChange={(e) => setBroadcastLink(e.target.value)}
+              placeholder="https://…"
+              dir="ltr"
+            />
+          </div>
+          <Button
+            onClick={handleBroadcast}
+            disabled={sendBroadcast.isPending}
+            className="gap-1"
+          >
+            <Megaphone className="h-4 w-4" />
+            {sendBroadcast.isPending
+              ? t("super_admin_broadcast_sending")
+              : t("super_admin_broadcast_send")}
+          </Button>
         </CardContent>
       </Card>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -44,6 +44,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { PushPrompt } from "@/components/shared/push-prompt";
 import { LocationFields } from "@/components/shared/location-fields";
 import { UsernameField } from "@/components/shared/username-field";
 import { cn } from "@/lib/utils";
@@ -157,6 +158,8 @@ export function SignupForm() {
   const { signUp } = useAuth();
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [pushPromptOpen, setPushPromptOpen] = useState(false);
+  const pendingNav = useRef<(() => void) | null>(null);
   const [mode, setMode] = useState<Role>("member");
   const [location, setLocation] = useState({
     country: "",
@@ -236,16 +239,21 @@ export function SignupForm() {
       const { session } = await signUp(email, password, name, username, phone, academy);
       if (session) {
         toast.success(t("signup_success"));
-        // Members who signed up without an invite code pick their academy
-        // from the public directory next. Fresh academies continue the setup
-        // wizard (branding + photos) on /onboarding.
-        if (academy?.newName) {
-          router.push("/onboarding");
-        } else {
-          const hasAcademy = !!academy?.code || !!academy?.newName;
-          router.push(hasAcademy ? "/dashboard" : "/academies");
-        }
-        router.refresh();
+        // Pop up the push-notifications prompt right after registering. The
+        // redirect waits for the user to answer (Enable / Later).
+        pendingNav.current = () => {
+          // Members who signed up without an invite code pick their academy
+          // from the public directory next. Fresh academies continue the setup
+          // wizard (branding + photos) on /onboarding.
+          if (academy?.newName) {
+            router.push("/onboarding");
+          } else {
+            const hasAcademy = !!academy?.code || !!academy?.newName;
+            router.push(hasAcademy ? "/dashboard" : "/academies");
+          }
+          router.refresh();
+        };
+        setPushPromptOpen(true);
       } else {
         setConfirming(true);
         toast.info(t("signup_check_email"));
@@ -1042,6 +1050,18 @@ export function SignupForm() {
             </div>
           </DialogContent>
         </Dialog>
+
+      <PushPrompt
+        open={pushPromptOpen}
+        onOpenChange={(o) => {
+          setPushPromptOpen(o);
+          if (!o && pendingNav.current) {
+            const nav = pendingNav.current;
+            pendingNav.current = null;
+            nav();
+          }
+        }}
+      />
       </div>
     </main>
   );

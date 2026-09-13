@@ -2785,6 +2785,7 @@ export function useCreateFriendlyGame() {
       gender?: "male" | "female" | "mixed";
       min_age?: number | null;
       max_age?: number | null;
+      hostPays?: boolean;
     }) => {
       const { error } = await supabase().rpc("create_friendly_game", {
         p_title: input.title,
@@ -2806,6 +2807,7 @@ export function useCreateFriendlyGame() {
         p_gender: input.gender ?? "mixed",
         p_min_age: input.min_age ?? null,
         p_max_age: input.max_age ?? null,
+        p_host_pays: input.hostPays ?? false,
       });
       if (error) throw error;
     },
@@ -2822,8 +2824,8 @@ export function useJoinFriendlyGame() {
     mutationFn: async (input: {
       gameId: string;
       inviteCode?: string | null;
-      payMethod: "instapay" | "e_wallet" | "kashier";
-      payReceiptUrl: string;
+      payMethod: "instapay" | "e_wallet" | "kashier" | null;
+      payReceiptUrl: string | null;
     }) => {
       const { error } = await supabase().rpc("join_friendly_game", {
         p_game_id: input.gameId,
@@ -2845,8 +2847,8 @@ export function usePayGameShare() {
   return useMutation({
     mutationFn: async (input: {
       gameId: string;
-      payMethod: "instapay" | "e_wallet" | "kashier";
-      payReceiptUrl: string;
+      payMethod: "instapay" | "e_wallet" | "kashier" | null;
+      payReceiptUrl: string | null;
     }) => {
       const { error } = await supabase().rpc("pay_game_share", {
         p_game_id: input.gameId,
@@ -3402,6 +3404,30 @@ export function useReviewParticipantShare() {
       qc.invalidateQueries({ queryKey: ["pending-game-payments"] });
       qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
       qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
+    },
+  });
+}
+
+// ── Broadcast push (super admin) ─────────────
+// Returns the number of subscribed devices the push was dispatched to.
+export function useSendBroadcast() {
+  return useMutation({
+    mutationFn: async ({
+      title,
+      body,
+      link,
+    }: {
+      title: string;
+      body?: string;
+      link?: string | null;
+    }) => {
+      const { data, error } = await supabase().rpc("send_broadcast_push", {
+        p_title: title,
+        p_body: body ?? "",
+        p_link: link ?? null,
+      });
+      if (error) throw error;
+      return (data as number | null) ?? 0;
     },
   });
 }

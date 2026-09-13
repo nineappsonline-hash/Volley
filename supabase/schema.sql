@@ -2079,10 +2079,17 @@ ALTER TABLE public.friendly_games
   ADD COLUMN IF NOT EXISTS creator_name TEXT NOT NULL DEFAULT 'Member';
 -- Per-player share charged to each participant upfront: (playground rental ×
 -- duration ÷ minimum players) plus the hidden platform fee. Snapshot taken at
--- creation so joins always quote the same amount.
+-- creation so joins always quote the same amount. It is 0 when the host covers
+-- the whole reservation (host_pays = true), so everyone else joins for free.
 ALTER TABLE public.friendly_games
   ADD COLUMN IF NOT EXISTS share_price NUMERIC
   CHECK (share_price >= 0 AND share_price <> 'NaN'::numeric);
+-- When true, the creator covers the whole reservation: they pay host_total
+-- (venue rental × duration + platform fee) and players join for free.
+ALTER TABLE public.friendly_games
+  ADD COLUMN IF NOT EXISTS host_pays BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS host_total NUMERIC
+  CHECK (host_total IS NULL OR (host_total >= 0 AND host_total <> 'NaN'::numeric));
 -- Playground the game is booked at (a selectable pool venue).
 ALTER TABLE public.friendly_games
   ADD COLUMN IF NOT EXISTS playground_id UUID REFERENCES public.venues(id) ON DELETE SET NULL;
@@ -2693,7 +2700,7 @@ BEGIN
   END IF;
 
   UPDATE public.friendly_game_participants
-  SET share_amount = v_game.share_price,
+  SET share_amount = CASE WHEN v_game.host_pays THEN v_game.host_total ELSE v_game.share_price END,
       pay_method = p_pay_method,
       pay_receipt_url = btrim(p_pay_receipt_url),
       pay_status = 'pending'
@@ -3408,6 +3415,63 @@ BEGIN
 END;
 $$;
 GRANT EXECUTE ON FUNCTION public.review_participant_share(UUID, BOOLEAN) TO authenticated;
+
+-- ── Super-admin broadcast ──
+-- Send a custom external push to every subscribed PWA device at once. Unlike
+-- inserting into public.notifications, this does NOT create in-app bell
+-- entries — it only fires a Web Push that shows on the phone even when the app
+-- is closed. Delivery is handled by the "notify-push" edge function in
+-- broadcast mode. Admin-only RPC; returns the number of devices dispatched to.
+CREATE OR REPLACE FUNCTION public.send_broadcast_push(
+  p_title TEXT,
+  p_body TEXT DEFAULT '',
+  p_link TEXT DEFAULT NULL
+)
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  -- Non-secret constants. Keep in sync with public.notify_push_forward():
+  -- same Edge Function project URL + public anon/publishable key.
+  v_functions_url TEXT := 'https://wknaiyouwjobmzzjoutz.supabase.co/functions/v1';
+  v_anon_key TEXT := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndrbmFpeW91d2pvYm16empvdXR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1Mjc1ODYsImV4cCI6MjEwMjEwMzU4Nn0.oNl-1ctScgybJWMwrQSmJrOvLLhkYJ9zO0E_mwWeaB0';
+  v_devices INTEGER;
+BEGIN
+  IF NOT public.is_super_admin() THEN
+    RAISE EXCEPTION 'Not authorized';
+  END IF;
+  IF p_title IS NULL OR btrim(p_title) = '' THEN
+    RAISE EXCEPTION 'Title is required';
+  END IF;
+
+  SELECT COUNT(*) INTO v_devices FROM public.push_subscriptions;
+
+  IF v_devices > 0 AND EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_net') THEN
+    PERFORM net.http_post(
+      url := v_functions_url || '/notify-push',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'Authorization', 'Bearer ' || v_anon_key
+      ),
+      body := jsonb_build_object(
+        'broadcast', jsonb_build_object(
+          'title', btrim(p_title),
+          'body', COALESCE(btrim(COALESCE(p_body, '')), ''),
+          'link', NULLIF(btrim(COALESCE(p_link, '')), '')
+        )
+      ),
+      timeout_milliseconds := 5000
+    );
+  END IF;
+
+  -- Number of devices the push was dispatched to (best effort — the edge
+  -- function cleans up expired subscriptions as it sends).
+  RETURN v_devices;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.send_broadcast_push(TEXT, TEXT, TEXT) TO authenticated;
 
 -- ── Academy subscription plan ──
 -- Display-only before; now real: the super admin assigns a plan and the
@@ -4952,13 +5016,15 @@ BEGIN
         INSERT INTO public.friendly_games
           (creator_id, creator_name, creator_nickname, sport, title, description, area, location,
            lat, lng, game_date, start_time, max_players, skill_level, is_public,
-           status, source_game_id, recurrence, playground_id, min_players, duration_hours, playground_hourly_rate)
+           status, source_game_id, recurrence, playground_id, min_players, duration_hours, playground_hourly_rate,
+           share_price, host_pays, host_total)
         VALUES
           (v_parent.creator_id, v_parent.creator_name, v_parent.creator_nickname, v_parent.sport,
            v_parent.title, v_parent.description, v_parent.area, v_parent.location,
            v_parent.lat, v_parent.lng, v_dt, v_parent.start_time,
            v_parent.max_players, v_parent.skill_level, v_parent.is_public,
-           'open', v_parent.id, 'weekly', v_parent.playground_id, v_parent.min_players, v_parent.duration_hours, v_parent.playground_hourly_rate)
+           'open', v_parent.id, 'weekly', v_parent.playground_id, v_parent.min_players, v_parent.duration_hours, v_parent.playground_hourly_rate,
+           v_parent.share_price, v_parent.host_pays, v_parent.host_total)
         RETURNING id INTO v_new_id;
 
         -- Carry the roster over from the most recent past occurrence.
@@ -4973,6 +5039,13 @@ BEGIN
           FROM public.friendly_game_participants
           WHERE game_id = v_anchor
           ON CONFLICT DO NOTHING;
+        END IF;
+
+        -- In host-pays children the organizer still owes the reservation total.
+        IF v_parent.host_pays THEN
+          UPDATE public.friendly_game_participants
+          SET share_amount = v_parent.host_total, pay_status = 'unpaid'
+          WHERE game_id = v_new_id AND role = 'organizer';
         END IF;
 
         v_created := v_created + 1;
@@ -5157,7 +5230,8 @@ CREATE OR REPLACE FUNCTION public.create_friendly_game(
   p_max_age        INTEGER DEFAULT NULL,
   p_invite_code    TEXT DEFAULT NULL,
   p_min_players    INTEGER DEFAULT 2,
-  p_duration_hours NUMERIC DEFAULT 1
+  p_duration_hours NUMERIC DEFAULT 1,
+  p_host_pays      BOOLEAN DEFAULT FALSE
 )
 RETURNS UUID
 LANGUAGE plpgsql
@@ -5172,6 +5246,7 @@ DECLARE
   v_venue  public.venues%ROWTYPE;
   v_code   TEXT;
   v_share  NUMERIC;
+  v_host_total NUMERIC;
 BEGIN
   IF p_min_players IS NULL OR p_max_players IS NULL OR p_min_players < 2 OR p_max_players < p_min_players THEN
     RAISE EXCEPTION 'Minimum players must be at least 2 and no greater than maximum players';
@@ -5206,9 +5281,19 @@ BEGIN
     END IF;
   END IF;
 
-  -- Per-player share = playground portion (rental × duration ÷ min players)
-  -- plus the hidden platform fee, folded into a single price.
-  IF v_venue.rental_cost IS NOT NULL AND v_venue.rental_cost >= 0 THEN
+  -- Pricing:
+  --  * host pays: the creator covers the whole reservation — full venue rental
+  --    for the slot plus the hidden platform fee; players join for free.
+  --  * split: per-player share = playground portion (rental × duration ÷ min
+  --    players) plus the hidden platform fee, folded into a single price.
+  IF p_host_pays THEN
+    IF v_venue.rental_cost IS NOT NULL AND v_venue.rental_cost >= 0 THEN
+      v_host_total := round(v_venue.rental_cost * p_duration_hours, 2) + 20;
+    ELSE
+      v_host_total := 20;
+    END IF;
+    v_share := 0;
+  ELSIF v_venue.rental_cost IS NOT NULL AND v_venue.rental_cost >= 0 THEN
     v_share := round((v_venue.rental_cost * p_duration_hours) / p_min_players, 2) + 20;
   ELSE
     v_share := 20;
@@ -5250,7 +5335,7 @@ BEGIN
   INSERT INTO public.friendly_games
     (creator_id, creator_name, creator_username, creator_nickname, sport, title, description, area, location, lat, lng,
      playground_id, game_date, start_time, max_players, min_players, duration_hours, playground_hourly_rate, share_price, skill_level, is_public,
-     recurrence, invite_code, gender, min_age, max_age)
+     recurrence, invite_code, gender, min_age, max_age, host_pays, host_total)
   VALUES
     (v_member,
      v_name,
@@ -5280,13 +5365,18 @@ BEGIN
      v_code,
      p_gender,
      p_min_age,
-     p_max_age)
+     p_max_age,
+     p_host_pays,
+     CASE WHEN p_host_pays THEN v_host_total ELSE NULL END)
   RETURNING id INTO v_game;
 
-  -- The creator is always the organizer participant; they owe their share too.
+  -- The creator is always the organizer participant; they owe the whole
+  -- reservation when host_pays is set, otherwise they owe their own share.
   INSERT INTO public.friendly_game_participants
     (game_id, member_id, role, player_name, share_amount, pay_status)
-  VALUES (v_game, v_member, 'organizer', v_name, v_share, 'unpaid');
+  VALUES (v_game, v_member, 'organizer', v_name,
+          CASE WHEN p_host_pays THEN v_host_total ELSE v_share END,
+          'unpaid');
 
   -- Alert members who opted in to matching-sport game alerts (capped).
   INSERT INTO public.notifications (recipient_id, type, title, body, link)
@@ -5312,7 +5402,7 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.create_friendly_game(
   TEXT, TEXT, DATE, TIME, UUID, TEXT, TEXT, DOUBLE PRECISION, DOUBLE PRECISION,
-  INTEGER, TEXT, TEXT, BOOLEAN, TEXT, TEXT, INTEGER, INTEGER, TEXT, INTEGER, NUMERIC
+  INTEGER, TEXT, TEXT, BOOLEAN, TEXT, TEXT, INTEGER, INTEGER, TEXT, INTEGER, NUMERIC, BOOLEAN
 ) TO authenticated;
 
 -- 6. join_friendly_game: snapshot the joiner's display name on their row and
@@ -5398,21 +5488,31 @@ BEGIN
     RAISE EXCEPTION 'This game is full';
   END IF;
 
-  -- Every player pays their share (playground portion + hidden platform fee)
-  -- upfront, then uploads a receipt for super-admin verification. The spot
-  -- counts right away and is removed again if the payment turns out fake.
-  IF p_pay_method IS NULL OR p_pay_method NOT IN ('instapay', 'e_wallet') THEN
-    RAISE EXCEPTION 'A payment method is required to join a friendly game';
-  END IF;
-  IF p_pay_receipt_url IS NULL OR btrim(p_pay_receipt_url) = '' THEN
-    RAISE EXCEPTION 'A receipt is required to confirm your share payment';
-  END IF;
+  -- The host pays the whole reservation in host-pays games: joining is free
+  -- and needs no payment method or receipt. In split games every player pays
+  -- their share (playground portion + hidden platform fee) upfront, then
+  -- uploads a receipt for super-admin verification. The spot counts right away
+  -- and is removed again if the payment turns out fake.
+  IF v_game.host_pays THEN
+    INSERT INTO public.friendly_game_participants
+      (game_id, member_id, role, player_name, share_amount, pay_status)
+    VALUES (p_game_id, v_member, 'player',
+            (SELECT public.player_display_name(p) FROM public.profiles p WHERE p.id = v_member),
+            0, 'approved');
+  ELSE
+    IF p_pay_method IS NULL OR p_pay_method NOT IN ('instapay', 'e_wallet') THEN
+      RAISE EXCEPTION 'A payment method is required to join a friendly game';
+    END IF;
+    IF p_pay_receipt_url IS NULL OR btrim(p_pay_receipt_url) = '' THEN
+      RAISE EXCEPTION 'A receipt is required to confirm your share payment';
+    END IF;
 
-  INSERT INTO public.friendly_game_participants
-    (game_id, member_id, role, player_name, share_amount, pay_method, pay_receipt_url, pay_status)
-  VALUES (p_game_id, v_member, 'player',
-          (SELECT public.player_display_name(p) FROM public.profiles p WHERE p.id = v_member),
-          v_game.share_price, p_pay_method, btrim(p_pay_receipt_url), 'pending');
+    INSERT INTO public.friendly_game_participants
+      (game_id, member_id, role, player_name, share_amount, pay_method, pay_receipt_url, pay_status)
+    VALUES (p_game_id, v_member, 'player',
+            (SELECT public.player_display_name(p) FROM public.profiles p WHERE p.id = v_member),
+            v_game.share_price, p_pay_method, btrim(p_pay_receipt_url), 'pending');
+  END IF;
 
   -- Tell everyone already in the game someone new joined (skip anyone who
   -- blocked the joiner so they don't get bothered).

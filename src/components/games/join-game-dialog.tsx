@@ -29,6 +29,7 @@ import {
   formatMoney,
 } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
+import { requestPushPrompt } from "@/lib/push";
 import { useJoinFriendlyGame, usePayGameShare } from "@/lib/queries";
 import { errorMessage } from "@/lib/utils";
 
@@ -50,7 +51,13 @@ export function JoinGameDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  game: { id: string; title: string; share_price: number | null };
+  game: {
+    id: string;
+    title: string;
+    share_price: number | null;
+    host_pays?: boolean;
+    host_total?: number | null;
+  };
   inviteCode?: string | null;
   mode?: "join" | "pay";
 }) {
@@ -112,10 +119,31 @@ export function JoinGameDialog({
     }
   };
 
-  const amount = game.share_price ?? 0;
+  const amount = game.host_pays
+    ? mode === "pay"
+      ? game.host_total ?? 0
+      : 0
+    : (game.share_price ?? 0);
+  const isFree = game.host_pays === true && mode === "join";
   const busy = join.isPending || pay.isPending;
 
   const submit = async () => {
+    if (isFree) {
+      try {
+        await join.mutateAsync({
+          gameId: game.id,
+          inviteCode,
+          payMethod: null,
+          payReceiptUrl: null,
+        });
+        toast.success(t("community_joined"));
+        requestPushPrompt();
+        onOpenChange(false);
+      } catch (err) {
+        toast.error(errorMessage(err, t("common_error")));
+      }
+      return;
+    }
     if (!payMethod || payMethod === "kashier") return;
     if (!receiptUrl) {
       toast.error(t("game_fee_receipt_required"));
@@ -137,6 +165,7 @@ export function JoinGameDialog({
           payReceiptUrl: receiptUrl,
         });
         toast.success(t("community_joined"));
+        requestPushPrompt();
       }
       onOpenChange(false);
     } catch (err) {
@@ -144,44 +173,63 @@ export function JoinGameDialog({
     }
   };
 
-  const canSubmit =
-    !!payMethod &&
-    payMethod !== "kashier" &&
-    !!receiptUrl &&
-    !uploading &&
-    !busy &&
-    amount > 0;
+  const canSubmit = isFree
+    ? !busy
+    : !!payMethod &&
+      payMethod !== "kashier" &&
+      !!receiptUrl &&
+      !uploading &&
+      !busy &&
+      amount > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {isPay ? t("games_share_pay_title") : t("games_share_join_title")}
+            {isPay
+              ? t("games_share_pay_title")
+              : isFree
+                ? t("games_free_join_title")
+                : t("games_share_join_title")}
           </DialogTitle>
-          <DialogDescription>{t("games_share_join_desc")}</DialogDescription>
+          <DialogDescription>
+            {isFree ? t("games_free_join_desc") : t("games_share_join_desc")}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 p-3">
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">
-                {t("games_share_per_player")}
+                {isFree
+                  ? t("games_free_price")
+                  : game.host_pays
+                    ? t("games_host_pays")
+                    : t("games_share_per_player")}
               </p>
               <p className="truncate text-sm font-semibold">{game.title}</p>
             </div>
-            <span className="shrink-0 text-lg font-extrabold text-primary">
-              {formatMoney(amount, lang)}
-            </span>
+            {isFree ? (
+              <span className="shrink-0 text-lg font-extrabold text-success-ink">
+                {t("games_free_label")}
+              </span>
+            ) : (
+              <span className="shrink-0 text-lg font-extrabold text-primary">
+                {formatMoney(amount, lang)}
+              </span>
+            )}
           </div>
 
-          {amount <= 0 && (
+          {!isFree && amount <= 0 && (
             <p className="text-xs text-muted-foreground">
               {t("games_share_unavailable")}
             </p>
           )}
 
-          <div className="grid grid-cols-3 gap-2">
+          {!isFree && (
+            <>
+            <div className="grid grid-cols-3 gap-2">
             {PAY_METHODS.map(({ value, icon: Icon, disabled }) => {
               const selected = payMethod === value;
               return (
@@ -298,10 +346,20 @@ export function JoinGameDialog({
               </p>
             </div>
           )}
+            </>
+          )}
 
-          <p className="rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 text-[11px] text-warning-ink dark:bg-attention-500/10 dark:text-attention-300">
-            {t("games_share_refund_note")}
-          </p>
+          {isPay && game.host_pays && (
+            <p className="rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 text-[11px] text-warning-ink dark:bg-attention-500/10 dark:text-attention-300">
+              {t("games_host_cover_note")}
+            </p>
+          )}
+
+          {!game.host_pays && (
+            <p className="rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 text-[11px] text-warning-ink dark:bg-attention-500/10 dark:text-attention-300">
+              {t("games_share_refund_note")}
+            </p>
+          )}
         </div>
 
         <DialogFooter>
@@ -312,12 +370,14 @@ export function JoinGameDialog({
             <Wallet className="h-4 w-4" />
             {busy
               ? t("common_saving")
-              : isPay
-                ? t("games_share_pay_submit")
-                : t("games_share_pay_join").replace(
-                    "{amount}",
-                    formatMoney(amount, lang)
-                  )}
+              : isFree
+                ? t("games_free_join")
+                : isPay
+                  ? t("games_share_pay_submit")
+                  : t("games_share_pay_join").replace(
+                      "{amount}",
+                      formatMoney(amount, lang)
+                    )}
           </Button>
         </DialogFooter>
       </DialogContent>

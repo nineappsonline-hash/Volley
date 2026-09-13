@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { TrialGate } from "@/components/shared/trial-gate";
 import { InstallBanner } from "@/components/marketing/install-banner";
+import { PushPrompt } from "@/components/shared/push-prompt";
 
 export default async function DashboardLayout({
   children,
@@ -47,6 +48,7 @@ export default async function DashboardLayout({
           {profile.role !== "super_admin" && <InstallBanner />}
           {profile.role === "super_admin" ? children : <TrialGate isAdmin={profile.role === "admin"}>{children}</TrialGate>}
         </main>
+        {profile.role !== "super_admin" && <PushPrompt />}
       </div>
     </div>
   );

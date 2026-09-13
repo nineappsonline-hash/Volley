@@ -174,6 +174,12 @@ function GameCard({
                 {t("community_weekly")}
               </Badge>
             )}
+            {game.host_pays && (
+              <Badge variant="secondary" className="gap-1 text-[10px]">
+                <Wallet className="h-3 w-3" />
+                {t("games_host_pays_badge")}
+              </Badge>
+            )}
             {mine && mine.pay_status === "pending" && (
               <Badge className="gap-1 bg-attention-100 text-[10px] text-warning-ink dark:bg-attention-500/15 dark:text-attention-400">
                 {t("games_share_pending")}
@@ -382,7 +388,7 @@ function GameCard({
             </DropdownMenu>
           </div>
         </div>
-      <GameCostEstimate compact rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} />
+      <GameCostEstimate compact rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} hostPays={game.host_pays} />
       {joined && <GameChat gameId={game.id} gameTitle={game.title} memberId={profile.id} />}
       </CardContent>
 
@@ -434,7 +440,15 @@ function InviteBanner({
   const { t, locale } = useI18n();
   const [payOpen, setPayOpen] = useState(false);
 
-  const inviteGameShare = inviteGame ? { id: inviteGame.id, title: inviteGame.title, share_price: inviteGame.share_price } : null;
+  const inviteGameShare = inviteGame
+    ? {
+        id: inviteGame.id,
+        title: inviteGame.title,
+        share_price: inviteGame.share_price,
+        host_pays: inviteGame.host_pays,
+        host_total: inviteGame.host_total,
+      }
+    : null;
 
   if (!inviteCode) return null;
 

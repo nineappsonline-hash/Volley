@@ -5,6 +5,15 @@ import { createClient } from "@/lib/supabase/client";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
 
+/** Fired from natural in-app moments (e.g. after joining a game) to ask the
+ * user to enable phone push notifications. */
+export const PUSH_PROMPT_EVENT = "playza:prompt-push";
+
+export function requestPushPrompt() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(PUSH_PROMPT_EVENT));
+}
+
 async function urlBase64ToUint8Array(base64String: string): Promise<Uint8Array> {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -33,6 +42,7 @@ export function usePushNotifications() {
   );
   const [subscribed, setSubscribed] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [sessionChecked, setSessionChecked] = useState(false);
 
   const regRef = useRef<ServiceWorkerRegistration | null>(null);
 
@@ -47,6 +57,8 @@ export function usePushNotifications() {
         if (!cancelled) setSubscribed(!!sub);
       } catch {
         /* ignore */
+      } finally {
+        if (!cancelled) setSessionChecked(true);
       }
     })();
     return () => {
@@ -113,5 +125,13 @@ export function usePushNotifications() {
     }
   }, [supported]);
 
-  return { supported, permission, subscribed, busy, subscribe, unsubscribe };
+  return {
+    supported,
+    permission,
+    subscribed,
+    busy,
+    sessionChecked,
+    subscribe,
+    unsubscribe,
+  };
 }

@@ -613,6 +613,10 @@ export interface FriendlyGame {
   completed_by: string | null;
   completed_at: string | null;
   share_price: number | null;
+  // When true, the creator covers the whole reservation (host_total below) and
+  // everyone else joins for free (share_price is 0).
+  host_pays: boolean;
+  host_total: number | null;
   invite_code: string | null;
   gender: "male" | "female" | "mixed";
   min_age: number | null;

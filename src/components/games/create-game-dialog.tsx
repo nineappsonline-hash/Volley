@@ -67,6 +67,7 @@ export function CreateGameDialog({
   const [gender, setGender] = useState<"male" | "female" | "mixed">("mixed");
   const [minAge, setMinAge] = useState("");
   const [maxAge, setMaxAge] = useState("");
+  const [hostPays, setHostPays] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -87,6 +88,7 @@ export function CreateGameDialog({
       setGender("mixed");
       setMinAge("");
       setMaxAge("");
+      setHostPays(false);
     }
   }, [open]);
 
@@ -126,6 +128,7 @@ export function CreateGameDialog({
         gender,
         min_age: min,
         max_age: max,
+        hostPays,
       });
       toast.success(t("community_created"));
       onOpenChange(false);
@@ -227,7 +230,24 @@ export function CreateGameDialog({
             <div className="space-y-2"><Label htmlFor="game-min-players">{lang === "ar" ? "الحد الأدنى للاعبين" : "Minimum players"}</Label><Input id="game-min-players" type="number" min="2" step="1" value={minPlayers} onChange={e => setMinPlayers(e.target.value)} /></div>
             <div className="space-y-2"><Label htmlFor="game-duration">{lang === "ar" ? "مدة الجيم بالساعات" : "Duration (hours)"}</Label><Input id="game-duration" type="number" min="0.01" max="24" step="0.25" value={duration} onChange={e => setDuration(e.target.value)} /></div>
           </div>
-          <GameCostEstimate rate={playgrounds?.find(p => p.id === playgroundId)?.rental_cost} hours={Number(duration)} min={Number(minPlayers)} />
+          <GameCostEstimate rate={playgrounds?.find(p => p.id === playgroundId)?.rental_cost} hours={Number(duration)} min={Number(minPlayers)} hostPays={hostPays} />
+
+          {/* Who pays */}
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <Switch checked={hostPays} onCheckedChange={setHostPays} id="game-host-pays" />
+                <Label htmlFor="game-host-pays">{t("games_host_pays")}</Label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("games_host_pays_hint")}
+              </p>
+            </div>
+            <Badge variant={hostPays ? "success" : "secondary"}>
+              {hostPays ? t("games_host_pays_on") : t("games_host_pays_off")}
+            </Badge>
+          </div>
+
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div className="space-y-2">
               <Label>{t("community_date")}</Label>
