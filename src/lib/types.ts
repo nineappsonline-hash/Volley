@@ -614,6 +614,8 @@ export interface FriendlyGame {
     area: string | null;
     governorate: string | null;
     address: string | null;
+    lat: number | null;
+    lng: number | null;
     location_link: string | null;
   } | null;
   game_date: string;

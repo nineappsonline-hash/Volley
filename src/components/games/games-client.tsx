@@ -57,8 +57,10 @@ import {
 } from "@/components/ui/select";
 import { EmptyState } from "@/components/shared/empty-state";
 import { DirectionsLinks } from "@/components/shared/directions-links";
+import { PlaygroundDistance } from "@/components/shared/playground-distance";
 import { PageHeader } from "@/components/shared/page-header";
 import { ReportDialog } from "@/components/shared/report-dialog";
+import { parseMapsCoordinates } from "@/lib/maps";
 import { ScoreDialog } from "@/components/shared/score-dialog";
 import { useI18n } from "@/lib/i18n";
 import { COMMUNITY_SPORTS } from "@/lib/constants";
@@ -158,6 +160,16 @@ function GameCard({
   const inviteLink = game.invite_code
     ? `${window.location.origin}/games?join=${game.invite_code}`
     : null;
+
+  const playgroundTarget = (() => {
+    if (!game.playground) return null;
+    const fromLink = parseMapsCoordinates(game.playground.location_link ?? "");
+    if (fromLink) return fromLink;
+    if (game.playground.lat != null && game.playground.lng != null) {
+      return { lat: game.playground.lat, lng: game.playground.lng };
+    }
+    return null;
+  })();
 
   const handleJoin = async () => {
     setPayOpen("join");
@@ -283,6 +295,11 @@ function GameCard({
               <p className="truncate text-xs text-muted-foreground">
                 {playgroundLabel(game.playground)}
               </p>
+            )}
+            {playgroundTarget && (
+              <span className="mt-0.5 flex items-center gap-1.5">
+                <PlaygroundDistance lat={playgroundTarget.lat} lng={playgroundTarget.lng} />
+              </span>
             )}
           </div>
           {game.playground?.location_link && (

@@ -2709,7 +2709,7 @@ export function useFriendlyGames() {
       const { data, error } = await supabase()
         .from("friendly_games")
         .select(
-          "*, participants:friendly_game_participants(id, member_id, role, player_name, is_waitlisted, share_amount, pay_status, joined_at, kickoff_remind_opt_in), playground:venues(name, area, governorate, address, location_link)"
+          "*, participants:friendly_game_participants(id, member_id, role, player_name, is_waitlisted, share_amount, pay_status, joined_at, kickoff_remind_opt_in), playground:venues(name, area, governorate, address, lat, lng, location_link)"
         )
         .neq("status", "cancelled")
         .gte("game_date", today)

@@ -56,6 +56,8 @@ const actionSchema = z.discriminatedUnion("action", [
     sport_id: z.preprocess(v => v === "" || v == null ? null : v, z.string().uuid().nullable()),
     school_name: optionalText, rental_cost: optionalNumber, rental_hours: z.coerce.number().finite().positive(),
     location_link: optionalText,
+    lat: z.preprocess(v => v === "" || v == null ? null : v, z.coerce.number().finite().nullable()),
+    lng: z.preprocess(v => v === "" || v == null ? null : v, z.coerce.number().finite().nullable()),
     country: optionalText, governorate: optionalText, city: optionalText, contact_person: optionalText, contact_phone: optionalText,
     court_count: z.preprocess(v => v === "" || v == null ? 1 : v, z.coerce.number().int().min(1).max(100)),
     unavailable_slots: z.array(unavailableSlot).default([]) }),
