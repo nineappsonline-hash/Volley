@@ -6662,7 +6662,23 @@ CREATE POLICY "Participants read game chat" ON public.friendly_game_messages
   );
 
 -- join_friendly_game now returns TRUE when the caller was placed on the
--- waitlist (full game) and FALSE when they took a real spot.
+-- waitlist (full game) and FALSE when they took a real spot. Its return type
+-- changed from UUID, so every earlier signature is dropped first (PostgreSQL
+-- refuses CREATE OR REPLACE across return types).
+DO $fn$
+DECLARE
+  r record;
+BEGIN
+  FOR r IN
+    SELECT p.oid::regprocedure AS sig
+    FROM pg_catalog.pg_proc p
+    JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public' AND p.proname = 'join_friendly_game'
+  LOOP
+    EXECUTE format('DROP FUNCTION %s', r.sig);
+  END LOOP;
+END $fn$;
+
 CREATE OR REPLACE FUNCTION public.join_friendly_game(
   p_game_id UUID,
   p_invite_code TEXT DEFAULT NULL,

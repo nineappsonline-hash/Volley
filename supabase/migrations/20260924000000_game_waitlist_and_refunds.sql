@@ -12,6 +12,24 @@
 -- join_friendly_game now returns TRUE when the caller was placed on
 -- the waitlist and FALSE when they took a real spot. The 4-argument
 -- signature is unchanged, so existing clients keep working.
+--
+-- PostgreSQL cannot change a function's return type in place, so every
+-- existing signature of join_friendly_game is dropped before the boolean
+-- version is created.
+DO $fn$
+DECLARE
+  r record;
+BEGIN
+  FOR r IN
+    SELECT p.oid::regprocedure AS sig
+    FROM pg_catalog.pg_proc p
+    JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public' AND p.proname = 'join_friendly_game'
+  LOOP
+    EXECUTE format('DROP FUNCTION %s', r.sig);
+  END LOOP;
+END $fn$;
+
 CREATE OR REPLACE FUNCTION public.join_friendly_game(
   p_game_id UUID,
   p_invite_code TEXT DEFAULT NULL,
@@ -463,7 +481,6 @@ BEGIN
       AND fg.status IN ('open', 'full')
   LOOP
     v_dt := v_parent.game_date + 1;
-    -- Fill any missed slots between today and the horizon.
     IF v_dt < CURRENT_DATE THEN v_dt := CURRENT_DATE; END IF;
     WHILE v_dt <= v_horizon LOOP
       IF date_part('isodow', v_dt) = date_part('isodow', v_parent.game_date)
@@ -475,13 +492,15 @@ BEGIN
         INSERT INTO public.friendly_games
           (creator_id, creator_name, creator_nickname, sport, title, description, area, location,
            lat, lng, game_date, start_time, max_players, skill_level, is_public,
-           status, source_game_id, recurrence)
+           status, source_game_id, recurrence, playground_id, court_number, min_players, duration_hours, playground_hourly_rate,
+           share_price, host_pays, host_total)
         VALUES
           (v_parent.creator_id, v_parent.creator_name, v_parent.creator_nickname, v_parent.sport,
            v_parent.title, v_parent.description, v_parent.area, v_parent.location,
            v_parent.lat, v_parent.lng, v_dt, v_parent.start_time,
            v_parent.max_players, v_parent.skill_level, v_parent.is_public,
-           'open', v_parent.id, 'weekly')
+           'open', v_parent.id, 'weekly', v_parent.playground_id, v_parent.court_number, v_parent.min_players, v_parent.duration_hours, v_parent.playground_hourly_rate,
+           v_parent.share_price, v_parent.host_pays, v_parent.host_total)
         RETURNING id INTO v_new_id;
 
         -- Carry the roster over from the most recent past occurrence,
@@ -497,6 +516,12 @@ BEGIN
           WHERE game_id = v_anchor
             AND NOT is_waitlisted
           ON CONFLICT DO NOTHING;
+        END IF;
+
+        IF v_parent.host_pays THEN
+          UPDATE public.friendly_game_participants
+          SET share_amount = v_parent.host_total, pay_status = 'unpaid'
+          WHERE game_id = v_new_id AND role = 'organizer';
         END IF;
 
         v_created := v_created + 1;
