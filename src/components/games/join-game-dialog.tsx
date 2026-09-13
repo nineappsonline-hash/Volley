@@ -130,13 +130,13 @@ export function JoinGameDialog({
   const submit = async () => {
     if (isFree) {
       try {
-        await join.mutateAsync({
+        const added = await join.mutateAsync({
           gameId: game.id,
           inviteCode,
           payMethod: null,
           payReceiptUrl: null,
         });
-        toast.success(t("community_joined"));
+        toast.success(added ? t("games_waitlist_joined") : t("community_joined"));
         requestPushPrompt();
         onOpenChange(false);
       } catch (err) {
@@ -158,13 +158,13 @@ export function JoinGameDialog({
         });
         toast.success(t("games_share_submitted"));
       } else {
-        await join.mutateAsync({
+        const added = await join.mutateAsync({
           gameId: game.id,
           inviteCode,
           payMethod,
           payReceiptUrl: receiptUrl,
         });
-        toast.success(t("community_joined"));
+        toast.success(added ? t("games_waitlist_joined") : t("community_joined"));
         requestPushPrompt();
       }
       onOpenChange(false);

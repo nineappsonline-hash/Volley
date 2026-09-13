@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
   CalendarDays,
+  Bell,
   Check,
   CheckCircle2,
   Clock,
@@ -24,11 +25,22 @@ import {
 import { GameCostEstimate } from "@/components/games/game-cost-estimate";
 import { GameChat } from "@/components/games/game-chat";
 import { JoinGameDialog } from "@/components/games/join-game-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,7 +69,9 @@ import {
   useLeaveFriendlyGame,
   useMyGameParticipants,
   usePlaygrounds,
+  useSetKickoffReminder,
 } from "@/lib/queries";
+import { requestPushPrompt } from "@/lib/push";
 import { useRealtime } from "@/lib/useRealtime";
 import { errorMessage } from "@/lib/utils";
 import type {
@@ -75,11 +89,19 @@ const STATUS_STYLES: Record<string, string> = {
   cancelled: "bg-negative-100 text-error-ink dark:bg-negative-500/15 dark:text-negative-400",
 };
 
-const AVAILABILITY_OPTIONS = ["any", "today", "week"] as const;
+const AVAILABILITY_OPTIONS = ["any", "today", "weekend", "week", "free_spots"] as const;
+const SKILL_OPTIONS = ["all", "beginner", "intermediate", "advanced"] as const;
 const SORT_OPTIONS = ["date", "spots"] as const;
 
 type Availability = (typeof AVAILABILITY_OPTIONS)[number];
+type SkillFilter = (typeof SKILL_OPTIONS)[number];
 type SortBy = (typeof SORT_OPTIONS)[number];
+
+const isWeekend = (date: string) => {
+  const day = new Date(date + "T00:00:00").getDay();
+  // Friday (5) / Saturday (6) — the Egyptian weekend.
+  return day === 5 || day === 6;
+};
 
 function playgroundLabel(playground: NonNullable<FriendlyGame["playground"]>) {
   return [playground.name, playground.governorate, playground.area, playground.address]
@@ -104,20 +126,27 @@ function GameCard({
   const { t, locale } = useI18n();
   const leave = useLeaveFriendlyGame();
   const cancel = useCancelFriendlyGame();
+  const join = useJoinFriendlyGame();
+  const reminder = useSetKickoffReminder();
   const [reportOpen, setReportOpen] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
   const [payOpen, setPayOpen] = useState<"join" | "pay" | null>(null);
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
 
   const isPro = profile.member_plan === "premium";
   const mine = myParticipants.find((p) => p.game_id === game.id);
   const isOrganizer = game.creator_id === profile.id;
   const joined = !!mine || isOrganizer;
+  const waitlisted = !!mine?.is_waitlisted;
   const count = game.participants_count;
+  const waitlistCount = game.waitlist_count ?? 0;
   const full = game.status === "full" || count >= game.max_players;
   const slotsLeft = Math.max(game.max_players - count, 0);
   const minPlayers = game.min_players ?? 2;
   const ready = game.status === "open" && count >= minPlayers;
   const moreNeeded = Math.max(minPlayers - count, 0);
+  const reminderOn = (mine?.kickoff_remind_opt_in ?? true) && !waitlisted;
   const needsResult =
     isOrganizer &&
     game.status !== "cancelled" &&
@@ -133,7 +162,39 @@ function GameCard({
     setPayOpen("join");
   };
 
+  const handleJoinWaitlist = async () => {
+    try {
+      const added = await join.mutateAsync({
+        gameId: game.id,
+        inviteCode: null,
+        payMethod: null,
+        payReceiptUrl: null,
+      });
+      toast.success(added ? t("games_waitlist_joined") : t("community_joined"));
+      requestPushPrompt();
+    } catch (err) {
+      toast.error(errorMessage(err, t("common_error")));
+    }
+  };
+
+  const handleShare = async () => {
+    const link = inviteLink ?? `${window.location.origin}/games`;
+    const when = `${format(new Date(game.game_date + "T00:00:00"), "EEE, MMM d", { locale })} ${game.start_time.slice(0, 5)}`;
+    const text = `${game.title} · ${game.sport} · ${when} · ${count}/${game.max_players}`;
+    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+      try {
+        await navigator.share({ title: game.title, text, url: link });
+        return;
+      } catch {
+        // User dismissed the share sheet — fall back to WhatsApp.
+      }
+    }
+    const wa = `https://wa.me/?text=${encodeURIComponent(`${text}\n${link}`)}`;
+    window.open(wa, "_blank", "noopener,noreferrer");
+  };
+
   const handleLeave = async () => {
+    setLeaveConfirmOpen(false);
     try {
       await leave.mutateAsync(game.id);
       toast.success(t("community_left"));
@@ -143,6 +204,7 @@ function GameCard({
   };
 
   const handleCancel = async () => {
+    setCancelConfirmOpen(false);
     try {
       await cancel.mutateAsync(game.id);
       toast.success(t("community_game_cancelled"));
@@ -183,6 +245,12 @@ function GameCard({
             {mine && mine.pay_status === "pending" && (
               <Badge className="gap-1 bg-attention-100 text-[10px] text-warning-ink dark:bg-attention-500/15 dark:text-attention-400">
                 {t("games_share_pending")}
+              </Badge>
+            )}
+            {waitlisted && (
+              <Badge variant="secondary" className="gap-1 text-[10px]">
+                <UsersRound className="h-3 w-3" />
+                {t("games_on_waitlist")}
               </Badge>
             )}
             <Badge className={`text-[10px] ${STATUS_STYLES[game.status] ?? ""}`}>
@@ -260,12 +328,17 @@ function GameCard({
               <Users className="h-3.5 w-3.5" />
               {count}/{game.max_players}
             </span>
-            <span className="text-muted-foreground">
-              {full
-                ? t("community_game_full")
-                : slotsLeft === 1
-                  ? t("community_slots").replace("{n}", String(slotsLeft))
-                  : t("community_slots_plural").replace("{n}", String(slotsLeft))}
+            <span className="flex items-center gap-2 text-muted-foreground">
+              {waitlistCount > 0 && (
+                <span>{t("games_waitlist_count").replace("{n}", String(waitlistCount))}</span>
+              )}
+              <span>
+                {full
+                  ? t("community_game_full")
+                  : slotsLeft === 1
+                    ? t("community_slots").replace("{n}", String(slotsLeft))
+                    : t("community_slots_plural").replace("{n}", String(slotsLeft))}
+              </span>
             </span>
           </div>
           <Progress value={game.max_players > 0 ? (count / game.max_players) * 100 : 0} />
@@ -304,15 +377,27 @@ function GameCard({
           {!isOrganizer &&
             !isPrivate &&
             (joined ? (
-              <Button variant="outline" size="sm" onClick={handleLeave} disabled={leave.isPending}>
+              <Button variant="outline" size="sm" onClick={() => setLeaveConfirmOpen(true)} disabled={leave.isPending}>
                 {t("community_leave")}
               </Button>
-            ) : !full ? (
+            ) : full ? (
+              <Button variant="outline" size="sm" onClick={() => void handleJoinWaitlist()} disabled={join.isPending}>
+                <UsersRound className="me-1 h-3.5 w-3.5" />
+                {t("games_waitlist_join")}
+              </Button>
+            ) : (
               <Button size="sm" onClick={handleJoin}>
                 <Plus className="me-1 h-3.5 w-3.5" />
                 {t("community_join")}
               </Button>
-            ) : null)}
+            ))}
+
+          {!isOrganizer && (
+            <Button variant="outline" size="sm" onClick={() => void handleShare()}>
+              <Share2 className="me-1 h-3.5 w-3.5" />
+              {t("games_share_btn")}
+            </Button>
+          )}
 
           {isOrganizer && mine?.pay_status === "unpaid" && (
             <Button size="sm" onClick={() => setPayOpen("pay")}>
@@ -356,7 +441,7 @@ function GameCard({
                 variant="outline"
                 size="sm"
                 className="text-destructive hover:text-destructive"
-                onClick={handleCancel}
+                onClick={() => setCancelConfirmOpen(true)}
                 disabled={cancel.isPending}
               >
                 {t("community_cancel")}
@@ -389,7 +474,28 @@ function GameCard({
           </div>
         </div>
       <GameCostEstimate compact rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} hostPays={game.host_pays} />
-      {joined && <GameChat gameId={game.id} gameTitle={game.title} memberId={profile.id} />}
+      {joined && !waitlisted && (
+        <div className="flex flex-wrap items-center gap-2">
+          <GameChat gameId={game.id} gameTitle={game.title} memberId={profile.id} isOrganizer={isOrganizer} />
+          {!waitlisted && (
+            <div className="flex items-center gap-1.5 rounded-lg border bg-muted/30 px-2.5 py-1.5 text-xs text-muted-foreground">
+              <Bell className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{t("games_remind_me")}</span>
+              <Switch
+                checked={reminderOn}
+                disabled={reminder.isPending}
+                onCheckedChange={(on) =>
+                  reminder.mutate(
+                    { gameId: game.id, enabled: on },
+                    { onError: (err) => toast.error(errorMessage(err, t("common_error"))) }
+                  )
+                }
+                aria-label={t("games_remind_on")}
+              />
+            </div>
+          )}
+        </div>
+      )}
       </CardContent>
 
       <ReportDialog
@@ -414,6 +520,44 @@ function GameCard({
         inviteCode={game.is_public ? null : game.invite_code}
         mode={payOpen ?? "join"}
       />
+
+      <AlertDialog open={leaveConfirmOpen} onOpenChange={setLeaveConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("community_leave_confirm_title")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("community_leave_confirm_desc")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common_cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => void handleLeave()}
+              disabled={leave.isPending}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              {t("community_leave_confirm_btn")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("community_cancel_confirm_title")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("community_cancel_confirm_desc")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common_cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => void handleCancel()}
+              disabled={cancel.isPending}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              {t("community_cancel_confirm_btn")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
@@ -519,6 +663,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
 
   const [sportFilter, setSportFilter] = useState("all");
   const [areaFilter, setAreaFilter] = useState("all");
+  const [skillFilter, setSkillFilter] = useState<SkillFilter>("all");
   const [availability, setAvailability] = useState<Availability>("any");
   const [sortBy, setSortBy] = useState<SortBy>("date");
   const [onlyMine, setOnlyMine] = useState(false);
@@ -590,12 +735,17 @@ export function GamesClient({ profile }: { profile: Profile }) {
     const mineIds = new Set((myParticipants ?? []).map((p) => p.game_id));
     const list = (games ?? []).filter((g) => {
       if (sportFilter !== "all" && g.sport !== sportFilter) return false;
+      if (skillFilter !== "all" && g.skill_level !== skillFilter) return false;
       if (areaFilter !== "all") {
         const place = g.playground?.area ?? g.playground?.governorate ?? g.area ?? "";
         if (!matchesArea(place, areaFilter)) return false;
       }
       if (availability === "today" && g.game_date !== today) return false;
+      if (availability === "weekend" && !isWeekend(g.game_date)) return false;
       if (availability === "week" && g.game_date > weekEnd) return false;
+      if (availability === "free_spots" && (g.status === "full" || g.participants_count >= g.max_players)) {
+        return false;
+      }
       if (onlyMine && g.creator_id !== profile.id && !mineIds.has(g.id)) return false;
       return true;
     });
@@ -610,7 +760,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
       sorted.sort((a, b) => a.game_date.localeCompare(b.game_date));
     }
     return sorted;
-  }, [games, myParticipants, sportFilter, areaFilter, availability, onlyMine, sortBy, today, weekEnd, profile.id]);
+  }, [games, myParticipants, sportFilter, skillFilter, areaFilter, availability, onlyMine, sortBy, today, weekEnd, profile.id]);
 
   return (
     <div className="space-y-6">
@@ -628,7 +778,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
         error={inviteError}
       />
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-6">
         <Select value={sportFilter} onValueChange={setSportFilter}>
           <SelectTrigger aria-label={t("community_sport")}>
             <SelectValue />
@@ -638,6 +788,22 @@ export function GamesClient({ profile }: { profile: Profile }) {
             {COMMUNITY_SPORTS.map((s) => (
               <SelectItem key={s} value={s}>
                 {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={skillFilter}
+          onValueChange={(v) => setSkillFilter(v as SkillFilter)}
+        >
+          <SelectTrigger aria-label={t("games_filter_level")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SKILL_OPTIONS.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s === "all" ? t("games_level_all") : t(`skill_${s}`)}
               </SelectItem>
             ))}
           </SelectContent>

@@ -641,6 +641,8 @@ export interface FriendlyGame {
 
 export interface FriendlyGameWithDetails extends FriendlyGame {
   participants_count: number;
+  waitlist_count: number;
+  participants: FriendlyGameParticipant[];
 }
 
 export interface FriendlyGameParticipant {
@@ -657,6 +659,20 @@ export interface FriendlyGameParticipant {
   pay_method: "instapay" | "e_wallet" | "kashier" | "visa" | null;
   pay_receipt_url: string | null;
   pay_status: "unpaid" | "pending" | "approved" | "rejected";
+  // Personal kickoff-reminder toggle (defaults to TRUE).
+  kickoff_remind_opt_in?: boolean;
+}
+
+export interface GameChatMessage {
+  id: string;
+  game_id: string;
+  sender_id: string;
+  sender_name: string;
+  sender_username: string | null;
+  body: string | null;
+  image_url: string | null;
+  is_pinned: boolean;
+  created_at: string;
 }
 
 export type NotificationType =

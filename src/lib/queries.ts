@@ -2708,7 +2708,7 @@ export function useFriendlyGames() {
       const { data, error } = await supabase()
         .from("friendly_games")
         .select(
-          "*, participants:friendly_game_participants(count), playground:venues(name, area, governorate, address)"
+          "*, participants:friendly_game_participants(id, member_id, role, player_name, is_waitlisted, share_amount, pay_status, joined_at, kickoff_remind_opt_in), playground:venues(name, area, governorate, address)"
         )
         .neq("status", "cancelled")
         .gte("game_date", today)
@@ -2719,10 +2719,17 @@ export function useFriendlyGames() {
       const hidden = new Set(blockedIds);
       return ((data ?? []) as any[])
         .filter((g) => !hidden.has(g.creator_id))
-        .map((g) => ({
-          ...g,
-          participants_count: Number(g.participants?.[0]?.count ?? 0),
-        })) as FriendlyGameWithDetails[];
+        .map((g) => {
+          const participants = (g.participants ?? []) as FriendlyGameParticipant[];
+          const active = participants.filter((p) => !p.is_waitlisted);
+          const waitlisted = participants.filter((p) => p.is_waitlisted);
+          return {
+            ...g,
+            participants,
+            participants_count: active.length,
+            waitlist_count: waitlisted.length,
+          } as FriendlyGameWithDetails;
+        });
     },
   });
 }
@@ -2753,7 +2760,7 @@ export function useMyGameParticipants() {
       const { data, error } = await supabase()
         .from("friendly_game_participants")
         .select(
-          "id, game_id, member_id, role, player_name, is_waitlisted, joined_at, share_amount, pay_method, pay_receipt_url, pay_status"
+          "id, game_id, member_id, role, player_name, is_waitlisted, joined_at, share_amount, pay_method, pay_receipt_url, pay_status, kickoff_remind_opt_in"
         )
         .eq("member_id", user.id);
       if (error) throw error;
@@ -2827,13 +2834,15 @@ export function useJoinFriendlyGame() {
       payMethod: "instapay" | "e_wallet" | "kashier" | null;
       payReceiptUrl: string | null;
     }) => {
-      const { error } = await supabase().rpc("join_friendly_game", {
+      const { data, error } = await supabase().rpc("join_friendly_game", {
         p_game_id: input.gameId,
         p_invite_code: input.inviteCode ?? null,
         p_pay_method: input.payMethod,
         p_pay_receipt_url: input.payReceiptUrl,
       });
       if (error) throw error;
+      // TRUE = placed on the waitlist, FALSE = took a real spot.
+      return data as boolean;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
@@ -2972,6 +2981,22 @@ export function useRemoveFamilyMember() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.children() });
+    },
+  });
+}
+
+export function useSetKickoffReminder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { gameId: string; enabled: boolean }) => {
+      const { error } = await supabase().rpc("set_kickoff_reminder", {
+        p_game_id: input.gameId,
+        p_enabled: input.enabled,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
     },
   });
 }
