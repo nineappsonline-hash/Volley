@@ -408,11 +408,12 @@ export function PlatformRecords() {
     : t("sa_records_detail_other");
   const duplicateVenue = (row: Row) => {
     if (!row) return;
+    const sportName = (data?.sports ?? []).find(s => s.id === row.sport_id)?.name ?? "";
     setEditingVenue({
       ...row,
       id: undefined,
       duplicate_of: row.name,
-      name: `${row.name} (${t("sa_venue_copy_suffix")})`,
+      name: sportName ? `${row.name} ${sportName}` : row.name,
       lat: row.lat ? String(row.lat) : "",
       lng: row.lng ? String(row.lng) : "",
     });
