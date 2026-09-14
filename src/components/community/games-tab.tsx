@@ -8,7 +8,9 @@ import {
   Clock,
   Flag,
   Lamp,
+  LandPlot,
   MapPin,
+  Navigation,
   Plus,
   Repeat,
   Share2,
@@ -222,6 +224,34 @@ function GameCard({
         </p>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-3">
+        {game.playground && (
+          <div className="flex items-start gap-2 rounded-lg border bg-muted/30 p-2.5">
+            {game.playground.photos?.[0] ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={game.playground.photos[0]} alt={game.playground.name ?? ""} className="mt-0.5 h-10 w-10 shrink-0 rounded-md border object-cover" />
+            ) : (
+              <LandPlot className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            )}
+            <div className="min-w-0 flex-1 text-sm">
+              <p className="truncate font-semibold">
+                {game.playground.name ?? game.location ?? game.title}
+              </p>
+              {(game.playground.governorate || game.playground.area) && (
+                <p className="truncate text-xs text-muted-foreground">
+                  {[game.playground.governorate, game.playground.area].filter(Boolean).join(" · ")}
+                </p>
+              )}
+            </div>
+            {game.playground.location_link && (
+              <Button asChild variant="outline" size="sm" className="shrink-0">
+                <a href={game.playground.location_link} target="_blank" rel="noopener noreferrer">
+                  <Navigation className="me-1 h-3.5 w-3.5" />
+                  {t("directions")}
+                </a>
+              </Button>
+            )}
+          </div>
+        )}
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <CalendarDays className="h-4 w-4 shrink-0" />
