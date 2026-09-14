@@ -427,16 +427,22 @@ export function PlatformRecords() {
       if (!current) return current;
       const prevSportName = current.sport_id && sportById.has(current.sport_id) ? (sportById.get(current.sport_id) as string) : "";
       const newSportName = newSportId ? (sportById.get(newSportId) ?? "") : "";
+      const trimmed = current.name.trimEnd();
       let name = current.name;
-      if (!current.id && !current.duplicate_of) {
-        name = newSportName && !name ? newSportName : name;
+      if (newSportName) {
+        if (!name) {
+          name = newSportName;
+        } else if (prevSportName && name === prevSportName) {
+          name = newSportName;
+        } else if (prevSportName && trimmed.endsWith(` ${prevSportName}`)) {
+          name = `${trimmed.slice(0, -` ${prevSportName}`.length).trimEnd()} ${newSportName}`;
+        } else {
+          name = `${trimmed} ${newSportName}`;
+        }
+      } else if (prevSportName && trimmed.endsWith(` ${prevSportName}`)) {
+        name = trimmed.slice(0, -` ${prevSportName}`.length);
       } else if (prevSportName && name === prevSportName) {
-        name = newSportName || "";
-      } else if (prevSportName && name.endsWith(` ${prevSportName}`)) {
-        const base = name.slice(0, -` ${prevSportName}`.length);
-        name = newSportName ? `${base} ${newSportName}` : base;
-      } else if (newSportName && !name) {
-        name = newSportName;
+        name = "";
       }
       return { ...current, sport_id: newSportId, name };
     });
