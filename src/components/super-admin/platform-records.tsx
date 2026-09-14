@@ -409,12 +409,10 @@ export function PlatformRecords() {
     : t("sa_records_detail_other");
   const duplicateVenue = (row: Row) => {
     if (!row) return;
-    const sportName = (data?.sports ?? []).find(s => s.id === row.sport_id)?.name ?? "";
     setEditingVenue({
       ...row,
       id: undefined,
       duplicate_of: row.name,
-      name: sportName ? `${row.name} ${sportName}` : row.name,
       lat: row.lat ? String(row.lat) : "",
       lng: row.lng ? String(row.lng) : "",
     });
@@ -423,29 +421,7 @@ export function PlatformRecords() {
   const sports = (data.sports ?? []).sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: "base" }));
   const sportById = new Map(sports.map((s) => [s.id, s.name]));
   const handleSportSelect = (newSportId: string | null) => {
-    setEditingVenue((current) => {
-      if (!current) return current;
-      const prevSportName = current.sport_id && sportById.has(current.sport_id) ? (sportById.get(current.sport_id) as string) : "";
-      const newSportName = newSportId ? (sportById.get(newSportId) ?? "") : "";
-      const trimmed = current.name.trimEnd();
-      let name = current.name;
-      if (newSportName) {
-        if (!name) {
-          name = newSportName;
-        } else if (prevSportName && name === prevSportName) {
-          name = newSportName;
-        } else if (prevSportName && trimmed.endsWith(` ${prevSportName}`)) {
-          name = `${trimmed.slice(0, -` ${prevSportName}`.length).trimEnd()} ${newSportName}`;
-        } else {
-          name = `${trimmed} ${newSportName}`;
-        }
-      } else if (prevSportName && trimmed.endsWith(` ${prevSportName}`)) {
-        name = trimmed.slice(0, -` ${prevSportName}`.length);
-      } else if (prevSportName && name === prevSportName) {
-        name = "";
-      }
-      return { ...current, sport_id: newSportId, name };
-    });
+    setEditingVenue((current) => current && { ...current, sport_id: newSportId });
   };
   const editingVenueCoords = editingVenue ? parseMapsCoordinates(editingVenue.location_link ?? "") : null;
   const academy = (id: string) => data.academies.find(a => a.id === id)?.name ?? (id ? t("sa_academy_unavailable") : t("sa_independent"));
@@ -507,6 +483,7 @@ export function PlatformRecords() {
                   <h3 className="break-words font-semibold">{row.name ?? row.title}</h3>
                   {tab === "Members" && <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${blocked ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>{blocked ? t("sa_blocked") : t("sa_enabled")}</span>}
                   {row.guardian_id && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{t("sa_family_member")}</span>}
+                  {tab === "Playgrounds" && row.sport_id && sportById.has(row.sport_id) && <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium">{sportById.get(row.sport_id)}</span>}
                 </div>
                 {tab === "Members" ? (row.email ? <p className="mt-1 break-all text-sm text-muted-foreground">{row.email}</p> : <p className="mt-1 text-xs text-muted-foreground">{t("sa_no_login")}</p>) : <p className="text-sm text-muted-foreground">{tab === "Academies" ? `${row.plan} · ${row.is_trial ? t("sa_trial") : t("sa_records_paid")} · ${data.profiles.filter(p => p.academy_id === row.id).length} ${t("sa_records_accounts")}` : tab === "Friendly games" ? `${row.game_date} ${row.start_time} · ${row.sport} · ${row.status} · ${data.friendly_game_participants.filter(p => p.game_id === row.id && !p.is_waitlisted).length}/${row.max_players} ${t("sa_records_players")}` : tab === "Tournaments" ? `${academy(row.academy_id)} · ${row.format ?? "—"} · ${row.status} · ${data.tournament_matches.filter(m => m.tournament_id === row.id).length} ${t("sa_records_matches_short")}` : `${academy(row.academy_id)} · ${[row.governorate, row.area].filter(Boolean).join(" · ") || t("sa_no_address")}`}</p>}
               </div>
@@ -534,7 +511,7 @@ export function PlatformRecords() {
       <Dialog open={!!deleting} onOpenChange={open => !busy && !open && setDeleting(null)}><DialogContent><DialogHeader><DialogTitle>{t("sa_delete_account_title")}</DialogTitle><DialogDescription>{t("sa_delete_account_body").replace("{phrase}", confirmPhrase(deleting) ?? "")}</DialogDescription></DialogHeader><Input aria-label={t("sa_confirmation")} value={confirmation} onChange={e => setConfirmation(e.target.value)} /><Button variant="destructive" disabled={busy || !confirmMatches(confirmation, deleting)} onClick={() => act({ action: "delete", id: deleting!.id, confirmation })}>{busy ? t("sa_deleting") : t("sa_permanently_delete")}</Button></DialogContent></Dialog>
       <AlertDialog open={!!deletingAcademy} onOpenChange={open => !removeAcademy.isPending && !open && setDeletingAcademy(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{t("sa_delete_academy_title")}</AlertDialogTitle><AlertDialogDescription>{t("sa_delete_academy_body").replace("{name}", deletingAcademy?.name ?? "")}</AlertDialogDescription></AlertDialogHeader><Input aria-label={t("sa_academy")} value={confirmation} onChange={e => setConfirmation(e.target.value)} /><AlertDialogFooter><AlertDialogCancel disabled={removeAcademy.isPending}>{t("sa_cancel")}</AlertDialogCancel><AlertDialogAction asChild><Button variant="destructive" disabled={removeAcademy.isPending || confirmation !== deletingAcademy?.name} onClick={async () => { try { await removeAcademy.mutateAsync(deletingAcademy!.id); toast.success(t("sa_academy_deleted")); setDeletingAcademy(null); setConfirmation(""); await cache.invalidateQueries(); } catch (e) { toast.error(e instanceof Error ? e.message : t("sa_deletion_failed")); } }}>{removeAcademy.isPending ? t("sa_deleting") : t("sa_permanently_delete")}</Button></AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
       <AcademyEditDialog academy={editingAcademy} onClose={() => setEditingAcademy(null)} onDeleted={() => { setEditingAcademy(null); cache.invalidateQueries(); }} />
-      <Dialog open={!!editingVenue} onOpenChange={open => !busy && !open && setEditingVenue(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>{editingVenue?.id ? t("sa_edit_playground") : editingVenue?.duplicate_of ? t("sa_duplicate_playground") : t("sa_add_playground")}</DialogTitle><DialogDescription>{editingVenue?.id || editingVenue?.duplicate_of ? editingVenue.name : t("sa_add_playground_desc")}</DialogDescription></DialogHeader>{editingVenue && <form className="space-y-4" onSubmit={e => { e.preventDefault(); if (!isValidSlotList(editingVenue.unavailable_slots)) { toast.error(t("sa_unavail_invalid")); return; } if (!isValidSlotList(editingVenue.working_hours)) { toast.error(t("sa_wh_invalid")); return; } act({ action: "venue", ...(editingVenue.id ? { id: editingVenue.id } : {}), academy_id: editingVenue.academy_id ?? null, name: editingVenue.name, capacity: editingVenue.capacity, sport_id: editingVenue.sport_id ?? "", school_name: editingVenue.school_name, rental_cost: editingVenue.rental_cost, rental_hours: editingVenue.rental_hours, location_link: editingVenue.location_link, lat: editingVenue.lat, lng: editingVenue.lng, photos: editingVenue.photos ?? [], cover_url: editingVenue.cover_url, country: editingVenue.country, governorate: editingVenue.governorate, city: editingVenue.area, contact_person: editingVenue.contact_person, contact_phone: editingVenue.contact_phone, court_count: Number(editingVenue.court_count) || 1, unavailable_slots: ((editingVenue.unavailable_slots ?? []) as VenueUnavailableSlot[]).map(s => ({ weekday: Number(s.weekday), start: s.start, end: s.end })), working_hours: ((editingVenue.working_hours ?? []) as VenueUnavailableSlot[]).map(s => ({ weekday: Number(s.weekday), start: s.start, end: s.end })) }); }}>
+      <Dialog open={!!editingVenue} onOpenChange={open => !busy && !open && setEditingVenue(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>{editingVenue?.id ? t("sa_edit_playground") : editingVenue?.duplicate_of ? t("sa_duplicate_playground") : t("sa_add_playground")}</DialogTitle><DialogDescription>{editingVenue?.id || editingVenue?.duplicate_of ? editingVenue.name : t("sa_add_playground_desc")}</DialogDescription></DialogHeader>{editingVenue && <form className="space-y-4" onSubmit={e => { e.preventDefault(); if (!isValidSlotList(editingVenue.unavailable_slots)) { toast.error(t("sa_unavail_invalid")); return; } if (!isValidSlotList(editingVenue.working_hours)) { toast.error(t("sa_wh_invalid")); return; } const exactName = editingVenue.name.trim().toLowerCase(); const conflictExists = (data.venues ?? []).some((v: Row) => v.id !== editingVenue.id && String(v.name ?? "").trim().toLowerCase() === exactName && (v.sport_id ?? null) === (editingVenue.sport_id ?? null)); if (exactName && conflictExists) { toast.error(t("sa_venue_name_sport_unique")); return; } act({ action: "venue", ...(editingVenue.id ? { id: editingVenue.id } : {}), academy_id: editingVenue.academy_id ?? null, name: editingVenue.name, capacity: editingVenue.capacity, sport_id: editingVenue.sport_id ?? "", school_name: editingVenue.school_name, rental_cost: editingVenue.rental_cost, rental_hours: editingVenue.rental_hours, location_link: editingVenue.location_link, lat: editingVenue.lat, lng: editingVenue.lng, photos: editingVenue.photos ?? [], cover_url: editingVenue.cover_url, country: editingVenue.country, governorate: editingVenue.governorate, city: editingVenue.area, contact_person: editingVenue.contact_person, contact_phone: editingVenue.contact_phone, court_count: Number(editingVenue.court_count) || 1, unavailable_slots: ((editingVenue.unavailable_slots ?? []) as VenueUnavailableSlot[]).map(s => ({ weekday: Number(s.weekday), start: s.start, end: s.end })), working_hours: ((editingVenue.working_hours ?? []) as VenueUnavailableSlot[]).map(s => ({ weekday: Number(s.weekday), start: s.start, end: s.end })) }); }}>
         <label className="block text-sm">{t("sa_academy")}
           <select className="mt-1 w-full rounded border bg-background p-2" value={editingVenue.academy_id ?? ""} onChange={e => setEditingVenue({ ...editingVenue, academy_id: e.target.value || null })}>
             <option value="">{t("sa_unassigned")}</option>
