@@ -22,7 +22,7 @@ import { ProfileAvatar } from "@/components/shared/profile-avatar";
 import { AcademyEditDialog } from "./academy-edit-dialog";
 import { LocationFields } from "@/components/shared/location-fields";
 import { Label } from "@/components/ui/label";
-import { Ban, Clock, Plus, Trash2 } from "lucide-react";
+import { Ban, Check, Clock, Copy, Plus, Trash2 } from "lucide-react";
 import { minutesOf } from "@/lib/venue-slots";
 import { formatMoney } from "@/lib/constants";
 import { DirectionsLinks } from "@/components/shared/directions-links";
@@ -89,6 +89,18 @@ function confirmMatches(confirmation: string, row: Row | null): boolean {
 /** Playground details dialog: readable, structured view without raw ids. */
 function VenueDetails({ venue, data }: { venue: Row; data: Records }) {
   const { t, lang } = useI18n();
+  const [copied, setCopied] = useState(false);
+  const copyLink = async () => {
+    if (!venue.location_link) return;
+    try {
+      await navigator.clipboard.writeText(venue.location_link);
+      setCopied(true);
+      toast.success(t("cal_copied"));
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error(t("common_error"));
+    }
+  };
   const notSet = t("sa_not_set");
   const sportName = data.sports.find(s => s.id === venue.sport_id)?.name;
   const academyName = venue.academy_id
@@ -122,7 +134,6 @@ function VenueDetails({ venue, data }: { venue: Row; data: Records }) {
     </dl>
     <section className="space-y-2"><h3 className="text-sm font-semibold">{t("sa_location")}</h3><Details row={{
       "Location": location,
-      Address: venue.address || notSet,
       "Rented school / owner": venue.school_name || notSet,
     }} /></section>
     <section className="space-y-2">
@@ -151,7 +162,29 @@ function VenueDetails({ venue, data }: { venue: Row; data: Records }) {
       {coords
         ? <DirectionsLinks lat={coords.lat} lng={coords.lng} query={venue.name} />
         : <p className="text-sm text-muted-foreground">{t("sa_map_missing")}</p>}
-      {venue.location_link && <p className="break-all text-xs text-muted-foreground" dir="ltr">{venue.location_link}</p>}
+      {venue.location_link && (
+        <div className="flex items-center gap-2">
+          <a
+            href={venue.location_link}
+            target="_blank"
+            rel="noopener noreferrer"
+            dir="ltr"
+            className="min-w-0 flex-1 break-all text-xs text-primary underline underline-offset-4 hover:text-primary/80"
+          >
+            {venue.location_link}
+          </a>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-7 w-7 shrink-0"
+            aria-label={t("cal_copy")}
+            onClick={copyLink}
+          >
+            {copied ? <Check className="h-3.5 w-3.5 text-success-ink" /> : <Copy className="h-3.5 w-3.5" />}
+          </Button>
+        </div>
+      )}
     </section>
     <details className="rounded-lg border p-3">
       <summary className="cursor-pointer text-sm font-semibold">{t("sa_rental_history")} ({rentals.length})</summary>
