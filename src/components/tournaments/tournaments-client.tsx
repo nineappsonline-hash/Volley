@@ -396,16 +396,18 @@ export function TournamentsClient({
 
 // ── Tournament Form Dialog ─────────────────────────────────
 
-function TournamentFormDialog({
+export function TournamentFormDialog({
   open,
   onOpenChange,
   tournament,
   sports,
+  onSaved,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   tournament: Tournament | null;
   sports: { id: string; name: string }[];
+  onSaved?: () => void;
 }) {
   const { t } = useI18n();
   const save = useSaveTournament();
@@ -461,6 +463,7 @@ function TournamentFormDialog({
       });
       toast.success(t("tournament_saved"));
       onOpenChange(false);
+      onSaved?.();
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
     } finally {
