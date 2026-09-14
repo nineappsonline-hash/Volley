@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -53,6 +54,7 @@ import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import { cn, errorMessage, todayInput } from "@/lib/utils";
 import {
+  useAcademy,
   useDeleteTournament,
   useSaveMatch,
   useSaveTournament,
@@ -88,15 +90,25 @@ export function TournamentsClient({
   const { data: sports } = useSports();
   const { data: teams } = useTeams();
   const { data: venues } = useVenues();
+  const { data: academy } = useAcademy();
   const deleteTournament = useDeleteTournament();
+
+  // Creating tournaments requires the Plus or Enterprise plan. The platform
+  // admin has no academy (useAcademy returns null) and is always allowed.
+  const canOrganize =
+    canCreate &&
+    (academy === null ||
+      academy?.plan === "plus" ||
+      academy?.plan === "elite");
+  const onStarterPlan = canCreate && academy?.plan === "starter";
 
   const [formOpen, setFormOpen] = useState(false);
   useEffect(() => {
-    if (autoCreate && !formOpen) {
+    if (autoCreate && canOrganize && !formOpen) {
       setEditing(null);
       setFormOpen(true);
     }
-  }, [autoCreate, formOpen]);
+  }, [autoCreate, canOrganize, formOpen]);
   const [editing, setEditing] = useState<Tournament | null>(null);
   const [deleting, setDeleting] = useState<TournamentWithMatches | null>(null);
   const [details, setDetails] = useState<TournamentWithMatches | null>(null);
@@ -151,7 +163,7 @@ export function TournamentsClient({
   return (
     <div className="space-y-6">
       <PageHeader title={t("tournament_title")} subtitle={t("tournament_subtitle")}>
-        {canCreate && (
+        {canOrganize && (
           <Button
             onClick={() => {
               setEditing(null);
@@ -163,6 +175,22 @@ export function TournamentsClient({
           </Button>
         )}
       </PageHeader>
+
+      {onStarterPlan && (
+        <Card className="border-primary/30">
+          <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-semibold">{t("tournament_plan_gate_title")}</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                {t("tournament_plan_gate_desc")}
+              </p>
+            </div>
+            <Button asChild variant="outline" className="shrink-0">
+              <Link href="/upgrade">{t("tournament_plan_gate_cta")}</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

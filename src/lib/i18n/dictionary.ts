@@ -1265,6 +1265,10 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     tournament_max_participants: "Max participants (optional)",
     tournament_venue: "Playground",
     tournament_venue_placeholder: "Select a playground",
+    tournament_plan_gate_title: "Tournaments are a paid feature",
+    tournament_plan_gate_desc:
+      "Organizing tournaments is available on the Plus and Enterprise plans. Upgrade to create brackets, schedule matches, and run competitions.",
+    tournament_plan_gate_cta: "View plans",
     tournament_deleted: "Tournament deleted",
     tournament_delete_confirm_title: "Delete tournament",
     tournament_delete_confirm: "This will delete the tournament and all its matches. This cannot be undone.",
@@ -3670,6 +3674,10 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     tournament_max_participants: "الحد الأقصى للمشاركين (اختياري)",
     tournament_venue: "الملعب",
     tournament_venue_placeholder: "اختر الملعب",
+    tournament_plan_gate_title: "البطولات من المزايا المدفوعة",
+    tournament_plan_gate_desc:
+      "تنظيم البطولات متاح في خطة بلس وخطة المؤسسة. قم بالترقية لإنشاء الأدوار وجدولة المباريات وإدارة المنافسات.",
+    tournament_plan_gate_cta: "عرض الخطط",
     tournament_deleted: "تم حذف البطولة",
     tournament_delete_confirm_title: "حذف البطولة",
     tournament_delete_confirm: "سيتم حذف البطولة وجميع مبارياتها. لا يمكن التراجع.",
