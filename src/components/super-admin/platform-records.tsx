@@ -22,7 +22,8 @@ import { ProfileAvatar } from "@/components/shared/profile-avatar";
 import { AcademyEditDialog } from "./academy-edit-dialog";
 import { LocationFields } from "@/components/shared/location-fields";
 import { Label } from "@/components/ui/label";
-import { Ban, Camera, Check, Clock, Copy, Loader2, Plus, Star, Trash2, Upload } from "lucide-react";
+import { Ban, Camera, Check, ChevronDown, Clock, Copy, Loader2, Plus, Search, Star, Trash2, Upload } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { minutesOf } from "@/lib/venue-slots";
 import { formatMoney } from "@/lib/constants";
 import { DirectionsLinks } from "@/components/shared/directions-links";
@@ -421,6 +422,25 @@ export function PlatformRecords() {
   if (error || !data) return <Card><CardContent className="p-6"><p role="alert">{error?.message ?? t("sa_could_not_load")}</p><Button onClick={() => refetch()}>{t("sa_retry")}</Button></CardContent></Card>;
   const sports = (data.sports ?? []).sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: "base" }));
   const sportById = new Map(sports.map((s) => [s.id, s.name]));
+  const handleSportSelect = (newSportId: string | null) => {
+    setEditingVenue((current) => {
+      if (!current) return current;
+      const prevSportName = current.sport_id && sportById.has(current.sport_id) ? (sportById.get(current.sport_id) as string) : "";
+      const newSportName = newSportId ? (sportById.get(newSportId) ?? "") : "";
+      let name = current.name;
+      if (!current.id && !current.duplicate_of) {
+        name = newSportName && !name ? newSportName : name;
+      } else if (prevSportName && name === prevSportName) {
+        name = newSportName || "";
+      } else if (prevSportName && name.endsWith(` ${prevSportName}`)) {
+        const base = name.slice(0, -` ${prevSportName}`.length);
+        name = newSportName ? `${base} ${newSportName}` : base;
+      } else if (newSportName && !name) {
+        name = newSportName;
+      }
+      return { ...current, sport_id: newSportId, name };
+    });
+  };
   const editingVenueCoords = editingVenue ? parseMapsCoordinates(editingVenue.location_link ?? "") : null;
   const academy = (id: string) => data.academies.find(a => a.id === id)?.name ?? (id ? t("sa_academy_unavailable") : t("sa_independent"));
   const source = tab === "Members" ? data.profiles : tab === "Academies" ? data.academies : tab === "Friendly games" ? data.friendly_games : tab === "Tournaments" ? data.tournaments : data.venues;
@@ -549,17 +569,12 @@ export function PlatformRecords() {
           </div>
           <div className="space-y-2">
             <Label>{t("sa_sport")}</Label>
-            <Input
-              list="sa-sport-options"
-              value={editingVenue.sport_id && sportById.has(editingVenue.sport_id) ? (sportById.get(editingVenue.sport_id) as string) : ""}
-              onChange={(e) => {
-                const raw = e.target.value.trim();
-                const found = sports.find((s) => s.name.toLowerCase() === raw.toLowerCase());
-                setEditingVenue((current) => current && ({ ...current, sport_id: raw === "" ? null : found ? found.id : current.sport_id }));
-              }}
+            <SportCombobox
+              sports={sports}
+              value={editingVenue.sport_id}
+              onSelect={handleSportSelect}
               placeholder={t("sa_sport_search")}
             />
-            <datalist id="sa-sport-options">{sports.map((s) => <option key={s.id} value={s.name} />)}</datalist>
             <span className="mt-1 block text-xs text-muted-foreground">{t("sa_sport_search_hint")}</span>
           </div>
         </div>
@@ -653,4 +668,96 @@ export function PlatformRecords() {
       <Dialog open={!!deletingVenue} onOpenChange={open => !busy && !open && setDeletingVenue(null)}><DialogContent><DialogHeader><DialogTitle>{t("sa_delete_playground_title")}</DialogTitle><DialogDescription>{t("sa_delete_playground_body").replace("{name}", deletingVenue?.name ?? "")}</DialogDescription></DialogHeader><Input aria-label={t("sa_playground_name")} value={confirmation} onChange={e => setConfirmation(e.target.value)} /><Button variant="destructive" disabled={busy || confirmation !== deletingVenue?.name} onClick={() => act({ action: "delete_venue", id: deletingVenue!.id, confirmation })}>{busy ? t("sa_deleting") : t("sa_permanently_delete")}</Button></DialogContent></Dialog>
     </CardContent>
   </Card>;
+}
+
+function SportCombobox({
+  sports,
+  value,
+  onSelect,
+  placeholder,
+}: {
+  sports: Row[];
+  value: string | null;
+  onSelect: (sportId: string | null) => void;
+  placeholder: string;
+}) {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const selected = value ? sports.find((s) => s.id === value) : null;
+  const filtered = query
+    ? sports.filter((s) => s.name.toLowerCase().includes(query.trim().toLowerCase()))
+    : sports;
+
+  const select = (id: string | null) => {
+    onSelect(id);
+    setOpen(false);
+    setQuery("");
+  };
+
+  return (
+    <Popover open={open} onOpenChange={(next) => { setOpen(next); if (!next) setQuery(""); }}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="h-9 w-full justify-between font-normal"
+        >
+          <span dir="auto" className="truncate text-start">
+            {selected ? selected.name : placeholder}
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] overflow-hidden p-0">
+        <div className="relative">
+          <Search className="pointer-events-none absolute start-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={placeholder}
+            className="h-9 rounded-none border-0 border-b ps-8 focus-visible:ring-0"
+            dir="auto"
+          />
+        </div>
+        <div className="max-h-56 overflow-auto p-1">
+          <button
+            type="button"
+            onClick={() => select(null)}
+            className={cn(
+              "flex w-full items-center justify-between gap-2 rounded-sm px-3 py-2 text-start text-sm hover:bg-accent",
+              value == null && "bg-accent",
+            )}
+            dir="auto"
+          >
+            <span className="text-muted-foreground">{t("sa_unassigned")}</span>
+            {value == null && <Check className="h-4 w-4 shrink-0 opacity-70" />}
+          </button>
+          {filtered.length === 0 ? (
+            <p className="px-3 py-4 text-center text-xs text-muted-foreground">
+              {t("sa_records_empty")}
+            </p>
+          ) : (
+            filtered.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => select(s.id)}
+                className={cn(
+                  "flex w-full items-center justify-between gap-2 rounded-sm px-3 py-2 text-sm hover:bg-accent",
+                  value === s.id && "bg-accent",
+                )}
+                dir="auto"
+              >
+                <span className="truncate">{s.name}</span>
+                {value === s.id && <Check className="h-4 w-4 shrink-0 opacity-70" />}
+              </button>
+            ))
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
 }
