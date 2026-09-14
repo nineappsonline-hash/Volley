@@ -1347,7 +1347,7 @@ export function useVenues() {
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("venues")
-        .select("id, academy_id, name, address, lat, lng, location_link, capacity, sport_id, school_name, rental_cost, rental_hours, unavailable_slots, working_hours, court_count, created_at")
+        .select("id, academy_id, name, address, lat, lng, location_link, photo_url, capacity, sport_id, school_name, rental_cost, rental_hours, unavailable_slots, working_hours, court_count, created_at")
         .order("name");
       if (error) throw error;
       return (data ?? []) as Venue[];
@@ -2742,7 +2742,7 @@ export function usePlaygrounds() {
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("venues")
-        .select("id, academy_id, name, address, country, governorate, area, lat, lng, location_link, capacity, sport_id, school_name, rental_cost, rental_hours, unavailable_slots, working_hours, court_count, created_at")
+        .select("id, academy_id, name, address, country, governorate, area, lat, lng, location_link, photo_url, capacity, sport_id, school_name, rental_cost, rental_hours, unavailable_slots, working_hours, court_count, created_at")
         .order("name");
       if (error) throw error;
       return (data ?? []) as Venue[];

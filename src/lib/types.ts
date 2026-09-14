@@ -163,6 +163,8 @@ export interface Venue {
   /** Map/navigation link (e.g. Google Maps share URL) shown to members as a
    * "Directions" button. */
   location_link: string | null;
+  /** Optional playground cover photo (public URL in the venue-photos bucket). */
+  photo_url: string | null;
   country: string | null;
   governorate: string | null;
   area: string | null;
