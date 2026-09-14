@@ -61,6 +61,7 @@ import { PlaygroundDistance } from "@/components/shared/playground-distance";
 import { PageHeader } from "@/components/shared/page-header";
 import { ReportDialog } from "@/components/shared/report-dialog";
 import { parseMapsCoordinates } from "@/lib/maps";
+import { venueCardPhoto } from "@/lib/venue-media";
 import { ScoreDialog } from "@/components/shared/score-dialog";
 import { useI18n } from "@/lib/i18n";
 import { COMMUNITY_SPORTS } from "@/lib/constants";
@@ -142,6 +143,7 @@ function GameCard({
   const isOrganizer = game.creator_id === profile.id;
   const joined = !!mine || isOrganizer;
   const waitlisted = !!mine?.is_waitlisted;
+  const playgroundThumb = venueCardPhoto(game.playground?.photos, game.playground?.cover_url);
   const count = game.participants_count;
   const waitlistCount = game.waitlist_count ?? 0;
   const full = game.status === "full" || count >= game.max_players;
@@ -286,9 +288,9 @@ function GameCard({
       <CardContent className="flex flex-1 flex-col gap-3">
         {/* Playground */}
         <div className="flex items-start gap-2 rounded-lg border bg-muted/30 p-2.5">
-          {game.playground?.photos?.[0] ? (
+          {playgroundThumb ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={game.playground.photos[0]} alt={game.playground.name ?? ""} className="mt-0.5 h-10 w-10 shrink-0 rounded-md border object-cover" />
+            <img src={playgroundThumb} alt={game.playground?.name ?? ""} className="mt-0.5 h-10 w-10 shrink-0 rounded-md border object-cover" />
           ) : (
             <LandPlot className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
           )}

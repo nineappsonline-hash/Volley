@@ -163,9 +163,12 @@ export interface Venue {
   /** Map/navigation link (e.g. Google Maps share URL) shown to members as a
    * "Directions" button. */
   location_link: string | null;
-  /** Playground photos (public URLs in the venue-photos bucket). The first
-   * entry is the cover shown on the card and as the primary gallery image. */
+  /** Playground photos (public URLs in the venue-photos bucket). Shown in the
+   * playground's gallery; order is the upload order. */
   photos: string[];
+  /** Explicit card thumbnail chosen by the super admin. Falls back to the
+   * first gallery photo when null. */
+  cover_url: string | null;
   country: string | null;
   governorate: string | null;
   area: string | null;
@@ -626,6 +629,7 @@ export interface FriendlyGame {
     lng: number | null;
     location_link: string | null;
     photos: string[];
+    cover_url: string | null;
   } | null;
   game_date: string;
   start_time: string;

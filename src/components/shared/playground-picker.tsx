@@ -13,6 +13,7 @@ import {
 import { useI18n } from "@/lib/i18n";
 import type { Venue } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
+import { venueCardPhoto } from "@/lib/venue-media";
 import { cn } from "@/lib/utils";
 import {
   COUNTRIES,
@@ -200,9 +201,9 @@ export function PlaygroundPicker({
                 value === p.id && "bg-accent",
               )}
             >
-              {p.photos?.[0] ? (
+              {venueCardPhoto(p.photos, p.cover_url) ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={p.photos[0]} alt={p.name} className="h-9 w-9 shrink-0 rounded-md border object-cover" />
+                <img src={venueCardPhoto(p.photos, p.cover_url) as string} alt={p.name} className="h-9 w-9 shrink-0 rounded-md border object-cover" />
               ) : (
                 <LandPlot className="h-4 w-4 shrink-0 text-primary" />
               )}

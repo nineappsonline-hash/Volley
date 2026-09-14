@@ -7957,3 +7957,14 @@ CREATE POLICY "Venue photos: read" ON storage.objects
   USING (bucket_id = 'venue-photos');
 
 NOTIFY pgrst, 'reload schema';
+
+-- ────────────────────────────────────────────────────────────
+-- VENUE COVER
+-- Mirrors supabase/migrations/20261002000000_venue_cover.sql.
+-- Explicit card photo for a playground, chosen by the super admin from the
+-- venue photo editor. Members' game cards show this photo as the thumbnail,
+-- falling back to the first entry of the photos gallery when unset.
+-- ────────────────────────────────────────────────────────────
+ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS cover_url TEXT;
+GRANT SELECT (cover_url) ON public.venues TO anon, authenticated;
+NOTIFY pgrst, 'reload schema';

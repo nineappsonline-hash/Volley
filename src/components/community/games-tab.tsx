@@ -22,6 +22,7 @@ import {
 import { GameCostEstimate } from "@/components/games/game-cost-estimate";
 import { GameChat } from "@/components/games/game-chat";
 import { JoinGameDialog } from "@/components/games/join-game-dialog";
+import { venueCardPhoto } from "@/lib/venue-media";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -102,6 +103,7 @@ function GameCard({
   const [payOpen, setPayOpen] = useState<"join" | "pay" | null>(null);
 
   const isPro = profile.member_plan === "premium";
+  const playgroundPhoto = venueCardPhoto(game.playground?.photos, game.playground?.cover_url);
 
   const isParent = game.recurrence === "weekly" && game.source_game_id == null;
   const today = new Date().toISOString().slice(0, 10);
@@ -226,9 +228,9 @@ function GameCard({
       <CardContent className="flex flex-1 flex-col gap-3">
         {game.playground && (
           <div className="flex items-start gap-2 rounded-lg border bg-muted/30 p-2.5">
-            {game.playground.photos?.[0] ? (
+            {playgroundPhoto ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={game.playground.photos[0]} alt={game.playground.name ?? ""} className="mt-0.5 h-10 w-10 shrink-0 rounded-md border object-cover" />
+              <img src={playgroundPhoto} alt={game.playground.name ?? ""} className="mt-0.5 h-10 w-10 shrink-0 rounded-md border object-cover" />
             ) : (
               <LandPlot className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
             )}

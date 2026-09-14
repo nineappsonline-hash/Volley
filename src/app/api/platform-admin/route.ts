@@ -59,6 +59,7 @@ const actionSchema = z.discriminatedUnion("action", [
     lat: z.preprocess(v => v === "" || v == null ? null : v, z.coerce.number().finite().nullable()),
     lng: z.preprocess(v => v === "" || v == null ? null : v, z.coerce.number().finite().nullable()),
     photos: z.array(z.string().trim().min(1)).nullable().optional(),
+    cover_url: optionalText,
     country: optionalText, governorate: optionalText, city: optionalText, contact_person: optionalText, contact_phone: optionalText,
     court_count: z.preprocess(v => v === "" || v == null ? 1 : v, z.coerce.number().int().min(1).max(100)),
     unavailable_slots: z.array(unavailableSlot).default([]),

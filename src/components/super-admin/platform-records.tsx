@@ -38,8 +38,10 @@ interface VenueDraft extends Row {
   unavailable_slots?: VenueUnavailableSlot[];
   working_hours?: VenueUnavailableSlot[];
   court_count?: string | number;
-  /** Public URLs of the playground photos; the first entry is the cover. */
+  /** Public URLs of the playground photos; the gallery order. */
   photos?: string[];
+  /** Photography explicitly chosen as the card thumbnail (else the first photo). */
+  cover_url?: string | null;
 }
 
 /** Label lookup for detail rows built with canonical English keys. */
@@ -94,8 +96,9 @@ function confirmMatches(confirmation: string, row: Row | null): boolean {
 function VenueDetails({ venue, data }: { venue: Row; data: Records }) {
   const { t, lang } = useI18n();
   const [copied, setCopied] = useState(false);
-  const [activePhoto, setActivePhoto] = useState(0);
   const photos = (venue.photos ?? []) as string[];
+  const cardPhoto = (venue.cover_url ?? photos[0] ?? null) as string | null;
+  const [activePhoto, setActivePhoto] = useState(() => Math.max(0, cardPhoto ? photos.indexOf(cardPhoto) : 0));
   const copyLink = async () => {
     if (!venue.location_link) return;
     try {
@@ -133,9 +136,10 @@ function VenueDetails({ venue, data }: { venue: Row; data: Records }) {
         {photos.length > 1 && (
           <div className="flex flex-wrap gap-2">
             {photos.map((url, idx) => (
-              <button key={url} type="button" onClick={() => setActivePhoto(idx)} className={cn("h-14 w-20 overflow-hidden rounded-lg border", idx === activePhoto && "ring-2 ring-primary")}>
+              <button key={url} type="button" onClick={() => setActivePhoto(idx)} className={cn("relative h-14 w-20 overflow-hidden rounded-lg border", idx === activePhoto && "ring-2 ring-primary")}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={url} alt={`${venue.name} ${idx + 1}`} className="h-full w-full object-cover" />
+                {url === cardPhoto && <span className="absolute start-0 top-0 rounded-br bg-background/80 px-1 py-0.5 text-[9px] font-semibold">{t("sa_photo_card")}</span>}
               </button>
             ))}
           </div>
@@ -369,12 +373,11 @@ export function PlatformRecords() {
       if (photoInputRef.current) photoInputRef.current.value = "";
     }
   };
-  const setCoverPhoto = (url: string) => setEditingVenue(c => {
-    if (!c?.photos) return c;
-    const rest = c.photos.filter(p => p !== url);
-    return { ...c, photos: [url, ...rest] };
+  const setCardPhoto = (url: string) => setEditingVenue(c => (c ? { ...c, cover_url: url } : c));
+  const setRemovePhoto = (url: string) => setEditingVenue(c => {
+    if (!c) return c;
+    return { ...c, photos: (c.photos ?? []).filter(p => p !== url), cover_url: c.cover_url === url ? null : c.cover_url };
   });
-  const setRemovePhoto = (url: string) => setEditingVenue(c => (c ? { ...c, photos: (c.photos ?? []).filter(p => p !== url) } : c));
   const removeAcademy = useSuperAdminDeleteAcademy();
   const requestedTab = searchParams.get("tab");
   useEffect(() => {
@@ -444,7 +447,7 @@ export function PlatformRecords() {
     <CardHeader><CardTitle>{t("sa_records_title")}</CardTitle><p className="text-sm text-muted-foreground">{t("sa_records_counts").replace("{accounts}", String(data.profiles.length)).replace("{academies}", String(data.academies.length)).replace("{games}", String(data.friendly_games.length)).replace("{playgrounds}", String(data.venues.length))}</p></CardHeader>
     <CardContent className="space-y-4">
       <div className="flex flex-wrap gap-2" role="tablist" aria-label={t("sa_records_title")}>{tabs.map(item => <Button key={item.value} role="tab" aria-selected={tab === item.value} variant={tab === item.value ? "default" : "outline"} onClick={() => { router.push(`/admin?tab=${encodeURIComponent(item.value)}`, { scroll: false }); }}>{item.label}</Button>)}</div>
-      <div className="flex flex-wrap gap-2"><Input className="max-w-sm" type="search" aria-label={searchLabel} placeholder={`${searchLabel}…`} value={search} onChange={e => setSearch(e.target.value)} />{tab === "Playgrounds" && <Input className="w-auto" type="date" aria-label={t("sa_records_schedule_date")} value={date} onChange={e => setDate(e.target.value)} />}{tab === "Playgrounds" && <Button disabled={busy} onClick={() => setEditingVenue({ name: "", capacity: "", sport_id: null, school_name: "", rental_cost: "", rental_hours: "1", location_link: "", country: "", governorate: "", area: "", contact_person: "", contact_phone: "", lat: "", lng: "", photos: [], academy_id: null, court_count: "1", unavailable_slots: [], working_hours: [] })}><Plus className="mr-1 h-4 w-4 rtl:ml-1 rtl:mr-0" />{t("sa_records_add_playground")}</Button>}<Button variant="outline" onClick={() => refetch()}>{t("sa_records_refresh")}</Button></div>
+      <div className="flex flex-wrap gap-2"><Input className="max-w-sm" type="search" aria-label={searchLabel} placeholder={`${searchLabel}…`} value={search} onChange={e => setSearch(e.target.value)} />{tab === "Playgrounds" && <Input className="w-auto" type="date" aria-label={t("sa_records_schedule_date")} value={date} onChange={e => setDate(e.target.value)} />}{tab === "Playgrounds" && <Button disabled={busy} onClick={() => setEditingVenue({ name: "", capacity: "", sport_id: null, school_name: "", rental_cost: "", rental_hours: "1", location_link: "", country: "", governorate: "", area: "", contact_person: "", contact_phone: "", lat: "", lng: "", photos: [], cover_url: null, academy_id: null, court_count: "1", unavailable_slots: [], working_hours: [] })}><Plus className="mr-1 h-4 w-4 rtl:ml-1 rtl:mr-0" />{t("sa_records_add_playground")}</Button>}<Button variant="outline" onClick={() => refetch()}>{t("sa_records_refresh")}</Button></div>
       {tab === "Playgrounds" && <p className="text-sm text-muted-foreground">{t("sa_records_schedule_note")}</p>}
       <p className="text-xs text-muted-foreground">{t("sa_records_results").replace("{shown}", String(rows.length)).replace("{total}", String(source.length))}</p>
       <div className="max-h-[650px] space-y-3 overflow-auto">
@@ -481,7 +484,7 @@ export function PlatformRecords() {
           {tab === "Playgrounds" && <div className="space-y-2 text-sm"><p className="font-medium">{t("sa_records_rental_hours_today").replace("{hours}", (occupied / 60).toFixed(1)).replace("{percent}", String(Math.round(occupied / 1440 * 100)))}</p>{events.map((event,i) => <p key={i} className="rounded bg-muted p-2">{event.time.slice(0,5) || t("sa_records_time_unknown")} · {event.label}</p>)}{blockedToday.map((slot,i) => <p key={`blocked-${i}`} className="flex items-center gap-1.5 rounded bg-destructive/10 p-2 text-destructive"><Ban className="h-3.5 w-3.5" />{t("sa_records_blocked_slot").replace("{slot}", formatBlockedSlot(slot, d => t(`avail_day_${d}` as keyof Dict)))}</p>)}{events.length === 0 && blockedToday.length === 0 && <p>{t("sa_records_no_bookings")}</p>}<p className="text-muted-foreground">{t("sa_records_rental_gaps").replace("{gaps}", gaps.join(", ") || t("sa_records_none_gaps"))}</p></div>}
         </article>;
       })}</div>
-      <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle>{selected?.name ?? selected?.title ?? t("sa_records_record_details")}</DialogTitle><DialogDescription>{dialogDescription}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails member={selected} data={data} /> : tab === "Academies" ? <AcademyDetails academy={selected} data={data} /> : tab === "Playgrounds" ? <VenueDetails venue={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && tab !== "Academies" && Object.entries(related).map(([label, records]) => <details key={label}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => label === "Participants" ? <AcademyMemberRow key={r.id} member={r} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
+      <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle>{selected?.name ?? selected?.title ?? t("sa_records_record_details")}</DialogTitle><DialogDescription>{dialogDescription}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails member={selected} data={data} /> : tab === "Academies" ? <AcademyDetails academy={selected} data={data} /> : tab === "Playgrounds" ? <VenueDetails key={selected.id} venue={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && tab !== "Academies" && Object.entries(related).map(([label, records]) => <details key={label}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => label === "Participants" ? <AcademyMemberRow key={r.id} member={r} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
       <Dialog open={!!editing} onOpenChange={open => !busy && !open && setEditing(null)}><DialogContent><DialogHeader><DialogTitle>{t("sa_edit_membership")}</DialogTitle><DialogDescription>{editing?.name} · {editing?.email}</DialogDescription></DialogHeader>{editing && <form className="space-y-4" onSubmit={e => { e.preventDefault(); act({ action: "membership", id: editing.id, membership_type: editing.membership_type, subscription_sessions: Number(editing.subscription_sessions), member_plan: editing.member_plan, premium_expires_at: editing.premium_expires_at ? new Date(editing.premium_expires_at).toISOString() : null, is_active: editing.is_active }); }}>
         <label className="block text-sm">{t("sa_academy_membership")}<select className="mt-1 w-full rounded border bg-background p-2" value={editing.membership_type} onChange={e => setEditing({ ...editing, membership_type: e.target.value })}><option value="full">{t("sa_full")}</option><option value="half">{t("sa_half")}</option></select></label>
         <label className="block text-sm">{t("sa_subscription_sessions")}<Input type="number" min="0" max="10000" required value={editing.subscription_sessions} onChange={e => setEditing({ ...editing, subscription_sessions: e.target.value })} /></label>
@@ -493,7 +496,7 @@ export function PlatformRecords() {
       <Dialog open={!!deleting} onOpenChange={open => !busy && !open && setDeleting(null)}><DialogContent><DialogHeader><DialogTitle>{t("sa_delete_account_title")}</DialogTitle><DialogDescription>{t("sa_delete_account_body").replace("{phrase}", confirmPhrase(deleting) ?? "")}</DialogDescription></DialogHeader><Input aria-label={t("sa_confirmation")} value={confirmation} onChange={e => setConfirmation(e.target.value)} /><Button variant="destructive" disabled={busy || !confirmMatches(confirmation, deleting)} onClick={() => act({ action: "delete", id: deleting!.id, confirmation })}>{busy ? t("sa_deleting") : t("sa_permanently_delete")}</Button></DialogContent></Dialog>
       <AlertDialog open={!!deletingAcademy} onOpenChange={open => !removeAcademy.isPending && !open && setDeletingAcademy(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{t("sa_delete_academy_title")}</AlertDialogTitle><AlertDialogDescription>{t("sa_delete_academy_body").replace("{name}", deletingAcademy?.name ?? "")}</AlertDialogDescription></AlertDialogHeader><Input aria-label={t("sa_academy")} value={confirmation} onChange={e => setConfirmation(e.target.value)} /><AlertDialogFooter><AlertDialogCancel disabled={removeAcademy.isPending}>{t("sa_cancel")}</AlertDialogCancel><AlertDialogAction asChild><Button variant="destructive" disabled={removeAcademy.isPending || confirmation !== deletingAcademy?.name} onClick={async () => { try { await removeAcademy.mutateAsync(deletingAcademy!.id); toast.success(t("sa_academy_deleted")); setDeletingAcademy(null); setConfirmation(""); await cache.invalidateQueries(); } catch (e) { toast.error(e instanceof Error ? e.message : t("sa_deletion_failed")); } }}>{removeAcademy.isPending ? t("sa_deleting") : t("sa_permanently_delete")}</Button></AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
       <AcademyEditDialog academy={editingAcademy} onClose={() => setEditingAcademy(null)} onDeleted={() => { setEditingAcademy(null); cache.invalidateQueries(); }} />
-      <Dialog open={!!editingVenue} onOpenChange={open => !busy && !open && setEditingVenue(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>{editingVenue?.id ? t("sa_edit_playground") : t("sa_add_playground")}</DialogTitle><DialogDescription>{editingVenue?.id ? editingVenue.name : t("sa_add_playground_desc")}</DialogDescription></DialogHeader>{editingVenue && <form className="space-y-4" onSubmit={e => { e.preventDefault(); if (!isValidSlotList(editingVenue.unavailable_slots)) { toast.error(t("sa_unavail_invalid")); return; } if (!isValidSlotList(editingVenue.working_hours)) { toast.error(t("sa_wh_invalid")); return; } act({ action: "venue", ...(editingVenue.id ? { id: editingVenue.id } : {}), academy_id: editingVenue.academy_id ?? null, name: editingVenue.name, capacity: editingVenue.capacity, sport_id: editingVenue.sport_id ?? "", school_name: editingVenue.school_name, rental_cost: editingVenue.rental_cost, rental_hours: editingVenue.rental_hours, location_link: editingVenue.location_link, lat: editingVenue.lat, lng: editingVenue.lng, photos: editingVenue.photos ?? [], country: editingVenue.country, governorate: editingVenue.governorate, city: editingVenue.area, contact_person: editingVenue.contact_person, contact_phone: editingVenue.contact_phone, court_count: Number(editingVenue.court_count) || 1, unavailable_slots: ((editingVenue.unavailable_slots ?? []) as VenueUnavailableSlot[]).map(s => ({ weekday: Number(s.weekday), start: s.start, end: s.end })), working_hours: ((editingVenue.working_hours ?? []) as VenueUnavailableSlot[]).map(s => ({ weekday: Number(s.weekday), start: s.start, end: s.end })) }); }}>
+      <Dialog open={!!editingVenue} onOpenChange={open => !busy && !open && setEditingVenue(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>{editingVenue?.id ? t("sa_edit_playground") : t("sa_add_playground")}</DialogTitle><DialogDescription>{editingVenue?.id ? editingVenue.name : t("sa_add_playground_desc")}</DialogDescription></DialogHeader>{editingVenue && <form className="space-y-4" onSubmit={e => { e.preventDefault(); if (!isValidSlotList(editingVenue.unavailable_slots)) { toast.error(t("sa_unavail_invalid")); return; } if (!isValidSlotList(editingVenue.working_hours)) { toast.error(t("sa_wh_invalid")); return; } act({ action: "venue", ...(editingVenue.id ? { id: editingVenue.id } : {}), academy_id: editingVenue.academy_id ?? null, name: editingVenue.name, capacity: editingVenue.capacity, sport_id: editingVenue.sport_id ?? "", school_name: editingVenue.school_name, rental_cost: editingVenue.rental_cost, rental_hours: editingVenue.rental_hours, location_link: editingVenue.location_link, lat: editingVenue.lat, lng: editingVenue.lng, photos: editingVenue.photos ?? [], cover_url: editingVenue.cover_url, country: editingVenue.country, governorate: editingVenue.governorate, city: editingVenue.area, contact_person: editingVenue.contact_person, contact_phone: editingVenue.contact_phone, court_count: Number(editingVenue.court_count) || 1, unavailable_slots: ((editingVenue.unavailable_slots ?? []) as VenueUnavailableSlot[]).map(s => ({ weekday: Number(s.weekday), start: s.start, end: s.end })), working_hours: ((editingVenue.working_hours ?? []) as VenueUnavailableSlot[]).map(s => ({ weekday: Number(s.weekday), start: s.start, end: s.end })) }); }}>
         <label className="block text-sm">{t("sa_academy")}
           <select className="mt-1 w-full rounded border bg-background p-2" value={editingVenue.academy_id ?? ""} onChange={e => setEditingVenue({ ...editingVenue, academy_id: e.target.value || null })}>
             <option value="">{t("sa_unassigned")}</option>
@@ -510,11 +513,9 @@ export function PlatformRecords() {
                 <div key={url} className="group relative h-20 w-28 shrink-0 overflow-hidden rounded-lg border bg-muted/50">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={url} alt={`${editingVenue.name ?? ""} ${idx + 1}`} className="h-full w-full object-cover" />
-                  {idx === 0 && <span className="absolute start-0 top-0 rounded-br bg-background/80 px-1.5 py-0.5 text-[10px] font-semibold">{t("sa_photo_cover")}</span>}
+                  {url === (editingVenue.cover_url ?? (editingVenue.photos ?? [])[0]) && <span className="absolute start-0 top-0 rounded-br bg-background/80 px-1.5 py-0.5 text-[10px] font-semibold">{t("sa_photo_card")}</span>}
                   <div className="absolute inset-x-0 bottom-0 flex justify-end gap-1 bg-gradient-to-t from-black/40 to-transparent p-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
-                    {idx !== 0 && (
-                      <Button type="button" variant="secondary" size="icon" className="h-6 w-6" aria-label={t("sa_photo_set_cover")} onClick={() => setCoverPhoto(url)}><Star className="h-3 w-3" /></Button>
-                    )}
+                    <Button type="button" variant="secondary" size="icon" className="h-6 w-6" aria-label={t("sa_photo_set_card")} onClick={() => setCardPhoto(url)}><Star className="h-3 w-3" /></Button>
                     <Button type="button" variant="destructive" size="icon" className="h-6 w-6" aria-label={t("sa_photo_remove")} onClick={() => setRemovePhoto(url)}><Trash2 className="h-3 w-3" /></Button>
                   </div>
                 </div>
