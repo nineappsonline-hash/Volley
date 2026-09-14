@@ -388,7 +388,7 @@ CREATE INDEX IF NOT EXISTS idx_coach_avail_coach ON public.coach_availability(co
 -- Tournaments
 CREATE TABLE IF NOT EXISTS public.tournaments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  academy_id UUID NOT NULL REFERENCES public.academies(id) ON DELETE CASCADE
+  academy_id UUID REFERENCES public.academies(id) ON DELETE CASCADE
     DEFAULT public.current_academy_id(),
   name TEXT NOT NULL,
   description TEXT,
@@ -1642,26 +1642,64 @@ CREATE POLICY "Members manage coach availability" ON public.coach_availability
   FOR ALL USING (academy_id = public.current_academy_id())
   WITH CHECK (academy_id = public.current_academy_id());
 
--- tournaments: admins manage; members read.
+-- tournaments: visible to every member; admins + platform admin manage.
+DROP POLICY IF EXISTS "Members read tournaments" ON public.tournaments;
+CREATE POLICY "Members read tournaments" ON public.tournaments
+  FOR SELECT TO authenticated USING (TRUE);
+
 DROP POLICY IF EXISTS "Members manage tournaments" ON public.tournaments;
-CREATE POLICY "Members manage tournaments" ON public.tournaments
-  FOR ALL USING (academy_id = public.current_academy_id())
-  WITH CHECK (academy_id = public.current_academy_id());
+DROP POLICY IF EXISTS "Admins manage tournaments" ON public.tournaments;
+CREATE POLICY "Admins manage tournaments" ON public.tournaments
+  FOR ALL TO authenticated
+  USING (
+    academy_id = public.current_academy_id()
+    AND (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+  )
+  WITH CHECK (
+    academy_id = public.current_academy_id()
+    AND (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+  );
+
+DROP POLICY IF EXISTS "Super admin manages tournaments" ON public.tournaments;
+CREATE POLICY "Super admin manages tournaments" ON public.tournaments
+  FOR ALL TO authenticated
+  USING (public.is_super_admin())
+  WITH CHECK (public.is_super_admin());
+
+DROP POLICY IF EXISTS "Members read tournament matches" ON public.tournament_matches;
+CREATE POLICY "Members read tournament matches" ON public.tournament_matches
+  FOR SELECT TO authenticated USING (
+    EXISTS (
+      SELECT 1 FROM public.tournaments t WHERE t.id = tournament_id
+    )
+  );
 
 DROP POLICY IF EXISTS "Members manage tournament matches" ON public.tournament_matches;
-CREATE POLICY "Members manage tournament matches" ON public.tournament_matches
-  FOR ALL USING (
+DROP POLICY IF EXISTS "Admins manage tournament matches" ON public.tournament_matches;
+CREATE POLICY "Admins manage tournament matches" ON public.tournament_matches
+  FOR ALL TO authenticated
+  USING (
     EXISTS (
       SELECT 1 FROM public.tournaments t
-      WHERE t.id = tournament_id AND t.academy_id = public.current_academy_id()
+      WHERE t.id = tournament_id
+        AND t.academy_id = public.current_academy_id()
+        AND (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
     )
   )
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.tournaments t
-      WHERE t.id = tournament_id AND t.academy_id = public.current_academy_id()
+      WHERE t.id = tournament_id
+        AND t.academy_id = public.current_academy_id()
+        AND (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
     )
   );
+
+DROP POLICY IF EXISTS "Super admin manages tournament matches" ON public.tournament_matches;
+CREATE POLICY "Super admin manages tournament matches" ON public.tournament_matches
+  FOR ALL TO authenticated
+  USING (public.is_super_admin())
+  WITH CHECK (public.is_super_admin());
 
 -- trial_requests: anyone may submit; only admins of that academy read/manage.
 -- session_waitlist: members join/leave; admins manage all.
@@ -3586,27 +3624,8 @@ CREATE TRIGGER guard_session_booking_plan
   BEFORE INSERT OR UPDATE OF session_booking_enabled, plan ON public.academies
   FOR EACH ROW EXECUTE FUNCTION public.guard_session_booking_plan();
 
--- Organizing tournaments (teams, fixtures, scoreboard) is an Elite-only feature.
-CREATE OR REPLACE FUNCTION public.guard_tournament_plan()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_plan TEXT;
-BEGIN
-  SELECT plan INTO v_plan FROM public.academies WHERE id = NEW.academy_id;
-  IF COALESCE(v_plan, 'starter') <> 'elite' THEN
-    RAISE EXCEPTION 'Organizing tournaments requires the Enterprise plan.';
-  END IF;
-  RETURN NEW;
-END;
-$$;
-DROP TRIGGER IF EXISTS guard_tournament_plan ON public.tournaments;
-CREATE TRIGGER guard_tournament_plan
-  BEFORE INSERT ON public.tournaments
-  FOR EACH ROW EXECUTE FUNCTION public.guard_tournament_plan();
+-- Organizing tournaments (teams, fixtures, scoreboard) is open to every
+-- academy; writes are guarded by RLS (hosting academy admins + platform admin).
 
 -- ────────────────────────────────────────────────────────────
 -- Plan subscription purchases (member Pro + academy Plus/Elite)
@@ -5814,7 +5833,7 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- When a tournament is created, every active member of its academy gets an
+-- When a tournament is created, every active member of the platform gets an
 -- announcement notification (picked up by the notify_push_on_insert trigger →
 -- in-app bell + PWA push). Tournaments that carry a prize mention it.
 CREATE OR REPLACE FUNCTION public.announce_tournament_created()
@@ -5824,21 +5843,18 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  IF NEW.academy_id IS NOT NULL THEN
-    INSERT INTO public.notifications (recipient_id, type, title, body, link)
-    SELECT
-      p.id,
-      'tournament_announced',
-      'New tournament announced',
-      'A new tournament "' || NEW.name || '" has been announced. Register your team!'
-        || CASE WHEN NEW.prize IS NOT NULL AND btrim(NEW.prize) <> ''
-                THEN ' Prize: ' || btrim(NEW.prize) || '.'
-                ELSE '' END,
-      '/tournaments'
-    FROM public.profiles p
-    WHERE p.academy_id = NEW.academy_id
-      AND p.is_active = TRUE;
-  END IF;
+  INSERT INTO public.notifications (recipient_id, type, title, body, link)
+  SELECT
+    p.id,
+    'tournament_announced',
+    'New tournament announced',
+    'A new tournament "' || NEW.name || '" has been announced. Register your team!'
+      || CASE WHEN NEW.prize IS NOT NULL AND btrim(NEW.prize) <> ''
+              THEN ' Prize: ' || btrim(NEW.prize) || '.'
+              ELSE '' END,
+    '/tournaments'
+  FROM public.profiles p
+  WHERE p.is_active = TRUE;
   RETURN NEW;
 END;
 $$;

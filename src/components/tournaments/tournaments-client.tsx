@@ -72,7 +72,13 @@ const STATUS_COLORS: Record<string, string> = {
   canceled: "destructive",
 };
 
-export function TournamentsClient() {
+export function TournamentsClient({
+  canCreate = true,
+  autoCreate = false,
+}: {
+  canCreate?: boolean;
+  autoCreate?: boolean;
+}) {
   const { t, lang, locale } = useI18n();
   const { data: tournaments, isLoading } = useTournaments();
   const { data: sports } = useSports();
@@ -81,6 +87,12 @@ export function TournamentsClient() {
   const deleteTournament = useDeleteTournament();
 
   const [formOpen, setFormOpen] = useState(false);
+  useEffect(() => {
+    if (autoCreate && !formOpen) {
+      setEditing(null);
+      setFormOpen(true);
+    }
+  }, [autoCreate, formOpen]);
   const [editing, setEditing] = useState<Tournament | null>(null);
   const [deleting, setDeleting] = useState<TournamentWithMatches | null>(null);
   const [details, setDetails] = useState<TournamentWithMatches | null>(null);
@@ -131,15 +143,17 @@ export function TournamentsClient() {
   return (
     <div className="space-y-6">
       <PageHeader title={t("tournament_title")} subtitle={t("tournament_subtitle")}>
-        <Button
-          onClick={() => {
-            setEditing(null);
-            setFormOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          {t("tournament_add")}
-        </Button>
+        {canCreate && (
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setFormOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            {t("tournament_add")}
+          </Button>
+        )}
       </PageHeader>
 
       {isLoading ? (
@@ -174,29 +188,31 @@ export function TournamentsClient() {
                       </Badge>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      aria-label={t("common_edit")}
-                      onClick={() => {
-                        setEditing(tournament);
-                        setFormOpen(true);
-                      }}
-                    >
-                      <Edit3 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      aria-label={t("common_delete")}
-                      onClick={() => setDeleting(tournament)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {canCreate && (
+                    <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        aria-label={t("common_edit")}
+                        onClick={() => {
+                          setEditing(tournament);
+                          setFormOpen(true);
+                        }}
+                      >
+                        <Edit3 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        aria-label={t("common_delete")}
+                        onClick={() => setDeleting(tournament)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-3 px-4 py-3">
                   {tournament.description && (
@@ -222,24 +238,26 @@ export function TournamentsClient() {
                       {tournament.tournament_matches.length} {t("match_title").toLowerCase()}
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className={cn("grid gap-2", canCreate ? "grid-cols-2" : "grid-cols-1")}>
+                    {canCreate && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => setRunning(tournament)}
+                      >
+                        <Play className="h-4 w-4" />
+                        {t("tr_run")}
+                      </Button>
+                    )}
                     <Button
-                      variant="default"
-                      size="sm"
-                      className="gap-1.5"
-                      onClick={() => setRunning(tournament)}
-                    >
-                      <Play className="h-4 w-4" />
-                      {t("tr_run")}
-                    </Button>
-                    <Button
-                      variant="outline"
+                      variant={canCreate ? "outline" : "default"}
                       size="sm"
                       className="gap-1.5"
                       onClick={() => setDetails(tournament)}
                     >
                       <Swords className="h-4 w-4" />
-                      {t("match_title")}
+                      {t(canCreate ? "match_title" : "tournament_view")}
                     </Button>
                   </div>
                 </div>
@@ -305,31 +323,35 @@ export function TournamentsClient() {
                         </p>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => {
-                            setMatchTournamentId(details.id);
-                            setEditingMatch(match);
-                            setMatchFormOpen(true);
-                          }}
-                        >
-                          <Edit3 className="h-3.5 w-3.5" />
-                        </Button>
+                        {canCreate && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => {
+                              setMatchTournamentId(details.id);
+                              setEditingMatch(match);
+                              setMatchFormOpen(true);
+                            }}
+                          >
+                            <Edit3 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))
               )}
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full gap-1.5"
-                onClick={() => openNewMatch(details.id)}
-              >
-                <Plus className="h-4 w-4" />
-                {t("match_add")}
-              </Button>
+              {canCreate && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-1.5"
+                  onClick={() => openNewMatch(details.id)}
+                >
+                  <Plus className="h-4 w-4" />
+                  {t("match_add")}
+                </Button>
+              )}
             </div>
           </DialogContent>
         </Dialog>

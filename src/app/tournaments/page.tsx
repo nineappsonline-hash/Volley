@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarDays, MapPin, Trophy } from "lucide-react";
 import { PublicListHero, SportFilterLinks } from "@/components/public/public-listing-ui";
+import { OrganizeTournamentButton } from "@/components/public/organize-tournament-button";
 import {
   getPublicTournaments,
   getPublicTournamentSports,
@@ -137,12 +138,15 @@ export default async function TournamentsPage({ searchParams }: { searchParams: 
       />
 
       <div className="mx-auto max-w-5xl px-6 py-10">
-        <SportFilterLinks
-          sports={sports}
-          to={(s) => (s ? `/tournaments?sport=${sportToSlug(s)}` : "/tournaments")}
-          current={sport}
-          allLabel="All sports"
-        />
+        <div className="mb-6 flex flex-col items-center gap-4">
+          <SportFilterLinks
+            sports={sports}
+            to={(s) => (s ? `/tournaments?sport=${sportToSlug(s)}` : "/tournaments")}
+            current={sport}
+            allLabel="All sports"
+          />
+          <OrganizeTournamentButton />
+        </div>
 
         {tournaments.length === 0 ? (
           <div className="rounded-xl border bg-muted/30 p-10 text-center">

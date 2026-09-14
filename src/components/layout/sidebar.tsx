@@ -66,6 +66,7 @@ const memberItems = [
   { href: "/schedule", key: "nav_schedule", icon: CalendarDays },
   { href: "/events", key: "nav_events", icon: Map },
   { href: "/dashboard/games", key: "nav_games", icon: Volleyball },
+  { href: "/dashboard/tournaments", key: "nav_tournaments", icon: Swords },
   { href: "/community", key: "nav_community", icon: Network },
   { href: "/leaderboard", key: "nav_leaderboard", icon: Trophy },
   { href: "/scouting", key: "nav_scouting", icon: Radar },
@@ -100,7 +101,7 @@ export function Sidebar({ role, name, memberPlan, onNavigate }: SidebarProps) {
     ] : [
       group("My training", "تدريبي", ["/dashboard", "/schedule", "/profile"]),
       group("Find a place to play", "اكتشف مكان تلعب فيه", ["/academies", "/marketplace", "/dashboard/games", "/events"]),
-      group("Community", "المجتمع", ["/community", "/leaderboard", "/scouting"]),
+      group("Community", "المجتمع", ["/community", "/leaderboard", "/scouting", "/dashboard/tournaments"]),
       group("Membership", "الاشتراك", ["/upgrade"]),
     ];
 

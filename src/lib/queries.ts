@@ -1841,6 +1841,27 @@ export function useTournaments() {
   });
 }
 
+/** All tournaments across the platform, with sport + academy info and match
+ *  counts — used by the member dashboard's "upcoming tournaments" card. */
+export function useAllTournaments() {
+  return useQuery({
+    queryKey: ["all-tournaments"],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("tournaments")
+        .select(
+          `*, sport:sports(id, name), tournament_matches(*),
+           academy:academies(id, name, slug)`
+        )
+        .order("start_date", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as (TournamentWithMatches & {
+        academy: { id: string; name: string; slug: string | null } | null;
+      })[];
+    },
+  });
+}
+
 export function useSaveTournament() {
   const qc = useQueryClient();
   return useMutation({

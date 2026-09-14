@@ -26,6 +26,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { AnnouncementsCard } from "@/components/dashboard/announcements-card";
 import { MyTournamentsCard } from "@/components/dashboard/my-tournaments-card";
 import { MemberPlanBanner } from "@/components/upgrade/plan-benefit-banner";
+import { UpcomingTournamentsCard } from "@/components/dashboard/upcoming-tournaments-card";
 import { useI18n } from "@/lib/i18n";
 import { EXPIRY_ALERT_THRESHOLD, formatMoney } from "@/lib/constants";
 import { usedSessionsSincePayment } from "@/lib/calculations";
@@ -245,7 +246,10 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
         <MyTournamentsCard memberId={p.id} />
       </DashboardSection>
       <DashboardSection id="updates" title={lang === "ar" ? "الأخبار والتنبيهات" : "Updates"}>
-        <div className="space-y-5"><AnnouncementsCard isAdmin={false} /></div>
+        <div className="space-y-5">
+          <UpcomingTournamentsCard />
+          <AnnouncementsCard isAdmin={false} />
+        </div>
       </DashboardSection>
     </div></QueryState>
   );
