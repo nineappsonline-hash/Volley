@@ -354,6 +354,14 @@ export interface Tournament {
   sport_id: string | null;
   start_date: string;
   end_date: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  // Entry fee per participant (in EGP). 0 = free.
+  participant_fee: number | null;
+  // Cap on the participant pool; null = unlimited.
+  max_participants: number | null;
+  // The playground where the tournament is held.
+  venue_id: string | null;
   status: "upcoming" | "in_progress" | "completed" | "canceled";
   // knockout = seeded single-elimination bracket; league = round-robin
   // with points. NULL until the organizer picks a format.
@@ -389,6 +397,8 @@ export interface TournamentMatch {
 export interface TournamentWithMatches extends Tournament {
   sport: Pick<Sport, "id" | "name"> | null;
   tournament_matches: TournamentMatch[];
+  /** Number of joined participants (embedded count). */
+  participant_count?: number;
 }
 
 // ── Tournament runner (pool → teams → fixtures → standings) ──

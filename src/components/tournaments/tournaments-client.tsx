@@ -7,11 +7,14 @@ import {
   ArrowLeft,
   CalendarClock,
   Edit3,
+  MapPin,
   Play,
   Plus,
   Swords,
   Trash2,
   Trophy,
+  UserRound,
+  Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,6 +50,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useI18n } from "@/lib/i18n";
+import { formatMoney } from "@/lib/constants";
 import { cn, errorMessage, todayInput } from "@/lib/utils";
 import {
   useDeleteTournament,
@@ -108,6 +112,10 @@ export function TournamentsClient({
   const teamName = useMemo(
     () => new Map((teams ?? []).map((t) => [t.id, t.name])),
     [teams]
+  );
+  const venueName = useMemo(
+    () => new Map((venues ?? []).map((v) => [v.id, v.name])),
+    [venues]
   );
 
   const handleDelete = async () => {
@@ -226,17 +234,41 @@ export function TournamentsClient({
                       {tournament.prize}
                     </span>
                   )}
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <CalendarClock className="h-3.5 w-3.5" />
                       {format(new Date(tournament.start_date + "T00:00:00"), "MMM d, yyyy", { locale })}
+                      {tournament.start_time ? ` · ${tournament.start_time.slice(0, 5)}` : ""}
                       {tournament.end_date
                         ? ` – ${format(new Date(tournament.end_date + "T00:00:00"), "MMM d, yyyy", { locale })}`
                         : ""}
+                      {tournament.end_time ? ` · ${tournament.end_time.slice(0, 5)}` : ""}
                     </span>
                     <span className="font-mono font-semibold">
                       {tournament.tournament_matches.length} {t("match_title").toLowerCase()}
                     </span>
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                    {Number(tournament.participant_fee ?? 0) > 0 && (
+                      <span className="flex items-center gap-1">
+                        <UserRound className="h-3.5 w-3.5" />
+                        {t("td_participant_fee").replace("{fee}", formatMoney(Number(tournament.participant_fee), lang))}
+                      </span>
+                    )}
+                    {tournament.max_participants != null && (
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3.5 w-3.5" />
+                        {t("td_participants_count")
+                          .replace("{count}", String(tournament.participant_count ?? 0))
+                          .replace("{max}", String(tournament.max_participants))}
+                      </span>
+                    )}
+                    {tournament.venue_id && venueName.has(tournament.venue_id) && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5" />
+                        {venueName.get(tournament.venue_id)}
+                      </span>
+                    )}
                   </div>
                   <div className={cn("grid gap-2", canCreate ? "grid-cols-2" : "grid-cols-1")}>
                     {canCreate && (
@@ -273,6 +305,7 @@ export function TournamentsClient({
         onOpenChange={setFormOpen}
         tournament={editing}
         sports={sports ?? []}
+        venues={venues ?? []}
       />
 
       {/* Tournament details / matches */}
@@ -401,12 +434,14 @@ export function TournamentFormDialog({
   onOpenChange,
   tournament,
   sports,
+  venues,
   onSaved,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   tournament: Tournament | null;
   sports: { id: string; name: string }[];
+  venues?: { id: string; name: string }[];
   onSaved?: () => void;
 }) {
   const { t } = useI18n();
@@ -418,6 +453,11 @@ export function TournamentFormDialog({
   const [sportId, setSportId] = useState<string>("none");
   const [startDate, setStartDate] = useState(todayInput());
   const [endDate, setEndDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [participantFee, setParticipantFee] = useState("");
+  const [maxParticipants, setMaxParticipants] = useState("");
+  const [venueId, setVenueId] = useState<string>("none");
   const [status, setStatus] = useState<string>("upcoming");
   const [format, setFormat] = useState<string>("none");
   const [saving, setSaving] = useState(false);
@@ -431,6 +471,11 @@ export function TournamentFormDialog({
         setSportId(tournament.sport_id ?? "none");
         setStartDate(tournament.start_date);
         setEndDate(tournament.end_date ?? "");
+        setStartTime(tournament.start_time?.slice(0, 5) ?? "");
+        setEndTime(tournament.end_time?.slice(0, 5) ?? "");
+        setParticipantFee(tournament.participant_fee ? String(tournament.participant_fee) : "");
+        setMaxParticipants(tournament.max_participants ? String(tournament.max_participants) : "");
+        setVenueId(tournament.venue_id ?? "none");
         setStatus(tournament.status);
         setFormat(tournament.format ?? "none");
       } else {
@@ -440,6 +485,11 @@ export function TournamentFormDialog({
         setSportId("none");
         setStartDate(todayInput());
         setEndDate("");
+        setStartTime("");
+        setEndTime("");
+        setParticipantFee("");
+        setMaxParticipants("");
+        setVenueId("none");
         setStatus("upcoming");
         setFormat("none");
       }
@@ -458,6 +508,11 @@ export function TournamentFormDialog({
         sport_id: sportId === "none" ? null : sportId,
         start_date: startDate,
         end_date: endDate || null,
+        start_time: startTime ? `${startTime}:00` : null,
+        end_time: endTime ? `${endTime}:00` : null,
+        participant_fee: participantFee ? Number(participantFee) : 0,
+        max_participants: maxParticipants ? Number(maxParticipants) : null,
+        venue_id: venueId === "none" ? null : venueId,
         status: status as any,
         format: format === "none" ? null : (format as TournamentFormat),
       });
@@ -564,6 +619,70 @@ export function TournamentFormDialog({
                 onChange={(e) => setEndDate(e.target.value)}
               />
             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>{t("tournament_start_time")}</Label>
+              <Input
+                type="time"
+                dir="ltr"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("tournament_end_time")}</Label>
+              <Input
+                type="time"
+                dir="ltr"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>{t("tournament_participant_fee")}</Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                dir="ltr"
+                placeholder="0"
+                value={participantFee}
+                onChange={(e) => setParticipantFee(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("tournament_max_participants")}</Label>
+              <Input
+                type="number"
+                min="1"
+                dir="ltr"
+                placeholder="—"
+                value={maxParticipants}
+                onChange={(e) => setMaxParticipants(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>{t("tournament_venue")}</Label>
+            <Select value={venueId} onValueChange={setVenueId}>
+              <SelectTrigger>
+                <SelectValue placeholder={t("tournament_venue_placeholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">—</SelectItem>
+                {(venues ?? [])
+                  .slice()
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((v) => (
+                    <SelectItem key={v.id} value={v.id}>
+                      {v.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <DialogFooter>

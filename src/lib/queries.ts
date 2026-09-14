@@ -1347,7 +1347,7 @@ export function useVenues() {
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("venues")
-        .select("id, academy_id, name, address, lat, lng, location_link, photos, cover_url, capacity, sport_id, school_name, rental_cost, rental_hours, unavailable_slots, working_hours, court_count, created_at")
+        .select("id, academy_id, name, address, lat, lng, location_link, photos, cover_url, capacity, sport_id, school_name, rental_cost, rental_hours, country, governorate, area, unavailable_slots, working_hours, court_count, created_at")
         .order("name");
       if (error) throw error;
       return (data ?? []) as Venue[];
@@ -1786,6 +1786,7 @@ export function useMyTournaments(memberId: string | null) {
            tournament_id,
            tournament:tournaments(
              *, sport:sports(id, name), tournament_matches(*),
+             participants:tournament_participants(count),
              teams:tournament_teams(
                id, name, created_at,
                members:tournament_team_members(id, participant_id)
@@ -1799,6 +1800,7 @@ export function useMyTournaments(memberId: string | null) {
         (data ?? []) as unknown as {
           id: string;
           tournament: TournamentWithMatches & {
+            participants: { count: number }[];
             teams: {
               id: string;
               name: string;
@@ -1812,6 +1814,8 @@ export function useMyTournaments(memberId: string | null) {
         .filter((r) => r.tournament)
         .map((r) => {
           const tournament = r.tournament!;
+          tournament.participant_count = Number(tournament.participants?.[0]?.count ?? 0);
+          delete (tournament as { participants?: unknown }).participants;
           const myTeam = tournament.teams.find((t) =>
             t.members.some((m) => m.participant_id === r.id)
           );
@@ -1833,10 +1837,21 @@ export function useTournaments() {
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("tournaments")
-        .select(`*, sport:sports(id, name), tournament_matches(*)`)
+        .select(
+          `*, sport:sports(id, name), tournament_matches(*),
+           participants:tournament_participants(count)`
+        )
         .order("start_date", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as TournamentWithMatches[];
+      return (data ?? []).map((row) => {
+        const t = row as TournamentWithMatches & {
+          participants: { count: number }[];
+        };
+        return {
+          ...t,
+          participant_count: Number(t.participants?.[0]?.count ?? 0),
+        };
+      }) as TournamentWithMatches[];
     },
   });
 }
@@ -1851,13 +1866,18 @@ export function useAllTournaments() {
         .from("tournaments")
         .select(
           `*, sport:sports(id, name), tournament_matches(*),
-           academy:academies(id, name, slug)`
+           academy:academies(id, name, slug),
+           participants:tournament_participants(count)`
         )
         .order("start_date", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as (TournamentWithMatches & {
+      return ((data ?? []) as (TournamentWithMatches & {
         academy: { id: string; name: string; slug: string | null } | null;
-      })[];
+        participants: { count: number }[];
+      })[]).map((row) => ({
+        ...row,
+        participant_count: Number(row.participants?.[0]?.count ?? 0),
+      }));
     },
   });
 }
@@ -1873,6 +1893,11 @@ export function useSaveTournament() {
         sport_id: tournament.sport_id ?? null,
         start_date: tournament.start_date,
         end_date: tournament.end_date ?? null,
+        start_time: tournament.start_time ?? null,
+        end_time: tournament.end_time ?? null,
+        participant_fee: tournament.participant_fee ?? 0,
+        max_participants: tournament.max_participants ?? null,
+        venue_id: tournament.venue_id ?? null,
         status: tournament.status ?? "upcoming",
         format: tournament.format ?? null,
       };
@@ -1883,6 +1908,8 @@ export function useSaveTournament() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["tournaments"] });
+      qc.invalidateQueries({ queryKey: ["all-tournaments"] });
+      qc.invalidateQueries({ queryKey: ["my-tournaments"] });
     },
   });
 }
@@ -1896,6 +1923,8 @@ export function useDeleteTournament() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["tournaments"] });
+      qc.invalidateQueries({ queryKey: ["all-tournaments"] });
+      qc.invalidateQueries({ queryKey: ["my-tournaments"] });
     },
   });
 }
@@ -1945,6 +1974,8 @@ export function useDeleteMatch() {
 
 function invalidateTournamentRunner(qc: ReturnType<typeof useQueryClient>, tournamentId?: string) {
   qc.invalidateQueries({ queryKey: ["tournaments"] });
+  qc.invalidateQueries({ queryKey: ["all-tournaments"] });
+  qc.invalidateQueries({ queryKey: ["my-tournaments"] });
   qc.invalidateQueries({ queryKey: ["tournament-participants"] });
   qc.invalidateQueries({ queryKey: ["tournament-teams"] });
   if (tournamentId) {

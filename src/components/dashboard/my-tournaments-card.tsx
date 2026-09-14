@@ -1,7 +1,8 @@
 "use client";
 
+import { useMemo } from "react";
 import { format } from "date-fns";
-import { Award, Flag, Medal, Swords, Trophy } from "lucide-react";
+import { Award, Flag, MapPin, Medal, Swords, Trophy, UserRound, Users } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -12,8 +13,9 @@ import {
 } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatMoney } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n";
-import { useMyTournaments } from "@/lib/queries";
+import { useMyTournaments, useVenues } from "@/lib/queries";
 import { computeLeagueStandings, matchDepths } from "@/lib/tournament-results";
 import type { TournamentWithMatches } from "@/lib/types";
 
@@ -96,8 +98,13 @@ function tournamentResult(
 }
 
 export function MyTournamentsCard({ memberId }: { memberId: string }) {
-  const { t, locale } = useI18n();
+  const { t, lang, locale } = useI18n();
   const { data: entries, isPending, isError, refetch } = useMyTournaments(memberId);
+  const { data: venues } = useVenues();
+  const venueName = useMemo(
+    () => new Map((venues ?? []).map((v) => [v.id, v.name])),
+    [venues]
+  );
 
   return (
     <Card>
@@ -138,12 +145,39 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <p className="truncate font-medium">{tournament.name}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
+                    <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
                       {tournament.sport?.name}
                       {tournament.start_date
                         ? ` · ${format(new Date(tournament.start_date + "T00:00:00"), "MMM d, yyyy", { locale })}`
                         : ""}
+                      {tournament.start_time ? ` · ${tournament.start_time.slice(0, 5)}` : ""}
                     </p>
+                    {(Number(tournament.participant_fee ?? 0) > 0 ||
+                      tournament.max_participants != null ||
+                      (tournament.venue_id && venueName.has(tournament.venue_id))) && (
+                      <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                        {Number(tournament.participant_fee ?? 0) > 0 && (
+                          <span className="flex items-center gap-1">
+                            <UserRound className="h-3 w-3" />
+                            {t("td_participant_fee").replace("{fee}", formatMoney(Number(tournament.participant_fee), lang))}
+                          </span>
+                        )}
+                        {tournament.max_participants != null && (
+                          <span className="flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            {t("td_participants_count")
+                              .replace("{count}", String(tournament.participant_count ?? 0))
+                              .replace("{max}", String(tournament.max_participants))}
+                          </span>
+                        )}
+                        {tournament.venue_id && venueName.has(tournament.venue_id) && (
+                          <span className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {venueName.get(tournament.venue_id)}
+                          </span>
+                        )}
+                      </p>
+                    )}
                     {tournament.prize && (
                       <p className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-amber-600">
                         <Trophy className="h-3 w-3" />

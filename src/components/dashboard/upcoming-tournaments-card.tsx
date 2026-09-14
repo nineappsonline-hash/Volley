@@ -1,12 +1,14 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
-import { Trophy, CalendarDays, ArrowRight } from "lucide-react";
+import { Trophy, CalendarDays, ArrowRight, MapPin, UserRound, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/empty-state";
+import { formatMoney } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n";
-import { useAllTournaments } from "@/lib/queries";
+import { useAllTournaments, useVenues } from "@/lib/queries";
 
 const STATUS_CLS: Record<string, string> = {
   upcoming: "bg-attention-100 text-warning-ink",
@@ -18,6 +20,11 @@ const STATUS_CLS: Record<string, string> = {
 export function UpcomingTournamentsCard() {
   const { t, lang } = useI18n();
   const { data: all, isLoading } = useAllTournaments();
+  const { data: venues } = useVenues();
+  const venueName = useMemo(
+    () => new Map((venues ?? []).map((v) => [v.id, v.name])),
+    [venues]
+  );
 
   const today = new Date().toISOString().slice(0, 10);
   const list = (all ?? [])
@@ -72,11 +79,38 @@ export function UpcomingTournamentsCard() {
                   <span className="flex items-center gap-1">
                     <CalendarDays className="h-3 w-3" />
                     {new Intl.DateTimeFormat(lang, { dateStyle: "medium" }).format(new Date(tr.start_date + "T00:00:00"))}
+                    {tr.start_time ? ` · ${tr.start_time.slice(0, 5)}` : ""}
                     {tr.end_date
                       ? ` — ${new Intl.DateTimeFormat(lang, { dateStyle: "medium" }).format(new Date(tr.end_date + "T00:00:00"))}`
                       : ""}
                   </span>
                 </div>
+                {(Number(tr.participant_fee ?? 0) > 0 ||
+                  tr.max_participants != null ||
+                  (tr.venue_id && venueName.has(tr.venue_id))) && (
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                    {Number(tr.participant_fee ?? 0) > 0 && (
+                      <span className="flex items-center gap-1">
+                        <UserRound className="h-3 w-3" />
+                        {t("td_participant_fee").replace("{fee}", formatMoney(Number(tr.participant_fee), lang))}
+                      </span>
+                    )}
+                    {tr.max_participants != null && (
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {t("td_participants_count")
+                          .replace("{count}", String(tr.participant_count ?? 0))
+                          .replace("{max}", String(tr.max_participants))}
+                      </span>
+                    )}
+                    {tr.venue_id && venueName.has(tr.venue_id) && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {venueName.get(tr.venue_id)}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
               <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-bold ${STATUS_CLS[tr.status] ?? STATUS_CLS.completed}`}>
                 {t(`tournament_status_${tr.status}`)}

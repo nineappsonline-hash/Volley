@@ -44,6 +44,12 @@ export type PublicTournament = {
   prize: string | null;
   start_date: string;
   end_date: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  participant_fee: number | null;
+  max_participants: number | null;
+  participant_count: number;
+  venue: { name: string | null; area: string | null; governorate: string | null } | null;
   status: string;
   sport: string | null;
   academy: { name: string; slug: string | null; area: string | null; governorate: string | null } | null;
@@ -129,8 +135,11 @@ export async function getPublicTournaments(sport?: string): Promise<PublicTourna
   let query = admin
     .from("tournaments")
     .select(
-      `id, name, description, prize, start_date, end_date, status,
+      `id, name, description, prize, start_date, end_date, start_time, end_time,
+       participant_fee, max_participants,
        sport:sports(name),
+       venue:venues(name, area, governorate),
+       participants:tournament_participants(count),
        academy:academies!inner(id, name, slug, area, governorate, is_public)`
     )
     .eq("academies.is_public", true)
@@ -145,6 +154,8 @@ export async function getPublicTournaments(sport?: string): Promise<PublicTourna
     return (data ?? []).map((t: Record<string, unknown>) => {
       const row = t as unknown as PublicTournament & {
         sport: { name: string } | null;
+        venue: PublicTournament["venue"];
+        participants: { count?: number }[] | null;
         academy: PublicTournament["academy"];
       };
       return {
@@ -154,6 +165,12 @@ export async function getPublicTournaments(sport?: string): Promise<PublicTourna
         prize: row.prize,
         start_date: row.start_date,
         end_date: row.end_date,
+        start_time: row.start_time,
+        end_time: row.end_time,
+        participant_fee: row.participant_fee,
+        max_participants: row.max_participants,
+        participant_count: Number(row.participants?.[0]?.count ?? 0),
+        venue: Array.isArray(row.venue) ? (row.venue[0] ?? null) : (row.venue ?? null),
         status: row.status,
         sport: row.sport?.name ?? null,
         academy: row.academy,

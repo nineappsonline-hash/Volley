@@ -396,6 +396,11 @@ CREATE TABLE IF NOT EXISTS public.tournaments (
   sport_id UUID REFERENCES public.sports(id) ON DELETE SET NULL,
   start_date DATE NOT NULL,
   end_date DATE,
+  start_time TIME,
+  end_time TIME,
+  participant_fee NUMERIC(10, 2) NOT NULL DEFAULT 0,
+  max_participants INTEGER CHECK (max_participants IS NULL OR max_participants > 0),
+  venue_id UUID REFERENCES public.venues(id) ON DELETE SET NULL,
   status TEXT NOT NULL DEFAULT 'upcoming' CHECK (status IN ('upcoming', 'in_progress', 'completed', 'canceled')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -5898,7 +5903,15 @@ CREATE TABLE IF NOT EXISTS public.tournament_team_members (
 CREATE INDEX IF NOT EXISTS idx_tt_members_team
   ON public.tournament_team_members(team_id);
 
--- ── 3. RLS (same academy scoping as tournaments/matches) ───────
+-- ── 3. RLS (readable everywhere; writes scoped to the hosting academy) ──
+DROP POLICY IF EXISTS "Members read tournament participants" ON public.tournament_participants;
+CREATE POLICY "Members read tournament participants" ON public.tournament_participants
+  FOR SELECT TO authenticated USING (
+    EXISTS (
+      SELECT 1 FROM public.tournaments t WHERE t.id = tournament_id
+    )
+  );
+
 DROP POLICY IF EXISTS "Members manage tournament participants" ON public.tournament_participants;
 CREATE POLICY "Members manage tournament participants" ON public.tournament_participants
   FOR ALL USING (

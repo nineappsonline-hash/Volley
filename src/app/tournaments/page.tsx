@@ -189,19 +189,34 @@ export default async function TournamentsPage({ searchParams }: { searchParams: 
                   </div>
 
                   <dl className="mt-3 space-y-1.5 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1.5">
-                      <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                       <dt className="sr-only">Date</dt>
-                      <dd>
+                      <dd className="flex items-center gap-1.5">
+                        <CalendarDays className="h-3.5 w-3.5 shrink-0" />
                         {fmtDate(t.start_date)}
+                        {t.start_time ? ` · ${t.start_time.slice(0, 5)}` : ""}
                         {t.end_date ? ` — ${fmtDate(t.end_date)}` : ""}
+                        {t.end_time ? ` · ${t.end_time.slice(0, 5)}` : ""}
                       </dd>
                     </div>
-                    {place && (
-                      <div className="flex items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <dt className="sr-only">Location</dt>
+                      <dd className="flex items-center gap-1.5">
                         <MapPin className="h-3.5 w-3.5 shrink-0" />
-                        <dt className="sr-only">Location</dt>
-                        <dd>{place}</dd>
+                        {t.venue?.name ?? place ?? "Location TBA"}
+                      </dd>
+                    </div>
+                    {(Number(t.participant_fee ?? 0) > 0 || t.max_participants != null) && (
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <dt className="sr-only">Entry</dt>
+                        <dd>
+                          {Number(t.participant_fee ?? 0) > 0
+                            ? `Entry fee: EGP ${Number(t.participant_fee)}`
+                            : "Free entry"}
+                          {t.max_participants != null
+                            ? ` · ${t.participant_count}/${t.max_participants} spots`
+                            : ""}
+                        </dd>
                       </div>
                     )}
                   </dl>
