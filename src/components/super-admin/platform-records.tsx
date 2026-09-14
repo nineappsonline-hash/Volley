@@ -711,7 +711,7 @@ function SportCombobox({
           <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] overflow-hidden p-0">
+      <PopoverContent align="start" className="z-[60] w-[var(--radix-popover-trigger-width)] overflow-hidden p-0">
         <div className="relative">
           <Search className="pointer-events-none absolute start-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -722,7 +722,7 @@ function SportCombobox({
             dir="auto"
           />
         </div>
-        <div className="max-h-56 overflow-auto p-1">
+        <div className="max-h-56 overscroll-contain overflow-auto p-1">
           <button
             type="button"
             onClick={() => select(null)}
