@@ -286,7 +286,12 @@ function GameCard({
       <CardContent className="flex flex-1 flex-col gap-3">
         {/* Playground */}
         <div className="flex items-start gap-2 rounded-lg border bg-muted/30 p-2.5">
-          <LandPlot className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          {game.playground?.photos?.[0] ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={game.playground.photos[0]} alt={game.playground.name ?? ""} className="mt-0.5 h-10 w-10 shrink-0 rounded-md border object-cover" />
+          ) : (
+            <LandPlot className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          )}
           <div className="min-w-0 text-sm">
             <p className="truncate font-semibold">
               {game.playground?.name ?? game.location ?? t("games_no_playground")}

@@ -200,7 +200,13 @@ export function PlaygroundPicker({
                 value === p.id && "bg-accent",
               )}
             >
-              <span className="min-w-0">
+              {p.photos?.[0] ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={p.photos[0]} alt={p.name} className="h-9 w-9 shrink-0 rounded-md border object-cover" />
+              ) : (
+                <LandPlot className="h-4 w-4 shrink-0 text-primary" />
+              )}
+              <span className="min-w-0 flex-1">
                 <span dir="auto" className="block truncate font-medium">
                   {p.name}
                   {Number(p.court_count) > 1 && (

@@ -7931,13 +7931,16 @@ NOTIFY pgrst, 'reload schema';
 
 -- ────────────────────────────────────────────────────────────
 -- VENUE PHOTOS
--- Mirrors supabase/migrations/20260931000000_venue_photos.sql.
--- Optional cover image for a playground, uploaded by the super admin from the
--- venue create/edit dialog. Stored as a public URL in the public
--- "venue-photos" storage bucket.
+-- Mirrors supabase/migrations/20261001000000_venue_photo_gallery.sql.
+-- Optional photos for a playground, uploaded by the super admin from the
+-- venue create/edit dialog. JSONB list of public URLs; the first entry is the
+-- cover shown on the playground's card and as the primary gallery image.
+-- Stored in the public "venue-photos" storage bucket. Replaces the previous
+-- single-photo photo_url column.
 -- ────────────────────────────────────────────────────────────
-ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS photo_url TEXT;
-GRANT SELECT (photo_url) ON public.venues TO anon, authenticated;
+ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS photos JSONB NOT NULL DEFAULT '[]'::jsonb;
+GRANT SELECT (photos) ON public.venues TO anon, authenticated;
+ALTER TABLE public.venues DROP COLUMN IF EXISTS photo_url;
 
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('venue-photos', 'venue-photos', TRUE)

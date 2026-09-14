@@ -22,11 +22,12 @@ import { ProfileAvatar } from "@/components/shared/profile-avatar";
 import { AcademyEditDialog } from "./academy-edit-dialog";
 import { LocationFields } from "@/components/shared/location-fields";
 import { Label } from "@/components/ui/label";
-import { Ban, Camera, Check, Clock, Copy, Loader2, Plus, Trash2, Upload } from "lucide-react";
+import { Ban, Camera, Check, Clock, Copy, Loader2, Plus, Star, Trash2, Upload } from "lucide-react";
 import { minutesOf } from "@/lib/venue-slots";
 import { formatMoney } from "@/lib/constants";
 import { DirectionsLinks } from "@/components/shared/directions-links";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 
 type Row = Record<string, any>;
 type Records = Record<string, Row[]>;
@@ -37,7 +38,8 @@ interface VenueDraft extends Row {
   unavailable_slots?: VenueUnavailableSlot[];
   working_hours?: VenueUnavailableSlot[];
   court_count?: string | number;
-  photo_url?: string | null;
+  /** Public URLs of the playground photos; the first entry is the cover. */
+  photos?: string[];
 }
 
 /** Label lookup for detail rows built with canonical English keys. */
@@ -92,6 +94,8 @@ function confirmMatches(confirmation: string, row: Row | null): boolean {
 function VenueDetails({ venue, data }: { venue: Row; data: Records }) {
   const { t, lang } = useI18n();
   const [copied, setCopied] = useState(false);
+  const [activePhoto, setActivePhoto] = useState(0);
+  const photos = (venue.photos ?? []) as string[];
   const copyLink = async () => {
     if (!venue.location_link) return;
     try {
@@ -122,9 +126,21 @@ function VenueDetails({ venue, data }: { venue: Row; data: Records }) {
     .filter(r => r.venue_id === venue.id)
     .sort((a, b) => b.rental_date.localeCompare(a.rental_date) || b.start_time.localeCompare(a.start_time));
   return <div className="space-y-5">
-    {venue.photo_url && (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={venue.photo_url} alt={venue.name} className="aspect-video w-full rounded-xl border object-cover" />
+    {photos.length > 0 && (
+      <div className="space-y-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={photos[activePhoto]} alt={venue.name} className="aspect-video w-full rounded-xl border object-cover" />
+        {photos.length > 1 && (
+          <div className="flex flex-wrap gap-2">
+            {photos.map((url, idx) => (
+              <button key={url} type="button" onClick={() => setActivePhoto(idx)} className={cn("h-14 w-20 overflow-hidden rounded-lg border", idx === activePhoto && "ring-2 ring-primary")}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt={`${venue.name} ${idx + 1}`} className="h-full w-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     )}
     <div className="flex flex-wrap gap-2 text-xs">
       {sportName && <span className="rounded-full bg-muted px-3 py-1 font-medium">{sportName}</span>}
@@ -331,17 +347,21 @@ export function PlatformRecords() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const handlePhotoUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !editingVenue) return;
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0 || !editingVenue) return;
     setUploadingPhoto(true);
     try {
       const supabase = createClient();
-      const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
-      const path = `venues/photo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error } = await supabase.storage.from("venue-photos").upload(path, file, { contentType: file.type, upsert: false });
-      if (error) throw error;
-      const { data } = supabase.storage.from("venue-photos").getPublicUrl(path);
-      setEditingVenue(c => (c ? { ...c, photo_url: data.publicUrl } : c));
+      const urls: string[] = [];
+      for (const file of files) {
+        const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
+        const path = `venues/photo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error } = await supabase.storage.from("venue-photos").upload(path, file, { contentType: file.type, upsert: false });
+        if (error) throw error;
+        const { data } = supabase.storage.from("venue-photos").getPublicUrl(path);
+        urls.push(data.publicUrl);
+      }
+      setEditingVenue(c => (c ? { ...c, photos: [...(c.photos ?? []), ...urls] } : c));
     } catch {
       toast.error(t("sa_photo_failed"));
     } finally {
@@ -349,6 +369,12 @@ export function PlatformRecords() {
       if (photoInputRef.current) photoInputRef.current.value = "";
     }
   };
+  const setCoverPhoto = (url: string) => setEditingVenue(c => {
+    if (!c?.photos) return c;
+    const rest = c.photos.filter(p => p !== url);
+    return { ...c, photos: [url, ...rest] };
+  });
+  const setRemovePhoto = (url: string) => setEditingVenue(c => (c ? { ...c, photos: (c.photos ?? []).filter(p => p !== url) } : c));
   const removeAcademy = useSuperAdminDeleteAcademy();
   const requestedTab = searchParams.get("tab");
   useEffect(() => {
@@ -418,7 +444,7 @@ export function PlatformRecords() {
     <CardHeader><CardTitle>{t("sa_records_title")}</CardTitle><p className="text-sm text-muted-foreground">{t("sa_records_counts").replace("{accounts}", String(data.profiles.length)).replace("{academies}", String(data.academies.length)).replace("{games}", String(data.friendly_games.length)).replace("{playgrounds}", String(data.venues.length))}</p></CardHeader>
     <CardContent className="space-y-4">
       <div className="flex flex-wrap gap-2" role="tablist" aria-label={t("sa_records_title")}>{tabs.map(item => <Button key={item.value} role="tab" aria-selected={tab === item.value} variant={tab === item.value ? "default" : "outline"} onClick={() => { router.push(`/admin?tab=${encodeURIComponent(item.value)}`, { scroll: false }); }}>{item.label}</Button>)}</div>
-      <div className="flex flex-wrap gap-2"><Input className="max-w-sm" type="search" aria-label={searchLabel} placeholder={`${searchLabel}…`} value={search} onChange={e => setSearch(e.target.value)} />{tab === "Playgrounds" && <Input className="w-auto" type="date" aria-label={t("sa_records_schedule_date")} value={date} onChange={e => setDate(e.target.value)} />}{tab === "Playgrounds" && <Button disabled={busy} onClick={() => setEditingVenue({ name: "", capacity: "", sport_id: null, school_name: "", rental_cost: "", rental_hours: "1", location_link: "", country: "", governorate: "", area: "", contact_person: "", contact_phone: "", lat: "", lng: "", photo_url: null, academy_id: null, court_count: "1", unavailable_slots: [], working_hours: [] })}><Plus className="mr-1 h-4 w-4 rtl:ml-1 rtl:mr-0" />{t("sa_records_add_playground")}</Button>}<Button variant="outline" onClick={() => refetch()}>{t("sa_records_refresh")}</Button></div>
+      <div className="flex flex-wrap gap-2"><Input className="max-w-sm" type="search" aria-label={searchLabel} placeholder={`${searchLabel}…`} value={search} onChange={e => setSearch(e.target.value)} />{tab === "Playgrounds" && <Input className="w-auto" type="date" aria-label={t("sa_records_schedule_date")} value={date} onChange={e => setDate(e.target.value)} />}{tab === "Playgrounds" && <Button disabled={busy} onClick={() => setEditingVenue({ name: "", capacity: "", sport_id: null, school_name: "", rental_cost: "", rental_hours: "1", location_link: "", country: "", governorate: "", area: "", contact_person: "", contact_phone: "", lat: "", lng: "", photos: [], academy_id: null, court_count: "1", unavailable_slots: [], working_hours: [] })}><Plus className="mr-1 h-4 w-4 rtl:ml-1 rtl:mr-0" />{t("sa_records_add_playground")}</Button>}<Button variant="outline" onClick={() => refetch()}>{t("sa_records_refresh")}</Button></div>
       {tab === "Playgrounds" && <p className="text-sm text-muted-foreground">{t("sa_records_schedule_note")}</p>}
       <p className="text-xs text-muted-foreground">{t("sa_records_results").replace("{shown}", String(rows.length)).replace("{total}", String(source.length))}</p>
       <div className="max-h-[650px] space-y-3 overflow-auto">
@@ -467,7 +493,7 @@ export function PlatformRecords() {
       <Dialog open={!!deleting} onOpenChange={open => !busy && !open && setDeleting(null)}><DialogContent><DialogHeader><DialogTitle>{t("sa_delete_account_title")}</DialogTitle><DialogDescription>{t("sa_delete_account_body").replace("{phrase}", confirmPhrase(deleting) ?? "")}</DialogDescription></DialogHeader><Input aria-label={t("sa_confirmation")} value={confirmation} onChange={e => setConfirmation(e.target.value)} /><Button variant="destructive" disabled={busy || !confirmMatches(confirmation, deleting)} onClick={() => act({ action: "delete", id: deleting!.id, confirmation })}>{busy ? t("sa_deleting") : t("sa_permanently_delete")}</Button></DialogContent></Dialog>
       <AlertDialog open={!!deletingAcademy} onOpenChange={open => !removeAcademy.isPending && !open && setDeletingAcademy(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{t("sa_delete_academy_title")}</AlertDialogTitle><AlertDialogDescription>{t("sa_delete_academy_body").replace("{name}", deletingAcademy?.name ?? "")}</AlertDialogDescription></AlertDialogHeader><Input aria-label={t("sa_academy")} value={confirmation} onChange={e => setConfirmation(e.target.value)} /><AlertDialogFooter><AlertDialogCancel disabled={removeAcademy.isPending}>{t("sa_cancel")}</AlertDialogCancel><AlertDialogAction asChild><Button variant="destructive" disabled={removeAcademy.isPending || confirmation !== deletingAcademy?.name} onClick={async () => { try { await removeAcademy.mutateAsync(deletingAcademy!.id); toast.success(t("sa_academy_deleted")); setDeletingAcademy(null); setConfirmation(""); await cache.invalidateQueries(); } catch (e) { toast.error(e instanceof Error ? e.message : t("sa_deletion_failed")); } }}>{removeAcademy.isPending ? t("sa_deleting") : t("sa_permanently_delete")}</Button></AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
       <AcademyEditDialog academy={editingAcademy} onClose={() => setEditingAcademy(null)} onDeleted={() => { setEditingAcademy(null); cache.invalidateQueries(); }} />
-      <Dialog open={!!editingVenue} onOpenChange={open => !busy && !open && setEditingVenue(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>{editingVenue?.id ? t("sa_edit_playground") : t("sa_add_playground")}</DialogTitle><DialogDescription>{editingVenue?.id ? editingVenue.name : t("sa_add_playground_desc")}</DialogDescription></DialogHeader>{editingVenue && <form className="space-y-4" onSubmit={e => { e.preventDefault(); if (!isValidSlotList(editingVenue.unavailable_slots)) { toast.error(t("sa_unavail_invalid")); return; } if (!isValidSlotList(editingVenue.working_hours)) { toast.error(t("sa_wh_invalid")); return; } act({ action: "venue", ...(editingVenue.id ? { id: editingVenue.id } : {}), academy_id: editingVenue.academy_id ?? null, name: editingVenue.name, capacity: editingVenue.capacity, sport_id: editingVenue.sport_id ?? "", school_name: editingVenue.school_name, rental_cost: editingVenue.rental_cost, rental_hours: editingVenue.rental_hours, location_link: editingVenue.location_link, lat: editingVenue.lat, lng: editingVenue.lng, photo_url: editingVenue.photo_url, country: editingVenue.country, governorate: editingVenue.governorate, city: editingVenue.area, contact_person: editingVenue.contact_person, contact_phone: editingVenue.contact_phone, court_count: Number(editingVenue.court_count) || 1, unavailable_slots: ((editingVenue.unavailable_slots ?? []) as VenueUnavailableSlot[]).map(s => ({ weekday: Number(s.weekday), start: s.start, end: s.end })), working_hours: ((editingVenue.working_hours ?? []) as VenueUnavailableSlot[]).map(s => ({ weekday: Number(s.weekday), start: s.start, end: s.end })) }); }}>
+      <Dialog open={!!editingVenue} onOpenChange={open => !busy && !open && setEditingVenue(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>{editingVenue?.id ? t("sa_edit_playground") : t("sa_add_playground")}</DialogTitle><DialogDescription>{editingVenue?.id ? editingVenue.name : t("sa_add_playground_desc")}</DialogDescription></DialogHeader>{editingVenue && <form className="space-y-4" onSubmit={e => { e.preventDefault(); if (!isValidSlotList(editingVenue.unavailable_slots)) { toast.error(t("sa_unavail_invalid")); return; } if (!isValidSlotList(editingVenue.working_hours)) { toast.error(t("sa_wh_invalid")); return; } act({ action: "venue", ...(editingVenue.id ? { id: editingVenue.id } : {}), academy_id: editingVenue.academy_id ?? null, name: editingVenue.name, capacity: editingVenue.capacity, sport_id: editingVenue.sport_id ?? "", school_name: editingVenue.school_name, rental_cost: editingVenue.rental_cost, rental_hours: editingVenue.rental_hours, location_link: editingVenue.location_link, lat: editingVenue.lat, lng: editingVenue.lng, photos: editingVenue.photos ?? [], country: editingVenue.country, governorate: editingVenue.governorate, city: editingVenue.area, contact_person: editingVenue.contact_person, contact_phone: editingVenue.contact_phone, court_count: Number(editingVenue.court_count) || 1, unavailable_slots: ((editingVenue.unavailable_slots ?? []) as VenueUnavailableSlot[]).map(s => ({ weekday: Number(s.weekday), start: s.start, end: s.end })), working_hours: ((editingVenue.working_hours ?? []) as VenueUnavailableSlot[]).map(s => ({ weekday: Number(s.weekday), start: s.start, end: s.end })) }); }}>
         <label className="block text-sm">{t("sa_academy")}
           <select className="mt-1 w-full rounded border bg-background p-2" value={editingVenue.academy_id ?? ""} onChange={e => setEditingVenue({ ...editingVenue, academy_id: e.target.value || null })}>
             <option value="">{t("sa_unassigned")}</option>
@@ -475,30 +501,32 @@ export function PlatformRecords() {
           </select>
           <span className="mt-1 block text-xs text-muted-foreground">{t("sa_pool_hint")}</span>
         </label>
-        <div className="flex items-center gap-4 rounded-lg border p-3">
-          <div className="flex h-20 w-28 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted/50">
-            {editingVenue.photo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={editingVenue.photo_url} alt={t("sa_photo")} className="h-full w-full object-cover" />
-            ) : (
-              <Camera className="h-6 w-6 text-muted-foreground" />
-            )}
-          </div>
-          <div className="space-y-2">
-            <p className="text-sm font-medium">{t("sa_photo")}</p>
+        <div className="space-y-2 rounded-lg border p-3">
+          <p className="flex items-center gap-1.5 text-sm font-semibold"><Camera className="h-4 w-4 text-primary" />{t("sa_photo")}</p>
+          <p className="text-xs text-muted-foreground">{t("sa_photo_hint")}</p>
+          {(editingVenue.photos ?? []).length > 0 && (
             <div className="flex flex-wrap gap-2">
-              <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
-              <Button type="button" variant="outline" size="sm" disabled={uploadingPhoto} onClick={() => photoInputRef.current?.click()}>
-                {uploadingPhoto ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                {uploadingPhoto ? t("sa_photo_uploading") : editingVenue.photo_url ? t("sa_photo_change") : t("sa_photo_upload")}
-              </Button>
-              {editingVenue.photo_url && (
-                <Button type="button" variant="ghost" size="sm" disabled={uploadingPhoto} onClick={() => setEditingVenue(c => (c ? { ...c, photo_url: null } : c))}>
-                  <Trash2 className="h-4 w-4" />{t("sa_photo_remove")}
-                </Button>
-              )}
+              {(editingVenue.photos ?? []).map((url, idx) => (
+                <div key={url} className="group relative h-20 w-28 shrink-0 overflow-hidden rounded-lg border bg-muted/50">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt={`${editingVenue.name ?? ""} ${idx + 1}`} className="h-full w-full object-cover" />
+                  {idx === 0 && <span className="absolute start-0 top-0 rounded-br bg-background/80 px-1.5 py-0.5 text-[10px] font-semibold">{t("sa_photo_cover")}</span>}
+                  <div className="absolute inset-x-0 bottom-0 flex justify-end gap-1 bg-gradient-to-t from-black/40 to-transparent p-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+                    {idx !== 0 && (
+                      <Button type="button" variant="secondary" size="icon" className="h-6 w-6" aria-label={t("sa_photo_set_cover")} onClick={() => setCoverPhoto(url)}><Star className="h-3 w-3" /></Button>
+                    )}
+                    <Button type="button" variant="destructive" size="icon" className="h-6 w-6" aria-label={t("sa_photo_remove")} onClick={() => setRemovePhoto(url)}><Trash2 className="h-3 w-3" /></Button>
+                  </div>
+                </div>
+              ))}
             </div>
-            <p className="text-xs text-muted-foreground">{t("sa_photo_hint")}</p>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <input ref={photoInputRef} type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
+            <Button type="button" variant="outline" size="sm" disabled={uploadingPhoto} onClick={() => photoInputRef.current?.click()}>
+              {uploadingPhoto ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {uploadingPhoto ? t("sa_photo_uploading") : t("sa_photo_upload")}
+            </Button>
           </div>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
