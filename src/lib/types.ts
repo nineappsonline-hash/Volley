@@ -169,6 +169,11 @@ export interface Venue {
   /** Weekly windows when the playground is always unavailable.
    * weekday: 0 = Sunday … 6 = Saturday; start/end are "HH:MM" 24h. */
   unavailable_slots?: VenueUnavailableSlot[];
+  /** Weekly working hours. Reservations are only allowed on the listed days,
+   * within the listed windows; days without an entry are closed. An empty
+   * list means no restriction (always open). Same shape as the excluded
+   * times above. */
+  working_hours?: VenueUnavailableSlot[];
   // How many simultaneous courts the playground has (default 1).
   court_count?: number;
   created_at: string;

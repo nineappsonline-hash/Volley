@@ -35,7 +35,7 @@ import { GameCostEstimate } from "@/components/games/game-cost-estimate";
 import { PlaygroundPicker } from "@/components/shared/playground-picker";
 import { useCreateFriendlyGame, useFriendlyGames, usePlaygrounds } from "@/lib/queries";
 import { errorMessage, todayInput } from "@/lib/utils";
-import { findBlockedOverlap, formatBlockedSlot, timeSlotsOverlap } from "@/lib/venue-slots";
+import { dayWorkingHoursLabel, findBlockedOverlap, formatBlockedSlot, isWithinWorkingHours, timeSlotsOverlap } from "@/lib/venue-slots";
 import type { Dict } from "@/lib/i18n/dictionary";
 
 export function CreateGameDialog({
@@ -98,6 +98,20 @@ export function CreateGameDialog({
 
   const selectedPlayground = playgrounds?.find((p) => p.id === playgroundId);
 
+  const workingHours = selectedPlayground?.working_hours ?? [];
+  const outsideWorkingHours =
+    !!selectedPlayground &&
+    !!date &&
+    !!time &&
+    workingHours.length > 0 &&
+    !isWithinWorkingHours(workingHours, date, time, Number(duration) || 1);
+  const workingHoursWarning = outsideWorkingHours
+    ? (() => {
+        const label = dayWorkingHoursLabel(workingHours, date);
+        return label ? t("wh_outside").replace("{hours}", label) : t("wh_closed_day");
+      })()
+    : null;
+
   const blockedSlot = (() => {
     if (!selectedPlayground?.unavailable_slots?.length || !date || !time) return null;
     return findBlockedOverlap(selectedPlayground.unavailable_slots, date, time, Number(duration) || 1);
@@ -138,6 +152,10 @@ export function CreateGameDialog({
       toast.error(t("unavail_blocked_msg").replace("{slot}", formatBlockedSlot(blockedSlot, d => t(`avail_day_${d}` as keyof Dict))));
       return;
     }
+    if (outsideWorkingHours) {
+      toast.error(workingHoursWarning ?? t("wh_closed_day"));
+      return;
+    }
     if (gamesBooked) {
       toast.error(t("games_all_booked").replace("{count}", String(gameCourt.courtCount)));
       return;
@@ -176,6 +194,7 @@ export function CreateGameDialog({
     !!date &&
     !!time &&
     !blockedSlot &&
+    !outsideWorkingHours &&
     !gamesBooked &&
     !create.isPending;
 
@@ -321,6 +340,12 @@ export function CreateGameDialog({
               <p className="flex items-center gap-1.5 rounded bg-destructive/10 px-3 py-2 text-xs text-destructive">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                 {t("unavail_inline").replace("{slot}", formatBlockedSlot(blockedSlot, (d) => t(`avail_day_${d}` as keyof Dict)))}
+              </p>
+            )}
+            {outsideWorkingHours && (
+              <p className="flex items-center gap-1.5 rounded bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                {workingHoursWarning}
               </p>
             )}
             {gamesBooked && (

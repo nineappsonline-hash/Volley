@@ -79,3 +79,73 @@ export function isValidSlotList(
       minutesOf(s.start) < minutesOf(s.end)
   );
 }
+
+/** Minutes-of-day → "HH:MM". */
+export function padMinutes(minutes: number): string {
+  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+}
+
+/** Allowed working intervals (minutes-of-day) for one date.
+ * An empty `hours` list means "no restriction"; a weekday with no entry in a
+ * non-empty list means the playground is closed all day. */
+export function workingIntervalsForDate(
+  hours: VenueUnavailableSlot[] | undefined,
+  date: string
+): Array<[number, number]> {
+  if (!hours || hours.length === 0) return [];
+  const weekday = weekdayOf(date);
+  return hours
+    .filter((s) => s.weekday === weekday)
+    .map((s) => [minutesOf(s.start), minutesOf(s.end)] as [number, number])
+    .filter(([s, e]) => e > s)
+    .sort((a, b) => a[0] - b[0]);
+}
+
+/** True when a booking fits entirely inside the playground's working hours.
+ * Venues without a working-hours configuration are always allowed. */
+export function isWithinWorkingHours(
+  hours: VenueUnavailableSlot[] | undefined,
+  date: string,
+  startTime: string,
+  durationHours: number
+): boolean {
+  if (!hours || hours.length === 0) return true;
+  const start = minutesOf(startTime);
+  const end = start + durationHours * 60;
+  return workingIntervalsForDate(hours, date).some(
+    ([openStart, openEnd]) => start >= openStart && end <= openEnd
+  );
+}
+
+/** Closed intervals (minutes-of-day) of a working-hours list for one date —
+ * the complement of the allowed windows, or the whole day when unconfigured.
+ * Feed these to `blockedIntervalsForDate` callers (schedule day view). */
+export function closedIntervalsFromWorkingHours(
+  hours: VenueUnavailableSlot[] | undefined,
+  date: string
+): Array<[number, number]> {
+  if (!hours || hours.length === 0) return [];
+  const allowed = workingIntervalsForDate(hours, date);
+  if (allowed.length === 0) return [[0, 1440]];
+  const closed: Array<[number, number]> = [];
+  let cursor = 0;
+  for (const [openStart, openEnd] of allowed) {
+    const start = Math.max(cursor, openStart);
+    if (start > cursor) closed.push([cursor, start]);
+    cursor = Math.max(cursor, openEnd);
+  }
+  if (cursor < 1440) closed.push([cursor, 1440]);
+  return closed;
+}
+
+/** "10:00–22:00" label for a date's working hours, or null when the day is
+ * closed (or hours aren't configured). */
+export function dayWorkingHoursLabel(
+  hours: VenueUnavailableSlot[] | undefined,
+  date: string
+): string | null {
+  if (!hours || hours.length === 0) return null;
+  const intervals = workingIntervalsForDate(hours, date);
+  if (intervals.length === 0) return null;
+  return intervals.map(([s, e]) => `${padMinutes(s)}–${padMinutes(e)}`).join(", ");
+}

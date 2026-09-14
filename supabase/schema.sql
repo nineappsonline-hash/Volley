@@ -7917,3 +7917,14 @@ ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS location_link TEXT;
 -- unless explicitly granted.
 GRANT SELECT (location_link) ON public.venues TO anon, authenticated;
 NOTIFY pgrst, 'reload schema';
+
+-- ────────────────────────────────────────────────────────────
+-- VENUE WORKING HOURS
+-- Mirrors supabase/migrations/20260930000000_venue_working_hours.sql.
+-- Weekly working hours for a playground; reservations are only allowed on the
+-- listed days and within the listed windows. Days without an entry are closed.
+-- An empty list means no restriction (always open).
+-- ────────────────────────────────────────────────────────────
+ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS working_hours JSONB NOT NULL DEFAULT '[]'::jsonb;
+GRANT SELECT (working_hours) ON public.venues TO anon, authenticated;
+NOTIFY pgrst, 'reload schema';

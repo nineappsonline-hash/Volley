@@ -55,8 +55,10 @@ import {
 } from "@/lib/queries";
 import type { RentalPaymentMethod, VenueRental } from "@/lib/types";
 import {
+  dayWorkingHoursLabel,
   findBlockedOverlap,
   formatBlockedSlot,
+  isWithinWorkingHours,
   timeSlotsOverlap,
 } from "@/lib/venue-slots";
 
@@ -109,6 +111,22 @@ export function RentalsClient() {
     if (!venue?.unavailable_slots?.length) return null;
     return findBlockedOverlap(venue.unavailable_slots, date, time, Number(hours) || 1);
   })();
+
+  const workingHours = (venues ?? []).find((v) => v.id === venueId)?.working_hours ?? [];
+  const outsideWorkingHours =
+    venueId !== "none" &&
+    !!date &&
+    !!time &&
+    workingHours.length > 0 &&
+    !isWithinWorkingHours(workingHours, date, time, Number(hours) || 1);
+  const workingHoursWarning = outsideWorkingHours
+    ? (() => {
+        const label = dayWorkingHoursLabel(workingHours, date);
+        return label
+          ? t("wh_outside").replace("{hours}", label)
+          : t("wh_closed_day");
+      })()
+    : null;
 
   useEffect(() => {
     if (dialogOpen && !editing) {
@@ -163,6 +181,10 @@ export function RentalsClient() {
     if (!customerName.trim() || !date || !time) return;
     if (blockedSlot) {
       toast.error(t("unavail_blocked_msg").replace("{slot}", formatBlockedSlot(blockedSlot, d => t(`avail_day_${d}` as any))));
+      return;
+    }
+    if (outsideWorkingHours) {
+      toast.error(workingHoursWarning ?? t("wh_closed_day"));
       return;
     }
     if (courtBooked) {
@@ -457,6 +479,12 @@ export function RentalsClient() {
                   {t("unavail_inline").replace("{slot}", formatBlockedSlot(blockedSlot, (d) => t(`avail_day_${d}` as any)))}
                 </p>
               )}
+              {outsideWorkingHours && (
+                <p className="flex items-center gap-1.5 rounded bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  {workingHoursWarning}
+                </p>
+              )}
               {courtBooked && (
                 <p className="flex items-center gap-1.5 rounded bg-destructive/10 px-3 py-2 text-xs text-destructive">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
@@ -529,7 +557,7 @@ export function RentalsClient() {
               {t("common_cancel")}
             </Button>
             <Button
-              disabled={!customerName.trim() || !date || !time || !!blockedSlot || courtBooked || save.isPending}
+              disabled={!customerName.trim() || !date || !time || !!blockedSlot || outsideWorkingHours || courtBooked || save.isPending}
               onClick={() => handleSave()}
             >
               {save.isPending ? t("common_saving") : t("common_save")}
