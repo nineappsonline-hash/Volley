@@ -49,15 +49,6 @@ export function GameCostEstimate({
           <p className="font-extrabold text-info-ink">
             {formatMoney(estimate.total, lang)}
           </p>
-          <p className="text-[11px] text-muted-foreground">
-            {ar
-              ? hostPays
-                ? "تكفل بالحجز كله — انضم باقي اللاعبين مجانًا."
-                : "إذا زاد عدد اللاعبين عن الحد الأدنى، سيتم إرجاع المبلغ الزائد الذي دفعته."
-              : hostPays
-                ? "You cover the whole reservation — other players join free."
-                : "If more players join than the minimum, you'll be refunded any extra amount you paid."}
-          </p>
         </>
       ) : (
         <p className="text-muted-foreground">
