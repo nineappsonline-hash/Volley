@@ -1,4 +1,6 @@
 "use client";
+import { SortedOptions } from "@/components/ui/sorted-options";
+import { NativeSelect } from "@/components/ui/sorted-options";
 
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -503,9 +505,9 @@ export function PlatformRecords() {
       })}</div>
       <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle>{selected?.name ?? selected?.title ?? t("sa_records_record_details")}</DialogTitle><DialogDescription>{dialogDescription}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails member={selected} data={data} /> : tab === "Academies" ? <AcademyDetails academy={selected} data={data} /> : tab === "Playgrounds" ? <VenueDetails key={selected.id} venue={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && tab !== "Academies" && Object.entries(related).map(([label, records]) => <details key={label}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => label === "Participants" ? <AcademyMemberRow key={r.id} member={r} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
       <Dialog open={!!editing} onOpenChange={open => !busy && !open && setEditing(null)}><DialogContent><DialogHeader><DialogTitle>{t("sa_edit_membership")}</DialogTitle><DialogDescription>{editing?.name} · {editing?.email}</DialogDescription></DialogHeader>{editing && <form className="space-y-4" onSubmit={e => { e.preventDefault(); act({ action: "membership", id: editing.id, membership_type: editing.membership_type, subscription_sessions: Number(editing.subscription_sessions), member_plan: editing.member_plan, premium_expires_at: editing.premium_expires_at ? new Date(editing.premium_expires_at).toISOString() : null, is_active: editing.is_active }); }}>
-        <label className="block text-sm">{t("sa_academy_membership")}<select className="mt-1 w-full rounded border bg-background p-2" value={editing.membership_type} onChange={e => setEditing({ ...editing, membership_type: e.target.value })}><option value="full">{t("sa_full")}</option><option value="half">{t("sa_half")}</option></select></label>
+        <label className="block text-sm">{t("sa_academy_membership")}<NativeSelect className="mt-1 w-full rounded border bg-background p-2" value={editing.membership_type} onChange={e => setEditing({ ...editing, membership_type: e.target.value })}><option value="full">{t("sa_full")}</option><option value="half">{t("sa_half")}</option></NativeSelect></label>
         <label className="block text-sm">{t("sa_subscription_sessions")}<Input type="number" min="0" max="10000" required value={editing.subscription_sessions} onChange={e => setEditing({ ...editing, subscription_sessions: e.target.value })} /></label>
-        <label className="block text-sm">{t("sa_platform_plan")}<select className="mt-1 w-full rounded border bg-background p-2" value={editing.member_plan} onChange={e => setEditing({ ...editing, member_plan: e.target.value })}><option value="free">{t("sa_free")}</option><option value="premium">{t("sa_premium")}</option></select></label>
+        <label className="block text-sm">{t("sa_platform_plan")}<NativeSelect className="mt-1 w-full rounded border bg-background p-2" value={editing.member_plan} onChange={e => setEditing({ ...editing, member_plan: e.target.value })}><option value="free">{t("sa_free")}</option><option value="premium">{t("sa_premium")}</option></NativeSelect></label>
         <label className="block text-sm">{t("sa_premium_expiry_label")}<Input type="date" value={editing.premium_expires_at?.slice(0,10) ?? ""} onChange={e => setEditing({ ...editing, premium_expires_at: e.target.value })} /></label>
         <label className="flex gap-2 text-sm"><input type="checkbox" checked={editing.is_active} onChange={e => setEditing({ ...editing, is_active: e.target.checked })} />{t("sa_active_membership_label")}</label>
         <Button type="submit" disabled={busy}>{busy ? t("sa_saving") : t("sa_save_membership")}</Button>
@@ -516,10 +518,10 @@ export function PlatformRecords() {
       <TournamentFormDialog open={tournamentFormOpen} onOpenChange={setTournamentFormOpen} tournament={null} sports={(sports ?? []) as { id: string; name: string }[]} venues={(data.venues ?? []) as { id: string; name: string }[]} onSaved={() => cache.invalidateQueries()} />
       <Dialog open={!!editingVenue} onOpenChange={open => !busy && !open && setEditingVenue(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>{editingVenue?.id ? t("sa_edit_playground") : editingVenue?.duplicate_of ? t("sa_duplicate_playground") : t("sa_add_playground")}</DialogTitle><DialogDescription>{editingVenue?.id || editingVenue?.duplicate_of ? editingVenue.name : t("sa_add_playground_desc")}</DialogDescription></DialogHeader>{editingVenue && <form className="space-y-4" onSubmit={e => { e.preventDefault(); if (!isValidSlotList(editingVenue.unavailable_slots)) { toast.error(t("sa_unavail_invalid")); return; } if (!isValidSlotList(editingVenue.working_hours)) { toast.error(t("sa_wh_invalid")); return; } const exactName = editingVenue.name.trim().toLowerCase(); const conflictExists = (data.venues ?? []).some((v: Row) => v.id !== editingVenue.id && String(v.name ?? "").trim().toLowerCase() === exactName && (v.sport_id ?? null) === (editingVenue.sport_id ?? null)); if (exactName && conflictExists) { toast.error(t("sa_venue_name_sport_unique")); return; } act({ action: "venue", ...(editingVenue.id ? { id: editingVenue.id } : {}), academy_id: editingVenue.academy_id ?? null, name: editingVenue.name, capacity: editingVenue.capacity, sport_id: editingVenue.sport_id ?? "", school_name: editingVenue.school_name, rental_cost: editingVenue.rental_cost, rental_hours: editingVenue.rental_hours, location_link: editingVenue.location_link, lat: editingVenue.lat, lng: editingVenue.lng, photos: editingVenue.photos ?? [], cover_url: editingVenue.cover_url, country: editingVenue.country, governorate: editingVenue.governorate, city: editingVenue.area, contact_person: editingVenue.contact_person, contact_phone: editingVenue.contact_phone, court_count: Number(editingVenue.court_count) || 1, unavailable_slots: ((editingVenue.unavailable_slots ?? []) as VenueUnavailableSlot[]).map(s => ({ weekday: Number(s.weekday), start: s.start, end: s.end })), working_hours: ((editingVenue.working_hours ?? []) as VenueUnavailableSlot[]).map(s => ({ weekday: Number(s.weekday), start: s.start, end: s.end })) }); }}>
         <label className="block text-sm">{t("sa_academy")}
-          <select className="mt-1 w-full rounded border bg-background p-2" value={editingVenue.academy_id ?? ""} onChange={e => setEditingVenue({ ...editingVenue, academy_id: e.target.value || null })}>
+          <NativeSelect className="mt-1 w-full rounded border bg-background p-2" value={editingVenue.academy_id ?? ""} onChange={e => setEditingVenue({ ...editingVenue, academy_id: e.target.value || null })}>
             <option value="">{t("sa_unassigned")}</option>
             {data.academies.map(ac => <option key={ac.id} value={ac.id}>{ac.name}</option>)}
-          </select>
+          </NativeSelect>
           <span className="mt-1 block text-xs text-muted-foreground">{t("sa_pool_hint")}</span>
         </label>
         <div className="space-y-2 rounded-lg border p-3">
@@ -620,9 +622,9 @@ export function PlatformRecords() {
           {(editingVenue.unavailable_slots ?? []).length === 0 && <p className="text-xs text-muted-foreground">{t("sa_unavail_empty")}</p>}
           {(editingVenue.unavailable_slots ?? []).map((slot, idx) => (
             <div key={idx} className="grid grid-cols-[auto_1fr_1fr_auto] items-center gap-2">
-              <select aria-label={t("sa_unavail_day")} className="rounded border bg-background p-2 text-sm" value={String(slot.weekday)} onChange={e => setEditingVenue(c => c ? ({ ...c, unavailable_slots: (c.unavailable_slots ?? []).map((s, i) => i === idx ? { ...s, weekday: Number(e.target.value) } : s) }) : c)}>
+              <NativeSelect aria-label={t("sa_unavail_day")} className="rounded border bg-background p-2 text-sm" value={String(slot.weekday)} onChange={e => setEditingVenue(c => c ? ({ ...c, unavailable_slots: (c.unavailable_slots ?? []).map((s, i) => i === idx ? { ...s, weekday: Number(e.target.value) } : s) }) : c)}>
                 {[0, 1, 2, 3, 4, 5, 6].map(d => <option key={d} value={d}>{t(`avail_day_${d}` as keyof Dict)}</option>)}
-              </select>
+              </NativeSelect>
               <Input aria-label={t("sa_unavail_start")} dir="ltr" type="time" className="p-1.5 text-sm" value={slot.start} onChange={e => setEditingVenue(c => c ? ({ ...c, unavailable_slots: (c.unavailable_slots ?? []).map((s, i) => i === idx ? { ...s, start: e.target.value } : s) }) : c)} />
               <Input aria-label={t("sa_unavail_end")} dir="ltr" type="time" className="p-1.5 text-sm" value={slot.end} onChange={e => setEditingVenue(c => c ? ({ ...c, unavailable_slots: (c.unavailable_slots ?? []).map((s, i) => i === idx ? { ...s, end: e.target.value } : s) }) : c)} />
               <Button type="button" variant="ghost" size="icon" aria-label={t("sa_unavail_remove")} onClick={() => setEditingVenue(c => c ? ({ ...c, unavailable_slots: (c.unavailable_slots ?? []).filter((_, i) => i !== idx) }) : c)}><Trash2 className="h-4 w-4" /></Button>
@@ -636,9 +638,9 @@ export function PlatformRecords() {
           {(editingVenue.working_hours ?? []).length === 0 && <p className="text-xs text-muted-foreground">{t("sa_wh_empty")}</p>}
           {(editingVenue.working_hours ?? []).map((slot, idx) => (
             <div key={idx} className="grid grid-cols-[auto_1fr_1fr_auto] items-center gap-2">
-              <select aria-label={t("sa_unavail_day")} className="rounded border bg-background p-2 text-sm" value={String(slot.weekday)} onChange={e => setEditingVenue(c => c ? ({ ...c, working_hours: (c.working_hours ?? []).map((s, i) => i === idx ? { ...s, weekday: Number(e.target.value) } : s) }) : c)}>
+              <NativeSelect aria-label={t("sa_unavail_day")} className="rounded border bg-background p-2 text-sm" value={String(slot.weekday)} onChange={e => setEditingVenue(c => c ? ({ ...c, working_hours: (c.working_hours ?? []).map((s, i) => i === idx ? { ...s, weekday: Number(e.target.value) } : s) }) : c)}>
                 {[0, 1, 2, 3, 4, 5, 6].map(d => <option key={d} value={d}>{t(`avail_day_${d}` as keyof Dict)}</option>)}
-              </select>
+              </NativeSelect>
               <Input aria-label={t("sa_unavail_start")} dir="ltr" type="time" className="p-1.5 text-sm" value={slot.start} onChange={e => setEditingVenue(c => c ? ({ ...c, working_hours: (c.working_hours ?? []).map((s, i) => i === idx ? { ...s, start: e.target.value } : s) }) : c)} />
               <Input aria-label={t("sa_unavail_end")} dir="ltr" type="time" className="p-1.5 text-sm" value={slot.end} onChange={e => setEditingVenue(c => c ? ({ ...c, working_hours: (c.working_hours ?? []).map((s, i) => i === idx ? { ...s, end: e.target.value } : s) }) : c)} />
               <Button type="button" variant="ghost" size="icon" aria-label={t("sa_unavail_remove")} onClick={() => setEditingVenue(c => c ? ({ ...c, working_hours: (c.working_hours ?? []).filter((_, i) => i !== idx) }) : c)}><Trash2 className="h-4 w-4" /></Button>
@@ -709,39 +711,41 @@ function SportCombobox({
           />
         </div>
         <div className="max-h-56 overscroll-contain overflow-auto p-1">
-          <button
-            type="button"
-            onClick={() => select(null)}
-            className={cn(
-              "flex w-full items-center justify-between gap-2 rounded-sm px-3 py-2 text-start text-sm hover:bg-accent",
-              value == null && "bg-accent",
+          <SortedOptions>
+            <button
+              type="button"
+              onClick={() => select(null)}
+              className={cn(
+                "flex w-full items-center justify-between gap-2 rounded-sm px-3 py-2 text-start text-sm hover:bg-accent",
+                value == null && "bg-accent",
+              )}
+              dir="auto"
+            >
+              <span className="text-muted-foreground">{t("sa_unassigned")}</span>
+              {value == null && <Check className="h-4 w-4 shrink-0 opacity-70" />}
+            </button>
+            {filtered.length === 0 ? (
+              <p className="px-3 py-4 text-center text-xs text-muted-foreground">
+                {t("sa_records_empty")}
+              </p>
+            ) : (
+              filtered.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => select(s.id)}
+                  className={cn(
+                    "flex w-full items-center justify-between gap-2 rounded-sm px-3 py-2 text-sm hover:bg-accent",
+                    value === s.id && "bg-accent",
+                  )}
+                  dir="auto"
+                >
+                  <span className="truncate">{s.name}</span>
+                  {value === s.id && <Check className="h-4 w-4 shrink-0 opacity-70" />}
+                </button>
+              ))
             )}
-            dir="auto"
-          >
-            <span className="text-muted-foreground">{t("sa_unassigned")}</span>
-            {value == null && <Check className="h-4 w-4 shrink-0 opacity-70" />}
-          </button>
-          {filtered.length === 0 ? (
-            <p className="px-3 py-4 text-center text-xs text-muted-foreground">
-              {t("sa_records_empty")}
-            </p>
-          ) : (
-            filtered.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => select(s.id)}
-                className={cn(
-                  "flex w-full items-center justify-between gap-2 rounded-sm px-3 py-2 text-sm hover:bg-accent",
-                  value === s.id && "bg-accent",
-                )}
-                dir="auto"
-              >
-                <span className="truncate">{s.name}</span>
-                {value === s.id && <Check className="h-4 w-4 shrink-0 opacity-70" />}
-              </button>
-            ))
-          )}
+          </SortedOptions>
         </div>
       </PopoverContent>
     </Popover>

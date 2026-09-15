@@ -26,6 +26,7 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { COMMUNITY_SPORTS } from "@/lib/constants";
 import { GameCostEstimate } from "@/components/games/game-cost-estimate";
+import { QueryState } from "@/components/shared/query-state";
 import { PlaygroundPicker } from "@/components/shared/playground-picker";
 import { MapPicker } from "@/components/shared/map-picker";
 import { useCreateFriendlyGame, usePlaygrounds } from "@/lib/queries";
@@ -43,7 +44,8 @@ export function CreateGameDialog({
   const { t, lang } = useI18n();
   const isPro = memberPlan === "premium";
   const create = useCreateFriendlyGame();
-  const { data: playgrounds } = usePlaygrounds();
+  const playgroundQuery = usePlaygrounds();
+  const { data: playgrounds } = playgroundQuery;
   const [playgroundId, setPlaygroundId] = useState("");
 
   const [title, setTitle] = useState("");
@@ -212,11 +214,13 @@ export function CreateGameDialog({
             <div className="space-y-2"><Label htmlFor="game-duration">{lang === "ar" ? "مدة الجيم بالساعات" : "Duration (hours)"}</Label><Input id="game-duration" type="number" min="0.01" max="24" step="0.25" value={duration} onChange={e => setDuration(e.target.value)} /></div>
           </div>
           <div className="space-y-2"><Label htmlFor="community-playground">{lang === "ar" ? "الملعب" : "Playground"}</Label>
+            <QueryState queries={[playgroundQuery]}>
             <PlaygroundPicker
               value={playgroundId}
               onChange={setPlaygroundId}
               playgrounds={playgrounds ?? []}
-            /></div>
+            />
+            </QueryState></div>
           <GameCostEstimate rate={playgrounds?.find(p => p.id === playgroundId)?.rental_cost} hours={Number(duration)} min={Number(minPlayers)} />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div className="space-y-2">

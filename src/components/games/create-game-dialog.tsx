@@ -32,6 +32,7 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { COMMUNITY_SPORTS } from "@/lib/constants";
 import { GameCostEstimate } from "@/components/games/game-cost-estimate";
+import { QueryState } from "@/components/shared/query-state";
 import { PlaygroundPicker } from "@/components/shared/playground-picker";
 import { useCreateFriendlyGame, useFriendlyGames, usePlaygrounds } from "@/lib/queries";
 import { errorMessage, todayInput } from "@/lib/utils";
@@ -50,7 +51,8 @@ export function CreateGameDialog({
   const { t, lang } = useI18n();
   const isPro = memberPlan === "premium";
   const create = useCreateFriendlyGame();
-  const { data: playgrounds } = usePlaygrounds();
+  const playgroundQuery = usePlaygrounds();
+  const { data: playgrounds } = playgroundQuery;
   const { data: allGames } = useFriendlyGames();
 
   const [title, setTitle] = useState("");
@@ -253,11 +255,13 @@ export function CreateGameDialog({
               <LandPlot className="h-3.5 w-3.5 text-primary" />
               {t("games_playground")}
             </Label>
+            <QueryState queries={[playgroundQuery]}>
             <PlaygroundPicker
               value={playgroundId}
               onChange={setPlaygroundId}
               playgrounds={playgrounds ?? []}
             />
+            </QueryState>
             {!selectedPlayground && (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">

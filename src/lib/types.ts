@@ -631,6 +631,7 @@ export interface FriendlyGame {
   // Which court this game occupies (NULL when no playground is assigned).
   court_number?: number | null;
   playground: {
+    country?: string | null;
     name: string | null;
     area: string | null;
     governorate: string | null;

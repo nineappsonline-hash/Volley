@@ -1,4 +1,5 @@
 "use client";
+import { NativeSelect } from "@/components/ui/sorted-options";
 import { useState } from 'react';
 import Link from 'next/link';
 import { useChildren, useAttendance, useAllPayments, useSessions, useEvaluations } from '@/lib/queries';
@@ -11,7 +12,7 @@ import { format } from 'date-fns';
 export function ParentDashboard(){
  const {lang}=useI18n();const ar=lang==='ar';const children=useChildren();const [selected,setSelected]=useState('');
  const child=children.data?.find(c=>c.id===selected)??children.data?.[0];
- return <QueryState queries={[children]}>{child&&<Card><CardHeader><CardTitle>{ar?'متابعة ولادك':'Your children at a glance'}</CardTitle></CardHeader><CardContent className="space-y-4"><label className="block text-sm">{ar?'اختار الطفل':'Choose a child'}<select value={child.id} onChange={e=>setSelected(e.target.value)} className="ms-3 rounded border bg-background p-2">{children.data?.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label><ChildSummary key={child.id} child={child}/></CardContent></Card>}</QueryState>;
+ return <QueryState queries={[children]}>{child&&<Card><CardHeader><CardTitle>{ar?'متابعة ولادك':'Your children at a glance'}</CardTitle></CardHeader><CardContent className="space-y-4"><label className="block text-sm">{ar?'اختار الطفل':'Choose a child'}<NativeSelect value={child.id} onChange={e=>setSelected(e.target.value)} className="ms-3 rounded border bg-background p-2">{children.data?.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</NativeSelect></label><ChildSummary key={child.id} child={child}/></CardContent></Card>}</QueryState>;
 }
 function ChildSummary({child}:{child:import('@/lib/types').Profile}){
  const {lang}=useI18n();const ar=lang==='ar';const sessions=useSessions();const attendance=useAttendance();const payments=useAllPayments();const evaluations=useEvaluations(child.id);

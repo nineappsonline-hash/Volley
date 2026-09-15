@@ -1,4 +1,5 @@
 "use client";
+import { SortedOptions } from "@/components/ui/sorted-options";
 
 import { useEffect, useMemo, useState } from "react";
 import { Check, ChevronDown, LandPlot, MapPin, Search } from "lucide-react";
@@ -309,32 +310,34 @@ function FilterCombobox({
             dir="auto"
           />
           <div className="max-h-56 overflow-auto p-1">
-            {filtered.length === 0 ? (
-              <button
-                type="button"
-                onClick={() => select(query)}
-                className="w-full rounded-sm px-3 py-2 text-start text-sm"
-                dir="auto"
-              >
-                {query || label}
-              </button>
-            ) : (
-              filtered.map((o) => (
+            <SortedOptions>
+              {filtered.length === 0 ? (
                 <button
-                  key={o.value}
                   type="button"
-                  onClick={() => select(o.value)}
-                  className={cn(
-                    "flex w-full items-center justify-between gap-2 rounded-sm px-3 py-2 text-sm hover:bg-accent focus:outline-none focus:bg-accent",
-                    value === o.value && "bg-accent",
-                  )}
+                  onClick={() => select(query)}
+                  className="w-full rounded-sm px-3 py-2 text-start text-sm"
                   dir="auto"
                 >
-                  <span className="truncate">{o.label}</span>
-                  {value === o.value && <Check className="h-4 w-4 shrink-0 opacity-70" />}
+                  {query || label}
                 </button>
-              ))
-            )}
+              ) : (
+                filtered.map((o) => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => select(o.value)}
+                    className={cn(
+                      "flex w-full items-center justify-between gap-2 rounded-sm px-3 py-2 text-sm hover:bg-accent focus:outline-none focus:bg-accent",
+                      value === o.value && "bg-accent",
+                    )}
+                    dir="auto"
+                  >
+                    <span className="truncate">{o.label}</span>
+                    {value === o.value && <Check className="h-4 w-4 shrink-0 opacity-70" />}
+                  </button>
+                ))
+              )}
+            </SortedOptions>
           </div>
         </PopoverContent>
       </Popover>

@@ -2761,7 +2761,7 @@ export function useFriendlyGames() {
       const { data, error } = await supabase()
         .from("friendly_games")
         .select(
-          "*, participants:friendly_game_participants(id, member_id, role, player_name, is_waitlisted, share_amount, pay_status, joined_at, kickoff_remind_opt_in), playground:venues(name, area, governorate, address, lat, lng, location_link, photos, cover_url)"
+          "*, participants:friendly_game_participants(id, member_id, role, player_name, is_waitlisted, share_amount, pay_status, joined_at, kickoff_remind_opt_in), playground:venues(name, country, area, governorate, address, lat, lng, location_link, photos, cover_url)"
         )
         .neq("status", "cancelled")
         .gte("game_date", today)
@@ -3051,6 +3051,20 @@ export function useSetKickoffReminder() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
     },
+  });
+}
+
+export function useSetFriendlyGameVisibility() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ gameId, isPublic }: { gameId: string; isPublic: boolean }) => {
+      const { error } = await supabase().rpc("set_friendly_game_visibility", {
+        p_game_id: gameId,
+        p_is_public: isPublic,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.friendlyGames }),
   });
 }
 

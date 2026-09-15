@@ -457,7 +457,7 @@ function GameCard({
 
 export function GamesTab({ profile }: { profile: Profile }) {
   const { t } = useI18n();
-  const { data: games, isLoading } = useFriendlyGames();
+  const { data: games, isLoading, isError, refetch } = useFriendlyGames();
   const { data: myParticipants } = useMyGameParticipants();
   useRealtime(["friendly_games"]);
 
@@ -473,7 +473,7 @@ export function GamesTab({ profile }: { profile: Profile }) {
       if (onlyMatches && !gameMatchesProfile(g, profile)) return false;
       if (!q) return true;
       return matchesBilingual(
-        `${g.title} ${g.area ?? ""} ${g.location ?? ""}`,
+        `${g.title} ${g.area ?? ""} ${g.location ?? ""} ${g.playground?.area ?? ""} ${g.playground?.governorate ?? ""}`,
         q
       );
     });
@@ -519,7 +519,12 @@ export function GamesTab({ profile }: { profile: Profile }) {
         </Button>
       </div>
 
-      {isLoading ? (
+      {isError ? (
+        <div role="alert" className="rounded-lg border border-destructive/30 p-4">
+          <p>{t("common_error")}</p>
+          <Button className="mt-2" variant="outline" onClick={() => void refetch()}>{t("common_retry")}</Button>
+        </div>
+      ) : isLoading ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Skeleton key={i} className="h-56 w-full" />

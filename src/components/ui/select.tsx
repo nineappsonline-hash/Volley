@@ -5,9 +5,51 @@ import * as SelectPrimitive from "@radix-ui/react-select";
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const Select = SelectPrimitive.Root;
+import { SortedOptions } from "./sorted-options";
+
+const SelectedLabelContext = React.createContext<React.ReactNode>(undefined);
+
+function findSelectedLabel(children: React.ReactNode, value: string): React.ReactNode {
+  for (const child of React.Children.toArray(children)) {
+    if (!React.isValidElement(child)) continue;
+    if (child.type === SelectItem && child.props.value === value) {
+      return child.props.children;
+    }
+    const label = findSelectedLabel(child.props.children, value);
+    if (label !== undefined) return label;
+  }
+  return undefined;
+}
+
+function Select({ children, value, defaultValue, onValueChange, ...props }: React.ComponentProps<typeof SelectPrimitive.Root>) {
+  const [internalValue, setInternalValue] = React.useState(defaultValue ?? "");
+  const selectedValue = value !== undefined ? value : internalValue;
+  // Render the selected label immediately, including before the portal mounts.
+  const label = selectedValue ? findSelectedLabel(children, selectedValue) : undefined;
+  return (
+    <SelectedLabelContext.Provider value={label}>
+      <SelectPrimitive.Root
+        {...props}
+        value={selectedValue}
+        onValueChange={(next) => {
+          setInternalValue(next);
+          onValueChange?.(next);
+        }}
+      >
+        {children}
+      </SelectPrimitive.Root>
+    </SelectedLabelContext.Provider>
+  );
+}
 const SelectGroup = SelectPrimitive.Group;
-const SelectValue = SelectPrimitive.Value;
+const SelectValue = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Value>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Value>
+>(({ children, ...props }, ref) => {
+  const label = React.useContext(SelectedLabelContext);
+  return <SelectPrimitive.Value ref={ref} {...props}>{children !== undefined ? children : label}</SelectPrimitive.Value>;
+});
+SelectValue.displayName = "SelectValue";
 
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
@@ -88,7 +130,7 @@ const SelectContent = React.forwardRef<
             "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
         )}
       >
-        {children}
+        <SortedOptions>{children}</SortedOptions>
       </SelectPrimitive.Viewport>
       <SelectScrollDownButton />
     </SelectPrimitive.Content>
@@ -128,7 +170,7 @@ const SelectItem = React.forwardRef<
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
   </SelectPrimitive.Item>
 ));
-SelectItem.displayName = SelectPrimitive.Item.displayName;
+SelectItem.displayName = "SelectItem";
 
 const SelectSeparator = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Separator>,

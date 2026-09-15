@@ -64,9 +64,12 @@ import { parseMapsCoordinates } from "@/lib/maps";
 import { venueCardPhoto } from "@/lib/venue-media";
 import { ScoreDialog } from "@/components/shared/score-dialog";
 import { useI18n } from "@/lib/i18n";
+import { normalizeCountry, localizeCountry } from "@/lib/locations";
+import { gameLocations, matchesGameLocation } from "@/lib/game-filters";
 import { COMMUNITY_SPORTS } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import {
+  useSetFriendlyGameVisibility,
   useCancelFriendlyGame,
   useFriendlyGames,
   useJoinFriendlyGame,
@@ -130,6 +133,7 @@ function GameCard({
   const { t, locale } = useI18n();
   const leave = useLeaveFriendlyGame();
   const cancel = useCancelFriendlyGame();
+  const visibility = useSetFriendlyGameVisibility();
   const join = useJoinFriendlyGame();
   const reminder = useSetKickoffReminder();
   const [reportOpen, setReportOpen] = useState(false);
@@ -441,6 +445,23 @@ function GameCard({
 
           {isOrganizer && (
             <>
+              <Select
+                value={game.is_public ? "public" : "private"}
+                disabled={visibility.isPending}
+                onValueChange={(value) => visibility.mutate(
+                  { gameId: game.id, isPublic: value === "public" },
+                  {
+                    onSuccess: () => toast.success(t("games_visibility_saved")),
+                    onError: (err) => toast.error(errorMessage(err, t("common_error"))),
+                  }
+                )}
+              >
+                <SelectTrigger className="w-36" aria-label={t("games_visibility")}><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">{t("games_public")}</SelectItem>
+                  <SelectItem value="private">{t("games_private")}</SelectItem>
+                </SelectContent>
+              </Select>
               {inviteLink && (
                 <Button
                   variant="outline"
@@ -684,16 +705,17 @@ function InviteBanner({
 }
 
 export function GamesClient({ profile }: { profile: Profile }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const searchParams = useSearchParams();
   const joinCode = searchParams.get("join");
 
   const supabase = createClient();
-  const { data: games, isLoading } = useFriendlyGames();
+  const { data: games, isLoading, isError: gamesError, refetch: refetchGames } = useFriendlyGames();
   const { data: myParticipants } = useMyGameParticipants();
-  const { data: poolPlaygrounds } = usePlaygrounds();
+  const { data: poolPlaygrounds, isError: playgroundsError, refetch: refetchPlaygrounds } = usePlaygrounds();
   useRealtime(["friendly_games"]);
 
+  const [countryFilter, setCountryFilter] = useState("all");
   const [sportFilter, setSportFilter] = useState("all");
   const [areaFilter, setAreaFilter] = useState("all");
   const [skillFilter, setSkillFilter] = useState<SkillFilter>("all");
@@ -742,20 +764,24 @@ export function GamesClient({ profile }: { profile: Profile }) {
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
+  const countryOptions = useMemo(() => Array.from(new Set([
+    ...(games ?? []).map((game) => game.playground?.country),
+    ...(poolPlaygrounds ?? []).map((venue) => venue.country),
+  ].filter((country): country is string => !!country?.trim()).map((country) => normalizeCountry(country.trim())))), [games, poolPlaygrounds]);
+
   const areaOptions = useMemo(() => {
     const set = new Set<string>();
     for (const g of games ?? []) {
-      const a = g.playground?.area ?? g.area;
-      if (a) set.add(a);
-      const gov = g.playground?.governorate;
-      if (gov) set.add(gov);
+      if (countryFilter !== "all" && normalizeCountry(g.playground?.country ?? "") !== countryFilter) continue;
+      for (const location of gameLocations(g)) set.add(location);
     }
     for (const v of poolPlaygrounds ?? []) {
-      if (v.area) set.add(v.area);
-      if (v.governorate) set.add(v.governorate);
+      if (countryFilter !== "all" && normalizeCountry(v.country ?? "") !== countryFilter) continue;
+      if (v.area?.trim()) set.add(v.area.trim());
+      if (v.governorate?.trim()) set.add(v.governorate.trim());
     }
     return [...set].sort((a, b) => a.localeCompare(b));
-  }, [games, poolPlaygrounds]);
+  }, [games, poolPlaygrounds, countryFilter]);
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const weekEnd = useMemo(() => {
@@ -767,12 +793,10 @@ export function GamesClient({ profile }: { profile: Profile }) {
   const filtered = useMemo(() => {
     const mineIds = new Set((myParticipants ?? []).map((p) => p.game_id));
     const list = (games ?? []).filter((g) => {
+      if (countryFilter !== "all" && normalizeCountry(g.playground?.country ?? "") !== countryFilter) return false;
       if (sportFilter !== "all" && g.sport !== sportFilter) return false;
       if (skillFilter !== "all" && g.skill_level !== skillFilter) return false;
-      if (areaFilter !== "all") {
-        const place = g.playground?.area ?? g.playground?.governorate ?? g.area ?? "";
-        if (!matchesArea(place, areaFilter)) return false;
-      }
+      if (!matchesGameLocation(g, areaFilter)) return false;
       if (availability === "today" && g.game_date !== today) return false;
       if (availability === "weekend" && !isWeekend(g.game_date)) return false;
       if (availability === "week" && g.game_date > weekEnd) return false;
@@ -793,7 +817,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
       sorted.sort((a, b) => a.game_date.localeCompare(b.game_date));
     }
     return sorted;
-  }, [games, myParticipants, sportFilter, skillFilter, areaFilter, availability, onlyMine, sortBy, today, weekEnd, profile.id]);
+  }, [games, myParticipants, countryFilter, sportFilter, skillFilter, areaFilter, availability, onlyMine, sortBy, today, weekEnd, profile.id]);
 
   return (
     <div className="space-y-6">
@@ -811,7 +835,16 @@ export function GamesClient({ profile }: { profile: Profile }) {
         error={inviteError}
       />
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-6">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Select value={countryFilter} onValueChange={(value) => { setCountryFilter(value); setAreaFilter("all"); }}>
+          <SelectTrigger aria-label={t("games_playground_country")}><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("games_all_countries")}</SelectItem>
+            {countryOptions.map((country) => (
+              <SelectItem key={country} value={country}>{localizeCountry(country, lang)}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select value={sportFilter} onValueChange={setSportFilter}>
           <SelectTrigger aria-label={t("community_sport")}>
             <SelectValue />
@@ -895,13 +928,23 @@ export function GamesClient({ profile }: { profile: Profile }) {
         </Button>
       </div>
 
+      {(gamesError || playgroundsError) && (
+        <div role="alert" className="rounded-lg border border-destructive/30 p-4">
+          <p>{t("common_error")}</p>
+          <Button className="mt-2" variant="outline" onClick={() => {
+            if (gamesError) void refetchGames();
+            if (playgroundsError) void refetchPlaygrounds();
+          }}>{t("common_retry")}</Button>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Skeleton key={i} className="h-60 w-full" />
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : gamesError ? null : filtered.length === 0 ? (
         <EmptyState message={t("games_no_games")} icon={LandPlot} />
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -920,16 +963,5 @@ export function GamesClient({ profile }: { profile: Profile }) {
 
       <CreateGameDialog open={dialogOpen} onOpenChange={setDialogOpen} memberPlan={profile.member_plan} />
     </div>
-  );
-}
-
-function matchesArea(value: string, filter: string): boolean {
-  const v = value.toLowerCase();
-  const f = filter.toLowerCase();
-  return (
-    v === f ||
-    v.includes(f) ||
-    f.includes(v) ||
-    value.split(" ").some((w) => f.split(" ").includes(w.toLowerCase()))
   );
 }
