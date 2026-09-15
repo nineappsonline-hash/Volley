@@ -37,6 +37,7 @@ import {
 import { MapPicker } from "@/components/shared/map-picker";
 import { useCreateFriendlyGame, usePlaygrounds, usePayGameShare } from "@/lib/queries";
 import { GameSharePayment } from "@/components/games/game-share-payment";
+import { CourtRentInfoDialog } from "@/components/games/court-rent-info-dialog";
 import { errorMessage, todayInput } from "@/lib/utils";
 
 export function CreateGameDialog({
@@ -59,6 +60,7 @@ export function CreateGameDialog({
   // Once the game row exists (created freely by the RPC) the creator must pay
   // their own share before the dialog closes; backing out cancels the draft.
   const [createdGame, setCreatedGame] = useState<{ id: string; amount: number } | null>(null);
+  const [showRentInfo, setShowRentInfo] = useState(false);
 
   // The member's chosen location (country → governorate → city/area). It starts
   // filtered to the signed-in user's signup country, and the playground list is
@@ -142,6 +144,7 @@ export function CreateGameDialog({
       setIsPublic(true);
       setRecurrence("once");
       setCreatedGame(null);
+      setShowRentInfo(false);
     }
   }, [open]);
 
@@ -201,6 +204,7 @@ export function CreateGameDialog({
     try {
       await pay.mutateAsync({ gameId, payMethod, payReceiptUrl });
       setCreatedGame(null);
+      setShowRentInfo(true);
       toast.success(t("games_share_submitted"));
       onOpenChange(false);
     } catch (err) {
@@ -216,6 +220,7 @@ export function CreateGameDialog({
     !create.isPending;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(next) => {
     if (!next && createdGame && !pay.isPending) {
       void cancelCreatedGame(createdGame.id);
@@ -446,5 +451,7 @@ export function CreateGameDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <CourtRentInfoDialog open={showRentInfo} onOpenChange={setShowRentInfo} />
+    </>
   );
 }
