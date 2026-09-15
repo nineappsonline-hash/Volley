@@ -259,17 +259,17 @@ export function JoinGameDialog({
           </div>
 
           {payMethod === "instapay" && (
-            <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/50 p-3">
+            <div className="space-y-2 rounded-lg bg-muted/50 p-3">
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-muted-foreground">
                   {t("checkout_instapay_link")}
                 </p>
-                <p className="truncate text-sm font-medium text-primary">
+                <p className="break-all text-sm font-medium leading-relaxed text-primary">
                   {INSTAPAY_LINK}
                 </p>
               </div>
-              <div className="flex shrink-0 gap-1">
-                <Button variant="outline" size="sm" asChild>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" asChild className="flex-1">
                   <a
                     href={INSTAPAY_LINK}
                     target="_blank"
@@ -282,7 +282,7 @@ export function JoinGameDialog({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-1"
+                  className="flex-1 gap-1"
                   onClick={() => copy("instapay", INSTAPAY_LINK)}
                 >
                   {copied === "instapay" ? (
@@ -296,13 +296,13 @@ export function JoinGameDialog({
             </div>
           )}
           {payMethod === "e_wallet" && (
-            <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/50 p-3">
-              <div>
+            <div className="space-y-2 rounded-lg bg-muted/50 p-3">
+              <div className="min-w-0">
                 <p className="text-xs font-semibold text-muted-foreground">
                   {t("checkout_e_wallet_number")}
                 </p>
                 <p
-                  className="text-lg font-extrabold text-primary"
+                  className="break-all text-lg font-extrabold text-primary"
                   dir="ltr"
                 >
                   {E_WALLET_NUMBER}
@@ -311,7 +311,7 @@ export function JoinGameDialog({
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1"
+                className="w-full gap-1"
                 onClick={() => copy("ewallet", E_WALLET_NUMBER)}
               >
                 {copied === "ewallet" ? (
