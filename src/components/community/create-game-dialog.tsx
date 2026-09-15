@@ -223,7 +223,7 @@ export function CreateGameDialog({
     }
     onOpenChange(next);
   }}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto overflow-x-hidden sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("community_create_title")}</DialogTitle>
           <DialogDescription>{t("community_create_desc")}</DialogDescription>

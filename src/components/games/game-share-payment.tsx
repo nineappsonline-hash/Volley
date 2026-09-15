@@ -12,9 +12,9 @@ import {
   Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useI18n } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import { E_WALLET_NUMBER, INSTAPAY_LINK, formatMoney } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 
@@ -164,11 +164,36 @@ export function GameSharePayment({
       {payMethod && payMethod !== "kashier" && (
         <div className="space-y-2">
           <Label>{t("game_fee_receipt")}</Label>
-          <div className="flex items-center gap-2">
-            <Input type="file" accept="image/*" onChange={handleFile} disabled={uploading} />
-            {uploading && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />}
-            {receiptUrl && !uploading && <Upload className="h-4 w-4 shrink-0 text-success-ink" />}
-          </div>
+          <label
+            className={cn(
+              "flex h-10 w-full items-center justify-center gap-2 rounded-md border bg-card px-3 text-sm font-medium transition-colors",
+              uploading
+                ? "cursor-wait border-input text-muted-foreground"
+                : receiptUrl
+                  ? "cursor-default border-primary/30 bg-primary/5 text-success-ink"
+                  : "cursor-pointer border-border text-foreground hover:border-primary/40",
+            )}
+          >
+            {uploading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : receiptUrl ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Upload className="h-4 w-4 text-primary" />
+            )}
+            {uploading
+              ? t("common_saving")
+              : receiptUrl
+                ? t("game_fee_receipt_ok")
+                : t("game_fee_receipt")}
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={handleFile}
+              disabled={uploading}
+            />
+          </label>
           <p className="text-xs text-muted-foreground">{t("game_fee_receipt_hint")}</p>
         </div>
       )}
