@@ -17,6 +17,9 @@ import type { Venue } from "@/lib/types";
 import { venueCardPhoto } from "@/lib/venue-media";
 import { cn } from "@/lib/utils";
 import {
+  COUNTRIES,
+  STATES_BY_COUNTRY,
+  CITIES_BY_STATE,
   normalizeCountry,
   localizeCountry,
 } from "@/lib/locations";
@@ -45,9 +48,7 @@ export function PlaygroundPicker({
 
   // Country is auto-picked from the signed-in user's signup location (default:
   // Egypt) so the list starts filtered to that country, exactly as before. The
-  // dropdown still offers "All countries", and every option is derived from the
-  // playgrounds themselves so picking one actually narrows the list instead of
-  // leaving it empty.
+  // dropdown offers every signup country, including those without playgrounds.
   const [country, setCountry] = useState("");
   const [governorate, setGovernorate] = useState("all");
   const [area, setArea] = useState("all");
@@ -79,8 +80,7 @@ export function PlaygroundPicker({
   const countryOptions = useMemo<Option[]>(() => {
     const present = [
       ...new Set(
-        (playgrounds ?? [])
-          .map((p) => p.country)
+        [...COUNTRIES, ...(playgrounds ?? []).map((p) => p.country)]
           .filter((c): c is string => !!c)
           .map((c) => normalizeCountry(c)),
       ),
@@ -103,33 +103,31 @@ export function PlaygroundPicker({
     );
   }, [playgrounds, country]);
 
-  // Governorate/area options come from the playgrounds themselves, so the
-  // dropdown values always match the stored values exactly and picking one
-  // narrows the list instead of leaving it empty.
+  // Combine signup suggestions with custom locations already used by venues.
   const governateOptions = useMemo<Option[]>(() => {
     const present = [
       ...new Set(
-        byCountry.map((p) => p.governorate).filter((g): g is string => !!g),
+        [...(STATES_BY_COUNTRY[normalizeCountry(country)] ?? []).filter((name) => (lang === "ar") === /[\u0600-\u06FF]/.test(name)), ...byCountry.map((p) => p.governorate).filter((g): g is string => !!g)],
       ),
     ];
     return [
       { value: "all", label: allLabel, search: allLabel.toLowerCase() },
       ...present.map((g) => ({ value: g, label: g, search: g.toLowerCase() })),
     ];
-  }, [byCountry, allLabel]);
+  }, [byCountry, country, lang, allLabel]);
 
   const areaOptions = useMemo<Option[]>(() => {
     const pool = byCountry.filter(
       (p) => governorate === "all" || p.governorate === governorate,
     );
     const present = [
-      ...new Set(pool.map((p) => p.area).filter((a): a is string => !!a)),
+      ...new Set([...(CITIES_BY_STATE[governorate] ?? []).filter((name) => (lang === "ar") === /[\u0600-\u06FF]/.test(name)), ...pool.map((p) => p.area).filter((a): a is string => !!a)]),
     ];
     return [
       { value: "all", label: allLabel, search: allLabel.toLowerCase() },
       ...present.map((a) => ({ value: a, label: a, search: a.toLowerCase() })),
     ];
-  }, [byCountry, governorate, allLabel]);
+  }, [byCountry, governorate, lang, allLabel]);
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();

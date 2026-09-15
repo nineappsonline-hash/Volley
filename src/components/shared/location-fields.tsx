@@ -14,6 +14,7 @@ import {
   COUNTRIES_AR,
   CITIES_BY_STATE,
   STATES_BY_COUNTRY,
+  normalizeCountry,
 } from "@/lib/locations";
 
 const OTHER = "__other__";
@@ -35,6 +36,7 @@ interface LocationFieldsProps {
   onCityChange: (v: string) => void;
   governorateLabel?: string;
   cityLabel?: string;
+  filterMode?: boolean;
 }
 
 /**
@@ -50,13 +52,14 @@ export function LocationFields({
   onCityChange,
   governorateLabel,
   cityLabel,
+  filterMode = false,
 }: LocationFieldsProps) {
   const { t, lang } = useI18n();
   const isArabicLocale = lang === "ar";
   const localized = (arr: string[]) =>
     arr.filter((s) => isArabicLocale === isArabicScript(s));
 
-  const allStates = STATES_BY_COUNTRY[country] ?? [];
+  const allStates = STATES_BY_COUNTRY[normalizeCountry(country)] ?? [];
   const allCities = governorate ? CITIES_BY_STATE[governorate] ?? [] : [];
   const states = localized(allStates);
   const cities = localized(allCities);
@@ -71,6 +74,8 @@ export function LocationFields({
     label: c,
     search: c.toLowerCase(),
   }));
+
+  const allOption = { value: "", label: t("games_playground_all"), search: t("games_playground_all").toLowerCase() };
 
   // Manual entry is an explicit choice; empty locations still show a picker.
   const [govManual, setGovManual] = useState(false);
@@ -106,7 +111,7 @@ export function LocationFields({
 
   return (
     <div className="space-y-4">
-      <CountryField country={country} onCountryChange={handleCountry} />
+      <CountryField country={country} onCountryChange={handleCountry} filterMode={filterMode} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
@@ -121,7 +126,7 @@ export function LocationFields({
           ) : (
             <LocationCombobox
               value={governorate}
-              options={[...stateOptions, otherOption(t("common_other"))]}
+              options={[...(filterMode ? [allOption] : []), ...stateOptions, otherOption(t("common_other"))]}
               placeholder={t("signup_governorate")}
               onSelect={handleGovernorate}
             />
@@ -140,7 +145,7 @@ export function LocationFields({
           ) : (
             <LocationCombobox
               value={city}
-              options={[...cityOptions, otherOption(t("common_other"))]}
+              options={[...(filterMode ? [allOption] : []), ...cityOptions, otherOption(t("common_other"))]}
               placeholder={t("signup_city")}
               onSelect={handleCity}
             />
@@ -159,9 +164,11 @@ function otherOption(label: string): Option {
 export function CountryField({
   country,
   onCountryChange,
+  filterMode = false,
 }: {
   country: string;
   onCountryChange: (v: string) => void;
+  filterMode?: boolean;
 }) {
   const { t, lang } = useI18n();
   const isArabicLocale = lang === "ar";
@@ -177,7 +184,7 @@ export function CountryField({
       <Label>{t("signup_country")}</Label>
       <LocationCombobox
         value={country}
-        options={countryOptions}
+        options={filterMode ? [{ value: "", label: t("games_all_countries"), search: t("games_all_countries").toLowerCase() }, ...countryOptions] : countryOptions}
         placeholder={t("signup_country")}
         onSelect={onCountryChange}
       />
@@ -223,7 +230,7 @@ function LocationCombobox({
             dir="auto"
             className={cn("truncate text-start", !value && "text-muted-foreground")}
           >
-            {value || placeholder}
+            {options.find((option) => option.value === value)?.label ?? (value || placeholder)}
           </span>
           <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
