@@ -195,7 +195,7 @@ export const metadata: Metadata = {
 };
 
 /** Optional: wire Google Search Console / Bing via env vars without code changes. */
-export const verification = {
+const verification = {
   google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
   other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
     ? { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
@@ -235,7 +235,7 @@ export default function RootLayout({
         />
         {/* eslint-disable-next-line @next/next/no-page-custom-font -- App Router: loading Google Fonts in the root layout is the supported pattern */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />

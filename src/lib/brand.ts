@@ -2,15 +2,15 @@
  * UI components use the matching tokens in app/playza-palette.css.
  */
 export const PLAYZA = {
-  navy: "#0B1F3B",
-  green: "#22D48B",
-  blue: "#3B82F6",
-  orange: "#FF9F1C",
+  navy: "#0A1E3F",
+  green: "#12C98A",
+  blue: "#12C98A",
+  orange: "#FF7A3D",
   red: "#EF4444",
-  background: "#F7FAFC",
+  background: "#F6F9FC",
   surface: "#FFFFFF",
-  secondaryText: "#64748B",
-  border: "#E2E8F0",
+  secondaryText: "#44546A",
+  border: "#DFE6EE",
 } as const;
 
 /** SVG charts inherit light/dark UI colors, including tooltip text. */

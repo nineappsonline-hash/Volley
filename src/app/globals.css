@@ -7,24 +7,26 @@
 @layer base {
   :root {
     color-scheme: light;
-    --background: 204 45.455% 97.843%; /* #F7FAFC */
+    --background: 210.0000 50.0000% 97.6471%;
     --surface: 0 0% 100%;
     --on-brand: 0 0% 100%;
     --foreground: var(--playza-navy);
     --text-primary: var(--foreground);
-    --text-secondary: var(--playza-slate);
+    --text-secondary: 214.5455 15.0685% 42.9412%;
+    --body-text: 214.7368 21.8391% 34.1176%;
     --card: var(--surface);
-    --card-foreground: var(--foreground);
+    --card-foreground: var(--body-text);
     --popover: var(--surface);
     --popover-foreground: var(--foreground);
     --chart-brand: var(--playza-navy);
-    --primary: var(--playza-navy);
-    --primary-foreground: 0 0% 100%;
-    --secondary: var(--playza-blue-50);
-    --secondary-foreground: var(--playza-blue-700);
-    --muted: 204 45.455% 96%;
+    --primary: var(--playza-green);
+    --primary-hover: 159.3631 85.7923% 35.8824%;
+    --primary-foreground: var(--playza-navy);
+    --secondary: var(--surface);
+    --secondary-foreground: var(--playza-navy);
+    --muted: 210.0000 50.0000% 97.6471%;
     --muted-foreground: var(--text-secondary);
-    --accent: var(--playza-blue-100);
+    --accent: 158.8235 68.0000% 95.0980%;
     --accent-foreground: var(--playza-blue-700);
     --destructive: var(--playza-red-600);
     --destructive-foreground: 0 0% 100%;
@@ -39,19 +41,21 @@
     --info-ink: var(--playza-blue-700);
     --error: var(--playza-red);
     --error-ink: var(--playza-red-700);
-    --border: 214.286 31.818% 91.373%; /* #E2E8F0 */
+    --border: 212.0000 30.6122% 90.3922%;
     --input: var(--border);
-    --ring: var(--playza-blue);
+    --ring: var(--playza-green-700);
     --radius: 0.625rem;
   }
   .dark {
     color-scheme: dark;
     --chart-brand: var(--playza-blue-200);
-    --background: 215 68.571% 8%;
+    --background: 218.4615 76.4706% 10.0000%;
     --surface: var(--playza-navy);
     --foreground: 204 45.455% 97.843%;
     --text-secondary: var(--playza-slate-300);
-    --primary: var(--playza-blue-300);
+    --body-text: var(--playza-slate-100);
+    --primary: var(--playza-green);
+    --ring: var(--playza-green);
     --primary-foreground: var(--playza-navy);
     --secondary: var(--playza-blue-900);
     --secondary-foreground: var(--playza-blue-200);
@@ -75,8 +79,16 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background antialiased;
+    color: hsl(var(--body-text));
+    font-weight: 400;
+    line-height: 1.7;
   }
+  h1, h2, h3, h4, h5, h6, nav, label, strong { color: hsl(var(--foreground)); }
+  h1 { font-weight: 800; }
+  h2, h3, h4 { font-weight: 700; }
+  button, nav, label { font-weight: 600; }
+  html[lang="en"] body { font-family: "Manrope", sans-serif; }
   /* Alexandria for Arabic pages, including Arabic sections in the English UI. */
   [dir="rtl"] body,
   [dir="rtl"] {
@@ -84,6 +96,7 @@
       "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
   :lang(ar) :is(h1, h2, h3, h4) {
+    line-height: 1.35;
     letter-spacing: normal;
   }
 
@@ -91,7 +104,7 @@
 
 @layer utilities {
   .text-gradient {
-    @apply bg-gradient-to-r from-foreground via-interactive-700 to-info-ink bg-clip-text text-transparent;
+    color: hsl(var(--info-ink));
   }
   /* Extra top clearance when the PWA runs from the home screen. */
   .pwa-pad-top {
@@ -167,6 +180,7 @@
   background: hsl(var(--playza-navy));
   color: white;
   --foreground: 0 0% 100%;
+  --body-text: var(--playza-slate-100);
   --muted-foreground: var(--playza-slate-200);
   --primary: var(--playza-blue);
   --primary-foreground: var(--playza-navy);
@@ -193,3 +207,6 @@
   --info-text: hsl(var(--info-ink));
   --info-border: hsl(var(--info) / .45);
 }
+
+/* Bright green fills use navy text; small green text uses an AA ink shade. */
+.text-primary { color: hsl(var(--info-ink)); }
