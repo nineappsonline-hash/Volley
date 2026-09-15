@@ -7,14 +7,12 @@ export function GameCostEstimate({
   rate,
   hours,
   min,
-  compact = false,
   hostPays = false,
   sport = "",
 }: {
   rate: number | null | undefined;
   hours: number;
   min: number;
-  compact?: boolean;
   hostPays?: boolean;
   sport?: string;
 }) {
@@ -51,20 +49,6 @@ export function GameCostEstimate({
           <p className="font-extrabold text-info-ink">
             {formatMoney(estimate.total, lang)}
           </p>
-          <details open={compact ? undefined : true}>
-            <summary className="cursor-pointer text-xs font-medium">
-              {ar ? "تفاصيل حساب التكلفة" : "Cost breakdown"}
-            </summary>
-            <p className="mt-1">
-              {ar
-                ? hostPays
-                  ? `إجمالي الملعب: ${formatMoney(rate!, lang)} × ${hours} ساعة = ${formatMoney(Math.round(rate! * hours * 100) / 100, lang)}`
-                  : `إجمالي الملعب: ${formatMoney(rate!, lang)} × ${hours} ساعة = ${formatMoney(Math.round(rate! * hours * 100) / 100, lang)}، مقسم بالتساوي على ${min} لاعب (الحد الأدنى).`
-                : hostPays
-                  ? `Playground total: ${formatMoney(rate!, lang)} × ${hours} hours = ${formatMoney(Math.round(rate! * hours * 100) / 100, lang)}`
-                  : `Playground total: ${formatMoney(rate!, lang)} × ${hours} hours = ${formatMoney(Math.round(rate! * hours * 100) / 100, lang)}, split evenly across ${min} players (the minimum).`}
-            </p>
-          </details>
           <p className="text-[11px] text-muted-foreground">
             {ar
               ? hostPays
