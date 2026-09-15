@@ -50,6 +50,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/shared/empty-state";
+import { Reveal } from "@/components/shared/reveal";
 import { PageHeader } from "@/components/shared/page-header";
 import type { Academy } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
@@ -270,32 +271,58 @@ export function SuperAdminDashboard() {
       <PlatformAnalytics />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-xs text-muted-foreground">{t("super_admin_all_academies")}</p>
-            <p className="mt-1 font-mono text-2xl font-extrabold">{stats.total}</p>
+      <Reveal>
+      <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-4">
+        <Card className="group relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md">
+          <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-interactive-500 to-brand-500" />
+          <CardContent className="flex items-center gap-3 p-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-interactive-50 text-info-ink transition-transform group-hover:scale-110 dark:bg-interactive-500/10 dark:text-interactive-400">
+              <Crown className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-xs text-muted-foreground">{t("super_admin_all_academies")}</p>
+              <p className="mt-0.5 font-mono text-2xl font-extrabold">{stats.total}</p>
+            </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-xs text-muted-foreground">{t("super_admin_active")}</p>
-            <p className="mt-1 font-mono text-2xl font-extrabold text-success-ink">{stats.paid}</p>
+        <Card className="group relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md">
+          <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-positive-400 to-positive-600" />
+          <CardContent className="flex items-center gap-3 p-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-positive-50 text-success-ink transition-transform group-hover:scale-110 dark:bg-positive-500/10 dark:text-positive-400">
+              <CheckCircle2 className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-xs text-muted-foreground">{t("super_admin_active")}</p>
+              <p className="mt-0.5 font-mono text-2xl font-extrabold text-success-ink">{stats.paid}</p>
+            </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-xs text-muted-foreground">{t("super_admin_trial")}</p>
-            <p className="mt-1 font-mono text-2xl font-extrabold text-warning-ink">{stats.activeTrials}</p>
+        <Card className="group relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md">
+          <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-attention-400 to-attention-600" />
+          <CardContent className="flex items-center gap-3 p-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-attention-50 text-warning-ink transition-transform group-hover:scale-110 dark:bg-attention-500/10 dark:text-attention-400">
+              <CalendarClock className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-xs text-muted-foreground">{t("super_admin_trial")}</p>
+              <p className="mt-0.5 font-mono text-2xl font-extrabold text-warning-ink">{stats.activeTrials}</p>
+            </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-xs text-muted-foreground">{t("super_admin_expired")}</p>
-            <p className="mt-1 font-mono text-2xl font-extrabold text-error-ink">{stats.expiredTrials}</p>
+        <Card className="group relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md">
+          <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-negative-400 to-attention-400" />
+          <CardContent className="flex items-center gap-3 p-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-negative-50 text-error-ink transition-transform group-hover:scale-110 dark:bg-negative-500/10 dark:text-negative-400">
+              <ShieldAlert className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-xs text-muted-foreground">{t("super_admin_expired")}</p>
+              <p className="mt-0.5 font-mono text-2xl font-extrabold text-error-ink">{stats.expiredTrials}</p>
+            </div>
           </CardContent>
         </Card>
       </div>
+      </Reveal>
 
       {/* Academies table */}
       {isLoading ? (
@@ -307,6 +334,7 @@ export function SuperAdminDashboard() {
       ) : !academies || academies.length === 0 ? (
         <EmptyState message={t("super_admin_all_academies")} icon={Crown} />
       ) : (
+        <Reveal index={1}>
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
@@ -442,15 +470,17 @@ export function SuperAdminDashboard() {
                         </TableCell>
                       </TableRow>
                     );
-                  })}
+})}
                 </TableBody>
               </Table>
             </div>
           </CardContent>
         </Card>
+        </Reveal>
       )}
 
       {/* Game fee review */}
+      <Reveal index={2}>
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -551,8 +581,10 @@ export function SuperAdminDashboard() {
           )}
         </CardContent>
       </Card>
+      </Reveal>
 
       {/* Rent remaining review */}
+      <Reveal index={3}>
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -653,8 +685,10 @@ export function SuperAdminDashboard() {
           )}
         </CardContent>
       </Card>
+      </Reveal>
 
       {/* Subscription receipts review */}
+      <Reveal index={4}>
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -761,8 +795,10 @@ export function SuperAdminDashboard() {
           )}
         </CardContent>
       </Card>
+      </Reveal>
 
       {/* Broadcast to all users */}
+      <Reveal index={5}>
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -817,8 +853,10 @@ export function SuperAdminDashboard() {
           </Button>
         </CardContent>
       </Card>
+      </Reveal>
 
       {/* Community moderation */}
+      <Reveal index={6}>
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -932,6 +970,7 @@ export function SuperAdminDashboard() {
           )}
         </CardContent>
       </Card>
+      </Reveal>
 
       <AcademyEditDialog
         academy={editing}

@@ -173,6 +173,37 @@
   .animate-pop-in {
     animation: pop-in 0.3s ease-out both;
   }
+  /* Bar charts: bars grow from their baseline when the dashboard mounts. */
+  @keyframes bar-rise {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+  @keyframes bar-grow-x {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  .animate-bar-rise {
+    animation: bar-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+    transform-origin: bottom;
+  }
+  .animate-bar-grow-x {
+    animation: bar-grow-x 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+    transform-origin: left;
+  }
+  [dir="rtl"] .animate-bar-grow-x {
+    transform-origin: right;
+  }
+  .motion-reduce\:animate-none:is(.animate-bar-rise, .animate-bar-grow-x) {
+    animation: none;
+  }
 }
 
 /* Navy navigation remains consistent in both themes, including mobile sheets. */

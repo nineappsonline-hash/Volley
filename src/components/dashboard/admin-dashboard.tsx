@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/shared/stat-card";
+import { Reveal } from "@/components/shared/reveal";
 import { EmptyState } from "@/components/shared/empty-state";
 import { UpcomingSessions } from "@/components/schedule/upcoming-sessions";
 import { ProfitLossIndicator } from "@/components/shared/profit-loss-indicator";
@@ -107,6 +108,7 @@ export function AdminDashboard() {
       )}
       <AdminAlerts />
       <DashboardSection id="overview" title={lang === "ar" ? "نظرة عامة" : "Overview"} hint={lang === "ar" ? "أهم الأرقام في مكان واحد" : "Your key numbers at a glance"}>
+      <Reveal>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {loadingProfiles ? (
           <>
@@ -121,7 +123,9 @@ export function AdminDashboard() {
               title={t("dash_total_members")}
               value={String(members.length)}
               icon={Users}
+              tone="info"
               hint={members.length > 0 ? `${members.length} ${t("role_member")}` : undefined}
+              index={0}
             />
             <StatCard
               title={t("dash_monthly_revenue")}
@@ -129,12 +133,14 @@ export function AdminDashboard() {
               icon={Receipt}
               tone="success"
               hint={`${monthlyPayments.length} ${t("notif_new_payment").toLowerCase()}`}
+              index={1}
             />
             <StatCard
               title={t("dash_monthly_costs")}
               value={formatMoney(monthlyCosts, lang)}
               icon={CreditCard}
               tone="warning"
+              index={2}
             />
             <StatCard
               title={t("dash_net_profit")}
@@ -142,10 +148,12 @@ export function AdminDashboard() {
               icon={PiggyBank}
               tone={net >= 0 ? "success" : "destructive"}
               hint={t("dash_net_profit_hint")}
+              index={3}
             />
           </>
         )}
       </div>
+      </Reveal>
       <p className="mt-2 text-xs text-muted-foreground">
         {t("dash_net_profit_note")}
         <Link href="/reports" className="font-medium text-primary hover:underline">
@@ -156,12 +164,13 @@ export function AdminDashboard() {
       </DashboardSection>
 
       <DashboardSection id="training" title={lang === "ar" ? "التدريب والمتابعة" : "Training & activity"} hint={lang === "ar" ? "مواعيدك وتفاصيل المتابعة" : "Schedules and activity details"}>
+      <Reveal index={1}>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <UpcomingSessions isAdmin />
         <Card>
           <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <TrendingUp className="h-4 w-4 text-primary" />
+              <TrendingUp className="h-4 w-4 text-interactive-500" />
               {t("dash_attendance_summary")}
             </CardTitle>
             <Link
@@ -207,9 +216,12 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+      </Reveal>
       </DashboardSection>
       <DashboardSection id="updates" title={lang === "ar" ? "الأخبار والتنبيهات" : "Updates"}>
+        <Reveal index={2}>
         <div className="space-y-5"><TrainingRenewal admin /><AnnouncementsCard isAdmin /><TrialsCard /></div>
+        </Reveal>
       </DashboardSection>
     </div></QueryState>
   );

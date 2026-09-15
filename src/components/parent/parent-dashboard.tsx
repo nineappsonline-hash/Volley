@@ -23,10 +23,12 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
+import { Reveal } from "@/components/shared/reveal";
 import { PageHeader } from "@/components/shared/page-header";
 import { ProfileAvatar } from "@/components/shared/profile-avatar";
 import { AddChildDialog } from "@/components/profile/add-child-dialog";
 import { useI18n } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import { formatMoney } from "@/lib/constants";
 import { usedSessionsSincePayment } from "@/lib/calculations";
 import {
@@ -146,6 +148,13 @@ export function ParentDashboard() {
       };
     }) ?? [];
 
+  const cardAccents = [
+  "from-interactive-500 to-positive-400",
+  "from-attention-400 to-attention-600",
+  "from-brand-500 to-interactive-500",
+  "from-negative-400 to-attention-400",
+];
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -171,18 +180,29 @@ export function ParentDashboard() {
         <>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {cards.map(
-              ({
-                child,
-                used,
-                remaining,
-                progress,
-                hasPlan,
-                attended30d,
-                streaks,
-                lastPayment,
-                totalPaid,
-              }) => (
-                <Card key={child.id}>
+              (
+                {
+                  child,
+                  used,
+                  remaining,
+                  progress,
+                  hasPlan,
+                  attended30d,
+                  streaks,
+                  lastPayment,
+                  totalPaid,
+                },
+                cardIndex
+              ) => (
+                <Reveal key={child.id} index={cardIndex} className="h-full">
+                <Card className="group relative h-full overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md">
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r",
+                      cardAccents[cardIndex % cardAccents.length]
+                    )}
+                  />
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-start justify-between gap-2">
                       <div className="flex min-w-0 items-center gap-3">
@@ -250,8 +270,8 @@ export function ParentDashboard() {
                       <Progress value={progress} className="h-2.5" />
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="rounded-lg bg-muted/50 p-2">
+                    <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-3 sm:grid-cols-3 text-center">
+                      <div className="rounded-lg border border-attention-300/40 bg-attention-50/70 p-2 dark:bg-attention-500/10">
                         <p className="flex items-center justify-center gap-1 text-lg font-bold">
                           <Flame className="h-4 w-4 text-warning-ink" />
                           {streaks.current}
@@ -260,16 +280,16 @@ export function ParentDashboard() {
                           {t("streak_current")}
                         </p>
                       </div>
-                      <div className="rounded-lg bg-muted/50 p-2">
+                      <div className="rounded-lg border border-interactive-300/40 bg-interactive-50/70 p-2 dark:bg-interactive-500/10">
                         <p className="flex items-center justify-center gap-1 text-lg font-bold">
-                          <Zap className="h-4 w-4 text-warning-ink" />
+                          <Zap className="h-4 w-4 text-info-ink" />
                           {streaks.best}
                         </p>
                         <p className="text-[10px] text-muted-foreground">
                           {t("streak_best")}
                         </p>
                       </div>
-                      <div className="rounded-lg bg-success/10 p-2">
+                      <div className="rounded-lg border border-positive-300/40 bg-success/10 p-2 dark:bg-positive-500/10">
                         <p className="flex items-center justify-center gap-1 text-lg font-bold text-success-ink">
                           {attended30d}
                         </p>
@@ -316,10 +336,12 @@ export function ParentDashboard() {
                     </Button>
                   </div>
                 </Card>
+                </Reveal>
               )
             )}
           </div>
 
+          <Reveal index={3}>
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-4">
             <p className="text-sm text-muted-foreground">
               {t("family_subtitle")}
@@ -333,6 +355,7 @@ export function ParentDashboard() {
               </Button>
             </div>
           </div>
+          </Reveal>
         </>
       )}
 

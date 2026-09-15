@@ -30,6 +30,8 @@ import { downloadCSV } from "@/lib/export";
 import { useSessions, useAttendance, useProfiles, useAllPayments, useExpenses, useMonthlyCosts, useCoaches, useSessionCalculations, useSports, useSessionGuests, useVenueRentals } from "@/lib/queries";
 import { buildMonthlyPoints } from "@/lib/financial-summary";
 import { QueryState } from "@/components/shared/query-state";
+import { Reveal } from "@/components/shared/reveal";
+import { cn } from "@/lib/utils";
 
 export function AnalyticsDashboard() {
   const { t, lang } = useI18n();
@@ -436,70 +438,77 @@ export function AnalyticsDashboard() {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card>
+      <Reveal>
+      <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-4">
+        <Card className="group relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md">
+          <span className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-interactive-500 to-positive-400" aria-hidden />
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-interactive-100 p-2 dark:bg-interactive-900/30">
+              <div className="rounded-lg bg-interactive-100 p-2 transition-transform group-hover:scale-110 dark:bg-interactive-900/30">
                 <Users className="h-5 w-5 text-info-ink" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-2xl font-bold">{stats.activeMembers.length}</p>
-                <p className="text-xs text-muted-foreground">{t("analytics_active_members")}</p>
+                <p className="truncate text-xs text-muted-foreground">{t("analytics_active_members")}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="group relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md">
+          <span className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-positive-400 to-positive-600" aria-hidden />
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-positive-100 p-2 dark:bg-positive-900/30">
+              <div className="rounded-lg bg-positive-100 p-2 transition-transform group-hover:scale-110 dark:bg-positive-900/30">
                 <CalendarCheck className="h-5 w-5 text-success-ink" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-2xl font-bold">{stats.totalSessions}</p>
-                <p className="text-xs text-muted-foreground">{t("analytics_sessions_completed")}</p>
+                <p className="truncate text-xs text-muted-foreground">{t("analytics_sessions_completed")}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="group relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md">
+          <span className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-attention-400 to-attention-600" aria-hidden />
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-attention-100 p-2 dark:bg-attention-900/30">
+              <div className="rounded-lg bg-attention-100 p-2 transition-transform group-hover:scale-110 dark:bg-attention-900/30">
                 <Target className="h-5 w-5 text-warning-ink" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-2xl font-bold">{stats.attendanceRate}%</p>
-                <p className="text-xs text-muted-foreground">{t("analytics_attendance_rate")}</p>
+                <p className="truncate text-xs text-muted-foreground">{t("analytics_attendance_rate")}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="group relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md">
+          <span className={cn("pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r", stats.profit >= 0 ? "from-positive-400 to-interactive-400" : "from-negative-400 to-negative-600")} aria-hidden />
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className={`rounded-lg p-2 ${stats.profit >= 0 ? "bg-positive-100 dark:bg-positive-900/30" : "bg-negative-100 dark:bg-negative-900/30"}`}>
+              <div className={cn("rounded-lg p-2 transition-transform group-hover:scale-110", stats.profit >= 0 ? "bg-positive-100 dark:bg-positive-900/30" : "bg-negative-100 dark:bg-negative-900/30")}>
                 {stats.profit >= 0
                   ? <TrendingUp className="h-5 w-5 text-success-ink" />
                   : <TrendingDown className="h-5 w-5 text-error-ink" />
                 }
               </div>
-              <div>
-                <p className={`text-2xl font-bold ${stats.profit >= 0 ? "" : "text-error-ink"}`}>
+              <div className="min-w-0">
+                <p className={cn("text-2xl font-bold", stats.profit >= 0 ? "" : "text-error-ink")}>
                   {formatMoney(stats.profit, lang)}
                 </p>
-                <p className="text-xs text-muted-foreground">{t("analytics_net_profit")}</p>
+                <p className="truncate text-xs text-muted-foreground">{t("analytics_net_profit")}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
+      </Reveal>
 
       {/* Attendance Trend + Member Retention */}
+      <Reveal index={1}>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
@@ -513,10 +522,11 @@ export function AnalyticsDashboard() {
               {weeklyTrend.map((week, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-1">
                   <div
-                    className="w-full bg-primary/80 rounded-t transition-all hover:bg-primary"
+                    className="w-full bg-primary/80 rounded-t animate-bar-rise transition-all hover:bg-primary"
                     style={{
                       height: `${(week.attendance / maxWeeklyAttendance) * 100}%`,
                       minHeight: week.attendance > 0 ? "4px" : "0",
+                      animationDelay: `${i * 45}ms`,
                     }}
                   />
                   <span className="text-[9px] text-muted-foreground truncate w-full text-center">
@@ -551,8 +561,8 @@ export function AnalyticsDashboard() {
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
                   <div
-                    className="h-full bg-positive-500 rounded-full"
-                    style={{ width: `${retention.total > 0 ? (retention.healthy / retention.total) * 100 : 0}%` }}
+                    className="h-full bg-positive-500 rounded-full animate-bar-grow-x"
+                    style={{ width: `${retention.total > 0 ? (retention.healthy / retention.total) * 100 : 0}%`, animationDelay: "100ms" }}
                   />
                 </div>
               </div>
@@ -566,8 +576,8 @@ export function AnalyticsDashboard() {
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
                   <div
-                    className="h-full bg-attention-500 rounded-full"
-                    style={{ width: `${retention.total > 0 ? (retention.atRisk / retention.total) * 100 : 0}%` }}
+                    className="h-full bg-attention-500 rounded-full animate-bar-grow-x"
+                    style={{ width: `${retention.total > 0 ? (retention.atRisk / retention.total) * 100 : 0}%`, animationDelay: "200ms" }}
                   />
                 </div>
               </div>
@@ -581,8 +591,8 @@ export function AnalyticsDashboard() {
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
                   <div
-                    className="h-full bg-negative-500 rounded-full"
-                    style={{ width: `${retention.total > 0 ? (retention.churned / retention.total) * 100 : 0}%` }}
+                    className="h-full bg-negative-500 rounded-full animate-bar-grow-x"
+                    style={{ width: `${retention.total > 0 ? (retention.churned / retention.total) * 100 : 0}%`, animationDelay: "300ms" }}
                   />
                 </div>
               </div>
@@ -590,8 +600,10 @@ export function AnalyticsDashboard() {
           </CardContent>
         </Card>
       </div>
+      </Reveal>
 
       {/* Revenue + Payment Methods + Top Attendees */}
+      <Reveal index={2}>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Monthly Revenue vs Expenses */}
         <Card className="lg:col-span-1">
@@ -614,8 +626,8 @@ export function AnalyticsDashboard() {
                     </div>
                     <div className="h-2 rounded-full bg-muted overflow-hidden">
                       <div
-                        className="h-full bg-primary rounded-full"
-                        style={{ width: `${(m.revenue / maxMonthlyRevenue) * 100}%` }}
+                        className="h-full bg-primary rounded-full animate-bar-grow-x"
+                        style={{ width: `${(m.revenue / maxMonthlyRevenue) * 100}%`, animationDelay: `${i * 60}ms` }}
                       />
                     </div>
                   </div>
@@ -638,7 +650,7 @@ export function AnalyticsDashboard() {
               <p className="text-sm text-muted-foreground text-center py-6">{t("analytics_no_payments_yet")}</p>
             ) : (
               <div className="space-y-3">
-                {revenueByMethod.map((r) => (
+                {revenueByMethod.map((r, i) => (
                   <div key={r.method}>
                     <div className="flex items-center justify-between text-sm mb-1">
                       <span className="flex items-center gap-2 capitalize">
@@ -654,8 +666,8 @@ export function AnalyticsDashboard() {
                     </div>
                     <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                       <div
-                        className={`h-full rounded-full ${METHOD_COLORS[r.method] || "bg-neutral-400"}`}
-                        style={{ width: `${totalPaymentAmount > 0 ? (r.amount / totalPaymentAmount) * 100 : 0}%` }}
+                        className={`h-full rounded-full ${METHOD_COLORS[r.method] || "bg-neutral-400"} animate-bar-grow-x`}
+                        style={{ width: `${totalPaymentAmount > 0 ? (r.amount / totalPaymentAmount) * 100 : 0}%`, animationDelay: `${i * 60}ms` }}
                       />
                     </div>
                   </div>
@@ -690,8 +702,8 @@ export function AnalyticsDashboard() {
                       </div>
                       <div className="mt-1 h-1.5 rounded-full bg-muted overflow-hidden">
                         <div
-                          className="h-full bg-primary rounded-full"
-                          style={{ width: `${m.rate}%` }}
+                          className="h-full bg-primary rounded-full animate-bar-grow-x"
+                          style={{ width: `${m.rate}%`, animationDelay: `${i * 60}ms` }}
                         />
                       </div>
                     </div>
@@ -702,9 +714,11 @@ export function AnalyticsDashboard() {
           </CardContent>
         </Card>
       </div>
+      </Reveal>
 
       {/* Coach Performance */}
       {coachPerformance.length > 0 && (
+        <Reveal index={3}>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
@@ -715,7 +729,7 @@ export function AnalyticsDashboard() {
           <CardContent>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {coachPerformance.map((c, i) => (
-                <div key={i} className="rounded-lg border p-4 text-center">
+                <div key={i} className="rounded-lg border p-4 text-center transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm" style={{ animationDelay: `${i * 60}ms` }}>
                   <p className="font-semibold">{c.name}</p>
                   <p className="mt-1 text-2xl font-bold">{c.avgAttendance}</p>
                   <p className="text-xs text-muted-foreground">{t("analytics_avg_attendance_session")}</p>
@@ -729,10 +743,12 @@ export function AnalyticsDashboard() {
             </div>
           </CardContent>
         </Card>
+        </Reveal>
       )}
 
       {/* Revenue Forecast */}
       {revenueForecast.length > 2 && (
+        <Reveal index={4}>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
@@ -749,10 +765,11 @@ export function AnalyticsDashboard() {
                       {f.actual !== null ? formatMoney(f.actual, lang) : "—"}
                     </span>
                     <div
-                      className={`w-full rounded-t ${f.actual !== null ? "bg-primary/80" : "bg-primary/30 border border-dashed border-primary/50"}`}
+                      className={`w-full rounded-t animate-bar-rise ${f.actual !== null ? "bg-primary/80 hover:bg-primary" : "bg-primary/30 border border-dashed border-primary/50"}`}
                       style={{
                         height: `${((f.actual ?? f.predicted) / maxForecast) * 100}%`,
                         minHeight: "4px",
+                        animationDelay: `${i * 50}ms`,
                       }}
                     />
                   </div>
@@ -767,9 +784,11 @@ export function AnalyticsDashboard() {
             </p>
           </CardContent>
         </Card>
+        </Reveal>
       )}
 
       {/* Expense Breakdown + Session Status + Session Time Heatmap */}
+      <Reveal index={5}>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Expense Breakdown */}
         <Card>
@@ -784,7 +803,7 @@ export function AnalyticsDashboard() {
               <p className="text-sm text-muted-foreground text-center py-6">{t("analytics_no_expenses")}</p>
             ) : (
               <div className="space-y-3">
-                {expenseBreakdown.map((e) => (
+                {expenseBreakdown.map((e, i) => (
                   <div key={e.category}>
                     <div className="flex items-center justify-between text-sm mb-1">
                       <span className="flex items-center gap-2 capitalize">
@@ -798,8 +817,8 @@ export function AnalyticsDashboard() {
                     </div>
                     <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                       <div
-                        className={`h-full rounded-full ${CATEGORY_COLORS[e.category] || "bg-neutral-400"}`}
-                        style={{ width: `${e.percent}%` }}
+                        className={`h-full rounded-full ${CATEGORY_COLORS[e.category] || "bg-neutral-400"} animate-bar-grow-x`}
+                        style={{ width: `${e.percent}%`, animationDelay: `${i * 60}ms` }}
                       />
                     </div>
                   </div>
@@ -822,7 +841,7 @@ export function AnalyticsDashboard() {
               <p className="text-sm text-muted-foreground text-center py-6">{t("analytics_no_sessions_yet")}</p>
             ) : (
               <div className="space-y-4">
-                {sessionStatus.map((s) => {
+                {sessionStatus.map((s, i) => {
                   const totalSessions = sessionStatus.reduce((sum, ss) => sum + ss.count, 0);
                   const pct = totalSessions > 0 ? Math.round((s.count / totalSessions) * 100) : 0;
                   return (
@@ -838,8 +857,8 @@ export function AnalyticsDashboard() {
                       </div>
                       <div className="h-2 rounded-full bg-muted overflow-hidden">
                         <div
-                          className={`h-full rounded-full ${STATUS_COLORS[s.status] || "bg-neutral-400"}`}
-                          style={{ width: `${pct}%` }}
+                          className={`h-full rounded-full ${STATUS_COLORS[s.status] || "bg-neutral-400"} animate-bar-grow-x`}
+                          style={{ width: `${pct}%`, animationDelay: `${i * 60}ms` }}
                         />
                       </div>
                     </div>
@@ -859,22 +878,25 @@ export function AnalyticsDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-end gap-0.5 h-40">
-              {sessionTimeHeatmap.map((h) => (
-                <div key={h.hour} className="flex-1 flex flex-col items-center gap-1">
-                  <div
-                    className="w-full rounded-t bg-primary"
-                    style={{
-                      height: `${h.intensity * 100}%`,
-                      minHeight: h.count > 0 ? "4px" : "0",
-                      opacity: Math.max(0.15, h.intensity),
-                    }}
-                  />
-                  <span className="text-[8px] text-muted-foreground">
-                    {h.hour}
-                  </span>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <div className="flex items-end gap-0.5 h-40 min-w-[420px]">
+                {sessionTimeHeatmap.map((h, i) => (
+                  <div key={h.hour} className="flex-1 flex flex-col items-center gap-1">
+                    <div
+                      className="w-full rounded-t bg-primary animate-bar-rise"
+                      style={{
+                        height: `${h.intensity * 100}%`,
+                        minHeight: h.count > 0 ? "4px" : "0",
+                        opacity: Math.max(0.15, h.intensity),
+                        animationDelay: `${i * 25}ms`,
+                      }}
+                    />
+                    <span className="text-[8px] text-muted-foreground">
+                      {h.hour}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
             <p className="mt-2 text-[10px] text-muted-foreground text-center">
               {t("analytics_heatmap_note")}
@@ -882,9 +904,11 @@ export function AnalyticsDashboard() {
           </CardContent>
         </Card>
       </div>
+      </Reveal>
 
       {/* Member Growth Over Time */}
       {memberGrowth.length > 1 && (
+        <Reveal index={6}>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
@@ -901,8 +925,8 @@ export function AnalyticsDashboard() {
                       {m.total}
                     </span>
                     <div
-                      className="w-full bg-positive-500/80 rounded-t"
-                      style={{ height: `${(m.total / maxMemberGrowth) * 100}%`, minHeight: "4px" }}
+                      className="w-full bg-positive-500/80 rounded-t animate-bar-rise"
+                      style={{ height: `${(m.total / maxMemberGrowth) * 100}%`, minHeight: "4px", animationDelay: `${i * 50}ms` }}
                     />
                   </div>
                   <span className="text-[9px] text-muted-foreground truncate w-full text-center">
@@ -913,6 +937,7 @@ export function AnalyticsDashboard() {
             </div>
           </CardContent>
         </Card>
+        </Reveal>
       )}
     </div>
     </QueryState>

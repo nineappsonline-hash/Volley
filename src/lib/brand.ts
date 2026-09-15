@@ -4,7 +4,7 @@
 export const PLAYZA = {
   navy: "#0A1E3F",
   green: "#12C98A",
-  blue: "#12C98A",
+  blue: "#3B82F6",
   orange: "#FF7A3D",
   red: "#EF4444",
   background: "#F6F9FC",

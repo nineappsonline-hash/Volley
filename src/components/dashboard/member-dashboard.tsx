@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { StatCard } from "@/components/shared/stat-card";
+import { Reveal } from "@/components/shared/reveal";
 import { EmptyState } from "@/components/shared/empty-state";
 import { AnnouncementsCard } from "@/components/dashboard/announcements-card";
 import { MyTournamentsCard } from "@/components/dashboard/my-tournaments-card";
@@ -114,6 +115,7 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
         </div>
       )}
       <DashboardSection id="overview" title={lang === "ar" ? "نظرة عامة" : "Overview"} hint={lang === "ar" ? "أهم الأرقام في مكان واحد" : "Your key numbers at a glance"}>
+      <Reveal>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title={t("dash_my_remaining")}
@@ -121,17 +123,19 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
           icon={Timer}
           tone={hasPlan ? (remaining > 0 ? "success" : "destructive") : "default"}
           hint={hasPlan ? t("dash_sessions_used") : undefined}
+          index={0}
         />
         <StatCard
           title={t("dash_my_last_payment")}
           value={lastPayment ? formatMoney(Number(lastPayment.amount), lang) : "—"}
           icon={Receipt}
-          tone="default"
+          tone="info"
           hint={
             lastPayment
               ? format(new Date(lastPayment.payment_date + "T00:00:00"), "MMM d, yyyy", { locale })
               : t("common_never")
           }
+          index={1}
         />
         <StatCard
           title={t("dash_my_attendance_rate")}
@@ -139,6 +143,7 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
           icon={TrendingUp}
           tone={(attendanceRate ?? 0) >= 70 ? "success" : "warning"}
           hint={`${attendedCount} ${t("schedule_attending")}`}
+          index={2}
         />
         <StatCard
           title={t("dash_my_status")}
@@ -146,18 +151,20 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
             hasPlan ? (remaining > 0 ? t("dash_active") : t("dash_expired")) : t("membership_none")
           }
           icon={ShieldCheck}
-          tone={hasPlan ? (remaining > 0 ? "success" : "destructive") : "default"}
+          tone={hasPlan ? (remaining > 0 ? "brand" : "destructive") : "default"}
+          index={3}
         />
       </div>
-
+      </Reveal>
       </DashboardSection>
 
       <DashboardSection id="training" title={lang === "ar" ? "التدريب والمتابعة" : "Training & activity"} hint={lang === "ar" ? "مواعيدك وتفاصيل المتابعة" : "Schedules and activity details"}>
+      <Reveal index={1}>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Timer className="h-4 w-4 text-primary" />
+              <Timer className="h-4 w-4 text-positive-500" />
               {t("dash_my_remaining")}
               {hasPlan && (
                 <Badge variant={p.membership_type === "half" ? "outline" : "secondary"}>
@@ -185,32 +192,31 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
                 {t("members_no_plan_msg")}
               </div>
             )}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg bg-muted/50 p-3">
+            <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
+              <div className="rounded-lg border border-positive-300/50 bg-positive-50/70 p-3 dark:bg-positive-500/10">
                 <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <CreditCard className="h-3.5 w-3.5" />
+                  <CreditCard className="h-3.5 w-3.5 text-success-ink" />
                   {t("member_total_paid")}
                 </p>
-                <p className="mt-1 font-extrabold font-mono">{formatMoney(totalPaid, lang)}</p>
+                <p className="mt-1 font-extrabold font-mono text-success-ink">{formatMoney(totalPaid, lang)}</p>
               </div>
-              <div className="rounded-lg bg-muted/50 p-3">
+              <div className="rounded-lg border border-interactive-300/50 bg-interactive-50/70 p-3 dark:bg-interactive-500/10">
                 <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <UserRound className="h-3.5 w-3.5" />
+                  <UserRound className="h-3.5 w-3.5 text-info-ink" />
                   {t("profile_your_share")}
                 </p>
-                <p className="mt-1 font-extrabold font-mono">
+                <p className="mt-1 font-extrabold font-mono text-info-ink">
                   {perSessionValue > 0 ? formatMoney(perSessionValue, lang) : "—"}
                 </p>
               </div>
             </div>
-
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <CalendarDays className="h-4 w-4 text-primary" />
+              <CalendarDays className="h-4 w-4 text-interactive-500" />
               {t("profile_upcoming_title")}
             </CardTitle>
           </CardHeader>
@@ -241,15 +247,18 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
           </CardContent>
         </Card>
       </div>
+      </Reveal>
       </DashboardSection>
       <DashboardSection id="tournaments" title={t("td_my_tournaments")} hint={lang === "ar" ? "بطولاتك ونتائجك في مكان واحد" : "Your tournaments and results in one place"}>
         <MyTournamentsCard memberId={p.id} />
       </DashboardSection>
       <DashboardSection id="updates" title={lang === "ar" ? "الأخبار والتنبيهات" : "Updates"}>
+        <Reveal index={2}>
         <div className="space-y-5">
           <UpcomingTournamentsCard />
           <AnnouncementsCard isAdmin={false} />
         </div>
+        </Reveal>
       </DashboardSection>
     </div></QueryState>
   );
