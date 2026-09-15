@@ -2854,7 +2854,7 @@ export function useCreateFriendlyGame() {
       max_age?: number | null;
       hostPays?: boolean;
     }) => {
-      const { error } = await supabase().rpc("create_friendly_game", {
+      const { data, error } = await supabase().rpc("create_friendly_game", {
         p_title: input.title,
         p_sport: input.sport,
         p_playground_id: input.playgroundId ?? null,
@@ -2877,6 +2877,7 @@ export function useCreateFriendlyGame() {
         p_host_pays: input.hostPays ?? false,
       });
       if (error) throw error;
+      return data as string;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });

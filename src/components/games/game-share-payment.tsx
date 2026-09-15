@@ -1,0 +1,191 @@
+"use client";
+
+import { useState } from "react";
+import { toast } from "sonner";
+import {
+  Check,
+  Copy,
+  CreditCard,
+  Loader2,
+  Link as LinkIcon,
+  Upload,
+  Wallet,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useI18n } from "@/lib/i18n";
+import { E_WALLET_NUMBER, INSTAPAY_LINK, formatMoney } from "@/lib/constants";
+import { createClient } from "@/lib/supabase/client";
+
+type PayMethod = "instapay" | "e_wallet" | "kashier";
+
+const PAY_METHODS: { value: PayMethod; icon: typeof Wallet; disabled?: boolean }[] = [
+  { value: "instapay", icon: LinkIcon },
+  { value: "e_wallet", icon: Wallet },
+  { value: "kashier", icon: CreditCard, disabled: true },
+];
+
+/**
+ * Share-payment step used right after a game is created (or when joining a
+ * game that requires a per-player payment). The member picks InstaPay or an
+ * e-wallet, pays, and uploads a receipt screenshot to confirm.
+ */
+export function GameSharePayment({
+  amount,
+  label,
+  submitting,
+  onPay,
+}: {
+  amount: number;
+  label: string;
+  submitting: boolean;
+  onPay: (payMethod: "instapay" | "e_wallet", payReceiptUrl: string) => void;
+}) {
+  const { t, lang } = useI18n();
+  const supabase = createClient();
+  const [payMethod, setPayMethod] = useState<PayMethod | null>(null);
+  const [receiptUrl, setReceiptUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    void uploadReceipt(file);
+  };
+
+  const uploadReceipt = async (file: File) => {
+    setUploading(true);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("not signed in");
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("game-fee-receipts")
+        .upload(path, file, { cacheControl: "3600", contentType: file.type });
+      if (error) throw error;
+      setReceiptUrl(path);
+      toast.success(t("game_fee_receipt_ok"));
+    } catch {
+      toast.error(t("game_fee_receipt_fail"));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const copy = async (key: string, value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(key);
+      setTimeout(() => setCopied(null), 1500);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const busy = uploading || submitting;
+  const amountLabel = formatMoney(amount, lang);
+
+  return (
+    <div className="space-y-4">
+      <p className="rounded-lg bg-primary/5 p-3 text-xs text-muted-foreground">
+        {t("game_fee_desc").replace("{amount}", amountLabel)}
+      </p>
+
+      <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 p-3">
+        <p className="min-w-0 truncate text-xs text-muted-foreground">{label}</p>
+        <span className="shrink-0 text-lg font-extrabold text-primary">
+          {amountLabel}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        {PAY_METHODS.map(({ value, icon: Icon, disabled }) => {
+          const selected = payMethod === value;
+          return (
+            <button
+              key={value}
+              type="button"
+              disabled={disabled}
+              onClick={() => setPayMethod(value)}
+              className={`flex flex-col items-center gap-1.5 rounded-lg border-2 px-2 py-3 text-center transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
+                selected ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+              }`}
+            >
+              <Icon className="h-4 w-4 text-primary" />
+              <span className="text-xs font-medium">{t(`game_fee_method_${value}`)}</span>
+              {disabled && (
+                <span className="text-[9px] text-muted-foreground">{t("game_fee_kashier_soon")}</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {payMethod === "instapay" && (
+        <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/50 p-3">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-muted-foreground">{t("checkout_instapay_link")}</p>
+            <p className="truncate text-sm font-medium text-primary">{INSTAPAY_LINK}</p>
+          </div>
+          <div className="flex shrink-0 gap-1">
+            <Button variant="outline" size="sm" asChild>
+              <a href={INSTAPAY_LINK} target="_blank" rel="noopener noreferrer">
+                <LinkIcon className="h-3.5 w-3.5" />
+                {t("checkout_open_link")}
+              </a>
+            </Button>
+            <Button variant="outline" size="sm" className="gap-1" onClick={() => copy("instapay", INSTAPAY_LINK)}>
+              {copied === "instapay" ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              {t("checkout_copy")}
+            </Button>
+          </div>
+        </div>
+      )}
+      {payMethod === "e_wallet" && (
+        <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/50 p-3">
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground">{t("checkout_e_wallet_number")}</p>
+            <p className="text-lg font-extrabold text-primary" dir="ltr">
+              {E_WALLET_NUMBER}
+            </p>
+          </div>
+          <Button variant="outline" size="sm" className="gap-1" onClick={() => copy("ewallet", E_WALLET_NUMBER)}>
+            {copied === "ewallet" ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+            {t("checkout_copy")}
+          </Button>
+        </div>
+      )}
+
+      {payMethod && payMethod !== "kashier" && (
+        <div className="space-y-2">
+          <Label>{t("game_fee_receipt")}</Label>
+          <div className="flex items-center gap-2">
+            <Input type="file" accept="image/*" onChange={handleFile} disabled={uploading} />
+            {uploading && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />}
+            {receiptUrl && !uploading && <Upload className="h-4 w-4 shrink-0 text-success-ink" />}
+          </div>
+          <p className="text-xs text-muted-foreground">{t("game_fee_receipt_hint")}</p>
+        </div>
+      )}
+
+      <Button
+        type="button"
+        className="w-full"
+        disabled={!payMethod || payMethod === "kashier" || !receiptUrl || busy}
+        onClick={() => {
+          if (payMethod && payMethod !== "kashier" && receiptUrl) {
+            onPay(payMethod, receiptUrl);
+          }
+        }}
+      >
+        {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+        {submitting ? t("common_saving") : t("game_fee_pay").replace("{amount}", amountLabel)}
+      </Button>
+    </div>
+  );
+}
