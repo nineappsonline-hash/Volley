@@ -260,7 +260,7 @@
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  background: var(--green);
+  background: #22d48b;
   color: #0b1f3b;
   border: none;
   border-radius: 12px;
