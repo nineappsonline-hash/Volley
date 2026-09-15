@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
 import { normalizeCountry } from "@/lib/locations";
-import { COMMUNITY_SPORTS } from "@/lib/constants";
+import { COMMUNITY_SPORTS, getDefaultMinPlayers } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import { GameCostEstimate } from "@/components/games/game-cost-estimate";
 import { QueryState } from "@/components/shared/query-state";
@@ -111,6 +111,11 @@ export function CreateGameDialog({
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(true);
   const [recurrence, setRecurrence] = useState("once");
+
+  // When the sport is chosen, pre-fill minimum players with the sport default.
+  useEffect(() => {
+    setMinPlayers(String(getDefaultMinPlayers(sport)));
+  }, [sport]);
 
   useEffect(() => {
     if (open) {
@@ -278,7 +283,7 @@ export function CreateGameDialog({
               playgrounds={locatedPlaygrounds}
             />
             </QueryState></div>
-          <GameCostEstimate rate={playgrounds?.find(p => p.id === playgroundId)?.rental_cost} hours={Number(duration)} min={Number(minPlayers)} />
+          <GameCostEstimate rate={playgrounds?.find(p => p.id === playgroundId)?.rental_cost} hours={Number(duration)} min={Number(minPlayers)} sport={sport} />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div className="space-y-2">
               <Label>{t("community_date")}</Label>

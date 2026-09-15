@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
 import { normalizeCountry } from "@/lib/locations";
-import { COMMUNITY_SPORTS } from "@/lib/constants";
+import { COMMUNITY_SPORTS, getDefaultMinPlayers } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import { GameCostEstimate } from "@/components/games/game-cost-estimate";
 import { QueryState } from "@/components/shared/query-state";
@@ -122,6 +122,11 @@ export function CreateGameDialog({
   const [minAge, setMinAge] = useState("");
   const [maxAge, setMaxAge] = useState("");
   const [hostPays, setHostPays] = useState(false);
+
+  // When the sport is chosen, pre-fill minimum players with the sport default.
+  useEffect(() => {
+    setMinPlayers(String(getDefaultMinPlayers(sport)));
+  }, [sport]);
 
   useEffect(() => {
     if (open) {
@@ -345,7 +350,7 @@ export function CreateGameDialog({
             <div className="space-y-2"><Label htmlFor="game-min-players">{lang === "ar" ? "الحد الأدنى للاعبين" : "Minimum players"}</Label><Input id="game-min-players" type="number" min="2" step="1" value={minPlayers} onChange={e => setMinPlayers(e.target.value)} /></div>
             <div className="space-y-2"><Label htmlFor="game-duration">{lang === "ar" ? "مدة الجيم بالساعات" : "Duration (hours)"}</Label><Input id="game-duration" type="number" min="0.01" max="24" step="0.25" value={duration} onChange={e => setDuration(e.target.value)} /></div>
           </div>
-          <GameCostEstimate rate={playgrounds?.find(p => p.id === playgroundId)?.rental_cost} hours={Number(duration)} min={Number(minPlayers)} hostPays={hostPays} />
+          <GameCostEstimate rate={playgrounds?.find(p => p.id === playgroundId)?.rental_cost} hours={Number(duration)} min={Number(minPlayers)} hostPays={hostPays} sport={sport} />
 
           {/* Who pays */}
           <div className="flex items-center justify-between rounded-lg border p-3">

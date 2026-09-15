@@ -1749,7 +1749,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     games_share_pay_now: "Pay your share",
     // ── Host pays the whole game ──
     games_host_pays: "I'll cover the whole game",
-    games_host_pays_hint: "You pay the full playground rental plus the platform fee; everyone else joins for free.",
+    games_host_pays_hint: "You pay the full playground rental; everyone else joins for free.",
     games_host_pays_on: "Host pays",
     games_host_pays_off: "Split shares",
     games_host_pays_badge: "Free to join",
@@ -4163,7 +4163,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     games_share_pay_now: "ادفع حصتك",
     // ── Host pays the whole game ──
     games_host_pays: "أنا هتكلف بالجيم كامل",
-    games_host_pays_hint: "هتدفع إيجار الملعب كامل + رسوم المنصة، وكل اللاعبين التانيين هيخشوا مجانًا.",
+    games_host_pays_hint: "هتدفع إيجار الملعب كامل، وكل اللاعبين التانيين هيخشوا مجانًا.",
     games_host_pays_on: "حساب المنظم",
     games_host_pays_off: "تقسيم الحصص",
     games_host_pays_badge: "انضمام مجاني",

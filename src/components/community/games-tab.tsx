@@ -425,7 +425,7 @@ function GameCard({
             </DropdownMenu>
           </div>
         </div>
-      <GameCostEstimate compact rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} />
+      <GameCostEstimate compact rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} sport={game.sport} />
       {joined && <GameChat gameId={game.id} gameTitle={game.title} memberId={profile.id} />}
       </CardContent>
 

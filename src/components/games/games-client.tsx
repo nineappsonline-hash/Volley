@@ -527,7 +527,7 @@ function GameCard({
             </DropdownMenu>
           </div>
         </div>
-      <GameCostEstimate compact rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} hostPays={game.host_pays} />
+      <GameCostEstimate compact rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} hostPays={game.host_pays} sport={game.sport} />
       {joined && !waitlisted && (
         <div className="flex flex-wrap items-center gap-2">
           <GameChat gameId={game.id} gameTitle={game.title} memberId={profile.id} isOrganizer={isOrganizer} />

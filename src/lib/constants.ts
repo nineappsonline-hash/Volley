@@ -9,6 +9,29 @@ export const E_WALLET_NUMBER = "01023862436";
 // from members: the standalone per-player price already includes it.
 export const GAME_PLATFORM_FEE = 20;
 
+// Sport-specific per-player fee shown in the cost estimate (EGP).
+// Football/Volleyball share rental; Padel has its own fixed rate.
+export const SPORT_PLAYER_FEE: Record<string, number> = {
+  Football: 20,
+  Volleyball: 20,
+  Padel: 40,
+};
+
+export function getPlayerFee(sport: string): number {
+  return SPORT_PLAYER_FEE[sport] ?? 20;
+}
+
+// Default minimum players per sport when creating a game.
+export const SPORT_DEFAULT_MIN: Record<string, number> = {
+  Football: 10,
+  Volleyball: 12,
+  Padel: 4,
+};
+
+export function getDefaultMinPlayers(sport: string): number {
+  return SPORT_DEFAULT_MIN[sport] ?? 2;
+}
+
 // Membership plans: full = 8 sessions, half = 4 sessions (per payment cycle).
 export const MEMBERSHIP_SESSIONS: Record<"full" | "half", number> = {
   full: 8,
