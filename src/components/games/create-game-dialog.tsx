@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   LandPlot,
@@ -30,10 +30,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
+import { normalizeCountry } from "@/lib/locations";
 import { COMMUNITY_SPORTS } from "@/lib/constants";
+import { createClient } from "@/lib/supabase/client";
 import { GameCostEstimate } from "@/components/games/game-cost-estimate";
 import { QueryState } from "@/components/shared/query-state";
 import { PlaygroundPicker } from "@/components/shared/playground-picker";
+import {
+  PlaygroundLocationFilters,
+  type PlaygroundLocationSelection,
+} from "@/components/shared/playground-location-filters";
 import { useCreateFriendlyGame, useFriendlyGames, usePlaygrounds } from "@/lib/queries";
 import { errorMessage, todayInput } from "@/lib/utils";
 import { dayWorkingHoursLabel, findBlockedOverlap, formatBlockedSlot, isWithinWorkingHours, timeSlotsOverlap } from "@/lib/venue-slots";
@@ -54,6 +60,48 @@ export function CreateGameDialog({
   const playgroundQuery = usePlaygrounds();
   const { data: playgrounds } = playgroundQuery;
   const { data: allGames } = useFriendlyGames();
+
+  // The member's chosen location (country → governorate → city/area). It starts
+  // filtered to the signed-in user's signup country, and the playground list is
+  // narrowed to matching playgrounds below.
+  const [pickLocation, setPickLocation] = useState<PlaygroundLocationSelection>({
+    country: "all",
+    governorate: "all",
+    area: "all",
+  });
+
+  useEffect(() => {
+    let stale = false;
+    (async () => {
+      try {
+        const {
+          data: { user },
+        } = await createClient().auth.getUser();
+        const raw = user?.user_metadata?.country as string | undefined;
+        if (!stale) {
+          setPickLocation((l) => ({
+            ...l,
+            country: raw?.trim() ? normalizeCountry(raw.trim()) : "Egypt",
+          }));
+        }
+      } catch {
+        if (!stale) setPickLocation((l) => ({ ...l, country: "Egypt" }));
+      }
+    })();
+    return () => {
+      stale = true;
+    };
+  }, []);
+
+  const locatedPlaygrounds = useMemo(() => {
+    const { country, governorate, area } = pickLocation;
+    return (playgrounds ?? []).filter(
+      (p) =>
+        (country === "all" || normalizeCountry(p.country ?? "") === country) &&
+        (governorate === "all" || p.governorate === governorate) &&
+        (area === "all" || p.area === area),
+    );
+  }, [playgrounds, pickLocation]);
 
   const [title, setTitle] = useState("");
   const [sport, setSport] = useState("");
@@ -221,7 +269,7 @@ export function CreateGameDialog({
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>{t("community_sport")}</Label>
-              <Select value={sport} onValueChange={setSport}>
+              <Select value={sport} onValueChange={(next) => { setSport(next); setPlaygroundId(""); }}>
                 <SelectTrigger aria-label={t("community_sport")}>
                   <SelectValue placeholder={t("games_select_sport")} />
                 </SelectTrigger>
@@ -256,10 +304,19 @@ export function CreateGameDialog({
               {t("games_playground")}
             </Label>
             <QueryState queries={[playgroundQuery]}>
+            <PlaygroundLocationFilters
+              venues={playgrounds ?? []}
+              value={pickLocation}
+              onChange={(next) => {
+                setPickLocation(next);
+                setPlaygroundId("");
+              }}
+            />
             <PlaygroundPicker
+              sport={sport}
               value={playgroundId}
               onChange={setPlaygroundId}
-              playgrounds={playgrounds ?? []}
+              playgrounds={locatedPlaygrounds}
             />
             </QueryState>
             {!selectedPlayground && (

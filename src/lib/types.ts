@@ -147,6 +147,7 @@ export interface Coach {
 }
 
 export interface Venue {
+  sport?: { id: string; name: string } | null;
   id: string;
   // Null when the venue sits in the platform's unassigned playground pool.
   academy_id: string | null;

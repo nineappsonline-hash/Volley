@@ -2797,7 +2797,14 @@ export function usePlaygrounds() {
         .select("id, academy_id, name, address, country, governorate, area, lat, lng, location_link, photos, cover_url, capacity, sport_id, school_name, rental_cost, rental_hours, unavailable_slots, working_hours, court_count, created_at")
         .order("name");
       if (error) throw error;
-      return (data ?? []) as Venue[];
+      const { data: labels, error: labelError } = await supabase().rpc("playground_sport_labels");
+      if (labelError) throw labelError;
+      const sportsByVenue = new Map<string, { id: string; name: string }>(
+        (labels ?? []).map((row: { venue_id: string; sport_id: string; sport_name: string }) =>
+          [row.venue_id, { id: row.sport_id, name: row.sport_name }]
+        )
+      );
+      return (data ?? []).map((venue) => ({ ...venue, sport: sportsByVenue.get(venue.id) ?? null })) as Venue[];
     },
   });
 }
