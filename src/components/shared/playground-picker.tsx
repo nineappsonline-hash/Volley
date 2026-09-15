@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Check, ChevronDown, LandPlot, MapPin, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,14 +12,9 @@ import {
 } from "@/components/ui/popover";
 import { useI18n } from "@/lib/i18n";
 import type { Venue } from "@/lib/types";
-import { createClient } from "@/lib/supabase/client";
 import { venueCardPhoto } from "@/lib/venue-media";
 import { cn } from "@/lib/utils";
 import {
-  COUNTRIES,
-  COUNTRIES_AR,
-  CITIES_BY_STATE,
-  STATES_BY_COUNTRY,
   normalizeCountry,
   localizeCountry,
 } from "@/lib/locations";
@@ -35,14 +30,6 @@ function venueLine(v: Venue) {
   return [v.governorate, v.area].filter(Boolean).join(" · ");
 }
 
-const isArabicScript = (s: string) => /[\u0600-\u06FF]/.test(s);
-
-/** Keep only options written in the active UI language, like the sign-up modal. */
-const localizedFor = (lang: string, arr: string[]) => {
-  const isArabicLocale = lang === "ar";
-  return arr.filter((s) => isArabicLocale === isArabicScript(s));
-};
-
 export function PlaygroundPicker({
   value,
   onChange,
@@ -54,51 +41,69 @@ export function PlaygroundPicker({
 }) {
   const { t, lang } = useI18n();
 
-  // Country is picked automatically from the signed-in user's signup metadata.
-  const [country, setCountry] = useState(() =>
-    typeof window === "undefined" ? "" : "",
-  );
-  const [loadedCountry, setLoadedCountry] = useState(false);
+  // Every playground is shown at the start; the country / governorate / area
+  // filters are only there to narrow the list down. Country defaults to "all"
+  // so existing playgrounds are never hidden behind a mismatched country.
+  const [country, setCountry] = useState("all");
   const [governorate, setGovernorate] = useState("all");
   const [area, setArea] = useState("all");
   const [query, setQuery] = useState("");
 
-  useEffect(() => {
-    if (loadedCountry) return;
-    let stale = false;
-    (async () => {
-      try {
-        const {
-          data: { user },
-        } = await createClient().auth.getUser();
-        const raw = user?.user_metadata?.country as string | undefined;
-        if (!stale) setCountry(normalizeCountry(raw?.trim() || "") || "Egypt");
-      } catch {
-        if (!stale) setCountry("Egypt");
-      } finally {
-        if (!stale) setLoadedCountry(true);
-      }
-    })();
-    return () => {
-      stale = true;
-    };
-  }, [loadedCountry]);
+  const allLabel = t("games_playground_all");
+
+  const countryOptions = useMemo<Option[]>(() => {
+    const present = [
+      ...new Set(
+        (playgrounds ?? [])
+          .map((p) => p.country)
+          .filter((c): c is string => !!c),
+      ),
+    ];
+    return [
+      { value: "all", label: allLabel, search: allLabel.toLowerCase() },
+      ...present.map((c) => ({
+        value: c,
+        label: localizeCountry(c, lang),
+        search: `${c} ${localizeCountry(c, lang)}`.toLowerCase(),
+      })),
+    ];
+  }, [playgrounds, lang, allLabel]);
 
   const byCountry = useMemo(() => {
-    if (!country) return playgrounds;
+    if (!country || country === "all") return playgrounds;
+    const want = normalizeCountry(country);
     return playgrounds.filter(
-      (p) =>
-        !p.country || normalizeCountry(p.country) === normalizeCountry(country),
+      (p) => !p.country || normalizeCountry(p.country) === want,
     );
   }, [playgrounds, country]);
 
-  // Governorate/city suggestions come from the shared country→governorate→city
-  // datasets (same as the sign-up modal), localized to the active language.
-  const states = localizedFor(lang, STATES_BY_COUNTRY[country] ?? []);
-  const cities = localizedFor(
-    lang,
-    governorate === "all" ? [] : (CITIES_BY_STATE[governorate] ?? []),
-  );
+  // Governorate/area options come from the playgrounds themselves, so the
+  // dropdown values always match the stored values exactly and picking one
+  // narrows the list instead of leaving it empty.
+  const governateOptions = useMemo<Option[]>(() => {
+    const present = [
+      ...new Set(
+        byCountry.map((p) => p.governorate).filter((g): g is string => !!g),
+      ),
+    ];
+    return [
+      { value: "all", label: allLabel, search: allLabel.toLowerCase() },
+      ...present.map((g) => ({ value: g, label: g, search: g.toLowerCase() })),
+    ];
+  }, [byCountry, allLabel]);
+
+  const areaOptions = useMemo<Option[]>(() => {
+    const pool = byCountry.filter(
+      (p) => governorate === "all" || p.governorate === governorate,
+    );
+    const present = [
+      ...new Set(pool.map((p) => p.area).filter((a): a is string => !!a)),
+    ];
+    return [
+      { value: "all", label: allLabel, search: allLabel.toLowerCase() },
+      ...present.map((a) => ({ value: a, label: a, search: a.toLowerCase() })),
+    ];
+  }, [byCountry, governorate, allLabel]);
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -114,21 +119,6 @@ export function PlaygroundPicker({
   }, [byCountry, governorate, area, query]);
 
   const selected = playgrounds.find((p) => p.id === value);
-
-  const allLabel = t("games_playground_all");
-  const governateOptions: Option[] = [
-    { value: "all", label: allLabel, search: allLabel.toLowerCase() },
-    ...states.map((g) => ({ value: g, label: g, search: g.toLowerCase() })),
-  ];
-  const areaOptions: Option[] = [
-    { value: "all", label: allLabel, search: allLabel.toLowerCase() },
-    ...cities.map((a) => ({ value: a, label: a, search: a.toLowerCase() })),
-  ];
-  const countryOptions: Option[] = COUNTRIES.map((en) => ({
-    value: en,
-    label: localizeCountry(en, lang),
-    search: `${en} ${COUNTRIES_AR[en] ?? ""}`.toLowerCase(),
-  }));
 
   return (
     <div className="space-y-3">
@@ -277,7 +267,7 @@ function FilterCombobox({
             className="h-9 w-full justify-between font-normal"
           >
             <span dir="auto" className="truncate text-start">
-              {value || label}
+              {(options.find((o) => o.value === value)?.label ?? value) || label}
             </span>
             <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
           </Button>
