@@ -1420,12 +1420,18 @@ export const COUNTRY_EN: Record<string, string> = (() => {
 
 /** Display a stored country (en|ar or custom) in the given UI language. */
 export function localizeCountry(value: string, lang: string): string {
-  const en = COUNTRY_EN[value] ?? value;
+  const en = normalizeCountry(value);
   if (lang === "ar") return COUNTRIES_AR[en] ?? en;
   return en;
 }
 
-/** Canonical key so filtering matches regardless of the storage language. */
+/** Canonical English key so filtering matches regardless of the storage language or casing. */
 export function normalizeCountry(value: string): string {
-  return COUNTRY_EN[value] ?? value;
+  const trimmed = (value ?? "").trim();
+  const resolved = COUNTRY_EN[trimmed] ?? trimmed;
+  const lower = resolved.toLowerCase();
+  for (const [en] of Object.entries(COUNTRIES_AR)) {
+    if (en.toLowerCase() === lower) return en;
+  }
+  return resolved;
 }

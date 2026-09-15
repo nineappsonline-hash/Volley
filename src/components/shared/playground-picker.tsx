@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check, ChevronDown, LandPlot, MapPin, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useI18n } from "@/lib/i18n";
+import { createClient } from "@/lib/supabase/client";
 import type { Venue } from "@/lib/types";
 import { venueCardPhoto } from "@/lib/venue-media";
 import { cn } from "@/lib/utils";
@@ -41,13 +42,36 @@ export function PlaygroundPicker({
 }) {
   const { t, lang } = useI18n();
 
-  // Every playground is shown at the start; the country / governorate / area
-  // filters are only there to narrow the list down. Country defaults to "all"
-  // so existing playgrounds are never hidden behind a mismatched country.
-  const [country, setCountry] = useState("all");
+  // Country is auto-picked from the signed-in user's signup location (default:
+  // Egypt) so the list starts filtered to that country, exactly as before. The
+  // dropdown still offers "All countries", and every option is derived from the
+  // playgrounds themselves so picking one actually narrows the list instead of
+  // leaving it empty.
+  const [country, setCountry] = useState("");
   const [governorate, setGovernorate] = useState("all");
   const [area, setArea] = useState("all");
   const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    if (country) return;
+    let stale = false;
+    (async () => {
+      try {
+        const {
+          data: { user },
+        } = await createClient().auth.getUser();
+        const raw = user?.user_metadata?.country as string | undefined;
+        if (!stale) {
+          setCountry(raw?.trim() ? normalizeCountry(raw.trim()) : "Egypt");
+        }
+      } catch {
+        if (!stale) setCountry("Egypt");
+      }
+    })();
+    return () => {
+      stale = true;
+    };
+  }, [country]);
 
   const allLabel = t("games_playground_all");
 
@@ -56,7 +80,8 @@ export function PlaygroundPicker({
       ...new Set(
         (playgrounds ?? [])
           .map((p) => p.country)
-          .filter((c): c is string => !!c),
+          .filter((c): c is string => !!c)
+          .map((c) => normalizeCountry(c)),
       ),
     ];
     return [
