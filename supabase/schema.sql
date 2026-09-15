@@ -5326,7 +5326,9 @@ DECLARE
   v_code   TEXT;
   v_share  NUMERIC;
   v_host_total NUMERIC;
+  v_fee    NUMERIC;
 BEGIN
+  v_fee := CASE WHEN btrim(lower(p_sport)) = 'padel' THEN 40 ELSE 20 END;
   IF p_min_players IS NULL OR p_max_players IS NULL OR p_min_players < 2 OR p_max_players < p_min_players THEN
     RAISE EXCEPTION 'Minimum players must be at least 2 and no greater than maximum players';
   END IF;
@@ -5362,20 +5364,22 @@ BEGIN
 
   -- Pricing:
   --  * host pays: the creator covers the whole reservation — full venue rental
-  --    for the slot plus the hidden platform fee; players join for free.
+  --    for the slot plus the per-player fee; players join for free.
   --  * split: per-player share = playground portion (rental × duration ÷ min
-  --    players) plus the hidden platform fee, folded into a single price.
+  --    players) plus the per-player fee, folded into a single price.
+  --  * Padel bills 4 players by default and carries a 40 EGP per-player fee;
+  --    everything else uses a 20 EGP fee.
   IF p_host_pays THEN
     IF v_venue.rental_cost IS NOT NULL AND v_venue.rental_cost >= 0 THEN
-      v_host_total := round(v_venue.rental_cost * p_duration_hours, 2) + 20;
+      v_host_total := round(v_venue.rental_cost * p_duration_hours, 2) + v_fee;
     ELSE
-      v_host_total := 20;
+      v_host_total := v_fee;
     END IF;
     v_share := 0;
   ELSIF v_venue.rental_cost IS NOT NULL AND v_venue.rental_cost >= 0 THEN
-    v_share := round((v_venue.rental_cost * p_duration_hours) / p_min_players, 2) + 20;
+    v_share := round((v_venue.rental_cost * p_duration_hours) / p_min_players, 2) + v_fee;
   ELSE
-    v_share := 20;
+    v_share := v_fee;
   END IF;
 
   -- Join criteria.
@@ -6477,7 +6481,9 @@ DECLARE
   v_code   TEXT;
   v_share  NUMERIC;
   v_host_total NUMERIC;
+  v_fee    NUMERIC;
 BEGIN
+  v_fee := CASE WHEN btrim(lower(p_sport)) = 'padel' THEN 40 ELSE 20 END;
   IF p_min_players IS NULL OR p_max_players IS NULL OR p_min_players < 2 OR p_max_players < p_min_players THEN
     RAISE EXCEPTION 'Minimum players must be at least 2 and no greater than maximum players';
   END IF;
@@ -6514,17 +6520,19 @@ BEGIN
     END IF;
   END IF;
 
+  -- Padel bills 4 players by default and carries a 40 EGP per-player fee;
+  -- everything else uses a 20 EGP fee.
   IF p_host_pays THEN
     IF v_venue.rental_cost IS NOT NULL AND v_venue.rental_cost >= 0 THEN
-      v_host_total := round(v_venue.rental_cost * p_duration_hours, 2) + 20;
+      v_host_total := round(v_venue.rental_cost * p_duration_hours, 2) + v_fee;
     ELSE
-      v_host_total := 20;
+      v_host_total := v_fee;
     END IF;
     v_share := 0;
   ELSIF v_venue.rental_cost IS NOT NULL AND v_venue.rental_cost >= 0 THEN
-    v_share := round((v_venue.rental_cost * p_duration_hours) / p_min_players, 2) + 20;
+    v_share := round((v_venue.rental_cost * p_duration_hours) / p_min_players, 2) + v_fee;
   ELSE
-    v_share := 20;
+    v_share := v_fee;
   END IF;
 
   IF p_gender IS NULL OR p_gender NOT IN ('male', 'female', 'mixed') THEN
