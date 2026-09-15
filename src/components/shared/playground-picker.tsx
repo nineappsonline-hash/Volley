@@ -32,7 +32,7 @@ export function PlaygroundPicker({
     if (!sport) return [];
     const want = sport.trim().toLowerCase();
     return playgrounds.filter(
-      (p) => p.sport?.name.trim().toLowerCase() === want,
+      (p) => (p.sport?.name ?? "").trim().toLowerCase() === want,
     );
   }, [playgrounds, sport]);
 

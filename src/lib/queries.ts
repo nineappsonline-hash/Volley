@@ -2798,7 +2798,7 @@ export function usePlaygrounds() {
         .order("name");
       if (error) throw error;
       const { data: labels, error: labelError } = await supabase().rpc("playground_sport_labels");
-      if (labelError) throw labelError;
+      if (labelError) console.warn("playground_sport_labels unavailable, sport filter disabled", labelError);
       const sportsByVenue = new Map<string, { id: string; name: string }>(
         (labels ?? []).map((row: { venue_id: string; sport_id: string; sport_name: string }) =>
           [row.venue_id, { id: row.sport_id, name: row.sport_name }]
