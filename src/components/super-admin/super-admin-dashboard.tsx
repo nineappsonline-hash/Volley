@@ -20,6 +20,7 @@ import {
   Receipt,
   Shield,
   ShieldAlert,
+  ShieldCheck,
   Wallet,
   XCircle,
 } from "lucide-react";
@@ -60,10 +61,12 @@ import {
   useConvertToPaid,
   useExtendTrial,
   usePendingGamePayments,
+  usePendingRentPayments,
   usePendingSubscriptions,
   useReports,
   useResolveReport,
   useReviewParticipantShare,
+  useReviewRentPayment,
   useReviewSubscription,
   useSendBroadcast,
   useSetAcademyPlan,
@@ -86,6 +89,8 @@ export function SuperAdminDashboard() {
   const resolve = useResolveReport();
   const { data: pendingFees } = usePendingGamePayments();
   const reviewGameFee = useReviewParticipantShare();
+  const { data: pendingRent } = usePendingRentPayments();
+  const reviewRent = useReviewRentPayment();
   const setAcademyPlan = useSetAcademyPlan();
   const { data: pendingSubs } = usePendingSubscriptions();
   const reviewSub = useReviewSubscription();
@@ -149,6 +154,17 @@ export function SuperAdminDashboard() {
   const handleReviewFee = async (participantId: string, approve: boolean) => {
     try {
       await reviewGameFee.mutateAsync({ participantId, approve });
+      toast.success(
+        approve ? t("super_admin_fee_approved") : t("super_admin_fee_rejected")
+      );
+    } catch {
+      toast.error(t("common_error"));
+    }
+  };
+
+  const handleReviewRent = async (paymentId: string, approve: boolean) => {
+    try {
+      await reviewRent.mutateAsync({ paymentId, approve });
       toast.success(
         approve ? t("super_admin_fee_approved") : t("super_admin_fee_rejected")
       );
@@ -521,6 +537,108 @@ export function SuperAdminDashboard() {
                             className="gap-1 text-muted-foreground"
                             disabled={reviewGameFee.isPending}
                             onClick={() => handleReviewFee(p.id, false)}
+                          >
+                            <XCircle className="h-3 w-3" />
+                            {t("super_admin_fee_reject")}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Rent remaining review */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            {t("super_admin_rent_payments")}
+            {(pendingRent ?? []).length > 0 && (
+              <Badge variant="warning">{(pendingRent ?? []).length}</Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!pendingRent || pendingRent.length === 0 ? (
+            <EmptyState
+              message={t("super_admin_rent_empty")}
+              hint={t("super_admin_rent_hint")}
+              icon={ShieldCheck}
+            />
+          ) : (
+            <div className="rounded-xl border">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead>{t("community_game_title")}</TableHead>
+                    <TableHead className="hidden sm:table-cell">{t("community_organizer")}</TableHead>
+                    <TableHead className="hidden md:table-cell">{t("community_sport")}</TableHead>
+                    <TableHead className="hidden md:table-cell">{t("checkout_total")}</TableHead>
+                    <TableHead className="hidden lg:table-cell">{t("checkout_method")}</TableHead>
+                    <TableHead className="text-end">{t("super_admin_actions")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(pendingRent ?? []).map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell>
+                        <p className="truncate font-medium">{p.game?.title ?? "—"}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {p.game?.game_date ?? ""} · {p.game?.start_time ?? ""}
+                        </p>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <p>{memberName(p.member_id)}</p>
+                        {memberHandle(p.member_id) && (
+                          <p className="text-xs text-muted-foreground">{memberHandle(p.member_id)}</p>
+                        )}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {p.game?.sport ?? "—"}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {money(p.amount ?? 0)}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {p.pay_method
+                          ? t(`game_fee_method_${p.pay_method}` as any)
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="text-end">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1"
+                            disabled={openingReceipt !== null}
+                            onClick={() =>
+                              handleViewReceipt(p.pay_receipt_url)
+                            }
+                          >
+                            <Eye className="h-3 w-3" />
+                            {t("super_admin_fee_view_receipt")}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1 text-success-ink hover:text-success-ink"
+                            disabled={reviewRent.isPending}
+                            onClick={() => handleReviewRent(p.id, true)}
+                          >
+                            <CheckCircle2 className="h-3 w-3" />
+                            {t("super_admin_fee_approve")}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1 text-muted-foreground"
+                            disabled={reviewRent.isPending}
+                            onClick={() => handleReviewRent(p.id, false)}
                           >
                             <XCircle className="h-3 w-3" />
                             {t("super_admin_fee_reject")}

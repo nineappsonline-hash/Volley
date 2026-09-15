@@ -30,7 +30,7 @@ import {
 } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import { requestPushPrompt } from "@/lib/push";
-import { useJoinFriendlyGame, usePayGameShare } from "@/lib/queries";
+import { useJoinFriendlyGame, usePayGameShare, usePayRentRemaining } from "@/lib/queries";
 import { errorMessage } from "@/lib/utils";
 
 type PayMethod = "instapay" | "e_wallet" | "kashier";
@@ -48,6 +48,7 @@ export function JoinGameDialog({
   game,
   inviteCode,
   mode = "join",
+  rentRemaining,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -59,13 +60,16 @@ export function JoinGameDialog({
     host_total?: number | null;
   };
   inviteCode?: string | null;
-  mode?: "join" | "pay";
+  mode?: "join" | "pay" | "rent";
+  rentRemaining?: number;
 }) {
   const { t, lang } = useI18n();
   const supabase = createClient();
   const join = useJoinFriendlyGame();
   const pay = usePayGameShare();
+  const rentPay = usePayRentRemaining();
   const isPay = mode === "pay";
+  const isRent = mode === "rent";
 
   const [payMethod, setPayMethod] = useState<PayMethod | null>(null);
   const [receiptUrl, setReceiptUrl] = useState("");
@@ -119,13 +123,15 @@ export function JoinGameDialog({
     }
   };
 
-  const amount = game.host_pays
-    ? mode === "pay"
-      ? game.host_total ?? 0
-      : 0
-    : (game.share_price ?? 0);
+  const amount = isRent
+    ? (rentRemaining ?? 0)
+    : game.host_pays
+      ? mode === "pay"
+        ? game.host_total ?? 0
+        : 0
+      : (game.share_price ?? 0);
   const isFree = game.host_pays === true && mode === "join";
-  const busy = join.isPending || pay.isPending;
+  const busy = join.isPending || pay.isPending || rentPay.isPending;
 
   const submit = async () => {
     if (isFree) {
@@ -157,6 +163,13 @@ export function JoinGameDialog({
           payReceiptUrl: receiptUrl,
         });
         toast.success(t("games_share_submitted"));
+      } else if (isRent) {
+        await rentPay.mutateAsync({
+          gameId: game.id,
+          payMethod,
+          payReceiptUrl: receiptUrl,
+        });
+        toast.success(t("games_rent_submitted"));
       } else {
         const added = await join.mutateAsync({
           gameId: game.id,
@@ -189,12 +202,18 @@ export function JoinGameDialog({
           <DialogTitle>
             {isPay
               ? t("games_share_pay_title")
-              : isFree
-                ? t("games_free_join_title")
-                : t("games_share_join_title")}
+              : isRent
+                ? t("games_rent_title")
+                : isFree
+                  ? t("games_free_join_title")
+                  : t("games_share_join_title")}
           </DialogTitle>
           <DialogDescription>
-            {isFree ? t("games_free_join_desc") : t("games_share_join_desc")}
+            {isFree
+              ? t("games_free_join_desc")
+              : isRent
+                ? t("games_rent_desc")
+                : t("games_share_join_desc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -204,9 +223,11 @@ export function JoinGameDialog({
               <p className="text-xs text-muted-foreground">
                 {isFree
                   ? t("games_free_price")
-                  : game.host_pays
-                    ? t("games_host_pays")
-                    : t("games_share_per_player")}
+                  : isRent
+                    ? t("games_rent_label")
+                    : game.host_pays
+                      ? t("games_host_pays")
+                      : t("games_share_per_player")}
               </p>
               <p className="truncate text-sm font-semibold">{game.title}</p>
             </div>
@@ -371,7 +392,7 @@ export function JoinGameDialog({
             </p>
           )}
 
-          {!game.host_pays && (
+          {!game.host_pays && !isRent && (
             <p className="rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 text-[11px] text-warning-ink dark:bg-attention-500/10 dark:text-attention-300">
               {t("games_share_refund_note")}
             </p>
@@ -390,10 +411,12 @@ export function JoinGameDialog({
                 ? t("games_free_join")
                 : isPay
                   ? t("games_share_pay_submit")
-                  : t("games_share_pay_join").replace(
-                      "{amount}",
-                      formatMoney(amount, lang)
-                    )}
+                  : isRent
+                    ? t("games_rent_submit_button")
+                    : t("games_share_pay_join").replace(
+                        "{amount}",
+                        formatMoney(amount, lang)
+                      )}
           </Button>
         </DialogFooter>
       </DialogContent>

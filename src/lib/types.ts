@@ -674,6 +674,8 @@ export interface FriendlyGameWithDetails extends FriendlyGame {
   participants_count: number;
   waitlist_count: number;
   participants: FriendlyGameParticipant[];
+  // Amounts members topped up to cover the remaining court rent.
+  rent_payments?: FriendlyGameRentPayment[];
 }
 
 export interface FriendlyGameParticipant {
@@ -692,6 +694,17 @@ export interface FriendlyGameParticipant {
   pay_status: "unpaid" | "pending" | "approved" | "rejected";
   // Personal kickoff-reminder toggle (defaults to TRUE).
   kickoff_remind_opt_in?: boolean;
+}
+
+export interface FriendlyGameRentPayment {
+  id: string;
+  game_id: string;
+  member_id: string;
+  amount: number;
+  pay_method: "instapay" | "e_wallet" | null;
+  pay_receipt_url: string | null;
+  pay_status: "pending" | "approved" | "rejected";
+  created_at: string;
 }
 
 export interface GameChatMessage {

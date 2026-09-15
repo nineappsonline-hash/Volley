@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
 import { normalizeCountry } from "@/lib/locations";
-import { COMMUNITY_SPORTS, getDefaultMinPlayers } from "@/lib/constants";
+import { COMMUNITY_SPORTS, getDefaultMinPlayers, getBillablePlayers, formatMoney } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import { GameCostEstimate } from "@/components/games/game-cost-estimate";
 import { QueryState } from "@/components/shared/query-state";
@@ -35,7 +35,7 @@ import {
   type PlaygroundLocationSelection,
 } from "@/components/shared/playground-location-filters";
 import { MapPicker } from "@/components/shared/map-picker";
-import { useCreateFriendlyGame, usePlaygrounds, usePayGameShare } from "@/lib/queries";
+import { useCreateFriendlyGame, usePlaygrounds, usePayGameShare, usePayRentRemaining } from "@/lib/queries";
 import { GameSharePayment } from "@/components/games/game-share-payment";
 import { CourtRentInfoDialog } from "@/components/games/court-rent-info-dialog";
 import { errorMessage, todayInput } from "@/lib/utils";
@@ -53,14 +53,16 @@ export function CreateGameDialog({
   const isPro = memberPlan === "premium";
   const create = useCreateFriendlyGame();
   const pay = usePayGameShare();
+  const rentPay = usePayRentRemaining();
   const playgroundQuery = usePlaygrounds();
   const { data: playgrounds } = playgroundQuery;
   const [playgroundId, setPlaygroundId] = useState("");
 
   // Once the game row exists (created freely by the RPC) the creator must pay
   // their own share before the dialog closes; backing out cancels the draft.
-  const [createdGame, setCreatedGame] = useState<{ id: string; amount: number } | null>(null);
+  const [createdGame, setCreatedGame] = useState<{ id: string; amount: number; remaining: number } | null>(null);
   const [showRentInfo, setShowRentInfo] = useState(false);
+  const [sharePaid, setSharePaid] = useState(false);
 
   // The member's chosen location (country → governorate → city/area). It starts
   // filtered to the signed-in user's signup country, and the playground list is
@@ -145,6 +147,7 @@ export function CreateGameDialog({
       setRecurrence("once");
       setCreatedGame(null);
       setShowRentInfo(false);
+      setSharePaid(false);
     }
   }, [open]);
 
@@ -173,6 +176,7 @@ export function CreateGameDialog({
         recurrence: recurrence === "weekly" ? "weekly" : null,
       });
       let amount = 20;
+      let remaining = 0;
       try {
         const { data: part } = await createClient()
           .from("friendly_game_participants")
@@ -184,7 +188,14 @@ export function CreateGameDialog({
       } catch {
         /* keep the fallback amount */
       }
-      setCreatedGame({ id, amount });
+      const pickedPlayground = playgrounds?.find((p) => p.id === playgroundId);
+      if (pickedPlayground?.rental_cost != null) {
+        const billable = getBillablePlayers(sport, Number(minPlayers) || 2);
+        const rent = pickedPlayground.rental_cost * (Number(duration) || 1);
+        // The creator just covers their own share; the rest is still outstanding.
+        remaining = Math.max(0, Math.round((rent * (billable - 1)) / billable * 100) / 100);
+      }
+      setCreatedGame({ id, amount, remaining });
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
     }
@@ -203,9 +214,26 @@ export function CreateGameDialog({
     if (!gameId) return;
     try {
       await pay.mutateAsync({ gameId, payMethod, payReceiptUrl });
-      setCreatedGame(null);
-      setShowRentInfo(true);
       toast.success(t("games_share_submitted"));
+      if ((createdGame?.remaining ?? 0) > 0) {
+        setSharePaid(true);
+        setShowRentInfo(true);
+      } else {
+        setCreatedGame(null);
+        onOpenChange(false);
+      }
+    } catch (err) {
+      toast.error(errorMessage(err, t("common_error")));
+    }
+  };
+
+  const handlePayRemaining = async (payMethod: "instapay" | "e_wallet", payReceiptUrl: string) => {
+    const gameId = createdGame?.id;
+    if (!gameId) return;
+    try {
+      await rentPay.mutateAsync({ gameId, payMethod, payReceiptUrl });
+      toast.success(t("games_rent_submitted"));
+      setCreatedGame(null);
       onOpenChange(false);
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
@@ -222,7 +250,7 @@ export function CreateGameDialog({
   return (
     <>
     <Dialog open={open} onOpenChange={(next) => {
-    if (!next && createdGame && !pay.isPending) {
+    if (!next && createdGame && !pay.isPending && !sharePaid) {
       void cancelCreatedGame(createdGame.id);
       setCreatedGame(null);
     }
@@ -235,12 +263,35 @@ export function CreateGameDialog({
         </DialogHeader>
 
         {createdGame ? (
-          <GameSharePayment
-            amount={createdGame.amount}
-            label={t("games_share_per_player")}
-            submitting={pay.isPending}
-            onPay={handlePay}
-          />
+          sharePaid ? (
+            <>
+              <p className="rounded-lg bg-primary/5 p-3 text-xs text-muted-foreground">
+                {t("games_rent_card_hint")}
+              </p>
+              <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 p-3">
+                <p className="min-w-0 truncate text-xs text-muted-foreground">
+                  {t("games_rent_button")}
+                </p>
+                <span className="shrink-0 text-lg font-extrabold text-primary">
+                  {formatMoney(createdGame.remaining, lang)}
+                </span>
+              </div>
+              <GameSharePayment
+                amount={createdGame.remaining}
+                label={t("games_rent_label")}
+                submitting={rentPay.isPending}
+                submitLabel={t("games_rent_submit_button")}
+                onPay={handlePayRemaining}
+              />
+            </>
+          ) : (
+            <GameSharePayment
+              amount={createdGame.amount}
+              label={t("games_share_per_player")}
+              submitting={pay.isPending}
+              onPay={handlePay}
+            />
+          )
         ) : (
         <div className="space-y-4">
           <div className="space-y-2">
@@ -321,7 +372,7 @@ export function CreateGameDialog({
           />
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2"><Label htmlFor="game-min-players">{lang === "ar" ? "الحد الأدنى للاعبين" : "Minimum players"}</Label><Input id="game-min-players" type="number" min="2" step="1" value={minPlayers} onChange={e => setMinPlayers(e.target.value)} /></div>
+            <div className="space-y-2"><Label>{lang === "ar" ? "الحد الأدنى للاعبين" : "Minimum players"}</Label><div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm font-bold">{minPlayers}</div></div>
             <div className="space-y-2"><Label htmlFor="game-duration">{lang === "ar" ? "مدة الجيم بالساعات" : "Duration (hours)"}</Label><Input id="game-duration" type="number" min="0.5" max="24" step="0.5" value={duration} onChange={e => setDuration(e.target.value)} /></div>
           </div>
           <div className="space-y-2"><Label htmlFor="community-playground">{lang === "ar" ? "الملعب" : "Playground"}</Label>
@@ -425,18 +476,30 @@ export function CreateGameDialog({
 
         <DialogFooter>
           {createdGame ? (
-            <Button
-              variant="outline"
-              onClick={() => {
-                if (createdGame && !pay.isPending) {
-                  void cancelCreatedGame(createdGame.id);
+            sharePaid ? (
+              <Button
+                variant="outline"
+                onClick={() => {
                   setCreatedGame(null);
-                }
-                onOpenChange(false);
-              }}
-            >
-              {t("common_cancel")}
-            </Button>
+                  onOpenChange(false);
+                }}
+              >
+                {t("games_rent_skip")}
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (createdGame && !pay.isPending) {
+                    void cancelCreatedGame(createdGame.id);
+                    setCreatedGame(null);
+                  }
+                  onOpenChange(false);
+                }}
+              >
+                {t("common_cancel")}
+              </Button>
+            )
           ) : (
             <>
               <Button variant="outline" onClick={() => onOpenChange(false)}>

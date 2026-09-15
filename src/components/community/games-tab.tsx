@@ -14,6 +14,7 @@ import {
   Plus,
   Repeat,
   Share2,
+  ShieldCheck,
   Star,
   Trophy,
   Users,
@@ -48,7 +49,8 @@ import { ReportDialog } from "@/components/shared/report-dialog";
 import { ScoreDialog } from "@/components/shared/score-dialog";
 import { useI18n } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
-import { COMMUNITY_SPORTS } from "@/lib/constants";
+import { COMMUNITY_SPORTS, formatMoney } from "@/lib/constants";
+import { gameRentRemaining } from "@/lib/game-costs";
 import {
   useCancelFriendlyGame,
   useFriendlyGames,
@@ -94,13 +96,13 @@ function GameCard({
   allGames: FriendlyGameWithDetails[];
 }) {
   const router = useRouter();
-  const { t, locale } = useI18n();
+  const { t, locale, lang } = useI18n();
   const leave = useLeaveFriendlyGame();
   const cancel = useCancelFriendlyGame();
   const stopRecurring = useStopRecurringGame();
   const [reportOpen, setReportOpen] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
-  const [payOpen, setPayOpen] = useState<"join" | "pay" | null>(null);
+  const [payOpen, setPayOpen] = useState<"join" | "pay" | "rent" | null>(null);
 
   const isPro = profile.member_plan === "premium";
   const playgroundPhoto = venueCardPhoto(game.playground?.photos, game.playground?.cover_url);
@@ -121,6 +123,7 @@ function GameCard({
   const mine = myParticipants.find((p) => p.game_id === game.id);
   const isOrganizer = game.creator_id === profile.id;
   const joined = !!mine || isOrganizer;
+  const rentRemaining = gameRentRemaining(game);
   const count = game.participants_count;
   const full = game.status === "full" || count >= game.max_players;
   const slotsLeft = Math.max(game.max_players - count, 0);
@@ -426,6 +429,22 @@ function GameCard({
           </div>
         </div>
       <GameCostEstimate rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} sport={game.sport} />
+      {rentRemaining > 0 && (game.status === "open" || game.status === "full") && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 dark:bg-attention-500/10">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-warning-ink">
+              {t("games_rent_button")}
+            </p>
+            <p className="text-xs text-warning-ink/80">
+              {formatMoney(rentRemaining, lang)}
+            </p>
+          </div>
+          <Button size="sm" onClick={() => setPayOpen("rent")}>
+            <ShieldCheck className="me-1 h-3.5 w-3.5" />
+            {t("games_rent_button")}
+          </Button>
+        </div>
+      )}
       {joined && <GameChat gameId={game.id} gameTitle={game.title} memberId={profile.id} />}
       </CardContent>
 

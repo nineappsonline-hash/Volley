@@ -36,11 +36,15 @@ export function GameSharePayment({
   label,
   submitting,
   onPay,
+  note,
+  submitLabel,
 }: {
   amount: number;
   label: string;
   submitting: boolean;
   onPay: (payMethod: "instapay" | "e_wallet", payReceiptUrl: string) => void;
+  note?: string;
+  submitLabel?: string;
 }) {
   const { t, lang } = useI18n();
   const supabase = createClient();
@@ -93,7 +97,7 @@ export function GameSharePayment({
   return (
     <div className="space-y-4">
       <p className="rounded-lg bg-primary/5 p-3 text-xs text-muted-foreground">
-        {t("game_fee_desc").replace("{amount}", amountLabel)}
+        {note ?? t("game_fee_desc").replace("{amount}", amountLabel)}
       </p>
 
       <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 p-3">
@@ -209,7 +213,7 @@ export function GameSharePayment({
         }}
       >
         {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-        {submitting ? t("common_saving") : t("game_fee_pay").replace("{amount}", amountLabel)}
+        {submitting ? t("common_saving") : (submitLabel ?? t("game_fee_pay")).replace("{amount}", amountLabel)}
       </Button>
     </div>
   );

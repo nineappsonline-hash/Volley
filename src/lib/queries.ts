@@ -23,6 +23,7 @@ import type {
   Expense,
   FriendlyGame,
   FriendlyGameParticipant,
+  FriendlyGameRentPayment,
   FriendlyGameWithDetails,
   MemberBadge,
   MembershipPlan,
@@ -2761,7 +2762,7 @@ export function useFriendlyGames() {
       const { data, error } = await supabase()
         .from("friendly_games")
         .select(
-          "*, participants:friendly_game_participants(id, member_id, role, player_name, is_waitlisted, share_amount, pay_status, joined_at, kickoff_remind_opt_in), playground:venues(name, country, area, governorate, address, lat, lng, location_link, photos, cover_url)"
+          "*, participants:friendly_game_participants(id, member_id, role, player_name, is_waitlisted, share_amount, pay_status, joined_at, kickoff_remind_opt_in), rent_payments:friendly_game_rent_payments(amount, member_id, pay_status, created_at), playground:venues(name, country, area, governorate, address, lat, lng, location_link, photos, cover_url)"
         )
         .neq("status", "cancelled")
         .gte("game_date", today)
@@ -2781,6 +2782,7 @@ export function useFriendlyGames() {
             participants,
             participants_count: active.length,
             waitlist_count: waitlisted.length,
+            rent_payments: (g.rent_payments ?? []) as FriendlyGameRentPayment[],
           } as FriendlyGameWithDetails;
         });
     },
@@ -2926,6 +2928,29 @@ export function usePayGameShare() {
         p_pay_receipt_url: input.payReceiptUrl,
       });
       if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
+      qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
+    },
+  });
+}
+
+export function usePayRentRemaining() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      gameId: string;
+      payMethod: "instapay" | "e_wallet" | null;
+      payReceiptUrl: string;
+    }) => {
+      const { data, error } = await supabase().rpc("pay_rent_remaining", {
+        p_game_id: input.gameId,
+        p_pay_method: input.payMethod,
+        p_pay_receipt_url: input.payReceiptUrl,
+      });
+      if (error) throw error;
+      return data as number;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
@@ -3502,6 +3527,76 @@ export function useReviewParticipantShare() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["pending-game-payments"] });
+      qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
+      qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
+    },
+  });
+}
+
+// Rent remaining paymens awaiting payment review (super admin).
+export function usePendingRentPayments() {
+  return useQuery({
+    queryKey: ["pending-rent-payments"],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("friendly_game_rent_payments")
+        .select(
+          "id, game_id, member_id, amount, pay_method, pay_receipt_url, pay_status, created_at, game:friendly_games(title, sport, game_date, start_time)"
+        )
+        .eq("pay_status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      const rows = (data ?? []) as unknown as {
+        id: string;
+        game_id: string;
+        member_id: string;
+        amount: number;
+        pay_method: string | null;
+        pay_receipt_url: string | null;
+        pay_status: string;
+        created_at: string;
+        game:
+          | {
+              title: string | null;
+              sport: string | null;
+              game_date: string | null;
+              start_time: string | null;
+            }
+          | {
+              title: string | null;
+              sport: string | null;
+              game_date: string | null;
+              start_time: string | null;
+            }[]
+          | null;
+      }[];
+      return rows.map((r) => ({
+        ...r,
+        game: Array.isArray(r.game) ? (r.game[0] ?? null) : r.game,
+      }));
+    },
+  });
+}
+
+export function useReviewRentPayment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      paymentId,
+      approve,
+    }: {
+      paymentId: string;
+      approve: boolean;
+    }) => {
+      const { error } = await supabase().rpc("review_rent_payment", {
+        p_payment_id: paymentId,
+        p_approve: approve,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pending-rent-payments"] });
       qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
       qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
     },

@@ -1581,6 +1581,9 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     super_admin_fee_rejected: "Fee rejected.",
     super_admin_fee_receipt_fail: "Couldn't open the receipt. Try again.",
     super_admin_fee_view_receipt: "Receipt",
+    super_admin_rent_payments: "Court rent top-ups",
+    super_admin_rent_empty: "No pending rent top-ups",
+    super_admin_rent_hint: "Top-ups that cover the remaining court rent appear here for receipt review.",
     super_admin_plan_label: "Plan",
     super_admin_plan_updated: "Academy plan updated.",
     // ── Member plan comparison ──
@@ -1747,6 +1750,16 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     games_share_submitted: "Payment submitted — waiting for verification",
     games_share_pending: "Payment pending",
     games_share_pay_now: "Pay your share",
+    // ── Pay the remaining court rent ──
+    games_rent_button: "Pay remaining to confirm",
+    games_rent_label: "Pay the remaining amount",
+    games_rent_submit_button: "Pay remaining to confirm the reservation",
+    games_rent_title: "Confirm the reservation",
+    games_rent_desc: "Pay the remaining court rent so the reservation is confirmed no matter how many players join.",
+    games_rent_card_hint: "The court is booked once the full rent is covered. Pay the remaining amount now to lock it in.",
+    games_rent_already_pending: "You already have a pending rent payment for this game.",
+    games_rent_submitted: "Rent payment submitted — the reservation will be confirmed once verified",
+    games_rent_skip: "Skip for now",
     // ── Host pays the whole game ──
     games_host_pays: "I'll cover the whole game",
     games_host_pays_hint: "You pay the full playground rental; everyone else joins for free.",
@@ -3995,6 +4008,9 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     super_admin_fee_rejected: "تم رفض الرسوم.",
     super_admin_fee_receipt_fail: "تعذّر فتح الإيصال. حاول مرة أخرى.",
     super_admin_fee_view_receipt: "الإيصال",
+    super_admin_rent_payments: "دفعات الإيجار المتبقي",
+    super_admin_rent_empty: "لا توجد دفعات إيجار معلّقة",
+    super_admin_rent_hint: "تظهر دفعات تغطية إيجار الملعب المتبقي هنا لمراجعة الإيصالات.",
     super_admin_plan_label: "الخطة",
     super_admin_plan_updated: "تم تحديث خطة الأكاديمية.",
     // ── Member plan comparison ──
@@ -4161,6 +4177,16 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     games_share_submitted: "تم إرسال الدفع — بانتظار التحقق",
     games_share_pending: "الدفع قيد المراجعة",
     games_share_pay_now: "ادفع حصتك",
+    // ── Pay the remaining court rent ──
+    games_rent_button: "ادفع المتبقي للتأكيد",
+    games_rent_label: "ادفع المبلغ المتبقي",
+    games_rent_submit_button: "ادفع المتبقي لتأكيد الحجز",
+    games_rent_title: "تأكيد الحجز",
+    games_rent_desc: "ادفع إيجار الملعب المتبقي ليتم تأكيد الحجز مهما كان عدد اللاعبين.",
+    games_rent_card_hint: "يتم حجز الملعب فور تغطية الإيجار كاملًا. ادفع المبلغ المتبقي الآن لتأكيد الحجز.",
+    games_rent_already_pending: "لديك بالفعل دفعة إيجار معلّقة لهذه المباراة.",
+    games_rent_submitted: "تم إرسال دفعة الإيجار — سيتم تأكيد الحجز بعد التحقق",
+    games_rent_skip: "تخطي الآن",
     // ── Host pays the whole game ──
     games_host_pays: "أنا هتكلف بالجيم كامل",
     games_host_pays_hint: "هتدفع إيجار الملعب كامل، وكل اللاعبين التانيين هيخشوا مجانًا.",
