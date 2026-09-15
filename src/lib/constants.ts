@@ -24,12 +24,24 @@ export function getPlayerFee(sport: string): number {
 // Default minimum players per sport when creating a game.
 export const SPORT_DEFAULT_MIN: Record<string, number> = {
   Football: 10,
-  Volleyball: 12,
+  Volleyball: 10,
   Padel: 4,
 };
 
 export function getDefaultMinPlayers(sport: string): number {
   return SPORT_DEFAULT_MIN[sport] ?? 2;
+}
+
+// The fixed headcount a sport's share is always split across, regardless of the
+// minimum players the user picks at creation (Football/Volleyball 10, Padel 4).
+export const SPORT_BILLABLE_PLAYERS: Record<string, number> = {
+  Football: 10,
+  Volleyball: 10,
+  Padel: 4,
+};
+
+export function getBillablePlayers(sport: string, fallback: number): number {
+  return SPORT_BILLABLE_PLAYERS[sport] ?? fallback;
 }
 
 // Membership plans: full = 8 sessions, half = 4 sessions (per payment cycle).

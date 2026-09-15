@@ -6482,8 +6482,13 @@ DECLARE
   v_share  NUMERIC;
   v_host_total NUMERIC;
   v_fee    NUMERIC;
+  v_billable INTEGER;
 BEGIN
   v_fee := CASE WHEN btrim(lower(p_sport)) = 'padel' THEN 40 ELSE 20 END;
+  v_billable := CASE
+    WHEN btrim(lower(p_sport)) IN ('football', 'volleyball') THEN 10
+    WHEN btrim(lower(p_sport)) = 'padel' THEN 4
+    ELSE p_min_players END;
   IF p_min_players IS NULL OR p_max_players IS NULL OR p_min_players < 2 OR p_max_players < p_min_players THEN
     RAISE EXCEPTION 'Minimum players must be at least 2 and no greater than maximum players';
   END IF;
@@ -6521,7 +6526,9 @@ BEGIN
   END IF;
 
   -- Padel bills 4 players by default and carries a 40 EGP per-player fee;
-  -- everything else uses a 20 EGP fee.
+  -- everything else uses a 20 EGP fee. Split shares are always divided by the
+  -- sport's billable headcount (Football/Volleyball 10, Padel 4) regardless of
+  -- the minimum players the organizer picks; other sports use the chosen min.
   IF p_host_pays THEN
     IF v_venue.rental_cost IS NOT NULL AND v_venue.rental_cost >= 0 THEN
       v_host_total := round(v_venue.rental_cost * p_duration_hours, 2) + v_fee;
@@ -6530,7 +6537,7 @@ BEGIN
     END IF;
     v_share := 0;
   ELSIF v_venue.rental_cost IS NOT NULL AND v_venue.rental_cost >= 0 THEN
-    v_share := round((v_venue.rental_cost * p_duration_hours) / p_min_players, 2) + v_fee;
+    v_share := round((v_venue.rental_cost * p_duration_hours) / v_billable, 2) + v_fee;
   ELSE
     v_share := v_fee;
   END IF;

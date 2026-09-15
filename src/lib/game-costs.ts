@@ -1,9 +1,10 @@
-import { getPlayerFee } from "@/lib/constants";
+import { getBillablePlayers, getPlayerFee } from "@/lib/constants";
 
 /**
  * Per-player price for a friendly game, folded into a single number:
- * playground portion (rental × hours ÷ min players) plus the per-player
- * fee for the sport (Football/Volleyball 20 EGP, Padel 40 EGP).
+ * playground portion (rental × hours ÷ billable players) plus the per-player
+ * fee for the sport. The billable headcount is fixed per sport
+ * (Football/Volleyball 10, Padel 4) even if the minimum players are changed.
  */
 export function estimateSharePrice(
   rate: number | null | undefined,
@@ -23,7 +24,8 @@ export function estimateSharePrice(
   ) {
     return null;
   }
-  const rent = Math.round(((rate * hours) / min) * 100) / 100;
+  const players = getBillablePlayers(sport, min);
+  const rent = Math.round(((rate * hours) / players) * 100) / 100;
   const fee = getPlayerFee(sport);
   const total = Math.round((rent + fee) * 100) / 100;
   return { rent, fee, total };
