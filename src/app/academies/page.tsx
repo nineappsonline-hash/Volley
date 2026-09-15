@@ -327,7 +327,20 @@ export default function AcademiesDirectoryPage() {
         <div className="pointer-events-none absolute -top-24 start-1/2 h-72 w-[32rem] -translate-x-1/2 rounded-full bg-white/15 blur-3xl rtl:translate-x-1/2" />
         <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-3 px-6 text-center">
           <Link href={myId ? "/dashboard" : "/"} aria-label={t("nav_dashboard")}><AppLogo /></Link>
-          {myId && <Button asChild variant="secondary"><Link href="/dashboard">{t("nav_dashboard")}</Link></Button>}
+          {myId && (
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <Button
+                asChild
+                variant="secondary"
+                className="border border-white/60 bg-white/90 text-brand hover:bg-white"
+              >
+                <Link href="/dashboard">{t("directory_skip")}</Link>
+              </Button>
+              <Button asChild variant="ghost" className="border border-white/40 text-white hover:bg-white/10 hover:text-white">
+                <Link href="/dashboard">{t("nav_dashboard")}</Link>
+              </Button>
+            </div>
+          )}
           <h1 className="text-2xl font-extrabold sm:text-3xl">
             {t("directory_title")}
           </h1>

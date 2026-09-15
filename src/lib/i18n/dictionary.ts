@@ -1116,6 +1116,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     // ── Public academy directory ──
     directory_title: "Find an academy",
     directory_subtitle: "Browse academies, see their sports and ratings, and request to join.",
+    directory_skip: "Skip",
     directory_empty: "No public academies yet — check back soon!",
     directory_join: "Join this academy",
     directory_joined: "Request sent! Your academy will approve you shortly.",
@@ -3525,6 +3526,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     // ── Public academy directory ──
     directory_title: "ابحث عن أكاديمية",
     directory_subtitle: "تصفح الأكاديميات، اطّلع على رياضاتها وتقييماتها، واطلب الانضمام.",
+    directory_skip: "تخطي",
     directory_empty: "لا توجد أكاديميات عامة بعد — عد قريبًا!",
     directory_join: "انضم لهذه الأكاديمية",
     directory_joined: "تم إرسال الطلب! ستوافق أكاديميتك عليك قريبًا.",
