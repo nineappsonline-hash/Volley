@@ -12,7 +12,13 @@ import {
 } from "@/components/ui/popover";
 import { SortedOptions } from "@/components/ui/sorted-options";
 import { useI18n } from "@/lib/i18n";
-import { normalizeCountry, localizeCountry } from "@/lib/locations";
+import {
+  normalizeCountry,
+  localizeCountry,
+  COUNTRIES,
+  STATES_BY_COUNTRY,
+  CITIES_BY_STATE,
+} from "@/lib/locations";
 import type { Venue } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -33,10 +39,16 @@ export interface PlaygroundLocationSelection {
 
 const ALL = "all";
 
+const isArabicScript = (s: string) => /[\u0600-\u06FF]/.test(s);
+
+const filterByScript = (arr: string[], isArabicLocale: boolean) =>
+  arr.filter((s) => isArabicLocale === isArabicScript(s));
+
 /**
- * Country → Governorate → City/area pickers used when creating a game. The
- * options come from the playgrounds themselves, so they always match the stored
- * data and choosing one actually narrows the playground list.
+ * Country → Governorate → City/area pickers used when creating a game. Options
+ * come from the full location datasets just like the signup form (all
+ * countries, and every governorate/city of the chosen one), with any stored
+ * playground values appended so they stay selectable even if outside the lists.
  */
 export function PlaygroundLocationFilters({
   venues,
@@ -49,24 +61,26 @@ export function PlaygroundLocationFilters({
 }) {
   const { t, lang } = useI18n();
   const allLabel = t("games_playground_all");
+  const isArabicLocale = lang === "ar";
 
   const countryOptions = useMemo<Option[]>(() => {
-    const present = [
-      ...new Set(
-        venues
-          .map((v) => v.country)
-          .filter((c): c is string => !!c)
-          .map((c) => normalizeCountry(c)),
-      ),
-    ];
-    return [
+    const seen = new Set<string>();
+    const list: Option[] = [
       { value: ALL, label: allLabel, search: allLabel.toLowerCase() },
-      ...present.map((c) => ({
-        value: c,
-        label: localizeCountry(c, lang),
-        search: `${c} ${localizeCountry(c, lang)}`.toLowerCase(),
-      })),
     ];
+    const add = (c: string) => {
+      const key = normalizeCountry(c);
+      if (seen.has(key)) return;
+      seen.add(key);
+      list.push({
+        value: key,
+        label: localizeCountry(key, lang),
+        search: `${key} ${localizeCountry(key, lang)}`.toLowerCase(),
+      });
+    };
+    for (const c of COUNTRIES) add(c);
+    venues.forEach((v) => v.country && add(v.country));
+    return list;
   }, [venues, lang, allLabel]);
 
   const byCountry = useMemo(() => {
@@ -78,30 +92,56 @@ export function PlaygroundLocationFilters({
   }, [venues, value.country]);
 
   const governorateOptions = useMemo<Option[]>(() => {
-    const present = [
-      ...new Set(
-        byCountry.map((v) => v.governorate).filter((g): g is string => !!g),
-      ),
-    ];
-    return [
+    const seen = new Set<string>();
+    const list: Option[] = [
       { value: ALL, label: allLabel, search: allLabel.toLowerCase() },
-      ...present.map((g) => ({ value: g, label: g, search: g.toLowerCase() })),
     ];
-  }, [byCountry, allLabel]);
+    const add = (g?: string | null) => {
+      if (!g || seen.has(g)) return;
+      seen.add(g);
+      list.push({ value: g, label: g, search: g.toLowerCase() });
+    };
+    const addStates = (country: string) =>
+      filterByScript(STATES_BY_COUNTRY[normalizeCountry(country)] ?? [], isArabicLocale).forEach(
+        add,
+      );
+    if (value.country === ALL) {
+      const countries = [
+        ...new Set(
+          venues
+            .map((v) => v.country)
+            .filter((c): c is string => !!c)
+            .map((c) => normalizeCountry(c)),
+        ),
+      ];
+      countries.forEach(addStates);
+    } else {
+      addStates(value.country);
+    }
+    byCountry.forEach((v) => add(v.governorate));
+    return list;
+  }, [venues, byCountry, value.country, isArabicLocale, allLabel]);
 
   const areaOptions = useMemo<Option[]>(() => {
+    const seen = new Set<string>();
+    const list: Option[] = [
+      { value: ALL, label: allLabel, search: allLabel.toLowerCase() },
+    ];
+    const add = (a?: string | null) => {
+      if (!a || seen.has(a)) return;
+      seen.add(a);
+      list.push({ value: a, label: a, search: a.toLowerCase() });
+    };
+    if (value.governorate !== ALL) {
+      filterByScript(CITIES_BY_STATE[value.governorate] ?? [], isArabicLocale).forEach(add);
+    }
     const pool =
       value.governorate === ALL
         ? byCountry
         : byCountry.filter((v) => v.governorate === value.governorate);
-    const present = [
-      ...new Set(pool.map((v) => v.area).filter((a): a is string => !!a)),
-    ];
-    return [
-      { value: ALL, label: allLabel, search: allLabel.toLowerCase() },
-      ...present.map((a) => ({ value: a, label: a, search: a.toLowerCase() })),
-    ];
-  }, [byCountry, value.governorate, allLabel]);
+    pool.forEach((v) => add(v.area));
+    return list;
+  }, [byCountry, value.governorate, isArabicLocale, allLabel]);
 
   return (
     <div className="space-y-3">
