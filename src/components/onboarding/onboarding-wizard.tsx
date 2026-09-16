@@ -1,56 +1,73 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, KeyRound, PartyPopper, Sparkles, MapPin } from "lucide-react";
+import {
+  Check,
+  Copy,
+  KeyRound,
+  Loader2,
+  PartyPopper,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { MapPicker } from "@/components/shared/map-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { AcademyMediaManager } from "@/components/media/academy-media-manager";
 import { PageHeader } from "@/components/shared/page-header";
 import { useI18n } from "@/lib/i18n";
+import type { Dict } from "@/lib/i18n/dictionary";
 import { errorMessage } from "@/lib/utils";
 import {
   useAcademy,
-  useSports,
-  useSaveSport,
   useUpdateAcademy,
+  useSaveCoach,
+  useSaveTemplate,
 } from "@/lib/queries";
 
 const STEPS = [
-  "onboarding_step_basics",
-  "onboarding_step_location",
-  "onboarding_step_sports",
-  "onboarding_step_pricing",
   "onboarding_step_photos",
+  "onboarding_step_coaches",
+  "onboarding_step_pricing",
+  "onboarding_step_schedule",
 ] as const;
+
+interface CoachDraft {
+  name: string;
+  phone: string;
+  specialty: string;
+}
+
+interface SlotDraft {
+  weekday: number;
+  time: string;
+}
+
+const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
 
 export function OnboardingWizard() {
   const { t } = useI18n();
   const router = useRouter();
   const { data: academy } = useAcademy();
-  const { data: sports } = useSports();
-  const saveSport = useSaveSport();
   const updateAcademy = useUpdateAcademy();
+  const saveCoach = useSaveCoach();
+  const saveTemplate = useSaveTemplate();
 
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
 
-  const [name, setName] = useState(academy?.name ?? "");
-  const [description, setDescription] = useState(academy?.description ?? "");
-  const [area, setArea] = useState(academy?.area ?? "");
-  const [governorate, setGovernorate] = useState(academy?.governorate ?? "");
-  const [lat, setLat] = useState<number | null>(academy?.lat ?? null);
-  const [lng, setLng] = useState<number | null>(academy?.lng ?? null);
-  const [address, setAddress] = useState<string | null>(academy?.address ?? null);
-  const [selectedSports, setSelectedSports] = useState<string[]>([]);
-  const [newSport, setNewSport] = useState("");
+  /* ── Pricing state ── */
   const [monthlySessions, setMonthlySessions] = useState(
     academy?.monthly_sessions != null ? String(academy.monthly_sessions) : ""
   );
@@ -62,30 +79,11 @@ export function OnboardingWizard() {
   );
   const [copied, setCopied] = useState(false);
 
-  const picking = useMemo(
-    () => new Set(selectedSports),
-    [selectedSports]
-  );
+  /* ── Coaches state ── */
+  const [coaches, setCoaches] = useState<CoachDraft[]>([]);
 
-  const toggleSport = (id: string) => {
-    setSelectedSports((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
-    );
-  };
-
-  const toggleNewSport = () => {
-    const value = newSport.trim();
-    if (!value) return;
-    setSelectedSports((prev) => [...prev, `new:${value}`]);
-    setNewSport("");
-  };
-
-  const canNext =
-    step === 0
-      ? name.trim().length > 0
-      : step === 1
-        ? lat != null && lng != null
-        : true;
+  /* ── Schedule state ── */
+  const [slots, setSlots] = useState<SlotDraft[]>([]);
 
   const toNumOrNull = (v: string): number | null => {
     if (v.trim() === "") return null;
@@ -93,28 +91,57 @@ export function OnboardingWizard() {
     return Number.isFinite(n) && n > 0 ? n : null;
   };
 
+  /* ── Coach helpers ── */
+  const addCoach = () =>
+    setCoaches((prev) => [...prev, { name: "", phone: "", specialty: "" }]);
+  const removeCoach = (i: number) =>
+    setCoaches((prev) => prev.filter((_, idx) => idx !== i));
+  const updateCoach = (i: number, patch: Partial<CoachDraft>) =>
+    setCoaches((prev) =>
+      prev.map((c, idx) => (idx === i ? { ...c, ...patch } : c))
+    );
+
+  /* ── Schedule helpers ── */
+  const addSlot = () =>
+    setSlots((prev) => [...prev, { weekday: 0, time: "18:00" }]);
+  const removeSlot = (i: number) =>
+    setSlots((prev) => prev.filter((_, idx) => idx !== i));
+  const updateSlot = (i: number, patch: Partial<SlotDraft>) =>
+    setSlots((prev) =>
+      prev.map((s, idx) => (idx === i ? { ...s, ...patch } : s))
+    );
+
+  /* ── Finish ── */
   const finish = async () => {
     setSaving(true);
     try {
       if (academy) {
         await updateAcademy.mutateAsync({
           id: academy.id,
-          name: name.trim(),
-          description: description.trim() || null,
-          area: area.trim() || null,
-          governorate: governorate.trim() || null,
-          lat,
-          lng,
-          address: address ?? null,
           monthly_sessions: toNumOrNull(monthlySessions),
           monthly_price: toNumOrNull(monthlyPrice),
           tryout_price: toNumOrNull(tryoutPrice),
         });
       }
-      const newNames = selectedSports
-        .filter((s) => s.startsWith("new:"))
-        .map((s) => s.slice(4));
-      for (const n of newNames) await saveSport.mutateAsync({ name: n });
+
+      for (const c of coaches) {
+        if (!c.name.trim()) continue;
+        await saveCoach.mutateAsync({
+          name: c.name.trim(),
+          phone: c.phone.trim() || undefined,
+          specialty: c.specialty.trim() || undefined,
+        });
+      }
+
+      for (const s of slots) {
+        const dayName = t(`avail_day_${s.weekday}` as keyof Dict);
+        await saveTemplate.mutateAsync({
+          name: dayName,
+          weekday: s.weekday,
+          time: s.time,
+        });
+      }
+
       setDone(true);
       toast.success(t("onboarding_done"));
       setTimeout(() => router.push("/dashboard"), 900);
@@ -170,126 +197,97 @@ export function OnboardingWizard() {
 
       <Card className="animate-fade-in-up">
         <CardContent className="p-6">
+          {/* ── Step 0: Photos ── */}
           {step === 0 && (
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>{t("onboarding_name")}</Label>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder={t("onboarding_name_placeholder")}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t("onboarding_description")}</Label>
-                <Textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder={t("onboarding_description_placeholder")}
-                />
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>{t("onboarding_area")}</Label>
-                  <Input
-                    value={area}
-                    onChange={(e) => setArea(e.target.value)}
-                    placeholder={t("onboarding_area_placeholder")}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>{t("onboarding_governorate")}</Label>
-                  <Input
-                    value={governorate}
-                    onChange={(e) => setGovernorate(e.target.value)}
-                    placeholder={t("onboarding_governorate_placeholder")}
-                  />
-                </div>
-              </div>
+              <AcademyMediaManager />
+              <p className="text-xs text-muted-foreground">
+                {t("onboarding_photos_hint")}
+              </p>
             </div>
           )}
 
+          {/* ── Step 1: Coaches (optional) ── */}
           {step === 1 && (
-            <div className="space-y-3">
-              <MapPicker
-                lat={lat}
-                lng={lng}
-                onChange={(pick) => {
-                  setLat(pick.lat);
-                  setLng(pick.lng);
-                  if (pick.label) setAddress(pick.label);
-                }}
-                hint={t("onboarding_map_hint")}
-              />
-              {address && (
-                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5 shrink-0" />
-                  <span dir="auto">{address}</span>
-                </p>
-              )}
-            </div>
-          )}
-
-          {step === 2 && (
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>{t("onboarding_sports_label")}</Label>
-                <div className="flex flex-wrap gap-2">
-                  {(sports ?? []).map((s) => (
-                    <Badge
-                      key={s.id}
-                      variant={picking.has(s.id) ? "default" : "secondary"}
-                      className="cursor-pointer select-none"
-                      onClick={() => toggleSport(s.id)}
+              <div className="space-y-1">
+                <Label>{t("onboarding_coaches_label")}</Label>
+                <p className="text-xs text-muted-foreground">
+                  {t("onboarding_coaches_hint")}
+                </p>
+              </div>
+
+              {coaches.map((c, ci) => (
+                <div key={ci} className="space-y-3 rounded-lg border p-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">
+                      {t("onboarding_coach_number").replace(
+                        "{n}",
+                        String(ci + 1)
+                      )}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-destructive"
+                      onClick={() => removeCoach(ci)}
                     >
-                      {picking.has(s.id) && <Check className="me-1 h-3 w-3" />}
-                      {s.name}
-                    </Badge>
-                  ))}
-                  {selectedSports
-                    .filter((s) => s.startsWith("new:"))
-                    .map((s) => (
-                      <Badge
-                        key={s}
-                        variant="default"
-                        className="cursor-pointer select-none"
-                        onClick={() =>
-                          setSelectedSports((prev) =>
-                            prev.filter((x) => x !== s)
-                          )
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">
+                        {t("sa_form_coach_name")}
+                      </Label>
+                      <Input
+                        value={c.name}
+                        onChange={(e) =>
+                          updateCoach(ci, { name: e.target.value })
                         }
-                      >
-                        <Check className="me-1 h-3 w-3" />
-                        {s.slice(4)}
-                      </Badge>
-                    ))}
+                        placeholder={t("onboarding_coach_name_placeholder")}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">
+                        {t("sa_form_coach_phone")}
+                      </Label>
+                      <Input
+                        dir="ltr"
+                        value={c.phone}
+                        onChange={(e) =>
+                          updateCoach(ci, { phone: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">
+                        {t("sa_form_coach_specialty")}
+                      </Label>
+                      <Input
+                        value={c.specialty}
+                        onChange={(e) =>
+                          updateCoach(ci, { specialty: e.target.value })
+                        }
+                        placeholder={t(
+                          "onboarding_coach_specialty_placeholder"
+                        )}
+                      />
+                    </div>
+                  </div>
                 </div>
-                {(sports ?? []).length === 0 && selectedSports.length === 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    {t("onboarding_sports_empty")}
-                  </p>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  value={newSport}
-                  onChange={(e) => setNewSport(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      toggleNewSport();
-                    }
-                  }}
-                  placeholder={t("onboarding_sports_placeholder")}
-                />
-                <Button type="button" variant="outline" onClick={toggleNewSport}>
-                  + {t("common_add")}
-                </Button>
-              </div>
+              ))}
+
+              <Button type="button" variant="outline" onClick={addCoach}>
+                <Plus className="mr-1 h-4 w-4" />
+                {t("onboarding_add_coach")}
+              </Button>
             </div>
           )}
 
-          {step === 3 && (
+          {/* ── Step 2: Pricing ── */}
+          {step === 2 && (
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>{t("onboarding_pricing_label")}</Label>
@@ -372,15 +370,62 @@ export function OnboardingWizard() {
             </div>
           )}
 
-          {step === 4 && (
+          {/* ── Step 3: Schedule ── */}
+          {step === 3 && (
             <div className="space-y-4">
-              <AcademyMediaManager />
-              <p className="text-xs text-muted-foreground">
-                {t("onboarding_photos_hint")}
-              </p>
+              <div className="space-y-1">
+                <Label>{t("onboarding_schedule_label")}</Label>
+                <p className="text-xs text-muted-foreground">
+                  {t("onboarding_schedule_hint")}
+                </p>
+              </div>
+
+              {slots.map((s, i) => (
+                <div key={i} className="flex flex-wrap items-end gap-2">
+                  <Select
+                    value={String(s.weekday)}
+                    onValueChange={(v) =>
+                      updateSlot(i, { weekday: Number(v) })
+                    }
+                  >
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {WEEKDAYS.map((d) => (
+                        <SelectItem key={d} value={String(d)}>
+                          {t(`avail_day_${d}` as keyof Dict)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type="time"
+                    dir="ltr"
+                    className="w-[130px]"
+                    value={s.time}
+                    onChange={(e) => updateSlot(i, { time: e.target.value })}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 text-destructive"
+                    onClick={() => removeSlot(i)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+
+              <Button type="button" variant="outline" onClick={addSlot}>
+                <Plus className="mr-1 h-4 w-4" />
+                {t("onboarding_add_slot")}
+              </Button>
             </div>
           )}
 
+          {/* ── Navigation ── */}
           <div className="mt-6 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Button
@@ -400,34 +445,28 @@ export function OnboardingWizard() {
               </Button>
             </div>
             {step === STEPS.length - 1 ? (
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  disabled={saving}
-                  onClick={finish}
-                >
-                  {t("onboarding_skip_photos")}
-                </Button>
-                <Button type="button" variant="outline" disabled={saving} onClick={finish}>
-                  {saving ? t("common_saving") : t("onboarding_finish")}
-                </Button>
-              </div>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={saving}
+                onClick={finish}
+              >
+                {saving ? (
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                ) : null}
+                {saving ? t("common_saving") : t("onboarding_finish")}
+              </Button>
             ) : (
-              <Button type="button" disabled={!canNext} onClick={() => setStep((s) => s + 1)}>
+              <Button
+                type="button"
+                onClick={() => setStep((s) => s + 1)}
+              >
                 {t("onboarding_next")}
               </Button>
             )}
           </div>
         </CardContent>
       </Card>
-
-      {step === 0 && (
-        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Sparkles className="h-3.5 w-3.5" />
-          {t("onboarding_basics_hint")}
-        </p>
-      )}
     </>
   );
 }

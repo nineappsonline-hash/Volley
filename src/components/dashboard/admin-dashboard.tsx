@@ -80,9 +80,7 @@ export function AdminDashboard() {
     (calculations ?? []).map((c) => [c.session_id, c])
   );
 
-  const incomplete =
-    academy != null &&
-    (!academy.name.trim() || academy.lat == null || academy.lng == null);
+  const incomplete = academy != null && !academy.logo_url;
 
   return (
     <QueryState queries={[profilesQuery,paymentsQuery,costsQuery,sessionsQuery,calculationsQuery,expensesQuery,rentalsQuery,guestsQuery]}><div className="space-y-8">
