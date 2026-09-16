@@ -80,7 +80,7 @@ export function Topbar({ role, name, username, avatarUrl, avatarId, memberPlan, 
           >
             {academy.isTrial && trialDaysLeft !== null
               ? trialDaysLeft > 0
-                ? t("topbar_trial_left").replace("{plan}", planLabel).replace("{n}", String(trialDaysLeft))
+                ? t("topbar_trial_left").replace("{plan}", planLabel).replace("{n}", String(trialDaysLeft)).replace("{s}", trialDaysLeft === 1 ? "" : "s")
                 : t("topbar_trial_expired").replace("{plan}", planLabel)
               : planLabel}
           </span>

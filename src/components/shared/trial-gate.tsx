@@ -76,7 +76,7 @@ export function TrialGate({ children, isAdmin = false }: TrialGateProps) {
           <Clock className="h-5 w-5 shrink-0 text-warning-ink" />
           <div className="flex-1">
             <p className="font-medium text-warning-ink dark:text-attention-300">
-              {t("trial_expiring_soon").replace("{n}", String(trialStatus.daysLeft))}
+              {t("trial_expiring_soon").replace("{n}", String(trialStatus.daysLeft)).replace("{s}", lang === "ar" ? (trialStatus.daysLeft === 1 ? "" : "ًا") : (trialStatus.daysLeft === 1 ? "" : "s"))}
             </p>
           </div>
         </div>
