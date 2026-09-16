@@ -69,6 +69,7 @@ export function PlaygroundsClient() {
   const [courtCount, setCourtCount] = useState("1");
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
+  const [locationLink, setLocationLink] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Venue | null>(null);
 
   const ownedVenues = (venues ?? []).filter(
@@ -90,6 +91,7 @@ export function PlaygroundsClient() {
     setCourtCount("1");
     setLat(null);
     setLng(null);
+    setLocationLink("");
     setDialogOpen(true);
   };
 
@@ -105,6 +107,7 @@ export function PlaygroundsClient() {
     setCourtCount(v.court_count != null ? String(v.court_count) : "1");
     setLat(v.lat ?? null);
     setLng(v.lng ?? null);
+    setLocationLink(v.location_link ?? "");
     setDialogOpen(true);
   };
 
@@ -123,6 +126,7 @@ export function PlaygroundsClient() {
         court_count: Number(courtCount) || 1,
         lat,
         lng,
+        location_link: locationLink.trim() || null,
       });
       toast.success(t("venues_saved"));
       setDialogOpen(false);
@@ -343,6 +347,18 @@ export function PlaygroundsClient() {
               }}
               hint={t("venues_map_hint")}
             />
+            <div className="space-y-2">
+              <Label>{t("sa_location_link")}</Label>
+              <Input
+                dir="ltr"
+                value={locationLink}
+                onChange={(e) => setLocationLink(e.target.value)}
+                placeholder={t("sa_location_link_placeholder")}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                {t("sa_location_link_hint")}
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
