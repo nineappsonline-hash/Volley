@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Building2, Loader2, Volleyball } from "lucide-react";
+import { ArrowLeft, Building2, Loader2, Volleyball } from "lucide-react";
 import { AppLogo } from "@/components/shared/app-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -68,6 +68,14 @@ export function LoginForm() {
       <div className="pointer-events-none absolute -top-32 start-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-interactive-500/20 blur-3xl rtl:translate-x-1/2" />
       <div className="absolute end-4 top-4">
         <LanguageToggle />
+      </div>
+      <div className="absolute start-4 top-4">
+        <Button asChild variant="ghost" className="gap-1.5">
+          <Link href="/">
+            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+            {t("auth_back_home")}
+          </Link>
+        </Button>
       </div>
 
       <div className="relative w-full max-w-md">
