@@ -29,7 +29,7 @@ async function getHomepageLeaderboard(): Promise<{
         .from("community_leaderboard")
         .select("member_id, name, username, games_played, sessions_attended, points")
         .order("points", { ascending: false })
-        .limit(24),
+        .limit(10),
       admin
         .from("friendly_games")
         .select("id", { count: "exact", head: true })
