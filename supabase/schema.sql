@@ -32,19 +32,16 @@ END;
 $$;
 
 -- Random illustrated avatar. The id is a compact config string
--- "<style>:<seed>:<bg>" for the client-side DiceBear renderer (see
--- src/lib/avatars.ts), so a profile's portrait is deterministic and unique.
--- Keep the style keys, seed length and background palette in sync with the
--- client. VOLATILE because it calls random().
+-- Builtin character avatar slot id — one of "char-01" … "char-20".
+-- Each maps to an original flat-vector SVG mascot bundled at
+-- /images/avatars/char-NN.svg. VOLATILE because it calls random().
 CREATE OR REPLACE FUNCTION public.random_avatar_id()
 RETURNS TEXT
 LANGUAGE sql
 VOLATILE
 SET search_path = public
 AS $$
-  SELECT (ARRAY['adventurer', 'lorelei', 'openPeeps', 'micah', 'bottts', 'notionists'])[1 + floor(random() * 6)::int]
-    || ':' || left(md5(random()::text), 8)
-    || ':' || (ARRAY['b6e3f4', 'c0aede', 'd1d4f9', 'ffd5dc', 'ffdbb8', 'b9e4c9', 'c9e4ff', 'ffd8be'])[1 + floor(random() * 8)::int];
+  SELECT 'char-' || lpad((1 + floor(random() * 20))::int::text, 2, '0');
 $$;
 GRANT EXECUTE ON FUNCTION public.random_avatar_id() TO authenticated;
 

@@ -3,6 +3,7 @@
 import { TrainingGoals, TrainingRenewal } from "@/components/workflows/player-workflows";
 import { useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
+import Image from "next/image";
 import { toast } from "sonner";
 import {
   Building2,
@@ -52,12 +53,9 @@ import { FamilyCard } from "@/components/profile/family-card";
 import { MapPicker } from "@/components/shared/map-picker";
 import { createClient } from "@/lib/supabase/client";
 import {
-  AVATAR_BG_COLORS,
-  AVATAR_STYLE_KEYS,
-  avatarIdOf,
-  parseAvatarId,
-  randomAvatar,
-  type IllustratedAvatar,
+  AVATAR_GALLERY,
+  avatarSlot,
+  randomAvatarId,
 } from "@/lib/avatars";
 import { useI18n, type Dict } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
@@ -299,7 +297,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
   const [savingLoc, setSavingLoc] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
-  const [avatarDraft, setAvatarDraft] = useState<IllustratedAvatar | null>(null);
+  const [avatarDraft, setAvatarDraft] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const updateProfile = useUpdateOwnProfile();
 
@@ -430,7 +428,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
     if (!avatarDraft) return;
     setAvatarPickerOpen(false);
     try {
-      await updateProfile.mutateAsync({ id: p.id, avatar_id: avatarIdOf(avatarDraft), avatar_url: null });
+      await updateProfile.mutateAsync({ id: p.id, avatar_id: avatarDraft, avatar_url: null });
       toast.success(t("profile_saved"));
     } catch {
       toast.error(t("common_error"));
@@ -514,7 +512,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                     type="button"
                     aria-label={t("avatar_pick_preset")}
                     onClick={() => {
-                      setAvatarDraft(parseAvatarId(p.avatar_id) ?? randomAvatar());
+                      setAvatarDraft(avatarSlot(p.avatar_id) ?? randomAvatarId());
                       setAvatarPickerOpen(true);
                     }}
                     className="flex h-7 w-7 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm transition-colors hover:text-foreground"
@@ -637,43 +635,34 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
             {avatarDraft && (
               <div className="space-y-4">
                 <div className="flex justify-center">
-                  <ProfileAvatar name={p.name} avatarId={avatarIdOf(avatarDraft)} className="h-24 w-24" />
+                  <ProfileAvatar name={p.name} avatarId={avatarDraft} className="h-24 w-24" />
                 </div>
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">{t("avatar_style")}</p>
-                  <div className="grid grid-cols-6 gap-2">
-                    {AVATAR_STYLE_KEYS.map((key) => (
-                      <button
-                        key={key}
-                        type="button"
-                        aria-label={key}
-                        aria-pressed={avatarDraft.style === key}
-                        onClick={() => setAvatarDraft((d) => (d && d.style === key ? d : { ...d!, style: key }))}
-                        className={`rounded-full border p-0.5 ${avatarDraft.style === key ? "border-primary ring-2 ring-primary/30" : "border-border"}`}
-                      >
-                        <ProfileAvatar name={key} avatarId={avatarIdOf({ ...avatarDraft, style: key })} className="h-10 w-10" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">{t("avatar_bg")}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {AVATAR_BG_COLORS.map((bg) => (
-                      <button
-                        key={bg}
-                        type="button"
-                        aria-label={`#${bg}`}
-                        aria-pressed={avatarDraft.backgroundColor === bg}
-                        onClick={() => setAvatarDraft((d) => (d && d.backgroundColor === bg ? d : { ...d!, backgroundColor: bg }))}
-                        className={`h-7 w-7 rounded-full border-2 ${avatarDraft.backgroundColor === bg ? "border-primary" : "border-transparent"}`}
-                        style={{ backgroundColor: `#${bg}` }}
+                <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
+                  {AVATAR_GALLERY.map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      aria-label={a.id}
+                      aria-pressed={avatarDraft === a.id}
+                      onClick={() => setAvatarDraft(a.id)}
+                      className={`relative h-12 w-12 overflow-hidden rounded-full border-2 bg-background sm:h-14 sm:w-14 ${
+                        avatarDraft === a.id
+                          ? "border-primary ring-2 ring-primary/30"
+                          : "border-border"
+                      }`}
+                    >
+                      <Image
+                        src={a.src}
+                        alt={a.id}
+                        fill
+                        sizes="56px"
+                        className="object-cover"
                       />
-                    ))}
-                  </div>
+                    </button>
+                  ))}
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1" onClick={() => setAvatarDraft(randomAvatar())}>
+                  <Button variant="outline" className="flex-1" onClick={() => setAvatarDraft(randomAvatarId())}>
                     <Dices className="h-4 w-4" />
                     {t("avatar_shuffle")}
                   </Button>
