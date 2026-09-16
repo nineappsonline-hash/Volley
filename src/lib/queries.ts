@@ -18,6 +18,7 @@ import type {
   BlockedMember,
   Coach,
   CoachAvailability,
+  CoachInvitation,
   CommunityLeaderboardRow,
   CommunityMember,
   CommunityReport,
@@ -76,6 +77,8 @@ export const queryKeys = {
   branches: ["branches"] as const,
   announcements: ["announcements"] as const,
   coaches: ["coaches"] as const,
+  coachInvitations: ["coach-invitations"] as const,
+  coachInvitation: (id: string) => ["coach-invitations", id] as const,
   venues: ["venues"] as const,
   plans: ["plans"] as const,
   expenses: ["expenses"] as const,
@@ -1469,6 +1472,91 @@ export function useDeleteCoach() {
       qc.invalidateQueries({ queryKey: ["coaches"] });
       qc.invalidateQueries({ queryKey: ["teams"] });
       qc.invalidateQueries({ queryKey: ["sessions"] });
+    },
+  });
+}
+
+// ── Coach invitations ───────────────────────────────────────
+
+export function useCoachInvitations() {
+  return useQuery({
+    queryKey: queryKeys.coachInvitations,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("coach_invitations")
+        .select(
+          "*, member:profiles!coach_invitations_member_id_fkey(id, name, username, avatar_url, avatar_id, phone)"
+        )
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as (CoachInvitation & {
+        member: {
+          id: string;
+          name: string;
+          username: string;
+          avatar_url: string | null;
+          avatar_id: string | null;
+          phone: string | null;
+        } | null;
+      })[];
+    },
+  });
+}
+
+export function useCoachInvitation(id: string | null) {
+  return useQuery({
+    queryKey: queryKeys.coachInvitation(id ?? ""),
+    queryFn: async () => {
+      if (!id) return null;
+      const { data, error } = await supabase()
+        .from("coach_invitations")
+        .select(
+          "*, academy:academies!coach_invitations_academy_id_fkey(name), inviter:profiles!coach_invitations_invited_by_fkey(name, avatar_url, avatar_id)"
+        )
+        .eq("id", id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as (CoachInvitation & {
+        academy: { name: string } | null;
+        inviter: {
+          name: string;
+          avatar_url: string | null;
+          avatar_id: string | null;
+        } | null;
+      }) | null;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useInviteCoach() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (memberId: string) => {
+      const { error } = await supabase().rpc("invite_coach_member", {
+        p_member_id: memberId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.coachInvitations });
+    },
+  });
+}
+
+export function useRespondCoachInvitation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, accept }: { id: string; accept: boolean }) => {
+      const { error } = await supabase().rpc("respond_coach_invitation", {
+        p_invitation_id: id,
+        p_accept: accept,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.coachInvitations });
+      qc.invalidateQueries({ queryKey: queryKeys.coaches });
     },
   });
 }

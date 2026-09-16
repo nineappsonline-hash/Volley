@@ -7,5 +7,5 @@ export const metadata: Metadata = { title: "Coaches" };
 export default async function CoachesPage() {
   const { profile } = await requireSession();
 
-  return <CoachesClient />;
+  return <CoachesClient isAdmin={profile.role !== "member"} />;
 }

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarDays, Pencil, Plus, Trash2, UserRound } from "lucide-react";
+import { CalendarDays, Pencil, Plus, Trash2, UserRound, UserRoundPlus } from "lucide-react";
 import { CoachAvailabilityDialog } from "@/components/coaches/coach-availability-dialog";
+import { InviteCoachDialog } from "@/components/coaches/invite-coach-dialog";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,7 +43,7 @@ import { errorMessage } from "@/lib/utils";
 import { useCoaches, useDeleteCoach, useSaveCoach } from "@/lib/queries";
 import type { Coach } from "@/lib/types";
 
-export function CoachesClient() {
+export function CoachesClient({ isAdmin }: { isAdmin: boolean }) {
   const { t, lang } = useI18n();
   const { data: coaches, isLoading } = useCoaches();
   const save = useSaveCoach();
@@ -57,6 +58,7 @@ export function CoachesClient() {
   const [isActive, setIsActive] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<Coach | null>(null);
   const [availCoach, setAvailCoach] = useState<Coach | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   const openNew = () => {
     setEditing(null);
@@ -110,10 +112,18 @@ export function CoachesClient() {
   return (
     <div className="space-y-6">
       <PageHeader title={t("coaches_title")} subtitle={t("coaches_subtitle")}>
-        <Button onClick={openNew}>
-          <Plus className="h-4 w-4" />
-          {t("coaches_add")}
-        </Button>
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <Button variant="outline" onClick={() => setInviteOpen(true)}>
+              <UserRoundPlus className="h-4 w-4" />
+              {t("coaches_invite")}
+            </Button>
+          )}
+          <Button onClick={openNew}>
+            <Plus className="h-4 w-4" />
+            {t("coaches_add")}
+          </Button>
+        </div>
       </PageHeader>
 
       {isLoading ? (
@@ -260,6 +270,10 @@ export function CoachesClient() {
         onOpenChange={(o) => !o && setAvailCoach(null)}
         coach={availCoach}
       />
+
+      {isAdmin && (
+        <InviteCoachDialog open={inviteOpen} onOpenChange={setInviteOpen} />
+      )}
 
       {/* Delete confirmation */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>

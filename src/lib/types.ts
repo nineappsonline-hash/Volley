@@ -146,6 +146,21 @@ export interface Coach {
   monthly_salary: number | null;
   is_active: boolean;
   created_at: string;
+  /** Set when the coach was created by accepting a coach invitation — links
+   * the staff record to the member profile that joined the staff. */
+  profile_id: string | null;
+}
+
+export type CoachInvitationStatus = "pending" | "accepted" | "declined";
+
+export interface CoachInvitation {
+  id: string;
+  academy_id: string;
+  member_id: string;
+  invited_by: string;
+  status: CoachInvitationStatus;
+  created_at: string;
+  responded_at: string | null;
 }
 
 export interface Venue {
@@ -736,7 +751,8 @@ export type NotificationType =
   | "game_alert"
   | "game_cancelled"
   | "game_result"
-  | "tournament_announced";
+  | "tournament_announced"
+  | "coach_invite";
 
 export interface AppNotification {
   id: string;

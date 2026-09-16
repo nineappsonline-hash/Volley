@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -12,6 +13,7 @@ import {
   RefreshCw,
   Trophy,
   UserPlus,
+  UserRoundPlus,
   UserRoundX,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,10 +40,12 @@ export const TYPE_ICONS: Record<NotificationType, typeof Bell> = {
   game_cancelled: Flag,
   game_result: Trophy,
   tournament_announced: Trophy,
+  coach_invite: UserRoundPlus,
 };
 
 export function Notifications() {
   const { t, locale } = useI18n();
+  const router = useRouter();
   const { data: items } = useNotifications(40);
   const markRead = useMarkNotificationsRead();
   useRealtime(["notifications"]);
@@ -107,9 +111,18 @@ export function Notifications() {
             items.map((n) => {
               const Icon = TYPE_ICONS[n.type] ?? Bell;
               return (
-                <div
+                <button
                   key={n.id}
-                  className={`flex items-start gap-3 rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-accent ${
+                  type="button"
+                  onClick={() => {
+                    if (n.link) {
+                      router.push(n.link);
+                      setOpen(false);
+                    }
+                  }}
+                  className={`block w-full text-start ${
+                    n.link ? "cursor-pointer" : "cursor-default"
+                  } flex items-start gap-3 rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-accent ${
                     n.is_read ? "opacity-70" : ""
                   }`}
                 >
@@ -133,7 +146,7 @@ export function Notifications() {
                   {!n.is_read && (
                     <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
                   )}
-                </div>
+                </button>
               );
             })
           ) : (
