@@ -152,7 +152,7 @@ export function LoginForm() {
             <p className="mt-4 text-center text-sm text-muted-foreground">
               {isTenant ? t("login_tenant_no_account") : t("login_no_account")}{" "}
               <Link
-                href="/signup"
+                href={isTenant ? "/signup?mode=tenant" : "/signup"}
                 className="font-medium text-primary hover:underline"
               >
                 {isTenant

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -155,12 +155,14 @@ type NewVenueDraft = {
 export function SignupForm() {
   const { t } = useI18n();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { signUp } = useAuth();
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [pushPromptOpen, setPushPromptOpen] = useState(false);
   const pendingNav = useRef<(() => void) | null>(null);
-  const [mode, setMode] = useState<Role>("member");
+  const initialMode: Role = searchParams.get("mode") === "tenant" ? "tenant" : "member";
+  const [mode, setMode] = useState<Role>(initialMode);
   const [location, setLocation] = useState({
     country: "",
     governorate: "",

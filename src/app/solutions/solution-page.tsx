@@ -114,7 +114,7 @@ export function SolutionPage({
           </p>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
             <Button asChild size="lg" className="bg-white text-info-ink hover:bg-white/90">
-              <Link href="/signup">
+              <Link href="/signup?mode=tenant">
                 Start Free Trial
                 <ArrowRight className="ms-2 h-5 w-5 rtl:rotate-180" />
               </Link>
@@ -220,7 +220,7 @@ export function SolutionPage({
             Start your 14-day free trial — no credit card required.
           </p>
           <Button asChild size="lg" className="mt-6 gap-2">
-            <Link href="/signup">
+            <Link href="/signup?mode=tenant">
               Get Started Free
               <ArrowRight className="h-5 w-5 rtl:rotate-180" />
             </Link>

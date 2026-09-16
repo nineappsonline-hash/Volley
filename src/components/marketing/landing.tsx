@@ -16,7 +16,7 @@ function audiences(t: (k: any) => string) {
   return [
     { label: t("landing_aud1_label"), icon: Volleyball, title: t("landing_aud1_title"), text: t("landing_aud1_text"), points: [t("landing_aud1_p1"), t("landing_aud1_p2"), t("landing_aud1_p3")], cta: t("landing_aud1_cta"), href: "/signup" },
     { label: t("landing_aud2_label"), icon: Heart, title: t("landing_aud2_title"), text: t("landing_aud2_text"), points: [t("landing_aud2_p1"), t("landing_aud2_p2"), t("landing_aud2_p3")], cta: t("landing_aud2_cta"), href: "/academies" },
-    { label: t("landing_aud3_label"), icon: Trophy, title: t("landing_aud3_title"), text: t("landing_aud3_text"), points: [t("landing_aud3_p1"), t("landing_aud3_p2"), t("landing_aud3_p3")], cta: t("landing_aud3_cta"), href: "/signup" },
+    { label: t("landing_aud3_label"), icon: Trophy, title: t("landing_aud3_title"), text: t("landing_aud3_text"), points: [t("landing_aud3_p1"), t("landing_aud3_p2"), t("landing_aud3_p3")], cta: t("landing_aud3_cta"), href: "/signup?mode=tenant" },
   ];
 }
 

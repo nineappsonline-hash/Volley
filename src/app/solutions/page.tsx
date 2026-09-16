@@ -146,7 +146,7 @@ export default function SolutionsPage() {
             Start your 14-day free trial — no credit card required.
           </p>
           <Button asChild size="lg" className="mt-6 gap-2">
-            <Link href="/signup">
+            <Link href="/signup?mode=tenant">
               Get Started Free
               <ArrowRight className="h-5 w-5 rtl:rotate-180" />
             </Link>
