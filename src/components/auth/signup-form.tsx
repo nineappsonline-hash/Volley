@@ -139,6 +139,7 @@ interface PoolVenue {
   school_name: string | null;
   rental_cost: number | null;
   rental_hours: number | null;
+  sport_name: string | null;
 }
 
 type NewVenueDraft = {
@@ -200,7 +201,19 @@ export function SignupForm() {
           .is("academy_id", null)
           .order("name");
         if (stale) return;
-        setPoolVenues((data ?? []) as PoolVenue[]);
+        const venues = (data ?? []) as PoolVenue[];
+        const labels = await createClient().rpc("playground_sport_labels");
+        const sportsByVenue = new Map<string, string>(
+          (labels.data ?? []).map(
+            (row: { venue_id: string; sport_name: string }) => [
+              row.venue_id,
+              row.sport_name,
+            ]
+          )
+        );
+        setPoolVenues(
+          venues.map((v) => ({ ...v, sport_name: sportsByVenue.get(v.id) ?? null }))
+        );
         setPoolLoaded(true);
       } catch {
         if (!stale) setPoolLoaded(true);
@@ -352,7 +365,10 @@ export function SignupForm() {
   const removeSignupVenue = (i: number) =>
     setSignupVenues((vs) => vs.filter((_, idx) => idx !== i));
   const takenPoolIds = new Set(signupVenues.map((v) => v.id).filter((id): id is string => !!id));
-  const availablePoolVenues = poolVenues.filter(
+  const matchingPoolVenues = poolVenues.filter(
+    (v) => v.sport_name == null || sports.includes(v.sport_name)
+  );
+  const availablePoolVenues = matchingPoolVenues.filter(
     (v) =>
       !takenPoolIds.has(v.id) &&
       [v.name, v.address, v.country, v.governorate, v.area].join(" ").toLowerCase().includes(poolSearch.toLowerCase())
@@ -570,11 +586,11 @@ export function SignupForm() {
 
                 {step === 3 && (
                   <div className="space-y-3">
-                    {poolLoaded && poolVenues.length > 0 && (
+                    {poolLoaded && matchingPoolVenues.length > 0 && (
                       <p className="text-xs text-muted-foreground">
                         {t("signup_playgrounds_available").replace(
                           "{count}",
-                          String(poolVenues.length)
+                          String(matchingPoolVenues.length)
                         )}
                       </p>
                     )}
@@ -654,7 +670,7 @@ export function SignupForm() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          disabled={poolLoaded && poolVenues.length === 0}
+                          disabled={poolLoaded && matchingPoolVenues.length === 0}
                           onClick={() => { setPoolSearch(""); setPoolPickerOpen(true); }}
                         >
                           <List className="h-4 w-4" />
