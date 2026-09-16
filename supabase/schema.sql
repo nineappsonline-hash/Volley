@@ -31,19 +31,20 @@ BEGIN
 END;
 $$;
 
--- Random preset avatar (an emoji character). The id IS the emoji itself, so
--- clients render it directly without a lookup. VOLATILE because it calls
--- random(). Keep the 20 emojis in sync with src/lib/avatars.ts.
+-- Random illustrated avatar. The id is a compact config string
+-- "<style>:<seed>:<bg>" for the client-side DiceBear renderer (see
+-- src/lib/avatars.ts), so a profile's portrait is deterministic and unique.
+-- Keep the style keys, seed length and background palette in sync with the
+-- client. VOLATILE because it calls random().
 CREATE OR REPLACE FUNCTION public.random_avatar_id()
 RETURNS TEXT
 LANGUAGE sql
 VOLATILE
 SET search_path = public
 AS $$
-  SELECT (ARRAY[
-    '🦁', '🐯', '🐼', '🐸', '🦊', '🐻', '🐨', '🐶', '🐱', '🐰',
-    '🦄', '🐙', '🦋', '🐢', '🦖', '🦅', '🐺', '🦉', '🐵', '🐷'
-  ])[1 + floor(random() * 20)::int];
+  SELECT (ARRAY['adventurer', 'lorelei', 'openPeeps', 'micah', 'bottts', 'notionists'])[1 + floor(random() * 6)::int]
+    || ':' || left(md5(random()::text), 8)
+    || ':' || (ARRAY['b6e3f4', 'c0aede', 'd1d4f9', 'ffd5dc', 'ffdbb8', 'b9e4c9', 'c9e4ff', 'ffd8be'])[1 + floor(random() * 8)::int];
 $$;
 GRANT EXECUTE ON FUNCTION public.random_avatar_id() TO authenticated;
 
@@ -116,8 +117,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   -- Object path inside the public "avatars" storage bucket; NULL until the
   -- member uploads a profile picture.
   avatar_url TEXT,
-  -- Preset emoji avatar shown when no photo is uploaded; a random one is
-  -- assigned on row creation (see public.random_avatar_id()).
+  -- Illustrated preset avatar ("<style>:<seed>:<bg>") shown when no photo is
+  -- uploaded; a random one is assigned on row creation (see
+  -- public.random_avatar_id()).
   avatar_id TEXT DEFAULT public.random_avatar_id(),
   -- Community join criteria: games may restrict players by gender and/or age.
   gender TEXT CHECK (gender IN ('male', 'female')),

@@ -20,6 +20,8 @@ import {
   Settings as SettingsIcon,
   SmilePlus,
   Swords,
+  Dices,
+  Check,
   Timer,
   Trophy,
   UserRound,
@@ -49,7 +51,14 @@ import { CheckinQrCard } from "@/components/profile/checkin-qr-card";
 import { FamilyCard } from "@/components/profile/family-card";
 import { MapPicker } from "@/components/shared/map-picker";
 import { createClient } from "@/lib/supabase/client";
-import { AVATAR_PRESETS, isAvatarPreset } from "@/lib/avatars";
+import {
+  AVATAR_BG_COLORS,
+  AVATAR_STYLE_KEYS,
+  avatarIdOf,
+  parseAvatarId,
+  randomAvatar,
+  type IllustratedAvatar,
+} from "@/lib/avatars";
 import { useI18n, type Dict } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import { usedSessionsSincePayment } from "@/lib/calculations";
@@ -290,6 +299,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
   const [savingLoc, setSavingLoc] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
+  const [avatarDraft, setAvatarDraft] = useState<IllustratedAvatar | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const updateProfile = useUpdateOwnProfile();
 
@@ -416,14 +426,16 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
     }
   };
 
-  const handlePickPreset = async (avatarId: string) => {
+  const commitAvatar = async () => {
+    if (!avatarDraft) return;
     setAvatarPickerOpen(false);
     try {
-      // Choosing a preset also clears the uploaded photo so the emoji shows.
-      await updateProfile.mutateAsync({ id: p.id, avatar_id: avatarId, avatar_url: null });
+      await updateProfile.mutateAsync({ id: p.id, avatar_id: avatarIdOf(avatarDraft), avatar_url: null });
       toast.success(t("profile_saved"));
     } catch {
       toast.error(t("common_error"));
+    } finally {
+      setAvatarDraft(null);
     }
   };
 
@@ -501,7 +513,10 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                   <button
                     type="button"
                     aria-label={t("avatar_pick_preset")}
-                    onClick={() => setAvatarPickerOpen(true)}
+                    onClick={() => {
+                      setAvatarDraft(parseAvatarId(p.avatar_id) ?? randomAvatar());
+                      setAvatarPickerOpen(true);
+                    }}
                     className="flex h-7 w-7 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm transition-colors hover:text-foreground"
                   >
                     <SmilePlus className="h-3.5 w-3.5" />
@@ -613,33 +628,62 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
           </CardContent>
         </Card>
 
-        <Dialog open={avatarPickerOpen} onOpenChange={setAvatarPickerOpen}>
-          <DialogContent className="max-w-md">
+        <Dialog open={avatarPickerOpen} onOpenChange={(open) => { setAvatarPickerOpen(open); if (!open) setAvatarDraft(null); }}>
+          <DialogContent className="max-w-md space-y-4">
             <DialogHeader>
               <DialogTitle>{t("avatar_presets_title")}</DialogTitle>
               <DialogDescription>{t("avatar_presets_subtitle")}</DialogDescription>
             </DialogHeader>
-            <div className="grid grid-cols-5 gap-2">
-              {AVATAR_PRESETS.map((preset) => {
-                const selected = isAvatarPreset(p.avatar_id) && p.avatar_id === preset;
-                return (
-                  <button
-                    key={preset}
-                    type="button"
-                    aria-label={preset}
-                    aria-pressed={selected}
-                    onClick={() => handlePickPreset(preset)}
-                    className={`flex aspect-square items-center justify-center rounded-full border text-2xl transition-transform hover:scale-110 ${
-                      selected
-                        ? "border-primary bg-primary/10 ring-2 ring-primary/30"
-                        : "border-border bg-muted/40 hover:border-primary/40"
-                    }`}
-                  >
-                    {preset}
-                  </button>
-                );
-              })}
-            </div>
+            {avatarDraft && (
+              <div className="space-y-4">
+                <div className="flex justify-center">
+                  <ProfileAvatar name={p.name} avatarId={avatarIdOf(avatarDraft)} className="h-24 w-24" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">{t("avatar_style")}</p>
+                  <div className="grid grid-cols-6 gap-2">
+                    {AVATAR_STYLE_KEYS.map((key) => (
+                      <button
+                        key={key}
+                        type="button"
+                        aria-label={key}
+                        aria-pressed={avatarDraft.style === key}
+                        onClick={() => setAvatarDraft((d) => (d && d.style === key ? d : { ...d!, style: key }))}
+                        className={`rounded-full border p-0.5 ${avatarDraft.style === key ? "border-primary ring-2 ring-primary/30" : "border-border"}`}
+                      >
+                        <ProfileAvatar name={key} avatarId={avatarIdOf({ ...avatarDraft, style: key })} className="h-10 w-10" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">{t("avatar_bg")}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {AVATAR_BG_COLORS.map((bg) => (
+                      <button
+                        key={bg}
+                        type="button"
+                        aria-label={`#${bg}`}
+                        aria-pressed={avatarDraft.backgroundColor === bg}
+                        onClick={() => setAvatarDraft((d) => (d && d.backgroundColor === bg ? d : { ...d!, backgroundColor: bg }))}
+                        className={`h-7 w-7 rounded-full border-2 ${avatarDraft.backgroundColor === bg ? "border-primary" : "border-transparent"}`}
+                        style={{ backgroundColor: `#${bg}` }}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1" onClick={() => setAvatarDraft(randomAvatar())}>
+                    <Dices className="h-4 w-4" />
+                    {t("avatar_shuffle")}
+                  </Button>
+                  <Button className="flex-1" onClick={commitAvatar}>
+                    <Check className="h-4 w-4" />
+                    {t("profile_save")}
+                  </Button>
+                </div>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
 
