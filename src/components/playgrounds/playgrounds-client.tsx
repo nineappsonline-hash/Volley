@@ -46,13 +46,14 @@ import { MapPicker } from "@/components/shared/map-picker";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import { errorMessage } from "@/lib/utils";
-import { useDeleteVenue, useSaveVenue, useSports, useVenues } from "@/lib/queries";
+import { useDeleteVenue, useSaveVenue, useSports, useVenues, useAcademy } from "@/lib/queries";
 import type { Venue } from "@/lib/types";
 
 export function PlaygroundsClient() {
   const { t, lang } = useI18n();
   const { data: venues, isLoading } = useVenues();
   const { data: sports } = useSports();
+  const { data: academy } = useAcademy();
   const save = useSaveVenue();
   const remove = useDeleteVenue();
 
@@ -70,8 +71,12 @@ export function PlaygroundsClient() {
   const [lng, setLng] = useState<number | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Venue | null>(null);
 
-  const sportName = (id: string | null) =>
-    (id && (sports ?? []).find((s) => s.id === id)?.name) || t("venues_no_sport");
+  const ownedVenues = (venues ?? []).filter(
+    (v) => v.academy_id === academy?.id
+  );
+
+  const sportName = (v: Venue) =>
+    v.sport?.name ?? t("venues_no_sport");
 
   const openNew = () => {
     setEditing(null);
@@ -149,7 +154,7 @@ export function PlaygroundsClient() {
 
       {isLoading ? (
         <Skeleton className="h-40 w-full" />
-      ) : !venues || venues.length === 0 ? (
+      ) : !ownedVenues || ownedVenues.length === 0 ? (
         <EmptyState message={t("playgrounds_empty")} icon={LandPlot} />
       ) : (
         <div className="overflow-x-auto rounded-xl border">
@@ -164,7 +169,7 @@ export function PlaygroundsClient() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {(venues ?? []).map((v) => (
+              {ownedVenues.map((v) => (
                 <TableRow key={v.id}>
                   <TableCell>
                   <p className="font-medium">
@@ -180,7 +185,7 @@ export function PlaygroundsClient() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{sportName(v.sport_id)}</Badge>
+                    <Badge variant="outline">{sportName(v)}</Badge>
                   </TableCell>
                   <TableCell>{v.school_name ?? "—"}</TableCell>
                   <TableCell className="text-end">
