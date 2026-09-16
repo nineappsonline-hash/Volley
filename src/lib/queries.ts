@@ -31,7 +31,6 @@ import type {
   Payment,
   PlayerEvaluation,
   PlanSubscription,
-  MembershipType,
   Profile,
   RecurringSchedule,
   ScheduleTemplate,
@@ -3002,12 +3001,9 @@ export function useAddFamilyMember() {
     mutationFn: async (input: {
       name: string;
       nickname?: string | null;
-      gender?: string | null;
+      gender: "male" | "female";
       birth_date?: string | null;
       phone?: string | null;
-      membership_type: MembershipType;
-      subscription_sessions: number;
-      join_date?: string | null;
     }) => {
       const { data, error } = await supabase().rpc("add_family_member", {
         p_name: input.name,
@@ -3015,9 +3011,6 @@ export function useAddFamilyMember() {
         p_gender: input.gender ?? null,
         p_birth_date: input.birth_date ?? null,
         p_phone: input.phone ?? null,
-        p_membership_type: input.membership_type,
-        p_subscription_sessions: input.subscription_sessions,
-        p_join_date: input.join_date ?? null,
       });
       if (error) throw error;
       return data as string;
