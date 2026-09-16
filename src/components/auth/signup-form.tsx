@@ -404,14 +404,14 @@ export function SignupForm() {
   };
 
   return (
-    <main className="pwa-pad-top relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6 pt-24 pb-6">
+    <main className="pwa-pad-top relative flex min-h-screen overflow-hidden bg-background px-6">
       <div className="pointer-events-none absolute inset-0 bg-grid opacity-40" />
       <div className="pointer-events-none absolute -top-32 start-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-interactive-500/20 blur-3xl rtl:translate-x-1/2" />
       <div className="absolute end-4 top-4">
         <LanguageToggle />
       </div>
 
-      <div className={cn("relative w-full", isTenant ? "max-w-xl" : "max-w-md")}>
+      <div className={cn("relative mx-auto my-auto w-full py-16", isTenant ? "max-w-xl" : "max-w-md")}>
         <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
           {(["member", "tenant"] as const).map((r) => (
             <button
