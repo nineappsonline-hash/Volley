@@ -22,7 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useDeleteVenue, useSaveVenue, useSports, useVenues } from "@/lib/queries";
+import {
+  useAcademy,
+  useDeleteVenue,
+  useSaveVenue,
+  useSports,
+  useVenues,
+} from "@/lib/queries";
 import type { Venue } from "@/lib/types";
 
 interface VenuesManagerDialogProps {
@@ -35,10 +41,15 @@ export function VenuesManagerDialog({
   onOpenChange,
 }: VenuesManagerDialogProps) {
   const { t } = useI18n();
+  const { data: academy } = useAcademy();
   const { data: venues, isLoading } = useVenues();
   const { data: sports } = useSports();
   const saveVenue = useSaveVenue();
   const deleteVenue = useDeleteVenue();
+
+  const ownedVenues = (venues ?? []).filter(
+    (v) => v.academy_id === academy?.id
+  );
 
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
@@ -281,12 +292,12 @@ export function VenuesManagerDialog({
               <p className="px-3 py-6 text-center text-sm text-muted-foreground">
                 {t("common_loading")}
               </p>
-            ) : (venues ?? []).length === 0 ? (
+            ) : ownedVenues.length === 0 ? (
               <p className="px-3 py-6 text-center text-sm text-muted-foreground">
                 {t("venues_empty")}
               </p>
             ) : (
-              (venues ?? []).map((venue) =>
+              ownedVenues.map((venue) =>
                 confirmDeleteId === venue.id ? (
                   <div
                     key={venue.id}
