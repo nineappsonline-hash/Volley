@@ -7,6 +7,7 @@ import { isValidUsername } from "@/lib/username";
 import type {
   Academy,
   AcademyBranch,
+  AcademyFollow,
   AcademyPhoto,
   AcademyRating,
   ActivityFeedItem,
@@ -94,6 +95,7 @@ export const queryKeys = {
   recurring: ["recurring"] as const,
   publicAcademies: ["public-academies"] as const,
   academyRatings: ["academy-ratings"] as const,
+  academyFollows: ["academy-follows"] as const,
   communityMembers: ["community-members"] as const,
   friendlyGames: ["friendly-games"] as const,
   myGameParticipants: ["my-game-participants"] as const,
@@ -966,6 +968,95 @@ export function joinPublicAcademy(academyId: string) {
   return supabase().rpc("join_public_academy", { p_academy_id: academyId });
 }
 
+// ── Academy follows ─────────────────────────────────────────
+
+type FollowedAcademy = AcademyFollow & {
+  academy: Pick<
+    Academy,
+    "id" | "name" | "slug" | "description" | "cover_url" | "country" | "governorate" | "area"
+  > | null;
+};
+
+/** All public academies followed by the signed-in member (joined details). */
+export function useMyAcademyFollows() {
+  return useQuery({
+    queryKey: queryKeys.academyFollows,
+    queryFn: async () => {
+      const { data: session } = await supabase().auth.getSession();
+      const uid = session.session?.user.id;
+      if (!uid) return [] as FollowedAcademy[];
+      const { data, error } = await supabase()
+        .from("academy_follows")
+        .select(
+          "id, member_id, academy_id, created_at, academy:academies(id, name, slug, description, cover_url, country, governorate, area)"
+        )
+        .eq("member_id", uid)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as FollowedAcademy[];
+    },
+  });
+}
+
+/** Follow (or re-follow) a public academy. */
+export function useFollowAcademy() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (academyId: string) => {
+      const { data: session } = await supabase().auth.getSession();
+      const uid = session.session?.user.id;
+      if (!uid) throw new Error("not authenticated");
+      const { error } = await supabase()
+        .from("academy_follows")
+        .upsert(
+          { member_id: uid, academy_id: academyId },
+          { onConflict: "member_id,academy_id" }
+        );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.academyFollows });
+    },
+  });
+}
+
+/** Unfollow an academy. */
+export function useUnfollowAcademy() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (academyId: string) => {
+      const { data: session } = await supabase().auth.getSession();
+      const uid = session.session?.user.id;
+      if (!uid) throw new Error("not authenticated");
+      const { error } = await supabase()
+        .from("academy_follows")
+        .delete()
+        .eq("member_id", uid)
+        .eq("academy_id", academyId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.academyFollows });
+    },
+  });
+}
+
+/** Who follows a given academy (for follower counts). */
+export function useAcademyFollowerCount(academyId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["academy-followers", academyId],
+    enabled: !!academyId,
+    queryFn: async () => {
+      const { count, error } = await supabase()
+        .from("academy_follows")
+        .select("id", { count: "exact", head: true })
+        .eq("academy_id", academyId!);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+}
+
 // ── Member premium plan ────────────────────────────────────
 
 export function useActivatePremium() {
@@ -1040,6 +1131,49 @@ export function useNearbyTournaments(myAcademyId?: string | null) {
       })[];
     },
     enabled: !!myAcademyId,
+  });
+}
+
+/** Feed for the "Following" page: latest updates (announcements) and events
+ * from the academies the current member follows. */
+export function useFollowingFeed() {
+  const { data: follows } = useMyAcademyFollows();
+  const academyIds = (follows ?? [])
+    .map((f) => f.academy_id)
+    .filter((id): id is string => !!id);
+  return useQuery({
+    queryKey: ["following-feed", academyIds] as const,
+    enabled: academyIds.length > 0,
+    queryFn: async () => {
+      const [updatesRes, eventsRes] = await Promise.all([
+        supabase()
+          .from("announcements")
+          .select("*, academy:academies(id, name, slug)")
+          .in("academy_id", academyIds)
+          .order("created_at", { ascending: false })
+          .limit(20),
+        supabase()
+          .from("tournaments")
+          .select(
+            `*, sport:sports(id, name),
+             academy:academies(id, name, slug, address)`
+          )
+          .in("academy_id", academyIds)
+          .eq("academies.is_public", true)
+          .order("start_date", { ascending: true }),
+      ]);
+      if (updatesRes.error) throw updatesRes.error;
+      if (eventsRes.error) throw eventsRes.error;
+      return {
+        updates: (updatesRes.data ?? []) as (Announcement & {
+          academy: Pick<Academy, "id" | "name" | "slug"> | null;
+        })[],
+        events: (eventsRes.data ?? []) as (TournamentWithMatches & {
+          sport: Pick<Sport, "id" | "name"> | null;
+          academy: Pick<Academy, "id" | "name" | "slug" | "address"> | null;
+        })[],
+      };
+    },
   });
 }
 

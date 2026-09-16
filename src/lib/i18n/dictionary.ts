@@ -751,6 +751,17 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     ann_deleted: "Announcement deleted",
     ann_delete_confirm_title: "Delete announcement",
     ann_delete_confirm: "This will permanently remove this announcement.",
+    // ── Academy follow ──
+    follow_label: "Follow",
+    following_label: "Following",
+    following_title: "Following",
+    following_subtitle: "Events and updates from the academies you follow",
+    following_my_academies: "My academies",
+    following_updates_title: "Events & updates",
+    following_view_academy: "Visit academy page",
+    following_feed_empty: "Nothing to show yet — the academies you follow will post events and updates here.",
+    following_empty: "You're not following any academies yet. Follow academies to keep up with their events and updates.",
+    following_browse: "Find academies",
     // ── Coaches ──
     coaches_title: "Coaches",
     coaches_subtitle: "Manage your coaching staff and their assignments",
@@ -1448,6 +1459,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     nav_upgrade: "Upgrade",
     nav_marketplace: "Marketplace",
     nav_academies: "Find Academies",
+    nav_following: "Following",
     nav_community: "Community",
     // ── Geo / location ──
     geo_map_label: "Location on map",
@@ -3216,6 +3228,17 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     ann_deleted: "تم حذف الإعلان",
     ann_delete_confirm_title: "حذف الإعلان",
     ann_delete_confirm: "سيتم حذف هذا الإعلان نهائيًا.",
+    // ── Academy follow ──
+    follow_label: "تابع",
+    following_label: "أتابع",
+    following_title: "المتابعات",
+    following_subtitle: "الفعاليات والتحديثات من الأكاديميات التي تتابعها",
+    following_my_academies: "أكاديمياتي",
+    following_updates_title: "الفعاليات والتحديثات",
+    following_view_academy: "زيارة صفحة الأكاديمية",
+    following_feed_empty: "لا يوجد شيء بعد — الأكاديميات التي تتابعها ستُنشر فعاليات وتحديثات هنا.",
+    following_empty: "لا تتابع أي أكاديمية بعد. تابع الأكاديميات لمتابعة فعالياتها وتحديثاتها.",
+    following_browse: "ابحث عن الأكاديميات",
     // ── Coaches ──
     coaches_title: "المدربون",
     coaches_subtitle: "إدارة الجهاز التدريبي وإسناد الحصص والفرق",
@@ -3912,6 +3935,7 @@ onboarding_done_hint: "Players can now discover your academy. Head to the dashbo
     nav_upgrade: "ترقية",
     nav_marketplace: "السوق",
     nav_academies: "البحث عن الأكاديميات",
+    nav_following: "المتابعات",
     nav_community: "المجتمع",
     // ── Geo / الموقع ──
     geo_map_label: "الموقع على الخريطة",

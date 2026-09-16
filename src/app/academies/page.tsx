@@ -36,6 +36,7 @@ import {
   usePublicSports,
   useRateAcademy,
 } from "@/lib/queries";
+import { FollowAcademyButton } from "@/components/academies/follow-badge-button";
 
 function Stars({
   value,
@@ -577,26 +578,29 @@ export default function AcademiesDirectoryPage() {
                   )}
                   <CardHeader className="pb-2">
                     <CardTitle className="flex items-start justify-between gap-2">
-                      <Link
-                        href={a.slug ? `/a/${a.slug}` : "#"}
-                        className="hover:underline"
-                      >
-                        {a.name}
-                      </Link>
-                      {stat ? (
-                        <span className="flex flex-col items-end gap-0.5 text-xs font-normal text-muted-foreground">
-                          <Stars value={stat.avg} />
-                          {stat.count > 0 &&
-                            t("directory_reviews").replace(
-                              "{n}",
-                              String(stat.count)
-                            )}
-                        </span>
-                      ) : (
-                        <span className="whitespace-nowrap text-xs font-normal text-muted-foreground">
-                          {t("directory_no_rating")}
-                        </span>
-                      )}
+                      <span className="flex min-w-0 flex-col items-start gap-1">
+                        <Link
+                          href={a.slug ? `/a/${a.slug}` : "#"}
+                          className="hover:underline"
+                        >
+                          {a.name}
+                        </Link>
+                        {stat ? (
+                          <span className="flex flex-col items-start gap-0.5 text-xs font-normal text-muted-foreground">
+                            <Stars value={stat.avg} />
+                            {stat.count > 0 &&
+                              t("directory_reviews").replace(
+                                "{n}",
+                                String(stat.count)
+                              )}
+                          </span>
+                        ) : (
+                          <span className="whitespace-nowrap text-xs font-normal text-muted-foreground">
+                            {t("directory_no_rating")}
+                          </span>
+                        )}
+                      </span>
+                      <FollowAcademyButton academyId={a.id} size="sm" />
                     </CardTitle>
                     {a.description && (
                       <p className="line-clamp-2 text-sm text-muted-foreground">

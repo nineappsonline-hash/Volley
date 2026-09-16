@@ -298,6 +298,13 @@ export interface Announcement {
   created_at: string;
 }
 
+export interface AcademyFollow {
+  id: string;
+  member_id: string;
+  academy_id: string;
+  created_at: string;
+}
+
 export interface Expense {
   id: string;
   academy_id: string;

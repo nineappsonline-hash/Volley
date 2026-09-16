@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/i18n";
 import { JoinGameDialog } from "@/components/games/join-game-dialog";
+import { FollowAcademyButton } from "@/components/academies/follow-badge-button";
 import {
   useFriendlyGames,
   useMyGameParticipants,
@@ -318,6 +319,7 @@ export default function DiscoverMap({ profile }: { profile: Profile }) {
                       >
                         {t("map_visit_academy")}
                       </a>
+                      <FollowAcademyButton academyId={a.id} size="sm" />
                     </div>
                   </Popup>
                 </Marker>

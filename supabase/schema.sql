@@ -1681,6 +1681,18 @@ CREATE POLICY "Members manage announcements" ON public.announcements
   FOR ALL USING (academy_id = public.current_academy_id())
   WITH CHECK (academy_id = public.current_academy_id());
 
+-- Followers of an academy (academy_follows) can read its announcements
+-- without joining the academy; writing stays restricted to academy members.
+DROP POLICY IF EXISTS "Followers read announcements" ON public.announcements;
+CREATE POLICY "Followers read announcements" ON public.announcements
+  FOR SELECT TO authenticated
+  USING (
+    academy_id IN (
+      SELECT f.academy_id FROM public.academy_follows f
+      WHERE f.member_id = auth.uid()
+    )
+  );
+
 -- academy_branches: members of the academy manage its branches.
 DROP POLICY IF EXISTS "Members manage branches" ON public.academy_branches;
 CREATE POLICY "Members manage branches" ON public.academy_branches
@@ -1914,6 +1926,47 @@ CREATE TABLE IF NOT EXISTS public.academy_ratings (
   UNIQUE(academy_id, member_id)
 );
 CREATE INDEX IF NOT EXISTS idx_academy_ratings_academy ON public.academy_ratings(academy_id);
+
+-- Members follow public academies to see their events and updates without
+-- joining. Mirrors supabase/migrations/20261014000000_academy_follows.sql.
+CREATE TABLE IF NOT EXISTS public.academy_follows (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  member_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  academy_id UUID NOT NULL REFERENCES public.academies(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(member_id, academy_id)
+);
+CREATE INDEX IF NOT EXISTS idx_academy_follows_academy ON public.academy_follows(academy_id);
+
+ALTER TABLE public.academy_follows ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can view academy follows" ON public.academy_follows;
+CREATE POLICY "Anyone can view academy follows" ON public.academy_follows
+  FOR SELECT USING (TRUE);
+
+DROP POLICY IF EXISTS "Members follow academies" ON public.academy_follows;
+CREATE POLICY "Members follow academies" ON public.academy_follows
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    auth.uid() = member_id
+    AND EXISTS (
+      SELECT 1 FROM public.academies a
+      WHERE a.id = academy_id AND a.is_public = TRUE
+    )
+  );
+
+DROP POLICY IF EXISTS "Members unfollow academies" ON public.academy_follows;
+CREATE POLICY "Members unfollow academies" ON public.academy_follows
+  FOR DELETE TO authenticated
+  USING (auth.uid() = member_id);
+
+-- Realtime for academy follows.
+DO $$
+BEGIN
+  BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.academy_follows;
+  EXCEPTION WHEN duplicate_object THEN NULL; END;
+END
+$$;
 
 ALTER TABLE public.academy_ratings ENABLE ROW LEVEL SECURITY;
 

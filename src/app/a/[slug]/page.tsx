@@ -13,6 +13,7 @@ import {
 import { AcademyTrainingSummary } from "@/components/settings/academy-training-prices";
 import { TrialForm } from "@/components/public/trial-form";
 import { LangLabel } from "@/components/shared/lang-label";
+import { FollowAcademyButton } from "@/components/academies/follow-badge-button";
 
 export async function generateMetadata({
   params,
@@ -212,16 +213,23 @@ export default async function PublicAcademyPage({
               </span>
             </div>
           )}
-          <a
-            href="#trial"
-            className="mt-1 inline-flex items-center gap-2 rounded-full bg-white px-6 py-2.5 text-sm font-bold text-brand shadow-lg transition-transform hover:scale-105"
-          >
-            <Trophy className="h-4 w-4" />
-            <LangLabel
-              en={dictionary.en.public_book_trial}
-              ar={dictionary.ar.public_book_trial}
+          <div className="mt-1 flex flex-wrap items-center justify-center gap-3">
+            <a
+              href="#trial"
+              className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-2.5 text-sm font-bold text-brand shadow-lg transition-transform hover:scale-105"
+            >
+              <Trophy className="h-4 w-4" />
+              <LangLabel
+                en={dictionary.en.public_book_trial}
+                ar={dictionary.ar.public_book_trial}
+              />
+            </a>
+            <FollowAcademyButton
+              academyId={academy.id}
+              showCount
+              className="border border-white/40 bg-white/10 px-6 py-2.5 text-white hover:bg-white/20 hover:text-white"
             />
-          </a>
+          </div>
         </div>
       </section>
 

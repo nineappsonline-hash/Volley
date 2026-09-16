@@ -11,6 +11,7 @@ import {
   CreditCard,
   Crown,
   HandCoins,
+  Heart,
   LandPlot,
   LayoutDashboard,
   LineChart,
@@ -63,6 +64,7 @@ const academyItems = [
 const memberItems = [
   { href: "/dashboard", key: "nav_dashboard", icon: LayoutDashboard },
   { href: "/academies", key: "nav_academies", icon: Search },
+  { href: "/following", key: "nav_following", icon: Heart },
   { href: "/schedule", key: "nav_schedule", icon: CalendarDays },
   { href: "/events", key: "nav_events", icon: Map },
   { href: "/dashboard/games", key: "nav_games", icon: Volleyball },
@@ -100,7 +102,7 @@ export function Sidebar({ role, name, memberPlan, onNavigate }: SidebarProps) {
       group("Academy settings", "إعدادات الأكاديمية", ["/profile", "/settings", "/upgrade"]),
     ] : [
       group("My training", "تدريبي", ["/dashboard", "/schedule", "/profile"]),
-      group("Find a place to play", "اكتشف مكان تلعب فيه", ["/academies", "/marketplace", "/dashboard/games", "/events"]),
+      group("Find a place to play", "اكتشف مكان تلعب فيه", ["/academies", "/following", "/marketplace", "/dashboard/games", "/events"]),
       group("Community", "المجتمع", ["/community", "/leaderboard", "/scouting", "/dashboard/tournaments"]),
       group("Membership", "الاشتراك", ["/upgrade"]),
     ];
