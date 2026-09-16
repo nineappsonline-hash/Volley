@@ -393,7 +393,7 @@ export function OnboardingWizard() {
                     </SelectTrigger>
                     <SelectContent>
                       {WEEKDAYS.map((d) => (
-                        <SelectItem key={d} value={String(d)}>
+                        <SelectItem key={d} value={String(d)} textValue={String(d).padStart(2, "0")}>
                           {t(`avail_day_${d}` as keyof Dict)}
                         </SelectItem>
                       ))}
