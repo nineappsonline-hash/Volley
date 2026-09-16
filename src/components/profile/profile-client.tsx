@@ -18,6 +18,7 @@ import {
   Phone,
   Save,
   Settings as SettingsIcon,
+  SmilePlus,
   Swords,
   Timer,
   Trophy,
@@ -32,13 +33,14 @@ import { UsernameField } from "@/components/shared/username-field";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ProfileAvatar } from "@/components/shared/profile-avatar";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
@@ -47,6 +49,7 @@ import { CheckinQrCard } from "@/components/profile/checkin-qr-card";
 import { FamilyCard } from "@/components/profile/family-card";
 import { MapPicker } from "@/components/shared/map-picker";
 import { createClient } from "@/lib/supabase/client";
+import { AVATAR_PRESETS, isAvatarPreset } from "@/lib/avatars";
 import { useI18n, type Dict } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import { usedSessionsSincePayment } from "@/lib/calculations";
@@ -286,6 +289,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
   const [saving, setSaving] = useState(false);
   const [savingLoc, setSavingLoc] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const updateProfile = useUpdateOwnProfile();
 
@@ -412,6 +416,17 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
     }
   };
 
+  const handlePickPreset = async (avatarId: string) => {
+    setAvatarPickerOpen(false);
+    try {
+      // Choosing a preset also clears the uploaded photo so the emoji shows.
+      await updateProfile.mutateAsync({ id: p.id, avatar_id: avatarId, avatar_url: null });
+      toast.success(t("profile_saved"));
+    } catch {
+      toast.error(t("common_error"));
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader title={t("profile_title")} subtitle={t("profile_subtitle")} />
@@ -466,21 +481,32 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                 <ProfileAvatar
                   name={p.name}
                   url={p.avatar_url}
+                  avatarId={p.avatar_id}
                   className="h-16 w-16"
                   fallbackClassName="text-lg"
                 />
-                <button
-                  type="button"
-                  aria-label={t("avatar_change")}
-                  onClick={() => avatarInputRef.current?.click()}
-                  className="absolute -bottom-1 -end-1 flex h-7 w-7 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm transition-colors hover:text-foreground"
-                >
-                  {uploadingAvatar ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <Camera className="h-3.5 w-3.5" />
-                  )}
-                </button>
+                <div className="absolute -bottom-1 -end-1 flex gap-1">
+                  <button
+                    type="button"
+                    aria-label={t("avatar_change")}
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="flex h-7 w-7 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm transition-colors hover:text-foreground"
+                  >
+                    {uploadingAvatar ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Camera className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={t("avatar_pick_preset")}
+                    onClick={() => setAvatarPickerOpen(true)}
+                    className="flex h-7 w-7 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm transition-colors hover:text-foreground"
+                  >
+                    <SmilePlus className="h-3.5 w-3.5" />
+                  </button>
+                </div>
                 <input
                   ref={avatarInputRef}
                   type="file"
@@ -586,6 +612,36 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
             </div>
           </CardContent>
         </Card>
+
+        <Dialog open={avatarPickerOpen} onOpenChange={setAvatarPickerOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t("avatar_presets_title")}</DialogTitle>
+              <DialogDescription>{t("avatar_presets_subtitle")}</DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-5 gap-2">
+              {AVATAR_PRESETS.map((preset) => {
+                const selected = isAvatarPreset(p.avatar_id) && p.avatar_id === preset;
+                return (
+                  <button
+                    key={preset}
+                    type="button"
+                    aria-label={preset}
+                    aria-pressed={selected}
+                    onClick={() => handlePickPreset(preset)}
+                    className={`flex aspect-square items-center justify-center rounded-full border text-2xl transition-transform hover:scale-110 ${
+                      selected
+                        ? "border-primary bg-primary/10 ring-2 ring-primary/30"
+                        : "border-border bg-muted/40 hover:border-primary/40"
+                    }`}
+                  >
+                    {preset}
+                  </button>
+                );
+              })}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Middle column: subscription + payments */}
         <div className="space-y-6 lg:col-span-2">

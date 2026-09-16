@@ -209,6 +209,7 @@ export function ParentDashboard() {
                         <ProfileAvatar
                           name={child.name}
                           url={child.avatar_url}
+                          avatarId={child.avatar_id}
                           className="h-12 w-12 shrink-0"
                         />
                         <div className="min-w-0">

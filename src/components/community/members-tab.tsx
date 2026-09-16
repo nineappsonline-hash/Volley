@@ -61,7 +61,7 @@ function MemberCard({
   const show = isBlocked ? (
     <Card className="opacity-60">
       <CardContent className="flex items-center gap-3 p-4">
-        <ProfileAvatar name={member.display_name} url={member.avatar_url} className="h-10 w-10 shrink-0" />
+        <ProfileAvatar name={member.display_name} url={member.avatar_url} avatarId={member.avatar_id} className="h-10 w-10 shrink-0" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{member.display_name}</p>
           <p className="text-xs text-muted-foreground">{t("blocked_label")}</p>
@@ -83,7 +83,7 @@ function MemberCard({
   ) : (
     <Card className="animate-fade-in-up hover:border-primary/30 transition-colors">
       <CardContent className="flex items-start gap-3 p-4">
-        <ProfileAvatar name={member.display_name} url={member.avatar_url} className="h-10 w-10 shrink-0" />
+        <ProfileAvatar name={member.display_name} url={member.avatar_url} avatarId={member.avatar_id} className="h-10 w-10 shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <p className="truncate text-sm font-semibold">{member.display_name}</p>

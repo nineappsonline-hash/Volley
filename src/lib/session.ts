@@ -54,6 +54,7 @@ export async function requireSession(): Promise<SessionData> {
     phone: (user.user_metadata?.phone as string | null) ?? null,
     guardian_id: null,
     avatar_url: null,
+    avatar_id: null,
     join_date: null,
     membership_type: "full",
     subscription_sessions: 0,

@@ -31,6 +31,22 @@ BEGIN
 END;
 $$;
 
+-- Random preset avatar (an emoji character). The id IS the emoji itself, so
+-- clients render it directly without a lookup. VOLATILE because it calls
+-- random(). Keep the 20 emojis in sync with src/lib/avatars.ts.
+CREATE OR REPLACE FUNCTION public.random_avatar_id()
+RETURNS TEXT
+LANGUAGE sql
+VOLATILE
+SET search_path = public
+AS $$
+  SELECT (ARRAY[
+    '🦁', '🐯', '🐼', '🐸', '🦊', '🐻', '🐨', '🐶', '🐱', '🐰',
+    '🦄', '🐙', '🦋', '🐢', '🦖', '🦅', '🐺', '🦉', '🐵', '🐷'
+  ])[1 + floor(random() * 20)::int];
+$$;
+GRANT EXECUTE ON FUNCTION public.random_avatar_id() TO authenticated;
+
 -- ────────────────────────────────────────────────────────────
 -- 1. TABLES
 -- ────────────────────────────────────────────────────────────
@@ -100,6 +116,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   -- Object path inside the public "avatars" storage bucket; NULL until the
   -- member uploads a profile picture.
   avatar_url TEXT,
+  -- Preset emoji avatar shown when no photo is uploaded; a random one is
+  -- assigned on row creation (see public.random_avatar_id()).
+  avatar_id TEXT DEFAULT public.random_avatar_id(),
   -- Community join criteria: games may restrict players by gender and/or age.
   gender TEXT CHECK (gender IN ('male', 'female')),
   birth_date DATE,
@@ -2130,6 +2149,7 @@ SELECT
   p.name,
   p.username,
   p.avatar_url,
+  p.avatar_id,
   p.bio,
   p.academy_id,
   a.name AS academy_name,
@@ -4157,6 +4177,7 @@ SELECT
   pr.id AS member_id,
   pr.name,
   pr.username,
+  pr.avatar_id,
   COALESCE(played.games_played, 0) AS games_played,
   COALESCE(attend.sessions_attended, 0) AS sessions_attended,
   COALESCE(played.games_played, 0) * 2 + COALESCE(attend.sessions_attended, 0) AS points
@@ -4177,6 +4198,7 @@ SELECT
   pr.id AS member_id,
   pr.name,
   pr.username,
+  pr.avatar_id,
   played.sport::TEXT AS sport,
   played.games_played,
   played.games_played * 2 AS points,
@@ -5999,6 +6021,7 @@ SELECT
   p.username,
   public.player_display_name(p) AS display_name,
   p.avatar_url,
+  p.avatar_id,
   p.bio,
   p.academy_id,
   a.name AS academy_name,

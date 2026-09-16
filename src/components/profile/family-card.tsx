@@ -63,7 +63,7 @@ export function FamilyCard() {
                 key={child.id}
                 className="flex items-center gap-3 rounded-lg border p-2.5"
               >
-                <ProfileAvatar name={child.name} url={child.avatar_url} className="h-9 w-9" />
+                <ProfileAvatar name={child.name} url={child.avatar_url} avatarId={child.avatar_id} className="h-9 w-9" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{child.name}</p>
                   <div className="mt-0.5 flex flex-wrap items-center gap-1">

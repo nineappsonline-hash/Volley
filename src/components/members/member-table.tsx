@@ -190,7 +190,7 @@ export function MemberTable({ members, onEdit, onDelete, onRecordPayment, onMana
                 <TableRow key={m.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <ProfileAvatar name={m.name} url={m.avatar_url} className="h-8 w-8" />
+                      <ProfileAvatar name={m.name} url={m.avatar_url} avatarId={m.avatar_id} className="h-8 w-8" />
                       <div className="min-w-0">
                         <p className="truncate font-medium">{m.name}</p>
                         <p className="truncate text-xs text-muted-foreground">

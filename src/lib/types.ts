@@ -101,6 +101,8 @@ export interface Profile {
   // Object path inside the public "avatars" bucket; null until the member
   // uploads a profile picture.
   avatar_url: string | null;
+  // Preset emoji avatar shown when no photo is uploaded (see @/lib/avatars).
+  avatar_id: string | null;
   join_date: string | null;
   membership_type: MembershipType;
   subscription_sessions: number;
@@ -612,6 +614,7 @@ export interface CommunityMember {
   lat: number | null;
   lng: number | null;
   avatar_url: string | null;
+  avatar_id: string | null;
 }
 
 export interface FriendlyGame {

@@ -27,7 +27,7 @@ async function getHomepageLeaderboard(): Promise<{
     const [{ data: rows }, games, players, sessions, members] = await Promise.all([
       admin
         .from("community_leaderboard")
-        .select("member_id, name, username, games_played, sessions_attended, points")
+        .select("member_id, name, username, avatar_id, games_played, sessions_attended, points")
         .order("points", { ascending: false })
         .limit(10),
       admin
@@ -62,6 +62,7 @@ async function getHomepageLeaderboard(): Promise<{
       member_id: row.member_id,
       name: row.name,
       username: row.username,
+      avatar_id: row.avatar_id,
       avatar_url: avatarMap.get(row.member_id) ?? null,
       games_played: row.games_played,
       sessions_attended: row.sessions_attended,

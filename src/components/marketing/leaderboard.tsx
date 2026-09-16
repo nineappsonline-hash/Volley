@@ -11,6 +11,7 @@ export interface HomepageLeader {
   member_id: string;
   name: string;
   username: string | null;
+  avatar_id: string | null;
   avatar_url: string | null;
   games_played: number;
   sessions_attended: number;
@@ -218,7 +219,7 @@ export function LeaderboardSection({
                         className={`${styles.podiumAvatar} ${rankIndex === 0 ? styles.podiumAvatarTop : ""}`}
                         style={{ borderColor: PODIUM_RING[rankIndex], animationDelay: `${k * 130}ms` }}
                       >
-                        <ProfileAvatar name={leader.name} url={leader.avatar_url} className="h-full w-full" />
+                        <ProfileAvatar name={leader.name} url={leader.avatar_url} avatarId={leader.avatar_id} className="h-full w-full" />
                       </div>
                       <div className={styles.podiumTrack}>
                         <div className={styles.podiumBar} style={{ height: PODIUM_BAR_H[rankIndex] }}>
@@ -245,7 +246,7 @@ export function LeaderboardSection({
                     <div className={styles.lbRow} key={leader.member_id}>
                       <span className={styles.lbRank}>{i + 4}</span>
                       <div className={styles.lbAvatar}>
-                        <ProfileAvatar name={leader.name} url={leader.avatar_url} className="h-full w-full" />
+                        <ProfileAvatar name={leader.name} url={leader.avatar_url} avatarId={leader.avatar_id} className="h-full w-full" />
                       </div>
                       <div className={styles.lbBody}>
                         <div className={styles.lbName}>

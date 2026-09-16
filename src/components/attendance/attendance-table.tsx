@@ -339,7 +339,7 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
                   </td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-3">
-                      <ProfileAvatar name={m.name} url={m.avatar_url} className="h-8 w-8" />
+                      <ProfileAvatar name={m.name} url={m.avatar_url} avatarId={m.avatar_id} className="h-8 w-8" />
                       <div>
                         <p className="font-medium">{m.name}</p>
                         <p className="text-xs text-muted-foreground">

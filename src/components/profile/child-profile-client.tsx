@@ -102,7 +102,7 @@ export function ChildProfileClient({ child }: { child: Profile }) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3">
-              <ProfileAvatar name={member.name} url={member.avatar_url} className="h-12 w-12" fallbackClassName="text-base" />
+              <ProfileAvatar name={member.name} url={member.avatar_url} avatarId={member.avatar_id} className="h-12 w-12" fallbackClassName="text-base" />
               <div>
                 <p className="font-semibold">{member.name}</p>
                 <div className="mt-0.5 flex flex-wrap gap-1">

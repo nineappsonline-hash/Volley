@@ -42,6 +42,7 @@ export default async function DashboardLayout({
           name={profile.name}
           username={profile.username}
           avatarUrl={profile.avatar_url}
+          avatarId={profile.avatar_id}
           memberPlan={profile.member_plan}
           academy={academy}
         />

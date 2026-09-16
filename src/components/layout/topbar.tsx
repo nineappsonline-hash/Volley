@@ -27,6 +27,7 @@ interface TopbarProps {
   name: string;
   username: string;
   avatarUrl?: string | null;
+  avatarId?: string | null;
   memberPlan?: "free" | "premium";
   academy?: {
     plan: string;
@@ -35,7 +36,7 @@ interface TopbarProps {
   } | null;
 }
 
-export function Topbar({ role, name, username, avatarUrl, memberPlan, academy }: TopbarProps) {
+export function Topbar({ role, name, username, avatarUrl, avatarId, memberPlan, academy }: TopbarProps) {
   const { t, lang } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
@@ -94,7 +95,7 @@ export function Topbar({ role, name, username, avatarUrl, memberPlan, academy }:
               aria-label={lang === "ar" ? "قائمة الحساب" : "Account menu"}
               className="gap-2 rounded-full pe-1 ps-1 sm:pe-2"
             >
-              <ProfileAvatar name={name} url={avatarUrl} className="h-7 w-7" />
+              <ProfileAvatar name={name} url={avatarUrl} avatarId={avatarId} className="h-7 w-7" />
               <span className="hidden text-sm font-medium sm:inline">
                 {name.split(" ")[0]}
               </span>

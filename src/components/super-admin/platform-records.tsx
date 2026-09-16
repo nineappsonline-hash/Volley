@@ -252,7 +252,7 @@ function AcademyMemberRow({ member }: { member: Row }) {
   return <details className="rounded-lg border px-3 py-2">
     <summary className="cursor-pointer text-sm marker:text-muted-foreground">
       <span className="inline-flex max-w-[calc(100%-1.5rem)] items-center gap-2 align-middle">
-        <ProfileAvatar name={member.name ?? ""} url={member.avatar_url} className="h-7 w-7 shrink-0" />
+        <ProfileAvatar name={member.name ?? ""} url={member.avatar_url} avatarId={member.avatar_id} className="h-7 w-7 shrink-0" />
         <span className="truncate font-medium">{member.name || t("sa_unnamed_member")}</span>
         {member.username && <span className="shrink-0 text-xs text-muted-foreground">@{member.username}</span>}
         <span className="shrink-0 text-xs text-muted-foreground">{status}</span>
@@ -340,7 +340,7 @@ function GameParticipantRow({ participant }: { participant: Row }) {
         : <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("sa_records_unpaid")}</span>;
   const name = participant.name ?? participant.player_name ?? t("sa_unnamed_member");
   return <div className="flex items-center gap-2.5 rounded-lg border px-3 py-2">
-    <ProfileAvatar name={name} url={participant.avatar_url} className="h-8 w-8 shrink-0" />
+    <ProfileAvatar name={name} url={participant.avatar_url} avatarId={participant.avatar_id} className="h-8 w-8 shrink-0" />
     <div className="min-w-0 flex-1">
       <p className="truncate text-sm font-medium">{name}</p>
       <p className="text-xs text-muted-foreground">{participant.role === "organizer" ? t("sa_organizer") : t("sa_player")}{participant.share_amount != null && Number(participant.share_amount) > 0 && <span> · {formatMoney(participant.share_amount, lang)}</span>}</p>
@@ -397,7 +397,7 @@ function GameDetails({ game, data }: { game: Row; data: Records }) {
     </section>
     <section className="space-y-2"><h3 className="text-sm font-semibold">{t("sa_game_organizer")}</h3>
       <div className="flex items-center gap-2.5 rounded-lg border px-3 py-2">
-        <ProfileAvatar name={creator?.name ?? game.creator_name ?? ""} url={creator?.avatar_url} className="h-9 w-9 shrink-0" />
+        <ProfileAvatar name={creator?.name ?? game.creator_name ?? ""} url={creator?.avatar_url} avatarId={creator?.avatar_id} className="h-9 w-9 shrink-0" />
         <div className="min-w-0">
           <p className="truncate text-sm font-medium">{creator?.name ?? game.creator_name ?? notSet}</p>
           {(game.creator_username || creator?.username) && <p className="truncate text-xs text-muted-foreground">@{game.creator_username ?? creator?.username}</p>}
@@ -565,7 +565,7 @@ export function PlatformRecords() {
     : t("sa_records_search_general");
   const related = selected ? (tab === "Members" ? { Payments: data.payments.filter(r => r.member_id === selected.id), Attendance: data.attendance.filter(r => r.member_id === selected.id), Games: data.friendly_game_participants.filter(r => r.member_id === selected.id) } : tab === "Academies" ? { [t("sa_members")]: data.profiles.filter(r => r.academy_id === selected.id), [t("sa_branches")]: data.academy_branches.filter(r => r.academy_id === selected.id), [t("sa_membership_plans")]: data.membership_plans.filter(r => r.academy_id === selected.id), [t("sa_playgrounds")]: data.venues.filter(r => r.academy_id === selected.id) } : tab === "Friendly games" ? { Participants: data.friendly_game_participants.filter(r => r.game_id === selected.id).map(r => {
     const profile = data.profiles.find(p => p.id === r.member_id);
-    return { ...r, name: profile?.name ?? r.player_name, avatar_url: profile?.avatar_url };
+    return { ...r, name: profile?.name ?? r.player_name, avatar_url: profile?.avatar_url, avatar_id: profile?.avatar_id ?? null };
   }) } : tab === "Tournaments" ? {
     [t("sa_records_teams")]: data.tournament_teams.filter(r => r.tournament_id === selected.id).map(r => ({ id: r.id, name: r.name, players: data.tournament_team_members.filter(m => m.team_id === r.id).length })),
     [t("sa_records_participants")]: data.tournament_participants.filter(r => r.tournament_id === selected.id).map(r => ({ id: r.id, member: data.profiles.find(p => p.id === r.member_id)?.name ?? r.member_id })),
@@ -591,7 +591,7 @@ export function PlatformRecords() {
         return <article key={row.id} className="rounded-xl border p-4 space-y-3">
           <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 flex-1">
             <div className="flex items-center gap-2.5">
-              {tab === "Members" && <ProfileAvatar name={row.name ?? ""} url={row.avatar_url} className="h-10 w-10 shrink-0" />}
+              {tab === "Members" && <ProfileAvatar name={row.name ?? ""} url={row.avatar_url} avatarId={row.avatar_id} className="h-10 w-10 shrink-0" />}
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="break-words font-semibold">{row.name ?? row.title}</h3>
