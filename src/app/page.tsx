@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LandingPage } from "@/components/marketing/landing";
+import type { HomepageCommunityStats, HomepageLeader } from "@/components/marketing/leaderboard";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { dictionary } from "@/lib/i18n/dictionary";
 import {
   OG_IMAGE,
@@ -14,6 +16,72 @@ import {
   softwareAppJsonLd,
   websiteJsonLd,
 } from "@/lib/seo";
+
+async function getHomepageLeaderboard(): Promise<{
+  leaders: HomepageLeader[];
+  stats: HomepageCommunityStats;
+}> {
+  const empty = { leaders: [], stats: { games: 0, players: 0, sessions: 0, members: 0 } };
+  try {
+    const admin = createAdminClient();
+    const [{ data: rows }, games, players, sessions, members] = await Promise.all([
+      admin
+        .from("community_leaderboard")
+        .select("member_id, name, username, games_played, sessions_attended, points")
+        .order("points", { ascending: false })
+        .limit(24),
+      admin
+        .from("friendly_games")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "completed"),
+      admin
+        .from("friendly_game_participants")
+        .select("id", { count: "exact", head: true }),
+      admin
+        .from("attendance")
+        .select("id", { count: "exact", head: true }),
+      admin
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("community_visible", true),
+    ]);
+
+    if (!rows?.length) return empty;
+
+    const ids = rows.map((r) => r.member_id);
+    const avatarMap = new Map<string, string | null>();
+    if (ids.length) {
+      const { data: avatars } = await admin
+        .from("profiles")
+        .select("id, avatar_url")
+        .in("id", ids);
+      for (const row of avatars ?? []) avatarMap.set(row.id, row.avatar_url);
+    }
+
+    const leaders: HomepageLeader[] = rows.map((row) => ({
+      member_id: row.member_id,
+      name: row.name,
+      username: row.username,
+      avatar_url: avatarMap.get(row.member_id) ?? null,
+      games_played: row.games_played,
+      sessions_attended: row.sessions_attended,
+      points: row.points,
+    }));
+
+    return {
+      leaders,
+      stats: {
+        games: games.count ?? 0,
+        players: players.count ?? 0,
+        sessions: sessions.count ?? 0,
+        members: members.count ?? 0,
+      },
+    };
+  } catch (error) {
+    console.error("Failed to load homepage leaderboard", error);
+    return empty;
+  }
+}
 
 export const metadata: Metadata = {
   title: "Playza — Sports Academies, Games & Matches in Egypt | Your Place on the Field",
@@ -89,6 +157,8 @@ export default async function HomePage() {
     [dictionary.en.landing_faq4_q, dictionary.en.landing_faq4_a],
   ];
 
+  const { leaders, stats } = await getHomepageLeaderboard();
+
   const jsonLd = [
     organizationJsonLd(),
     websiteJsonLd(),
@@ -105,7 +175,7 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@graph": jsonLd }) }}
       />
-      <LandingPage />
+      <LandingPage leaders={leaders} stats={stats} />
     </>
   );
 }

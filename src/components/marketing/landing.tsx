@@ -9,6 +9,7 @@ import { LanguageToggle } from "@/components/layout/language-toggle";
 import { InstallBanner } from "@/components/marketing/install-banner";
 import { useI18n } from "@/lib/i18n";
 import { SportIcon } from "./sport-icons";
+import { LeaderboardSection, type HomepageCommunityStats, type HomepageLeader } from "./leaderboard";
 import styles from "./landing.module.css";
 
 function audiences(t: (k: any) => string) {
@@ -30,7 +31,7 @@ function features(t: (k: any) => string) {
   ];
 }
 
-export function LandingPage() {
+export function LandingPage({ leaders, stats }: { leaders: HomepageLeader[]; stats: HomepageCommunityStats }) {
   const { t, lang, dir } = useI18n();
   const pageRef = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -143,6 +144,8 @@ export function LandingPage() {
       </section>
 
       <section id="features" className={`${styles.section} ${styles.featureSection}`}><div className={styles.sectionHeading}><span className={styles.kicker}>{t("landing_feat_kicker")}</span><h2>{t("landing_feat_title_a")}<br /><em>{t("landing_feat_title_b")}</em></h2><p>{t("landing_feat_desc")}</p></div><div className={styles.featureGrid}>{features(t).map((feature, index) => <article className={styles.featureCard} key={feature.title}><div className={styles.featureTop}><feature.icon size={26} /><span>0{index + 1}</span></div><h3>{feature.title}</h3><p>{feature.text}</p></article>)}</div></section>
+
+      <LeaderboardSection leaders={leaders} stats={stats} />
 
       <section className={styles.section}><div className={styles.stepsHeading}><div><span className={styles.kicker}>{t("landing_steps_kicker")}</span><h2>{t("landing_steps_title")}</h2></div><Link className={styles.secondary} href="/signup">{t("landing_steps_cta")} <ArrowUpLeft size={18} /></Link></div><div className={styles.steps}>{steps.map(([title, text], i) => <article key={title}><span>{i + 1}</span><h3>{title}</h3><p>{text}</p></article>)}</div></section>
 
