@@ -106,6 +106,83 @@ export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
   }
 }
 
+/**
+ * Server-only lookup of a single game by its shareable invite code.
+ * Powers the rich link preview (metadata + OG image) for shared game links.
+ */
+export type SharedGameMeta = {
+  id: string;
+  title: string;
+  description: string | null;
+  sport: string;
+  area: string | null;
+  location: string | null;
+  governorate: string | null;
+  game_date: string;
+  start_time: string;
+  max_players: number;
+  joined: number;
+  share_price: number | null;
+  host_pays: boolean;
+  host_total: number | null;
+  is_public: boolean;
+  creator_name: string;
+  map_label: string;
+};
+
+export async function getGameByInviteCode(code: string): Promise<SharedGameMeta | null> {
+  const admin = getAdmin();
+  if (!admin || !code) return null;
+  try {
+    const { data, error } = await admin
+      .from("friendly_games")
+      .select(
+        `id, title, description, sport, area, location, game_date, start_time,
+         max_players, share_price, host_pays, host_total, is_public, creator_name,
+         playground:venues(name, area, governorate),
+         participants:friendly_game_participants(count)`
+      )
+      .eq("invite_code", code.trim().toUpperCase())
+      .neq("status", "cancelled")
+      .limit(1)
+      .single();
+    if (error || !data) return null;
+    const row = data as unknown as {
+      participants?: { count?: number }[] | null;
+      playground?: { name: string | null; area: string | null; governorate: string | null }[] | null;
+    };
+    const playground = row.playground?.[0] ?? null;
+    const meta: SharedGameMeta = {
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      sport: data.sport,
+      area: data.area,
+      location: data.location,
+      governorate: playground?.governorate ?? null,
+      game_date: data.game_date,
+      start_time: data.start_time,
+      max_players: data.max_players,
+      joined: Number(row.participants?.[0]?.count ?? 0),
+      share_price: data.share_price,
+      host_pays: data.host_pays,
+      host_total: data.host_total,
+      is_public: data.is_public,
+      creator_name: data.creator_name,
+      map_label:
+        [playground?.name, playground?.area ?? data.area, playground?.governorate]
+          .filter(Boolean)
+          .join(", ") ||
+        data.location ||
+        data.area ||
+        data.title,
+    };
+    return meta;
+  } catch {
+    return null;
+  }
+}
+
 /** Distinct sports that currently have upcoming public games. */
 export async function getPublicGameSports(): Promise<string[]> {
   const admin = getAdmin();

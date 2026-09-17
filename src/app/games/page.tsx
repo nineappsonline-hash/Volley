@@ -11,6 +11,7 @@ import {
 import { PublicListHero, SportFilterLinks } from "@/components/public/public-listing-ui";
 import { Button } from "@/components/ui/button";
 import {
+  getGameByInviteCode,
   getPublicGameSports,
   getPublicGames,
 } from "@/lib/public-games";
@@ -26,10 +27,63 @@ import {
 
 export const revalidate = 300; // refresh listing every 5 minutes
 
-type SP = Promise<{ sport?: string }>;
+type SP = Promise<{ sport?: string; join?: string }>;
+
+const GAME_OG_IMAGE = (code: string) => `${SITE_URL}/og/game?code=${encodeURIComponent(code)}`;
+
+function gameMeta(game: Awaited<ReturnType<typeof getGameByInviteCode>>) {
+  if (!game) return null;
+  const shareText =
+    game.host_pays || (game.share_price ?? 0) === 0
+      ? "Free — the host covers the court"
+      : `EGP ${game.share_price} per player`;
+  const where = [game.map_label, game.governorate, game.area].filter(Boolean).join(", ");
+  const title = `${game.title} · ${game.sport} game on Playza`;
+  const description = [
+    `${game.sport} game · ${fmtDate(game.game_date)}, ${fmtTime(game.start_time)}`,
+    where,
+    `${game.joined}/${game.max_players} players joined · ${shareText}`,
+  ]
+    .filter(Boolean)
+    .join(" | ");
+  return { title, description };
+}
 
 export async function generateMetadata({ searchParams }: { searchParams: SP }): Promise<Metadata> {
-  const { sport: sportParam } = await searchParams;
+  const params = await searchParams;
+  const { sport: sportParam, join } = params;
+
+  // When the URL is a shared game link (?join=CODE), show that game's details
+  // in the link preview instead of the generic listing card.
+  if (join) {
+    const game = await getGameByInviteCode(join);
+    const meta = gameMeta(game);
+    if (game && meta) {
+      const joinUrl = `${SITE_URL}/games?join=${encodeURIComponent(join)}`;
+      return {
+        title: meta.title,
+        description: meta.description,
+        alternates: { canonical: joinUrl },
+        robots: { index: true, follow: true },
+        openGraph: {
+          title: meta.title,
+          description: meta.description,
+          url: joinUrl,
+          siteName: "Playza",
+          images: [{ url: GAME_OG_IMAGE(join), width: 1200, height: 630, alt: meta.title }],
+          locale: "en_US",
+          type: "website",
+        },
+        twitter: {
+          card: "summary_large_image",
+          title: meta.title,
+          description: meta.description,
+          images: [GAME_OG_IMAGE(join)],
+        },
+      };
+    }
+  }
+
   const sport = sportParam ? slugToSport(sportParam) : undefined;
 
   const title = sport
