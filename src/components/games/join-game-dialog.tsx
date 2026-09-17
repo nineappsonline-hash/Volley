@@ -49,6 +49,7 @@ export function JoinGameDialog({
   inviteCode,
   mode = "join",
   rentRemaining,
+  onSuccess,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -62,6 +63,7 @@ export function JoinGameDialog({
   inviteCode?: string | null;
   mode?: "join" | "pay" | "rent";
   rentRemaining?: number;
+  onSuccess?: () => void;
 }) {
   const { t, lang } = useI18n();
   const supabase = createClient();
@@ -145,6 +147,7 @@ export function JoinGameDialog({
         toast.success(added ? t("games_waitlist_joined") : t("community_joined"));
         requestPushPrompt();
         onOpenChange(false);
+        onSuccess?.();
       } catch (err) {
         toast.error(errorMessage(err, t("common_error")));
       }
@@ -181,6 +184,7 @@ export function JoinGameDialog({
         requestPushPrompt();
       }
       onOpenChange(false);
+      onSuccess?.();
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
     }

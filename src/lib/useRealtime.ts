@@ -12,6 +12,7 @@ type TableName =
   | "monthly_costs"
   | "session_calculations"
   | "session_guests"
+  | "friendly_game_participants"
   | "friendly_games"
   | "notifications"
   | "player_evaluations";
@@ -24,7 +25,8 @@ const queryKeyForTable: Record<TableName, string[]> = {
   monthly_costs: ["costs"],
   session_calculations: ["calculations"],
   session_guests: ["guests"],
-  friendly_games: ["friendly-games"],
+  friendly_games: ["friendly-games", "my-game-participants"],
+  friendly_game_participants: ["my-game-participants", "friendly-games"],
   notifications: ["notifications"],
   player_evaluations: ["evaluations"],
 };

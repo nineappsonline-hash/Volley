@@ -261,7 +261,10 @@ export function SignupForm() {
           // Members who signed up without an invite code pick their academy
           // from the public directory next. Fresh academies continue the setup
           // wizard (branding + photos) on /onboarding.
-          if (academy?.newName) {
+          const gameInvite = searchParams.get("gameInvite");
+          if (gameInvite && !academy?.newName) {
+            router.push(`/games?join=${encodeURIComponent(gameInvite)}`);
+          } else if (academy?.newName) {
             router.push("/onboarding");
           } else {
             const hasAcademy = !!academy?.code || !!academy?.newName;

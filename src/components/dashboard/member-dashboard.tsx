@@ -25,6 +25,7 @@ import { StatCard } from "@/components/shared/stat-card";
 import { Reveal } from "@/components/shared/reveal";
 import { EmptyState } from "@/components/shared/empty-state";
 import { AnnouncementsCard } from "@/components/dashboard/announcements-card";
+import { MyUpcomingGames } from "./my-upcoming-games";
 import { MyTournamentsCard } from "@/components/dashboard/my-tournaments-card";
 import { MemberPlanBanner } from "@/components/upgrade/plan-benefit-banner";
 import { UpcomingTournamentsCard } from "@/components/dashboard/upcoming-tournaments-card";
@@ -249,6 +250,7 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
       </div>
       </Reveal>
       </DashboardSection>
+      <MyUpcomingGames memberId={p.id} />
       <DashboardSection id="tournaments" title={t("td_my_tournaments")} hint={lang === "ar" ? "بطولاتك ونتائجك في مكان واحد" : "Your tournaments and results in one place"}>
         <MyTournamentsCard memberId={p.id} />
       </DashboardSection>

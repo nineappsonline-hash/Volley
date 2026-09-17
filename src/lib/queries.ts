@@ -3039,6 +3039,30 @@ export function usePlaygrounds() {
   });
 }
 
+export function useMyUpcomingGames(memberId: string) {
+  return useQuery({
+    queryKey: [...queryKeys.myGameParticipants, "upcoming", memberId],
+    enabled: !!memberId,
+    queryFn: async () => {
+      const { data, error } = await supabase().from("friendly_game_participants")
+        .select("id, is_waitlisted, pay_status, game:friendly_games!inner(id, title, sport, game_date, start_time, status, invite_code, area)")
+        .eq("member_id", memberId)
+        .gte("game.game_date", new Date().toISOString().slice(0, 10))
+        .in("game.status", ["open", "full"]);
+      if (error) throw error;
+      return (data ?? []).map((row) => ({
+        ...row,
+        game: (Array.isArray(row.game) ? row.game[0] : row.game) as {
+          id: string; title: string; sport: string; game_date: string; start_time: string;
+          status: string; invite_code: string | null; area: string | null;
+        },
+      })).filter(row => row.game).sort((a, b) =>
+        (a.game.game_date + a.game.start_time).localeCompare(b.game.game_date + b.game.start_time)
+      );
+    },
+  });
+}
+
 export function useMyGameParticipants() {
   return useQuery({
     queryKey: queryKeys.myGameParticipants,

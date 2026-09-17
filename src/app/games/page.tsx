@@ -1,3 +1,5 @@
+import { SharedGamePage } from "@/components/games/shared-game-page";
+import { PublicGameJoin } from "@/components/games/public-game-join";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -148,7 +150,8 @@ function fmtTime(t: string): string {
 }
 
 export default async function GamesPage({ searchParams }: { searchParams: SP }) {
-  const { sport: sportParam } = await searchParams;
+  const { sport: sportParam, join } = await searchParams;
+  if (join) return <SharedGamePage game={await getGameByInviteCode(join)} inviteCode={join} />;
   const sport = sportParam ? slugToSport(sportParam) : undefined;
 
   const [games, sports] = await Promise.all([
@@ -285,7 +288,7 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
                   </dl>
 
                   <div className="mt-auto pt-4">
-                    <JoinCta />
+                    <PublicGameJoin game={g} />
                   </div>
                 </article>
               );
@@ -328,14 +331,5 @@ function EmptyState({ sport }: { sport?: string }) {
         your area — sign up and start.
       </p>
     </div>
-  );
-}
-
-/** Join requires an account — the CTA links to signup. */
-function JoinCta() {
-  return (
-    <Button asChild className="w-full">
-      <Link href="/signup">Join game</Link>
-    </Button>
   );
 }

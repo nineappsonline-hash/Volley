@@ -1,3 +1,4 @@
+import { AppLogo } from "@/components/shared/app-logo";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -21,7 +22,7 @@ export function PublicListHero({
     <section className="relative overflow-hidden border-b bg-gradient-to-br from-brand via-brand to-interactive-800 py-14 text-white">
       <div className="pointer-events-none absolute -top-24 start-1/2 h-72 w-[32rem] -translate-x-1/2 rounded-full bg-white/15 blur-3xl rtl:translate-x-1/2" />
       <div className="relative mx-auto flex max-w-3xl flex-col items-center gap-3 px-6 text-center">
-        <span className="text-5xl">{emoji}</span>
+        <Link href="/" aria-label="Playza"><AppLogo className="w-36" /></Link>
         <h1 className="text-3xl font-extrabold sm:text-4xl">{title}</h1>
         <p className="max-w-xl text-sm text-white/85 sm:text-base">{subtitle}</p>
         {note && <p className="max-w-xl text-xs text-white/70">{note}</p>}

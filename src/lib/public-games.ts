@@ -18,6 +18,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
  */
 
 export type PublicGame = {
+  host_pays?: boolean;
+  host_total?: number | null;
   id: string;
   title: string;
   description: string | null;
@@ -75,7 +77,7 @@ export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
     .from("friendly_games")
     .select(
       `id, title, description, sport, area, location, game_date, start_time,
-       max_players, min_players, status, skill_level, gender, share_price,
+       max_players, min_players, status, skill_level, gender, share_price, host_pays, host_total,
        creator_name, playground:venues(name, area, governorate),
        participants:friendly_game_participants(count)`
     )
@@ -111,6 +113,7 @@ export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
  * Powers the rich link preview (metadata + OG image) for shared game links.
  */
 export type SharedGameMeta = {
+  status: string;
   id: string;
   title: string;
   description: string | null;
@@ -138,7 +141,7 @@ export async function getGameByInviteCode(code: string): Promise<SharedGameMeta 
       .from("friendly_games")
       .select(
         `id, title, description, sport, area, location, game_date, start_time,
-         max_players, share_price, host_pays, host_total, is_public, creator_name,
+         max_players, status, share_price, host_pays, host_total, is_public, creator_name,
          playground:venues(name, area, governorate),
          participants:friendly_game_participants(count)`
       )
@@ -149,10 +152,11 @@ export async function getGameByInviteCode(code: string): Promise<SharedGameMeta 
     if (error || !data) return null;
     const row = data as unknown as {
       participants?: { count?: number }[] | null;
-      playground?: { name: string | null; area: string | null; governorate: string | null }[] | null;
+      playground?: PublicGame["playground"] | NonNullable<PublicGame["playground"]>[];
     };
-    const playground = row.playground?.[0] ?? null;
+    const playground = Array.isArray(row.playground) ? row.playground[0] ?? null : row.playground;
     const meta: SharedGameMeta = {
+      status: data.status,
       id: data.id,
       title: data.title,
       description: data.description,
