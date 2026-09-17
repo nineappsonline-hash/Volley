@@ -2,6 +2,7 @@
 export const SPORT_SLUGS: Record<string, string> = {
   football: "Football",
   volleyball: "Volleyball",
+  "beach-volleyball": "Beach Volleyball",
   basketball: "Basketball",
   handball: "Handball",
   tennis: "Tennis",

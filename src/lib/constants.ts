@@ -77,7 +77,7 @@ export const TRIAL_STATUSES = ["new", "contacted", "converted", "declined"] as c
 // Sports offered in the community (used by friendly-game creation). These are
 // global, not per-academy, so members without an academy can still join.
 export const COMMUNITY_SPORTS = [
-  "Volleyball", "Football", "Basketball", "Handball", "Tennis", "Swimming",
+  "Volleyball", "Beach Volleyball", "Football", "Basketball", "Handball", "Tennis", "Swimming",
   "Padel", "Squash", "Table Tennis", "Badminton", "Gymnastics", "Karate",
   "Boxing", "Athletics", "Kung Fu", "Taekwondo", "CrossFit", "Judo",
   "Kickboxing", "Wrestling", "Archery", "Fencing", "Equestrian", "Cycling",

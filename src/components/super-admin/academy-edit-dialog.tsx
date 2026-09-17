@@ -59,6 +59,7 @@ const SPORT_OPTIONS = [
   { value: "Basketball", key: "sport_basketball" },
   { value: "Handball", key: "sport_handball" },
   { value: "Volleyball", key: "sport_volleyball" },
+  { value: "Beach Volleyball", key: "sport_beach_volleyball" },
   { value: "Tennis", key: "sport_tennis" },
   { value: "Swimming", key: "sport_swimming" },
   { value: "Padel", key: "sport_padel" },
