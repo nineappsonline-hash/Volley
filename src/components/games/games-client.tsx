@@ -16,6 +16,7 @@ import {
   MapPin,
   Navigation,
   Plus,
+  Pencil,
   Repeat,
   Share2,
   ShieldCheck,
@@ -72,8 +73,6 @@ import { COMMUNITY_SPORTS, formatMoney } from "@/lib/constants";
 import { gameRentRemaining } from "@/lib/game-costs";
 import { createClient } from "@/lib/supabase/client";
 import {
-  useSetFriendlyGameVisibility,
-  useCancelFriendlyGame,
   useFriendlyGames,
   useJoinFriendlyGame,
   useLeaveFriendlyGame,
@@ -90,6 +89,7 @@ import type {
   Profile,
 } from "@/lib/types";
 import { CreateGameDialog } from "./create-game-dialog";
+import { EditGameDialog } from "./edit-game-dialog";
 
 const STATUS_STYLES: Record<string, string> = {
   open: "bg-positive-100 text-success-ink dark:bg-positive-500/15 dark:text-positive-400",
@@ -134,19 +134,18 @@ function GameCard({
   const router = useRouter();
   const { t, locale, lang } = useI18n();
   const leave = useLeaveFriendlyGame();
-  const cancel = useCancelFriendlyGame();
-  const visibility = useSetFriendlyGameVisibility();
   const join = useJoinFriendlyGame();
   const reminder = useSetKickoffReminder();
   const [reportOpen, setReportOpen] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
   const [payOpen, setPayOpen] = useState<"join" | "pay" | "rent" | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
-  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
 
   const isPro = profile.member_plan === "premium";
   const mine = myParticipants.find((p) => p.game_id === game.id);
   const isOrganizer = game.creator_id === profile.id;
+  const canEdit = isOrganizer || profile.role === "super_admin";
   const joined = !!mine || isOrganizer;
   const rentRemaining = gameRentRemaining(game);
   const waitlisted = !!mine?.is_waitlisted;
@@ -221,16 +220,6 @@ function GameCard({
     try {
       await leave.mutateAsync(game.id);
       toast.success(t("community_left"));
-    } catch (err) {
-      toast.error(errorMessage(err, t("common_error")));
-    }
-  };
-
-  const handleCancel = async () => {
-    setCancelConfirmOpen(false);
-    try {
-      await cancel.mutateAsync(game.id);
-      toast.success(t("community_game_cancelled"));
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
     }
@@ -325,12 +314,10 @@ function GameCard({
               </a>
             </Button>
           )}
-          {isPrivate && (
-            <Badge variant="secondary" className="shrink-0 gap-1 text-[10px]">
-              <UsersRound className="h-3 w-3" />
-              {t("games_private")}
-            </Badge>
-          )}
+          <Badge variant="secondary" className="shrink-0 gap-1 text-[10px]">
+            <UsersRound className="h-3 w-3" />
+            {isPrivate ? t("games_private") : t("games_public")}
+          </Badge>
         </div>
 
         <div className="flex items-center gap-2 rounded-lg border bg-muted/30 px-2.5 py-2">
@@ -468,25 +455,8 @@ function GameCard({
             </Button>
           )}
 
-          {isOrganizer && (
+          {canEdit && (
             <>
-              <Select
-                value={game.is_public ? "public" : "private"}
-                disabled={visibility.isPending}
-                onValueChange={(value) => visibility.mutate(
-                  { gameId: game.id, isPublic: value === "public" },
-                  {
-                    onSuccess: () => toast.success(t("games_visibility_saved")),
-                    onError: (err) => toast.error(errorMessage(err, t("common_error"))),
-                  }
-                )}
-              >
-                <SelectTrigger className="w-36" aria-label={t("games_visibility")}><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="public">{t("games_public")}</SelectItem>
-                  <SelectItem value="private">{t("games_private")}</SelectItem>
-                </SelectContent>
-              </Select>
               {inviteLink && (
                 <Button
                   variant="outline"
@@ -504,7 +474,8 @@ function GameCard({
                   {t("games_copy_invite")}
                 </Button>
               )}
-              {needsResult &&
+              {isOrganizer &&
+                needsResult &&
                 (isPro ? (
                   <Button size="sm" onClick={() => setScoreOpen(true)}>
                     <Trophy className="me-1 h-3.5 w-3.5" />
@@ -519,11 +490,10 @@ function GameCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="text-destructive hover:text-destructive"
-                onClick={() => setCancelConfirmOpen(true)}
-                disabled={cancel.isPending}
+                onClick={() => setEditOpen(true)}
               >
-                {t("community_cancel")}
+                <Pencil className="me-1 h-3.5 w-3.5" />
+                {t("games_edit_btn")}
               </Button>
             </>
           )}
@@ -636,24 +606,12 @@ function GameCard({
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("community_cancel_confirm_title")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("community_cancel_confirm_desc")}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t("common_cancel")}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => void handleCancel()}
-              disabled={cancel.isPending}
-              className="bg-destructive text-white hover:bg-destructive/90"
-            >
-              {t("community_cancel_confirm_btn")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <EditGameDialog
+        game={game}
+        profile={profile}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+      />
     </Card>
   );
 }

@@ -13,6 +13,7 @@ import {
   Link as LinkIcon,
   MapPin,
   Navigation,
+  Pencil,
   Plus,
   Repeat,
   Share2,
@@ -54,7 +55,6 @@ import { useRouter } from "next/navigation";
 import { COMMUNITY_SPORTS, formatMoney } from "@/lib/constants";
 import { gameRentRemaining } from "@/lib/game-costs";
 import {
-  useCancelFriendlyGame,
   useFriendlyGames,
   useLeaveFriendlyGame,
   useMyGameParticipants,
@@ -69,6 +69,7 @@ import type {
   Profile,
 } from "@/lib/types";
 import { CreateGameDialog } from "./create-game-dialog";
+import { EditGameDialog } from "@/components/games/edit-game-dialog";
 
 const STATUS_STYLES: Record<string, string> = {
   open: "bg-positive-100 text-success-ink dark:bg-positive-500/15 dark:text-positive-400",
@@ -100,10 +101,10 @@ function GameCard({
   const router = useRouter();
   const { t, locale, lang } = useI18n();
   const leave = useLeaveFriendlyGame();
-  const cancel = useCancelFriendlyGame();
   const stopRecurring = useStopRecurringGame();
   const [reportOpen, setReportOpen] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [payOpen, setPayOpen] = useState<"join" | "pay" | "rent" | null>(null);
 
   const isPro = profile.member_plan === "premium";
@@ -126,6 +127,7 @@ function GameCard({
 
   const mine = myParticipants.find((p) => p.game_id === game.id);
   const isOrganizer = game.creator_id === profile.id;
+  const canEdit = isOrganizer || profile.role === "super_admin";
   const joined = !!mine || isOrganizer;
   const rentRemaining = gameRentRemaining(game);
   const count = game.participants_count;
@@ -155,15 +157,6 @@ function GameCard({
     try {
       await leave.mutateAsync(game.id);
       toast.success(t("community_left"));
-    } catch (err) {
-      toast.error(errorMessage(err, t("common_error")));
-    }
-  };
-
-  const handleCancel = async () => {
-    try {
-      await cancel.mutateAsync(game.id);
-      toast.success(t("community_game_cancelled"));
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
     }
@@ -326,8 +319,10 @@ function GameCard({
           ) : (
             <Badge variant="outline">{t("community_any_level")}</Badge>
           )}
-          {!game.is_public && (
+          {!game.is_public ? (
             <Badge variant="secondary">{t("community_private")}</Badge>
+          ) : (
+            <Badge variant="secondary">{t("games_public")}</Badge>
           )}
         </div>
 
@@ -381,7 +376,7 @@ function GameCard({
             </Button>
           )}
 
-          {isOrganizer && (
+          {canEdit && (
             <>
               <Button variant="outline" size="sm" onClick={invite}>
                 <Share2 className="me-1 h-3.5 w-3.5" />
@@ -402,11 +397,10 @@ function GameCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="text-destructive hover:text-destructive"
-                onClick={handleCancel}
-                disabled={cancel.isPending}
+                onClick={() => setEditOpen(true)}
               >
-                {t("community_cancel")}
+                <Pencil className="me-1 h-3.5 w-3.5" />
+                {t("games_edit_btn")}
               </Button>
               {isParent &&
                 (isPro ? (
@@ -497,6 +491,12 @@ function GameCard({
         game={game}
         inviteCode={game.is_public ? null : game.invite_code}
         mode={payOpen ?? "join"}
+      />
+      <EditGameDialog
+        game={game}
+        profile={profile}
+        open={editOpen}
+        onOpenChange={setEditOpen}
       />
     </Card>
   );
