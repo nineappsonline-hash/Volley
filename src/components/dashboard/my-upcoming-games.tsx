@@ -24,7 +24,7 @@ import { DirectionsLinks } from "@/components/shared/directions-links";
 import { PlaygroundDistance } from "@/components/shared/playground-distance";
 import { parseMapsCoordinates } from "@/lib/maps";
 import { venueCardPhoto } from "@/lib/venue-media";
-import { formatMoney, formatTime12h } from "@/lib/constants";
+import { addHoursToTime, formatMoney, formatTime12h } from "@/lib/constants";
 import { useRealtime } from "@/lib/useRealtime";
 import { cn } from "@/lib/utils";
 
@@ -76,7 +76,7 @@ export function MyUpcomingGames({ memberId }: { memberId: string }) {
               <div className="flex flex-wrap items-center gap-2"><Badge variant="secondary">{game.sport}</Badge>{is_waitlisted && <Badge variant="secondary">{ar ? "قائمة الانتظار" : "Waitlisted"}</Badge>}</div>
               <h3 className="text-xl font-bold">{game.title}</h3>
               <p className="flex items-center gap-2 text-sm"><CalendarDays className="h-4 w-4 shrink-0" />{prettyDate(game.game_date)}</p>
-              <p className="flex items-center gap-2 text-sm"><Clock className="h-4 w-4 shrink-0" />{formatTime12h(game.start_time, lang)} · {game.duration_hours} {ar ? "ساعة" : "hours"}</p>
+              <p className="flex items-center gap-2 text-sm"><Clock className="h-4 w-4 shrink-0" />{formatTime12h(game.start_time, lang)} {ar ? "إلى" : "to"} {formatTime12h(addHoursToTime(game.start_time, Number(game.duration_hours) || 1), lang)}</p>
               {(game.location || game.area) && <p className="flex items-center gap-2 text-sm"><MapPin className="h-4 w-4 shrink-0" />{[game.location, game.area].filter(Boolean).join(" · ")}</p>}
               <p className="font-semibold text-info-ink">{ar ? "عرض تفاصيل المباراة والمشاركين" : "View game details and participants"}</p>
             </button>

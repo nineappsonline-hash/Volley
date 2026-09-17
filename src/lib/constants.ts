@@ -137,6 +137,19 @@ export function formatTime12h(time: string | null | undefined, lang: "en" | "ar"
 }
 
 /**
+ * Adds a fractional number of hours to an "HH:mm" (or "HH:mm:ss") 24-hour
+ * time string and returns the "HH:mm" end time, wrapping past midnight.
+ * Returns an empty string when the input isn't a parseable time.
+ */
+export function addHoursToTime(time: string | null | undefined, hours: number): string {
+  const match = (time ?? "").trim().match(/^(\d{1,2}):(\d{2})/);
+  if (!match || !Number.isFinite(hours) || hours <= 0) return "";
+  const total = Number(match[1]) * 60 + Number(match[2]) + Math.round(hours * 60);
+  const wrapped = ((total % 1440) + 1440) % 1440;
+  return `${String(Math.floor(wrapped / 60)).padStart(2, "0")}:${String(wrapped % 60).padStart(2, "0")}`;
+}
+
+/**
  * Formats an "HH:mm" 24-hour time string as a compact 12-hour hour label
  * (e.g. "9 AM", "9 PM"; "9 ص" / "9 م" in Arabic) for chart axes and badges.
  * "24:00" (end of day) renders as "12 AM". Non-numeric values pass through
