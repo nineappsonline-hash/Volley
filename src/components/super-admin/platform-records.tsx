@@ -129,7 +129,7 @@ function VenueDetails({ venue, data }: { venue: Row; data: Records }) {
   const coords = typeof venue.lat === "number" && typeof venue.lng === "number"
     ? ({ lat: venue.lat, lng: venue.lng } as const)
     : parseMapsCoordinates(venue.location_link ?? "");
-  const location = [venue.country, venue.governorate, venue.area].filter(Boolean).join(" · ") || notSet;
+  const location = [venue.country, venue.governorate, venue.area, venue.address].filter(v => v && String(v).trim()).map(v => String(v).trim()).join(" · ") || notSet;
   const slots = ((venue.unavailable_slots ?? []) as VenueUnavailableSlot[])
     .slice()
     .sort((a, b) => a.weekday - b.weekday || minutesOf(a.start) - minutesOf(b.start));
@@ -529,7 +529,8 @@ export function PlatformRecords() {
     });
   };
   if (error || !data) return <Card><CardContent className="p-6"><p role="alert">{error?.message ?? t("sa_could_not_load")}</p><Button onClick={() => refetch()}>{t("sa_retry")}</Button></CardContent></Card>;
-  const sports = Array.from(new Map((data.sports ?? []).map(s => [String(s.name).toLowerCase(), s])).values())
+  const sports = data.sports ?? [];
+  const sportOptions = Array.from(new Map(sports.map(s => [String(s.name).toLowerCase(), s])).values())
   .sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: "base" }));
   const sportById = new Map(sports.map((s) => [s.id, s.name]));
   const handleSportSelect = (newSportId: string | null) => {
@@ -600,7 +601,7 @@ export function PlatformRecords() {
                   {row.guardian_id && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{t("sa_family_member")}</span>}
                   {tab === "Playgrounds" && row.sport_id && sportById.has(row.sport_id) && <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">{sportById.get(row.sport_id)}</span>}
                 </div>
-                {tab === "Members" ? (row.email ? <p className="mt-1 break-all text-sm text-muted-foreground">{row.email}</p> : <p className="mt-1 text-xs text-muted-foreground">{t("sa_no_login")}</p>) : tab === "Friendly games" ? <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs"><span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 font-semibold text-primary">{row.sport}</span><span className={`rounded-full px-2 py-0.5 font-medium ${GAME_STATUS_STYLES[row.status] ?? "bg-muted text-muted-foreground"}`}>{t(`community_status_${row.status}` as keyof Dict)}</span><span className="rounded-full bg-muted px-2 py-0.5 font-medium text-muted-foreground">{row.game_date} · {row.start_time ? String(row.start_time).slice(0, 5) : ""}</span><span className="rounded-full bg-muted px-2 py-0.5 font-medium text-muted-foreground">{data.friendly_game_participants.filter(p => p.game_id === row.id && !p.is_waitlisted).length}/{row.max_players} {t("sa_records_players")}</span></div> : <p className="text-sm text-muted-foreground">{tab === "Academies" ? `${row.plan} · ${row.is_trial ? t("sa_trial") : t("sa_records_paid")} · ${data.profiles.filter(p => p.academy_id === row.id).length} ${t("sa_records_accounts")}` : tab === "Tournaments" ? `${academy(row.academy_id)} · ${row.format ?? "—"} · ${row.status} · ${data.tournament_matches.filter(m => m.tournament_id === row.id).length} ${t("sa_records_matches_short")}` : `${academy(row.academy_id)} · ${[row.governorate, row.area].filter(Boolean).join(" · ") || t("sa_no_address")}`}</p>}
+                {tab === "Members" ? (row.email ? <p className="mt-1 break-all text-sm text-muted-foreground">{row.email}</p> : <p className="mt-1 text-xs text-muted-foreground">{t("sa_no_login")}</p>) : tab === "Friendly games" ? <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs"><span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 font-semibold text-primary">{row.sport}</span><span className={`rounded-full px-2 py-0.5 font-medium ${GAME_STATUS_STYLES[row.status] ?? "bg-muted text-muted-foreground"}`}>{t(`community_status_${row.status}` as keyof Dict)}</span><span className="rounded-full bg-muted px-2 py-0.5 font-medium text-muted-foreground">{row.game_date} · {row.start_time ? String(row.start_time).slice(0, 5) : ""}</span><span className="rounded-full bg-muted px-2 py-0.5 font-medium text-muted-foreground">{data.friendly_game_participants.filter(p => p.game_id === row.id && !p.is_waitlisted).length}/{row.max_players} {t("sa_records_players")}</span></div> : <p className="text-sm text-muted-foreground">{tab === "Academies" ? `${row.plan} · ${row.is_trial ? t("sa_trial") : t("sa_records_paid")} · ${data.profiles.filter(p => p.academy_id === row.id).length} ${t("sa_records_accounts")}` : tab === "Tournaments" ? `${academy(row.academy_id)} · ${row.format ?? "—"} · ${row.status} · ${data.tournament_matches.filter(m => m.tournament_id === row.id).length} ${t("sa_records_matches_short")}` : `${academy(row.academy_id)} · ${[row.governorate, row.area, row.address].filter(v => v && String(v).trim()).map(v => String(v).trim()).join(" · ") || t("sa_no_address")}`}</p>}
               </div>
             </div>
           </div>
@@ -669,7 +670,7 @@ export function PlatformRecords() {
           <div className="space-y-2">
             <Label>{t("sa_sport")}</Label>
             <SportCombobox
-              sports={sports}
+              sports={sportOptions}
               value={editingVenue.sport_id}
               onSelect={handleSportSelect}
               placeholder={t("sa_sport_search")}
