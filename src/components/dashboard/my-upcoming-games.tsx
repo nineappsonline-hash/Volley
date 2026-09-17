@@ -60,6 +60,9 @@ export function MyUpcomingGames({ memberId }: { memberId: string }) {
     return null;
   })();
 
+  const directionQuery =
+    game?.location ?? game?.playground?.name ?? game?.area ?? game?.title;
+
   const activeCount = roster.data?.filter(p => !p.is_waitlisted).length ?? 0;
   const waitlistCount = roster.data?.filter(p => p.is_waitlisted).length ?? 0;
 
@@ -137,8 +140,8 @@ export function MyUpcomingGames({ memberId }: { memberId: string }) {
                     {directionTarget && <PlaygroundDistance lat={directionTarget.lat} lng={directionTarget.lng} />}
                   </p>
                 </div>
-                {directionTarget && (
-                  <DirectionsLinks lat={directionTarget.lat} lng={directionTarget.lng} query={game.location ?? game.playground?.name ?? game.area ?? game.title} />
+                {directionQuery && (
+                  <DirectionsLinks lat={directionTarget?.lat} lng={directionTarget?.lng} query={directionQuery} />
                 )}
               </div>
             )}
