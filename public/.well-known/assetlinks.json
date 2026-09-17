@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.playza.playza_app",
+      "sha256_cert_fingerprints": [
+        "08:45:38:BC:DA:5B:CB:63:0F:7F:70:61:EB:70:5C:31:33:32:A8:A9:E9:03:84:AE:09:85:D9:A6:19:8F:4B:57"
+      ]
+    }
+  }
+]
