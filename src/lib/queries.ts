@@ -3060,19 +3060,33 @@ export function useMyUpcomingGames(memberId: string) {
     enabled: !!memberId,
     queryFn: async () => {
       const { data, error } = await supabase().from("friendly_game_participants")
-        .select("id, is_waitlisted, pay_status, game:friendly_games!inner(id, title, sport, game_date, start_time, status, invite_code, area, location, duration_hours, description, max_players)")
+        .select("id, is_waitlisted, pay_status, game:friendly_games!inner(id, title, sport, game_date, start_time, status, invite_code, area, location, duration_hours, description, max_players, min_players, lat, lng, is_public, share_price, host_pays, playground:venues(name, country, area, governorate, address, lat, lng, location_link, photos, cover_url))")
         .eq("member_id", memberId)
         .gte("game.game_date", new Date().toISOString().slice(0, 10))
         .in("game.status", ["open", "full"]);
       if (error) throw error;
-      return (data ?? []).map((row) => ({
-        ...row,
-        game: (Array.isArray(row.game) ? row.game[0] : row.game) as {
-          id: string; title: string; sport: string; game_date: string; start_time: string;
-          status: string; invite_code: string | null; area: string | null;
-          location: string | null; duration_hours: number; description: string | null; max_players: number;
-        },
-      })).filter(row => row.game).sort((a, b) =>
+      return (data ?? []).map((row) => {
+        const g = (Array.isArray(row.game) ? row.game[0] : row.game) as any;
+        const playground = Array.isArray(g?.playground) ? g.playground[0] ?? null : (g?.playground ?? null);
+        return {
+          ...row,
+          game: {
+            ...g,
+            playground,
+          } as {
+            id: string; title: string; sport: string; game_date: string; start_time: string;
+            status: string; invite_code: string | null; area: string | null;
+            location: string | null; duration_hours: number; description: string | null; max_players: number;
+            min_players: number; lat: number | null; lng: number | null; is_public: boolean;
+            share_price: number | null; host_pays: boolean;
+            playground: {
+              country: string | null; name: string | null; area: string | null; governorate: string | null;
+              address: string | null; lat: number | null; lng: number | null; location_link: string | null;
+              photos: string[]; cover_url: string | null;
+            } | null;
+          },
+        };
+      }).filter(row => row.game).sort((a, b) =>
         (a.game.game_date + a.game.start_time).localeCompare(b.game.game_date + b.game.start_time)
       );
     },
