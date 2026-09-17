@@ -1787,7 +1787,7 @@ export const dictionary = {
     games_rent_card_hint: "The court is booked once the full rent is covered. Pay the remaining amount now to lock it in.",
     games_rent_already_pending: "You already have a pending rent payment for this game.",
     games_rent_submitted: "Rent payment submitted — the reservation will be confirmed once verified",
-    games_rent_skip: "Skip for now",
+    games_rent_skip: "OK",
     // ── Host pays the whole game ──
     games_host_pays: "I'll cover the whole game",
     games_host_pays_hint: "You pay the full playground rental; everyone else joins for free.",
