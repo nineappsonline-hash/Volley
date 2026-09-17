@@ -243,6 +243,14 @@ export default function RootLayout({
           rel="icon"
           href="/favicon.png"
         />
+        {/* AI / LLM machine-readable overview (llms.txt spec) — helps ChatGPT, Gemini, Claude & Perplexity describe the site accurately. */}
+        <link
+          rel="alternate"
+          type="text/markdown"
+          title="Playza overview for AI assistants"
+          href="/llms.txt"
+        />
+        <link rel="describedby" type="text/markdown" href="/llms.txt" />
       </head>
       <body className="font-sans">
         <ScrollToTop />
