@@ -6,7 +6,7 @@ import { Trophy, CalendarDays, ArrowRight, MapPin, UserRound, Users } from "luci
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/empty-state";
-import { formatMoney } from "@/lib/constants";
+import { formatMoney, formatTime12h } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n";
 import { useAllTournaments, useVenues } from "@/lib/queries";
 
@@ -79,7 +79,7 @@ export function UpcomingTournamentsCard() {
                   <span className="flex items-center gap-1">
                     <CalendarDays className="h-3 w-3" />
                     {new Intl.DateTimeFormat(lang, { dateStyle: "medium" }).format(new Date(tr.start_date + "T00:00:00"))}
-                    {tr.start_time ? ` · ${tr.start_time.slice(0, 5)}` : ""}
+                    {tr.start_time ? ` · ${formatTime12h(tr.start_time, lang)}` : ""}
                     {tr.end_date
                       ? ` — ${new Intl.DateTimeFormat(lang, { dateStyle: "medium" }).format(new Date(tr.end_date + "T00:00:00"))}`
                       : ""}

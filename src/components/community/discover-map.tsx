@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/i18n";
+import { formatTime12h } from "@/lib/constants";
 import { JoinGameDialog } from "@/components/games/join-game-dialog";
 import { FollowAcademyButton } from "@/components/academies/follow-badge-button";
 import {
@@ -46,7 +47,7 @@ function FitBounds({ bounds }: { bounds: L.LatLngBoundsExpression }) {
 }
 
 export default function DiscoverMap({ profile }: { profile: Profile }) {
-  const { t, locale } = useI18n();
+  const { t, locale, lang } = useI18n();
   const { data: games, isLoading: loadingGames } = useFriendlyGames();
   const { data: academies, isLoading: loadingAcademies } = usePublicAcademies();
   const { data: myParticipants } = useMyGameParticipants();
@@ -173,7 +174,7 @@ export default function DiscoverMap({ profile }: { profile: Profile }) {
                       {format(new Date(g.game_date + "T00:00:00"), "EEE d MMM", {
                         locale,
                       })}{" "}
-                      · {g.start_time.slice(0, 5)}
+                      · {formatTime12h(g.start_time, lang)}
                     </span>
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
@@ -274,7 +275,7 @@ export default function DiscoverMap({ profile }: { profile: Profile }) {
                           "EEE d MMM",
                           { locale }
                         )}{" "}
-                        · {g.start_time.slice(0, 5)}
+                        · {formatTime12h(g.start_time, lang)}
                       </p>
                       <p className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Users className="h-3 w-3" />

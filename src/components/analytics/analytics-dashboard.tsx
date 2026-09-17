@@ -25,7 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
-import { formatMoney } from "@/lib/constants";
+import { formatMoney, formatHour12 } from "@/lib/constants";
 import { downloadCSV } from "@/lib/export";
 import { useSessions, useAttendance, useProfiles, useAllPayments, useExpenses, useMonthlyCosts, useCoaches, useSessionCalculations, useSports, useSessionGuests, useVenueRentals } from "@/lib/queries";
 import { buildMonthlyPoints } from "@/lib/financial-summary";
@@ -892,7 +892,7 @@ export function AnalyticsDashboard() {
                       }}
                     />
                     <span className="text-[8px] text-muted-foreground">
-                      {h.hour}
+                      {formatHour12(h.hour, lang)}
                     </span>
                   </div>
                 ))}

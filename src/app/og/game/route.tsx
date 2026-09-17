@@ -31,7 +31,7 @@ function formatTime(t: string): string {
     const [h, m] = t.slice(0, 5).split(":").map(Number);
     const date = new Date();
     date.setHours(h, m);
-    return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
   } catch {
     return t.slice(0, 5);
   }

@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ProfitLossIndicator } from "@/components/shared/profit-loss-indicator";
 import { useI18n } from "@/lib/i18n";
-import { formatMoney } from "@/lib/constants";
+import { formatMoney, formatTime12h } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { SessionCalculation, SessionGuest, TrainingSession } from "@/lib/types";
 
@@ -111,7 +111,7 @@ export function SessionCard({
             )}
             <Badge variant="outline" className="gap-1 font-mono">
               <Clock className="h-3 w-3" />
-              {session.time.slice(0, 5)}
+              {formatTime12h(session.time, lang)}
             </Badge>
             {sportName && (
               <Badge variant="secondary" className="gap-1">

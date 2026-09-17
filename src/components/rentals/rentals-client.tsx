@@ -45,7 +45,7 @@ import {
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useI18n } from "@/lib/i18n";
-import { formatMoney } from "@/lib/constants";
+import { formatMoney, formatTime12h } from "@/lib/constants";
 import { errorMessage, todayInput } from "@/lib/utils";
 import {
   useDeleteVenueRental,
@@ -121,7 +121,7 @@ export function RentalsClient() {
     !isWithinWorkingHours(workingHours, date, time, Number(hours) || 1);
   const workingHoursWarning = outsideWorkingHours
     ? (() => {
-        const label = dayWorkingHoursLabel(workingHours, date);
+        const label = dayWorkingHoursLabel(workingHours, date, lang);
         return label
           ? t("wh_outside").replace("{hours}", label)
           : t("wh_closed_day");
@@ -327,7 +327,7 @@ export function RentalsClient() {
                     )}
                   </TableCell>
                   <TableCell dir="ltr" className="text-start font-mono text-sm">
-                    {r.rental_date} · {r.start_time.slice(0, 5)}
+                    {r.rental_date} · {formatTime12h(r.start_time, lang)}
                   </TableCell>
                   <TableCell className="text-end">
                     <p className="font-mono">

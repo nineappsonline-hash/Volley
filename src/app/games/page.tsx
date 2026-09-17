@@ -19,6 +19,7 @@ import {
   getPublicGames,
 } from "@/lib/public-games";
 import { slugToSport, sportToSlug } from "@/lib/sport-slugs";
+import { formatTime12h } from "@/lib/constants";
 import {
   OG_IMAGE,
   SITE_URL,
@@ -147,7 +148,7 @@ function fmtDate(iso: string): string {
 }
 
 function fmtTime(t: string): string {
-  return t.slice(0, 5);
+  return formatTime12h(t);
 }
 
 export default async function GamesPage({ searchParams }: { searchParams: SP }) {

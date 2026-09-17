@@ -51,7 +51,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useI18n } from "@/lib/i18n";
-import { formatMoney } from "@/lib/constants";
+import { formatMoney, formatTime12h } from "@/lib/constants";
 import { cn, errorMessage, todayInput } from "@/lib/utils";
 import {
   useAcademy,
@@ -266,11 +266,11 @@ export function TournamentsClient({
                     <span className="flex items-center gap-1">
                       <CalendarClock className="h-3.5 w-3.5" />
                       {format(new Date(tournament.start_date + "T00:00:00"), "MMM d, yyyy", { locale })}
-                      {tournament.start_time ? ` · ${tournament.start_time.slice(0, 5)}` : ""}
+                      {tournament.start_time ? ` · ${formatTime12h(tournament.start_time, lang)}` : ""}
                       {tournament.end_date
                         ? ` – ${format(new Date(tournament.end_date + "T00:00:00"), "MMM d, yyyy", { locale })}`
                         : ""}
-                      {tournament.end_time ? ` · ${tournament.end_time.slice(0, 5)}` : ""}
+                      {tournament.end_time ? ` · ${formatTime12h(tournament.end_time, lang)}` : ""}
                     </span>
                     <span className="font-mono font-semibold">
                       {tournament.tournament_matches.length} {t("match_title").toLowerCase()}

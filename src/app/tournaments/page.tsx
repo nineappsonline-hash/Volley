@@ -8,6 +8,7 @@ import {
   getPublicTournamentSports,
 } from "@/lib/public-games";
 import { slugToSport, sportToSlug } from "@/lib/sport-slugs";
+import { formatTime12h } from "@/lib/constants";
 import {
   OG_IMAGE,
   SITE_URL,
@@ -194,9 +195,9 @@ export default async function TournamentsPage({ searchParams }: { searchParams: 
                       <dd className="flex items-center gap-1.5">
                         <CalendarDays className="h-3.5 w-3.5 shrink-0" />
                         {fmtDate(t.start_date)}
-                        {t.start_time ? ` · ${t.start_time.slice(0, 5)}` : ""}
+                        {t.start_time ? ` · ${formatTime12h(t.start_time)}` : ""}
                         {t.end_date ? ` — ${fmtDate(t.end_date)}` : ""}
-                        {t.end_time ? ` · ${t.end_time.slice(0, 5)}` : ""}
+                        {t.end_time ? ` · ${formatTime12h(t.end_time)}` : ""}
                       </dd>
                     </div>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">

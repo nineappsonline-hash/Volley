@@ -321,7 +321,11 @@ function ChatContent({
     return d.toLocaleDateString(ar ? "ar-EG" : "en-GB", opts);
   };
   const fmtTime = (iso: string) =>
-    new Date(iso).toLocaleTimeString(ar ? "ar-EG" : "en-GB", { hour: "2-digit", minute: "2-digit" });
+    new Date(iso).toLocaleTimeString(ar ? "ar-EG" : "en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
   const avatarColor = (id: string) => {
     let h = 0;
     for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 360;

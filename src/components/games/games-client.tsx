@@ -70,7 +70,7 @@ import { useI18n } from "@/lib/i18n";
 import { LocationFields } from "@/components/shared/location-fields";
 import { normalizeCountry } from "@/lib/locations";
 import { matchesGameLocation } from "@/lib/game-filters";
-import { COMMUNITY_SPORTS, formatMoney } from "@/lib/constants";
+import { COMMUNITY_SPORTS, formatMoney, formatTime12h } from "@/lib/constants";
 import { gameRentRemaining } from "@/lib/game-costs";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -211,7 +211,7 @@ function GameCard({
 
   const handleShare = async () => {
     const link = inviteLink ?? `${window.location.origin}/games`;
-    const when = `${format(new Date(game.game_date + "T00:00:00"), "EEE, MMM d", { locale })} ${game.start_time.slice(0, 5)}`;
+    const when = `${format(new Date(game.game_date + "T00:00:00"), "EEE, MMM d", { locale })} ${formatTime12h(game.start_time, lang)}`;
     const text = `${game.title} · ${game.sport} · ${when} · ${count}/${game.max_players}`;
     if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
       try {
@@ -359,7 +359,7 @@ function GameCard({
           </span>
           <span className="flex items-center gap-1.5">
             <Clock className="h-4 w-4 shrink-0" />
-            {game.start_time.slice(0, 5)}
+            {formatTime12h(game.start_time, lang)}
           </span>
           {(game.area || game.playground?.area) && (
             <span className="flex items-center gap-1.5">
@@ -652,7 +652,7 @@ function InviteBanner({
   loading: boolean;
   error: string | null;
 }) {
-  const { t, locale } = useI18n();
+  const { t, locale, lang } = useI18n();
   const [payOpen, setPayOpen] = useState(false);
 
   const inviteGameShare = inviteGame
@@ -691,7 +691,7 @@ function InviteBanner({
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  {inviteGame.start_time.slice(0, 5)}
+                  {formatTime12h(inviteGame.start_time, lang)}
                 </span>
                 <span>{inviteGame.sport}</span>
               </p>

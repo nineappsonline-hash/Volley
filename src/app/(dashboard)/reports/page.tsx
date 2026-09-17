@@ -25,7 +25,7 @@ import {
 } from "@/components/reports/financial-chart";
 import { FinancialSummary } from "@/components/reports/financial-summary";
 import { useI18n } from "@/lib/i18n";
-import { formatMoney } from "@/lib/constants";
+import { formatMoney, formatHour12 } from "@/lib/constants";
 import {
   useVenueRentals, useSessionGuests,
   useAllPayments,
@@ -351,8 +351,8 @@ export default function ReportsPage() {
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {insights.peakHours.map((p) => (
-                      <Badge key={p.hour} variant="secondary" className="gap-1 font-mono">
-                        {p.hour}
+                      <Badge key={p.hour} variant="secondary" className="gap-1">
+                        {formatHour12(p.hour, lang)}
                         <span className="text-muted-foreground">· {p.count}</span>
                       </Badge>
                     ))}

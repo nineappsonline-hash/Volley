@@ -5,7 +5,7 @@ import { AppLogo } from "@/components/shared/app-logo";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { useI18n } from "@/lib/i18n";
-import { formatMoney } from "@/lib/constants";
+import { formatMoney, formatTime12h } from "@/lib/constants";
 import type { SharedGameMeta } from "@/lib/public-games";
 import { SignedInGameParticipantNames } from "./game-participant-names";
 import { PublicGameJoin } from "./public-game-join";
@@ -18,7 +18,7 @@ export function SharedGamePage({ game, inviteCode }: { game: SharedGameMeta | nu
       <CardHeader><CardTitle>{game?.title ?? t("games_invite_invalid")}</CardTitle></CardHeader>
       <CardContent className="space-y-4">
         {game && <>
-          <p>{game.sport} · {game.game_date} · {game.start_time.slice(0, 5)}</p>
+          <p>{game.sport} · {game.game_date} · {formatTime12h(game.start_time, lang)}</p>
           <p>{[game.map_label, game.governorate, game.area].filter(Boolean).join(" · ")}</p>
           <SignedInGameParticipantNames gameId={game.id} />
           {game.description && <p className="whitespace-pre-wrap">{game.description}</p>}

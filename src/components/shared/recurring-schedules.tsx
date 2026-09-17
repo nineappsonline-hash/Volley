@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
+import { formatTime12h } from "@/lib/constants";
 import { RefreshCw, Trash2, Plus, Calendar } from "lucide-react";
 import { useState } from "react";
 
@@ -139,7 +140,7 @@ export function RecurringSchedulesList() {
                 <div>
                   <p className="font-medium text-sm">{s.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {WEEKDAYS[s.weekday]} at {s.time} • {s.start_date} → {s.end_date}
+                    {WEEKDAYS[s.weekday]} at {formatTime12h(s.time, lang)} • {s.start_date} → {s.end_date}
                   </p>
                 </div>
                 <div className="flex gap-1">

@@ -58,7 +58,7 @@ import {
   randomAvatarId,
 } from "@/lib/avatars";
 import { useI18n, type Dict } from "@/lib/i18n";
-import { formatMoney } from "@/lib/constants";
+import { formatMoney, formatTime12h } from "@/lib/constants";
 import { usedSessionsSincePayment } from "@/lib/calculations";
 import {
   useAcademy,
@@ -933,7 +933,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                     </p>
                     <p className="flex items-center gap-1 text-xs text-muted-foreground">
                       <MapPin className="h-3 w-3" />
-                      {s!.time.slice(0, 5)}
+                      {formatTime12h(s!.time, lang)}
                       {s!.location ? ` · ${s!.location}` : ""}
                     </p>
                   </div>
@@ -967,12 +967,12 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                       {format(new Date(s.date + "T00:00:00"), "EEEE, MMM d", { locale })}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {s.time.slice(0, 5)}
+                      {formatTime12h(s.time, lang)}
                       {s.location ? ` · ${s.location}` : ""}
                     </p>
                   </div>
                   <Badge variant="secondary" className="font-mono">
-                    {s.time.slice(0, 5)}
+                    {formatTime12h(s.time, lang)}
                   </Badge>
                 </div>
               ))}

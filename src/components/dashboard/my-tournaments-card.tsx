@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatMoney } from "@/lib/constants";
+import { formatMoney, formatTime12h } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n";
 import { useMyTournaments, useVenues } from "@/lib/queries";
 import { computeLeagueStandings, matchDepths } from "@/lib/tournament-results";
@@ -150,7 +150,7 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
                       {tournament.start_date
                         ? ` · ${format(new Date(tournament.start_date + "T00:00:00"), "MMM d, yyyy", { locale })}`
                         : ""}
-                      {tournament.start_time ? ` · ${tournament.start_time.slice(0, 5)}` : ""}
+                      {tournament.start_time ? ` · ${formatTime12h(tournament.start_time, lang)}` : ""}
                     </p>
                     {(Number(tournament.participant_fee ?? 0) > 0 ||
                       tournament.max_participants != null ||

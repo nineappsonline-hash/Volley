@@ -29,7 +29,7 @@ import { AnnouncementsCard } from "@/components/dashboard/announcements-card";
 import { TrialsCard } from "@/components/dashboard/trials-card";
 import { AdminPlanBanner } from "@/components/upgrade/plan-benefit-banner";
 import { useI18n } from "@/lib/i18n";
-import { formatMoney } from "@/lib/constants";
+import { formatMoney, formatTime12h } from "@/lib/constants";
 import {
   useAcademy,
   useAllPayments,
@@ -194,7 +194,7 @@ export function AdminDashboard() {
                         {format(new Date(s.date + "T00:00:00"), "EEE, MMM d", {
                           locale,
                         })}{" "}
-                        · {s.time.slice(0, 5)}
+                        · {formatTime12h(s.time, lang)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {s.status === "canceled"

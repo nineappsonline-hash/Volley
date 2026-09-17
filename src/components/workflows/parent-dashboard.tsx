@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useChildren, useAttendance, useAllPayments, useSessions, useEvaluations } from '@/lib/queries';
 import { usedSessionsSincePayment } from '@/lib/calculations';
 import { useI18n } from '@/lib/i18n';
+import { formatTime12h } from '@/lib/constants';
 import { QueryState } from '@/components/shared/query-state';
 import { Card,CardHeader,CardTitle,CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,5 +20,5 @@ function ChildSummary({child}:{child:import('@/lib/types').Profile}){
  const mine=(payments.data??[]).filter(p=>p.member_id===child.id);const used=usedSessionsSincePayment((attendance.data??[]).filter(a=>a.member_id===child.id),sessions.data??[],mine);
  const next=(sessions.data??[]).filter(s=>s.academy_id===child.academy_id&&s.status==='scheduled'&&s.date>=format(new Date(),'yyyy-MM-dd')).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[0];
  const latest=evaluations.data?.[0];
- return <QueryState queries={[sessions,attendance,payments,evaluations]}><div className="grid gap-3 sm:grid-cols-3"><div className="rounded-lg bg-info/10 p-4"><p className="text-sm">{ar?'التمرين القادم بالأكاديمية':'Next academy session'}</p><strong>{next?`${next.date} · ${next.time.slice(0,5)}`:'—'}</strong><p className="text-xs">{ar?'راجع الجدول للتأكد من المجموعة المناسبة.':'Check the schedule for the appropriate group.'}</p></div><div className="rounded-lg bg-success/10 p-4"><p>{ar?'الحصص المتبقية':'Sessions remaining'}</p><strong>{Math.max(0,child.subscription_sessions-used)}</strong></div><div className="rounded-lg bg-muted p-4"><p>{ar?'آخر تقييم':'Latest evaluation'}</p><strong>{latest?.evaluation_date??'—'}</strong><p className="line-clamp-2 text-sm">{latest?.notes}</p></div></div><Button asChild className="mt-4"><Link href={`/profile/children/${child.id}`}>{ar?'افتح الملف والتقييمات':'Open profile and feedback'}</Link></Button></QueryState>;
+ return <QueryState queries={[sessions,attendance,payments,evaluations]}><div className="grid gap-3 sm:grid-cols-3"><div className="rounded-lg bg-info/10 p-4"><p className="text-sm">{ar?'التمرين القادم بالأكاديمية':'Next academy session'}</p><strong>{next?`${next.date} · ${formatTime12h(next.time, lang)}`:'—'}</strong><p className="text-xs">{ar?'راجع الجدول للتأكد من المجموعة المناسبة.':'Check the schedule for the appropriate group.'}</p></div><div className="rounded-lg bg-success/10 p-4"><p>{ar?'الحصص المتبقية':'Sessions remaining'}</p><strong>{Math.max(0,child.subscription_sessions-used)}</strong></div><div className="rounded-lg bg-muted p-4"><p>{ar?'آخر تقييم':'Latest evaluation'}</p><strong>{latest?.evaluation_date??'—'}</strong><p className="line-clamp-2 text-sm">{latest?.notes}</p></div></div><Button asChild className="mt-4"><Link href={`/profile/children/${child.id}`}>{ar?'افتح الملف والتقييمات':'Open profile and feedback'}</Link></Button></QueryState>;
 }

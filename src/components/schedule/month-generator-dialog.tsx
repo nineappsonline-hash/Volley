@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
+import { formatTime12h } from "@/lib/constants";
 import { cn, errorMessage } from "@/lib/utils";
 import {
   useBulkCreateSessions,
@@ -53,7 +54,7 @@ export function MonthGeneratorDialog({
   open,
   onOpenChange,
 }: MonthGeneratorDialogProps) {
-  const { t, locale } = useI18n();
+  const { t, lang, locale } = useI18n();
   const { data: sessions } = useSessions();
   const { data: sports } = useSports();
   const { data: templates, isLoading: loadingTemplates } = useTemplates();
@@ -367,7 +368,7 @@ export function MonthGeneratorDialog({
                     </span>
                     <span className="shrink-0 font-mono text-xs text-muted-foreground">
                       {weekdayOptions.find((w) => w.dow === tpl.weekday)?.label} ·{" "}
-                      {tpl.time.slice(0, 5)}
+                      {formatTime12h(tpl.time, lang)}
                     </span>
                   </label>
                 ))}

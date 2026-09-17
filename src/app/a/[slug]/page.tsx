@@ -11,6 +11,7 @@ import {
   sportsClubJsonLd,
 } from "@/lib/seo";
 import { AcademyTrainingSummary } from "@/components/settings/academy-training-prices";
+import { formatTime12h } from "@/lib/constants";
 import { TrialForm } from "@/components/public/trial-form";
 import { LangLabel } from "@/components/shared/lang-label";
 import { FollowAcademyButton } from "@/components/academies/follow-badge-button";
@@ -267,7 +268,7 @@ export default async function PublicAcademyPage({
                   <p className="font-medium">{s.date}</p>
                   <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <MapPin className="h-3 w-3" />
-                    {s.time.slice(0, 5)}
+                    {formatTime12h(s.time)}
                     {s.location ? ` · ${s.location}` : ""}
                   </p>
                 </div>

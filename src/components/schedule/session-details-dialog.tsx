@@ -30,7 +30,7 @@ import { ProfitLossIndicator } from "@/components/shared/profit-loss-indicator";
 import { GuestManager } from "@/components/schedule/guest-manager";
 import { SessionRatings } from "@/components/shared/session-ratings";
 import { useI18n } from "@/lib/i18n";
-import { formatMoney, sessionsForMembership } from "@/lib/constants";
+import { formatMoney, formatTime12h, sessionsForMembership } from "@/lib/constants";
 import { memberPerSessionValue } from "@/lib/calculations";
 import {
   useAttendance,
@@ -268,7 +268,7 @@ export function SessionDetailsDialog({
               {format(new Date(session.date + "T00:00:00"), "EEEE, MMMM d, yyyy", {
                 locale,
               })}{" "}
-              · {session.time.slice(0, 5)}
+               · {formatTime12h(session.time, lang)}
             </DialogDescription>
           )}
         </DialogHeader>
@@ -281,7 +281,7 @@ export function SessionDetailsDialog({
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant={statusBadge} className="gap-1">
                 <Clock className="h-3 w-3" />
-                {session.time.slice(0, 5)}
+                {formatTime12h(session.time, lang)}
               </Badge>
               {session.status === "canceled" && (
                 <Badge variant="destructive">{t("schedule_canceled")}</Badge>

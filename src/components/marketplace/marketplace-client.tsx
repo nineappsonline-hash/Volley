@@ -24,7 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { useI18n } from "@/lib/i18n";
-import { formatMoney } from "@/lib/constants";
+import { formatMoney, formatTime12h } from "@/lib/constants";
 import {
   useBookableSessions,
   useBookSession,
@@ -73,7 +73,7 @@ function SessionCard({
           <span>
             {format(new Date(session.date + "T00:00:00"), "EEE, MMM d", { locale })}
             {" · "}
-            {session.time.slice(0, 5)}
+            {formatTime12h(session.time, lang)}
           </span>
         </div>
         {session.sport && (
@@ -205,7 +205,7 @@ export function MarketplaceClient({ profile }: { profile: Profile }) {
                     <p className="font-medium truncate">
                       {b.session?.date}
                       {" · "}
-                      {b.session?.time}
+                      {b.session?.time ? formatTime12h(b.session.time, lang) : ""}
                       {" · "}
                       {b.academy?.name}
                     </p>
@@ -290,7 +290,7 @@ export function MarketplaceClient({ profile }: { profile: Profile }) {
                   <span>
                     {format(new Date((sessions.data ?? []).find((s) => s.id === bookingSession)!.date + "T00:00:00"), "EEE, MMM d", { locale })}
                     {" · "}
-                    {(sessions.data ?? []).find((s) => s.id === bookingSession)!.time.slice(0, 5)}
+                    {formatTime12h((sessions.data ?? []).find((s) => s.id === bookingSession)!.time, lang)}
                   </span>
                 </div>
                 {(sessions.data ?? []).find((s) => s.id === bookingSession)!.session_price != null && (

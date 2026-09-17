@@ -55,7 +55,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import type { Academy } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
-import { formatMoneyShort } from "@/lib/constants";
+import { formatMoneyShort, formatTime12h } from "@/lib/constants";
 import {
   useAllAcademies,
   useCommunityMembers,
@@ -517,7 +517,7 @@ export function SuperAdminDashboard() {
                       <TableCell>
                         <p className="truncate font-medium">{p.game?.title ?? "—"}</p>
                         <p className="text-xs text-muted-foreground">
-                          {p.game?.game_date ?? ""} · {p.game?.start_time ?? ""}
+                          {p.game?.game_date ?? ""} · {formatTime12h(p.game?.start_time, lang)}
                         </p>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
@@ -621,7 +621,7 @@ export function SuperAdminDashboard() {
                       <TableCell>
                         <p className="truncate font-medium">{p.game?.title ?? "—"}</p>
                         <p className="text-xs text-muted-foreground">
-                          {p.game?.game_date ?? ""} · {p.game?.start_time ?? ""}
+                          {p.game?.game_date ?? ""} · {formatTime12h(p.game?.start_time, lang)}
                         </p>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">

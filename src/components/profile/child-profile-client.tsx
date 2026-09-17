@@ -29,7 +29,7 @@ import { AttendanceTrendCard } from "@/components/members/attendance-trend-card"
 import { MemberBadges } from "@/components/shared/member-badges";
 import { ActivityFeed } from "@/components/shared/activity-feed";
 import { useI18n } from "@/lib/i18n";
-import { formatMoney } from "@/lib/constants";
+import { formatMoney, formatTime12h } from "@/lib/constants";
 import { usedSessionsSincePayment } from "@/lib/calculations";
 import {
   useAttendance,
@@ -301,7 +301,7 @@ export function ChildProfileClient({ child }: { child: Profile }) {
                     </p>
                     <p className="flex items-center gap-1 text-xs text-muted-foreground">
                       <MapPin className="h-3 w-3" />
-                      {s!.time.slice(0, 5)}
+                      {formatTime12h(s!.time, lang)}
                       {s!.location ? ` · ${s!.location}` : ""}
                     </p>
                   </div>

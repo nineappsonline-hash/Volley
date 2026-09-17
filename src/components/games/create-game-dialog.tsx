@@ -175,7 +175,7 @@ export function CreateGameDialog({
     !isWithinWorkingHours(workingHours, date, time, Number(duration) || 1);
   const workingHoursWarning = outsideWorkingHours
     ? (() => {
-        const label = dayWorkingHoursLabel(workingHours, date);
+        const label = dayWorkingHoursLabel(workingHours, date, lang);
         return label ? t("wh_outside").replace("{hours}", label) : t("wh_closed_day");
       })()
     : null;

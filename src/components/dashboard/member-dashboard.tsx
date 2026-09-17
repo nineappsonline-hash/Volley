@@ -30,7 +30,7 @@ import { MyTournamentsCard } from "@/components/dashboard/my-tournaments-card";
 import { MemberPlanBanner } from "@/components/upgrade/plan-benefit-banner";
 import { UpcomingTournamentsCard } from "@/components/dashboard/upcoming-tournaments-card";
 import { useI18n } from "@/lib/i18n";
-import { EXPIRY_ALERT_THRESHOLD, formatMoney } from "@/lib/constants";
+import { EXPIRY_ALERT_THRESHOLD, formatMoney, formatTime12h } from "@/lib/constants";
 import { usedSessionsSincePayment } from "@/lib/calculations";
 import {
   useAllPayments,
@@ -236,12 +236,12 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
                       {format(new Date(s.date + "T00:00:00"), "EEEE, MMM d", { locale })}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {s.time.slice(0, 5)}
+                      {formatTime12h(s.time, lang)}
                       {s.location ? ` · ${s.location}` : ""}
                     </p>
                   </div>
-                  <Badge variant="secondary" className="font-mono">
-                    {s.time.slice(0, 5)}
+                  <Badge variant="secondary">
+                    {formatTime12h(s.time, lang)}
                   </Badge>
                 </div>
               ))

@@ -24,7 +24,7 @@ import { DirectionsLinks } from "@/components/shared/directions-links";
 import { PlaygroundDistance } from "@/components/shared/playground-distance";
 import { parseMapsCoordinates } from "@/lib/maps";
 import { venueCardPhoto } from "@/lib/venue-media";
-import { formatMoney } from "@/lib/constants";
+import { formatMoney, formatTime12h } from "@/lib/constants";
 import { useRealtime } from "@/lib/useRealtime";
 import { cn } from "@/lib/utils";
 
@@ -76,7 +76,7 @@ export function MyUpcomingGames({ memberId }: { memberId: string }) {
               <div className="flex flex-wrap items-center gap-2"><Badge variant="secondary">{game.sport}</Badge>{is_waitlisted && <Badge variant="secondary">{ar ? "قائمة الانتظار" : "Waitlisted"}</Badge>}</div>
               <h3 className="text-xl font-bold">{game.title}</h3>
               <p className="flex items-center gap-2 text-sm"><CalendarDays className="h-4 w-4 shrink-0" />{prettyDate(game.game_date)}</p>
-              <p className="flex items-center gap-2 text-sm"><Clock className="h-4 w-4 shrink-0" />{game.start_time.slice(0, 5)} · {game.duration_hours} {ar ? "ساعة" : "hours"}</p>
+              <p className="flex items-center gap-2 text-sm"><Clock className="h-4 w-4 shrink-0" />{formatTime12h(game.start_time, lang)} · {game.duration_hours} {ar ? "ساعة" : "hours"}</p>
               {(game.location || game.area) && <p className="flex items-center gap-2 text-sm"><MapPin className="h-4 w-4 shrink-0" />{[game.location, game.area].filter(Boolean).join(" · ")}</p>}
               <p className="font-semibold text-info-ink">{ar ? "عرض تفاصيل المباراة والمشاركين" : "View game details and participants"}</p>
             </button>
@@ -113,7 +113,7 @@ export function MyUpcomingGames({ memberId }: { memberId: string }) {
             <h2 className="relative mt-3 text-2xl font-extrabold leading-tight">{game.title}</h2>
             <div className="relative mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/85">
               <span className="flex items-center gap-1.5"><CalendarDays className="h-4 w-4 shrink-0" />{prettyDate(game.game_date)}</span>
-              <span className="flex items-center gap-1.5"><Clock className="h-4 w-4 shrink-0" />{game.start_time.slice(0, 5)}</span>
+              <span className="flex items-center gap-1.5"><Clock className="h-4 w-4 shrink-0" />{formatTime12h(game.start_time, lang)}</span>
               <span className="flex items-center gap-1.5"><Timer className="h-4 w-4 shrink-0" />{game.duration_hours} {ar ? "ساعة" : "hours"}</span>
             </div>
           </header>

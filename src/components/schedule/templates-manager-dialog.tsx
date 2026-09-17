@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
+import { formatTime12h } from "@/lib/constants";
 import { errorMessage } from "@/lib/utils";
 import {
   useDeleteTemplate,
@@ -42,7 +43,7 @@ export function TemplatesManagerDialog({
   open,
   onOpenChange,
 }: TemplatesManagerDialogProps) {
-  const { t, locale } = useI18n();
+  const { t, lang, locale } = useI18n();
   const { data: templates, isLoading } = useTemplates();
   const saveTemplate = useSaveTemplate();
   const deleteTemplate = useDeleteTemplate();
@@ -241,7 +242,7 @@ export function TemplatesManagerDialog({
                     >
                       <p className="truncate text-sm font-medium">{tpl.name}</p>
                       <p className="font-mono text-xs text-muted-foreground">
-                        {weekdayLabel(tpl.weekday)} · {tpl.time.slice(0, 5)}
+                        {weekdayLabel(tpl.weekday)} · {formatTime12h(tpl.time, lang)}
                       </p>
                     </button>
                     <span className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">

@@ -112,9 +112,45 @@ export function formatMoneyShort(amount: number, lang: "en" | "ar" = "en"): stri
     return new Intl.NumberFormat(lang === "ar" ? "ar-EG" : "en-US", {
       style: "currency",
       currency: CURRENCY,
-      maximumFractionDigits: 0,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
     }).format(amount);
   } catch {
-    return `${CURRENCY} ${Math.round(amount)}`;
+    return `${CURRENCY} ${Number(amount.toFixed?.(0) ?? amount).toFixed(0)}`;
   }
+}
+
+/**
+ * Formats an "HH:mm" 24-hour time string as 12-hour with AM/PM (or ص/م in
+ * Arabic). Keeps a fallback so a non-"HH:mm" value passes through untouched.
+ */
+export function formatTime12h(time: string | null | undefined, lang: "en" | "ar" = "en"): string {
+  const value = (time ?? "").trim();
+  const match = value.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return value;
+  let hour = Number(match[1]) % 12;
+  if (hour === 0) hour = 12;
+  const suffix = Number(match[1]) >= 12
+    ? (lang === "ar" ? "م" : "PM")
+    : (lang === "ar" ? "ص" : "AM");
+  return `${hour}:${match[2]} ${suffix}`;
+}
+
+/**
+ * Formats an "HH:mm" 24-hour time string as a compact 12-hour hour label
+ * (e.g. "9 AM", "9 PM"; "9 ص" / "9 م" in Arabic) for chart axes and badges.
+ * "24:00" (end of day) renders as "12 AM". Non-numeric values pass through
+ * untouched.
+ */
+export function formatHour12(time: string | number | null | undefined, lang: "en" | "ar" = "en"): string {
+  const raw = typeof time === "number" ? String(time) : (time ?? "").trim();
+  const match = raw.match(/^(\d{1,2})/);
+  if (!match) return raw;
+  const parsed = Number(match[1]);
+  if (parsed > 24) return raw;
+  const h24 = parsed % 24;
+  let hour = h24 % 12;
+  if (hour === 0) hour = 12;
+  const suffix = h24 >= 12 ? (lang === "ar" ? "م" : "PM") : (lang === "ar" ? "ص" : "AM");
+  return `${hour} ${suffix}`;
 }

@@ -19,11 +19,12 @@ import { AttendanceTable } from "@/components/attendance/attendance-table";
 import { QuickCheckinCard } from "@/components/attendance/quick-checkin-card";
 import { AttendanceAnalytics } from "@/components/shared/attendance-analytics";
 import { useI18n } from "@/lib/i18n";
+import { formatTime12h } from "@/lib/constants";
 import { useSessions, useAttendance, useProfiles } from "@/lib/queries";
 import type { TrainingSession } from "@/lib/types";
 
 function AttendanceContent({ canScan }: { canScan: boolean }) {
-  const { t, locale } = useI18n();
+  const { t, lang, locale } = useI18n();
   const searchParams = useSearchParams();
   const { data: sessions, isLoading } = useSessions();
   const { data: attendance } = useAttendance();
@@ -75,7 +76,7 @@ function AttendanceContent({ canScan }: { canScan: boolean }) {
                         {format(new Date(s.date + "T00:00:00"), "EEE, MMM d", {
                           locale,
                         })}{" "}
-                        · {s.time.slice(0, 5)}
+                         · {formatTime12h(s.time, lang)}
                         {s.location ? ` · ${s.location}` : ""}
                       </SelectItem>
                     ))}

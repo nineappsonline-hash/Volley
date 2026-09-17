@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/i18n";
+import { formatTime12h } from "@/lib/constants";
 import { useUpcomingSessions } from "@/lib/queries";
 
 export function UpcomingSessions({ isAdmin }: { isAdmin: boolean }) {
-  const { t, locale } = useI18n();
+  const { t, lang, locale } = useI18n();
   const { data: sessions, isLoading } = useUpcomingSessions();
 
   return (
@@ -55,7 +56,7 @@ export function UpcomingSessions({ isAdmin }: { isAdmin: boolean }) {
               <p className="flex items-center gap-3 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  {s.time.slice(0, 5)}
+                  {formatTime12h(s.time, lang)}
                 </span>
                 {s.location && (
                   <span className="inline-flex min-w-0 items-center gap-1 truncate">

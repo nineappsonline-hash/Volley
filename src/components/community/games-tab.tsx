@@ -52,7 +52,7 @@ import { ReportDialog } from "@/components/shared/report-dialog";
 import { ScoreDialog } from "@/components/shared/score-dialog";
 import { useI18n } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
-import { COMMUNITY_SPORTS, formatMoney } from "@/lib/constants";
+import { COMMUNITY_SPORTS, formatMoney, formatTime12h } from "@/lib/constants";
 import { gameRentRemaining } from "@/lib/game-costs";
 import {
   useFriendlyGames,
@@ -295,7 +295,7 @@ function GameCard({
           </span>
           <span className="flex items-center gap-1.5">
             <Clock className="h-4 w-4 shrink-0" />
-            {game.start_time.slice(0, 5)}
+            {formatTime12h(game.start_time, lang)}
           </span>
           {game.location && (
             <span className="flex items-center gap-1.5">

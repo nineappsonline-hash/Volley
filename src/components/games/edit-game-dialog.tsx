@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
+import { formatTime12h } from "@/lib/constants";
 import { useCancelFriendlyGame, useSetFriendlyGameVisibility } from "@/lib/queries";
 import { errorMessage } from "@/lib/utils";
 import type { FriendlyGameWithDetails, Profile } from "@/lib/types";
@@ -43,7 +44,7 @@ type Props = {
 };
 
 export function EditGameDialog({ game, profile, open, onOpenChange }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const visibility = useSetFriendlyGameVisibility();
   const cancel = useCancelFriendlyGame();
   const [isPublic, setIsPublic] = useState(game.is_public);
@@ -119,7 +120,7 @@ export function EditGameDialog({ game, profile, open, onOpenChange }: Props) {
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  {game.start_time.slice(0, 5)}
+                  {formatTime12h(game.start_time, lang)}
                 </span>
               </span>
             </DialogDescription>

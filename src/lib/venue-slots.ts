@@ -1,4 +1,5 @@
 import type { VenueUnavailableSlot } from "@/lib/types";
+import { formatTime12h, formatHour12 } from "@/lib/constants";
 
 export const minutesOf = (time: string): number => {
   const [h, m] = time.split(":").map((x) => Number(x) || 0);
@@ -61,7 +62,7 @@ export function formatBlockedSlot(
   slot: VenueUnavailableSlot,
   weekdayName: (weekday: number) => string
 ): string {
-  return `${weekdayName(slot.weekday)} ${slot.start.slice(0, 5)}–${slot.end.slice(0, 5)}`;
+  return `${weekdayName(slot.weekday)} ${formatTime12h(slot.start)}–${formatTime12h(slot.end)}`;
 }
 
 /** Validate a slot list before saving (used by the admin form). */
@@ -138,14 +139,15 @@ export function closedIntervalsFromWorkingHours(
   return closed;
 }
 
-/** "10:00–22:00" label for a date's working hours, or null when the day is
+/** "10 AM–10 PM" label for a date's working hours, or null when the day is
  * closed (or hours aren't configured). */
 export function dayWorkingHoursLabel(
   hours: VenueUnavailableSlot[] | undefined,
-  date: string
+  date: string,
+  lang: "en" | "ar" = "en"
 ): string | null {
   if (!hours || hours.length === 0) return null;
   const intervals = workingIntervalsForDate(hours, date);
   if (intervals.length === 0) return null;
-  return intervals.map(([s, e]) => `${padMinutes(s)}–${padMinutes(e)}`).join(", ");
+  return intervals.map(([s, e]) => `${formatHour12(padMinutes(s), lang)}–${formatHour12(padMinutes(e), lang)}`).join(", ");
 }

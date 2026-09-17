@@ -18,6 +18,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
+import { formatTime12h } from "@/lib/constants";
 import type { TrainingSession } from "@/lib/types";
 
 interface CalendarViewProps {
@@ -28,7 +29,7 @@ interface CalendarViewProps {
 type ViewMode = "month" | "week";
 
 export function CalendarView({ sessions, onSelectSession }: CalendarViewProps) {
-  const { t, locale } = useI18n();
+  const { t, lang, locale } = useI18n();
   const [cursor, setCursor] = useState(new Date());
   const [mode, setMode] = useState<ViewMode>("month");
 
@@ -161,7 +162,7 @@ export function CalendarView({ sessions, onSelectSession }: CalendarViewProps) {
                         : "bg-interactive-100 text-info-ink dark:bg-interactive-500/20 dark:text-interactive-300"
                   )}
                 >
-                  {s.time.slice(0, 5)}
+                  {formatTime12h(s.time, lang)}
                 </span>
               ))}
             </button>
