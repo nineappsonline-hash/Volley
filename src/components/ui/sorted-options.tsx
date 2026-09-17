@@ -8,7 +8,8 @@ function optionText(node: React.ReactNode): string {
   if (Array.isArray(node)) return node.map(optionText).join("");
   if (!React.isValidElement(node)) return "";
   if (node.props["aria-hidden"] || node.type === "svg") return "";
-  return node.props["data-sort"] ?? node.props.textValue ?? optionText(node.props.children);
+  const sortKey = node.props["data-sort"] ?? node.props.textValue;
+  return sortKey === undefined ? optionText(node.props.children) : String(sortKey);
 }
 
 function flatten(children: React.ReactNode): React.ReactNode[] {
