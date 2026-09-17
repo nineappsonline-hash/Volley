@@ -170,6 +170,15 @@ function GameCard({
     : null;
   const shareLink = inviteLink ?? `${window.location.origin}/games`;
 
+  // A paid member (committed share) can only leave more than 24h before kickoff.
+  const gameStart = new Date(`${game.game_date}T${game.start_time}`).getTime();
+  const leaveBlocked =
+    !!mine &&
+    !mine.is_waitlisted &&
+    (mine.share_amount ?? 0) > 0 &&
+    (mine.pay_status === "pending" || mine.pay_status === "approved") &&
+    Date.now() + 24 * 60 * 60 * 1000 > gameStart;
+
   const playgroundTarget = (() => {
     if (!game.playground) return null;
     const fromLink = parseMapsCoordinates(game.playground.location_link ?? "");
@@ -426,7 +435,13 @@ function GameCard({
           {!isOrganizer &&
             !isPrivate &&
             (joined ? (
-              <Button variant="outline" size="sm" onClick={() => setLeaveConfirmOpen(true)} disabled={leave.isPending}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLeaveConfirmOpen(true)}
+                disabled={leave.isPending || leaveBlocked}
+                title={leaveBlocked ? t("games_leave_blocked") : undefined}
+              >
                 {t("community_leave")}
               </Button>
             ) : full ? (

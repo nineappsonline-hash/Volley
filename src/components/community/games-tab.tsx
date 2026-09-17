@@ -128,6 +128,14 @@ function GameCard({
   const mine = myParticipants.find((p) => p.game_id === game.id);
   const isOrganizer = game.creator_id === profile.id;
   const canEdit = isOrganizer || profile.role === "super_admin";
+
+  // A paid member (committed share) can only leave more than 24h before kickoff.
+  const leaveBlocked =
+    !!mine &&
+    !mine.is_waitlisted &&
+    (mine.share_amount ?? 0) > 0 &&
+    (mine.pay_status === "pending" || mine.pay_status === "approved") &&
+    Date.now() + 24 * 60 * 60 * 1000 > new Date(`${game.game_date}T${game.start_time}`).getTime();
   const joined = !!mine || isOrganizer;
   const rentRemaining = gameRentRemaining(game);
   const count = game.participants_count;
@@ -355,7 +363,8 @@ function GameCard({
                 variant="outline"
                 size="sm"
                 onClick={handleLeave}
-                disabled={leave.isPending}
+                disabled={leave.isPending || leaveBlocked}
+                title={leaveBlocked ? t("games_leave_blocked") : undefined}
               >
                 {t("community_leave")}
               </Button>
