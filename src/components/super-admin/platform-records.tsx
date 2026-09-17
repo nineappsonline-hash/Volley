@@ -529,7 +529,8 @@ export function PlatformRecords() {
     });
   };
   if (error || !data) return <Card><CardContent className="p-6"><p role="alert">{error?.message ?? t("sa_could_not_load")}</p><Button onClick={() => refetch()}>{t("sa_retry")}</Button></CardContent></Card>;
-  const sports = (data.sports ?? []).sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: "base" }));
+  const sports = Array.from(new Map((data.sports ?? []).map(s => [String(s.name).toLowerCase(), s])).values())
+  .sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: "base" }));
   const sportById = new Map(sports.map((s) => [s.id, s.name]));
   const handleSportSelect = (newSportId: string | null) => {
     setEditingVenue((current) => current && { ...current, sport_id: newSportId });
