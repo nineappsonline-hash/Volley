@@ -252,27 +252,23 @@ export function SignupForm() {
   ) => {
     setLoading(true);
     try {
-      const { session } = await signUp(email, password, name, username, phone, academy);
+      const gameInvite = searchParams.get("gameInvite");
+      const destination = gameInvite
+        ? `/games?join=${encodeURIComponent(gameInvite)}`
+        : academy?.newName ? "/onboarding" : "/dashboard";
+      const { session } = await signUp(email, password, name, username, phone, academy, destination);
       if (session) {
         toast.success(t("signup_success"));
-        // Pop up the push-notifications prompt right after registering. The
-        // redirect waits for the user to answer (Enable / Later).
-        pendingNav.current = () => {
-          // Members who signed up without an invite code pick their academy
-          // from the public directory next. Fresh academies continue the setup
-          // wizard (branding + photos) on /onboarding.
-          const gameInvite = searchParams.get("gameInvite");
-          if (gameInvite && !academy?.newName) {
-            router.push(`/games?join=${encodeURIComponent(gameInvite)}`);
-          } else if (academy?.newName) {
-            router.push("/onboarding");
-          } else {
-            const hasAcademy = !!academy?.code || !!academy?.newName;
-            router.push(hasAcademy ? "/dashboard" : "/academies");
-          }
+        const navigate = () => {
+          router.push(destination);
           router.refresh();
         };
-        setPushPromptOpen(true);
+        if (gameInvite) {
+          navigate();
+        } else {
+          pendingNav.current = navigate;
+          setPushPromptOpen(true);
+        }
       } else {
         setConfirming(true);
         toast.info(t("signup_check_email"));

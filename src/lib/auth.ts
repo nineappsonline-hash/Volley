@@ -43,12 +43,16 @@ export function useAuth() {
         gender?: string;
         birth_date?: string;
         venues?: SignupVenue[];
-      }
+      },
+      destination = "/dashboard"
     ) => {
+      const callback = new URL("/auth/callback", window.location.origin);
+      callback.searchParams.set("next", destination);
       const { data, error } = await createClient().auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: callback.toString(),
           data: {
             name,
             username,
