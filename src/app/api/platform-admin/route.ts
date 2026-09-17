@@ -5,6 +5,27 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isPlatformAdmin, matchesAccountEmail } from "@/lib/platform-admin";
 
 const tables = ["profiles", "academies", "friendly_games", "friendly_game_participants", "venues", "venue_rentals", "training_sessions", "tournaments", "tournament_participants", "tournament_teams", "tournament_team_members", "tournament_matches", "payments", "attendance", "academy_branches", "membership_plans", "sports", "sport_settings"] as const;
+// Deterministic pagination order per table; sport_settings has no id column.
+const orderColumns: Record<(typeof tables)[number], string> = {
+  profiles: "id",
+  academies: "id",
+  friendly_games: "id",
+  friendly_game_participants: "id",
+  venues: "id",
+  venue_rentals: "id",
+  training_sessions: "id",
+  tournaments: "id",
+  tournament_participants: "id",
+  tournament_teams: "id",
+  tournament_team_members: "id",
+  tournament_matches: "id",
+  payments: "id",
+  attendance: "id",
+  academy_branches: "id",
+  membership_plans: "id",
+  sports: "id",
+  sport_settings: "sport",
+};
 export async function GET() {
   const { data: { user } } = await createClient().auth.getUser();
   if (!isPlatformAdmin(user)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -15,15 +36,18 @@ export async function GET() {
       return NextResponse.json({ error: "Apply the platform admin database migration before using this page." }, { status: 503 });
     }
     const admin = createAdminClient();
+    // A missing table (e.g. an unapplied migration) must not take down the
+    // whole records page — that table simply loads as empty.
+    type AdminRow = Record<string, unknown>;
     const entries = await Promise.all(tables.map(async table => {
-      const rows = [];
+      const rows: AdminRow[] = [];
       for (let start = 0; ; start += 1000) {
-        const { data, error } = await admin.from(table).select("*").order("id").range(start, start + 999);
-        if (error) throw error;
+        const { data, error } = await admin.from(table).select("*").order(orderColumns[table]).range(start, start + 999);
+        if (error) return [table, [] as AdminRow[]] as const;
         rows.push(...data);
         if (data.length < 1000) break;
       }
-      return [table, rows];
+      return [table, rows] as const;
     }));
     const result = Object.fromEntries(entries);
     const accountEmails = new Map<string, string | null>();
@@ -34,7 +58,7 @@ export async function GET() {
       data.users.forEach(account => { bans.set(account.id, account.banned_until); accountEmails.set(account.id, account.email ?? null); });
       if (data.users.length < 1000) break;
     }
-    result.profiles = result.profiles.map((profile: { id: string }) => ({ ...profile, account_email: accountEmails.get(profile.id) ?? null, banned_until: bans.get(profile.id) ?? null }));
+    result.profiles = result.profiles.map((profile: AdminRow) => ({ ...profile, account_email: accountEmails.get(String(profile.id)) ?? null, banned_until: bans.get(String(profile.id)) ?? null }));
     return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json({ error: "Could not load admin records. Check the database migration and server configuration." }, { status: 500 });
