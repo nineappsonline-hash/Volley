@@ -28,7 +28,8 @@ import { Label } from "@/components/ui/label";
 import { Ban, Camera, Check, ChevronDown, Clock, Copy, Loader2, Plus, Search, Star, Trash2, Upload } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { minutesOf } from "@/lib/venue-slots";
-import { formatMoney, formatTime12h, formatHour12 } from "@/lib/constants";
+import { formatMoney, formatTime12h, formatHour12, getDefaultMinPlayers } from "@/lib/constants";
+import { COMMUNITY_SPORTS } from "@/lib/constants";
 import { DirectionsLinks } from "@/components/shared/directions-links";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -439,6 +440,7 @@ export function PlatformRecords() {
     { value: "Friendly games", label: t("sa_records_games") },
     { value: "Tournaments", label: t("sa_records_tournaments") },
     { value: "Playgrounds", label: t("sa_records_playgrounds") },
+    { value: "Sports", label: t("sa_records_sports") },
   ] as const;
   const { data, isLoading, error, refetch } = useQuery<Records>({ queryKey: ["platform-records"], queryFn: async () => {
     const response = await fetch("/api/platform-admin", { cache: "no-store" });
@@ -456,6 +458,8 @@ export function PlatformRecords() {
   const [editingAcademy, setEditingAcademy] = useState<Academy | null>(null);
   const [editingVenue, setEditingVenue] = useState<VenueDraft | null>(null);
   const [tournamentFormOpen, setTournamentFormOpen] = useState(false);
+  // Draft inputs for the Sports tab's per-sport minimum-players editor.
+  const [sportDraft, setSportDraft] = useState<Record<string, string>>({});
   const [deletingAcademy, setDeletingAcademy] = useState<Academy | null>(null);
   const [confirmation, setConfirmation] = useState("");
   const [busy, setBusy] = useState(false);
@@ -544,7 +548,7 @@ export function PlatformRecords() {
   };
   const editingVenueCoords = editingVenue ? parseMapsCoordinates(editingVenue.location_link ?? "") : null;
   const academy = (id: string) => data.academies.find(a => a.id === id)?.name ?? (id ? t("sa_academy_unavailable") : t("sa_independent"));
-  const source = tab === "Members" ? data.profiles : tab === "Academies" ? data.academies : tab === "Friendly games" ? data.friendly_games : tab === "Tournaments" ? data.tournaments : data.venues;
+  const source = tab === "Members" ? data.profiles : tab === "Academies" ? data.academies : tab === "Friendly games" ? data.friendly_games : tab === "Tournaments" ? data.tournaments : tab === "Sports" ? data.sport_settings : data.venues;
   const academyContacts = new Map<string, { fields: unknown[]; phones: unknown[] }>();
   if (tab === "Academies") {
     for (const person of data.profiles) {
@@ -587,13 +591,58 @@ export function PlatformRecords() {
       {tab === "Playgrounds" && <p className="text-sm text-muted-foreground">{t("sa_records_schedule_note")}</p>}
       <p className="text-xs text-muted-foreground">{t("sa_records_results").replace("{shown}", String(rows.length)).replace("{total}", String(source.length))}</p>
       <div className="max-h-[650px] space-y-3 overflow-auto">
+      {tab === "Sports" ? (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">{t("sa_sports_note")}</p>
+          {(COMMUNITY_SPORTS as readonly string[]).map(sport => {
+            const saved = data.sport_settings.find(s => s.sport === sport);
+            const effective = saved?.min_players ?? getDefaultMinPlayers(sport);
+            const draft = sportDraft[sport] ?? String(effective);
+            const overridden = saved != null;
+            return (
+              <form
+                key={sport}
+                className="flex flex-wrap items-center gap-2 rounded-xl border p-3"
+                onSubmit={e => {
+                  e.preventDefault();
+                  act({ action: "sport_setting", sport, min_players: Number(draft) });
+                }}
+              >
+                <span className="min-w-0 flex-1 truncate text-sm font-medium">{sport}</span>
+                {overridden ? (
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{t("sa_sports_overridden")}</span>
+                ) : (
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("sa_sports_default")}</span>
+                )}
+                <label className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">{t("sa_sports_min_players")}</span>
+                  <Input
+                    type="number"
+                    dir="ltr"
+                    min="2"
+                    max="30"
+                    className="w-20"
+                    aria-label={`${sport} — ${t("sa_sports_min_players")}`}
+                    value={draft}
+                    onChange={e => setSportDraft(c => ({ ...c, [sport]: e.target.value }))}
+                  />
+                </label>
+                <Button type="submit" size="sm" disabled={busy || Number(draft) === effective || !Number.isInteger(Number(draft)) || Number(draft) < 2 || Number(draft) > 30}>
+                  {busy ? t("sa_saving") : t("sa_save")}
+                </Button>
+              </form>
+            );
+          })}
+        </div>
+      ) : (
+      <>
       {rows.length === 0 && <p className="py-8 text-center text-muted-foreground">{t("sa_records_empty")}</p>}
       {rows.map(row => {
         const blocked = row.banned_until && new Date(row.banned_until) > new Date();
         const protectedAccount = row.email?.toLowerCase() === PLATFORM_ADMIN_EMAIL;
         const rentals = data.venue_rentals.filter(r => r.venue_id === row.id && r.rental_date === date);
         const events = [...rentals.map(r => ({ time: r.start_time, label: `${t("sa_rental")} · ${r.customer_name} · ${r.hours} ${t("sa_records_hours")} · ${r.is_paid ? t("sa_records_paid") : t("sa_records_unpaid")}` })), ...data.training_sessions.filter(r => r.venue_id === row.id && r.date === date && r.status !== "canceled").map(r => ({ time: r.time, label: `${t("sa_training")} · ${t(STATUS_LABELS[r.status] ?? "sa_records_scheduled")} · ${t("sa_records_end_time_unknown")}` })), ...data.tournament_matches.filter(r => r.venue_id === row.id && r.match_date === date && r.status !== "canceled").map(r => ({ time: r.match_time ?? "", label: `${t("sa_tournament")} · ${r.round_name} · ${t("sa_records_end_time_unknown")}` }))].sort((a,b) => a.time.localeCompare(b.time));
-        const blockedToday = ((row.unavailable_slots ?? []) as VenueUnavailableSlot[]).filter(s => weekdayOf(date) === s.weekday);
+        const allBlockedSlots = ((row.unavailable_slots ?? []) as VenueUnavailableSlot[]).slice().sort((a, b) => a.weekday - b.weekday || minutesOf(a.start) - minutesOf(b.start));
         const dayClosed = [...blockedIntervalsForDate((row.unavailable_slots ?? []) as VenueUnavailableSlot[], date), ...closedIntervalsFromWorkingHours((row.working_hours ?? []) as VenueUnavailableSlot[], date)];
         const { occupied, gaps } = rentalCoverage(data.venue_rentals.filter(r => r.venue_id === row.id) as RentalInterval[], date, dayClosed);
         return <article key={row.id} className="rounded-xl border p-4 space-y-3">
@@ -618,9 +667,12 @@ export function PlatformRecords() {
             <div><dt className="text-xs text-muted-foreground">{t("sa_academy_subscription")}</dt><dd className="mt-1 font-medium">{row.academy_id && row.subscription_sessions > 0 ? `${row.membership_type === "half" ? t("sa_half") : t("sa_full")} · ${row.subscription_sessions} ${t("sa_records_sessions")}` : t("sa_no_subscription")}</dd></div>
             <div><dt className="text-xs text-muted-foreground">{t("sa_sessions_attended")}</dt><dd className="mt-1 font-medium">{row.sessions_attended ?? 0}</dd></div>
           </dl>}
-          {tab === "Playgrounds" && <div className="space-y-2 text-sm"><p className="font-medium">{t("sa_records_rental_hours_today").replace("{hours}", (occupied / 60).toFixed(1)).replace("{percent}", String(Math.round(occupied / 1440 * 100)))}</p>{events.map((event,i) => <p key={i} className="rounded bg-muted p-2">{formatTime12h(event.time) || t("sa_records_time_unknown")} · {event.label}</p>)}{blockedToday.map((slot,i) => <p key={`blocked-${i}`} className="flex items-center gap-1.5 rounded bg-destructive/10 p-2 text-destructive"><Ban className="h-3.5 w-3.5" />{t("sa_records_blocked_slot").replace("{slot}", formatBlockedSlot(slot, d => t(`avail_day_${d}` as keyof Dict)))}</p>)}{events.length === 0 && blockedToday.length === 0 && <p>{t("sa_records_no_bookings")}</p>}<p className="text-muted-foreground">{t("sa_records_rental_gaps").replace("{gaps}", gaps.map(g => g.replace(/\d{2}:\d{2}/g, m => formatHour12(m, lang))).join(", ") || t("sa_records_none_gaps"))}</p></div>}
+          {tab === "Playgrounds" && <div className="space-y-2 text-sm"><p className="font-medium">{t("sa_records_rental_hours_today").replace("{hours}", (occupied / 60).toFixed(1)).replace("{percent}", String(Math.round(occupied / 1440 * 100)))}</p>{events.map((event,i) => <p key={i} className="rounded bg-muted p-2">{formatTime12h(event.time) || t("sa_records_time_unknown")} · {event.label}</p>)}{allBlockedSlots.map((slot,i) => <p key={`blocked-${i}`} className={`flex items-center gap-1.5 rounded p-2 ${weekdayOf(date) === slot.weekday ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}><Ban className="h-3.5 w-3.5 shrink-0" />{t("sa_records_blocked_slot").replace("{slot}", formatBlockedSlot(slot, d => t(`avail_day_${d}` as keyof Dict)))}</p>)}{events.length === 0 && allBlockedSlots.length === 0 && <p>{t("sa_records_no_bookings")}</p>}<p className="text-muted-foreground">{t("sa_records_rental_gaps").replace("{gaps}", gaps.map(g => g.replace(/\d{2}:\d{2}/g, m => formatHour12(m, lang))).join(", ") || t("sa_records_none_gaps"))}</p></div>}
         </article>;
-      })}</div>
+      })}
+      </>
+      )}
+      </div>
       <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle>{selected?.name ?? selected?.title ?? t("sa_records_record_details")}</DialogTitle><DialogDescription>{dialogDescription}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails member={selected} data={data} /> : tab === "Academies" ? <AcademyDetails academy={selected} data={data} /> : tab === "Playgrounds" ? <VenueDetails key={selected.id} venue={selected} data={data} /> : tab === "Friendly games" ? <GameDetails game={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && tab !== "Academies" && Object.entries(related).map(([label, records]) => <details key={label}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => label === "Participants" ? <GameParticipantRow key={r.id} participant={r} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
       <Dialog open={!!editing} onOpenChange={open => !busy && !open && setEditing(null)}><DialogContent><DialogHeader><DialogTitle>{t("sa_edit_membership")}</DialogTitle><DialogDescription>{editing?.name} · {editing?.email}</DialogDescription></DialogHeader>{editing && <form className="space-y-4" onSubmit={e => { e.preventDefault(); act({ action: "membership", id: editing.id, membership_type: editing.membership_type, subscription_sessions: Number(editing.subscription_sessions), member_plan: editing.member_plan, premium_expires_at: editing.premium_expires_at ? new Date(editing.premium_expires_at).toISOString() : null, is_active: editing.is_active }); }}>
         <label className="block text-sm">{t("sa_academy_membership")}<NativeSelect className="mt-1 w-full rounded border bg-background p-2" value={editing.membership_type} onChange={e => setEditing({ ...editing, membership_type: e.target.value })}><option value="full">{t("sa_full")}</option><option value="half">{t("sa_half")}</option></NativeSelect></label>

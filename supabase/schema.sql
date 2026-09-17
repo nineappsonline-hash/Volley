@@ -308,6 +308,45 @@ CREATE TABLE IF NOT EXISTS public.sports (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- ── Sport settings: platform-wide per-sport community game rules ──────────────
+-- Keyed by sport name (matches friendly_games.sport / COMMUNITY_SPORTS).
+-- Members read these to pre-fill game creation; the platform admin writes them
+-- from the platform panel (same is_super_admin() gate as other platform data).
+CREATE TABLE IF NOT EXISTS public.sport_settings (
+  sport TEXT PRIMARY KEY,
+  min_players INTEGER NOT NULL CHECK (min_players >= 2 AND min_players <= 30),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE public.sport_settings ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'sport_settings'
+      AND policyname = 'sport_settings_select_all'
+  ) THEN
+    CREATE POLICY sport_settings_select_all ON public.sport_settings
+      FOR SELECT TO authenticated USING (true);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'sport_settings'
+      AND policyname = 'sport_settings_write_super_admin'
+  ) THEN
+    CREATE POLICY sport_settings_write_super_admin ON public.sport_settings
+      FOR ALL TO authenticated
+      USING (public.is_super_admin())
+      WITH CHECK (public.is_super_admin());
+  END IF;
+END
+$$;
+
+INSERT INTO public.sport_settings (sport, min_players) VALUES
+  ('Beach Volleyball', 8)
+ON CONFLICT (sport) DO NOTHING;
+
 -- Teams table (a team groups members and belongs to one sport)
 CREATE TABLE IF NOT EXISTS public.teams (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

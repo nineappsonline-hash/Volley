@@ -31,16 +31,17 @@ import {
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
 import { normalizeCountry } from "@/lib/locations";
-import { COMMUNITY_SPORTS, getDefaultMinPlayers, getBillablePlayers, formatMoney } from "@/lib/constants";
+import { COMMUNITY_SPORTS, getDefaultMinPlayers, getBillablePlayers, formatMoney, getSportMinPlayers } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import { GameCostEstimate } from "@/components/games/game-cost-estimate";
 import { QueryState } from "@/components/shared/query-state";
 import { PlaygroundPicker } from "@/components/shared/playground-picker";
+import { PlaygroundAvailabilityCalendar } from "@/components/shared/playground-availability-calendar";
 import {
   PlaygroundLocationFilters,
   type PlaygroundLocationSelection,
 } from "@/components/shared/playground-location-filters";
-import { useCreateFriendlyGame, useFriendlyGames, usePlaygrounds, usePayGameShare, usePayRentRemaining } from "@/lib/queries";
+import { useCreateFriendlyGame, useFriendlyGames, usePlaygrounds, usePayGameShare, usePayRentRemaining, useSportSettings } from "@/lib/queries";
 import { GameSharePayment } from "@/components/games/game-share-payment";
 import { CourtRentInfoDialog } from "@/components/games/court-rent-info-dialog";
 import { errorMessage, todayInput } from "@/lib/utils";
@@ -64,6 +65,7 @@ export function CreateGameDialog({
   const playgroundQuery = usePlaygrounds();
   const { data: playgrounds } = playgroundQuery;
   const { data: allGames } = useFriendlyGames();
+  const { data: sportMinOverrides } = useSportSettings();
 
   // Once the game row exists (created freely by the RPC) the creator must pay
   // their own share before the dialog closes; backing out cancels the draft.
@@ -133,10 +135,12 @@ export function CreateGameDialog({
   const [maxAge, setMaxAge] = useState("");
   const [hostPays, setHostPays] = useState(false);
 
-  // When the sport is chosen, pre-fill minimum players with the sport default.
+  // When the sport is chosen (or the platform-wide minimums load), pre-fill
+  // minimum players with the effective sport default (super-admin override
+  // first, then the built-in constant).
   useEffect(() => {
-    setMinPlayers(String(getDefaultMinPlayers(sport)));
-  }, [sport]);
+    setMinPlayers(String(getSportMinPlayers(sport, sportMinOverrides)));
+  }, [sport, sportMinOverrides]);
 
   useEffect(() => {
     if (open) {
@@ -443,6 +447,14 @@ export function CreateGameDialog({
               playgrounds={locatedPlaygrounds}
             />
             </QueryState>
+          {selectedPlayground && (
+            <PlaygroundAvailabilityCalendar
+              unavailableSlots={selectedPlayground.unavailable_slots}
+              workingHours={selectedPlayground.working_hours}
+              selectedDate={date || undefined}
+              onSelectDate={setDate}
+            />
+          )}
             {!selectedPlayground && (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">

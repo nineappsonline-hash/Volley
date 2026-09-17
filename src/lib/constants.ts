@@ -21,15 +21,30 @@ export function getPlayerFee(sport: string): number {
   return SPORT_PLAYER_FEE[sport] ?? 20;
 }
 
-// Default minimum players per sport when creating a game.
+// Default minimum players per sport when creating a game. The super admin can
+// override these per sport in the platform panel (sport_settings table); these
+// values are the built-in fallbacks.
 export const SPORT_DEFAULT_MIN: Record<string, number> = {
   Football: 10,
   Volleyball: 10,
+  "Beach Volleyball": 8,
   Padel: 4,
 };
 
 export function getDefaultMinPlayers(sport: string): number {
   return SPORT_DEFAULT_MIN[sport] ?? 2;
+}
+
+/**
+ * Effective minimum players for a sport: the super-admin override
+ * (sport_settings map from useSportSettings) wins over the built-in default.
+ */
+export function getSportMinPlayers(
+  sport: string,
+  overrides?: Map<string, number> | null
+): number {
+  const override = overrides?.get(sport);
+  return typeof override === "number" && override >= 2 ? override : getDefaultMinPlayers(sport);
 }
 
 // The fixed headcount a sport's share is always split across, regardless of the

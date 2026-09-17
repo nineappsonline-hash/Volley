@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isPlatformAdmin, matchesAccountEmail } from "@/lib/platform-admin";
 
-const tables = ["profiles", "academies", "friendly_games", "friendly_game_participants", "venues", "venue_rentals", "training_sessions", "tournaments", "tournament_participants", "tournament_teams", "tournament_team_members", "tournament_matches", "payments", "attendance", "academy_branches", "membership_plans", "sports"] as const;
+const tables = ["profiles", "academies", "friendly_games", "friendly_game_participants", "venues", "venue_rentals", "training_sessions", "tournaments", "tournament_participants", "tournament_teams", "tournament_team_members", "tournament_matches", "payments", "attendance", "academy_branches", "membership_plans", "sports", "sport_settings"] as const;
 export async function GET() {
   const { data: { user } } = await createClient().auth.getUser();
   if (!isPlatformAdmin(user)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -49,6 +49,7 @@ const unavailableSlot = z.object({
 }).refine(slot => slot.start < slot.end, { message: "excluded time must end after it starts" });
 const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("membership"), id: z.string().uuid(), membership_type: z.enum(["full", "half"]), subscription_sessions: z.number().int().min(0).max(10000), member_plan: z.enum(["free", "premium"]), premium_expires_at: z.string().datetime().nullable(), is_active: z.boolean() }),
+  z.object({ action: z.literal("sport_setting"), sport: z.string().trim().min(1).max(80), min_players: z.number().int().min(2).max(30) }),
   z.object({ action: z.literal("venue"), id: z.string().uuid().optional(),
     academy_id: z.preprocess(v => v === "" || v == null ? null : v, z.string().uuid().nullable().optional()),
     name: z.string().trim().min(1),
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
   const parsed = actionSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues.map(issue => `${issue.path.join(".")}: ${issue.message}`).join("; ") }, { status: 400 });
   const input = parsed.data;
-  if (input.action !== "venue" && input.action !== "delete_venue" && input.id === user!.id) return NextResponse.json({ error: "You cannot modify your own administrator account here." }, { status: 400 });
+  if (input.action !== "venue" && input.action !== "delete_venue" && input.action !== "sport_setting" && input.id === user!.id) return NextResponse.json({ error: "You cannot modify your own administrator account here." }, { status: 400 });
   try {
     const { data: permitted, error: accessError } = await createClient().rpc("is_super_admin");
     const { error: migrationError } = await createClient().rpc("is_account_blocked");
@@ -98,6 +99,18 @@ export async function POST(request: Request) {
       if (error) return NextResponse.json({ error: error.code === "42703" || error.code === "PGRST204"
         ? "Apply the playground location migration (20260907210000_venue_locations.sql), then retry saving."
         : "Could not save playground. Check that the playground and selected sport still exist." }, { status: 400 });
+      return NextResponse.json({ ok: true });
+    }
+    if (input.action === "sport_setting") {
+      // Upsert one platform-wide sport rule (upsert so new sports can be added;
+      // the unique key on sport makes this idempotent).
+      const { error } = await admin.from("sport_settings").upsert(
+        { sport: input.sport, min_players: input.min_players, updated_at: new Date().toISOString() },
+        { onConflict: "sport" }
+      );
+      if (error) return NextResponse.json({ error: error.code === "42P01"
+        ? "Apply the sport settings migration (20261019000000_sport_settings.sql), then retry saving."
+        : "Could not save the sport setting." }, { status: 400 });
       return NextResponse.json({ ok: true });
     }
     const { data: target, error: lookupError } = await admin.auth.admin.getUserById(input.id);

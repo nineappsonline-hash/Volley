@@ -72,6 +72,7 @@ export const queryKeys = {
   guests: (sessionId?: string) =>
     ["guests", sessionId ?? "all"] as const,
   sports: ["sports"] as const,
+  sportSettings: ["sport_settings"] as const,
   teams: ["teams"] as const,
   academy: ["academy"] as const,
   branches: ["branches"] as const,
@@ -376,6 +377,24 @@ export function useSports() {
         .order("name");
       if (error) throw error;
       return (data ?? []) as Sport[];
+    },
+  });
+}
+
+/**
+ * Platform-wide per-sport game rules (sport_settings table). Currently only
+ * the minimum players a community game must have. Falls back to an empty map —
+ * callers then use the built-in SPORT_DEFAULT_MIN constants.
+ */
+export function useSportSettings() {
+  return useQuery({
+    queryKey: queryKeys.sportSettings,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("sport_settings")
+        .select("sport, min_players");
+      if (error) throw error;
+      return new Map((data ?? []).map((row: { sport: string; min_players: number }) => [row.sport, row.min_players]));
     },
   });
 }

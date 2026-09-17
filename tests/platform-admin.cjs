@@ -27,13 +27,19 @@ async function checkRoutes() {
   let user = null;
   let adminCalls = 0;
   let saved;
+  let savedSettings = [];
   const deleted = [];
   const source = ts.transpileModule(fs.readFileSync('src/app/api/platform-admin/route.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
   const module = { exports: {} };
   const mockRequire = name => {
     if (name === 'next/server') return { NextResponse: { json: (body, init = {}) => ({ body, status: init.status || 200 }) } };
     if (name === '@/lib/supabase/server') return { createClient: () => ({ rpc: async () => ({ data: true }), auth: { getUser: async () => ({ data: { user } }) } }) };
-    if (name === '@/lib/supabase/admin') return { createAdminClient: () => { adminCalls++; return { auth: { admin: { getUserById: async id => ({ data: { user: { id, email: 'nayera@gmail.com' } } }), deleteUser: async id => { deleted.push(id); return { error: null }; } } }, from: table => { assert.equal(table, 'venues'); return { update: changes => { saved = changes; return { eq: () => ({ select: () => ({ single: async () => ({ error: null }) }) }) }; } }; } };  } };
+    if (name === '@/lib/supabase/admin') return { createAdminClient: () => { adminCalls++; return { auth: { admin: { getUserById: async id => ({ data: { user: { id, email: 'nayera@gmail.com' } } }), deleteUser: async id => { deleted.push(id); return { error: null }; } } }, from: table => {
+      if (table === 'sport_settings') {
+        return { upsert: row => { savedSettings.push(row); return Promise.resolve({ error: null }); } };
+      }
+      assert.equal(table, 'venues'); return { update: changes => { saved = changes; return { eq: () => ({ select: () => ({ single: async () => ({ error: null }) }) }) }; } };
+    } }; } };
     if (name === '@/lib/platform-admin') return { isPlatformAdmin, matchesAccountEmail };
     return require(name);
   };
@@ -63,6 +69,13 @@ async function checkRoutes() {
   assert.equal((await POST({ json: async () => ({ action: 'delete', id: memberId, confirmation: '  Nayera@gmail.com  ' }) })).status, 200);
   assert.deepEqual(deleted, [memberId]);
   assert.equal(matchesAccountEmail('', null), false);
+  // sport_setting action: upserts a platform-wide rule; invalid values rejected.
+  assert.equal((await POST({ json: async () => ({ action: 'sport_setting', sport: 'Beach Volleyball', min_players: 1 }) })).status, 400);
+  assert.equal((await POST({ json: async () => ({ action: 'sport_setting', sport: 'Beach Volleyball', min_players: 99 }) })).status, 400);
+  assert.equal((await POST({ json: async () => ({ action: 'sport_setting', sport: '', min_players: 8 }) })).status, 400);
+  assert.deepEqual(savedSettings, []);
+  assert.equal((await POST({ json: async () => ({ action: 'sport_setting', sport: 'Beach Volleyball', min_players: 8 }) })).status, 200);
+  assert.deepEqual(savedSettings.map(r => ({ sport: r.sport, min_players: r.min_players })), [{ sport: 'Beach Volleyball', min_players: 8 }]);
   console.log('Admin route authorization, validation, and self-protection checks passed');
 }
 checkRoutes().catch(error => { console.error(error); process.exitCode = 1; });
