@@ -739,7 +739,7 @@ export function PlatformRecords() {
           {(editingVenue.unavailable_slots ?? []).map((slot, idx) => (
             <div key={idx} className="grid grid-cols-[auto_1fr_1fr_auto] items-center gap-2">
               <NativeSelect aria-label={t("sa_unavail_day")} className="rounded border bg-background p-2 text-sm" value={String(slot.weekday)} onChange={e => setEditingVenue(c => c ? ({ ...c, unavailable_slots: (c.unavailable_slots ?? []).map((s, i) => i === idx ? { ...s, weekday: Number(e.target.value) } : s) }) : c)}>
-                {[0, 1, 2, 3, 4, 5, 6].map(d => <option key={d} value={d}>{t(`avail_day_${d}` as keyof Dict)}</option>)}
+                {[0, 1, 2, 3, 4, 5, 6].map(d => <option key={d} value={d} data-sort={d}>{t(`avail_day_${d}` as keyof Dict)}</option>)}
               </NativeSelect>
               <Input aria-label={t("sa_unavail_start")} dir="ltr" type="time" className="p-1.5 text-sm" value={slot.start} onChange={e => setEditingVenue(c => c ? ({ ...c, unavailable_slots: (c.unavailable_slots ?? []).map((s, i) => i === idx ? { ...s, start: e.target.value } : s) }) : c)} />
               <Input aria-label={t("sa_unavail_end")} dir="ltr" type="time" className="p-1.5 text-sm" value={slot.end} onChange={e => setEditingVenue(c => c ? ({ ...c, unavailable_slots: (c.unavailable_slots ?? []).map((s, i) => i === idx ? { ...s, end: e.target.value } : s) }) : c)} />
@@ -755,7 +755,7 @@ export function PlatformRecords() {
           {(editingVenue.working_hours ?? []).map((slot, idx) => (
             <div key={idx} className="grid grid-cols-[auto_1fr_1fr_auto] items-center gap-2">
               <NativeSelect aria-label={t("sa_unavail_day")} className="rounded border bg-background p-2 text-sm" value={String(slot.weekday)} onChange={e => setEditingVenue(c => c ? ({ ...c, working_hours: (c.working_hours ?? []).map((s, i) => i === idx ? { ...s, weekday: Number(e.target.value) } : s) }) : c)}>
-                {[0, 1, 2, 3, 4, 5, 6].map(d => <option key={d} value={d}>{t(`avail_day_${d}` as keyof Dict)}</option>)}
+                {[0, 1, 2, 3, 4, 5, 6].map(d => <option key={d} value={d} data-sort={d}>{t(`avail_day_${d}` as keyof Dict)}</option>)}
               </NativeSelect>
               <Input aria-label={t("sa_unavail_start")} dir="ltr" type="time" className="p-1.5 text-sm" value={slot.start} onChange={e => setEditingVenue(c => c ? ({ ...c, working_hours: (c.working_hours ?? []).map((s, i) => i === idx ? { ...s, start: e.target.value } : s) }) : c)} />
               <Input aria-label={t("sa_unavail_end")} dir="ltr" type="time" className="p-1.5 text-sm" value={slot.end} onChange={e => setEditingVenue(c => c ? ({ ...c, working_hours: (c.working_hours ?? []).map((s, i) => i === idx ? { ...s, end: e.target.value } : s) }) : c)} />

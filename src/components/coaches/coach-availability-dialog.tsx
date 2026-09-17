@@ -131,7 +131,7 @@ export function CoachAvailabilityDialog({
                   </SelectTrigger>
                   <SelectContent>
                     {WEEKDAYS.map((d) => (
-                      <SelectItem key={d.value} value={String(d.value)}>
+                      <SelectItem key={d.value} value={String(d.value)} data-sort={d.value}>
                         {lang === "ar" ? d.ar : d.en}
                       </SelectItem>
                     ))}

@@ -143,8 +143,8 @@ export function TemplatesManagerDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {WEEKDAYS.map((dow) => (
-                      <SelectItem key={dow} value={String(dow)}>
+                    {WEEKDAYS.map((dow, i) => (
+                      <SelectItem key={dow} value={String(dow)} data-sort={i}>
                         {weekdayLabel(dow)}
                       </SelectItem>
                     ))}

@@ -101,7 +101,7 @@ export function RecurringSchedulesList() {
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {WEEKDAYS.map((day, i) => (
-                          <SelectItem key={i} value={String(i)}>{day}</SelectItem>
+                          <SelectItem key={i} value={String(i)} data-sort={i}>{day}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
