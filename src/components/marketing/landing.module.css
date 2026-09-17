@@ -86,7 +86,7 @@
   background-clip: text;
   color: transparent;
   padding: 0.32em 0.05em 0.14em 0.05em;
-  animation: titleShine 7s ease-in-out infinite;
+  animation: titleShine 4s ease-in-out 2;
 }
 .heroCopy h1 em,
 .page h2 em,
@@ -108,7 +108,7 @@
   background-clip: text;
   color: transparent;
   padding: 0.28em 0.05em 0.12em 0.05em;
-  animation: titleShine 8s ease-in-out infinite;
+  animation: titleShine 4s ease-in-out 2;
 }
 .arenaCopy h2 em {
   background: linear-gradient(110deg, #6ee7b7, #a7f3d0 45%, #fff);
@@ -117,7 +117,7 @@
   background-clip: text;
   color: transparent;
   padding: 0.28em 0.05em 0.12em 0.05em;
-  animation: titleShine 8s ease-in-out infinite;
+  animation: titleShine 4s ease-in-out 2;
 }
 .page .eyebrow {
   font-weight: 700;
@@ -380,8 +380,8 @@
 @media (max-width: 950px) { .aboutGrid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 700px) { .aboutGrid { grid-template-columns: 1fr; } .aboutCard { padding: 22px; } }
 @keyframes sportsPrompt {
-  0%, 100% { transform: translateY(0); color: #17724f; text-shadow: 0 0 0 rgba(34, 212, 139, 0); }
-  50% { transform: translateY(-3px); color: #14c98a; text-shadow: 0 2px 16px rgba(34, 212, 139, 0.5); }
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(-3px); opacity: 0.75; }
 }
 
 /* Playza theme: shared palette, solid typography, existing layout/motion. */
@@ -777,4 +777,12 @@
     opacity: 1;
     transform: none;
   }
+}
+/* Cheap scrolling: skip layout/paint of off-screen sections until they're near the viewport */
+.section,
+.arenaSection,
+.leaderboardSection,
+.finalCta {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
 }

@@ -88,14 +88,19 @@ export function LeaderboardSection({
   const [cat, setCat] = useState<Category>("top");
   const hasData = leaders.length > 0;
   const statsView = useInView<HTMLDivElement>(0.3);
+  const sectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!hasData) return;
     const order: Category[] = ["top", "games", "sessions"];
-    const id = window.setInterval(
-      () => setCat((c) => order[(order.indexOf(c) + 1) % order.length]),
-      5200
-    );
+    const id = window.setInterval(() => {
+      const el = sectionRef.current;
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+      }
+      setCat((c) => order[(order.indexOf(c) + 1) % order.length]);
+    }, 5200);
     return () => window.clearInterval(id);
   }, [hasData]);
 
@@ -147,7 +152,7 @@ export function LeaderboardSection({
   ];
 
   return (
-    <section id="leaders" className={styles.leaderboardSection} aria-label={t("landing_lb_kicker")}>
+    <section id="leaders" ref={sectionRef} className={styles.leaderboardSection} aria-label={t("landing_lb_kicker")}>
       <div className={styles.leaderboardBalls} aria-hidden>
         <i><Volleyball size={22} /></i>
         <i><Volleyball size={30} /></i>
