@@ -531,7 +531,11 @@ export function PlatformRecords() {
   if (error || !data) return <Card><CardContent className="p-6"><p role="alert">{error?.message ?? t("sa_could_not_load")}</p><Button onClick={() => refetch()}>{t("sa_retry")}</Button></CardContent></Card>;
   const sports = data.sports ?? [];
   const sportOptions = Array.from(new Map(sports.map(s => [String(s.name).toLowerCase(), s])).values())
-  .sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: "base" }));
+    .sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: "base" }));
+  if (editingVenue?.sport_id && !sportOptions.some(s => s.id === editingVenue.sport_id)) {
+    const assigned = sports.find(s => s.id === editingVenue.sport_id);
+    if (assigned) sportOptions.push(assigned);
+  }
   const sportById = new Map(sports.map((s) => [s.id, s.name]));
   const handleSportSelect = (newSportId: string | null) => {
     setEditingVenue((current) => current && { ...current, sport_id: newSportId });
