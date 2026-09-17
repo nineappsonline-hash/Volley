@@ -7,6 +7,7 @@ import { LanguageToggle } from "@/components/layout/language-toggle";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import type { SharedGameMeta } from "@/lib/public-games";
+import { SignedInGameParticipantNames } from "./game-participant-names";
 import { PublicGameJoin } from "./public-game-join";
 
 export function SharedGamePage({ game, inviteCode }: { game: SharedGameMeta | null; inviteCode: string }) {
@@ -19,6 +20,7 @@ export function SharedGamePage({ game, inviteCode }: { game: SharedGameMeta | nu
         {game && <>
           <p>{game.sport} · {game.game_date} · {game.start_time.slice(0, 5)}</p>
           <p>{[game.map_label, game.governorate, game.area].filter(Boolean).join(" · ")}</p>
+          <SignedInGameParticipantNames gameId={game.id} />
           {game.description && <p className="whitespace-pre-wrap">{game.description}</p>}
           <p>{formatMoney(game.host_pays ? 0 : (game.share_price ?? 0), lang)}</p>
           {game.status !== "completed" && game.game_date >= new Date().toISOString().slice(0, 10) && <PublicGameJoin game={game} inviteCode={inviteCode} />}

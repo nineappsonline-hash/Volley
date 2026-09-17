@@ -26,6 +26,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { GameCostEstimate } from "@/components/games/game-cost-estimate";
+import { GameParticipantNames } from "./game-participant-names";
 import { GameChat } from "@/components/games/game-chat";
 import { JoinGameDialog } from "@/components/games/join-game-dialog";
 import {
@@ -292,6 +293,7 @@ function GameCard({
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col gap-3">
+        <GameParticipantNames participants={game.participants ?? []} />
         {/* Playground */}
         <div className="flex items-start gap-2 rounded-lg border bg-muted/30 p-2.5">
           {playgroundThumb ? (

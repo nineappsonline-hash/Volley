@@ -115,6 +115,7 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
           </p>
         </div>
       )}
+      <MyUpcomingGames memberId={p.id} />
       <DashboardSection id="overview" title={lang === "ar" ? "نظرة عامة" : "Overview"} hint={lang === "ar" ? "أهم الأرقام في مكان واحد" : "Your key numbers at a glance"}>
       <Reveal>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -250,7 +251,6 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
       </div>
       </Reveal>
       </DashboardSection>
-      <MyUpcomingGames memberId={p.id} />
       <DashboardSection id="tournaments" title={t("td_my_tournaments")} hint={lang === "ar" ? "بطولاتك ونتائجك في مكان واحد" : "Your tournaments and results in one place"}>
         <MyTournamentsCard memberId={p.id} />
       </DashboardSection>

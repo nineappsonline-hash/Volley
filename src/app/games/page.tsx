@@ -1,3 +1,4 @@
+import { SignedInGameParticipantNames } from "@/components/games/game-participant-names";
 import { SharedGamePage } from "@/components/games/shared-game-page";
 import { PublicGameJoin } from "@/components/games/public-game-join";
 import type { Metadata } from "next";
@@ -287,6 +288,7 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
                     )}
                   </dl>
 
+                  <div className="mt-4"><SignedInGameParticipantNames gameId={g.id} /></div>
                   <div className="mt-auto pt-4">
                     <PublicGameJoin game={g} />
                   </div>
