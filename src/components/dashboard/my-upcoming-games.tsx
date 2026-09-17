@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { format } from "date-fns";
 import {
   CalendarDays,
   Clock,
@@ -35,13 +36,15 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export function MyUpcomingGames({ memberId }: { memberId: string }) {
-  const { t, lang } = useI18n();
+  const { t, lang, locale } = useI18n();
   const ar = lang === "ar";
   const query = useMyUpcomingGames(memberId);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = query.data?.find(row => row.game.id === selectedId);
   const roster = useUpcomingGameParticipants(selectedId, memberId);
   useRealtime(["friendly_games", "friendly_game_participants"]);
+
+  const prettyDate = (date: string) => format(new Date(date + "T00:00:00"), "EEE, MMM d", { locale });
 
   const game = selected?.game;
   const playgroundPhoto = game?.playground
@@ -69,7 +72,7 @@ export function MyUpcomingGames({ memberId }: { memberId: string }) {
             <button type="button" onClick={() => setSelectedId(game.id)} className="h-full w-full space-y-3 rounded-xl border bg-card p-6 text-start shadow-sm transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
               <div className="flex flex-wrap items-center gap-2"><Badge variant="secondary">{game.sport}</Badge>{is_waitlisted && <Badge variant="secondary">{ar ? "قائمة الانتظار" : "Waitlisted"}</Badge>}</div>
               <h3 className="text-xl font-bold">{game.title}</h3>
-              <p className="flex items-center gap-2 text-sm"><CalendarDays className="h-4 w-4 shrink-0" />{game.game_date}</p>
+              <p className="flex items-center gap-2 text-sm"><CalendarDays className="h-4 w-4 shrink-0" />{prettyDate(game.game_date)}</p>
               <p className="flex items-center gap-2 text-sm"><Clock className="h-4 w-4 shrink-0" />{game.start_time.slice(0, 5)} · {game.duration_hours} {ar ? "ساعة" : "hours"}</p>
               {(game.location || game.area) && <p className="flex items-center gap-2 text-sm"><MapPin className="h-4 w-4 shrink-0" />{[game.location, game.area].filter(Boolean).join(" · ")}</p>}
               <p className="font-semibold text-info-ink">{ar ? "عرض تفاصيل المباراة والمشاركين" : "View game details and participants"}</p>
@@ -106,7 +109,7 @@ export function MyUpcomingGames({ memberId }: { memberId: string }) {
             </div>
             <h2 className="relative mt-3 text-2xl font-extrabold leading-tight">{game.title}</h2>
             <div className="relative mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/85">
-              <span className="flex items-center gap-1.5"><CalendarDays className="h-4 w-4 shrink-0" />{game.game_date}</span>
+              <span className="flex items-center gap-1.5"><CalendarDays className="h-4 w-4 shrink-0" />{prettyDate(game.game_date)}</span>
               <span className="flex items-center gap-1.5"><Clock className="h-4 w-4 shrink-0" />{game.start_time.slice(0, 5)}</span>
               <span className="flex items-center gap-1.5"><Timer className="h-4 w-4 shrink-0" />{game.duration_hours} {ar ? "ساعة" : "hours"}</span>
             </div>
