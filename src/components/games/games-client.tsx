@@ -169,6 +169,7 @@ function GameCard({
   const inviteLink = game.invite_code
     ? `${window.location.origin}/games?join=${game.invite_code}`
     : null;
+  const shareLink = inviteLink ?? `${window.location.origin}/games`;
 
   const playgroundTarget = (() => {
     if (!game.playground) return null;
@@ -330,6 +331,27 @@ function GameCard({
               {t("games_private")}
             </Badge>
           )}
+        </div>
+
+        <div className="flex items-center gap-2 rounded-lg border bg-muted/30 px-2.5 py-2">
+          <LinkIcon className="h-3.5 w-3.5 shrink-0 text-primary" />
+          <span dir="ltr" className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{shareLink}</span>
+          <Button
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+            onClick={() => {
+              onCopy(`share:${game.id}`, shareLink);
+              toast.success(t("games_invite_copied"));
+            }}
+          >
+            {copiedKey === `share:${game.id}` ? (
+              <Check className="me-1 h-3.5 w-3.5" />
+            ) : (
+              <Share2 className="me-1 h-3.5 w-3.5" />
+            )}
+            {t("games_copy_invite")}
+          </Button>
         </div>
 
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">

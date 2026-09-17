@@ -7,7 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * reads to academy members, so these server pages use the admin client — the
  * same pattern as the public academy page (/a/[slug]) — with strict scoping to
  * what is genuinely public:
- * - games: is_public, no invite code, upcoming, not cancelled/completed
+ * - games: is_public, upcoming, not cancelled/completed
  * - tournaments: hosted by a public academy
  *
  * Every function here is best-effort: on any failure (missing service key on
@@ -80,7 +80,6 @@ export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
        participants:friendly_game_participants(count)`
     )
     .eq("is_public", true)
-    .is("invite_code", null)
     .neq("status", "cancelled")
     .neq("status", "completed")
     .gte("game_date", todayISO())
@@ -116,7 +115,6 @@ export async function getPublicGameSports(): Promise<string[]> {
       .from("friendly_games")
       .select("sport")
       .eq("is_public", true)
-      .is("invite_code", null)
       .neq("status", "cancelled")
       .neq("status", "completed")
       .gte("game_date", todayISO())

@@ -5,10 +5,12 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import {
   CalendarDays,
+  Check,
   Clock,
   Flag,
   Lamp,
   LandPlot,
+  Link as LinkIcon,
   MapPin,
   Navigation,
   Plus,
@@ -106,6 +108,8 @@ function GameCard({
 
   const isPro = profile.member_plan === "premium";
   const playgroundPhoto = venueCardPhoto(game.playground?.photos, game.playground?.cover_url);
+  const [shareCopied, setShareCopied] = useState(false);
+  const shareLink = game.invite_code ? `${window.location.origin}/games?join=${game.invite_code}` : `${window.location.origin}/games`;
 
   const isParent = game.recurrence === "weekly" && game.source_game_id == null;
   const today = new Date().toISOString().slice(0, 10);
@@ -257,6 +261,30 @@ function GameCard({
             )}
           </div>
         )}
+
+        <div className="flex items-center gap-2 rounded-lg border bg-muted/30 px-2.5 py-2">
+          <LinkIcon className="h-3.5 w-3.5 shrink-0 text-primary" />
+          <span dir="ltr" className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{shareLink}</span>
+          <Button
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+            onClick={() => {
+              navigator.clipboard?.writeText(shareLink).catch(() => {});
+              setShareCopied(true);
+              setTimeout(() => setShareCopied(false), 2000);
+              toast.success(t("games_invite_copied"));
+            }}
+          >
+            {shareCopied ? (
+              <Check className="me-1 h-3.5 w-3.5" />
+            ) : (
+              <Share2 className="me-1 h-3.5 w-3.5" />
+            )}
+            {t("games_copy_invite")}
+          </Button>
+        </div>
+
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <CalendarDays className="h-4 w-4 shrink-0" />

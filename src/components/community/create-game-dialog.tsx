@@ -60,7 +60,7 @@ export function CreateGameDialog({
 
   // Once the game row exists (created freely by the RPC) the creator must pay
   // their own share before the dialog closes; backing out cancels the draft.
-  const [createdGame, setCreatedGame] = useState<{ id: string; amount: number; remaining: number } | null>(null);
+  const [createdGame, setCreatedGame] = useState<{ id: string; amount: number; remaining: number; inviteCode: string | null } | null>(null);
   const [showRentInfo, setShowRentInfo] = useState(false);
   const [sharePaid, setSharePaid] = useState(false);
 
@@ -195,7 +195,18 @@ export function CreateGameDialog({
         // The creator just covers their own share; the rest is still outstanding.
         remaining = Math.max(0, Math.round((rent * (billable - 1)) / billable * 100) / 100);
       }
-      setCreatedGame({ id, amount, remaining });
+      let inviteCode: string | null = null;
+      try {
+        const { data: created } = await createClient()
+          .from("friendly_games")
+          .select("invite_code")
+          .eq("id", id)
+          .single();
+        inviteCode = created?.invite_code ?? null;
+      } catch {
+        /* keep the fallback null code */
+      }
+      setCreatedGame({ id, amount, remaining, inviteCode });
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
     }
@@ -514,7 +525,11 @@ export function CreateGameDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-    <CourtRentInfoDialog open={showRentInfo} onOpenChange={setShowRentInfo} />
+    <CourtRentInfoDialog
+      open={showRentInfo}
+      onOpenChange={setShowRentInfo}
+      shareLink={createdGame?.inviteCode ? `${window.location.origin}/games?join=${createdGame.inviteCode}` : null}
+    />
     </>
   );
 }
