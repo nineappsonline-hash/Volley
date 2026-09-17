@@ -700,7 +700,7 @@ BEGIN
   SELECT a.id, az.name
   FROM public.academies a
   CROSS JOIN (VALUES
-    ('Football'), ('Basketball'), ('Handball'), ('Volleyball'), ('Tennis'),
+    ('Football'), ('Basketball'), ('Handball'), ('Volleyball'), ('Beach Volleyball'), ('Tennis'),
     ('Swimming'), ('Padel'), ('Squash'), ('Table Tennis'), ('Badminton'),
     ('Gymnastics'), ('Karate'), ('Boxing'), ('Athletics'), ('Kung Fu'),
     ('Taekwondo'), ('CrossFit'), ('Judo'), ('Kickboxing'), ('Wrestling'),
