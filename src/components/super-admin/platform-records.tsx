@@ -451,6 +451,8 @@ export function PlatformRecords() {
   } });
   const [tab, setTab] = useState<(typeof tabs)[number]["value"]>("Members");
   const [search, setSearch] = useState("");
+  const [memberPage, setMemberPage] = useState(1);
+  useEffect(() => { setMemberPage(1); }, [search, tab]);
   const [date, setDate] = useState(() => `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`);
   const [selected, setSelected] = useState<Row | null>(null);
   const [editingGame, setEditingGame] = useState<Row | null>(null);
@@ -574,6 +576,27 @@ export function PlatformRecords() {
         ...(tab === "Academies" ? contacts?.fields ?? [] : [academy(row.academy_id)])],
       [row.phone, ...(contacts?.phones ?? [])]);
   });
+  if (tab === "Members") {
+    const joinedAt = (row: Row) => {
+      const timestamp = Date.parse(row.created_at || row.join_date || "");
+      return Number.isFinite(timestamp) ? timestamp : 0;
+    };
+    rows.sort((a, b) => joinedAt(b) - joinedAt(a) || String(a.id).localeCompare(String(b.id)));
+  }
+  const memberPageSize = 20;
+  const memberPageCount = Math.max(1, Math.ceil(rows.length / memberPageSize));
+  const currentMemberPage = Math.min(memberPage, memberPageCount);
+  const visibleRows = tab === "Members"
+    ? rows.slice((currentMemberPage - 1) * memberPageSize, currentMemberPage * memberPageSize)
+    : rows;
+  const memberPagination = tab === "Members" && rows.length > 0 ? <nav aria-label={lang === "ar" ? "صفحات الأعضاء" : "Member pages"} className="flex flex-wrap items-center justify-between gap-3">
+    <p className="text-sm text-muted-foreground" aria-live="polite">{lang === "ar" ? "عرض" : "Showing"} {(currentMemberPage - 1) * memberPageSize + 1}–{Math.min(currentMemberPage * memberPageSize, rows.length)} {lang === "ar" ? "من" : "of"} {rows.length}</p>
+    <div className="flex items-center gap-2">
+      <Button variant="outline" size="sm" disabled={currentMemberPage === 1} onClick={() => setMemberPage(currentMemberPage - 1)}>{lang === "ar" ? "السابق" : "Previous"}</Button>
+      <span className="text-sm">{lang === "ar" ? "صفحة" : "Page"} {currentMemberPage} / {memberPageCount}</span>
+      <Button variant="outline" size="sm" disabled={currentMemberPage === memberPageCount} onClick={() => setMemberPage(currentMemberPage + 1)}>{lang === "ar" ? "التالي" : "Next"}</Button>
+    </div>
+  </nav> : null;
   const searchLabel = tab === "Members" ? t("sa_records_search_members")
     : tab === "Academies" ? t("sa_records_search_academies")
     : t("sa_records_search_general");
@@ -639,7 +662,8 @@ export function PlatformRecords() {
       ) : (
       <>
       {rows.length === 0 && <p className="py-8 text-center text-muted-foreground">{t("sa_records_empty")}</p>}
-      {rows.map(row => {
+      {memberPagination}
+      {visibleRows.map(row => {
         const blocked = row.banned_until && new Date(row.banned_until) > new Date();
         const protectedAccount = row.email?.toLowerCase() === PLATFORM_ADMIN_EMAIL;
         const rentals = data.venue_rentals.filter(r => r.venue_id === row.id && r.rental_date === date);
@@ -672,6 +696,7 @@ export function PlatformRecords() {
           {tab === "Playgrounds" && <div className="space-y-2 text-sm"><p className="font-medium">{t("sa_records_rental_hours_today").replace("{hours}", (occupied / 60).toFixed(1)).replace("{percent}", String(Math.round(occupied / 1440 * 100)))}</p>{events.map((event,i) => <p key={i} className="rounded bg-muted p-2">{formatTime12h(event.time) || t("sa_records_time_unknown")} · {event.label}</p>)}{allBlockedSlots.map((slot,i) => <p key={`blocked-${i}`} className={`flex items-center gap-1.5 rounded p-2 ${weekdayOf(date) === slot.weekday ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}><Ban className="h-3.5 w-3.5 shrink-0" />{t("sa_records_blocked_slot").replace("{slot}", formatBlockedSlot(slot, d => t(`avail_day_${d}` as keyof Dict)))}</p>)}{events.length === 0 && allBlockedSlots.length === 0 && <p>{t("sa_records_no_bookings")}</p>}<p className="text-muted-foreground">{t("sa_records_rental_gaps").replace("{gaps}", gaps.map(g => g.replace(/\d{2}:\d{2}/g, m => formatHour12(m, lang))).join(", ") || t("sa_records_none_gaps"))}</p></div>}
         </article>;
       })}
+      {memberPagination}
       </>
       )}
       </div>
