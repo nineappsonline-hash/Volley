@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -131,9 +132,11 @@ export type SharedGameMeta = {
   is_public: boolean;
   creator_name: string;
   map_label: string;
+  participants: { id: string; player_name: string; is_waitlisted: boolean }[];
 };
 
 export async function getGameByInviteCode(code: string): Promise<SharedGameMeta | null> {
+  noStore();
   const admin = getAdmin();
   if (!admin || !code) return null;
   try {
@@ -143,7 +146,7 @@ export async function getGameByInviteCode(code: string): Promise<SharedGameMeta 
         `id, title, description, sport, area, location, game_date, start_time,
          max_players, status, share_price, host_pays, host_total, is_public, creator_name,
          playground:venues(name, area, governorate),
-         participants:friendly_game_participants(count)`
+         participants:friendly_game_participants(id, player_name, is_waitlisted)`
       )
       .eq("invite_code", code.trim().toUpperCase())
       .neq("status", "cancelled")
@@ -151,7 +154,7 @@ export async function getGameByInviteCode(code: string): Promise<SharedGameMeta 
       .single();
     if (error || !data) return null;
     const row = data as unknown as {
-      participants?: { count?: number }[] | null;
+      participants?: SharedGameMeta["participants"] | null;
       playground?: PublicGame["playground"] | NonNullable<PublicGame["playground"]>[];
     };
     const playground = Array.isArray(row.playground) ? row.playground[0] ?? null : row.playground;
@@ -167,7 +170,8 @@ export async function getGameByInviteCode(code: string): Promise<SharedGameMeta 
       game_date: data.game_date,
       start_time: data.start_time,
       max_players: data.max_players,
-      joined: Number(row.participants?.[0]?.count ?? 0),
+      joined: (row.participants ?? []).filter(p => !p.is_waitlisted).length,
+      participants: row.participants ?? [],
       share_price: data.share_price,
       host_pays: data.host_pays,
       host_total: data.host_total,
