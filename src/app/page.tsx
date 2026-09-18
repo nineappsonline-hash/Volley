@@ -66,10 +66,17 @@ async function getHomepageLeaderboard(): Promise<{
         .eq("community_visible", true),
     ]);
 
-    if (!rows?.length || rows.length <= FAKE_LEADERS.length)
+    // The view includes every community-visible profile (even with zero games
+    // or sessions). Only members with real activity count as "real" leaderboard
+    // records — demo data wins until those outnumber the fake rows.
+    const activeRows = (rows ?? []).filter(
+      (r) => r.points > 0 || r.games_played > 0 || r.sessions_attended > 0
+    );
+
+    if (!activeRows.length || activeRows.length <= FAKE_LEADERS.length)
       return { leaders: FAKE_LEADERS, stats: FAKE_STATS };
 
-    const ids = rows.map((r) => r.member_id);
+    const ids = activeRows.map((r) => r.member_id);
     const avatarMap = new Map<string, string | null>();
     if (ids.length) {
       const { data: avatars } = await admin
@@ -79,7 +86,7 @@ async function getHomepageLeaderboard(): Promise<{
       for (const row of avatars ?? []) avatarMap.set(row.id, row.avatar_url);
     }
 
-    const leaders: HomepageLeader[] = rows.map((row) => ({
+    const leaders: HomepageLeader[] = activeRows.map((row) => ({
       member_id: row.member_id,
       name: row.name,
       username: row.username,
