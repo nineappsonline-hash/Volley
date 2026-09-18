@@ -17,8 +17,9 @@ import {
   websiteJsonLd,
 } from "@/lib/seo";
 
-// Fallback demo data so the public landing always shows a lively leaderboard,
-// even before the community has real activity to rank.
+// Fallback demo data so the public landing shows a lively leaderboard with
+// Egyptian players before the community has real activity to rank. It stays on
+// screen until real leaderboard records outnumber the demo rows.
 const FAKE_LEADERS: HomepageLeader[] = [
   { member_id: "demo-ahmed", name: "Ahmed Nabil", username: "ahmednabil", avatar_id: "char-07", avatar_url: null, games_played: 87, sessions_attended: 64, points: 320 },
   { member_id: "demo-omar", name: "Omar Farouk", username: "omar.farouk", avatar_id: "char-03", avatar_url: null, games_played: 91, sessions_attended: 41, points: 305 },
@@ -65,7 +66,8 @@ async function getHomepageLeaderboard(): Promise<{
         .eq("community_visible", true),
     ]);
 
-    if (!rows?.length) return { leaders: FAKE_LEADERS, stats: FAKE_STATS };
+    if (!rows?.length || rows.length <= FAKE_LEADERS.length)
+      return { leaders: FAKE_LEADERS, stats: FAKE_STATS };
 
     const ids = rows.map((r) => r.member_id);
     const avatarMap = new Map<string, string | null>();
