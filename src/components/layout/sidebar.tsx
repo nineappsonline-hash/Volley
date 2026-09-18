@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   BarChart3,
+  BrainCircuit,
   Building2,
   CalendarDays,
   ClipboardCheck,
@@ -14,6 +15,7 @@ import {
   Heart,
   LandPlot,
   LayoutDashboard,
+  Lightbulb,
   LineChart,
   Map,
   Network,
@@ -77,18 +79,25 @@ const memberItems = [
   { href: "/marketplace", key: "nav_marketplace", icon: Ticket },
 ] as const;
 
+/** Available to academy staff: admins always, coaches when linked to a staff record. */
+const staffItems = [
+  { href: "/coach-ai", key: "nav_coach_ai", icon: BrainCircuit },
+  { href: "/insights", key: "nav_insights", icon: Lightbulb },
+] as const;
+
 interface SidebarProps {
   role: Role;
   name: string;
   memberPlan?: "free" | "premium";
+  isCoach?: boolean;
   onNavigate?: () => void;
 }
 
-export function Sidebar({ role, name, memberPlan, onNavigate }: SidebarProps) {
+export function Sidebar({ role, name, memberPlan, isCoach, onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { t, lang } = useI18n();
-  const catalog = [...adminItems, ...academyItems, ...memberItems];
+  const catalog = [...adminItems, ...academyItems, ...memberItems, ...staffItems];
   const group = (en: string, ar: string, paths: string[]) => ({
     label: lang === "ar" ? ar : en,
     items: paths.map(path => catalog.find(item => item.href === path)!),
@@ -99,9 +108,11 @@ export function Sidebar({ role, name, memberPlan, onNavigate }: SidebarProps) {
       group("Daily operations", "الإدارة اليومية", ["/dashboard", "/schedule", "/attendance", "/members"]),
       group("Academy & training", "الأكاديمية والتدريب", ["/teams", "/coaches", "/dashboard/tournaments", "/playgrounds", "/rentals"]),
       group("Finance & insights", "الماليات والإحصائيات", ["/costs", "/reports", "/analytics"]),
+      group("AI coach & predictions", "الذكاء الاصطناعي والتنبؤات", ["/coach-ai", "/insights"]),
       group("Academy settings", "إعدادات الأكاديمية", ["/profile", "/settings", "/upgrade"]),
     ] : [
       group("My training", "تدريبي", ["/dashboard", "/schedule", "/profile"]),
+      ...(isCoach ? [group("Coaching tools", "أدوات التدريب", ["/coach-ai", "/insights"])] : []),
       group("Find a place to play", "اكتشف مكان تلعب فيه", ["/academies", "/following", "/marketplace", "/dashboard/games", "/events"]),
       group("Community", "المجتمع", ["/community", "/leaderboard", "/scouting", "/dashboard/tournaments"]),
       group("Membership", "الاشتراك", ["/upgrade"]),

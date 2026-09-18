@@ -168,6 +168,26 @@ export function useProfile(id: string) {
   });
 }
 
+/** Profile of the signed-in user (client-side). */
+export function useCurrentProfile() {
+  return useQuery({
+    queryKey: ["profile", "me"],
+    queryFn: async () => {
+      const {
+        data: { user },
+      } = await supabase().auth.getUser();
+      if (!user) return null;
+      const { data, error } = await supabase()
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as Profile | null;
+    },
+  });
+}
+
 function toPayments(data: any[]): Payment[] {
   // Postgres DECIMAL comes back as a string; keep the number type truthful.
   return (data ?? []).map((p) => ({

@@ -14,6 +14,309 @@ export type PlanSubscriptionCycle = "monthly" | "semi" | "yearly";
 export type PlanSubscriptionMethod = "instapay" | "e_wallet" | "kashier";
 export type PlanSubscriptionStatus = "pending" | "verified" | "rejected";
 
+// ── AI Coach Assistant ──────────────────────────────────────
+export type TrainingPlanStatus =
+  | "draft"
+  | "submitted"
+  | "approved"
+  | "rejected"
+  | "archived";
+
+export type SectionType =
+  | "warmup"
+  | "technical"
+  | "tactical"
+  | "fitness"
+  | "evaluation"
+  | "cooldown";
+
+export type IntensityTheme = "light" | "moderate" | "intense";
+
+export interface TrainingExercise {
+  id: string;
+  section_id: string;
+  name: string;
+  purpose: string | null;
+  duration_min: number;
+  num_players: number | null;
+  equipment: string[];
+  setup: string | null;
+  instructions: string[];
+  coaching_points: string[];
+  difficulty: "easy" | "medium" | "hard" | null;
+  order_index: number;
+  ai_generated: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrainingSection {
+  id: string;
+  plan_id: string;
+  section_type: SectionType;
+  title: string;
+  purpose: string | null;
+  duration_min: number;
+  skill_focus: string[];
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+  exercises: TrainingExercise[];
+}
+
+export interface TrainingPlan {
+  id: string;
+  academy_id: string;
+  branch_id: string | null;
+  team_id: string | null;
+  session_id: string | null;
+  sport_id: string | null;
+  sport: string | null;
+  title: string;
+  main_objective: string | null;
+  secondary_objectives: string[];
+  skill_focus: string[];
+  intensity_theme: IntensityTheme;
+  session_duration_min: number;
+  num_players: number;
+  num_coaches: number;
+  age_group: string | null;
+  skill_level: "beginner" | "intermediate" | "advanced" | null;
+  gender: "male" | "female" | "mixed" | "all" | null;
+  equipment: string[];
+  space: string | null;
+  notes: string | null;
+  status: TrainingPlanStatus;
+  approval_note: string | null;
+  is_favorite: boolean;
+  is_template: boolean;
+  template_name: string | null;
+  ai_provider: string | null;
+  ai_model: string | null;
+  ai_generation_id: string | null;
+  ai_estimated_cost: number;
+  version: number;
+  approved_by: string | null;
+  approved_at: string | null;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+  sections?: TrainingSection[];
+}
+
+export interface TrainingPlanVersion {
+  id: string;
+  plan_id: string;
+  version: number;
+  editor_id: string;
+  action: "created" | "generated" | "edited" | "submitted" | "approved" | "rejected" | "restored" | "archived";
+  snapshot: unknown;
+  created_at: string;
+}
+
+export interface TrainingPlanAssignment {
+  id: string;
+  plan_id: string;
+  session_id: string;
+  scheduled_at: string | null;
+  notes: string | null;
+  assigned_by: string;
+  created_at: string;
+}
+
+export interface PostSessionReport {
+  id: string;
+  academy_id: string;
+  plan_id: string | null;
+  session_id: string | null;
+  team_id: string | null;
+  coach_id: string | null;
+  completed: boolean;
+  actual_duration_min: number | null;
+  exercises_performance: unknown[];
+  performance_rating: number | null;
+  intensity_rating: number | null;
+  engagement_rating: number | null;
+  skills_improved: string[];
+  skills_need_work: string[];
+  injuries: unknown[];
+  notes: string | null;
+  player_notes: unknown[];
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type DevPlanVisibility = "coach" | "academy" | "player" | "parent";
+
+export interface PlayerDevelopmentGoal {
+  id: string;
+  plan_id: string;
+  title: string;
+  goal_type: "short_term" | "long_term";
+  target_date: string | null;
+  progress: number;
+  achieved: boolean;
+  notes: string | null;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlayerDevelopmentPlan {
+  id: string;
+  academy_id: string;
+  player_id: string;
+  coach_id: string | null;
+  sport: string | null;
+  position: string | null;
+  strengths: string[];
+  areas_to_improve: string[];
+  short_term_goals: string[];
+  long_term_goals: string[];
+  recommended_drills: string[];
+  weekly_focus: string | null;
+  progress_checkpoints: string[];
+  review_date: string | null;
+  visibility: DevPlanVisibility;
+  private_notes: string | null;
+  status: "draft" | "approved" | "archived";
+  approved_by: string | null;
+  approved_at: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  goals?: PlayerDevelopmentGoal[];
+}
+
+export interface AiUsageLog {
+  id: string;
+  academy_id: string;
+  user_id: string;
+  feature: string;
+  provider: string | null;
+  model: string | null;
+  prompt_tokens: number;
+  completion_tokens: number;
+  estimated_cost: number;
+  latency_ms: number;
+  success: boolean;
+  error: string | null;
+  created_at: string;
+}
+
+// ── Academy Insights & Predictions ──────────────────────────
+export type PredictionScoreType =
+  | "churn_risk"
+  | "attendance_risk"
+  | "utilization_risk"
+  | "revenue_forecast"
+  | "enrollment_forecast";
+
+export type RiskLevel = "low" | "medium" | "high" | "not_enough_data";
+
+export interface PredictionScore {
+  id: string;
+  academy_id: string;
+  entity_type: "member" | "team" | "academy";
+  entity_id: string;
+  score_type: PredictionScoreType;
+  score: number | null;
+  level: RiskLevel;
+  explanation: Record<string, unknown>;
+  model_version: string;
+  period_key: string;
+  computed_at: string;
+}
+
+export interface PredictionFactor {
+  id: string;
+  score_id: string;
+  factor_key: string;
+  factor_label: string;
+  direction: "positive" | "negative" | "neutral";
+  weight: number;
+  contribution: number;
+  data_snapshot: Record<string, unknown>;
+  created_at: string;
+}
+
+export type AlertStatus =
+  | "new"
+  | "acknowledged"
+  | "in_progress"
+  | "resolved"
+  | "dismissed";
+
+export type AlertType =
+  | "no_attendance"
+  | "payment_overdue"
+  | "retention_trajectory"
+  | "utilization_low"
+  | "revenue_drop"
+  | "enrollment_decline";
+
+export interface AcademyAlert {
+  id: string;
+  academy_id: string;
+  alert_type: AlertType;
+  severity: "low" | "medium" | "high";
+  entity_type: "member" | "team" | "academy";
+  entity_id: string;
+  title: string;
+  body: string | null;
+  recommended_action: string | null;
+  status: AlertStatus;
+  dedupe_key: string;
+  assigned_to: string | null;
+  resolved_by: string | null;
+  resolved_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AlertAction {
+  id: string;
+  alert_id: string;
+  actor_id: string;
+  action: string;
+  note: string | null;
+  created_at: string;
+}
+
+export interface AcademyInsight {
+  id: string;
+  academy_id: string;
+  period_key: string;
+  metrics: Record<string, unknown>;
+  computed_at: string;
+}
+
+export interface PredictionSettings {
+  academy_id: string;
+  thresholds: {
+    payment_gap_days?: number;
+    attendance_gap_days?: number;
+    utilization_low_pct?: number;
+    revenue_drop_pct?: number;
+    churn_high?: number;
+    churn_medium?: number;
+  };
+  enabled_alerts: AlertType[];
+  updated_at: string;
+}
+
+export interface DashboardPreferences {
+  id: string;
+  user_id: string;
+  academy_id: string;
+  default_filters: Record<string, unknown>;
+  visible_kpis: string[];
+  chart_prefs: Record<string, unknown>;
+  updated_at: string;
+}
+
 export interface PlanSubscription {
   id: string;
   user_id: string;

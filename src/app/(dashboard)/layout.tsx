@@ -31,10 +31,18 @@ export default async function DashboardLayout({
       }
     : null;
 
+  // Staff coach detection: link the member to their staff record. Note the RLS
+  // scope of the coaches table exposes only the caller's own record when it
+  // exists, so this is safe to run for any authenticated role.
+  const { data: coachRow } = profile.academy_id
+    ? await supabase.from("coaches").select("id").eq("profile_id", profile.id).maybeSingle()
+    : { data: null };
+  const isCoach = Boolean(coachRow);
+
   return (
     <div className="min-h-screen bg-background pb-[env(safe-area-inset-bottom)]">
       <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 border-e bg-brand lg:block">
-        <Sidebar role={profile.role} name={profile.name} memberPlan={profile.member_plan} />
+        <Sidebar role={profile.role} name={profile.name} memberPlan={profile.member_plan} isCoach={isCoach} />
       </aside>
       <div className="lg:ps-64">
         <Topbar
@@ -44,6 +52,7 @@ export default async function DashboardLayout({
           avatarUrl={profile.avatar_url}
           avatarId={profile.avatar_id}
           memberPlan={profile.member_plan}
+          isCoach={isCoach}
           academy={academy}
         />
         <main className="mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-8">

@@ -53,6 +53,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@types/leaflet": "^1.9.12",
     "@types/node": "^20.16.10",
     "@types/qrcode": "^1.5.6",
