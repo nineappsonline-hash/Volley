@@ -1,5 +1,6 @@
 "use client";
 
+import { AvatarCropDialog } from "./avatar-crop-dialog";
 import { TrainingGoals, TrainingRenewal } from "@/components/workflows/player-workflows";
 import { useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
@@ -295,6 +296,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
   const [locLng, setLocLng] = useState<number | null>(p.lng ?? null);
   const [saving, setSaving] = useState(false);
   const [savingLoc, setSavingLoc] = useState(false);
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [avatarDraft, setAvatarDraft] = useState<string | null>(null);
@@ -405,20 +407,31 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
       toast.error(t("avatar_too_large"));
       return;
     }
+    setCropFile(file);
+  };
+
+  const saveCroppedAvatar = async (blob: Blob) => {
     setUploadingAvatar(true);
+    const client = createClient();
+    // Storage policies require the owner ID as the first folder.
+    // A new filename also prevents browsers from showing a cached old photo.
+    const path = `${p.id}/${crypto.randomUUID()}.jpg`;
+    let uploaded = false;
     try {
-      const ext = (file.name.split(".").pop() || "jpg")
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "");
-      const path = `avatars/${p.id}/avatar.${ext}`;
-      const { error: uploadError } = await createClient()
-        .storage.from("avatars")
-        .upload(path, file, { upsert: true });
-      if (uploadError) throw uploadError;
+      const { error } = await client.storage.from("avatars").upload(path, blob, {
+        contentType: "image/jpeg", upsert: false,
+      });
+      if (error) throw error;
+      uploaded = true;
       await updateProfile.mutateAsync({ id: p.id, avatar_url: path });
+      setCropFile(null);
       toast.success(t("profile_saved"));
-    } catch {
-      toast.error(t("common_error"));
+      if (p.avatar_url?.startsWith(`${p.id}/`)) {
+        void client.storage.from("avatars").remove([p.avatar_url]).catch(() => {});
+      }
+    } catch (error) {
+      if (uploaded) await client.storage.from("avatars").remove([path]).catch(() => {});
+      toast.error(error && typeof error === "object" && "message" in error ? String(error.message) : t("common_error"));
     } finally {
       setUploadingAvatar(false);
     }
@@ -626,6 +639,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
           </CardContent>
         </Card>
 
+        {cropFile && <AvatarCropDialog file={cropFile} busy={uploadingAvatar} onClose={() => setCropFile(null)} onSave={saveCroppedAvatar} />}
         <Dialog open={avatarPickerOpen} onOpenChange={(open) => { setAvatarPickerOpen(open); if (!open) setAvatarDraft(null); }}>
           <DialogContent className="max-w-md space-y-4">
             <DialogHeader>
