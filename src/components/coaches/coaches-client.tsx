@@ -45,7 +45,7 @@ import type { Coach } from "@/lib/types";
 
 export function CoachesClient({ isAdmin }: { isAdmin: boolean }) {
   const { t, lang } = useI18n();
-  const { data: coaches, isLoading } = useCoaches();
+  const { data: coaches, isLoading, isError, refetch } = useCoaches();
   const save = useSaveCoach();
   const remove = useDeleteCoach();
 
@@ -126,7 +126,7 @@ export function CoachesClient({ isAdmin }: { isAdmin: boolean }) {
         </div>
       </PageHeader>
 
-      {isLoading ? (
+      {isError ? <div role="alert" className="space-y-3 rounded-lg border p-6"><p>{t("common_error")}</p><Button variant="outline" onClick={() => void refetch()}>{t("common_retry")}</Button></div> : isLoading ? (
         <Skeleton className="h-40 w-full" />
       ) : !coaches || coaches.length === 0 ? (
         <EmptyState message={t("coaches_empty")} icon={UserRound} />

@@ -20,7 +20,7 @@ import type { CoachInvitationStatus } from "@/lib/types";
 export function CoachInvitationPage({ id }: { id: string }) {
   const { t } = useI18n();
   const router = useRouter();
-  const { data: invitation, isLoading } = useCoachInvitation(id);
+  const { data: invitation, isLoading, isError, refetch } = useCoachInvitation(id);
   const respond = useRespondCoachInvitation();
 
   const handleRespond = async (accept: boolean) => {
@@ -28,7 +28,8 @@ export function CoachInvitationPage({ id }: { id: string }) {
     try {
       await respond.mutateAsync({ id: invitation.id, accept });
       toast.success(t(accept ? "coaches_invitation_accepted" : "coaches_invitation_declined"));
-      router.push("/coaches");
+      router.push(accept ? "/coaches" : "/dashboard");
+      router.refresh();
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
     }
@@ -38,7 +39,7 @@ export function CoachInvitationPage({ id }: { id: string }) {
     <div className="space-y-6">
       <PageHeader title={t("coaches_invitation_title")} />
 
-      {isLoading ? (
+      {isError ? <div role="alert"><p>{t("common_error")}</p><Button variant="outline" onClick={() => void refetch()}>{t("common_retry")}</Button></div> : isLoading ? (
         <Skeleton className="h-40 w-full" />
       ) : !invitation ? (
         <EmptyState message={t("coaches_invitation_not_found")} icon={UserRound} />

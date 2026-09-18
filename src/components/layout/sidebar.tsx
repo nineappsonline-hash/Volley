@@ -97,7 +97,9 @@ export function Sidebar({ role, name, memberPlan, isCoach, onNavigate }: Sidebar
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { t, lang } = useI18n();
-  const catalog = [...adminItems, ...academyItems, ...memberItems, ...staffItems];
+  const catalog = role === "member"
+    ? [...memberItems, ...staffItems, ...adminItems]
+    : [...adminItems, ...academyItems, ...memberItems, ...staffItems];
   const group = (en: string, ar: string, paths: string[]) => ({
     label: lang === "ar" ? ar : en,
     items: paths.map(path => catalog.find(item => item.href === path)!),
@@ -112,7 +114,7 @@ export function Sidebar({ role, name, memberPlan, isCoach, onNavigate }: Sidebar
       group("Academy settings", "إعدادات الأكاديمية", ["/profile", "/settings", "/upgrade"]),
     ] : [
       group("My training", "تدريبي", ["/dashboard", "/schedule", "/profile"]),
-      ...(isCoach ? [group("Coaching tools", "أدوات التدريب", ["/coach-ai", "/insights"])] : []),
+      ...(isCoach ? [group("Coaching tools", "أدوات التدريب", ["/coaches", "/coach-ai", "/insights"])] : []),
       group("Find a place to play", "اكتشف مكان تلعب فيه", ["/academies", "/following", "/marketplace", "/dashboard/games", "/events"]),
       group("Community", "المجتمع", ["/community", "/leaderboard", "/scouting", "/dashboard/tournaments"]),
       group("Membership", "الاشتراك", ["/upgrade"]),

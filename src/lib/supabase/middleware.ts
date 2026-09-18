@@ -1,3 +1,4 @@
+import { authDestination } from "@/lib/auth-redirect";
 import { isPlatformAdmin } from "@/lib/platform-admin";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
@@ -83,16 +84,18 @@ export async function updateSession(request: NextRequest) {
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("redirectedFrom", pathname);
+    url.search = "";
+    url.searchParams.set("redirectedFrom", pathname + request.nextUrl.search);
     return NextResponse.redirect(url);
   }
 
   if (user && isAuthPage) {
     const url = request.nextUrl.clone();
     const gameInvite = request.nextUrl.searchParams.get("gameInvite");
-    url.pathname = gameInvite ? "/games" : "/dashboard";
-    url.search = "";
-    if (gameInvite) url.searchParams.set("join", gameInvite);
+    const destination = gameInvite ? `/games?join=${encodeURIComponent(gameInvite)}` : authDestination(request.nextUrl.searchParams.get("redirectedFrom"));
+    const target = new URL(destination, url.origin);
+    url.pathname = target.pathname;
+    url.search = target.search;
     return NextResponse.redirect(url);
   }
 

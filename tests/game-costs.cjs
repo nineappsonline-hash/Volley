@@ -23,8 +23,20 @@ console.log('PASS: migration rerun, limits, duration validation, price snapshot,
 // Compile the pure TypeScript helper in memory for calculation edge cases.
 const ts=require('typescript'); const moduleValue={exports:{}};
 const code=ts.transpileModule(readFileSync(join(__dirname,'../src/lib/game-costs.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;
-new Function('exports',code)(moduleValue.exports);const estimate=moduleValue.exports.estimateGameCost;
-assert.deepEqual(estimate(300,2,6,12),{total:600,low:50,high:100});assert.equal(estimate(null,2,6,12),null);assert.deepEqual(estimate(0,1,2,4),{total:0,low:0,high:0});assert.deepEqual(estimate(300,1.5,6,6),{total:450,low:75,high:75});assert.equal(estimate(300,1,12,6),null);
-console.log('PASS: per-player range, unknown and zero rates, fractional hours, equal limits, invalid range');
+const constants = {};
+new Function('exports', ts.transpileModule(readFileSync(join(__dirname,'../src/lib/constants.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(constants);
+new Function('exports','require',code)(moduleValue.exports, name => { assert.equal(name, '@/lib/constants'); return constants; });const { estimateSharePrice, estimateHostTotal, gameRentRemaining } = moduleValue.exports;
+assert.deepEqual(estimateSharePrice(300,2,6,'Football'),{rent:60,fee:20,total:80});
+assert.deepEqual(estimateSharePrice(300,1,2,'Padel'),{rent:75,fee:40,total:115});
+assert.equal(estimateSharePrice(null,2,6,'Football'),null);
+assert.deepEqual(estimateSharePrice(0,1,2,'Football'),{rent:0,fee:20,total:20});
+assert.equal(estimateSharePrice(300,1,1,'Football'),null);
+assert.equal(estimateSharePrice(300,25,6,'Football'),null);
+assert.deepEqual(estimateHostTotal(300,1.5,'Football'),{rent:450,fee:20,total:470});
+const game={sport:'Football',min_players:6,duration_hours:2,playground_hourly_rate:300};
+assert.equal(gameRentRemaining({...game,host_pays:true}),0);
+assert.equal(gameRentRemaining({...game,participants:[{pay_status:'approved'},{pay_status:'pending'},{pay_status:'rejected'},{pay_status:'approved',is_waitlisted:true}],rent_payments:[{amount:100,pay_status:'pending'},{amount:100,pay_status:'rejected'}]}),380);
+assert.equal(gameRentRemaining({...game,rent_payments:[{amount:900,pay_status:'approved'}]}),0);
+console.log('PASS: sport-based shares, host totals, invalid inputs, paid/pending shares, waitlists, top-ups, and fully covered rent');
 }
 main().catch(e=>{console.error(e);process.exitCode=1});

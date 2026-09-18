@@ -55,7 +55,7 @@ export function ScheduleClient({
   memberPlan?: "free" | "premium";
 }) {
   const { t } = useI18n();
-  const { data: sessions, isLoading } = useSessions();
+  const { data: sessions, isLoading, isError, refetch } = useSessions();
   const { data: counts } = useAttendanceCounts();
   const { data: calculations } = useSessionCalculations();
   const { data: guests } = useSessionGuests();
@@ -63,7 +63,7 @@ export function ScheduleClient({
   const { data: academy } = useAcademy();
 
   // Realtime: guest additions/edits and attendance show up without a refresh.
-  useRealtime(["session_guests", "session_calculations", "attendance"]);
+  useRealtime(["training_sessions", "session_guests", "session_calculations", "attendance"]);
   const deleteSession = useDeleteSession();
   const saveSession = useSaveSession();
 
@@ -217,7 +217,7 @@ export function ScheduleClient({
         </div>
       )}
 
-      {isLoading ? (
+      {isError ? <div role="alert" className="space-y-3 rounded-lg border p-6"><p>{t("common_error")}</p><Button variant="outline" onClick={() => void refetch()}>{t("common_retry")}</Button></div> : isLoading ? (
         <Skeleton className="h-96 w-full" />
       ) : (
         <>

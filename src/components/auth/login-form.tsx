@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/layout/language-toggle";
+import { authDestination } from "@/lib/auth-redirect";
 import { useAuth } from "@/lib/auth";
 
 const schema = (t: (k: any) => string) =>
@@ -38,9 +39,10 @@ type Role = "member" | "tenant";
 export function LoginForm() {
   const { t } = useI18n();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<Role>("member");
+  const [mode, setMode] = useState<Role>(searchParams.get("mode") === "tenant" ? "tenant" : "member");
 
   const isTenant = mode === "tenant";
 
@@ -53,7 +55,7 @@ export function LoginForm() {
     setLoading(true);
     try {
       await signIn(values.email, values.password);
-      router.push("/dashboard");
+      router.push(authDestination(searchParams.get("redirectedFrom")));
       router.refresh();
     } catch {
       toast.error(t("login_error"));

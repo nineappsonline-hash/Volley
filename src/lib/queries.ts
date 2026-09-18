@@ -1596,6 +1596,7 @@ export function useRespondCoachInvitation() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.coachInvitations });
       qc.invalidateQueries({ queryKey: queryKeys.coaches });
+      qc.invalidateQueries({ queryKey: ["profile", "me"] });
     },
   });
 }

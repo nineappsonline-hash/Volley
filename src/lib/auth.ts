@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -15,6 +16,7 @@ export type SignupVenue =
     };
 
 export function useAuth() {
+  const queryClient = useQueryClient();
   const signIn = useCallback(
     async (email: string, password: string) => {
       const { error } = await createClient().auth.signInWithPassword({
@@ -22,8 +24,9 @@ export function useAuth() {
         password,
       });
       if (error) throw error;
+      queryClient.clear();
     },
-    []
+    [queryClient]
   );
 
   const signUp = useCallback(
@@ -85,7 +88,8 @@ export function useAuth() {
   const signOut = useCallback(async () => {
     const { error } = await createClient().auth.signOut();
     if (error) throw error;
-  }, []);
+    queryClient.clear();
+  }, [queryClient]);
 
   return { signIn, signUp, signOut };
 }
