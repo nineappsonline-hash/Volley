@@ -1,4 +1,5 @@
 "use client";
+import { ParticipantPayment } from "./participant-payment";
 import { AdminGameEditor } from "@/components/games/admin-game-editor";
 import { SortedOptions } from "@/components/ui/sorted-options";
 import { NativeSelect } from "@/components/ui/sorted-options";
@@ -341,13 +342,14 @@ function GameParticipantRow({ participant }: { participant: Row }) {
         ? <span className="rounded-full bg-attention-100 px-2 py-0.5 text-xs font-medium text-warning-ink dark:bg-attention-500/15 dark:text-attention-400">{t("games_share_pending")}</span>
         : <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("sa_records_unpaid")}</span>;
   const name = participant.name ?? participant.player_name ?? t("sa_unnamed_member");
-  return <div className="flex items-center gap-2.5 rounded-lg border px-3 py-2">
+  return <div className="flex flex-wrap items-center gap-2.5 rounded-lg border px-3 py-2">
     <ProfileAvatar name={name} url={participant.avatar_url} avatarId={participant.avatar_id} className="h-8 w-8 shrink-0" />
     <div className="min-w-0 flex-1">
       <p className="truncate text-sm font-medium">{name}</p>
       <p className="text-xs text-muted-foreground">{participant.role === "organizer" ? t("sa_organizer") : t("sa_player")}{participant.share_amount != null && Number(participant.share_amount) > 0 && <span> · {formatMoney(participant.share_amount, lang)}</span>}</p>
     </div>
     {pay}
+    <ParticipantPayment participantId={participant.id} name={name} receiptPath={participant.pay_receipt_url ?? null} status={participant.pay_status} />
   </div>;
 }
 function GameDetails({ game, data }: { game: Row; data: Records }) {
@@ -700,7 +702,7 @@ export function PlatformRecords() {
       </>
       )}
       </div>
-      <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle>{selected?.name ?? selected?.title ?? t("sa_records_record_details")}</DialogTitle><DialogDescription>{dialogDescription}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails member={selected} data={data} /> : tab === "Academies" ? <AcademyDetails academy={selected} data={data} /> : tab === "Playgrounds" ? <VenueDetails key={selected.id} venue={selected} data={data} /> : tab === "Friendly games" ? <GameDetails game={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && tab !== "Academies" && Object.entries(related).map(([label, records]) => <details key={label}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => label === "Participants" ? <GameParticipantRow key={r.id} participant={r} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
+      <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle>{selected?.name ?? selected?.title ?? t("sa_records_record_details")}</DialogTitle><DialogDescription>{dialogDescription}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails member={selected} data={data} /> : tab === "Academies" ? <AcademyDetails academy={selected} data={data} /> : tab === "Playgrounds" ? <VenueDetails key={selected.id} venue={selected} data={data} /> : tab === "Friendly games" ? <GameDetails game={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && tab !== "Academies" && Object.entries(related).map(([label, records]) => <details key={label} open={label === "Participants"}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => label === "Participants" ? <GameParticipantRow key={r.id} participant={r} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
       <Dialog open={!!editing} onOpenChange={open => !busy && !open && setEditing(null)}><DialogContent><DialogHeader><DialogTitle>{t("sa_edit_membership")}</DialogTitle><DialogDescription>{editing?.name} · {editing?.email}</DialogDescription></DialogHeader>{editing && <form className="space-y-4" onSubmit={e => { e.preventDefault(); act({ action: "membership", id: editing.id, membership_type: editing.membership_type, subscription_sessions: Number(editing.subscription_sessions), member_plan: editing.member_plan, premium_expires_at: editing.premium_expires_at ? new Date(editing.premium_expires_at).toISOString() : null, is_active: editing.is_active }); }}>
         <label className="block text-sm">{t("sa_academy_membership")}<NativeSelect className="mt-1 w-full rounded border bg-background p-2" value={editing.membership_type} onChange={e => setEditing({ ...editing, membership_type: e.target.value })}><option value="full">{t("sa_full")}</option><option value="half">{t("sa_half")}</option></NativeSelect></label>
         <label className="block text-sm">{t("sa_subscription_sessions")}<Input type="number" min="0" max="10000" required value={editing.subscription_sessions} onChange={e => setEditing({ ...editing, subscription_sessions: e.target.value })} /></label>
