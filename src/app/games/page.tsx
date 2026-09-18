@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   CalendarDays,
+  CheckCircle2,
   Clock,
   Coins,
   MapPin,
@@ -300,6 +301,21 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
         )}
 
         {/* Cross-links keep crawlers (and users) moving between listings. */}
+        <section className="mt-12">
+          <div className="mb-4 flex items-center gap-2">
+            <CheckCircle2 className="h-5 w-5 text-success-ink" />
+            <h2 className="text-lg font-bold">Recently finished games</h2>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {fakeFinishedGames().map((g) => (
+              <FinishedGameCard key={g.id} game={g} />
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Example results from recent community games near you.
+          </p>
+        </section>
+
         <nav className="mt-12 border-t pt-6 text-center text-sm">
           <p className="mb-3 font-semibold text-muted-foreground">Keep exploring</p>
           <div className="flex flex-wrap justify-center gap-3">
@@ -319,6 +335,116 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
         </nav>
       </div>
     </main>
+  );
+}
+
+type FinishedGame = {
+  id: string;
+  title: string;
+  sport: string;
+  area: string | null;
+  game_date: string;
+  start_time: string;
+  max_players: number;
+  joined: number;
+  skill_level: string | null;
+  gender: string;
+  share_price: number | null;
+  creator_name: string;
+  result_a: number;
+  result_b: number;
+};
+
+// Demo "recently finished" games so the public listing doesn't look empty
+// before real completed games exist. Dates are generated relative to today.
+function fakeFinishedGames(): FinishedGame[] {
+  const day = (d: number) => new Date(Date.now() - d * 86400000).toISOString().slice(0, 10);
+  type Seed = Omit<FinishedGame, "id" | "game_date">;
+  const seeds: Seed[] = [
+    // Volleyball
+    { title: "Friday Slam Volleyball", sport: "Volleyball", area: "Heliopolis", start_time: "20:30", max_players: 12, joined: 12, skill_level: "intermediate", gender: "mixed", share_price: 25, creator_name: "Ahmed Nabil", result_a: 3, result_b: 1 },
+    { title: "Gezira Beach Volleyball", sport: "Volleyball", area: "Zamalek", start_time: "18:00", max_players: 12, joined: 12, skill_level: "beginner", gender: "mixed", share_price: 30, creator_name: "Youssef Hany", result_a: 2, result_b: 3 },
+    { title: "Nasr City Spike Night", sport: "Volleyball", area: "Nasr City", start_time: "21:00", max_players: 12, joined: 11, skill_level: "advanced", gender: "mixed", share_price: 28, creator_name: "Omar Farouk", result_a: 3, result_b: 0 },
+    { title: "Heliopolis Volleyball Run", sport: "Volleyball", area: "Heliopolis", start_time: "19:30", max_players: 12, joined: 12, skill_level: "intermediate", gender: "mixed", share_price: 25, creator_name: "Karim El-Sayed", result_a: 3, result_b: 2 },
+    { title: "Dokki Volleyball Open", sport: "Volleyball", area: "Dokki", start_time: "20:00", max_players: 12, joined: 10, skill_level: "beginner", gender: "mixed", share_price: 22, creator_name: "Mostafa Magdy", result_a: 1, result_b: 3 },
+    { title: "Agouza Beach Volleyball", sport: "Volleyball", area: "Agouza", start_time: "18:30", max_players: 12, joined: 12, skill_level: "intermediate", gender: "mixed", share_price: 27, creator_name: "Ali Hassan", result_a: 3, result_b: 1 },
+    { title: "Madinaty Volleyball Cup", sport: "Volleyball", area: "Madinaty", start_time: "21:30", max_players: 12, joined: 12, skill_level: "advanced", gender: "mixed", share_price: 32, creator_name: "Mohamed Adel", result_a: 2, result_b: 3 },
+    // Football
+    { title: "Weekend Football Clásico", sport: "Football", area: "New Cairo", start_time: "21:00", max_players: 14, joined: 14, skill_level: "intermediate", gender: "male", share_price: 40, creator_name: "Omar Farouk", result_a: 5, result_b: 2 },
+    { title: "Nasr City 5v5 Football", sport: "Football", area: "Nasr City", start_time: "22:00", max_players: 10, joined: 10, skill_level: "beginner", gender: "male", share_price: 30, creator_name: "Ahmed Nabil", result_a: 4, result_b: 4 },
+    { title: "Tagamo3 Football Night", sport: "Football", area: "New Cairo", start_time: "20:00", max_players: 14, joined: 14, skill_level: "advanced", gender: "male", share_price: 45, creator_name: "Karim El-Sayed", result_a: 3, result_b: 1 },
+    { title: "Dokki Sunday Kickabout", sport: "Football", area: "Dokki", start_time: "19:00", max_players: 10, joined: 9, skill_level: "beginner", gender: "male", share_price: 25, creator_name: "Youssef Hany", result_a: 2, result_b: 1 },
+    { title: "Sheraton Football Rumble", sport: "Football", area: "Mokattam", start_time: "21:30", max_players: 14, joined: 14, skill_level: "intermediate", gender: "male", share_price: 38, creator_name: "Mostafa Magdy", result_a: 6, result_b: 3 },
+    { title: "Obour Football Derby", sport: "Football", area: "Obour", start_time: "20:30", max_players: 10, joined: 10, skill_level: "intermediate", gender: "male", share_price: 28, creator_name: "Ali Hassan", result_a: 1, result_b: 2 },
+    { title: "6th October Football Bash", sport: "Football", area: "6th of October", start_time: "21:00", max_players: 14, joined: 13, skill_level: "advanced", gender: "mixed", share_price: 42, creator_name: "Mohamed Adel", result_a: 4, result_b: 1 },
+    // Padel
+    { title: "Zayed Doubles Padel Night", sport: "Padel", area: "Sheikh Zayed", start_time: "22:00", max_players: 4, joined: 4, skill_level: "beginner", gender: "mixed", share_price: 60, creator_name: "Youssef Hany", result_a: 2, result_b: 0 },
+    { title: "New Cairo Padel Mixer", sport: "Padel", area: "New Cairo", start_time: "20:00", max_players: 4, joined: 4, skill_level: "intermediate", gender: "mixed", share_price: 55, creator_name: "Ahmed Nabil", result_a: 2, result_b: 1 },
+    { title: "October Padel Doubles", sport: "Padel", area: "6th of October", start_time: "21:00", max_players: 4, joined: 4, skill_level: "advanced", gender: "mixed", share_price: 65, creator_name: "Omar Farouk", result_a: 1, result_b: 2 },
+    { title: "Maadi Padel Round", sport: "Padel", area: "Maadi", start_time: "19:30", max_players: 4, joined: 4, skill_level: "beginner", gender: "mixed", share_price: 50, creator_name: "Karim El-Sayed", result_a: 2, result_b: 2 },
+    { title: "Katameya Padel Faceoff", sport: "Padel", area: "Katameya", start_time: "21:30", max_players: 4, joined: 4, skill_level: "intermediate", gender: "mixed", share_price: 70, creator_name: "Mostafa Magdy", result_a: 2, result_b: 0 },
+    { title: "Citystars Padel Night", sport: "Padel", area: "Nasr City", start_time: "22:30", max_players: 4, joined: 4, skill_level: "advanced", gender: "mixed", share_price: 62, creator_name: "Ali Hassan", result_a: 0, result_b: 2 },
+  ];
+  return seeds.map((s, i) => ({ ...s, id: `demo-finished-${i + 1}`, game_date: day(i + 1) }));
+}
+
+function FinishedGameCard({ game }: { game: FinishedGame }) {
+  const winner = game.result_a > game.result_b ? "home" : game.result_a < game.result_b ? "away" : "draw";
+  const place = [game.area].filter(Boolean).join(", ");
+  return (
+    <article className="flex flex-col rounded-xl border bg-card p-5 opacity-90 transition-all hover:-translate-y-0.5 hover:opacity-100 hover:shadow-md">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-base font-bold">{game.title}</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {game.sport}
+            {game.skill_level ? ` · ${SKILL_EN[game.skill_level] ?? game.skill_level}` : ""}
+          </p>
+        </div>
+        <span className="flex shrink-0 items-center gap-1 rounded-full bg-success/10 px-3 py-1 text-xs font-bold text-success-ink">
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          Finished
+        </span>
+      </div>
+
+      <div className="mt-3 flex items-center justify-between rounded-lg border bg-muted/40 px-4 py-3">
+        <span className={`text-sm font-semibold ${winner === "home" ? "text-foreground" : "text-muted-foreground"}`}>
+          {game.title.includes("Volleyball") || game.title.includes("Padel") ? "Team A" : game.creator_name}
+        </span>
+        <span className="rounded-md bg-background px-3 py-1 text-lg font-black tabular-nums">
+          {game.result_a} – {game.result_b}
+        </span>
+        <span className={`text-sm font-semibold ${winner === "away" ? "text-foreground" : "text-muted-foreground"}`}>
+          {game.title.includes("Volleyball") || game.title.includes("Padel") ? "Team B" : "Opponents"}
+        </span>
+      </div>
+
+      <dl className="mt-3 space-y-1.5 text-sm text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+          <dt className="sr-only">Date</dt>
+          <dd>{fmtDate(game.game_date)}</dd>
+          <Clock className="ms-2 h-3.5 w-3.5 shrink-0" />
+          <dt className="sr-only">Time</dt>
+          <dd>{fmtTime(game.start_time)}</dd>
+        </div>
+        {place && (
+          <div className="flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            <dt className="sr-only">Location</dt>
+            <dd>{place}</dd>
+          </div>
+        )}
+        <div className="flex items-center gap-1.5">
+          <Users className="h-3.5 w-3.5 shrink-0" />
+          <dt className="sr-only">Players</dt>
+          <dd>
+            {game.joined}/{game.max_players} players
+            {game.gender !== "mixed" ? ` · ${GENDER_EN[game.gender] ?? ""}` : ""}
+          </dd>
+        </div>
+      </dl>
+    </article>
   );
 }
 

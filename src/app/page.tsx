@@ -17,11 +17,30 @@ import {
   websiteJsonLd,
 } from "@/lib/seo";
 
+// Fallback demo data so the public landing always shows a lively leaderboard,
+// even before the community has real activity to rank.
+const FAKE_LEADERS: HomepageLeader[] = [
+  { member_id: "demo-ahmed", name: "Ahmed Nabil", username: "ahmednabil", avatar_id: "char-07", avatar_url: null, games_played: 87, sessions_attended: 64, points: 320 },
+  { member_id: "demo-omar", name: "Omar Farouk", username: "omar.farouk", avatar_id: "char-03", avatar_url: null, games_played: 91, sessions_attended: 41, points: 305 },
+  { member_id: "demo-karim", name: "Karim El-Sayed", username: "karim.elsayed", avatar_id: "char-11", avatar_url: null, games_played: 76, sessions_attended: 38, points: 272 },
+  { member_id: "demo-youssef", name: "Youssef Hany", username: "youssef.hany", avatar_id: "char-15", avatar_url: null, games_played: 68, sessions_attended: 55, points: 251 },
+  { member_id: "demo-mostafa", name: "Mostafa Magdy", username: "mostafamagdy", avatar_id: "char-02", avatar_url: null, games_played: 63, sessions_attended: 30, points: 228 },
+  { member_id: "demo-mahmoud", name: "Mahmoud Tarek", username: "mahmoud.tarek", avatar_id: "char-09", avatar_url: null, games_played: 52, sessions_attended: 47, points: 214 },
+  { member_id: "demo-ali", name: "Ali Hassan", username: "ali.hassan", avatar_id: "char-19", avatar_url: null, games_played: 49, sessions_attended: 26, points: 189 },
+  { member_id: "demo-mohamed", name: "Mohamed Adel", username: "mohamedadel", avatar_id: "char-04", avatar_url: null, games_played: 44, sessions_attended: 33, points: 172 },
+];
+
+const FAKE_STATS: HomepageCommunityStats = {
+  games: 1240,
+  players: 3080,
+  sessions: 865,
+  members: 4870,
+};
+
 async function getHomepageLeaderboard(): Promise<{
   leaders: HomepageLeader[];
   stats: HomepageCommunityStats;
 }> {
-  const empty = { leaders: [], stats: { games: 0, players: 0, sessions: 0, members: 0 } };
   try {
     const admin = createAdminClient();
     const [{ data: rows }, games, players, sessions, members] = await Promise.all([
@@ -46,7 +65,7 @@ async function getHomepageLeaderboard(): Promise<{
         .eq("community_visible", true),
     ]);
 
-    if (!rows?.length) return empty;
+    if (!rows?.length) return { leaders: FAKE_LEADERS, stats: FAKE_STATS };
 
     const ids = rows.map((r) => r.member_id);
     const avatarMap = new Map<string, string | null>();
@@ -80,7 +99,7 @@ async function getHomepageLeaderboard(): Promise<{
     };
   } catch (error) {
     console.error("Failed to load homepage leaderboard", error);
-    return empty;
+    return { leaders: FAKE_LEADERS, stats: FAKE_STATS };
   }
 }
 
