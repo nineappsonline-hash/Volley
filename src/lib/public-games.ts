@@ -119,6 +119,7 @@ export type SharedGameMeta = {
   title: string;
   description: string | null;
   sport: string;
+  gender: "male" | "female" | "mixed";
   area: string | null;
   location: string | null;
   governorate: string | null;
@@ -143,7 +144,7 @@ export async function getGameByInviteCode(code: string): Promise<SharedGameMeta 
     const { data, error } = await admin
       .from("friendly_games")
       .select(
-        `id, title, description, sport, area, location, game_date, start_time,
+        `id, title, description, sport, gender, area, location, game_date, start_time,
          max_players, status, share_price, host_pays, host_total, is_public, creator_name,
          playground:venues(name, area, governorate),
          participants:friendly_game_participants(id, player_name, is_waitlisted)`
@@ -164,6 +165,7 @@ export async function getGameByInviteCode(code: string): Promise<SharedGameMeta 
       title: data.title,
       description: data.description,
       sport: data.sport,
+      gender: data.gender,
       area: data.area,
       location: data.location,
       governorate: playground?.governorate ?? null,

@@ -276,7 +276,7 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
                       <dt className="sr-only">Players</dt>
                       <dd>
                         {g.joined}/{g.max_players} players
-                        {g.gender !== "mixed" ? ` · ${GENDER_EN[g.gender] ?? ""}` : ""}
+                        {g.gender !== "mixed" ? ` · ${GENDER_EN[g.gender] ?? ""}` : ` · ${GENDER_EN.mixed}`}
                       </dd>
                     </div>
                     {g.share_price != null && (
@@ -440,7 +440,7 @@ function FinishedGameCard({ game }: { game: FinishedGame }) {
           <dt className="sr-only">Players</dt>
           <dd>
             {game.joined}/{game.max_players} players
-            {game.gender !== "mixed" ? ` · ${GENDER_EN[game.gender] ?? ""}` : ""}
+            {game.gender !== "mixed" ? ` · ${GENDER_EN[game.gender] ?? ""}` : ` · ${GENDER_EN.mixed}`}
           </dd>
         </div>
       </dl>

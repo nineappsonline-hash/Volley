@@ -19,6 +19,7 @@ export function SharedGamePage({ game, inviteCode }: { game: SharedGameMeta | nu
       <CardContent className="space-y-4">
         {game && <>
           <p>{game.sport} · {game.game_date} · {formatTime12h(game.start_time, lang)}</p>
+          <p>{t(`games_gender_${game.gender}`)}</p>
           <p>{[game.map_label, game.governorate, game.area].filter(Boolean).join(" · ")}</p>
           <GameParticipantNames participants={game.participants} />
           {game.description && <p className="whitespace-pre-wrap">{game.description}</p>}

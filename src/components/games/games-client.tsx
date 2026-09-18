@@ -236,7 +236,7 @@ function GameCard({
   };
 
   const criteria = [
-    game.gender !== "mixed" ? t(`games_gender_${game.gender}`) : null,
+    t(`games_gender_${game.gender}`),
     game.min_age != null || game.max_age != null
       ? game.max_age != null && game.min_age != null
         ? `${game.min_age}–${game.max_age}`
@@ -694,6 +694,7 @@ function InviteBanner({
                   {formatTime12h(inviteGame.start_time, lang)}
                 </span>
                 <span>{inviteGame.sport}</span>
+                <span>{t(`games_gender_${inviteGame.gender}`)}</span>
               </p>
             </div>
           )
