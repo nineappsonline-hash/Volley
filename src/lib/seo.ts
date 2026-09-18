@@ -8,8 +8,8 @@
  * WhatsApp/Telegram link previews can render rich results.
  */
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
-  "https://volley-academy.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") ||
+  "https://playza.nineapps.online";
 
 export const OG_IMAGE = "/og-image.png";
 

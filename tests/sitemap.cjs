@@ -1,0 +1,30 @@
+const fs=require('node:fs');
+const path=require('node:path');
+const assert=require('node:assert/strict');
+const ts=require('typescript');
+const api={};
+const seoCode=ts.transpileModule(fs.readFileSync(path.join(__dirname,'../src/lib/seo.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;
+function siteUrl(value){const seo={};new Function('exports','process',seoCode)(seo,{env:{NEXT_PUBLIC_SITE_URL:value}});return seo.SITE_URL;}
+assert.equal(siteUrl(undefined),'https://playza.nineapps.online');
+assert.equal(siteUrl('  '),'https://playza.nineapps.online');
+assert.equal(siteUrl(' https://playza.nineapps.online/// '),'https://playza.nineapps.online');
+let failAcademies=false,failGames=false;
+const rows=Array.from({length:1001},(_,i)=>({id:String(i),slug:'academy-'+i}));
+const mocks={
+ '@/lib/seo':{SITE_URL:siteUrl(undefined)},
+ '@/lib/sport-slugs':{sportToSlug:s=>s.toLowerCase()},
+ '@/lib/public-games':{getPublicGameSports:async()=>{if(failGames)throw Error('offline');return ['Football','football'];},getPublicTournamentSports:async()=>['Padel']},
+ '@/lib/supabase/admin':{createAdminClient:()=>{if(failAcademies)throw Error('unavailable');return {from:()=>({select(){return this;},eq(k,v){assert.equal(k,'is_public');assert.equal(v,true);return this;},not(){return this;},order(){return this;},range:async(a,b)=>({data:rows.slice(a,b+1),error:null})})};}},
+};
+new Function('exports','require',ts.transpileModule(fs.readFileSync(path.join(__dirname,'../src/app/sitemap.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText)(api,n=>mocks[n]);
+(async()=>{
+ let pages=await api.default();
+ assert.ok(pages.every(p=>new URL(p.url).origin==='https://playza.nineapps.online'));
+ assert.equal(pages.filter(p=>p.url.includes('/a/')).length,1001);
+ assert.equal(pages.filter(p=>p.url.endsWith('/games?sport=football')).length,1);
+ assert.ok(!pages.some(p=>/signup|login|dashboard|join=/.test(p.url)));
+ assert.ok(pages.every(p=>!p.lastModified));
+ failAcademies=true;pages=await api.default();assert.ok(pages.some(p=>p.url.endsWith('/games?sport=football')));
+ failGames=true;pages=await api.default();assert.ok(pages.some(p=>p.url.endsWith('/tournaments?sport=padel')));assert.ok(pages.some(p=>p.url==='https://playza.nineapps.online'));
+ console.log('PASS: academy pagination, deduplication, public-only URLs, honest dates, and independent data-source failures');
+})().catch(e=>{console.error(e);process.exitCode=1});
