@@ -915,15 +915,19 @@ export function GamesClient({ profile }: { profile: Profile }) {
       return true;
     });
     const sorted = [...list];
-    if (sortBy === "spots") {
-      sorted.sort((a, b) => {
+    // Always group by status first: open games on top, finished below, cancelled last.
+    const statusRank = (g: FriendlyGameWithDetails) =>
+      g.status === "cancelled" ? 2 : g.status === "completed" ? 1 : 0;
+    sorted.sort((a, b) => {
+      const rank = statusRank(a) - statusRank(b);
+      if (rank !== 0) return rank;
+      if (sortBy === "spots") {
         const sa = a.max_players - a.participants_count;
         const sb = b.max_players - b.participants_count;
         return sb - sa || a.game_date.localeCompare(b.game_date);
-      });
-    } else {
-      sorted.sort((a, b) => a.game_date.localeCompare(b.game_date));
-    }
+      }
+      return a.game_date.localeCompare(b.game_date);
+    });
     return sorted;
   }, [games, myParticipants, countryFilter, governorateFilter, sportFilter, skillFilter, areaFilter, availability, onlyMine, sortBy, today, weekEnd, profile.id]);
 

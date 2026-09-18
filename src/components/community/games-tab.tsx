@@ -524,7 +524,7 @@ export function GamesTab({ profile }: { profile: Profile }) {
 
   const filtered = useMemo(() => {
     const q = areaFilter.trim();
-    return (games ?? []).filter((g) => {
+    const list = (games ?? []).filter((g) => {
       if (sportFilter !== "all" && g.sport !== sportFilter) return false;
       if (onlyMatches && !gameMatchesProfile(g, profile)) return false;
       if (!q) return true;
@@ -533,6 +533,14 @@ export function GamesTab({ profile }: { profile: Profile }) {
         q
       );
     });
+    // Always group by status first: open games on top, finished below, cancelled last.
+    const statusRank = (g: FriendlyGameWithDetails) =>
+      g.status === "cancelled" ? 2 : g.status === "completed" ? 1 : 0;
+    return [...list].sort(
+      (a, b) =>
+        statusRank(a) - statusRank(b) ||
+        a.game_date.localeCompare(b.game_date)
+    );
   }, [games, sportFilter, areaFilter, onlyMatches, profile]);
 
   return (
