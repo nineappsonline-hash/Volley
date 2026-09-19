@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isPlatformAdmin } from "@/lib/platform-admin";
 
 export const PLAN_REQUIRED_MESSAGE = "The AI Coach Assistant requires the Enterprise plan.";
 
@@ -14,21 +15,22 @@ export async function isEnterpriseAcademy(
   supabase: SupabaseClient
 ): Promise<boolean> {
   const { data } = await supabase.auth.getUser();
-  const userId = data.user?.id;
-  if (!userId) return false;
+  const user = data.user;
+  if (!user) return false;
+
+  // The platform admin has no academy and manages every academy's data
+  // (same email check the DB uses in public.is_super_admin()). The special
+  // role only exists in app_metadata; profiles.role is 'admin'/'member'.
+  if (isPlatformAdmin(user)) return true;
 
   const admin = createAdminClient();
   const { data: profile } = await admin
     .from("profiles")
     .select("role, academy_id")
-    .eq("id", userId)
+    .eq("id", user.id)
     .maybeSingle();
 
   if (!profile) return false;
-
-  // The platform admin has no academy (useAcademy returns null client-side)
-  // and manages every academy's data.
-  if (profile.role === "super_admin") return true;
   if (!profile.academy_id) return false;
 
   const { data: academy } = await admin

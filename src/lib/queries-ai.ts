@@ -219,6 +219,22 @@ export function useSavePostSessionReport() {
   });
 }
 
+export function usePostSessionReports() {
+  return useQuery({
+    queryKey: aiQueryKeys.reports,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("post_session_reports")
+        .select("*, plan:ai_training_plans(id, title)")
+        .order("updated_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as (PostSessionReport & {
+        plan: { id: string; title: string } | null;
+      })[];
+    },
+  });
+}
+
 export function useDevelopmentPlans() {
   return useQuery({
     queryKey: aiQueryKeys.devPlans,

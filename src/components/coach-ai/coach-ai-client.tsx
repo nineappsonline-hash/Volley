@@ -16,7 +16,7 @@ import {
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useI18n, type Dict } from "@/lib/i18n";
-import { useDevelopmentPlans, useTrainingPlans } from "@/lib/queries-ai";
+import { useDevelopmentPlans, usePostSessionReports, useTrainingPlans } from "@/lib/queries-ai";
 import { useCurrentProfile } from "@/lib/queries";
 import type { TrainingPlan } from "@/lib/types";
 import { PlanGenerator } from "./plan-generator";
@@ -46,6 +46,7 @@ export function CoachAiClient() {
   const { data: profile } = useCurrentProfile();
   const { data: plans, isLoading } = useTrainingPlans();
   const { data: devPlans } = useDevelopmentPlans();
+  const { data: reports } = usePostSessionReports();
   const isAdmin = profile?.role === "admin";
 
   const [tab, setTab] = useState("plans");
@@ -167,9 +168,38 @@ export function CoachAiClient() {
 
         {/* Reports */}
         <TabsContent value="reports" className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            {t("coachai_report_title")} — {t("common_loading")}
-          </p>
+          {!reports || reports.length === 0 ? (
+            <EmptyState message={t("coachai_no_reports")} icon={FileText} />
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {reports.map((report) => (
+                <Card key={report.id}>
+                  <CardContent className="flex flex-col gap-3 p-5">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="min-w-0 truncate text-sm font-bold">
+                        {report.plan?.title ?? t("coachai_report_no_plan")}
+                      </p>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {t("coachai_report_updated")} {new Date(report.updated_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    {report.notes && (
+                      <p className="line-clamp-2 text-sm text-muted-foreground">{report.notes}</p>
+                    )}
+                    {(report.skills_improved ?? []).length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {report.skills_improved.slice(0, 4).map((s, i) => (
+                          <Badge key={i} variant="success" className="text-[11px]">
+                            {s}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 

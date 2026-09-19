@@ -127,14 +127,14 @@ const TIER_ORDER: Tier[] = ["starter", "plus", "elite"];
 
 const MONTHLY: Record<Tier, string> = {
   starter: "0",
-  plus: "200",
-  elite: "350",
+  plus: "600",
+  elite: "999",
 };
 
 const YEARLY: Record<Tier, string> = {
   starter: "0",
-  plus: "2100",
-  elite: "3800",
+  plus: "6000",
+  elite: "9990",
 };
 
 export function PlanComparison({

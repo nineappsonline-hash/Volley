@@ -61,7 +61,8 @@ export async function resolveStaffScope(
       .from("coaches")
       .select("id, teams(id)")
       .eq("profile_id", userId)
-      .eq("academy_id", academyId);
+      .eq("academy_id", academyId)
+      .eq("is_active", true);
 
     const coachRows = (coaches.data ?? []) as {
       id: string;
@@ -72,14 +73,19 @@ export async function resolveStaffScope(
       for (const t of c.teams ?? []) teamIds.push(t.id);
     }
 
-    const players = await admin
-      .from("player_development_plans")
-      .select("player_id")
-      .in("coach_id", coachIds.length ? coachIds : [userId]);
-    playerIds.push(...(players.data ?? []).map((p) => p.player_id));
+    // Mirror the SQL helper current_coach_player_ids(): a coach manages the
+    // players on their assigned teams. player_development_plans.coach_id
+    // stores a profile id (not a coaches.id), so it cannot scope the roster.
+    if (teamIds.length > 0) {
+      const players = await admin
+        .from("team_members")
+        .select("member_id")
+        .in("team_id", teamIds);
+      playerIds.push(...(players.data ?? []).map((p) => p.member_id as string));
+    }
 
     if (coachIds.length === 0) {
-      // A member with no staff record is not academy staff.
+      // A member with no active staff record is not academy staff.
       throw new Error("Forbidden");
     }
   }

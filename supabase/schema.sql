@@ -2682,7 +2682,23 @@ CREATE POLICY "Avatars: delete own" ON storage.objects
     AND (storage.foldername(name))[1] = auth.uid()::text
   );
 
-DROP FUNCTION IF EXISTS public.join_friendly_game(UUID);
+-- Drop every signature of join_friendly_game: the return type has changed
+-- over time (UUID -> BOOLEAN), and PostgreSQL refuses CREATE OR REPLACE
+-- across return types when a signature already exists in the database.
+DO $fn$
+DECLARE
+  r record;
+BEGIN
+  FOR r IN
+    SELECT p.oid::regprocedure AS sig
+    FROM pg_catalog.pg_proc p
+    JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public' AND p.proname = 'join_friendly_game'
+  LOOP
+    EXECUTE format('DROP FUNCTION %s', r.sig);
+  END LOOP;
+END $fn$;
+
 CREATE OR REPLACE FUNCTION public.join_friendly_game(
   p_game_id UUID,
   p_invite_code TEXT DEFAULT NULL,
@@ -4058,9 +4074,9 @@ AS $$
     WHEN p_kind = 'member' AND p_plan = 'pro' THEN
       CASE p_cycle WHEN 'monthly' THEN 100 WHEN 'semi' THEN 500 WHEN 'yearly' THEN 1000 END
     WHEN p_kind = 'academy' AND p_plan = 'plus' THEN
-      CASE p_cycle WHEN 'monthly' THEN 200 WHEN 'yearly' THEN 2100 END
+      CASE p_cycle WHEN 'monthly' THEN 600 WHEN 'yearly' THEN 6000 END
     WHEN p_kind = 'academy' AND p_plan = 'elite' THEN
-      CASE p_cycle WHEN 'monthly' THEN 350 WHEN 'yearly' THEN 3800 END
+      CASE p_cycle WHEN 'monthly' THEN 999 WHEN 'yearly' THEN 9990 END
     ELSE NULL
   END
 $$;
@@ -4939,7 +4955,11 @@ $$;
 REVOKE ALL ON FUNCTION public.super_admin_update_academy(UUID, JSONB) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.super_admin_update_academy(UUID, JSONB) TO authenticated;
 
--- Permanently delete an academy and every account tied to it.
+-- Permanently delete an academy and every account tied to it. The platform
+-- super-admin account (mo.dowaik@gmail.com) is always preserved: deleting the
+-- academy detaches its profile (academy_id → NULL) and removes the
+-- academy-owned rows that reference it, so the cascade cannot take the
+-- account down with this academy.
 CREATE OR REPLACE FUNCTION public.super_admin_delete_academy(p_academy_id UUID)
 RETURNS VOID
 LANGUAGE plpgsql
@@ -4948,6 +4968,8 @@ SET search_path = public
 AS $$
 DECLARE
   v_user_ids UUID[];
+  v_protected_ids UUID[];
+  v_row RECORD;
 BEGIN
   IF NOT public.is_super_admin() THEN
     RAISE EXCEPTION 'Not authorized';
@@ -4961,12 +4983,73 @@ BEGIN
   FROM public.profiles
   WHERE academy_id = p_academy_id;
 
+  -- The platform super-admin (verified Auth email) must survive any academy
+  -- deletion: is_super_admin()/isPlatformAdmin() are email-based, so deleting
+  -- its auth row would silently strip the platform of its last admin.
+  SELECT array_agg(id) INTO v_protected_ids
+  FROM public.profiles
+  WHERE id = ANY(v_user_ids)
+    AND EXISTS (
+      SELECT 1 FROM auth.users u
+      WHERE u.id = profiles.id
+        AND lower(u.email) = 'mo.dowaik@gmail.com'
+        AND u.email_confirmed_at IS NOT NULL
+        AND (u.banned_until IS NULL OR u.banned_until <= now())
+    );
+
+  IF v_protected_ids IS NOT NULL THEN
+    -- Detach the protected profile(s) from this academy (profiles.academy_id
+    -- is nullable), so the academy delete below does not cascade to them.
+    UPDATE public.profiles SET academy_id = NULL WHERE id = ANY(v_protected_ids);
+
+    -- Remove every academy-owned row that references the protected profile
+    -- with a CASCADE foreign key (member rows, subscriptions, follows,
+    -- messages, …). Rows owned by other academies — or owned by no academy —
+    -- keep pointing at the profile, which remains valid because the profile
+    -- survives. Enumerated from the catalogs so new tables are covered too.
+    FOR v_row IN
+      SELECT tc.table_name, kcu.column_name
+        FROM information_schema.table_constraints tc
+        JOIN information_schema.key_column_usage kcu
+          ON kcu.constraint_name = tc.constraint_name
+         AND kcu.constraint_schema = tc.constraint_schema
+        JOIN information_schema.constraint_column_usage ccu
+          ON ccu.constraint_name = tc.constraint_name
+         AND ccu.constraint_schema = tc.constraint_schema
+       WHERE tc.constraint_type = 'FOREIGN KEY'
+         AND tc.table_schema = 'public'
+         AND tc.delete_rule = 'CASCADE'
+         AND ccu.table_schema = 'public'
+         AND ccu.table_name = 'profiles'
+         AND ccu.column_name = 'id'
+    LOOP
+      -- Only tables that carry an academy_id can be owned by this academy.
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns c
+        WHERE c.table_schema = 'public'
+          AND c.table_name = v_row.table_name
+          AND c.column_name = 'academy_id'
+      ) THEN
+        EXECUTE format(
+          'DELETE FROM public.%I WHERE %I = ANY($1) AND academy_id = $2',
+          v_row.table_name, v_row.column_name)
+          USING v_protected_ids, p_academy_id;
+      END IF;
+    END LOOP;
+  END IF;
+
   -- Cascades to branches, sports, members, sessions, games, payments…
   DELETE FROM public.academies WHERE id = p_academy_id;
 
-  -- Remove the associated auth accounts (and their emails).
+  -- Remove the associated auth accounts (and their emails), never the
+  -- protected platform admin account.
   IF v_user_ids IS NOT NULL THEN
-    DELETE FROM auth.users WHERE id = ANY(v_user_ids);
+    IF v_protected_ids IS NOT NULL THEN
+      DELETE FROM auth.users
+      WHERE id = ANY(v_user_ids) AND id <> ALL(v_protected_ids);
+    ELSE
+      DELETE FROM auth.users WHERE id = ANY(v_user_ids);
+    END IF;
   END IF;
 END;
 $$;
@@ -8345,4 +8428,73 @@ NOTIFY pgrst, 'reload schema';
 -- ────────────────────────────────────────────────────────────
 ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS cover_url TEXT;
 GRANT SELECT (cover_url) ON public.venues TO anon, authenticated;
+NOTIFY pgrst, 'reload schema';
+
+-- ────────────────────────────────────────────────────────────
+-- AI COACH ASSISTANT ENTERPRISE GATE
+-- Mirrors supabase/migrations/20261023000000_gate_ai_coach_enterprise.sql.
+-- AI Coach (AI training-session suggestions: training plans, player
+-- development plans, post-session reports) is an Enterprise (elite) feature.
+-- Starter and Plus academies can still view existing AI coach content
+-- (read policies are unchanged) but cannot create or modify it:
+--   • academy on Enterprise (elite)  → allowed
+--   • Starter / Plus / no plan       → blocked
+--   • platform admin (no academy)    → allowed (manages any data)
+-- Enforcement is on the AI coach tables themselves (the RPCs in
+-- 20260918000000_ai_coach_assistant.sql are the only write path), so the
+-- gate also holds for direct client writes.
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.guard_ai_coach_plan()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_plan TEXT;
+BEGIN
+  -- The platform admin has no academy; they manage everything.
+  IF public.is_super_admin() THEN
+    RETURN NULL;
+  END IF;
+
+  SELECT plan INTO v_plan FROM public.academies
+  WHERE id = public.current_academy_id();
+  -- No academy row (e.g. synthetic family profiles): treated as no plan.
+  IF COALESCE(v_plan, 'starter') <> 'elite' THEN
+    RAISE EXCEPTION 'The AI Coach Assistant requires the Enterprise plan.' USING ERRCODE = 'P0001';
+  END IF;
+  RETURN NULL;
+END;
+$$;
+
+-- One statement-level trigger per table keeps the gate to a single plan
+-- lookup per request instead of one per row. Triggers are only created for
+-- tables that exist, so this is safe before the AI coach tables are added.
+DO $$
+DECLARE
+  t TEXT;
+BEGIN
+  FOR t IN SELECT unnest(ARRAY[
+    'ai_training_plans',
+    'ai_training_plan_sections',
+    'training_exercises',
+    'training_plan_versions',
+    'training_plan_assignments',
+    'post_session_reports',
+    'player_development_plans',
+    'player_development_goals'
+  ])
+  LOOP
+    IF to_regclass(format('public.%I', t)) IS NOT NULL THEN
+      EXECUTE format(
+        'DROP TRIGGER IF EXISTS guard_ai_coach_plan ON public.%I', t);
+      EXECUTE format(
+        'CREATE TRIGGER guard_ai_coach_plan
+           BEFORE INSERT OR UPDATE OR DELETE ON public.%I
+           FOR EACH STATEMENT EXECUTE FUNCTION public.guard_ai_coach_plan()', t);
+    END IF;
+  END LOOP;
+END
+$$;
 NOTIFY pgrst, 'reload schema';

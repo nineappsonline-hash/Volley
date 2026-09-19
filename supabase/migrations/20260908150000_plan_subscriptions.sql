@@ -93,9 +93,9 @@ AS $$
     WHEN p_kind = 'member' AND p_plan = 'pro' THEN
       CASE p_cycle WHEN 'monthly' THEN 100 WHEN 'semi' THEN 500 WHEN 'yearly' THEN 1000 END
     WHEN p_kind = 'academy' AND p_plan = 'plus' THEN
-      CASE p_cycle WHEN 'monthly' THEN 200 WHEN 'yearly' THEN 2100 END
+      CASE p_cycle WHEN 'monthly' THEN 600 WHEN 'yearly' THEN 6000 END
     WHEN p_kind = 'academy' AND p_plan = 'elite' THEN
-      CASE p_cycle WHEN 'monthly' THEN 350 WHEN 'yearly' THEN 3800 END
+      CASE p_cycle WHEN 'monthly' THEN 999 WHEN 'yearly' THEN 9990 END
     ELSE NULL
   END
 $$;

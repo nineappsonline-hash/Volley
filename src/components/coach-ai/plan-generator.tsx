@@ -58,7 +58,7 @@ export function PlanGenerator({ open, onOpenChange, onSaved }: PlanGeneratorProp
 
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState<AiTrainingPlan | null>(null);
-  const [meta, setMeta] = useState<{ fallback: boolean; provider: string | null; estimated_cost: number } | null>(null);
+  const [meta, setMeta] = useState<{ fallback: boolean; provider: string | null; model: string | null; estimated_cost: number } | null>(null);
   const [saving, setSaving] = useState(false);
 
   const canGenerate = !!profile?.academy_id && !generating && !saving;
@@ -81,7 +81,7 @@ export function PlanGenerator({ open, onOpenChange, onSaved }: PlanGeneratorProp
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          teamId: teamId || undefined,
+          teamId: teamId === "none" || !teamId ? undefined : teamId,
           sport,
           sessionDurationMin: duration,
           numPlayers: players,
@@ -113,7 +113,7 @@ export function PlanGenerator({ open, onOpenChange, onSaved }: PlanGeneratorProp
     setSaving(true);
     try {
       const payload: Record<string, unknown> = {
-        team_id: teamId || null,
+        team_id: teamId === "none" || !teamId ? null : teamId,
         sport,
         title: generated.title,
         main_objective: generated.main_objective,
@@ -130,7 +130,7 @@ export function PlanGenerator({ open, onOpenChange, onSaved }: PlanGeneratorProp
         space: generated.space,
         notes: generated.notes,
         ai_provider: meta?.provider ?? null,
-        ai_model: null,
+        ai_model: meta?.model ?? null,
         ai_estimated_cost: meta?.estimated_cost ?? 0,
         sections: generated.sections.map((s, i) => ({
           section_type: s.section_type,
