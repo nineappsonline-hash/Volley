@@ -39,43 +39,32 @@ END;
 $$;
 
 -- One statement-level trigger per table keeps the gate to a single plan
--- lookup per request instead of one per row.
-DROP TRIGGER IF EXISTS guard_ai_coach_plan_plans ON public.ai_training_plans;
-CREATE TRIGGER guard_ai_coach_plan_plans
-  BEFORE INSERT OR UPDATE OR DELETE ON public.ai_training_plans
-  FOR EACH STATEMENT EXECUTE FUNCTION public.guard_ai_coach_plan();
-
-DROP TRIGGER IF EXISTS guard_ai_coach_plan_sections ON public.ai_training_plan_sections;
-CREATE TRIGGER guard_ai_coach_plan_sections
-  BEFORE INSERT OR UPDATE OR DELETE ON public.ai_training_plan_sections
-  FOR EACH STATEMENT EXECUTE FUNCTION public.guard_ai_coach_plan();
-
-DROP TRIGGER IF EXISTS guard_ai_coach_plan_exercises ON public.training_exercises;
-CREATE TRIGGER guard_ai_coach_plan_exercises
-  BEFORE INSERT OR UPDATE OR DELETE ON public.training_exercises
-  FOR EACH STATEMENT EXECUTE FUNCTION public.guard_ai_coach_plan();
-
-DROP TRIGGER IF EXISTS guard_ai_coach_plan_versions ON public.training_plan_versions;
-CREATE TRIGGER guard_ai_coach_plan_versions
-  BEFORE INSERT OR UPDATE OR DELETE ON public.training_plan_versions
-  FOR EACH STATEMENT EXECUTE FUNCTION public.guard_ai_coach_plan();
-
-DROP TRIGGER IF EXISTS guard_ai_coach_plan_assignments ON public.training_plan_assignments;
-CREATE TRIGGER guard_ai_coach_plan_assignments
-  BEFORE INSERT OR UPDATE OR DELETE ON public.training_plan_assignments
-  FOR EACH STATEMENT EXECUTE FUNCTION public.guard_ai_coach_plan();
-
-DROP TRIGGER IF EXISTS guard_ai_coach_plan_reports ON public.post_session_reports;
-CREATE TRIGGER guard_ai_coach_plan_reports
-  BEFORE INSERT OR UPDATE OR DELETE ON public.post_session_reports
-  FOR EACH STATEMENT EXECUTE FUNCTION public.guard_ai_coach_plan();
-
-DROP TRIGGER IF EXISTS guard_ai_coach_plan_dev ON public.player_development_plans;
-CREATE TRIGGER guard_ai_coach_plan_dev
-  BEFORE INSERT OR UPDATE OR DELETE ON public.player_development_plans
-  FOR EACH STATEMENT EXECUTE FUNCTION public.guard_ai_coach_plan();
-
-DROP TRIGGER IF EXISTS guard_ai_coach_plan_dev_goals ON public.player_development_goals;
-CREATE TRIGGER guard_ai_coach_plan_dev_goals
-  BEFORE INSERT OR UPDATE OR DELETE ON public.player_development_goals
-  FOR EACH STATEMENT EXECUTE FUNCTION public.guard_ai_coach_plan();
+-- lookup per request instead of one per row. Triggers are only created for
+-- tables that exist, so this migration is safe to run before/after
+-- 20260918000000_ai_coach_assistant.sql.
+DO $$
+DECLARE
+  t TEXT;
+BEGIN
+  FOR t IN SELECT unnest(ARRAY[
+    'ai_training_plans',
+    'ai_training_plan_sections',
+    'training_exercises',
+    'training_plan_versions',
+    'training_plan_assignments',
+    'post_session_reports',
+    'player_development_plans',
+    'player_development_goals'
+  ])
+  LOOP
+    IF to_regclass(format('public.%I', t)) IS NOT NULL THEN
+      EXECUTE format(
+        'DROP TRIGGER IF EXISTS guard_ai_coach_plan ON public.%I', t);
+      EXECUTE format(
+        'CREATE TRIGGER guard_ai_coach_plan
+           BEFORE INSERT OR UPDATE OR DELETE ON public.%I
+           FOR EACH STATEMENT EXECUTE FUNCTION public.guard_ai_coach_plan()', t);
+    END IF;
+  END LOOP;
+END
+$$;
