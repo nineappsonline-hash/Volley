@@ -29,6 +29,7 @@ Marketplace & competition,Events / tournament discovery feed,No,No,Yes,
 Marketplace & competition,Scouting features,No,No,Yes,
 Platform,Coaches limit,1,Unlimited,Unlimited,
 Platform,Academy branding / white-label,No,No,Yes,
+Platform,AI Coach Assistant (AI training session suggestions),No,No,Yes,Generating plans / development plans / post-session reports is Enterprise-only
 Platform,Priority support,No,No,Yes,
 Pricing (EGP),Monthly price,Free,200,350,
 Pricing (EGP),Yearly price (optional),Free,2100,3800,

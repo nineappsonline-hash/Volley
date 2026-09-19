@@ -117,6 +117,7 @@ const SECTIONS: PlanSection[] = [
         ],
       },
       { feature: "plan_feat_branding", cells: [NO, NO, YES] },
+      { feature: "plan_feat_ai_coach", cells: [NO, NO, YES] },
       { feature: "plan_feat_support", cells: [NO, NO, YES] },
     ],
   },

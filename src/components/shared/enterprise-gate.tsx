@@ -9,13 +9,26 @@ import { useAcademy } from "@/lib/queries";
 
 interface EnterpriseGateProps {
   children: React.ReactNode;
+  titleKey?: keyof Dict;
+  descriptionKey?: keyof Dict;
+  featureKeys?: readonly (keyof Dict)[];
 }
 
 /**
  * Renders children only when the academy is on the Enterprise (elite) plan.
- * Otherwise shows an upgrade prompt. Used to gate tournament organizing.
+ * Otherwise shows an upgrade prompt. The platform admin has no academy
+ * (useAcademy returns null) and is always allowed.
  */
-export function EnterpriseGate({ children }: EnterpriseGateProps) {
+export function EnterpriseGate({
+  children,
+  titleKey = "enterprise_gate_title",
+  descriptionKey = "enterprise_gate_description",
+  featureKeys = [
+    "enterprise_gate_feat_tournaments",
+    "enterprise_gate_feat_teams",
+    "enterprise_gate_feat_scoreboard",
+  ],
+}: EnterpriseGateProps) {
   const { t } = useI18n();
   const router = useRouter();
   const { data: academy, isLoading } = useAcademy();
@@ -30,7 +43,7 @@ export function EnterpriseGate({ children }: EnterpriseGateProps) {
     );
   }
 
-  if (academy?.plan === "elite") return <>{children}</>;
+  if (academy?.plan === "elite" || academy === null) return <>{children}</>;
 
   return (
     <Card className="relative overflow-hidden">
@@ -41,18 +54,14 @@ export function EnterpriseGate({ children }: EnterpriseGateProps) {
         <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-interactive-700 text-white shadow-lg shadow-interactive-500/30">
           <Crown className="h-6 w-6" />
         </div>
-        <CardTitle className="text-lg">{t("enterprise_gate_title")}</CardTitle>
+        <CardTitle className="text-lg">{t(titleKey)}</CardTitle>
       </CardHeader>
       <CardContent className="relative z-10 space-y-4 text-center">
         <p className="text-sm text-muted-foreground">
-          {t("enterprise_gate_description")}
+          {t(descriptionKey)}
         </p>
         <ul className="mx-auto grid max-w-sm grid-cols-1 gap-2 text-left text-sm">
-          {[
-            "enterprise_gate_feat_tournaments",
-            "enterprise_gate_feat_teams",
-            "enterprise_gate_feat_scoreboard",
-          ].map((key) => (
+          {featureKeys.map((key) => (
             <li key={key} className="flex items-center gap-2">
               <Swords className="h-3.5 w-3.5 shrink-0 text-info-ink" />
               <span>{t(key as keyof Dict)}</span>

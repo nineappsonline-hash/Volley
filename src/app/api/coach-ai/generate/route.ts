@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { resolveStaffScope } from "@/lib/coach-ai/permissions";
 import { generateTrainingPlan } from "@/lib/coach-ai/service";
+import { isEnterpriseAcademy, PLAN_REQUIRED_MESSAGE } from "@/lib/coach-ai/plan-gate";
 import { logAiUsage } from "@/lib/ai/usage";
 
 const body = z
@@ -30,6 +31,12 @@ export async function POST(request: Request) {
   try {
     const supabase = createClient();
     const scope = await resolveStaffScope(supabase);
+
+    // AI training-session generation is an Enterprise (elite) feature.
+    if (!(await isEnterpriseAcademy(supabase))) {
+      return NextResponse.json({ error: PLAN_REQUIRED_MESSAGE, code: "plan_required" }, { status: 402 });
+    }
+
     const parsed = body.safeParse(await request.json().catch(() => ({})));
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });

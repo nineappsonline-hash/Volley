@@ -1532,6 +1532,13 @@ export const dictionary = {
     enterprise_gate_feat_teams: "Manage teams & participants",
     enterprise_gate_feat_scoreboard: "Live scorekeeping, standings & brackets",
     enterprise_gate_cta: "View Plans",
+    // ── Enterprise gate (AI coach) ──
+    enterprise_gate_ai_title: "Enterprise Feature",
+    enterprise_gate_ai_description:
+      "AI training-session suggestions are part of the Enterprise plan. Upgrade to generate professional plans, track player development, and write post-session reports for your academy.",
+    enterprise_gate_feat_ai_plans: "AI-generated training session plans",
+    enterprise_gate_feat_ai_dev: "Player development plans",
+    enterprise_gate_feat_ai_reports: "Post-session AI reports",
     // ── Upgrade page ──
     premium_page_title: "Go Premium",
     premium_page_subtitle: "Unlock features that go beyond your academy",
@@ -1608,6 +1615,7 @@ export const dictionary = {
     plan_feat_scouting: "Scouting features",
     plan_feat_coaches: "Coaches limit",
     plan_feat_branding: "Academy branding / white-label",
+    plan_feat_ai_coach: "AI Coach Assistant (AI session suggestions)",
     plan_feat_support: "Priority support",
     // ── Plan banners ──
     plan_banner_starter_title: "You're on the free Starter plan",
@@ -4231,6 +4239,13 @@ export const dictionary = {
     enterprise_gate_feat_teams: "إدارة الفرق والمشاركين",
     enterprise_gate_feat_scoreboard: "نتائج مباشرة وجداول ترتيب ونظام خروج المغلوب",
     enterprise_gate_cta: "شاهد الخطط",
+    // ── Enterprise gate (AI coach) ──
+    enterprise_gate_ai_title: "ميزة من خطة المؤسسة",
+    enterprise_gate_ai_description:
+      "اقتراحات جلسات التدريب بالذكاء الاصطناعي ضمن خطة المؤسسة. حدّث خطتك لتوليد خطط احترافية ومتابعة تطور اللاعبين وكتابة تقارير ما بعد الجلسة لأكاديميتك.",
+    enterprise_gate_feat_ai_plans: "خطط جلسات تدريب يولّدها الذكاء الاصطناعي",
+    enterprise_gate_feat_ai_dev: "خطط تطوير اللاعبين",
+    enterprise_gate_feat_ai_reports: "تقارير ما بعد الجلسة بالذكاء الاصطناعي",
     // ── Upgrade page ──
     premium_page_title: "كن مميزاً",
     premium_page_subtitle: "افتح مميزات تتجاوز أكاديميتك",
@@ -4307,6 +4322,7 @@ export const dictionary = {
     plan_feat_scouting: "مميزات الاستكشاف",
     plan_feat_coaches: "حد المدربين",
     plan_feat_branding: "علامة الأكاديمية / العلامة البيضاء",
+    plan_feat_ai_coach: "مساعد المدرب الذكي (اقتراحات الجلسات)",
     plan_feat_support: "دعم ذو أولوية",
     // ── أشرطة الخطط ──
     plan_banner_starter_title: "أنت على الخطة المجانية (ستارتر)",

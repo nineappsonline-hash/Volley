@@ -10,9 +10,10 @@ const STUBS = `
 CREATE ROLE anon; CREATE ROLE authenticated; CREATE SCHEMA auth;
 CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT nullif(current_setting('test.uid',true),'')::uuid $$;
 CREATE FUNCTION public.is_account_blocked() RETURNS boolean LANGUAGE sql AS $$ SELECT coalesce(current_setting('test.blocked',true),'false')='true' $$;
+CREATE FUNCTION public.is_super_admin() RETURNS boolean LANGUAGE sql AS $$ SELECT coalesce(current_setting('test.super_admin',true),'false')='true' $$;
 
 -- Minimum pre-existing tenant schema (subset of supabase/schema.sql).
-CREATE TABLE public.academies(id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT NOT NULL, invite_code TEXT UNIQUE DEFAULT 'A', is_public BOOLEAN DEFAULT FALSE);
+CREATE TABLE public.academies(id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT NOT NULL, invite_code TEXT UNIQUE DEFAULT 'A', is_public BOOLEAN DEFAULT FALSE, plan TEXT NOT NULL DEFAULT 'starter');
 CREATE FUNCTION public.current_academy_id() RETURNS uuid LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
   DECLARE v_academy uuid; BEGIN
     SELECT academy_id INTO v_academy FROM public.profiles WHERE id = auth.uid();
@@ -46,10 +47,11 @@ async function main() {
   await db.exec(STUBS);
   await db.exec(readFileSync(path.join(__dirname, '../supabase/migrations/20260918000000_ai_coach_assistant.sql'), 'utf8'));
   await db.exec(readFileSync(path.join(__dirname, '../supabase/migrations/20260918010000_academy_insights.sql'), 'utf8'));
+  await db.exec(readFileSync(path.join(__dirname, '../supabase/migrations/20261023000000_gate_ai_coach_enterprise.sql'), 'utf8'));
 
   // Seed one academy: admin, coach, team + members with payment/attendance data.
   const seed = `
-  INSERT INTO public.academies(id, name) VALUES ('10000000-0000-0000-0000-000000000000', 'Test Club');
+  INSERT INTO public.academies(id, name, plan) VALUES ('10000000-0000-0000-0000-000000000000', 'Test Club', 'elite');
   INSERT INTO public.academy_branches(id, academy_id) VALUES ('11000000-0000-0000-0000-000000000000','10000000-0000-0000-0000-000000000000');
   INSERT INTO public.sports(id, academy_id, name) VALUES ('12000000-0000-0000-0000-000000000000','10000000-0000-0000-0000-000000000000','volleyball');
   INSERT INTO public.profiles(id, academy_id, name, role, is_active) VALUES
@@ -156,6 +158,21 @@ async function main() {
   await assert.rejects(db.query('SELECT public.save_player_development_plan($1)', [{ player_id: '20000000-0000-0000-0000-000000000005' }]), /your teams/);
   await db.exec(`SET test.uid='';`);
   await assert.rejects(db.query('SELECT public.save_ai_training_plan($1)', [plan]), /staff|42501/);
+
+  // ── 1b. ENTERPRISE PLAN GATE: non-elite academies cannot write AI coach content ──
+  await db.exec(`SET test.uid='20000000-0000-0000-0000-000000000001';`); // admin
+  await db.query(`UPDATE public.academies SET plan='plus' WHERE id='10000000-0000-0000-0000-000000000000'`);
+  await assert.rejects(db.query('SELECT public.save_ai_training_plan($1)', [plan]), /Enterprise plan/);
+  await assert.rejects(db.query('SELECT public.save_player_development_plan($1)', [{ player_id: '20000000-0000-0000-0000-000000000003' }]), /Enterprise plan/);
+  await assert.rejects(db.query('SELECT public.save_post_session_report($1)', [{ completed: true, notes: 'x' }]), /Enterprise plan/);
+  // Even status changes are blocked for non-elite academies (the duplicate is still a draft).
+  await assert.rejects(db.query('SELECT public.submit_ai_training_plan($1)', [dupId]), /Enterprise plan/);
+  // Reads still work on non-elite plans (no RLS change).
+  assert.equal((await db.query('SELECT count(*)::int AS n FROM public.ai_training_plans WHERE academy_id=$1', ['10000000-0000-0000-0000-000000000000'])).rows[0].n > 0, true);
+
+  await db.query(`UPDATE public.academies SET plan='elite' WHERE id='10000000-0000-0000-0000-000000000000'`);
+  await db.query('SELECT public.toggle_ai_plan_flags($1,$2,$3)', [planId, true, false]);
+  assert.equal((await db.query('SELECT is_favorite FROM public.ai_training_plans WHERE id=$1', [planId])).rows[0].is_favorite, true);
 
   // ── 2. INSIGHTS: engine, alerts, actions, settings ─────────
   await db.exec(`SET test.uid='20000000-0000-0000-0000-000000000001';`); // admin
