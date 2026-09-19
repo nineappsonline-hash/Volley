@@ -25,6 +25,7 @@ import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { authDestination } from "@/lib/auth-redirect";
 import { useAuth } from "@/lib/auth";
+import { useEffect } from "react";
 
 const schema = (t: (k: any) => string) =>
   z.object({
@@ -45,6 +46,13 @@ export function LoginForm() {
   const [mode, setMode] = useState<Role>(searchParams.get("mode") === "tenant" ? "tenant" : "member");
 
   const isTenant = mode === "tenant";
+
+  useEffect(() => {
+    if (searchParams.get("passwordUpdated") === "1") {
+      toast.success(t("login_password_updated"));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema(t)),
@@ -145,6 +153,14 @@ export function LoginForm() {
                     </FormItem>
                   )}
                 />
+                <div className="flex justify-end">
+                  <Link
+                    href="/auth/forgot-password"
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    {t("login_forgot_password")}
+                  </Link>
+                </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading && <Loader2 className="animate-spin" />}
                   {loading ? t("login_loading") : t("login_button")}

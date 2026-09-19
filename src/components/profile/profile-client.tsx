@@ -51,6 +51,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EvaluationsCard } from "@/components/members/evaluations-card";
 import { CheckinQrCard } from "@/components/profile/checkin-qr-card";
 import { FamilyCard } from "@/components/profile/family-card";
+import { PasswordChangeCard } from "@/components/profile/password-change-card";
 import { MapPicker } from "@/components/shared/map-picker";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -277,6 +278,8 @@ function AcademyProfile({ serverProfile }: { serverProfile: Profile }) {
           </Card>
         </div>
       </div>
+
+      <PasswordChangeCard />
     </div>
   );
 }
@@ -1011,6 +1014,8 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
           </a>
         </Button>
       </div>
+
+      <PasswordChangeCard />
     </div>
   );
 }
