@@ -58,6 +58,23 @@ export function UpdatePasswordForm() {
       const type = searchParams.get("type");
       const code = searchParams.get("code");
       try {
+        // Recovery links sometimes deliver the session in the URL fragment
+        // (e.g. /auth/update-password#access_token=…&type=recovery). Adopt it
+        // explicitly in case automatic detection hasn't kicked in yet.
+        if (typeof window !== "undefined") {
+          const hash = new URLSearchParams(window.location.hash.slice(1));
+          const accessToken = hash.get("access_token");
+          if (accessToken) {
+            const refreshToken = hash.get("refresh_token");
+            const { error: sessionError } = await supabase.auth.setSession(
+              refreshToken
+                ? { access_token: accessToken, refresh_token: refreshToken }
+                : { access_token: accessToken, refresh_token: accessToken }
+            );
+            if (sessionError) throw sessionError;
+          }
+        }
+
         if (tokenHash && type) {
           const { error } = await supabase.auth.verifyOtp({
             type: type as "recovery" | "email" | "invite",
@@ -69,9 +86,20 @@ export function UpdatePasswordForm() {
           if (error) throw error;
         } else {
           const {
-            data: { session },
-          } = await supabase.auth.getSession();
-          if (!session) throw new Error("missing-token");
+            data: { user },
+          } = await supabase.auth.getUser();
+          if (!user) throw new Error("missing-token");
+        }
+        // Clean the token out of the address bar so a refresh doesn't replay it.
+        if (
+          typeof window !== "undefined" &&
+          (window.location.hash || tokenHash)
+        ) {
+          window.history.replaceState(
+            null,
+            "",
+            window.location.pathname
+          );
         }
         setStatus("ready");
       } catch {
@@ -142,13 +170,19 @@ export function UpdatePasswordForm() {
 
             {status === "error" && (
               <div className="space-y-4 py-4 text-center">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm font-medium">
                   {t("updatepwd_link_invalid")}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t("updatepwd_same_browser")}
                 </p>
                 <Button asChild className="w-full">
                   <Link href="/auth/forgot-password">
                     {t("forgot_button")}
                   </Link>
+                </Button>
+                <Button asChild variant="ghost" className="w-full">
+                  <Link href="/login">{t("updatepwd_back_to_login")}</Link>
                 </Button>
               </div>
             )}
