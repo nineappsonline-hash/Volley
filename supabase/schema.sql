@@ -7027,6 +7027,7 @@ DECLARE
   v_anchor    UUID;
   v_created   INTEGER := 0;
   v_horizon   DATE := CURRENT_DATE + 56;
+  v_code      TEXT;
 BEGIN
   FOR v_parent IN
     SELECT fg.* FROM public.friendly_games fg
@@ -7043,18 +7044,27 @@ BEGIN
            WHERE f.source_game_id = v_parent.id AND f.game_date = v_dt
          )
       THEN
+        -- Mint a unique shareable code for this instance (see
+        -- 20261016000000_all_games_shareable for the same generator).
+        LOOP
+          v_code := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 6));
+          EXIT WHEN NOT EXISTS (
+            SELECT 1 FROM public.friendly_games WHERE invite_code = v_code
+          );
+        END LOOP;
+
         INSERT INTO public.friendly_games
           (creator_id, creator_name, creator_nickname, sport, title, description, area, location,
            lat, lng, game_date, start_time, max_players, skill_level, is_public,
            status, source_game_id, recurrence, playground_id, court_number, min_players, duration_hours, playground_hourly_rate,
-           share_price, host_pays, host_total)
+           share_price, host_pays, host_total, invite_code)
         VALUES
           (v_parent.creator_id, v_parent.creator_name, v_parent.creator_nickname, v_parent.sport,
            v_parent.title, v_parent.description, v_parent.area, v_parent.location,
            v_parent.lat, v_parent.lng, v_dt, v_parent.start_time,
            v_parent.max_players, v_parent.skill_level, v_parent.is_public,
            'open', v_parent.id, 'weekly', v_parent.playground_id, v_parent.court_number, v_parent.min_players, v_parent.duration_hours, v_parent.playground_hourly_rate,
-           v_parent.share_price, v_parent.host_pays, v_parent.host_total)
+           v_parent.share_price, v_parent.host_pays, v_parent.host_total, v_code)
         RETURNING id INTO v_new_id;
 
         SELECT f2.id INTO v_anchor
@@ -7841,6 +7851,7 @@ DECLARE
   v_anchor    UUID;
   v_created   INTEGER := 0;
   v_horizon   DATE := CURRENT_DATE + 56;
+  v_code      TEXT;
 BEGIN
   FOR v_parent IN
     SELECT fg.* FROM public.friendly_games fg
@@ -7857,18 +7868,27 @@ BEGIN
            WHERE f.source_game_id = v_parent.id AND f.game_date = v_dt
          )
       THEN
+        -- Mint a unique shareable code for this instance (see
+        -- 20261016000000_all_games_shareable for the same generator).
+        LOOP
+          v_code := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 6));
+          EXIT WHEN NOT EXISTS (
+            SELECT 1 FROM public.friendly_games WHERE invite_code = v_code
+          );
+        END LOOP;
+
         INSERT INTO public.friendly_games
           (creator_id, creator_name, creator_nickname, sport, title, description, area, location,
            lat, lng, game_date, start_time, max_players, skill_level, is_public,
            status, source_game_id, recurrence, playground_id, court_number, min_players, duration_hours, playground_hourly_rate,
-           share_price, host_pays, host_total)
+           share_price, host_pays, host_total, invite_code)
         VALUES
           (v_parent.creator_id, v_parent.creator_name, v_parent.creator_nickname, v_parent.sport,
            v_parent.title, v_parent.description, v_parent.area, v_parent.location,
            v_parent.lat, v_parent.lng, v_dt, v_parent.start_time,
            v_parent.max_players, v_parent.skill_level, v_parent.is_public,
            'open', v_parent.id, 'weekly', v_parent.playground_id, v_parent.court_number, v_parent.min_players, v_parent.duration_hours, v_parent.playground_hourly_rate,
-           v_parent.share_price, v_parent.host_pays, v_parent.host_total)
+           v_parent.share_price, v_parent.host_pays, v_parent.host_total, v_code)
         RETURNING id INTO v_new_id;
 
         SELECT f2.id INTO v_anchor
