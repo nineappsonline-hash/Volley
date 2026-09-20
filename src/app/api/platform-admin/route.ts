@@ -4,13 +4,14 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isPlatformAdmin } from "@/lib/platform-admin";
 
-const tables = ["profiles", "academies", "friendly_games", "friendly_game_participants", "venues", "venue_rentals", "training_sessions", "tournaments", "tournament_participants", "tournament_teams", "tournament_team_members", "tournament_matches", "payments", "attendance", "academy_branches", "membership_plans", "sports", "sport_settings"] as const;
+const tables = ["profiles", "academies", "friendly_games", "friendly_game_participants", "friendly_game_rent_payments", "venues", "venue_rentals", "training_sessions", "tournaments", "tournament_participants", "tournament_teams", "tournament_team_members", "tournament_matches", "payments", "attendance", "academy_branches", "membership_plans", "sports", "sport_settings"] as const;
 // Deterministic pagination order per table; sport_settings has no id column.
 const orderColumns: Record<(typeof tables)[number], string> = {
   profiles: "id",
   academies: "id",
   friendly_games: "id",
   friendly_game_participants: "id",
+  friendly_game_rent_payments: "id",
   venues: "id",
   venue_rentals: "id",
   training_sessions: "id",

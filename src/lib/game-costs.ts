@@ -91,3 +91,42 @@ export function estimateHostTotal(
   const total = Math.round((rent + fee) * 100) / 100;
   return { rent, fee, total };
 }
+/** Booking deposit is half the court rent; pending receipts are not paid funds. */
+export function gameBookingPayment(game: {
+  sport: string; min_players: number; playground_hourly_rate?: number | null;
+  duration_hours?: number; host_pays?: boolean; status?: string;
+  participants?: { role?: string; is_waitlisted?: boolean; pay_status?: string | null; share_amount?: number | null }[];
+  rent_payments?: { amount: number; pay_status?: string | null }[];
+}) {
+  const rate = game.playground_hourly_rate;
+  const hours = game.duration_hours ?? 1;
+  if (rate == null || !Number.isFinite(rate) || rate < 0 || !Number.isFinite(hours) || hours <= 0) return null;
+  const cents = (amount: number) => Math.round(amount * 100);
+  const total = cents(rate * hours);
+  const share = Math.round(total / getBillablePlayers(game.sport, game.min_players));
+  const fee = cents(getPlayerFee(game.sport));
+  let paid = 0, pending = 0;
+  for (const participant of game.participants ?? []) {
+    if (participant.is_waitlisted) continue;
+    if (game.host_pays && participant.role !== 'organizer') continue;
+    const maximum = game.host_pays ? total : share;
+    const amount = participant.share_amount == null ? maximum : Math.min(maximum, Math.max(0, cents(participant.share_amount) - fee));
+    if (!Number.isFinite(amount)) continue;
+    if (participant.pay_status === 'approved') paid += amount;
+    if (participant.pay_status === 'pending') pending += amount;
+  }
+  for (const payment of game.rent_payments ?? []) {
+    if (!Number.isFinite(payment.amount) || payment.amount <= 0) continue;
+    if (payment.pay_status === 'approved') paid += cents(payment.amount);
+    if (payment.pay_status === 'pending') pending += cents(payment.amount);
+  }
+  paid = Math.min(total, paid);
+  const threshold = Math.ceil(total / 2);
+  return {
+    confirmed: game.status !== 'cancelled' && paid >= threshold,
+    total: total / 100, paid: paid / 100,
+    remaining: Math.max(0, total - paid) / 100,
+    depositRemaining: Math.max(0, threshold - paid) / 100,
+    pending: Math.min(total - paid, pending) / 100,
+  };
+}

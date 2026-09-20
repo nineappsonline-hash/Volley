@@ -13,13 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { useI18n } from "@/lib/i18n";
 
-/**
- * Shown to the game creator right after they pay their share in a split game.
- * Explains that the court rent is only confirmed when the collected payments
- * cover it — either the minimum players have paid, someone covers the rest, or
- * the full rent was paid upfront. Also surfaces the game's share link so the
- * creator can invite the players needed to confirm the booking.
- */
+/** Explains the 50% court-rent deposit and shares the game invitation. */
 export function CourtRentInfoDialog({
   open,
   onOpenChange,
@@ -33,8 +27,8 @@ export function CourtRentInfoDialog({
   const ar = lang === "ar";
   const [copied, setCopied] = useState(false);
   const message = ar
-    ? "لن يتم تأكيد المباراة حتى يُدفع المبلغ المتبقي من إيجار الملعب."
-    : "The game won't be confirmed until the remaining court rent is paid.";
+    ? "يتم تأكيد الحجز بعد اعتماد دفع ٥٠٪ من إيجار الملعب. المبلغ المتبقي يمكن دفعه في الملعب."
+    : "The booking is confirmed once approved payments cover 50% of the court rent. The remaining balance can be paid at the premises.";
 
   const copyLink = async () => {
     if (!shareLink) return;

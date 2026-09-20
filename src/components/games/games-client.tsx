@@ -71,6 +71,7 @@ import { LocationFields } from "@/components/shared/location-fields";
 import { normalizeCountry } from "@/lib/locations";
 import { matchesGameLocation } from "@/lib/game-filters";
 import { COMMUNITY_SPORTS, formatMoney, formatTime12h } from "@/lib/constants";
+import { GameBookingStatus } from "@/components/games/game-booking-status";
 import { gameRentRemaining } from "@/lib/game-costs";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -539,6 +540,7 @@ function GameCard({
             </DropdownMenu>
           </div>
         </div>
+      <GameBookingStatus game={game} />
       <GameCostEstimate rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} hostPays={game.host_pays} sport={game.sport} />
       {rentRemaining > 0 && (game.status === "open" || game.status === "full") && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 dark:bg-attention-500/10">
