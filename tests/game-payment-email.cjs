@@ -11,7 +11,7 @@ const db = { from(table) { return { select() { return { eq() { return {
 class Resend { constructor() { this.emails = {send: async (...args)=>{sent.push(args);return {error:failSend ? {message:'failed'} : null};}}; } }
 global.fetch = async (url, options) => { sent.push([JSON.parse(options.body), {idempotencyKey:options.headers['Idempotency-Key']}]); return {ok:!failSend}; };
 const source = ts.transpileModule(fs.readFileSync('supabase/functions/notify-email/index.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;
-new Function('require','exports','Deno',source)(name=>name.includes('supabase')?{createClient:()=>db}:{Resend},{},{env:{get:key=>({SUPABASE_URL:'https://example.com',SUPABASE_SERVICE_ROLE_KEY:'test',RESEND_API_KEY:'test'})[key]},serve:fn=>handler=fn});
+new Function('require','exports','Deno',source)(name=>name.includes('welcome-email')?{buildWelcomeEmail:()=>({})}:name.includes('supabase')?{createClient:()=>db}:{Resend},{},{env:{get:key=>({SUPABASE_URL:'https://example.com',SUPABASE_SERVICE_ROLE_KEY:'test',RESEND_API_KEY:'test'})[key]},serve:fn=>handler=fn});
 const request=()=>new Request('https://example.com',{method:'POST',headers:{authorization:'Bearer eyJtest'},body:JSON.stringify({event:'game_payment_review',queue_id:item.id,recipient_id:'attacker',amount:999999})});
 (async()=>{
 assert.equal((await handler(request())).status,200);

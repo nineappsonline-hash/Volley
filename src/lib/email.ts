@@ -1,3 +1,4 @@
+import { buildWelcomeEmail } from "../../supabase/functions/_shared/welcome-email";
 import { PLAYZA } from "@/lib/brand";
 import { Resend } from "resend";
 
@@ -11,10 +12,11 @@ interface SendEmailOptions {
   to: string;
   subject: string;
   html: string;
+  text?: string;
 }
 
 /** Send a transactional email. Returns { ok: true } or throws. */
-export async function sendEmail({ to, subject, html }: SendEmailOptions) {
+export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
   if (!resend) {
     console.warn("[email] RESEND_API_KEY not configured — skipping email");
     return { ok: false, skipped: true };
@@ -24,6 +26,7 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions) {
     to,
     subject,
     html,
+    text,
   });
   if (error) throw error;
   return { ok: true };
@@ -118,14 +121,5 @@ export function welcomeEmail(opts: {
   memberName: string;
   academyName: string;
 }): SendEmailOptions & { subject: string; html: string } {
-  return {
-    to: "",
-    subject: `Welcome to ${opts.academyName}!`,
-    html: baseLayout(`
-      <h2 style="margin:0 0 8px;color:${PLAYZA.navy};">Welcome! 🎉</h2>
-      <p style="color:${PLAYZA.secondaryText};margin:0 0 16px;">Hi ${opts.memberName},</p>
-      <p style="color:${PLAYZA.secondaryText};margin:0 0 24px;">Welcome to <strong>${opts.academyName}</strong>! Your account has been created and you've been added to the roster.</p>
-      <p style="color:${PLAYZA.secondaryText};margin:0;">Sign in at your academy's portal to view your schedule, attendance, and more.</p>
-    `),
-  };
+  return { to: "", ...buildWelcomeEmail(opts.memberName, opts.academyName) };
 }

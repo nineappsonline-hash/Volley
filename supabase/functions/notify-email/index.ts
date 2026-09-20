@@ -1,3 +1,4 @@
+import { buildWelcomeEmail } from "../_shared/welcome-email.ts";
 // Transactional email delivery (Resend) for registration confirmations and
 // payment receipts.
 //
@@ -65,20 +66,7 @@ function baseLayout(body: string): string {
 </html>`;
 }
 
-function welcomeEmail(name: string, academyName: string) {
-  return {
-    subject: "Welcome to Playza — your account is confirmed",
-    html: baseLayout(`
-      <h2 style="margin:0 0 8px;color:${NAVY};">Welcome! 🎉</h2>
-      <p style="color:${MUTED};margin:0 0 16px;">Hi ${name},</p>
-      <p style="color:${MUTED};margin:0 0 24px;">
-        Your Playza account is confirmed${academyName ? ` and you've been added to <strong>${academyName}</strong>` : ""}.
-        You can now sign in to view your schedule, join community games, and make payments.
-      </p>
-      <p style="color:${MUTED};margin:0;">If you didn't create this account, you can safely ignore this email.</p>
-    `),
-  };
-}
+const welcomeEmail = buildWelcomeEmail;
 
 function receiptEmail(
   name: string,
@@ -235,6 +223,7 @@ Deno.serve(async (req) => {
       to: profile.email,
       subject: email.subject,
       html: email.html,
+      ...(event === "welcome" ? { text: buildWelcomeEmail(name, academyName).text } : {}),
     });
     if (error) {
       console.error("resend error", error);
