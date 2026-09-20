@@ -29,11 +29,17 @@ async function checkRoutes() {
   let saved;
   let savedSettings = [];
   const deleted = [];
+  let deletionError = null;
   const source = ts.transpileModule(fs.readFileSync('src/app/api/platform-admin/route.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
   const module = { exports: {} };
   const mockRequire = name => {
     if (name === 'next/server') return { NextResponse: { json: (body, init = {}) => ({ body, status: init.status || 200 }) } };
-    if (name === '@/lib/supabase/server') return { createClient: () => ({ rpc: async () => ({ data: true }), auth: { getUser: async () => ({ data: { user } }) } }) };
+    if (name === '@/lib/supabase/server') return { createClient: () => ({ rpc: async (name, args) => {
+      if (name !== 'platform_delete_account') return {data:true};
+      if (deletionError) return {error:deletionError};
+      if (!matchesAccountEmail(args.p_confirmation, 'nayera@gmail.com')) return {error:{code:'P0001',message:'Enter the account email to confirm deletion'}};
+      deleted.push(args.p_id); return {error:null};
+    }, auth: { getUser: async () => ({ data: { user } }) } }) };
     if (name === '@/lib/supabase/admin') return { createAdminClient: () => { adminCalls++; return { auth: { admin: { getUserById: async id => ({ data: { user: { id, email: 'nayera@gmail.com' } } }), deleteUser: async id => { deleted.push(id); return { error: null }; } } }, from: table => {
       if (table === 'sport_settings') {
         return { upsert: row => { savedSettings.push(row); return Promise.resolve({ error: null }); } };
@@ -68,6 +74,17 @@ async function checkRoutes() {
   assert.deepEqual(deleted, []);
   assert.equal((await POST({ json: async () => ({ action: 'delete', id: memberId, confirmation: '  Nayera@gmail.com  ' }) })).status, 200);
   assert.deepEqual(deleted, [memberId]);
+  deletionError = {code:'PGRST202',message:'missing function'};
+  const unavailable = await POST({json:async()=>({action:'delete',id:memberId,confirmation:'nayera@gmail.com'})});
+  assert.equal(unavailable.status,503);
+  assert.match(unavailable.body.error,/20261120000000/);
+  deletionError = {code:'23503',message:'private constraint details'};
+  const failed = await POST({json:async()=>({action:'delete',id:memberId,confirmation:'nayera@gmail.com'})});
+  assert.equal(failed.status,400);
+  assert.match(failed.body.error,/rolled back/);
+  assert.ok(!failed.body.error.includes('private constraint'));
+  assert.deepEqual(deleted,[memberId]);
+  deletionError = null;
   assert.equal(matchesAccountEmail('', null), false);
   // sport_setting action: upserts a platform-wide rule; invalid values rejected.
   assert.equal((await POST({ json: async () => ({ action: 'sport_setting', sport: 'Beach Volleyball', min_players: 1 }) })).status, 400);

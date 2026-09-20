@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isPlatformAdmin, matchesAccountEmail } from "@/lib/platform-admin";
+import { isPlatformAdmin } from "@/lib/platform-admin";
 
 const tables = ["profiles", "academies", "friendly_games", "friendly_game_participants", "venues", "venue_rentals", "training_sessions", "tournaments", "tournament_participants", "tournament_teams", "tournament_team_members", "tournament_matches", "payments", "attendance", "academy_branches", "membership_plans", "sports", "sport_settings"] as const;
 // Deterministic pagination order per table; sport_settings has no id column.
@@ -106,6 +106,20 @@ export async function POST(request: Request) {
     if (accessError || migrationError || !permitted) {
       return NextResponse.json({ error: "Apply the platform admin database migration before using this page." }, { status: 503 });
     }
+    if (input.action === "delete") {
+      const { error } = await createClient().rpc("platform_delete_account", {
+        p_id: input.id, p_confirmation: input.confirmation,
+      });
+      if (error) {
+        console.error("[platform-admin] account deletion failed", { code: error.code, message: error.message });
+        const missingMigration = error.code === "PGRST202" || error.code === "42883";
+        return NextResponse.json({ error: missingMigration
+          ? "Apply migration 20261120000000_atomic_account_deletion.sql, then retry deleting the account."
+          : error.code === "P0001" ? error.message
+          : "Account deletion failed and was rolled back. Check the server log for the database error; no account records were deleted." }, { status: missingMigration ? 503 : 400 });
+      }
+      return NextResponse.json({ ok: true });
+    }
     const admin = createAdminClient();
     if (input.action === "delete_venue") {
       const { data: venue, error: lookupError } = await admin.from("venues").select("id, name").eq("id", input.id).single();
@@ -139,13 +153,11 @@ export async function POST(request: Request) {
     }
     const { data: target, error: lookupError } = await admin.auth.admin.getUserById(input.id);
     const missingAccount = lookupError || !target?.user;
-    let childRow: { name: string; guardian_id: string | null } | null = null;
     if (missingAccount) {
       // Family members (children) have no auth.users row — only a profile.
       const { data, error } = await admin.from("profiles")
         .select("name, guardian_id").eq("id", input.id).single();
       if (error || !data || !data.guardian_id) throw new Error("Account not found");
-      childRow = data;
     }
     if (input.action === "membership") {
       const { action, id, ...changes } = input;
@@ -155,16 +167,6 @@ export async function POST(request: Request) {
       if (missingAccount) return NextResponse.json({ error: "Family members have no login account to block." }, { status: 400 });
       const { error } = await admin.auth.admin.updateUserById(input.id, { ban_duration: input.blocked ? "876000h" : "none" });
       if (error) throw error;
-    } else {
-      if (missingAccount) {
-        if (input.confirmation !== childRow!.name) return NextResponse.json({ error: "Enter the member's name exactly to confirm deletion." }, { status: 400 });
-        const { error } = await admin.from("profiles").delete().eq("id", input.id).select("id").single();
-        if (error) throw error;
-      } else {
-        if (!matchesAccountEmail(input.confirmation, target!.user.email)) return NextResponse.json({ error: "Enter the current account email to confirm deletion. Refresh the member list if the email has changed." }, { status: 400 });
-        const { error } = await admin.auth.admin.deleteUser(input.id);
-        if (error) throw error;
-      }
     }
     return NextResponse.json({ ok: true });
   } catch {
