@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   addDays,
@@ -23,12 +24,16 @@ import type { TrainingSession } from "@/lib/types";
 
 interface CalendarViewProps {
   sessions: TrainingSession[];
+  sportNameById?: Map<string, string>;
+  venueNameById?: Map<string, string>;
+  coachNameById?: Map<string, string>;
+  games?: { id: string; title: string; sport: string; game_date: string; start_time: string; location: string | null; invite_code: string | null }[];
   onSelectSession?: (session: TrainingSession) => void;
 }
 
 type ViewMode = "month" | "week";
 
-export function CalendarView({ sessions, onSelectSession }: CalendarViewProps) {
+export function CalendarView({ sessions, onSelectSession, sportNameById, venueNameById, coachNameById, games = [] }: CalendarViewProps) {
   const { t, lang, locale } = useI18n();
   const [cursor, setCursor] = useState(new Date());
   const [mode, setMode] = useState<ViewMode>("month");
@@ -118,7 +123,7 @@ export function CalendarView({ sessions, onSelectSession }: CalendarViewProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-1">
+      <div className="overflow-x-auto"><div className="grid min-w-[840px] grid-cols-7 gap-1">
         {weekDays.map((d) => (
           <div
             key={d.toISOString()}
@@ -133,9 +138,8 @@ export function CalendarView({ sessions, onSelectSession }: CalendarViewProps) {
           const inMonth = isSameMonth(day, cursor);
           const isToday = isSameDay(day, new Date());
           return (
-            <button
+            <div
               key={key}
-              onClick={() => daySessions[0] && onSelectSession?.(daySessions[0])}
               className={cn(
                 "flex min-h-16 flex-col items-stretch gap-1 rounded-lg border p-1.5 text-start transition-all hover:border-info/40 hover:bg-accent/50",
                 !inMonth && "opacity-40",
@@ -150,11 +154,13 @@ export function CalendarView({ sessions, onSelectSession }: CalendarViewProps) {
               >
                 {format(day, "d")}
               </span>
-              {daySessions.slice(0, 3).map((s) => (
-                <span
+              {daySessions.map((s) => (
+                <button
+                  type="button"
+                  onClick={() => onSelectSession?.(s)}
                   key={s.id}
                   className={cn(
-                    "truncate rounded px-1 py-0.5 text-[10px] font-medium",
+                    "rounded px-2 py-1.5 text-start text-xs font-medium break-words focus-visible:ring-2 focus-visible:ring-ring",
                     s.status === "canceled"
                       ? "bg-negative-100 text-error-ink line-through dark:bg-negative-500/20 dark:text-negative-300"
                       : s.status === "completed"
@@ -162,13 +168,26 @@ export function CalendarView({ sessions, onSelectSession }: CalendarViewProps) {
                         : "bg-interactive-100 text-info-ink dark:bg-interactive-500/20 dark:text-interactive-300"
                   )}
                 >
-                  {formatTime12h(s.time, lang)}
-                </span>
+                  <span className="block font-bold">{sportNameById?.get(s.sport_id ?? "") ?? (lang === "ar" ? "تدريب" : "Training")}</span>
+                  <span className="block">{lang === "ar" ? "حصة تدريب" : "Training session"} · {formatTime12h(s.time, lang)}</span>
+                  <span className="block">{venueNameById?.get(s.venue_id ?? "") ?? s.location}</span>
+                  {s.coach_id && <span className="block">{coachNameById?.get(s.coach_id)}</span>}
+                  {s.age_group && <span className="block">{s.age_group}</span>}
+                </button>
               ))}
-            </button>
+              {games.filter(game => game.game_date === key).map(game => (
+                <Link key={game.id} href={game.invite_code ? `/games?join=${encodeURIComponent(game.invite_code)}` : "/games"}
+                  className="rounded bg-primary/10 px-2 py-1.5 text-xs text-primary break-words focus-visible:ring-2 focus-visible:ring-ring">
+                  <span className="block font-bold">{game.sport} · {lang === "ar" ? "ماتش" : "Game"}</span>
+                  <span className="block">{game.title}</span>
+                  <span className="block">{formatTime12h(game.start_time, lang)}</span>
+                  <span className="block">{game.location}</span>
+                </Link>
+              ))}
+            </div>
           );
         })}
-      </div>
+      </div></div>
     </div>
   );
 }

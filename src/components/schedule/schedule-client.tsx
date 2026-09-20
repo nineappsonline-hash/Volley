@@ -28,9 +28,10 @@ import { RecurringSchedulesList } from "@/components/shared/recurring-schedules"
 import { SessionCard } from "@/components/schedule/session-card";
 import { SessionDetailsDialog } from "@/components/schedule/session-details-dialog";
 import { useI18n } from "@/lib/i18n";
-import { cn, errorMessage } from "@/lib/utils";
+import { errorMessage } from "@/lib/utils";
 import {
   useAcademy,
+  useMyUpcomingGames,
   useAttendanceCounts,
   useCoaches,
   useDeleteSession,
@@ -56,6 +57,7 @@ export function ScheduleClient({
 }) {
   const { t } = useI18n();
   const { data: sessions, isLoading, isError, refetch } = useSessions();
+  const games = useMyUpcomingGames(memberId ?? "");
   const { data: counts } = useAttendanceCounts();
   const { data: calculations } = useSessionCalculations();
   const { data: guests } = useSessionGuests();
@@ -63,7 +65,7 @@ export function ScheduleClient({
   const { data: academy } = useAcademy();
 
   // Realtime: guest additions/edits and attendance show up without a refresh.
-  useRealtime(["training_sessions", "session_guests", "session_calculations", "attendance"]);
+  useRealtime(["training_sessions", "session_guests", "session_calculations", "attendance", "friendly_games", "friendly_game_participants"]);
   const deleteSession = useDeleteSession();
   const saveSession = useSaveSession();
 
@@ -75,7 +77,6 @@ export function ScheduleClient({
   const [editing, setEditing] = useState<TrainingSession | null>(null);
   const [deleting, setDeleting] = useState<TrainingSession | null>(null);
   const [details, setDetails] = useState<TrainingSession | null>(null);
-  const [sportFilter, setSportFilter] = useState<string>("all");
 
   const sportNameById = useMemo(
     () => new Map((sports ?? []).map((s) => [s.id, s.name])),
@@ -111,16 +112,10 @@ export function ScheduleClient({
   const sortedSessions = useMemo(
     () =>
       [...(sessions ?? [])]
-        .filter(
-          (s) =>
-            sportFilter === "all" ||
-            (sportFilter === "none" && !s.sport_id) ||
-            s.sport_id === sportFilter
-        )
         .sort((a, b) =>
           (a.date + a.time).localeCompare(b.date + b.time)
         ),
-    [sessions, sportFilter]
+    [sessions]
   );
 
   const handleDelete = async () => {
@@ -185,39 +180,7 @@ export function ScheduleClient({
         )}
       </PageHeader>
 
-      {(sports ?? []).length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setSportFilter("all")}
-            className={cn(
-              "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-              sportFilter === "all"
-                ? "border-primary/50 bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-accent"
-            )}
-          >
-            {t("schedule_filter_all")}
-          </button>
-          {(sports ?? []).map((sport) => (
-            <button
-              key={sport.id}
-              type="button"
-              onClick={() => setSportFilter(sport.id)}
-              className={cn(
-                "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                sportFilter === sport.id
-                  ? "border-primary/50 bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-accent"
-              )}
-            >
-              {sport.name}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {isError ? <div role="alert" className="space-y-3 rounded-lg border p-6"><p>{t("common_error")}</p><Button variant="outline" onClick={() => void refetch()}>{t("common_retry")}</Button></div> : isLoading ? (
+      {isError || games.isError ? <div role="alert" className="space-y-3 rounded-lg border p-6"><p>{t("common_error")}</p><Button variant="outline" onClick={() => void Promise.all([refetch(), ...(memberId ? [games.refetch()] : [])])}>{t("common_retry")}</Button></div> : isLoading || (!!memberId && games.isLoading) ? (
         <Skeleton className="h-96 w-full" />
       ) : (
         <>
@@ -225,12 +188,11 @@ export function ScheduleClient({
             <CardContent className="p-4 sm:p-6">
               <CalendarView
                 sessions={sortedSessions}
-                onSelectSession={(s) => {
-                  if (isAdmin) {
-                    setEditing(s);
-                    setFormOpen(true);
-                  }
-                }}
+                sportNameById={sportNameById}
+                venueNameById={venueNameById}
+                coachNameById={coachNameById}
+                games={(games.data ?? []).map(row => row.game)}
+                onSelectSession={setDetails}
               />
             </CardContent>
           </Card>

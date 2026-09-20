@@ -113,7 +113,7 @@ export function Sidebar({ role, name, memberPlan, isCoach, onNavigate }: Sidebar
       group("AI coach & predictions", "الذكاء الاصطناعي والتنبؤات", ["/coach-ai", "/insights"]),
       group("Academy settings", "إعدادات الأكاديمية", ["/profile", "/settings", "/upgrade"]),
     ] : [
-      group("My training", "تدريبي", ["/dashboard", "/schedule", "/profile"]),
+      group("My Playza", "بلايزا بتاعتي", ["/dashboard", "/schedule", "/profile"]),
       ...(isCoach ? [group("Coaching tools", "أدوات التدريب", ["/coaches", "/coach-ai", "/insights"])] : []),
       group("Find a place to play", "اكتشف مكان تلعب فيه", ["/academies", "/following", "/marketplace", "/dashboard/games", "/events"]),
       group("Community", "المجتمع", ["/community", "/leaderboard", "/scouting", "/dashboard/tournaments"]),
