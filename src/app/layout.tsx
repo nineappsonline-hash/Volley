@@ -224,7 +224,7 @@ export default function RootLayout({
         />
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if("scrollRestoration" in history){history.scrollRestoration="manual";}var H=location.hash||"";var authish=false,recovery=false;if(H){var h=H.slice(1);var rh=h.indexOf("type=recovery")>-1;authish=rh||h.indexOf("access_token=")>-1||h.indexOf("token_hash=")>-1;recovery=rh||h.indexOf("token_hash=")>-1;}var S=location.search||"";if(!authish&&S){recovery=S.indexOf("type=recovery")>-1||S.indexOf("token_hash=")>-1;authish=recovery;}if(authish){if(recovery&&location.pathname!=="/auth/update-password"){location.replace("/auth/update-password"+H+S);}}else if(H){history.replaceState(null,"",location.pathname+location.search);}window.scrollTo(0,0);}catch(e){}`,
+            __html: `try{if("scrollRestoration" in history){history.scrollRestoration="manual";}var H=location.hash||"";var authish=false,recovery=false;if(H){var h=H.slice(1);var rh=h.indexOf("type=recovery")>-1;authish=rh||h.indexOf("access_token=")>-1||h.indexOf("token_hash=")>-1;recovery=rh||h.indexOf("token_hash=")>-1;}var S=location.search||"";if(!authish&&S){recovery=S.indexOf("type=recovery")>-1||S.indexOf("token_hash=")>-1;authish=recovery;}if(authish){if(recovery&&location.pathname!=="/auth/update-password"){location.replace("/auth/update-password"+S+H);}}else if(H){history.replaceState(null,"",location.pathname+location.search);}window.scrollTo(0,0);}catch(e){}`,
           }}
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />

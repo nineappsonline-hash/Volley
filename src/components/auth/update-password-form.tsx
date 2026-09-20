@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
+import { establishPasswordRecovery } from "@/lib/password-recovery";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 
 const schema = (t: (k: any) => string) =>
@@ -42,7 +43,7 @@ type Status = "checking" | "ready" | "error";
 export function UpdatePasswordForm() {
   const { t } = useI18n();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const recoveryCheck = useRef<Promise<void> | null>(null);
   const [status, setStatus] = useState<Status>("checking");
   const [busy, setBusy] = useState(false);
 
@@ -52,61 +53,16 @@ export function UpdatePasswordForm() {
   });
 
   useEffect(() => {
-    const supabase = createClient();
-    (async () => {
-      const tokenHash = searchParams.get("token_hash");
-      const type = searchParams.get("type");
-      const code = searchParams.get("code");
-      try {
-        // Recovery links sometimes deliver the session in the URL fragment
-        // (e.g. /auth/update-password#access_token=…&type=recovery). Adopt it
-        // explicitly in case automatic detection hasn't kicked in yet.
-        if (typeof window !== "undefined") {
-          const hash = new URLSearchParams(window.location.hash.slice(1));
-          const accessToken = hash.get("access_token");
-          if (accessToken) {
-            const refreshToken = hash.get("refresh_token");
-            const { error: sessionError } = await supabase.auth.setSession(
-              refreshToken
-                ? { access_token: accessToken, refresh_token: refreshToken }
-                : { access_token: accessToken, refresh_token: accessToken }
-            );
-            if (sessionError) throw sessionError;
-          }
-        }
-
-        if (tokenHash && type) {
-          const { error } = await supabase.auth.verifyOtp({
-            type: type as "recovery" | "email" | "invite",
-            token_hash: tokenHash,
-          });
-          if (error) throw error;
-        } else if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) throw error;
-        } else {
-          const {
-            data: { user },
-          } = await supabase.auth.getUser();
-          if (!user) throw new Error("missing-token");
-        }
-        // Clean the token out of the address bar so a refresh doesn't replay it.
-        if (
-          typeof window !== "undefined" &&
-          (window.location.hash || tokenHash)
-        ) {
-          window.history.replaceState(
-            null,
-            "",
-            window.location.pathname
-          );
-        }
-        setStatus("ready");
-      } catch {
-        setStatus("error");
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let active = true;
+    recoveryCheck.current ??= establishPasswordRecovery(createClient().auth, window.location.href)
+      .then(() => {
+        window.history.replaceState(null, "", window.location.pathname);
+      });
+    recoveryCheck.current.then(
+      () => { if (active) setStatus("ready"); },
+      () => { if (active) setStatus("error"); }
+    );
+    return () => { active = false; };
   }, []);
 
   const onSubmit = async (values: FormValues) => {
