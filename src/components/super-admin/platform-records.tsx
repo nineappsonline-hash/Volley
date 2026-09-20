@@ -512,6 +512,13 @@ export function PlatformRecords() {
     setDeletingVenue(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requestedTab]);
+  const requestedGame = searchParams.get("game");
+  useEffect(() => {
+    if (requestedGame && tab === "Friendly games" && data?.friendly_games) {
+      const game = data.friendly_games.find(row => row.id === requestedGame);
+      if (game) setSelected(game);
+    }
+  }, [requestedGame, tab, data]);
   const act = async (body: Row) => {
     setBusy(true);
     try {

@@ -123,6 +123,7 @@ Deno.serve(async (req) => {
   }
 
   let payload: {
+    queue_id?: string;
     event?: string;
     recipient_id?: string;
     amount?: number;
@@ -137,6 +138,49 @@ Deno.serve(async (req) => {
   }
 
   const event = payload.event;
+  if (event === "game_payment_review") {
+    if (!resend || !supabaseUrl || !serviceRoleKey) return new Response("Email not configured", { status: 503 });
+    if (!payload.queue_id || !/^[0-9a-f-]{36}$/i.test(payload.queue_id)) return new Response("Invalid queue ID", { status: 400 });
+    // Only persisted database events can send an admin alert. The caller cannot
+    // choose a recipient, amount, content or review URL.
+    const db = createClient(supabaseUrl, serviceRoleKey);
+    const { data: item, error: lookupError } = await db.from("game_payment_email_queue")
+      .select("*").eq("id", payload.queue_id).maybeSingle();
+    if (lookupError) return new Response("Queue lookup failed", { status: 500 });
+    if (!item || item.sent_at) return new Response("Already handled", { status: 200 });
+    if (Date.now() - new Date(item.created_at).getTime() > 23 * 3600000) return new Response("Retry window closed", { status: 409 });
+    const [{ data: game, error: gameError }, { data: member, error: memberError }] = await Promise.all([
+      db.from("friendly_games").select("title,sport,game_date,start_time").eq("id", item.game_id).single(),
+      db.from("profiles").select("name").eq("id", item.member_id).single(),
+    ]);
+    if (gameError || memberError) return new Response("Payment lookup failed", { status: 500 });
+    const escape = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]!));
+    const gameUrl = `https://playza.nineapps.online/admin?tab=Friendly%20games&game=${encodeURIComponent(item.game_id)}`;
+    const reviewUrl = item.payment_kind === "rent" ? "https://playza.nineapps.online/admin?review=rent" : gameUrl;
+    try {
+      const delivery = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${resendKey}`, "Content-Type": "application/json", "Idempotency-Key": `game-payment-review/${item.id}` },
+        body: JSON.stringify({
+        from,
+        to: Deno.env.get("GAME_PAYMENT_REVIEW_EMAIL") || "mo.dowaik@gmail.com",
+        subject: `Payment to review — ${game.title}`,
+        html: baseLayout(`<h2>Game payment awaiting approval</h2>
+          <p><strong>Member:</strong> ${escape(member.name)}</p>
+          <p><strong>Game:</strong> ${escape(game.title)} · ${escape(game.sport)}</p>
+          <p><strong>When:</strong> ${escape(game.game_date)} at ${escape(game.start_time)}</p>
+          <p><strong>Payment:</strong> ${escape(item.amount)} EGP · ${escape(item.method)} · ${item.payment_kind === "rent" ? "Remaining court rent" : "Player / host payment"}</p>
+          <p>A receipt was submitted. Please verify it before approving the payment.</p>
+          <p><a href="${reviewUrl}">Review receipt and approve payment</a></p>`),
+        }),
+      });
+      if (!delivery.ok) return new Response("Email delivery failed", { status: 502 });
+      const { error: saveError } = await db.from("game_payment_email_queue").update({ sent_at: new Date().toISOString() }).eq("id", item.id);
+      return new Response(saveError ? "Delivery status update failed" : "Sent", { status: saveError ? 500 : 200 });
+    } catch {
+      return new Response("Email delivery failed", { status: 502 });
+    }
+  }
   if (event !== "welcome" && event !== "receipt") {
     return new Response("Invalid event", { status: 400 });
   }
