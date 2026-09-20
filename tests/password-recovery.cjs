@@ -10,11 +10,14 @@ new Function('exports', ts.transpileModule(fs.readFileSync('src/lib/password-rec
     getUser: async () => { assert.ok(ready); return { data: { user: { id: 'test' } }, error: null }; },
     verifyOtp: async ({ type }) => { assert.equal(type, 'recovery'); verified++; return { error: null }; },
     exchangeCodeForSession: () => { throw Error('must not exchange twice'); },
-    setSession: () => { throw Error('must not reapply fragment'); },
+    setSession: async ({access_token, refresh_token}) => { assert.equal(access_token, 'test'); assert.equal(refresh_token, 'refresh'); return {error:null}; },
   };
   await api.establishPasswordRecovery(auth, 'https://example.com/auth/update-password?code=once');
-  await api.establishPasswordRecovery(auth, 'https://example.com/auth/update-password#access_token=test&type=recovery');
+  await api.establishPasswordRecovery(auth, 'https://example.com/auth/update-password#access_token=test&refresh_token=refresh&type=recovery');
   await api.establishPasswordRecovery(auth, 'https://example.com/auth/update-password?token_hash=test&type=recovery');
+  await api.establishPasswordRecovery({ ...auth, initialize: async () => ({error: Error('Not a valid PKCE flow url.')}) }, 'https://example.com/#access_token=test&refresh_token=refresh&type=recovery');
+  await assert.rejects(api.establishPasswordRecovery(auth, 'https://example.com/#access_token=test&type=recovery'));
+  await assert.rejects(api.establishPasswordRecovery({...auth, setSession: async () => ({error: Error('invalid token')})}, 'https://example.com/#access_token=test&refresh_token=refresh&type=recovery'));
   assert.equal(verified, 1);
   await assert.rejects(api.establishPasswordRecovery(auth, 'https://example.com/?error_code=otp_expired'));
   await assert.rejects(api.establishPasswordRecovery(auth, 'https://example.com/?token_hash=test&type=invite'));

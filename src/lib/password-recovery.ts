@@ -9,7 +9,22 @@ export async function establishPasswordRecovery(auth: SupabaseClient["auth"], hr
     throw new Error("invalid-recovery-link");
   }
   const { error } = await auth.initialize();
-  if (error) throw error;
+  const accessToken = hash.get("access_token");
+  const refreshToken = hash.get("refresh_token");
+  if (accessToken || refreshToken) {
+    // SSR clients use PKCE, so automatic initialization rejects implicit
+    // recovery links. Adopt the complete session explicitly after it settles.
+    if (!accessToken || !refreshToken || hash.get("type") !== "recovery") {
+      throw new Error("invalid-recovery-session");
+    }
+    const { error: sessionError } = await auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+    if (sessionError) throw sessionError;
+  } else if (error) {
+    throw error;
+  }
 
   // Custom email templates can link directly using TokenHash, including on
   // another device. Unlike PKCE codes, the SDK does not consume these itself.
