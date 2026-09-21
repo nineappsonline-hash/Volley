@@ -3046,13 +3046,14 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_game      public.friendly_games%ROWTYPE;
-  v_billable  INTEGER;
-  v_rent      NUMERIC;
-  v_share     NUMERIC;
-  v_paid      NUMERIC;
-  v_topup     NUMERIC;
-  v_remaining NUMERIC;
+  v_game       public.friendly_games%ROWTYPE;
+  v_min_players INTEGER;
+  v_fee        NUMERIC;
+  v_per_player NUMERIC;
+  v_basis      NUMERIC;
+  v_paid       NUMERIC;
+  v_topup      NUMERIC;
+  v_remaining  NUMERIC;
 BEGIN
   IF auth.uid() IS NULL THEN
     RAISE EXCEPTION 'Not authenticated';
@@ -3072,16 +3073,16 @@ BEGIN
     RAISE EXCEPTION 'No rental price on this playground';
   END IF;
 
-  v_billable := CASE
-    WHEN btrim(lower(v_game.sport)) IN ('football', 'volleyball') THEN 10
-    WHEN btrim(lower(v_game.sport)) = 'padel' THEN 4
-    ELSE COALESCE(v_game.min_players, 2) END;
-
-  v_rent  := round(v_game.playground_hourly_rate * v_game.duration_hours, 2);
-  v_share := round(v_rent / v_billable, 2);
+  -- The balance is measured on the players' side, matching the booking deposit:
+  -- min_players × per-player price (rent share + fee) minus what has been paid.
+  v_min_players := GREATEST(2, COALESCE(v_game.min_players, 2));
+  v_fee := CASE WHEN btrim(lower(v_game.sport)) = 'padel' THEN 40 ELSE 20 END;
+  v_per_player := round(v_game.playground_hourly_rate * v_game.duration_hours, 2) / v_min_players;
+  v_per_player := round(v_per_player, 2) + v_fee;
+  v_basis := round(v_min_players * v_per_player, 2);
 
   -- Count shares that have been submitted (pending or approved, non-waitlisted).
-  SELECT COALESCE(SUM(v_share), 0) INTO v_paid
+  SELECT COALESCE(SUM(LEAST(v_per_player, COALESCE(share_amount, v_per_player))), 0) INTO v_paid
   FROM public.friendly_game_participants
   WHERE game_id = p_game_id
     AND is_waitlisted = FALSE
@@ -3093,9 +3094,9 @@ BEGIN
   WHERE game_id = p_game_id
     AND pay_status IN ('pending', 'approved');
 
-  v_remaining := round(v_rent - v_paid - v_topup, 2);
+  v_remaining := round(v_basis - v_paid - v_topup, 2);
   IF v_remaining < 0 THEN v_remaining := 0; END IF;
-  IF v_remaining > v_rent THEN v_remaining := v_rent; END IF;
+  IF v_remaining > v_basis THEN v_remaining := v_basis; END IF;
   IF v_remaining = 0 THEN
     RAISE EXCEPTION 'The reservation is already covered';
   END IF;
