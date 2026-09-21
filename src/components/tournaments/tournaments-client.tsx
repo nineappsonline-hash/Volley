@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -93,14 +92,7 @@ export function TournamentsClient({
   const { data: academy } = useAcademy();
   const deleteTournament = useDeleteTournament();
 
-  // Creating tournaments requires the Plus or Enterprise plan. The platform
-  // admin has no academy (useAcademy returns null) and is always allowed.
-  const canOrganize =
-    canCreate &&
-    (academy === null ||
-      academy?.plan === "plus" ||
-      academy?.plan === "elite");
-  const onStarterPlan = canCreate && academy?.plan === "starter";
+  const canOrganize = canCreate;
 
   const [formOpen, setFormOpen] = useState(false);
   useEffect(() => {
@@ -175,22 +167,6 @@ export function TournamentsClient({
           </Button>
         )}
       </PageHeader>
-
-      {onStarterPlan && (
-        <Card className="border-primary/30">
-          <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-semibold">{t("tournament_plan_gate_title")}</p>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                {t("tournament_plan_gate_desc")}
-              </p>
-            </div>
-            <Button asChild variant="outline" className="shrink-0">
-              <Link href="/upgrade">{t("tournament_plan_gate_cta")}</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      )}
 
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

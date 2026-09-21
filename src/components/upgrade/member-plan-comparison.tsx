@@ -102,7 +102,7 @@ const SECTIONS: MemberSection[] = [
   {
     category: "mplan_cat_competitive",
     rows: [
-      { feature: "mplan_events", cells: [NO, YES] },
+      { feature: "mplan_events", cells: [YES, YES] },
       { feature: "mplan_leaderboard", cells: [NO, YES] },
       { feature: "mplan_scouting", cells: [NO, YES] },
     ],

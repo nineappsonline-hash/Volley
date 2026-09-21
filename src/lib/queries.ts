@@ -1150,7 +1150,7 @@ export function useAdminSetMemberPlan() {
   });
 }
 
-// ── Nearby events (premium) ─────────────────────────────────
+// ── Nearby events (all plans) ─────────────────────────────────
 
 export function useNearbyTournaments(myAcademyId?: string | null) {
   return useQuery({

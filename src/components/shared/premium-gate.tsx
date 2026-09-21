@@ -40,7 +40,6 @@ export function PremiumGate({ profile, children, description }: PremiumGateProps
         </p>
         <ul className="mx-auto grid max-w-sm grid-cols-1 gap-2 text-left text-sm">
           {[
-            "premium_feat_events",
             "premium_feat_leaderboard",
             "premium_feat_analytics",
             "premium_feat_scouting",

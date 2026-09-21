@@ -2263,7 +2263,7 @@ export const dictionary = {
       "Both. There are team tournaments (5×5, 7×7, 11-a-side) and individual ones such as padel and tennis. Each tournament page states the format and participation rules.",
     faq_item_games_tournament_organize_q: "Can I organize my own tournament?",
     faq_item_games_tournament_organize_a:
-      "Yes, on the Enterprise plan. Academy owners on Enterprise can create tournaments and manage the full bracket — rounds, teams, scores, dates and venues — from the academy dashboard.",
+      "Yes. Academy owners on every plan, including free Starter, can create tournaments and manage rounds, teams, scores, dates and venues from the academy dashboard.",
     faq_item_owners_create_q: "How do I create my academy on Playza?",
     faq_item_owners_create_a:
       "Sign up and choose 'Academy owner'. Set your academy name, sports, location and description, then add your coaches, venues and training schedule. You get a public academy page that visitors can use to send trial requests.",
@@ -5022,7 +5022,7 @@ export const dictionary = {
       "الاتنين. في بطولات فرق (5×5 و7×7 و11) وبطولات فردية زي البادل والتنس. كل بطولة بتوضح نظامها وشروط المشاركة.",
     faq_item_games_tournament_organize_q: "أقدر أنظم بطولة أنا؟",
     faq_item_games_tournament_organize_a:
-      "أيوه، بخطة المؤسسة. صاحب الأكاديمية على خطة المؤسسة يقدر ينشئ بطولة ويدير دوراتها كاملة — الجولات والفرق والنتائج والمواعيد والملاعب — من لوحة تحكم الأكاديمية.",
+      "أيوه. أصحاب الأكاديميات على كل الباقات، بما فيها الباقة المجانية، يقدروا ينشئوا بطولات ويديروا الأدوار والفرق والنتائج والمواعيد والملاعب من لوحة تحكم الأكاديمية.",
     faq_item_owners_create_q: "اعمل أكاديميتي على بلايزا إزاي؟",
     faq_item_owners_create_a:
       "سجّل واختار 'صاحب أكاديمية'. حدد اسم الأكاديمية والرياضات والموقع والنبذة، وبعدين ضيف المدربين والملاعب وجدول التدريب. هتاخد صفحة عامة لأكاديميتك يقدر الزوار من خلالها يبعتوا طلبات تجربة.",

@@ -84,7 +84,6 @@ export function MemberPlanBanner({ memberPlan }: MemberPlanBannerProps) {
   if (memberPlan !== "free") return null;
 
   const highlights: (keyof Dict)[] = [
-    "mplan_events",
     "mplan_leaderboard",
     "mplan_scouting",
   ];

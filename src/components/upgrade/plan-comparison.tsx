@@ -101,7 +101,7 @@ const SECTIONS: PlanSection[] = [
     rows: [
       { feature: "plan_feat_teams", cells: [NO, NO, YES] },
       { feature: "plan_feat_marketplace", cells: [NO, NO, YES] },
-      { feature: "plan_feat_events", cells: [NO, NO, YES] },
+      { feature: "plan_feat_events", cells: [YES, YES, YES] },
       { feature: "plan_feat_scouting", cells: [NO, NO, YES] },
     ],
   },

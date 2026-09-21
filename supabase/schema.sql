@@ -462,38 +462,10 @@ CREATE TABLE IF NOT EXISTS public.tournaments (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Creating tournaments requires the Plus or Enterprise (elite) academy plan.
--- Free (starter) academies are blocked at the DB level. The platform admin
--- still creates platform-wide tournaments (academy_id NULL).
-CREATE OR REPLACE FUNCTION public.guard_tournament_plan()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_plan TEXT;
-BEGIN
-  IF NEW.academy_id IS NULL THEN
-    IF public.is_super_admin() THEN
-      RETURN NEW;
-    END IF;
-    RAISE EXCEPTION 'A tournament must belong to an academy.';
-  END IF;
-
-  SELECT plan INTO v_plan FROM public.academies WHERE id = NEW.academy_id;
-  IF COALESCE(v_plan, 'starter') NOT IN ('plus', 'elite') THEN
-    RAISE EXCEPTION 'Organizing tournaments requires the Plus or Enterprise plan.';
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
--- Recreate (DROP + CREATE) so running this file repeatedly stays idempotent.
+-- Tournament access is independent of subscription plans. Existing RLS
+-- continues to restrict writes to hosting academy admins and super admins.
 DROP TRIGGER IF EXISTS guard_tournament_plan ON public.tournaments;
-CREATE TRIGGER guard_tournament_plan
-  BEFORE INSERT ON public.tournaments
-  FOR EACH ROW EXECUTE FUNCTION public.guard_tournament_plan();
+DROP FUNCTION IF EXISTS public.guard_tournament_plan();
 
 -- Tournament matches
 CREATE TABLE IF NOT EXISTS public.tournament_matches (
