@@ -3,6 +3,7 @@
 import { useId, useState, type ReactNode } from "react";
 import { format } from "date-fns";
 import { CalendarDays, ChevronDown, Clock, MapPin, Trophy, Users } from "lucide-react";
+import { GameCardBackground } from "./game-card-background";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney, formatTime12h } from "@/lib/constants";
 import { gameBookingPayment } from "@/lib/game-costs";
@@ -20,7 +21,7 @@ export function GameCardShell({ game, joined, waitlisted, children }: { game: Fr
   const booking = gameBookingPayment(game);
   return <article className="group/card self-start overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-lg">
     <div className="relative overflow-hidden bg-[#0A1E3F] px-5 pb-5 pt-4 text-white">
-      <svg aria-hidden="true" viewBox="0 0 240 150" className="pointer-events-none absolute -end-8 -top-4 h-44 w-72 rotate-[-16deg] text-white/10" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="12" y="12" width="216" height="126" rx="5"/><path d="M120 12v126M12 45h32v60H12m216-60h-32v60h32"/><circle cx="120" cy="75" r="30"/><circle cx="120" cy="75" r="3"/></svg>
+      <GameCardBackground sport={game.sport} />
       <div className="relative flex flex-wrap items-center justify-between gap-2">
         <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-[#12C98A]"><Trophy className="h-4 w-4" />{game.sport}</span>
         <span className="rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[11px] font-medium">{t(`community_status_${game.status}`)}</span>
