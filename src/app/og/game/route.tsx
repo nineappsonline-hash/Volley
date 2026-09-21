@@ -2,218 +2,78 @@ import { ImageResponse } from "next/og";
 import { readFile } from "fs/promises";
 import path from "path";
 import { getGameByInviteCode } from "@/lib/public-games";
+import { GameCardBackground } from "@/components/games/game-card-background";
+import { gameSharePrice } from "@/lib/game-share";
+import { PLAYZA } from "@/lib/brand";
 
 export const runtime = "nodejs";
 export const revalidate = 300;
 
-/**
- * Dynamic 1200×630 card for shared game links (/games?join=CODE).
- * Shows the Playza logo + game details: name, sport, date & time, location,
- * spots and the per-player share. Drives WhatsApp/Telegram/Facebook previews.
- */
+const isArabic = (value: string) => /[\u0600-\u06ff]/.test(value);
+// Satori lays out text tokens left-to-right. Separate words allow an RTL flex
+// flow while the font shapes each Arabic word, including wrapped lines.
+const words = (value: string) => isArabic(value)
+  ? value.split(/\s+/).map((word, index) => <span key={index} style={{ lineHeight: 1, height: "1.5em" }}>{word}</span>)
+  : value;
 
-const bgNavy = "#0b2440";
-const bgGreen = "#0e8f61";
-const accent = "#2dd4a7";
-const white = "#ffffff";
+const truncate = (value: string, max: number) => {
+  const chars = Array.from(value);
+  return chars.length > max ? `${chars.slice(0, max - 1).join("")}…` : value;
+};
 
-function formatDate(iso: string): string {
-  const d = new Date(iso + "T00:00:00");
-  return d.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function formatTime(t: string): string {
+/** Bundled PNG avoids a second network request while a sharing crawler waits. */
+async function loadLogo(): Promise<string | null> {
   try {
-    const [h, m] = t.slice(0, 5).split(":").map(Number);
-    const date = new Date();
-    date.setHours(h, m);
-    return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
-  } catch {
-    return t.slice(0, 5);
-  }
-}
-
-async function loadLogoDataUri(): Promise<string | null> {
-  try {
-    const file = path.join(process.cwd(), "public", "icons", "icon-512.png");
-    const buf = await readFile(file);
-    return `data:image/png;base64,${buf.toString("base64")}`;
+    const buffer = await readFile(path.join(process.cwd(), "public/images/playza-email-logo.png"));
+    return `data:image/png;base64,${buffer.toString("base64")}`;
   } catch {
     return null;
   }
 }
 
+/** 1200×630 PNG used by WhatsApp and other Open Graph link previews. */
 export async function GET(request: Request): Promise<Response> {
-  const { searchParams } = new URL(request.url);
-  const code = searchParams.get("code") || "";
-
-  const [game, logo] = await Promise.all([getGameByInviteCode(code), loadLogoDataUri()]);
-
-  const fallback = () =>
-    new ImageResponse(
-      (
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            color: white,
-            background: `linear-gradient(135deg, ${bgNavy} 0%, ${bgGreen} 100%)`,
-            fontFamily: "sans-serif",
-          }}
-        >
-          {logo && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={logo} width={120} height={120} alt="" style={{ borderRadius: 24 }} />
-          )}
-          <div style={{ fontSize: 40, fontWeight: 800, marginTop: 16 }}>Playza</div>
-          <div style={{ fontSize: 20, color: "rgba(255,255,255,0.7)", marginTop: 4 }}>
-            Friendly games in Egypt
-          </div>
-        </div>
-      ),
-      { width: 1200, height: 630 }
-    );
-
-  if (!game) return fallback();
-
-  const shareText =
-    game.host_pays || (game.share_price ?? 0) === 0
-      ? "Free — host covers the court"
-      : `EGP ${game.share_price} per player`;
-
-  const label = (icon: string, text: string, sub: string) => (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 14,
-        padding: "12px 18px",
-        borderRadius: 14,
-        background: "rgba(255,255,255,0.08)",
-      }}
-    >
-      <div style={{ fontSize: 28, lineHeight: 1 }}>{icon}</div>
-      <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-        <div style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: 1 }}>
-          {text}
-        </div>
-        <div style={{ fontSize: 20, fontWeight: 600, color: white }}>{sub}</div>
-      </div>
-    </div>
-  );
+  const code = new URL(request.url).searchParams.get("code") || "";
+  const [game, logo, arabicFont, regularFont, boldFont] = await Promise.all([
+    getGameByInviteCode(code), loadLogo(),
+    readFile(path.join(process.cwd(), "public/fonts/NotoSansArabic-Regular.ttf")),
+    readFile(path.join(process.cwd(), "public/fonts/NotoSans-Regular.ttf")),
+    readFile(path.join(process.cwd(), "public/fonts/NotoSans-Bold.ttf")),
+  ]);
+  const date = game ? new Intl.DateTimeFormat("en", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Cairo" }).format(new Date(`${game.game_date}T12:00:00Z`)) : "";
+  const [hour, minute] = (game?.start_time ?? "00:00").split(":");
+  const time = `${Number(hour) % 12 || 12}:${minute} ${Number(hour) >= 12 ? "PM" : "AM"}`;
 
   return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "row",
-          color: white,
-          background: `linear-gradient(135deg, ${bgNavy} 0%, ${bgGreen} 100%)`,
-          fontFamily: "sans-serif",
-          padding: "48px 56px",
-        }}
-      >
-        {/* Left: logo + identity */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            width: 280,
-            flexShrink: 0,
-            alignItems: "flex-start",
-          }}
-        >
-          {logo && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={logo} width={88} height={88} alt="" style={{ borderRadius: 20 }} />
-          )}
-          <div style={{ fontSize: 30, fontWeight: 800, marginTop: 14 }}>Playza</div>
-          <div style={{ fontSize: 15, color: "rgba(255,255,255,0.65)", lineHeight: 1.4, marginTop: 4 }}>
-            Friendly games
-            <br />
-            in Egypt
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 22 }}>
-            <div style={{ fontSize: 16, color: "rgba(255,255,255,0.6)" }}>{game.joined}/{game.max_players}</div>
-            <div style={{ width: 8, height: 8, borderRadius: 4, background: accent }} />
-            <div style={{ fontSize: 14, color: "rgba(255,255,255,0.75)" }}>spots filled</div>
-          </div>
+    <div style={{ display: "flex", width: "100%", height: "100%", background: PLAYZA.navy, color: "white", fontFamily: "Noto Sans, Arabic", padding: 44, position: "relative", overflow: "hidden" }}>
+      <div style={{ display: "flex", position: "absolute", right: 0, top: 0, width: 420, height: 630, background: "linear-gradient(150deg, #123E4C, #0E7256)" }} />
+      <div style={{ display: "flex", flexDirection: "column", width: 675, position: "relative" }}>
+        {logo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={logo} width={240} height={120} alt="Playza" style={{ borderRadius: 16 }} />
+        ) : <div style={{ display: "flex", fontSize: 52, fontWeight: 700, color: PLAYZA.green }}>Playza</div>}
+        <div style={{ display: "flex", fontSize: game && isArabic(game.title) ? 30 : 40, fontWeight: 700, lineHeight: 1.3, marginTop: 22, height: 112, overflow: "hidden", width: 650, flexDirection: game && isArabic(game.title) ? "row-reverse" : "row", flexWrap: "wrap", alignContent: "flex-start", columnGap: 8 }}>
+          {game ? words(truncate(game.title, 70)) : "Your next game starts on Playza"}
         </div>
-
-        {/* Right: game details */}
-        <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              alignSelf: "flex-start",
-              gap: 8,
-              fontSize: 16,
-              fontWeight: 700,
-              textTransform: "uppercase",
-              letterSpacing: 1.5,
-              color: accent,
-              background: "rgba(45,212,167,0.14)",
-              padding: "6px 14px",
-              borderRadius: 20,
-            }}
-          >
-            {game.sport}
+        {game ? <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 16 }}>
+          <div style={{ display: "flex", fontSize: 27, fontWeight: 700, color: PLAYZA.green }}>{date} · {time}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+            <div style={{ display: "flex", fontSize: 16, color: "#A7BACB", letterSpacing: 2 }}>LOCATION</div>
+            <div style={{ display: "flex", fontSize: 25, lineHeight: 1.3, height: 66, overflow: "hidden", width: 640, flexDirection: isArabic(game.map_label) ? "row-reverse" : "row", flexWrap: "wrap", alignContent: "flex-start", columnGap: 6 }}>{words(truncate(game.map_label, 85))}</div>
           </div>
-
-          <div style={{ fontSize: 40, fontWeight: 800, lineHeight: 1.1, marginTop: 14 }}>
-            {game.title}
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 10,
-              marginTop: 22,
-            }}
-          >
-            {label("🗓", "Date & time", `${formatDate(game.game_date)} · ${formatTime(game.start_time)}`)}
-            {label("📍", "Location", game.map_label)}
-            {label("💰", "Share", shareText)}
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              marginTop: "auto",
-              fontSize: 14,
-              color: "rgba(255,255,255,0.6)",
-            }}
-          >
-            <div style={{ width: 6, height: 6, borderRadius: 3, background: accent }} />
-            {game.is_public ? "Public game" : "Private game — join via this link"} · Plays on Playza
-          </div>
-        </div>
+          <div style={{ display: "flex", fontSize: 26, fontWeight: 700 }}>{gameSharePrice(game)}</div>
+        </div> : <div style={{ display: "flex", fontSize: 28, marginTop: 20 }}>Find games, meet players and play your sport.</div>}
+        <div style={{ display: "flex", marginTop: "auto", fontSize: 17, color: "#A7BACB" }}>{game ? (game.is_public ? "Public game · Open the link for details" : "Invitation game · Open the link for details") : "Games · Academies · Tournaments"}</div>
       </div>
-    ),
-    {
-      width: 1200,
-      height: 630,
-      // OG cards embed best as JPEG while keeping the PNG-ish look — PNG keeps
-      // sharp text; keep PNG for crispness.
-      headers: {
-        "cache-control": "public, max-age=300, s-maxage=300, stale-while-revalidate=86400",
-      },
-    }
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 370, position: "absolute", right: 25, top: 60, bottom: 48 }}>
+        <div style={{ display: "flex", fontSize: 29, fontWeight: 700, textAlign: "center", color: PLAYZA.green }}>{game?.sport ?? "LET’S PLAY"}</div>
+        {game && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 320, marginTop: 20 }}>{GameCardBackground({ sport: game.sport, variant: "share" })}</div>}
+        {game && <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "auto" }}>
+          <div style={{ display: "flex", fontSize: 48, fontWeight: 700 }}>{game.joined} / {game.max_players}</div>
+          <div style={{ display: "flex", fontSize: 20, color: "#D1E8E1", marginTop: 4 }}>players joined</div>
+        </div>}
+      </div>
+    </div>,
+    { width: 1200, height: 630, fonts: [{ name: "Noto Sans", data: regularFont, weight: 400, style: "normal" }, { name: "Noto Sans", data: boldFont, weight: 700, style: "normal" }, { name: "Arabic", data: arabicFont, weight: 400, style: "normal" }], headers: { "Cache-Control": "public, max-age=300, s-maxage=300, stale-while-revalidate=600" } }
   );
 }

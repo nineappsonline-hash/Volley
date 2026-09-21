@@ -45,35 +45,35 @@ function L({ d, sw = 2.4 }: { d: string; sw?: number }) {
 
 const custom: Record<string, ReactNode> = {
   padel: (
-    <>
+    <g>
       <path
         fillRule="evenodd"
         d="M16.4 9.5a4.4 4.4 0 0 0-8.8 0v5.9a4.4 4.4 0 0 0 8.8 0Z M10.4 8.9a.9.9 0 1 0 1.8 0 .9.9 0 1 0-1.8 0Z M14 8.9a.9.9 0 1 0 1.8 0 .9.9 0 1 0-1.8 0Z M12.2 12.2a.9.9 0 1 0 1.8 0 .9.9 0 1 0-1.8 0Z"
       />
       <rect x="10.1" y="14.6" width="3.6" height="5" rx="1.5" />
       <circle cx="18.2" cy="8.6" r="1.2" />
-    </>
+    </g>
   ),
   squash: (
-    <>
+    <g>
       <ellipse cx="12.4" cy="9.4" rx="3.4" ry="5" transform="rotate(28 12.4 9.4)" />
       <rect x="11.8" y="13.6" width="2.2" height="5.2" rx="1.1" transform="rotate(38 12.9 16.2)" />
       <circle cx="8.4" cy="18.4" r="1" />
       <circle cx="17.8" cy="5.6" r="1.3" />
-    </>
+    </g>
   ),
   "kung-fu": (
-    <>
+    <g>
       <rect x="4.3" y="3.5" width="2.4" height="6.8" rx="1.2" />
       <rect x="17.3" y="13.7" width="2.4" height="6.8" rx="1.2" />
       <circle cx="7.4" cy="10.9" r=".55" />
       <circle cx="10.1" cy="11.8" r=".6" />
       <circle cx="12.9" cy="12.7" r=".6" />
       <circle cx="15.7" cy="13.6" r=".55" />
-    </>
+    </g>
   ),
   taekwondo: (
-    <>
+    <g>
       <circle cx="8" cy="4.6" r="1.8" />
       <rect x="7.3" y="6.6" width="3.8" height="7.2" rx="1.9" transform="rotate(12 9.2 10.2)" />
       <L d="M9.2 8.6 5.4 6" />
@@ -82,10 +82,10 @@ const custom: Record<string, ReactNode> = {
       <L d="M10.2 12.7 17.6 13.4" sw={2.8} />
       <circle cx="18.3" cy="13.5" r="1.1" />
       <path d="M19.4 10.6 20.6 10.2M20 13.6 21.4 13.4M19.6 16.4 20.9 16.7" fill="none" strokeWidth="1.6" strokeLinecap="round" />
-    </>
+    </g>
   ),
   judo: (
-    <>
+    <g>
       <circle cx="5.5" cy="4.8" r="1.8" />
       <rect x="4.8" y="6.9" width="4" height="7" rx="2" transform="rotate(-14 6.8 10.4)" />
       <L d="M6 13.6 7.4 19.4" sw={2.7} />
@@ -98,10 +98,10 @@ const custom: Record<string, ReactNode> = {
       <L d="M17.4 9.6 18.8 13.4" sw={2.4} />
       <L d="M17 6.4 14.6 5" sw={2.1} />
       <L d="M19 5.8 20.8 4.6" sw={2.1} />
-    </>
+    </g>
   ),
   kickboxing: (
-    <>
+    <g>
       <circle cx="7" cy="5" r="1.8" />
       <rect x="6" y="7" width="4.4" height="6.8" rx="2" transform="rotate(6 8.2 10.4)" />
       <L d="M8.4 13.5 5 19.4" sw={2.7} />
@@ -111,10 +111,10 @@ const custom: Record<string, ReactNode> = {
       <L d="M7.8 8.6 10.4 7.4" />
       <circle cx="11.3" cy="7.1" r="1.4" />
       <path d="M16.4 9.8 19.6 10.2M16.2 11.6 19.4 11.8" fill="none" strokeWidth="1.6" strokeLinecap="round" />
-    </>
+    </g>
   ),
   wrestling: (
-    <>
+    <g>
       <circle cx="7.8" cy="4.8" r="1.8" />
       <rect x="7" y="6.9" width="4" height="7" rx="2" transform="rotate(16 9 10.4)" />
       <L d="M9.4 13.4 5.8 19.3" sw={2.7} />
@@ -125,10 +125,10 @@ const custom: Record<string, ReactNode> = {
       <L d="M13.6 13.4 9.8 19.1" sw={2.7} />
       <L d="M14.2 13.3 17.9 18.8" sw={2.7} />
       <L d="M13 8.8 9.2 8.4" />
-    </>
+    </g>
   ),
   parkour: (
-    <>
+    <g>
       <circle cx="13" cy="4.6" r="1.8" />
       <rect x="12.2" y="6.8" width="4.2" height="6.4" rx="2" transform="rotate(-18 14.3 10)" />
       <L d="M13.8 8.6 17.4 7" />
@@ -139,7 +139,7 @@ const custom: Record<string, ReactNode> = {
       <circle cx="9.5" cy="15.1" r="1.05" />
       <rect x="1.5" y="17.4" width="21" height="1.8" rx=".9" />
       <path d="M3.6 6 5.8 6.4M3.2 9.4 5.6 9.6M4 12.8 6.2 12.9" fill="none" strokeWidth="1.6" strokeLinecap="round" />
-    </>
+    </g>
   ),
 };
 

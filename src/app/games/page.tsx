@@ -1,3 +1,4 @@
+import { gameSharePrice } from "@/lib/game-share";
 import { SignedInGameParticipantNames } from "@/components/games/game-participant-names";
 import { SharedGamePage } from "@/components/games/shared-game-page";
 import { PublicGameJoin } from "@/components/games/public-game-join";
@@ -34,14 +35,11 @@ export const revalidate = 300; // refresh listing every 5 minutes
 
 type SP = Promise<{ sport?: string; join?: string }>;
 
-const GAME_OG_IMAGE = (code: string) => `${SITE_URL}/og/game?code=${encodeURIComponent(code)}`;
+const GAME_OG_IMAGE = (code: string) => `${SITE_URL}/og/game?code=${encodeURIComponent(code)}&v=2`;
 
 function gameMeta(game: Awaited<ReturnType<typeof getGameByInviteCode>>) {
   if (!game) return null;
-  const shareText =
-    game.host_pays || (game.share_price ?? 0) === 0
-      ? "Free — the host covers the court"
-      : `EGP ${game.share_price} per player`;
+  const shareText = gameSharePrice(game);
   const where = [game.map_label, game.governorate, game.area].filter(Boolean).join(", ");
   const title = `${game.title} · ${game.sport} game on Playza`;
   const description = [
@@ -75,7 +73,7 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
           description: meta.description,
           url: joinUrl,
           siteName: "Playza",
-          images: [{ url: GAME_OG_IMAGE(join), width: 1200, height: 630, alt: meta.title }],
+          images: [{ url: GAME_OG_IMAGE(join), width: 1200, height: 630, type: "image/png", alt: meta.title }],
           locale: "en_US",
           type: "website",
         },
