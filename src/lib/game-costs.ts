@@ -91,7 +91,12 @@ export function estimateHostTotal(
   const total = Math.round((rent + fee) * 100) / 100;
   return { rent, fee, total };
 }
-/** Booking deposit is half the court rent; pending receipts are not paid funds. */
+/**
+ * Booking deposit: the game is confirmed once half of what the minimum
+ * required players owe has been paid (per-player price already includes the
+ * per-player fee). Pending receipts are not paid funds. Rent-side numbers
+ * (total / paid / remaining) stay based on the court rent only.
+ */
 export function gameBookingPayment(game: {
   sport: string; min_players: number; playground_hourly_rate?: number | null;
   duration_hours?: number; host_pays?: boolean; status?: string;
@@ -105,28 +110,53 @@ export function gameBookingPayment(game: {
   const total = cents(rate * hours);
   const share = Math.round(total / getBillablePlayers(game.sport, game.min_players));
   const fee = cents(getPlayerFee(game.sport));
+  const minPlayers = Math.max(2, Math.round(game.min_players || 0));
+
+  // The full (rent share + fee) price one player is expected to pay.
+  const perPlayer = game.host_pays ? total + fee : Math.round(total / minPlayers) + fee;
+  // Half of what the minimum required players owe in total.
+  const depositTarget = Math.ceil((minPlayers * perPlayer) / 2);
+
   let paid = 0, pending = 0;
+  let depositPaid = 0, depositPending = 0;
   for (const participant of game.participants ?? []) {
     if (participant.is_waitlisted) continue;
     if (game.host_pays && participant.role !== 'organizer') continue;
     const maximum = game.host_pays ? total : share;
     const amount = participant.share_amount == null ? maximum : Math.min(maximum, Math.max(0, cents(participant.share_amount) - fee));
-    if (!Number.isFinite(amount)) continue;
-    if (participant.pay_status === 'approved') paid += amount;
-    if (participant.pay_status === 'pending') pending += amount;
+    const credit = Math.min(perPlayer, Math.max(0, participant.share_amount == null ? perPlayer : cents(participant.share_amount)));
+    if (!Number.isFinite(amount) || !Number.isFinite(credit)) continue;
+    if (participant.pay_status === 'approved') {
+      paid += amount;
+      depositPaid += credit;
+    }
+    if (participant.pay_status === 'pending') {
+      pending += amount;
+      depositPending += credit;
+    }
   }
   for (const payment of game.rent_payments ?? []) {
     if (!Number.isFinite(payment.amount) || payment.amount <= 0) continue;
-    if (payment.pay_status === 'approved') paid += cents(payment.amount);
-    if (payment.pay_status === 'pending') pending += cents(payment.amount);
+    if (payment.pay_status === 'approved') {
+      paid += cents(payment.amount);
+      depositPaid += cents(payment.amount);
+    }
+    if (payment.pay_status === 'pending') {
+      pending += cents(payment.amount);
+      depositPending += cents(payment.amount);
+    }
   }
   paid = Math.min(total, paid);
-  const threshold = Math.ceil(total / 2);
+  depositPaid = Math.min(depositTarget, depositPaid);
+  depositPending = Math.min(Math.max(0, depositTarget - depositPaid), depositPending);
   return {
-    confirmed: game.status !== 'cancelled' && paid >= threshold,
+    confirmed: game.status !== 'cancelled' && depositPaid >= depositTarget,
     total: total / 100, paid: paid / 100,
     remaining: Math.max(0, total - paid) / 100,
-    depositRemaining: Math.max(0, threshold - paid) / 100,
+    depositPercentage: 50,
+    depositPaid: depositPaid / 100,
+    depositPending: depositPending / 100,
+    depositRemaining: Math.max(0, depositTarget - depositPaid) / 100,
     pending: Math.min(total - paid, pending) / 100,
   };
 }
