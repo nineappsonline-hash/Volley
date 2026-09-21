@@ -1,5 +1,6 @@
 "use client";
 
+import { GameCardShell } from "@/components/games/game-card-shell";
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -183,7 +184,7 @@ function GameCard({
   };
 
   return (
-    <Card className="hover:border-primary/30 flex flex-col transition-colors">
+    <GameCardShell game={game} joined={joined} waitlisted={!!mine?.is_waitlisted}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="truncate text-base">{game.title}</CardTitle>
@@ -509,7 +510,7 @@ function GameCard({
         open={editOpen}
         onOpenChange={setEditOpen}
       />
-    </Card>
+    </GameCardShell>
   );
 }
 
