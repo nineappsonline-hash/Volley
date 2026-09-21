@@ -4812,14 +4812,25 @@ BEGIN
                      END
   WHERE id = p_academy_id;
 
-  -- Sports roster: a supplied List replaces the current list entirely.
+  -- Sports roster: a supplied list replaces the current list entirely, but
+  -- kept names reuse their existing rows (IDs stay stable so playground
+  -- sport links survive). Only names no longer selected are deleted; the old
+  -- delete-then-reinsert pattern created fresh UUIDs and silently detached
+  -- every venue via ON DELETE SET NULL.
   IF p_payload ? 'sports' THEN
-    DELETE FROM public.sports WHERE academy_id = p_academy_id;
     INSERT INTO public.sports (academy_id, name)
     SELECT p_academy_id, trim(az.name)
     FROM jsonb_array_elements_text(COALESCE(p_payload -> 'sports', '[]'::jsonb)) AS az(name)
     WHERE trim(az.name) <> ''
     ON CONFLICT (academy_id, name) DO NOTHING;
+
+    DELETE FROM public.sports s
+    WHERE s.academy_id = p_academy_id
+      AND s.name NOT IN (
+        SELECT trim(az.name)
+        FROM jsonb_array_elements_text(COALESCE(p_payload -> 'sports', '[]'::jsonb)) AS az(name)
+        WHERE trim(az.name) <> ''
+      );
   END IF;
 
   -- Playgrounds (venues): rows with an id are updated in place, rows without
