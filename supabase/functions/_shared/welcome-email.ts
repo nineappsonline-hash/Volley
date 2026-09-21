@@ -20,7 +20,7 @@ export function buildWelcomeEmail(name: string, academyName = "") {
 <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">Find your next game, discover training, and make Playza your home for sport.</div>
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#F6F9FC;"><tr><td align="center" style="padding:28px 12px;">
 <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background:#FFFFFF;border:1px solid #DFE6EE;border-radius:16px;overflow:hidden;">
-<tr><td style="padding:24px 32px;border-bottom:1px solid #DFE6EE;"><a href="${SITE}" style="font-size:26px;font-weight:bold;color:#0A1E3F;text-decoration:none;">Playza<span style="color:#12C98A;">.</span></a><span style="font-size:12px;color:#44546A;"> &nbsp; YOUR HOME FOR SPORT</span></td></tr>
+<tr><td bgcolor="#FFFFFF" style="padding:20px 32px;background:#FFFFFF;border-bottom:1px solid #DFE6EE;"><a href="${SITE}" style="text-decoration:none;"><img src="${SITE}/images/playza-email-logo.png" width="200" alt="Playza" border="0" style="display:block;width:200px;max-width:100%;height:auto;background:#FFFFFF;"></a><p style="margin:10px 0 0;font-size:11px;letter-spacing:1px;color:#44546A;">YOUR HOME FOR SPORT</p></td></tr>
 <tr><td style="padding:36px 32px;background:#0A1E3F;color:#FFFFFF;border-bottom:4px solid #12C98A;">
 <p style="margin:0 0 14px;font-size:12px;letter-spacing:2px;color:#12C98A;font-weight:bold;">WELCOME TO PLAYZA</p>
 <h1 style="margin:0 0 18px;font-size:34px;line-height:1.2;color:#FFFFFF;">Your next game<br>starts here.</h1>
