@@ -31,12 +31,15 @@ export function PlaygroundAvailabilityCalendar({
   selectedDate,
   onSelectDate,
   className,
+  minDate,
 }: {
   unavailableSlots?: VenueUnavailableSlot[];
   workingHours?: VenueUnavailableSlot[];
   selectedDate?: string;
   onSelectDate?: (date: string) => void;
   className?: string;
+  /** Earliest selectable "YYYY-MM-DD"; earlier days are disabled. */
+  minDate?: string;
 }) {
   const { t, lang } = useI18n();
   const [weekStart, setWeekStart] = useState<Date>(() => {
@@ -122,15 +125,17 @@ export function PlaygroundAvailabilityCalendar({
           const status = dayStatus(iso);
           const isSelected = selectedDate === iso;
           const isToday = iso === todayIso;
+          const disabled = !!minDate && iso < minDate;
           return (
             <button
               key={iso}
               type="button"
+              disabled={disabled}
               onClick={() => onSelectDate?.(iso)}
               className={cn(
                 "flex flex-col items-center gap-0.5 rounded-md border p-1.5 text-xs transition-colors",
                 isSelected ? "border-primary bg-primary/10" : "hover:bg-muted",
-                status !== "open" && !isSelected && "opacity-70"
+                disabled ? "cursor-not-allowed opacity-40" : status !== "open" && !isSelected && "opacity-70"
               )}
             >
               <span className="text-[10px] text-muted-foreground">{dayName(iso)}</span>

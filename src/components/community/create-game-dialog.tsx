@@ -36,10 +36,12 @@ import {
   type PlaygroundLocationSelection,
 } from "@/components/shared/playground-location-filters";
 import { MapPicker } from "@/components/shared/map-picker";
+import { PlaygroundTimeRange } from "@/components/shared/playground-time-range";
 import { useCreateFriendlyGame, usePlaygrounds, usePayGameShare, usePayRentRemaining, useSportSettings } from "@/lib/queries";
 import { GameSharePayment } from "@/components/games/game-share-payment";
 import { CourtRentInfoDialog } from "@/components/games/court-rent-info-dialog";
-import { errorMessage, todayInput } from "@/lib/utils";
+import { addDaysInput, errorMessage } from "@/lib/utils";
+import { minutesOf } from "@/lib/venue-slots";
 
 export function CreateGameDialog({
   open,
@@ -115,9 +117,9 @@ export function CreateGameDialog({
   const [lng, setLng] = useState<number | null>(null);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
+  const [toTime, setToTime] = useState("");
   const [maxPlayers, setMaxPlayers] = useState("12");
   const [minPlayers, setMinPlayers] = useState("2");
-  const [duration, setDuration] = useState("1");
   const [skillLevel, setSkillLevel] = useState("any");
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(true);
@@ -136,12 +138,12 @@ export function CreateGameDialog({
       setSport("");
       setLat(null);
       setLng(null);
-      setDate(todayInput());
+      setDate(addDaysInput(1));
       setTime("");
+      setToTime("");
       setMaxPlayers("12");
       setPlaygroundId("");
       setMinPlayers("2");
-      setDuration("1");
       setSkillLevel("any");
       setDescription("");
       setIsPublic(true);
@@ -152,11 +154,20 @@ export function CreateGameDialog({
     }
   }, [open]);
 
+  const durationHours =
+    time && toTime ? (minutesOf(toTime) - minutesOf(time)) / 60 : 0;
+
+  const handleDateChange = (value: string) => {
+    setDate(value);
+    setTime("");
+    setToTime("");
+  };
+
   const handleCreate = async () => {
-    if (!Number.isInteger(Number(minPlayers)) || !Number.isInteger(Number(maxPlayers)) || Number(minPlayers) < 2 || Number(maxPlayers) < Number(minPlayers) || !Number.isFinite(Number(duration)) || Number(duration) <= 0 || Number(duration) > 24) {
+    if (!Number.isInteger(Number(minPlayers)) || !Number.isInteger(Number(maxPlayers)) || Number(minPlayers) < 2 || Number(maxPlayers) < Number(minPlayers) || !Number.isFinite(durationHours) || durationHours <= 0 || durationHours > 24) {
       toast.error(lang === "ar" ? "راجع الحد الأدنى والأقصى للاعبين والمدة (أكتر من صفر ولحد 24 ساعة)." : "Check player limits and duration (greater than zero, up to 24 hours)."); return;
     }
-    if (!title.trim() || !sport || !date || !time) return;
+    if (!title.trim() || !sport || !date || !time || !toTime) return;
     try {
       const id = await create.mutateAsync({
         title: title.trim(),
@@ -168,7 +179,7 @@ export function CreateGameDialog({
         playgroundId: playgroundId || null,
         max_players: Number(maxPlayers),
         min_players: Number(minPlayers),
-        duration_hours: Number(duration),
+        duration_hours: durationHours,
         skill_level: skillLevel === "any" ? undefined : skillLevel,
         description: description.trim() || undefined,
         is_public: isPublic,
@@ -190,7 +201,7 @@ export function CreateGameDialog({
       const pickedPlayground = playgrounds?.find((p) => p.id === playgroundId);
       if (pickedPlayground?.rental_cost != null) {
         const billable = getBillablePlayers(sport, Number(minPlayers) || 2);
-        const rent = pickedPlayground.rental_cost * (Number(duration) || 1);
+        const rent = pickedPlayground.rental_cost * (durationHours || 1);
         // The creator just covers their own share; the rest is still outstanding.
         remaining = Math.max(0, Math.round((rent * (billable - 1)) / billable * 100) / 100);
       }
@@ -255,6 +266,8 @@ export function CreateGameDialog({
     !!sport &&
     !!date &&
     !!time &&
+    !!toTime &&
+    durationHours > 0 &&
     !create.isPending;
 
   return (
@@ -363,7 +376,16 @@ export function CreateGameDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2"><Label>{lang === "ar" ? "الحد الأدنى للاعبين" : "Minimum players"}</Label><div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm font-bold">{minPlayers}</div></div>
-            <div className="space-y-2"><Label htmlFor="game-duration">{lang === "ar" ? "مدة الجيم بالساعات" : "Duration (hours)"}</Label><Input id="game-duration" type="number" min="0.5" max="24" step="0.5" value={duration} onChange={e => setDuration(e.target.value)} /></div>
+            <div className="space-y-2">
+              <Label>{t("community_max_players")}</Label>
+              <Input
+                type="number"
+                min="2"
+                dir="ltr"
+                value={maxPlayers}
+                onChange={(e) => setMaxPlayers(e.target.value)}
+              />
+            </div>
           </div>
           <div className="space-y-2"><Label htmlFor="community-playground">{lang === "ar" ? "الملعب" : "Playground"}</Label>
             <QueryState queries={[playgroundQuery]}>
@@ -387,7 +409,8 @@ export function CreateGameDialog({
               unavailableSlots={selectedPlayground.unavailable_slots}
               workingHours={selectedPlayground.working_hours}
               selectedDate={date || undefined}
-              onSelectDate={setDate}
+              onSelectDate={handleDateChange}
+              minDate={addDaysInput(1)}
             />
           )}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -396,32 +419,21 @@ export function CreateGameDialog({
               <Input
                 type="date"
                 dir="ltr"
+                min={addDaysInput(1)}
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={(e) => handleDateChange(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
-              <Label>{t("community_time")}</Label>
-              <Input
-                type="time"
-                dir="ltr"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t("community_max_players")}</Label>
-              <Input
-                type="number"
-                min="2"
-                dir="ltr"
-                value={maxPlayers}
-                onChange={(e) => setMaxPlayers(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2" />
+            <PlaygroundTimeRange
+              workingHours={selectedPlayground?.working_hours}
+              date={date}
+              from={time}
+              to={toTime}
+              onFromChange={setTime}
+              onToChange={setToTime}
+            />
           </div>
-          <GameCostEstimate rate={playgrounds?.find(p => p.id === playgroundId)?.rental_cost} hours={Number(duration)} min={Number(minPlayers)} sport={sport} />
+          <GameCostEstimate rate={playgrounds?.find(p => p.id === playgroundId)?.rental_cost} hours={durationHours} min={Number(minPlayers)} sport={sport} />
 
           <div className="space-y-2">
             <Label>{t("community_description")}</Label>

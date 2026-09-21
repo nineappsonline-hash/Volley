@@ -151,3 +151,51 @@ export function dayWorkingHoursLabel(
   if (intervals.length === 0) return null;
   return intervals.map(([s, e]) => `${formatHour12(padMinutes(s), lang)}–${formatHour12(padMinutes(e), lang)}`).join(", ");
 }
+
+/** Default start/end window when a playground has no working-hours config
+ * (06:00 → 24:00). */
+const DEFAULT_WINDOW: Array<[number, number]> = [[360, 1440]];
+
+/** "HH:MM" start-time options for one date, stepped by `step` minutes inside
+ * the playground's working windows. Falls back to the default window when
+ * working hours aren't configured. */
+export function timeOptionsForDate(
+  hours: VenueUnavailableSlot[] | undefined,
+  date: string,
+  step = 60
+): string[] {
+  const intervals = (hours && hours.length > 0)
+    ? workingIntervalsForDate(hours, date)
+    : DEFAULT_WINDOW;
+  if (intervals.length === 0) return [];
+  const out: string[] = [];
+  for (const [start, end] of intervals) {
+    for (let m = start; m < end; m += step) {
+      out.push(padMinutes(Math.min(m, 1439)));
+    }
+  }
+  return [...new Set(out)];
+}
+
+/** "HH:MM" end-time options after `from` within the same working window on
+ * that date. Falls back to the default window when hours aren't configured. */
+export function endTimeOptionsForDate(
+  hours: VenueUnavailableSlot[] | undefined,
+  date: string,
+  from: string,
+  step = 60
+): string[] {
+  const intervals = (hours && hours.length > 0)
+    ? workingIntervalsForDate(hours, date)
+    : DEFAULT_WINDOW;
+  if (intervals.length === 0) return [];
+  const fromMin = minutesOf(from);
+  const window = intervals.find(([s, e]) => fromMin >= s && fromMin < e);
+  if (!window) return [];
+  const [, end] = window;
+  const out: string[] = [];
+  for (let m = fromMin + step; m <= end; m += step) {
+    out.push(padMinutes(m));
+  }
+  return out;
+}

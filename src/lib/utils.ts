@@ -16,6 +16,13 @@ export function todayInput(): string {
   return formatDateInput(new Date());
 }
 
+/** "YYYY-MM-DD" for a day relative to today (negative = past). */
+export function addDaysInput(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return formatDateInput(d);
+}
+
 export function initials(name: string): string {
   return name
     .split(" ")
