@@ -118,8 +118,6 @@ export function CreateGameDialog({
   const [title, setTitle] = useState("");
   const [sport, setSport] = useState("");
   const [playgroundId, setPlaygroundId] = useState<string>("");
-  const [area, setArea] = useState("");
-  const [location, setLocation] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [maxPlayers, setMaxPlayers] = useState("12");
@@ -147,8 +145,6 @@ export function CreateGameDialog({
       setTitle("");
       setSport("");
       setPlaygroundId("");
-      setArea("");
-      setLocation("");
       setDate(todayInput());
       setTime("");
       setMaxPlayers("12");
@@ -237,8 +233,6 @@ export function CreateGameDialog({
         title: title.trim(),
         sport,
         playgroundId: playgroundId || null,
-        area: playgroundId ? undefined : area.trim() || undefined,
-        location: playgroundId ? undefined : location.trim() || undefined,
         game_date: date,
         start_time: time,
         max_players: Number(maxPlayers),
@@ -455,48 +449,6 @@ export function CreateGameDialog({
               onSelectDate={setDate}
             />
           )}
-            {!selectedPlayground && (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label className="text-xs">{t("community_area")}</Label>
-                  <Input
-                    value={area}
-                    onChange={(e) => setArea(e.target.value)}
-                    placeholder={t("community_area_ph")}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">{t("community_location")}</Label>
-                  <Input
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder={t("community_location_ph")}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2"><Label>{lang === "ar" ? "الحد الأدنى للاعبين" : "Minimum players"}</Label><div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm font-bold">{minPlayers}</div></div>
-            <div className="space-y-2"><Label htmlFor="game-duration">{lang === "ar" ? "مدة الجيم بالساعات" : "Duration (hours)"}</Label><Input id="game-duration" type="number" min="0.5" max="24" step="0.5" value={duration} onChange={e => setDuration(e.target.value)} /></div>
-          </div>
-          <GameCostEstimate rate={playgrounds?.find(p => p.id === playgroundId)?.rental_cost} hours={Number(duration)} min={Number(minPlayers)} hostPays={hostPays} sport={sport} />
-
-          {/* Who pays */}
-          <div className="flex items-center justify-between rounded-lg border p-3">
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2">
-                <Switch checked={hostPays} onCheckedChange={setHostPays} id="game-host-pays" />
-                <Label htmlFor="game-host-pays">{t("games_host_pays")}</Label>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {t("games_host_pays_hint")}
-              </p>
-            </div>
-            <Badge variant={hostPays ? "success" : "secondary"}>
-              {hostPays ? t("games_host_pays_on") : t("games_host_pays_off")}
-            </Badge>
           </div>
 
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -556,6 +508,28 @@ export function CreateGameDialog({
                 {t("games_court_preview").replace("{court}", String(gameCourt.court))}
               </p>
             )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2"><Label>{lang === "ar" ? "الحد الأدنى للاعبين" : "Minimum players"}</Label><div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm font-bold">{minPlayers}</div></div>
+            <div className="space-y-2"><Label htmlFor="game-duration">{lang === "ar" ? "مدة الجيم بالساعات" : "Duration (hours)"}</Label><Input id="game-duration" type="number" min="0.5" max="24" step="0.5" value={duration} onChange={e => setDuration(e.target.value)} /></div>
+          </div>
+          <GameCostEstimate rate={playgrounds?.find(p => p.id === playgroundId)?.rental_cost} hours={Number(duration)} min={Number(minPlayers)} hostPays={hostPays} sport={sport} />
+
+          {/* Who pays */}
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <Switch checked={hostPays} onCheckedChange={setHostPays} id="game-host-pays" />
+                <Label htmlFor="game-host-pays">{t("games_host_pays")}</Label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("games_host_pays_hint")}
+              </p>
+            </div>
+            <Badge variant={hostPays ? "success" : "secondary"}>
+              {hostPays ? t("games_host_pays_on") : t("games_host_pays_off")}
+            </Badge>
+          </div>
 
           <div className="space-y-2">
             <Label>{t("community_description")}</Label>

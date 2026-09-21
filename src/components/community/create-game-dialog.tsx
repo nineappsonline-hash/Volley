@@ -111,8 +111,6 @@ export function CreateGameDialog({
 
   const [title, setTitle] = useState("");
   const [sport, setSport] = useState("");
-  const [area, setArea] = useState("");
-  const [location, setLocation] = useState("");
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
   const [date, setDate] = useState("");
@@ -136,8 +134,6 @@ export function CreateGameDialog({
     if (open) {
       setTitle("");
       setSport("");
-      setArea("");
-      setLocation("");
       setLat(null);
       setLng(null);
       setDate(todayInput());
@@ -165,8 +161,6 @@ export function CreateGameDialog({
       const id = await create.mutateAsync({
         title: title.trim(),
         sport,
-        area: area.trim() || undefined,
-        location: location.trim() || undefined,
         lat,
         lng,
         game_date: date,
@@ -357,32 +351,12 @@ export function CreateGameDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>{t("community_area")}</Label>
-              <Input
-                value={area}
-                onChange={(e) => setArea(e.target.value)}
-                placeholder={t("community_area_ph")}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t("community_location")}</Label>
-              <Input
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder={t("community_location_ph")}
-              />
-            </div>
-          </div>
-
           <MapPicker
             lat={lat}
             lng={lng}
             onChange={(loc) => {
               setLat(loc.lat);
               setLng(loc.lng);
-              if (loc.label) setLocation(loc.label);
             }}
             hint={t("community_map_hint")}
           />
@@ -416,7 +390,6 @@ export function CreateGameDialog({
               onSelectDate={setDate}
             />
           )}
-          <GameCostEstimate rate={playgrounds?.find(p => p.id === playgroundId)?.rental_cost} hours={Number(duration)} min={Number(minPlayers)} sport={sport} />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div className="space-y-2">
               <Label>{t("community_date")}</Label>
@@ -448,6 +421,7 @@ export function CreateGameDialog({
             </div>
             <div className="space-y-2" />
           </div>
+          <GameCostEstimate rate={playgrounds?.find(p => p.id === playgroundId)?.rental_cost} hours={Number(duration)} min={Number(minPlayers)} sport={sport} />
 
           <div className="space-y-2">
             <Label>{t("community_description")}</Label>
