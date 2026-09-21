@@ -90,23 +90,23 @@ export function MemberPlanBanner({ memberPlan }: MemberPlanBannerProps) {
   ];
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-interactive-300/60 bg-gradient-to-br from-interactive-50 to-attention-50 p-4 dark:bg-interactive-500/10 animate-fade-in-up sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card text-card-foreground p-4 animate-fade-in-up sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-        <Crown className="mt-0.5 h-5 w-5 shrink-0 text-info-ink" />
+        <Crown className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
         <div>
-          <p className="text-sm font-semibold text-info-ink dark:text-interactive-300">
+          <p className="text-sm font-semibold text-foreground">
             {t("member_banner_free_title")}
           </p>
-          <p className="text-xs text-info-ink/80 dark:text-interactive-400">
+          <p className="text-xs text-muted-foreground">
             {t("member_banner_free_desc")}
           </p>
-          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+          <div className="mt-2 flex flex-wrap gap-2">
             {highlights.map((h) => (
               <span
                 key={h}
-                className="flex items-center gap-1.5 text-xs font-medium text-info-ink dark:text-interactive-300"
+                className="flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1.5 text-xs font-medium text-foreground"
               >
-                <Check className="h-3.5 w-3.5 text-info-ink" />
+                <Check className="h-3.5 w-3.5 text-primary" />
                 {t(h)}
               </span>
             ))}

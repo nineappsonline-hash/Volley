@@ -83,14 +83,6 @@ export function MemberDashboard({ profile }: MemberDashboardProps) {
       <DashboardNavigation hasQr={!!p.checkin_code} />
       <ParentDashboard />
       <MemberPlanBanner memberPlan={p.member_plan} />
-      {p.is_active === false && (
-        <div className="flex items-center gap-3 rounded-lg border border-attention-300/60 bg-attention-50 p-4 text-sm dark:bg-attention-500/10">
-          <Timer className="h-5 w-5 shrink-0 text-warning-ink" />
-          <p className="text-warning-ink dark:text-attention-300">
-            {t("members_pending_approval")}
-          </p>
-        </div>
-      )}
       {p.member_plan === "premium" && (
         <div className="flex items-center gap-3 rounded-lg border border-attention-300/60 bg-attention-50 p-4 text-sm dark:bg-attention-500/10">
           <Crown className="h-5 w-5 shrink-0 text-warning-ink" />

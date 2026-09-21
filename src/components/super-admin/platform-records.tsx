@@ -35,7 +35,7 @@ import { formatMoney, formatTime12h, formatHour12, getDefaultMinPlayers } from "
 import { COMMUNITY_SPORTS } from "@/lib/constants";
 import { DirectionsLinks } from "@/components/shared/directions-links";
 import { createClient } from "@/lib/supabase/client";
-import { cn } from "@/lib/utils";
+import { cn, errorMessage } from "@/lib/utils";
 
 type Row = Record<string, any>;
 type Records = Record<string, Row[]>;
@@ -742,7 +742,7 @@ export function PlatformRecords() {
                 toast.success(t("community_game_cancelled"));
                 await cache.invalidateQueries({ queryKey: ["platform-records"] });
               } catch (error) {
-                toast.error(error instanceof Error ? error.message : t("common_error"));
+                toast.error(errorMessage(error, t("common_error")));
               }
             }}>{cancelGame.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}{t("community_cancel_confirm_btn")}</Button>
           </AlertDialogFooter>

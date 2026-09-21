@@ -15,8 +15,13 @@ sign-in; opening an email never approves a payment automatically.
 3. Enable `pg_net` and `pg_cron` in Supabase before applying
    `20261121000000_game_payment_review_emails.sql`. The migration uses the existing
    `notify_email_forward` function from the transactional-emails migration.
-4. Deploy the web app for direct game-detail links.
-5. Submit a test payment receipt and verify email delivery and the admin review
+4. Enable transactional emails: the later migration
+   `20260928000000_disable_transactional_emails.sql` turns them off by default.
+   In the SQL Editor, run:
+   `UPDATE public.app_settings SET value = 'true' WHERE key = 'email_enabled';`
+   This switch affects welcome emails, receipts and game-payment review alerts.
+5. Deploy the web app for direct game-detail links.
+6. Submit a test payment receipt and verify email delivery and the admin review
    button. No live email or payment was submitted during the automated tests.
 
 The queue is inaccessible to app users. Emails are built from stored payment

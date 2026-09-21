@@ -1,0 +1,25 @@
+const {PGlite}=require('@electric-sql/pglite');
+const fs=require('fs'),assert=require('node:assert/strict');
+(async()=>{const db=new PGlite();try{
+await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE SCHEMA auth;
+CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT nullif(current_setting('test.uid',true),'')::uuid $$;
+CREATE FUNCTION is_super_admin() RETURNS boolean LANGUAGE sql AS $$ SELECT current_setting('test.admin',true)='yes' $$;
+CREATE TABLE friendly_games(id uuid PRIMARY KEY,creator_id uuid,title text,status text);
+CREATE TABLE friendly_game_participants(game_id uuid,member_id uuid,is_waitlisted boolean,share_amount numeric,pay_method text,pay_receipt_url text,pay_status text);
+CREATE TABLE friendly_game_rent_payments(game_id uuid,pay_status text CONSTRAINT friendly_game_rent_payments_pay_status_check CHECK(pay_status IN ('pending','approved','rejected')));
+CREATE TABLE notifications(recipient_id uuid,type text,title text,body text,link text);
+INSERT INTO friendly_games VALUES('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000002','Game','open');
+INSERT INTO friendly_game_participants VALUES('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000004',false,100,'instapay','receipt','approved');
+INSERT INTO friendly_game_rent_payments VALUES('00000000-0000-0000-0000-000000000001','approved');
+SET test.uid='00000000-0000-0000-0000-000000000003'; SET test.admin='no';`);
+const sql=fs.readFileSync('supabase/migrations/20261122000000_restore_admin_game_cancellation.sql','utf8');await db.exec(sql);await db.exec(sql);
+const cancel=()=>db.exec(`SELECT cancel_friendly_game('00000000-0000-0000-0000-000000000001')`);
+await assert.rejects(cancel(),/organizer or an admin/);
+await db.exec(`SET test.uid='00000000-0000-0000-0000-000000000002'`);await assert.rejects(cancel(),/Other players/);
+await db.exec(`SET test.uid='00000000-0000-0000-0000-000000000003'; SET test.admin='yes'`);await cancel();
+assert.equal((await db.query('SELECT status FROM friendly_games')).rows[0].status,'cancelled');
+assert.equal((await db.query('SELECT pay_status FROM friendly_game_rent_payments')).rows[0].pay_status,'cancelled');
+assert.equal((await db.query('SELECT pay_status FROM friendly_game_participants')).rows[0].pay_status,'unpaid');
+await cancel();assert.equal((await db.query('SELECT * FROM notifications')).rows.length,1);
+console.log('PASS: super-admin cancellation, creator restriction, unrelated-member rejection, rent release, repeat cancellation and migration rerun');
+}finally{await db.close()}})().catch(e=>{console.error(e);process.exitCode=1});
