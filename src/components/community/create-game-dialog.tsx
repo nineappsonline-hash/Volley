@@ -349,14 +349,14 @@ export function CreateGameDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="any">{t("community_any_level")}</SelectItem>
-                  <SelectItem value="beginner">
+                  <SelectItem value="any" data-sort={0}>{t("community_any_level")}</SelectItem>
+                  <SelectItem value="beginner" data-sort={1}>
                     {t("skill_beginner")}
                   </SelectItem>
-                  <SelectItem value="intermediate">
+                  <SelectItem value="intermediate" data-sort={2}>
                     {t("skill_intermediate")}
                   </SelectItem>
-                  <SelectItem value="advanced">
+                  <SelectItem value="advanced" data-sort={3}>
                     {t("skill_advanced")}
                   </SelectItem>
                 </SelectContent>

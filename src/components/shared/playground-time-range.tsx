@@ -85,7 +85,7 @@ export function PlaygroundTimeRange({
           </SelectTrigger>
           <SelectContent>
             {startOptions.map((v) => (
-              <SelectItem key={v} value={v}>
+              <SelectItem key={v} value={v} data-sort={v}>
                 {formatOption(v)}
               </SelectItem>
             ))}
@@ -107,7 +107,7 @@ export function PlaygroundTimeRange({
           </SelectTrigger>
           <SelectContent>
             {endOptions.map((v) => (
-              <SelectItem key={v} value={v}>
+              <SelectItem key={v} value={v} data-sort={v}>
                 {formatOption(v)}
               </SelectItem>
             ))}

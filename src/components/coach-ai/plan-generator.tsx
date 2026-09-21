@@ -327,9 +327,9 @@ export function PlanGenerator({ open, onOpenChange, onSaved }: PlanGeneratorProp
               <Select value={skillLevel} onValueChange={setSkillLevel}>
                 <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="beginner">{t("coachai_skill_beginner")}</SelectItem>
-                  <SelectItem value="intermediate">{t("coachai_skill_intermediate")}</SelectItem>
-                  <SelectItem value="advanced">{t("coachai_skill_advanced")}</SelectItem>
+                  <SelectItem value="beginner" data-sort={0}>{t("coachai_skill_beginner")}</SelectItem>
+                  <SelectItem value="intermediate" data-sort={1}>{t("coachai_skill_intermediate")}</SelectItem>
+                  <SelectItem value="advanced" data-sort={2}>{t("coachai_skill_advanced")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
