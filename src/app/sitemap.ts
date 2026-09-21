@@ -9,6 +9,7 @@ export const revalidate = 3600; // refresh at most hourly
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticPages: MetadataRoute.Sitemap = [
+    { url: `${SITE_URL}/book-courts`, changeFrequency: "weekly", priority: 0.9 },
     {
       url: SITE_URL,
       changeFrequency: "weekly",

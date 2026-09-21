@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
 import { normalizeCountry } from "@/lib/locations";
-import { COMMUNITY_SPORTS, getDefaultMinPlayers, getBillablePlayers, formatMoney, getSportMinPlayers } from "@/lib/constants";
+import { COMMUNITY_SPORTS, getDefaultMinPlayers, getPlayerFee, formatMoney, getSportMinPlayers } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import { GameCostEstimate } from "@/components/games/game-cost-estimate";
 import { QueryState } from "@/components/shared/query-state";
@@ -228,10 +228,15 @@ export function CreateGameDialog({
       }
       const pickedPlayground = playgrounds?.find((p) => p.id === playgroundId);
       if (pickedPlayground?.rental_cost != null) {
-        const billable = getBillablePlayers(sport, Number(minPlayers) || 2);
         const rent = pickedPlayground.rental_cost * (durationHours || 1);
-        // The creator just covers their own share; the rest is still outstanding.
-        remaining = Math.max(0, Math.round((rent * (billable - 1)) / billable * 100) / 100);
+        // Same measure as the game card: min players × per-player price (which
+        // already includes the per-player fee). The creator covers their own
+        // share and the rest of what the minimum players owe is still
+        // outstanding.
+        const min = Math.max(2, Number(minPlayers) || 2);
+        const perPlayerCents = Math.round(Math.round(rent * 100) / min) + Math.round(getPlayerFee(sport) * 100);
+        const remainingCents = min * perPlayerCents - Math.min(perPlayerCents, Math.round(amount * 100));
+        remaining = Math.max(0, remainingCents) / 100;
       }
       let inviteCode: string | null = null;
       try {

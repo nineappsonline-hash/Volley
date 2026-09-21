@@ -11,7 +11,7 @@ export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") ||
   "https://playza.nineapps.online";
 
-export const OG_IMAGE = "/og-image.png";
+export const OG_IMAGE = "/og-playza-players.png";
 
 /** Brand name in both languages. */
 export const BRAND = { en: "Playza", ar: "بلايزا Playza" } as const;
@@ -37,7 +37,7 @@ export function organizationJsonLd(): JsonLd {
     logo: `${SITE_URL}/icons/icon-512.png`,
     image: `${SITE_URL}${OG_IMAGE}`,
     description:
-      "Playza is the sports academy management platform for Egypt & the Gulf: members, subscriptions, attendance, training schedules and automatic profit tracking.",
+      "Playza helps people play sports in Egypt: discover padel, volleyball and football games, explore playgrounds and join other players.",
     areaServed: [
       { "@type": "Country", name: "Egypt" },
       { "@type": "Country", name: "Saudi Arabia" },
@@ -71,7 +71,7 @@ export function softwareAppJsonLd(): JsonLd {
     url: SITE_URL,
     image: `${SITE_URL}${OG_IMAGE}`,
     description:
-      "The most complete sports academy management platform in Egypt & the Gulf: members, subscriptions, QR attendance, training schedules, payments and automatic profit & loss tracking.",
+      "Find your next game in Egypt with Playza. Explore padel, volleyball and football games, check venues and participation costs, and play with others.",
     inLanguage: ["en", "ar-EG"],
     featureList: [
       "Member and subscription management",

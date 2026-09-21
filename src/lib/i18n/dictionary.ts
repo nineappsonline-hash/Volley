@@ -1,5 +1,18 @@
 export const dictionary = {
   en: {
+    venue_review_hint: "New playgrounds and changes require super admin approval before they can be booked. Edit a rejected playground to resubmit it.",
+    nav_approvals: "Approvals",
+    approvals_description: "Review payment receipts and academy playground submissions.",
+    approvals_payments: "Payments",
+    approvals_empty: "No playgrounds are waiting for approval.",
+    approvals_approve: "Approve",
+    approvals_reject: "Reject",
+    venue_review_saved: "Review saved.",
+    venue_submitted_review: "Saved and submitted for super admin review.",
+    venue_approval_pending: "Pending review",
+    venue_approval_approved: "Approved",
+    venue_approval_rejected: "Rejected",
+
     appName: "Playza",
     appTagline: "All Play. No Hassle",
     // Navigation
@@ -2756,6 +2769,19 @@ export const dictionary = {
   },
 
   ar: {
+    venue_review_hint: "الملاعب الجديدة وأي تعديلات عليها محتاجة موافقة مسؤول المنصة قبل الحجز. عدّل الملعب المرفوض علشان تبعته للمراجعة تاني.",
+    nav_approvals: "الموافقات",
+    approvals_description: "راجع إيصالات الدفع والملاعب المقدمة من الأكاديميات.",
+    approvals_payments: "المدفوعات",
+    approvals_empty: "مفيش ملاعب مستنية الموافقة.",
+    approvals_approve: "موافقة",
+    approvals_reject: "رفض",
+    venue_review_saved: "تم حفظ القرار.",
+    venue_submitted_review: "تم الحفظ والإرسال لمراجعة مسؤول المنصة.",
+    venue_approval_pending: "قيد المراجعة",
+    venue_approval_approved: "تمت الموافقة",
+    venue_approval_rejected: "مرفوض",
+
     appName: "بلايزا",
     appTagline: "All Play. No Hassle",
     // Navigation

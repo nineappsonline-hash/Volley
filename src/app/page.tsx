@@ -113,9 +113,9 @@ async function getHomepageLeaderboard(): Promise<{
 }
 
 export const metadata: Metadata = {
-  title: "Playza — Sports Academies, Games & Matches in Egypt | Your Place on the Field",
+  title: "Playza — حجز ملاعب ومباريات بادل وكرة طائرة | Padel & Volley",
   description:
-    "Discover a football, volleyball, basketball, padel or swimming academy near you in Egypt, track your kids' training and progress, and manage your academy from one place: subscriptions, attendance, payments and profits. Playza brings players, parents and academy owners together.",
+    "حجز ملاعب ومباريات بادل وكرة طائرة مع Playza. اكتشف الألعاب والأكاديميات، وراجع المكان والميعاد وتكلفة المشاركة. Find padel and volley games in Egypt.",
   keywords: [
     // English
     "sports academy management",
@@ -150,9 +150,9 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Playza — Your Place on the Field",
+    title: "Playza — حجز ملاعب ومباريات بادل وكرة طائرة",
     description:
-      "Play, track your progress, follow your kids' training, or manage your academy. Discover schedules, attendance, feedback and friendly games with Playza.",
+      "عاوز تلعب رياضة في مصر؟ اكتشف مباريات وملاعب بادل وكرة طائرة وكرة قدم، وراجع المواعيد والتكلفة وانضم للاعبين زيّك.",
     url: SITE_URL,
     siteName: "Playza",
     images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
@@ -162,9 +162,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Playza — Your Place on the Field",
+    title: "Playza — حجز ملاعب ومباريات بادل وكرة طائرة",
     description:
-      "Playza brings your sports journey together: academies, friendly matches, attendance, subscriptions and player progress tracking.",
+      "اختار لعبتك وانزل العب. اكتشف مباريات وملاعب في مصر، وتابع تفاصيل مشاركتك مع Playza.",
     images: [OG_IMAGE],
   },
 };

@@ -51,6 +51,7 @@ const adminItems = [
 ] as const;
 
 const superAdminItems = [
+  { href: "/admin?tab=Approvals", key: "nav_approvals", icon: ClipboardCheck },
   { href: "/admin", key: "super_admin_title", icon: Crown },
   { href: "/admin?tab=Members", key: "nav_members", icon: Users },
   { href: "/admin?tab=Academies", key: "nav_academies", icon: Building2 },

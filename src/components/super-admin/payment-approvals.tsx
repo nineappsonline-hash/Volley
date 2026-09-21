@@ -71,7 +71,7 @@ export function PaymentApprovals() {
   const reviewRent = useReviewRentPayment();
   const reviewSub = useReviewSubscription();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
-  const [statusFilter, setStatusFilter] = useState<"all" | PayStatus>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | PayStatus>("pending");
   const [openingReceipt, setOpeningReceipt] = useState<string | null>(null);
 
   const memberName = (id: string) =>

@@ -236,6 +236,7 @@ export function SolutionPage({
           </p>
           <div className="flex flex-wrap justify-center gap-3 text-sm">
             {[
+              { label: "حجز ملاعب بادل وVolley", href: "/book-courts" },
               { label: "🏐 Volleyball", href: "/solutions/volleyball" },
               { label: "⚽ Football", href: "/solutions/football" },
               { label: "🏀 Basketball", href: "/solutions/basketball" },

@@ -163,6 +163,7 @@ export function LandingPage({ leaders, stats }: { leaders: HomepageLeader[]; sta
             <Link href="/games">{t("landing_footer_games")}</Link>
             <Link href="/tournaments">{t("landing_footer_tournaments")}</Link>
             <Link href="/academies">{t("landing_footer_academies")}</Link>
+            <Link href="/book-courts" lang="ar">حجز ملاعب بادل وVolley</Link>
             <Link href="/faq">{t("landing_footer_faq")}</Link>
           </nav>
           <nav aria-label={t("landing_footer_sports")} className={styles.footerNav}>

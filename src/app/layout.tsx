@@ -8,11 +8,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Playza — Sports Academy Management Platform for Egypt & the Gulf",
+    default: "Playza — مكانك تلعب رياضة في مصر",
     template: "%s | Playza",
   },
   description:
-    "The complete sports academy management platform for Egypt & the Gulf: members, subscriptions, QR attendance, training schedules, payments, and automated profit tracking for football, volleyball, basketball, padel, and swimming. منصة بلايزا لإدارة أكاديميات الرياضة في مصر والخليج.",
+    "عاوز تلعب رياضة في مصر؟ اكتشف مباريات وملاعب بادل وكرة طائرة وكرة قدم على Playza، شوف المواعيد والتكلفة، وانضم للاعبين زيّك.",
   keywords: [
     // ── Sports Academy Management ──
     "sports academy management",
@@ -147,24 +147,24 @@ export const metadata: Metadata = {
     locale: "en_US",
     alternateLocale: ["ar_EG"],
     siteName: "Playza",
-    title: "Playza — Sports Academy Management Platform for Egypt & the Gulf",
+    title: "Playza — مكانك تلعب رياضة في مصر",
     description:
-      "The complete sports academy management platform for Egypt & the Gulf: members, subscriptions, attendance, payments, and profit tracking — all in one place.",
+      "اكتشف مباريات وملاعب في مصر، اختار بادل أو كرة طائرة أو كرة قدم، وراجع المواعيد والتكلفة وانضم للعبة المناسبة ليك.",
     url: SITE_URL,
     images: [
       {
         url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: "بلايزا Playza — منصة إدارة أكاديميات الرياضة",
+        alt: "Playza — مكانك تلعب رياضة في مصر",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Playza — Sports Academy Management Platform for Egypt & the Gulf",
+    title: "Playza — مكانك تلعب رياضة في مصر",
     description:
-      "The complete sports academy management platform for Egypt & the Gulf: members, subscriptions, attendance, payments, and profit tracking — all in one place.",
+      "اكتشف مباريات وملاعب في مصر، اختار بادل أو كرة طائرة أو كرة قدم، وراجع المواعيد والتكلفة وانضم للعبة المناسبة ليك.",
     images: [OG_IMAGE],
   },
   robots: {

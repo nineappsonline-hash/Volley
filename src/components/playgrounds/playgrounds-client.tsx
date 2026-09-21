@@ -51,7 +51,7 @@ import type { Venue } from "@/lib/types";
 
 export function PlaygroundsClient() {
   const { t, lang } = useI18n();
-  const { data: venues, isLoading } = useVenues();
+  const { data: venues, isLoading } = useVenues(true);
   const { data: sports } = useSports();
   const { data: academy } = useAcademy();
   const save = useSaveVenue();
@@ -128,7 +128,7 @@ export function PlaygroundsClient() {
         lng,
         location_link: locationLink.trim() || null,
       });
-      toast.success(t("venues_saved"));
+      toast.success(t("venue_submitted_review"));
       setDialogOpen(false);
       setEditing(null);
     } catch (err) {
@@ -162,6 +162,7 @@ export function PlaygroundsClient() {
         <EmptyState message={t("playgrounds_empty")} icon={LandPlot} />
       ) : (
         <div className="overflow-x-auto rounded-xl border">
+          <p className="p-4 text-sm text-muted-foreground">{t("venue_review_hint")}</p>
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
@@ -178,6 +179,7 @@ export function PlaygroundsClient() {
                   <TableCell>
                   <p className="font-medium">
                     {v.name}
+                    <Badge variant="outline" className="ms-2">{t(`venue_approval_${v.approval_status ?? "approved"}`)}</Badge>
                     {Number(v.court_count) > 1 && (
                       <span className="ms-1 text-xs font-normal text-muted-foreground">
                         ({v.court_count} {t("rentals_courts_short")})

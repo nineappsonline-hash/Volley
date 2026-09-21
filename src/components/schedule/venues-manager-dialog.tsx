@@ -42,7 +42,7 @@ export function VenuesManagerDialog({
 }: VenuesManagerDialogProps) {
   const { t } = useI18n();
   const { data: academy } = useAcademy();
-  const { data: venues, isLoading } = useVenues();
+  const { data: venues, isLoading } = useVenues(true);
   const { data: sports } = useSports();
   const saveVenue = useSaveVenue();
   const deleteVenue = useDeleteVenue();
@@ -110,7 +110,7 @@ export function VenuesManagerDialog({
         rental_hours: rentalHours ? Number(rentalHours) : null,
         court_count: Number(courtCount) || 1,
       });
-      toast.success(t("venues_saved"));
+      toast.success(t("venue_submitted_review"));
       resetForm();
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
@@ -134,7 +134,7 @@ export function VenuesManagerDialog({
         rental_hours: rentalHours ? Number(rentalHours) : null,
         court_count: Number(courtCount) || 1,
       });
-      toast.success(t("venues_saved"));
+      toast.success(t("venue_submitted_review"));
       setEditingId(null);
       resetForm();
     } catch (err) {
@@ -339,6 +339,7 @@ export function VenuesManagerDialog({
                       title={t("common_edit")}
                     >
                       <p className="truncate text-sm font-medium">{venue.name}</p>
+                      <p className="text-xs text-muted-foreground">{t(`venue_approval_${venue.approval_status ?? "approved"}`)}</p>
                       {(venue.address ||
                         venue.capacity != null ||
                         venue.school_name ||

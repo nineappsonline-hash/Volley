@@ -467,6 +467,7 @@ export interface CoachInvitation {
 }
 
 export interface Venue {
+  approval_status?: "pending" | "approved" | "rejected";
   sport?: { id: string; name: string } | null;
   id: string;
   // Null when the venue sits in the platform's unassigned playground pool.

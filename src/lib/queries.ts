@@ -1603,13 +1603,13 @@ export function useRespondCoachInvitation() {
 
 // ── Venues ──────────────────────────────────────────────────
 
-export function useVenues() {
+export function useVenues(includePending = false) {
   return useQuery({
-    queryKey: queryKeys.venues,
+    queryKey: [...queryKeys.venues, includePending],
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("venues")
-        .select("id, academy_id, name, address, lat, lng, location_link, photos, cover_url, capacity, sport_id, school_name, rental_cost, rental_hours, country, governorate, area, unavailable_slots, working_hours, court_count, created_at")
+        .select("id, academy_id, approval_status, name, address, lat, lng, location_link, photos, cover_url, capacity, sport_id, school_name, rental_cost, rental_hours, country, governorate, area, unavailable_slots, working_hours, court_count, created_at")
         .order("name");
       if (error) throw error;
       const { data: labels, error: labelError } = await supabase().rpc("playground_sport_labels");
@@ -1619,7 +1619,7 @@ export function useVenues() {
           [row.venue_id, { id: row.sport_id, name: row.sport_name }]
         )
       );
-      return (data ?? []).map((venue) => ({ ...venue, sport: sportsByVenue.get(venue.id) ?? null })) as Venue[];
+      return (data ?? []).filter((venue) => includePending || venue.approval_status === "approved").map((venue) => ({ ...venue, sport: sportsByVenue.get(venue.id) ?? null })) as Venue[];
     },
   });
 }
@@ -1648,6 +1648,8 @@ export function useSaveVenue() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["venues"] });
+      qc.invalidateQueries({ queryKey: ["playgrounds"] });
+      qc.invalidateQueries({ queryKey: ["venue-approvals"] });
     },
   });
 }
@@ -3065,6 +3067,7 @@ export function usePlaygrounds() {
       const { data, error } = await supabase()
         .from("venues")
         .select("id, academy_id, name, address, country, governorate, area, lat, lng, location_link, photos, cover_url, capacity, sport_id, school_name, rental_cost, rental_hours, unavailable_slots, working_hours, court_count, created_at")
+        .eq("approval_status", "approved")
         .order("name");
       if (error) throw error;
       const { data: labels, error: labelError } = await supabase().rpc("playground_sport_labels");
