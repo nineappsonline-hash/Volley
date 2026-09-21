@@ -7,6 +7,12 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+      ? { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
+      : undefined,
+  },
   title: {
     default: "Playza — مكانك تلعب رياضة في مصر",
     template: "%s | Playza",
@@ -194,14 +200,6 @@ export const metadata: Metadata = {
   },
 };
 
-/** Optional: wire Google Search Console / Bing via env vars without code changes. */
-const verification = {
-  google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
-  other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
-    ? { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
-    : undefined,
-};
-
 export const viewport: Viewport = {
   themeColor: PLAYZA.navy,
   width: "device-width",
@@ -243,7 +241,7 @@ export default function RootLayout({
           rel="icon"
           href="/favicon.png"
         />
-        {/* AI / LLM machine-readable overview (llms.txt spec) — helps ChatGPT, Gemini, Claude & Perplexity describe the site accurately. */}
+        {/* Optional machine-readable overview; search engines do not require llms.txt. */}
         <link
           rel="alternate"
           type="text/markdown"

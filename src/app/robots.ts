@@ -62,7 +62,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: APP_DISALLOW,
       },
-      // Perplexity search + Copilot.
+      // Perplexity search. Bing/Copilot discovery uses the wildcard rule.
       {
         userAgent: "PerplexityBot",
         allow: "/",
@@ -73,7 +73,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: APP_DISALLOW,
       },
-      // Google AI / Gemini training.
+      // Gemini training and grounding; Google Search uses Googlebot via the wildcard rule.
       {
         userAgent: "Google-Extended",
         allow: "/",

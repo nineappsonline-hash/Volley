@@ -37,7 +37,7 @@ export function organizationJsonLd(): JsonLd {
     logo: `${SITE_URL}/icons/icon-512.png`,
     image: `${SITE_URL}${OG_IMAGE}`,
     description:
-      "Playza helps people play sports in Egypt: discover padel, volleyball and football games, explore playgrounds and join other players.",
+      "Playza helps people find sports activities, public academies and tournaments, with guides for playing 27 sports in Cairo, Egypt.",
     areaServed: [
       { "@type": "Country", name: "Egypt" },
       { "@type": "Country", name: "Saudi Arabia" },
@@ -47,14 +47,14 @@ export function organizationJsonLd(): JsonLd {
   };
 }
 
-/** WebSite node with SearchAction (sitelinks search box in Google). */
+/** WebSite node identifying the public website. */
 export function websiteJsonLd(): JsonLd {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "Playza",
     alternateName: "بلايزا",
-url: SITE_URL,
+    url: SITE_URL,
     inLanguage: ["en", "ar-EG"],
   };
 }
@@ -66,7 +66,7 @@ export function softwareAppJsonLd(): JsonLd {
     "@type": "SoftwareApplication",
     name: "Playza",
     alternateName: "بلايزا",
-    applicationCategory: "BusinessApplication",
+    applicationCategory: "SportsApplication",
     operatingSystem: "Web",
     url: SITE_URL,
     image: `${SITE_URL}${OG_IMAGE}`,
@@ -82,13 +82,6 @@ export function softwareAppJsonLd(): JsonLd {
       "Financial reports and analytics",
       "Full Arabic and English support",
     ],
-    offers: {
-      "@type": "Offer",
-      priceCurrency: "EGP",
-      price: "500",
-      priceValidUntil: "2027-12-31",
-      availability: "https://schema.org/InStock",
-    },
   };
 }
 
@@ -101,7 +94,7 @@ export function landingFaqItems(faq: [string, string][]): JsonLd[] {
   }));
 }
 
-/** FAQPage node — enables the FAQ rich result. */
+/** FAQPage node describing visible questions and answers. */
 export function faqPageJsonLd(questions: JsonLd[]): JsonLd {
   return {
     "@context": "https://schema.org",

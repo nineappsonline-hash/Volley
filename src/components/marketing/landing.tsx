@@ -8,6 +8,7 @@ import { AppLogo } from "@/components/shared/app-logo";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { InstallBanner } from "@/components/marketing/install-banner";
 import { useI18n } from "@/lib/i18n";
+import { DISCOVERY_SPORTS, discoveryPath } from "@/lib/sport-discovery";
 import { SportIcon } from "./sport-icons";
 import { LeaderboardSection, type HomepageCommunityStats, type HomepageLeader } from "./leaderboard";
 import styles from "./landing.module.css";
@@ -49,34 +50,7 @@ export function LandingPage({ leaders, stats }: { leaders: HomepageLeader[]; sta
   const [menuOpen, setMenuOpen] = useState(false);
   const current = audiences(t)[audience];
   const [sport, setSport] = useState("football");
-  const sportList: [string, string][] = [
-    ["football", t("sport_football")],
-    ["basketball", t("sport_basketball")],
-    ["handball", t("sport_handball")],
-    ["volleyball", t("sport_volleyball")],
-    ["tennis", t("sport_tennis")],
-    ["swimming", t("sport_swimming")],
-    ["padel", t("sport_padel")],
-    ["squash", t("sport_squash")],
-    ["table-tennis", t("sport_table_tennis")],
-    ["badminton", t("sport_badminton")],
-    ["gymnastics", t("sport_gymnastics")],
-    ["karate", t("sport_karate")],
-    ["boxing", t("sport_boxing")],
-    ["athletics", t("sport_athletics")],
-    ["kung-fu", t("sport_kungfu")],
-    ["taekwondo", t("sport_taekwondo")],
-    ["crossfit", t("sport_crossfit")],
-    ["judo", t("sport_judo")],
-    ["kickboxing", t("sport_kickboxing")],
-    ["wrestling", t("sport_wrestling")],
-    ["archery", t("sport_archery")],
-    ["fencing", t("sport_fencing")],
-    ["equestrian", t("sport_equestrian")],
-    ["cycling", t("sport_cycling")],
-    ["weightlifting", t("sport_weightlifting")],
-    ["parkour", t("sport_parkour")],
-  ];
+  const sportList: [string, string][] = DISCOVERY_SPORTS.map(sport => [sport.slug, lang === "ar" ? sport.arabic : sport.name]);
   const arenaSports: [string, string][] = [
     ["football", t("landing_sport_football")],
     ["padel", t("landing_sport_padel")],
@@ -87,6 +61,7 @@ export function LandingPage({ leaders, stats }: { leaders: HomepageLeader[]; sta
     [t("landing_nav_about"), "#about"],
     [t("landing_nav_for_you"), "#for-you"],
     [t("landing_nav_features"), "#features"],
+    [lang === "ar" ? "العب في القاهرة" : "Play in Cairo", discoveryPath(lang)],
     [t("landing_nav_faq"), "/faq"],
   ];
   const steps: [string, string][] = [
@@ -117,7 +92,7 @@ export function LandingPage({ leaders, stats }: { leaders: HomepageLeader[]; sta
         </div>
       </section>
       <InstallBanner />
-      <div className={styles.sports} aria-label={t("landing_sports_prompt")}><span>{t("landing_sports_prompt")}</span>{sportList.map(([id, name]) => <span key={id}><SportIcon id={id} size={18} />{name}</span>)}</div>
+      <div className={styles.sports} aria-label={t("landing_sports_prompt")}><span>{t("landing_sports_prompt")}</span>{sportList.map(([id, name]) => <Link key={id} href={discoveryPath(lang, id)}><SportIcon id={id === "beach-volleyball" ? "volleyball" : id} size={18} />{name}</Link>)}</div>
 
       <section id="about" className={`${styles.section}`}>
         <div className={styles.sectionHeading}><h2>{t("landing_about_title")}</h2><p>{t("landing_about_desc")}</p></div>
@@ -168,10 +143,10 @@ export function LandingPage({ leaders, stats }: { leaders: HomepageLeader[]; sta
           </nav>
           <nav aria-label={t("landing_footer_sports")} className={styles.footerNav}>
             <span className={styles.footerHeading}>{t("landing_footer_sports")}</span>
-            <Link href="/solutions/football">{t("landing_sport_football")}</Link>
-            <Link href="/solutions/volleyball">{t("landing_sport_volleyball")}</Link>
-            <Link href="/solutions/padel">{t("landing_sport_padel")}</Link>
-            <Link href="/solutions">{t("landing_footer_solutions_all")}</Link>
+            <Link href={discoveryPath(lang, "football")}>{t("landing_sport_football")}</Link>
+            <Link href={discoveryPath(lang, "volleyball")}>{t("landing_sport_volleyball")}</Link>
+            <Link href={discoveryPath(lang, "padel")}>{t("landing_sport_padel")}</Link>
+            <Link href={discoveryPath(lang)}>{lang === "ar" ? "كل الرياضات" : "All sports"}</Link>
           </nav>
           <nav aria-label={t("landing_footer_account")} className={styles.footerNav}>
             <span className={styles.footerHeading}>{t("landing_footer_account")}</span>

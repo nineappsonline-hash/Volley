@@ -113,9 +113,9 @@ async function getHomepageLeaderboard(): Promise<{
 }
 
 export const metadata: Metadata = {
-  title: "Playza — حجز ملاعب ومباريات بادل وكرة طائرة | Padel & Volley",
+  title: "Play Sports in Cairo — Games, Training & Tournaments",
   description:
-    "حجز ملاعب ومباريات بادل وكرة طائرة مع Playza. اكتشف الألعاب والأكاديميات، وراجع المكان والميعاد وتكلفة المشاركة. Find padel and volley games in Egypt.",
+    "Find sports to play in Cairo with Playza: games, academies and tournaments across 27 sports. اكتشف رياضتك في القاهرة، وراجع المكان والميعاد والتكلفة.",
   keywords: [
     // English
     "sports academy management",

@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SITE_URL } from "@/lib/seo";
 import { getPublicGameSports, getPublicTournamentSports } from "@/lib/public-games";
+import { DISCOVERY_SPORTS, discoveryPath } from "@/lib/sport-discovery";
 import { sportToSlug } from "@/lib/sport-slugs";
 
 export const revalidate = 3600; // refresh at most hourly
@@ -66,6 +67,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     },
   ];
+
+  for (const slug of [undefined, ...DISCOVERY_SPORTS.map(sport => sport.slug)]) {
+    for (const lang of ["en", "ar"] as const) {
+      staticPages.push({
+        url: `${SITE_URL}${discoveryPath(lang, slug)}`,
+        changeFrequency: "weekly",
+        priority: slug ? 0.8 : 0.9,
+        alternates: { languages: {
+          en: `${SITE_URL}${discoveryPath("en", slug)}`,
+          "ar-EG": `${SITE_URL}${discoveryPath("ar", slug)}`,
+          "x-default": `${SITE_URL}${discoveryPath("en", slug)}`,
+        } },
+      });
+    }
+  }
 
   // Query independently so a failed source does not remove other public pages.
   const results = await Promise.allSettled([

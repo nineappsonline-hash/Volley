@@ -13,6 +13,7 @@ const rows=Array.from({length:1001},(_,i)=>({id:String(i),slug:'academy-'+i}));
 const mocks={
  '@/lib/seo':{SITE_URL:siteUrl(undefined)},
  '@/lib/sport-slugs':{sportToSlug:s=>s.toLowerCase()},
+ '@/lib/sport-discovery':{DISCOVERY_SPORTS:[{slug:'football'},{slug:'padel'}],discoveryPath:(lang,slug)=>`${lang==='ar'?'/ar':''}/sports${slug?'/'+slug:''}`},
  '@/lib/public-games':{getPublicGameSports:async()=>{if(failGames)throw Error('offline');return ['Football','football'];},getPublicTournamentSports:async()=>['Padel']},
  '@/lib/supabase/admin':{createAdminClient:()=>{if(failAcademies)throw Error('unavailable');return {from:()=>({select(){return this;},eq(k,v){assert.equal(k,'is_public');assert.equal(v,true);return this;},not(){return this;},order(){return this;},range:async(a,b)=>({data:rows.slice(a,b+1),error:null})})};}},
 };
@@ -21,6 +22,12 @@ new Function('exports','require',ts.transpileModule(fs.readFileSync(path.join(__
  let pages=await api.default();
  assert.ok(pages.every(p=>new URL(p.url).origin==='https://playza.nineapps.online'));
  assert.equal(pages.filter(p=>p.url.includes('/a/')).length,1001);
+ const discoveryPages=pages.filter(p=>p.url.includes('/sports'));
+ assert.equal(discoveryPages.length,6);
+ for(const page of discoveryPages){
+   assert.ok(pages.some(p=>p.url===page.alternates.languages.en));
+   assert.ok(pages.some(p=>p.url===page.alternates.languages['ar-EG']));
+ }
  assert.equal(pages.filter(p=>p.url.endsWith('/games?sport=football')).length,1);
  assert.ok(!pages.some(p=>/signup|login|dashboard|join=/.test(p.url)));
  assert.ok(pages.every(p=>!p.lastModified));
