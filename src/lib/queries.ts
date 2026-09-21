@@ -3843,8 +3843,128 @@ export function useReviewParticipantShare() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["pending-game-payments"] });
+      qc.invalidateQueries({ queryKey: ["all-game-payments"] });
       qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
       qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
+    },
+  });
+}
+
+// All friendly-game share payments (pending + approved) for the unified super
+// admin payment approvals section.
+export function useAllGamePayments() {
+  return useQuery({
+    queryKey: ["all-game-payments"],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("friendly_game_participants")
+        .select(
+          "id, game_id, member_id, player_name, share_amount, pay_method, pay_receipt_url, pay_status, joined_at, game:friendly_games(title, sport, game_date, start_time)"
+        )
+        .in("pay_status", ["pending", "approved"])
+        .order("joined_at", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      const rows = (data ?? []) as unknown as {
+        id: string;
+        game_id: string;
+        member_id: string;
+        player_name: string | null;
+        share_amount: number | null;
+        pay_method: string | null;
+        pay_receipt_url: string | null;
+        pay_status: string;
+        joined_at: string;
+        game:
+          | {
+              title: string | null;
+              sport: string | null;
+              game_date: string | null;
+              start_time: string | null;
+            }
+          | {
+              title: string | null;
+              sport: string | null;
+              game_date: string | null;
+              start_time: string | null;
+            }[]
+          | null;
+      }[];
+      return rows.map((r) => ({
+        ...r,
+        game: Array.isArray(r.game) ? (r.game[0] ?? null) : r.game,
+      }));
+    },
+  });
+}
+
+export function useReviewRentPayment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      paymentId,
+      approve,
+    }: {
+      paymentId: string;
+      approve: boolean;
+    }) => {
+      const { error } = await supabase().rpc("review_rent_payment", {
+        p_payment_id: paymentId,
+        p_approve: approve,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pending-rent-payments"] });
+      qc.invalidateQueries({ queryKey: ["all-rent-payments"] });
+      qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
+      qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
+    },
+  });
+}
+
+// All court-rent top-up payments (pending + approved + rejected).
+export function useAllRentPayments() {
+  return useQuery({
+    queryKey: ["all-rent-payments"],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("friendly_game_rent_payments")
+        .select(
+          "id, game_id, member_id, amount, pay_method, pay_receipt_url, pay_status, created_at, game:friendly_games(title, sport, game_date, start_time)"
+        )
+        .in("pay_status", ["pending", "approved", "rejected"])
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      const rows = (data ?? []) as unknown as {
+        id: string;
+        game_id: string;
+        member_id: string;
+        amount: number;
+        pay_method: string | null;
+        pay_receipt_url: string | null;
+        pay_status: string;
+        created_at: string;
+        game:
+          | {
+              title: string | null;
+              sport: string | null;
+              game_date: string | null;
+              start_time: string | null;
+            }
+          | {
+              title: string | null;
+              sport: string | null;
+              game_date: string | null;
+              start_time: string | null;
+            }[]
+          | null;
+      }[];
+      return rows.map((r) => ({
+        ...r,
+        game: Array.isArray(r.game) ? (r.game[0] ?? null) : r.game,
+      }));
     },
   });
 }
@@ -3895,29 +4015,6 @@ export function usePendingRentPayments() {
   });
 }
 
-export function useReviewRentPayment() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async ({
-      paymentId,
-      approve,
-    }: {
-      paymentId: string;
-      approve: boolean;
-    }) => {
-      const { error } = await supabase().rpc("review_rent_payment", {
-        p_payment_id: paymentId,
-        p_approve: approve,
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["pending-rent-payments"] });
-      qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
-      qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
-    },
-  });
-}
 
 // ── Broadcast push (super admin) ─────────────
 // Returns the number of subscribed devices the push was dispatched to.
@@ -4058,8 +4155,27 @@ export function useReviewSubscription() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["pending-subscriptions"] });
+      qc.invalidateQueries({ queryKey: ["all-subscriptions"] });
       qc.invalidateQueries({ queryKey: ["all-academies"] });
       qc.invalidateQueries({ queryKey: ["academy"] });
+    },
+  });
+}
+
+// ALL plan subscriptions (pending + verified + rejected) for the super admin
+// payment approvals section.
+export function useAllSubscriptions() {
+  return useQuery({
+    queryKey: ["all-subscriptions"],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("plan_subscriptions")
+        .select("*")
+        .in("receipt_status", ["pending", "verified", "rejected"])
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      return (data ?? []) as PlanSubscription[];
     },
   });
 }

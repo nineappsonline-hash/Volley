@@ -3,6 +3,7 @@
 import { PlatformRecords } from "./platform-records";
 import { PlatformAnalytics } from "./platform-analytics";
 import { AcademyEditDialog } from "./academy-edit-dialog";
+import { PaymentApprovals } from "./payment-approvals";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { format } from "date-fns";
@@ -12,16 +13,12 @@ import {
   CheckCircle2,
   Crown,
   ExternalLink,
-  Eye,
   Flag,
   Megaphone,
   Pencil,
   Plus,
-  Receipt,
   Shield,
   ShieldAlert,
-  ShieldCheck,
-  Wallet,
   XCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -53,22 +50,15 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Reveal } from "@/components/shared/reveal";
 import { PageHeader } from "@/components/shared/page-header";
 import type { Academy } from "@/lib/types";
-import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
-import { formatMoneyShort, formatTime12h } from "@/lib/constants";
+import { formatMoneyShort } from "@/lib/constants";
 import {
   useAllAcademies,
   useCommunityMembers,
   useConvertToPaid,
   useExtendTrial,
-  usePendingGamePayments,
-  usePendingRentPayments,
-  usePendingSubscriptions,
   useReports,
   useResolveReport,
-  useReviewParticipantShare,
-  useReviewRentPayment,
-  useReviewSubscription,
   useSendBroadcast,
   useSetAcademyPlan,
 } from "@/lib/queries";
@@ -88,15 +78,7 @@ export function SuperAdminDashboard() {
   const { data: reports } = useReports();
   const { data: members } = useCommunityMembers();
   const resolve = useResolveReport();
-  const { data: pendingFees } = usePendingGamePayments();
-  const reviewGameFee = useReviewParticipantShare();
-  const { data: pendingRent } = usePendingRentPayments();
-  const reviewRent = useReviewRentPayment();
   const setAcademyPlan = useSetAcademyPlan();
-  const { data: pendingSubs } = usePendingSubscriptions();
-  const reviewSub = useReviewSubscription();
-  const [openingReceipt, setOpeningReceipt] = useState<string | null>(null);
-  const [openingSubReceipt, setOpeningSubReceipt] = useState<string | null>(null);
   const [editing, setEditing] = useState<Academy | null>(null);
   const sendBroadcast = useSendBroadcast();
   const [broadcastTitle, setBroadcastTitle] = useState("");
@@ -147,73 +129,6 @@ export function SuperAdminDashboard() {
     try {
       await setAcademyPlan.mutateAsync({ academyId, plan });
       toast.success(t("super_admin_plan_updated"));
-    } catch {
-      toast.error(t("common_error"));
-    }
-  };
-
-  const handleReviewFee = async (participantId: string, approve: boolean) => {
-    try {
-      await reviewGameFee.mutateAsync({ participantId, approve });
-      toast.success(
-        approve ? t("super_admin_fee_approved") : t("super_admin_fee_rejected")
-      );
-    } catch {
-      toast.error(t("common_error"));
-    }
-  };
-
-  const handleReviewRent = async (paymentId: string, approve: boolean) => {
-    try {
-      await reviewRent.mutateAsync({ paymentId, approve });
-      toast.success(
-        approve ? t("super_admin_fee_approved") : t("super_admin_fee_rejected")
-      );
-    } catch {
-      toast.error(t("common_error"));
-    }
-  };
-
-  const handleViewReceipt = async (path: string | null) => {
-    if (!path) return;
-    setOpeningReceipt(path);
-    try {
-      const supabase = createClient();
-      const { data, error } = await supabase.storage
-        .from("game-fee-receipts")
-        .createSignedUrl(path, 600);
-      if (error) throw error;
-      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
-    } catch {
-      toast.error(t("super_admin_fee_receipt_fail"));
-    } finally {
-      setOpeningReceipt(null);
-    }
-  };
-
-  const handleViewSubReceipt = async (path: string | null) => {
-    if (!path) return;
-    setOpeningSubReceipt(path);
-    try {
-      const supabase = createClient();
-      const { data, error } = await supabase.storage
-        .from("subscription-receipts")
-        .createSignedUrl(path, 600);
-      if (error) throw error;
-      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
-    } catch {
-      toast.error(t("super_admin_sub_receipt_fail"));
-    } finally {
-      setOpeningSubReceipt(null);
-    }
-  };
-
-  const handleReviewSub = async (subscriptionId: string, approve: boolean) => {
-    try {
-      await reviewSub.mutateAsync({ subscriptionId, approve });
-      toast.success(
-        approve ? t("super_admin_sub_approved") : t("super_admin_sub_rejected")
-      );
     } catch {
       toast.error(t("common_error"));
     }
@@ -479,323 +394,11 @@ export function SuperAdminDashboard() {
         </Reveal>
       )}
 
-      {/* Game fee review */}
+      {/* Payment approvals */}
       <Reveal index={2}>
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Receipt className="h-4 w-4 text-primary" />
-            {t("super_admin_game_fees")}
-            {(pendingFees ?? []).length > 0 && (
-              <Badge variant="warning">{(pendingFees ?? []).length}</Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {!pendingFees || pendingFees.length === 0 ? (
-            <EmptyState
-              message={t("super_admin_game_fees_empty")}
-              hint={t("super_admin_game_fees_hint")}
-              icon={Receipt}
-            />
-          ) : (
-            <div className="rounded-xl border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead>{t("community_game_title")}</TableHead>
-                    <TableHead className="hidden sm:table-cell">{t("community_organizer")}</TableHead>
-                    <TableHead className="hidden md:table-cell">{t("community_sport")}</TableHead>
-                    <TableHead className="hidden md:table-cell">{t("games_share_per_player")}</TableHead>
-                    <TableHead className="hidden lg:table-cell">{t("checkout_method")}</TableHead>
-                    <TableHead className="text-end">{t("super_admin_actions")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(pendingFees ?? []).map((p) => (
-                    <TableRow key={p.id}>
-                      <TableCell>
-                        <p className="truncate font-medium">{p.game?.title ?? "—"}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {p.game?.game_date ?? ""} · {formatTime12h(p.game?.start_time, lang)}
-                        </p>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        <p>{memberName(p.member_id)}</p>
-                        {memberHandle(p.member_id) && (
-                          <p className="text-xs text-muted-foreground">{memberHandle(p.member_id)}</p>
-                        )}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        {p.game?.sport ?? p.game?.title ?? "—"}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        {money(p.share_amount ?? 0)}
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        {p.pay_method
-                          ? t(`game_fee_method_${p.pay_method}` as any)
-                          : "—"}
-                      </TableCell>
-                      <TableCell className="text-end">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="gap-1"
-                            disabled={openingReceipt !== null}
-                            onClick={() =>
-                              handleViewReceipt(p.pay_receipt_url)
-                            }
-                          >
-                            <Eye className="h-3 w-3" />
-                            {t("super_admin_fee_view_receipt")}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="gap-1 text-success-ink hover:text-success-ink"
-                            disabled={reviewGameFee.isPending}
-                            onClick={() => handleReviewFee(p.id, true)}
-                          >
-                            <CheckCircle2 className="h-3 w-3" />
-                            {t("super_admin_fee_approve")}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="gap-1 text-muted-foreground"
-                            disabled={reviewGameFee.isPending}
-                            onClick={() => handleReviewFee(p.id, false)}
-                          >
-                            <XCircle className="h-3 w-3" />
-                            {t("super_admin_fee_reject")}
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <PaymentApprovals />
       </Reveal>
 
-      {/* Rent remaining review */}
-      <Reveal index={3}>
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <ShieldCheck className="h-4 w-4 text-primary" />
-            {t("super_admin_rent_payments")}
-            {(pendingRent ?? []).length > 0 && (
-              <Badge variant="warning">{(pendingRent ?? []).length}</Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {!pendingRent || pendingRent.length === 0 ? (
-            <EmptyState
-              message={t("super_admin_rent_empty")}
-              hint={t("super_admin_rent_hint")}
-              icon={ShieldCheck}
-            />
-          ) : (
-            <div className="rounded-xl border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead>{t("community_game_title")}</TableHead>
-                    <TableHead className="hidden sm:table-cell">{t("community_organizer")}</TableHead>
-                    <TableHead className="hidden md:table-cell">{t("community_sport")}</TableHead>
-                    <TableHead className="hidden md:table-cell">{t("checkout_total")}</TableHead>
-                    <TableHead className="hidden lg:table-cell">{t("checkout_method")}</TableHead>
-                    <TableHead className="text-end">{t("super_admin_actions")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(pendingRent ?? []).map((p) => (
-                    <TableRow key={p.id}>
-                      <TableCell>
-                        <p className="truncate font-medium">{p.game?.title ?? "—"}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {p.game?.game_date ?? ""} · {formatTime12h(p.game?.start_time, lang)}
-                        </p>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        <p>{memberName(p.member_id)}</p>
-                        {memberHandle(p.member_id) && (
-                          <p className="text-xs text-muted-foreground">{memberHandle(p.member_id)}</p>
-                        )}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        {p.game?.sport ?? "—"}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        {money(p.amount ?? 0)}
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        {p.pay_method
-                          ? t(`game_fee_method_${p.pay_method}` as any)
-                          : "—"}
-                      </TableCell>
-                      <TableCell className="text-end">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="gap-1"
-                            disabled={openingReceipt !== null}
-                            onClick={() =>
-                              handleViewReceipt(p.pay_receipt_url)
-                            }
-                          >
-                            <Eye className="h-3 w-3" />
-                            {t("super_admin_fee_view_receipt")}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="gap-1 text-success-ink hover:text-success-ink"
-                            disabled={reviewRent.isPending}
-                            onClick={() => handleReviewRent(p.id, true)}
-                          >
-                            <CheckCircle2 className="h-3 w-3" />
-                            {t("super_admin_fee_approve")}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="gap-1 text-muted-foreground"
-                            disabled={reviewRent.isPending}
-                            onClick={() => handleReviewRent(p.id, false)}
-                          >
-                            <XCircle className="h-3 w-3" />
-                            {t("super_admin_fee_reject")}
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      </Reveal>
-
-      {/* Subscription receipts review */}
-      <Reveal index={4}>
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Wallet className="h-4 w-4 text-primary" />
-            {t("super_admin_subscriptions")}
-            {(pendingSubs ?? []).length > 0 && (
-              <Badge variant="warning">{(pendingSubs ?? []).length}</Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {!pendingSubs || pendingSubs.length === 0 ? (
-            <EmptyState
-              message={t("super_admin_subscriptions_empty")}
-              hint={t("super_admin_subscriptions_hint")}
-              icon={Wallet}
-            />
-          ) : (
-            <div className="rounded-xl border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead>{t("super_admin_plan_label")}</TableHead>
-                    <TableHead className="hidden sm:table-cell">
-                      {t("community_organizer")}
-                    </TableHead>
-                    <TableHead className="hidden md:table-cell">
-                      {t("checkout_total")}
-                    </TableHead>
-                    <TableHead className="text-end">{t("super_admin_actions")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(pendingSubs ?? []).map((sub) => (
-                    <TableRow key={sub.id}>
-                      <TableCell>
-                        <p className="truncate font-medium">
-                          {sub.kind === "member"
-                            ? t("sub_kind_member")
-                            : t(`plans_tier_${sub.plan}` as any)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {t(`checkout_method_${sub.method}` as any)} ·{" "}
-                          {t(`checkout_cycle_${sub.billing_cycle}` as any)}
-                        </p>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        {sub.kind === "academy" ? (
-                          t("sub_kind_academy")
-                        ) : (
-                          <>
-                            <p>{memberName(sub.user_id)}</p>
-                            {memberHandle(sub.user_id) && (
-                              <p className="text-xs text-muted-foreground">{memberHandle(sub.user_id)}</p>
-                            )}
-                          </>
-                        )}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        {sub.amount} {t("currency_egp")}
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(sub.created_at), "MMM d, yyyy")}
-                        </p>
-                      </TableCell>
-                      <TableCell className="text-end">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="gap-1"
-                            disabled={openingSubReceipt !== null}
-                            onClick={() => handleViewSubReceipt(sub.receipt_url)}
-                          >
-                            <Eye className="h-3 w-3" />
-                            {t("super_admin_sub_view")}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="gap-1 text-success-ink hover:text-success-ink"
-                            disabled={reviewSub.isPending}
-                            onClick={() => handleReviewSub(sub.id, true)}
-                          >
-                            <CheckCircle2 className="h-3 w-3" />
-                            {t("super_admin_sub_approve")}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="gap-1 text-muted-foreground"
-                            disabled={reviewSub.isPending}
-                            onClick={() => handleReviewSub(sub.id, false)}
-                          >
-                            <XCircle className="h-3 w-3" />
-                            {t("super_admin_sub_reject")}
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      </Reveal>
 
       {/* Broadcast to all users */}
       <Reveal index={5}>
