@@ -36,6 +36,7 @@ import { COMMUNITY_SPORTS } from "@/lib/constants";
 import { DirectionsLinks } from "@/components/shared/directions-links";
 import { createClient } from "@/lib/supabase/client";
 import { cn, errorMessage } from "@/lib/utils";
+import { SITE_URL } from "@/lib/seo";
 
 type Row = Record<string, any>;
 type Records = Record<string, Row[]>;
@@ -355,6 +356,17 @@ function GameParticipantRow({ participant }: { participant: Row }) {
 }
 function GameDetails({ game, data }: { game: Row; data: Records }) {
   const { t, lang } = useI18n();
+  const inviteCode = typeof game.invite_code === "string" ? game.invite_code.trim() : "";
+  const inviteLink = inviteCode ? `${SITE_URL}/games?join=${encodeURIComponent(inviteCode)}` : null;
+  const copyInviteLink = async () => {
+    if (!inviteLink) return;
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      toast.success(t("games_invite_copied"));
+    } catch {
+      toast.error(t("common_error"));
+    }
+  };
   const notSet = t("sa_not_set");
   const participants = data.friendly_game_participants.filter(p => p.game_id === game.id);
   const players = participants.filter(p => !p.is_waitlisted);
@@ -387,6 +399,15 @@ function GameDetails({ game, data }: { game: Row; data: Records }) {
       {game.recurrence && <span className="rounded-full bg-muted px-3 py-1 font-medium">{t("community_weekly")}</span>}
     </div>
     {game.description && <p className="whitespace-pre-wrap break-words text-sm text-muted-foreground">{game.description}</p>}
+    <section className="space-y-2">
+      <h3 className="text-sm font-semibold">{lang === "ar" ? "رابط دعوة المباراة" : "Game invite link"}</h3>
+      {inviteLink ? <div className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center">
+        <a href={inviteLink} target="_blank" rel="noopener noreferrer" dir="ltr" className="min-w-0 flex-1 break-all text-sm text-primary underline underline-offset-4">{inviteLink}</a>
+        <Button type="button" size="sm" variant="outline" className="shrink-0" onClick={copyInviteLink}>
+          <Copy className="me-1 h-4 w-4" />{t("games_copy_invite")}
+        </Button>
+      </div> : <p className="text-sm text-muted-foreground">{notSet}</p>}
+    </section>
     <dl className="grid grid-cols-3 gap-2 text-center">
       {[
         { k: t("sa_game_date"), v: game.game_date ?? notSet },
