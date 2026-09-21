@@ -37,7 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
-import { computeRemainingGames } from "@/lib/tournament-results";
+import { computeLeagueStandings, computeRemainingGames } from "@/lib/tournament-results";
 import { cn, errorMessage } from "@/lib/utils";
 import {
   useAddTournamentParticipants,
@@ -50,12 +50,12 @@ import {
   useRemoveTournamentTeamMember,
   useRenameTournamentTeam,
   useSubmitTournamentScore,
+  useSaveTournament,
   useTournamentParticipants,
   useTournamentTeams,
 } from "@/lib/queries";
 import type {
   TournamentMatch,
-  TournamentStanding,
   TournamentTeamWithMembers,
   TournamentWithMatches,
 } from "@/lib/types";
@@ -79,6 +79,7 @@ export function TournamentRunner({ tournament }: { tournament: TournamentWithMat
   const addTeamMembers = useAddTournamentTeamMembers();
   const removeTeamMember = useRemoveTournamentTeamMember();
   const submitScore = useSubmitTournamentScore();
+  const saveTournament = useSaveTournament();
   const generateFixtures = useGenerateTournamentFixtures();
 
   const [poolOpen, setPoolOpen] = useState(false);
@@ -96,61 +97,11 @@ export function TournamentRunner({ tournament }: { tournament: TournamentWithMat
     [teams]
   );
 
-  const standings: TournamentStanding[] = useMemo(() => {
-    if (tournament.format !== "league") return [];
-    const rows = new Map<string, TournamentStanding>();
-    for (const tm of teams ?? []) {
-      rows.set(tm.id, {
-        team_id: tm.id,
-        name: tm.name,
-        played: 0,
-        won: 0,
-        drawn: 0,
-        lost: 0,
-        goals_for: 0,
-        goals_against: 0,
-        goal_diff: 0,
-        points: 0,
-      });
-    }
-    for (const m of tournament.tournament_matches) {
-      if (m.status !== "completed" || m.score_a == null || m.score_b == null) continue;
-      if (!m.team_a_id || !m.team_b_id) continue;
-      const a = rows.get(m.team_a_id);
-      const b = rows.get(m.team_b_id);
-      if (!a || !b) continue;
-      const ga = m.goals_a ?? m.score_a;
-      const gb = m.goals_b ?? m.score_b;
-      a.played += 1;
-      b.played += 1;
-      a.goals_for += ga;
-      a.goals_against += gb;
-      b.goals_for += gb;
-      b.goals_against += ga;
-      if (m.score_a > m.score_b) {
-        a.won += 1;
-        b.lost += 1;
-        a.points += 3;
-      } else if (m.score_a < m.score_b) {
-        b.won += 1;
-        a.lost += 1;
-        b.points += 3;
-      } else {
-        a.drawn += 1;
-        b.drawn += 1;
-        a.points += 1;
-        b.points += 1;
-      }
-    }
-    for (const r of rows.values()) r.goal_diff = r.goals_for - r.goals_against;
-    return [...rows.values()].sort(
-      (x, y) =>
-        y.points - x.points ||
-        y.goal_diff - x.goal_diff ||
-        y.goals_for - x.goals_for ||
-        x.name.localeCompare(y.name)
-    );
-  }, [tournament.format, tournament.tournament_matches, teams]);
+  const standings = useMemo(
+    () => tournament.format === "league"
+      ? computeLeagueStandings(tournament.tournament_matches, teams ?? []) : [],
+    [tournament.format, tournament.tournament_matches, teams]
+  );
 
   // Knockout: the next matches that still need a score, then scheduled ones.
   const upNext = useMemo(
@@ -181,6 +132,9 @@ export function TournamentRunner({ tournament }: { tournament: TournamentWithMat
   };
 
   const handleGenerate = async () => {
+    if (tournament.tournament_matches.length && !window.confirm(lang === "ar"
+      ? "إعادة إنشاء المباريات هتمسح الجدول الحالي. متأكد؟"
+      : "Replace the existing fixture schedule?")) return;
     try {
       const created = await generateFixtures.mutateAsync(tournament.id);
       toast.success(
@@ -247,9 +201,12 @@ export function TournamentRunner({ tournament }: { tournament: TournamentWithMat
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {m.status === "completed" ? (
-            <span className="font-mono font-bold">
-              {m.score_a} – {m.score_b}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="font-mono font-bold">{m.score_a} – {m.score_b}</span>
+              {tournament.format === "league" && <Button size="sm" variant="outline" onClick={() => {
+                setScoreMatch(m); setScoreA(String(m.score_a)); setScoreB(String(m.score_b));
+              }}>{t("common_edit")}</Button>}
+            </div>
           ) : m.status === "scheduled" && m.team_a_id && m.team_b_id ? (
             <Button
               size="sm"
@@ -287,6 +244,19 @@ export function TournamentRunner({ tournament }: { tournament: TournamentWithMat
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
+          <Select value={tournament.format ?? ""} disabled={saveTournament.isPending || tournament.tournament_matches.length > 0}
+            onValueChange={async (value: "league" | "knockout") => {
+              try { await saveTournament.mutateAsync({ ...tournament, format: value }); }
+              catch (error) { toast.error(errorMessage(error, t("common_error"))); }
+            }}>
+            <SelectTrigger className="max-w-xs" aria-label={lang === "ar" ? "نظام البطولة" : "Tournament format"}>
+              <SelectValue placeholder={lang === "ar" ? "اختار نظام البطولة" : "Choose tournament format"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="knockout">{t("tr_format_knockout")}</SelectItem>
+              <SelectItem value="league">{t("tr_format_league")}</SelectItem>
+            </SelectContent>
+          </Select>
           <div className="flex flex-wrap items-center gap-2">
             <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setPoolOpen(true)}>
               <Users className="h-4 w-4" />
@@ -301,6 +271,7 @@ export function TournamentRunner({ tournament }: { tournament: TournamentWithMat
               className="gap-1.5"
               disabled={
                 generateFixtures.isPending ||
+                tournament.tournament_matches.some((match) => match.status === "completed") ||
                 !tournament.format ||
                 (teams?.length ?? 0) < 2
               }
@@ -316,6 +287,9 @@ export function TournamentRunner({ tournament }: { tournament: TournamentWithMat
         </CardContent>
       </Card>
 
+      <p className="text-sm text-muted-foreground">{lang === "ar"
+        ? "١. ضيف المشاركين ٢. سمّي الفرق ووزّع اللاعبين ٣. اختار نظام الدوري وأنشئ المباريات ٤. سجّل النتائج. الفوز ٣ نقاط والتعادل نقطة؛ الترتيب بالنقاط ثم فارق الأهداف ثم الأهداف المسجلة."
+        : "1. Add participants. 2. Name teams and assign players. 3. Choose League in tournament settings and generate fixtures. 4. Record results. A win earns 3 points; a draw earns 1. Ties use score difference, then scores for."}</p>
       {/* Teams */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {(teams ?? []).map((tm) => (

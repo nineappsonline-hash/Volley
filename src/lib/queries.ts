@@ -2461,7 +2461,7 @@ export function useSubmitTournamentScore() {
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["tournaments"] });
+      invalidateTournamentRunner(qc);
     },
   });
 }
@@ -2478,7 +2478,7 @@ export function useGenerateTournamentFixtures() {
       return data as number;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["tournaments"] });
+      invalidateTournamentRunner(qc);
     },
   });
 }

@@ -12,7 +12,7 @@ export default async function TournamentsPage({ searchParams }: { searchParams: 
 
   return (
     <TournamentsClient
-      canCreate={user.role !== "member"}
+      canCreate={user.role === "admin" || user.role === "super_admin"}
       autoCreate={create === "1"}
     />
   );

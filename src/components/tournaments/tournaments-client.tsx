@@ -155,7 +155,7 @@ export function TournamentsClient({
           <ArrowLeft className="h-4 w-4" />
           {t("tr_back")}
         </Button>
-        <TournamentRunner tournament={running} />
+        <TournamentRunner tournament={tournaments?.find((item) => item.id === running.id) ?? running} />
       </div>
     );
   }
@@ -224,7 +224,7 @@ export function TournamentsClient({
                       </Badge>
                     </div>
                   </div>
-                  {canCreate && (
+                  {canCreate && (academy === null || academy?.id === tournament.academy_id) && (
                     <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                       <Button
                         variant="ghost"
@@ -299,7 +299,7 @@ export function TournamentsClient({
                     )}
                   </div>
                   <div className={cn("grid gap-2", canCreate ? "grid-cols-2" : "grid-cols-1")}>
-                    {canCreate && (
+                    {canCreate && (academy === null || academy?.id === tournament.academy_id) && (
                       <Button
                         variant="default"
                         size="sm"
@@ -384,7 +384,7 @@ export function TournamentsClient({
                         </p>
                       </div>
                       <div className="flex items-center gap-1">
-                        {canCreate && (
+                        {canCreate && (academy === null || academy?.id === details.academy_id) && (
                           <Button
                             variant="ghost"
                             size="icon"
@@ -402,7 +402,7 @@ export function TournamentsClient({
                     </div>
                   ))
               )}
-              {canCreate && (
+              {canCreate && (academy === null || academy?.id === details.academy_id) && (
                 <Button
                   variant="outline"
                   size="sm"
