@@ -37,11 +37,11 @@ import {
 } from "@/components/shared/playground-location-filters";
 import { MapPicker } from "@/components/shared/map-picker";
 import { PlaygroundTimeRange } from "@/components/shared/playground-time-range";
-import { useCreateFriendlyGame, usePlaygrounds, usePayGameShare, usePayRentRemaining, useSportSettings } from "@/lib/queries";
+import { useCreateFriendlyGame, useFriendlyGames, usePlaygrounds, usePayGameShare, usePayRentRemaining, useSportSettings } from "@/lib/queries";
 import { GameSharePayment } from "@/components/games/game-share-payment";
 import { CourtRentInfoDialog } from "@/components/games/court-rent-info-dialog";
 import { addDaysInput, errorMessage } from "@/lib/utils";
-import { minutesOf } from "@/lib/venue-slots";
+import { minutesOf, unavailableIntervalsForDate } from "@/lib/venue-slots";
 
 export function CreateGameDialog({
   open,
@@ -60,6 +60,7 @@ export function CreateGameDialog({
   const playgroundQuery = usePlaygrounds();
   const { data: playgrounds } = playgroundQuery;
   const { data: sportMinOverrides } = useSportSettings();
+  const { data: allGames } = useFriendlyGames();
   const [playgroundId, setPlaygroundId] = useState("");
   const selectedPlayground = (playgrounds ?? []).find((p) => p.id === playgroundId);
 
@@ -153,6 +154,33 @@ export function CreateGameDialog({
       setSharePaid(false);
     }
   }, [open]);
+
+  const busyIntervals = useMemo(
+    () =>
+      unavailableIntervalsForDate(
+        selectedPlayground?.unavailable_slots,
+        allGames ?? [],
+        date,
+        selectedPlayground?.court_count ?? 1,
+      ),
+    [selectedPlayground, allGames, date],
+  );
+
+  const busyForDate = useMemo(
+    () => (iso: string) =>
+      unavailableIntervalsForDate(
+        selectedPlayground?.unavailable_slots,
+        allGames ?? [],
+        iso,
+        selectedPlayground?.court_count ?? 1,
+      ),
+    [selectedPlayground, allGames],
+  );
+
+  useEffect(() => {
+    setTime("");
+    setToTime("");
+  }, [playgroundId]);
 
   const durationHours =
     time && toTime ? (minutesOf(toTime) - minutesOf(time)) / 60 : 0;
@@ -408,6 +436,7 @@ export function CreateGameDialog({
             <PlaygroundAvailabilityCalendar
               unavailableSlots={selectedPlayground.unavailable_slots}
               workingHours={selectedPlayground.working_hours}
+              busyForDate={busyForDate}
               selectedDate={date || undefined}
               onSelectDate={handleDateChange}
               minDate={addDaysInput(1)}
@@ -426,6 +455,7 @@ export function CreateGameDialog({
             </div>
             <PlaygroundTimeRange
               workingHours={selectedPlayground?.working_hours}
+              busyIntervals={busyIntervals}
               date={date}
               from={time}
               to={toTime}

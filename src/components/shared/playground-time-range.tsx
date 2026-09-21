@@ -12,43 +12,58 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { formatTime12h } from "@/lib/constants";
 import {
+  allowedIntervalsForDate,
   endTimeOptionsForDate,
   minutesOf,
+  rangeOverlaps,
   timeOptionsForDate,
 } from "@/lib/venue-slots";
 import type { VenueUnavailableSlot } from "@/lib/types";
 
 /**
  * Start ("from") and end ("to") time pickers whose options come from the
- * playground's working hours for the chosen date. The reservation duration is
- * derived automatically from the two picks and shown read-only. Renders three
- * grid cells so the parent can drop it inside its own layout grid.
+ * playground's working hours for the chosen date. Unavailable (blocked) and
+ * fully-booked intervals are excluded, and the reservation duration is derived
+ * automatically from the two picks and shown read-only. Renders three grid
+ * cells so the parent can drop it inside its own layout grid.
  */
 export function PlaygroundTimeRange({
   workingHours,
+  busyIntervals,
   date,
   from,
   to,
+  step = 60,
   onFromChange,
   onToChange,
 }: {
   workingHours?: VenueUnavailableSlot[];
+  /** Unavailable minute intervals (blocked + fully booked) for `date`. */
+  busyIntervals?: Array<[number, number]>;
   date: string;
   from: string;
   to: string;
+  step?: number;
   onFromChange: (value: string) => void;
   onToChange: (value: string) => void;
 }) {
   const { t, lang } = useI18n();
+  const busy = useMemo(() => busyIntervals ?? [], [busyIntervals]);
 
   const startOptions = useMemo(
-    () => timeOptionsForDate(workingHours, date),
-    [workingHours, date],
+    () =>
+      timeOptionsForDate(workingHours, date, step).filter(
+        (v) => !rangeOverlaps(minutesOf(v), minutesOf(v) + step, busy),
+      ),
+    [workingHours, date, step, busy],
   );
-  const endOptions = useMemo(
-    () => (from ? endTimeOptionsForDate(workingHours, date, from) : []),
-    [workingHours, date, from],
-  );
+  const endOptions = useMemo(() => {
+    if (!from) return [];
+    const fromMin = minutesOf(from);
+    return endTimeOptionsForDate(workingHours, date, from, step).filter(
+      (v) => !rangeOverlaps(fromMin, minutesOf(v), busy),
+    );
+  }, [workingHours, date, from, step, busy]);
 
   const duration = from && to ? (minutesOf(to) - minutesOf(from)) / 60 : 0;
   const durationLabel =
@@ -66,10 +81,18 @@ export function PlaygroundTimeRange({
 
   const handleFrom = (value: string) => {
     onFromChange(value);
-    if (to && minutesOf(to) <= minutesOf(value)) onToChange("");
+    if (to) {
+      const fromMin = minutesOf(value);
+      const toMin = minutesOf(to);
+      if (toMin <= fromMin || rangeOverlaps(fromMin, toMin, busy)) onToChange("");
+    }
   };
 
   const closed = !!date && startOptions.length === 0;
+  const closedDay =
+    !!date &&
+    !!workingHours?.length &&
+    allowedIntervalsForDate(workingHours, date).length === 0;
 
   return (
     <>
@@ -92,7 +115,9 @@ export function PlaygroundTimeRange({
           </SelectContent>
         </Select>
         {closed && (
-          <p className="text-xs text-muted-foreground">{t("wh_closed_day")}</p>
+          <p className="text-xs text-muted-foreground">
+            {closedDay ? t("wh_closed_day") : t("avail_no_times")}
+          </p>
         )}
       </div>
       <div className="space-y-2">

@@ -6,7 +6,10 @@ import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { formatHour12, formatTime12h } from "@/lib/constants";
 import {
+  allowedIntervalsForDate,
+  blockedIntervalsForDate,
   closedIntervalsFromWorkingHours,
+  hasFreeSlotForDate,
   padMinutes,
   weekdayOf,
 } from "@/lib/venue-slots";
@@ -28,6 +31,7 @@ const toDateInput = (d: Date) =>
 export function PlaygroundAvailabilityCalendar({
   unavailableSlots,
   workingHours,
+  busyForDate,
   selectedDate,
   onSelectDate,
   className,
@@ -35,6 +39,8 @@ export function PlaygroundAvailabilityCalendar({
 }: {
   unavailableSlots?: VenueUnavailableSlot[];
   workingHours?: VenueUnavailableSlot[];
+  /** Unavailable minute intervals (blocked + fully booked) for a given date. */
+  busyForDate?: (date: string) => Array<[number, number]>;
   selectedDate?: string;
   onSelectDate?: (date: string) => void;
   className?: string;
@@ -54,12 +60,15 @@ export function PlaygroundAvailabilityCalendar({
   );
   const todayIso = toDateInput(new Date());
 
-  const dayStatus = (iso: string): "closed" | "blocked" | "open" => {
-    const blocked = (unavailableSlots ?? []).some((s) => s.weekday === weekdayOf(iso));
-    const closed = closedIntervalsFromWorkingHours(workingHours, iso);
-    const allDay = closed.some(([s, e]) => s === 0 && e === 1440);
-    if (allDay) return "closed";
-    return blocked ? "blocked" : "open";
+  const busyOn = (iso: string): Array<[number, number]> =>
+    busyForDate ? busyForDate(iso) : blockedIntervalsForDate(unavailableSlots ?? [], iso);
+
+  const dayStatus = (iso: string): "closed" | "full" | "blocked" | "open" => {
+    const allowed = allowedIntervalsForDate(workingHours, iso);
+    if (!!workingHours?.length && allowed.length === 0) return "closed";
+    const busy = busyOn(iso);
+    if (busy.length === 0) return "open";
+    return hasFreeSlotForDate(workingHours, busy, iso) ? "blocked" : "full";
   };
 
   const slotsFor = (iso: string) =>
@@ -125,7 +134,8 @@ export function PlaygroundAvailabilityCalendar({
           const status = dayStatus(iso);
           const isSelected = selectedDate === iso;
           const isToday = iso === todayIso;
-          const disabled = !!minDate && iso < minDate;
+          const unavailable = status === "closed" || status === "full";
+          const disabled = (!!minDate && iso < minDate) || unavailable;
           return (
             <button
               key={iso}
@@ -143,9 +153,17 @@ export function PlaygroundAvailabilityCalendar({
               <span
                 className={cn(
                   "h-1.5 w-1.5 rounded-full",
-                  status === "closed" ? "bg-destructive" : status === "blocked" ? "bg-warning-ink" : "bg-success-ink"
+                  unavailable ? "bg-destructive" : status === "blocked" ? "bg-warning-ink" : "bg-success-ink"
                 )}
-                aria-label={status === "closed" ? t("avail_closed") : status === "blocked" ? t("avail_blocked") : t("avail_open")}
+                aria-label={
+                  status === "closed"
+                    ? t("avail_closed")
+                    : status === "full"
+                      ? t("avail_full")
+                      : status === "blocked"
+                        ? t("avail_blocked")
+                        : t("avail_open")
+                }
               />
             </button>
           );
@@ -160,6 +178,8 @@ export function PlaygroundAvailabilityCalendar({
           </p>
           {dayStatus(selectedDate) === "closed" ? (
             <p className="text-destructive">{t("wh_closed_day")}</p>
+          ) : dayStatus(selectedDate) === "full" ? (
+            <p className="text-destructive">{t("avail_no_times")}</p>
           ) : (
             <>
               {workingFor(selectedDate) && (

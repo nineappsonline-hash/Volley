@@ -154,7 +154,118 @@ export function dayWorkingHoursLabel(
 
 /** Default start/end window when a playground has no working-hours config
  * (06:00 → 24:00). */
-const DEFAULT_WINDOW: Array<[number, number]> = [[360, 1440]];
+export const DEFAULT_WORKING_WINDOW: Array<[number, number]> = [[360, 1440]];
+
+/** Working intervals for a date, falling back to the default window when the
+ * playground has no working-hours config (rather than "closed"). */
+export function allowedIntervalsForDate(
+  hours: VenueUnavailableSlot[] | undefined,
+  date: string
+): Array<[number, number]> {
+  return hours && hours.length > 0
+    ? workingIntervalsForDate(hours, date)
+    : DEFAULT_WORKING_WINDOW;
+}
+
+/** A game booking used when checking whether a slot is already taken. */
+export interface GameBooking {
+  game_date: string;
+  start_time: string;
+  duration_hours: number;
+  court_number?: number | null;
+}
+
+/** True when [startMin, endMin) overlaps any of the minute intervals. */
+export function rangeOverlaps(
+  startMin: number,
+  endMin: number,
+  intervals: Array<[number, number]>
+): boolean {
+  return intervals.some(([s, e]) => startMin < e && s < endMin);
+}
+
+/** Minute intervals on `date` during which every court is occupied. */
+export function fullyBookedIntervals(
+  games: GameBooking[] | undefined,
+  date: string,
+  courtCount = 1
+): Array<[number, number]> {
+  const count = Math.max(1, courtCount || 1);
+  const courtsByMinute = new Map<number, Set<number>>();
+  for (const g of games ?? []) {
+    if (g.game_date !== date) continue;
+    const start = minutesOf(g.start_time);
+    const end = start + Math.round((Number(g.duration_hours) || 1) * 60);
+    const court = g.court_number ?? 1;
+    for (let m = Math.max(0, start); m < Math.min(1440, end); m++) {
+      let set = courtsByMinute.get(m);
+      if (!set) {
+        set = new Set();
+        courtsByMinute.set(m, set);
+      }
+      set.add(court);
+    }
+  }
+  const busy = new Array<boolean>(1440).fill(false);
+  for (const [m, set] of courtsByMinute) {
+    if (set.size >= count) busy[m] = true;
+  }
+  const out: Array<[number, number]> = [];
+  let runStart = -1;
+  for (let m = 0; m <= 1440; m++) {
+    const isBusy = m < 1440 && busy[m];
+    if (isBusy && runStart < 0) runStart = m;
+    else if (!isBusy && runStart >= 0) {
+      out.push([runStart, m]);
+      runStart = -1;
+    }
+  }
+  return out;
+}
+
+/** Merge overlapping/adjacent minute intervals. */
+function mergeIntervals(intervals: Array<[number, number]>): Array<[number, number]> {
+  const sorted = intervals
+    .filter(([s, e]) => e > s)
+    .slice()
+    .sort((a, b) => a[0] - b[0]);
+  const out: Array<[number, number]> = [];
+  for (const [s, e] of sorted) {
+    const last = out[out.length - 1];
+    if (last && s <= last[1]) last[1] = Math.max(last[1], e);
+    else out.push([s, e]);
+  }
+  return out;
+}
+
+/** Unavailable intervals (minutes-of-day) on a date: venue blocks plus times
+ * where every court is already booked. */
+export function unavailableIntervalsForDate(
+  unavailableSlots: VenueUnavailableSlot[] | undefined,
+  games: GameBooking[] | undefined,
+  date: string,
+  courtCount = 1
+): Array<[number, number]> {
+  return mergeIntervals([
+    ...blockedIntervalsForDate(unavailableSlots ?? [], date),
+    ...fullyBookedIntervals(games, date, courtCount),
+  ]);
+}
+
+/** Whether at least one `step`-minute slot inside the working hours is free. */
+export function hasFreeSlotForDate(
+  hours: VenueUnavailableSlot[] | undefined,
+  busy: Array<[number, number]>,
+  date: string,
+  step = 60
+): boolean {
+  for (const [start, end] of allowedIntervalsForDate(hours, date)) {
+    for (let m = start; m + step <= end; m += step) {
+      if (!rangeOverlaps(m, m + step, busy)) return true;
+    }
+  }
+  return false;
+}
 
 /** "HH:MM" start-time options for one date, stepped by `step` minutes inside
  * the playground's working windows. Falls back to the default window when
@@ -164,9 +275,7 @@ export function timeOptionsForDate(
   date: string,
   step = 60
 ): string[] {
-  const intervals = (hours && hours.length > 0)
-    ? workingIntervalsForDate(hours, date)
-    : DEFAULT_WINDOW;
+  const intervals = allowedIntervalsForDate(hours, date);
   if (intervals.length === 0) return [];
   const out: string[] = [];
   for (const [start, end] of intervals) {
@@ -185,9 +294,7 @@ export function endTimeOptionsForDate(
   from: string,
   step = 60
 ): string[] {
-  const intervals = (hours && hours.length > 0)
-    ? workingIntervalsForDate(hours, date)
-    : DEFAULT_WINDOW;
+  const intervals = allowedIntervalsForDate(hours, date);
   if (intervals.length === 0) return [];
   const fromMin = minutesOf(from);
   const window = intervals.find(([s, e]) => fromMin >= s && fromMin < e);

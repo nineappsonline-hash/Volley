@@ -46,7 +46,7 @@ import { useCreateFriendlyGame, useFriendlyGames, usePlaygrounds, usePayGameShar
 import { GameSharePayment } from "@/components/games/game-share-payment";
 import { CourtRentInfoDialog } from "@/components/games/court-rent-info-dialog";
 import { addDaysInput, errorMessage } from "@/lib/utils";
-import { dayWorkingHoursLabel, findBlockedOverlap, formatBlockedSlot, isWithinWorkingHours, minutesOf, timeSlotsOverlap } from "@/lib/venue-slots";
+import { dayWorkingHoursLabel, findBlockedOverlap, formatBlockedSlot, isWithinWorkingHours, minutesOf, timeSlotsOverlap, unavailableIntervalsForDate } from "@/lib/venue-slots";
 import type { Dict } from "@/lib/i18n/dictionary";
 
 export function CreateGameDialog({
@@ -166,6 +166,33 @@ export function CreateGameDialog({
   }, [open]);
 
   const selectedPlayground = playgrounds?.find((p) => p.id === playgroundId);
+
+  const busyIntervals = useMemo(
+    () =>
+      unavailableIntervalsForDate(
+        selectedPlayground?.unavailable_slots,
+        allGames ?? [],
+        date,
+        selectedPlayground?.court_count ?? 1,
+      ),
+    [selectedPlayground, allGames, date],
+  );
+
+  const busyForDate = useMemo(
+    () => (iso: string) =>
+      unavailableIntervalsForDate(
+        selectedPlayground?.unavailable_slots,
+        allGames ?? [],
+        iso,
+        selectedPlayground?.court_count ?? 1,
+      ),
+    [selectedPlayground, allGames],
+  );
+
+  useEffect(() => {
+    setTime("");
+    setToTime("");
+  }, [playgroundId]);
 
   const durationHours =
     time && toTime ? (minutesOf(toTime) - minutesOf(time)) / 60 : 0;
@@ -457,6 +484,7 @@ export function CreateGameDialog({
             <PlaygroundAvailabilityCalendar
               unavailableSlots={selectedPlayground.unavailable_slots}
               workingHours={selectedPlayground.working_hours}
+              busyForDate={busyForDate}
               selectedDate={date || undefined}
               onSelectDate={handleDateChange}
               minDate={addDaysInput(1)}
@@ -477,6 +505,7 @@ export function CreateGameDialog({
               </div>
               <PlaygroundTimeRange
                 workingHours={selectedPlayground?.working_hours}
+                busyIntervals={busyIntervals}
                 date={date}
                 from={time}
                 to={toTime}
