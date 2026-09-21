@@ -35,7 +35,7 @@ export const revalidate = 300; // refresh listing every 5 minutes
 
 type SP = Promise<{ sport?: string; join?: string }>;
 
-const GAME_OG_IMAGE = (code: string) => `${SITE_URL}/og/game?code=${encodeURIComponent(code)}&v=2`;
+const GAME_OG_IMAGE = (code: string) => `${SITE_URL}/og/game?code=${encodeURIComponent(code)}&v=3`;
 
 function gameMeta(game: Awaited<ReturnType<typeof getGameByInviteCode>>) {
   if (!game) return null;
@@ -73,7 +73,7 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
           description: meta.description,
           url: joinUrl,
           siteName: "Playza",
-          images: [{ url: GAME_OG_IMAGE(join), width: 1200, height: 630, type: "image/png", alt: meta.title }],
+          images: [{ url: GAME_OG_IMAGE(join), secureUrl: GAME_OG_IMAGE(join), width: 1200, height: 630, type: "image/png", alt: meta.title }],
           locale: "en_US",
           type: "website",
         },

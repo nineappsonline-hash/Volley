@@ -74,6 +74,6 @@ export async function GET(request: Request): Promise<Response> {
         </div>}
       </div>
     </div>,
-    { width: 1200, height: 630, fonts: [{ name: "Noto Sans", data: regularFont, weight: 400, style: "normal" }, { name: "Noto Sans", data: boldFont, weight: 700, style: "normal" }, { name: "Arabic", data: arabicFont, weight: 400, style: "normal" }], headers: { "Cache-Control": "public, max-age=300, s-maxage=300, stale-while-revalidate=600" } }
+    { width: 1200, height: 630, fonts: [{ name: "Noto Sans", data: regularFont, weight: 400, style: "normal" }, { name: "Noto Sans", data: boldFont, weight: 700, style: "normal" }, { name: "Arabic", data: arabicFont, weight: 400, style: "normal" }], headers: { "cache-control": "public, max-age=300, s-maxage=300, stale-while-revalidate=600" } }
   );
 }
