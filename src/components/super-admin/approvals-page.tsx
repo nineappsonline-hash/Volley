@@ -10,16 +10,18 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/shared/page-header";
 import { createClient } from "@/lib/supabase/client";
-import { useAllAcademies } from "@/lib/queries";
+import { useAllAcademies, usePlaygroundOwnerApprovals } from "@/lib/queries";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
+import { OwnerApprovals } from "./owner-approvals";
 
 export function ApprovalsPage() {
   const { t, lang } = useI18n();
   const cache = useQueryClient();
-  const [section, setSection] = useState<"payments" | "playgrounds">("payments");
+  const [section, setSection] = useState<"payments" | "playgrounds" | "owners">("payments");
   const [photo, setPhoto] = useState<string | null>(null);
   const { data: academies } = useAllAcademies();
+  const { data: ownerApplications } = usePlaygroundOwnerApprovals();
   const { data: venues, isLoading, error, refetch } = useQuery({
     queryKey: ["venue-approvals"],
     queryFn: async () => {
@@ -50,8 +52,11 @@ export function ApprovalsPage() {
     <div className="flex flex-wrap gap-2">
       <Button variant={section === "payments" ? "default" : "outline"} onClick={() => setSection("payments")}>{t("approvals_payments")}</Button>
       <Button variant={section === "playgrounds" ? "default" : "outline"} onClick={() => setSection("playgrounds")}>{t("nav_playgrounds")} {venues && <Badge variant="secondary" className="ms-2">{venues.length}</Badge>}</Button>
+      <Button variant={section === "owners" ? "default" : "outline"} onClick={() => setSection("owners")}>{t("approvals_owners")} {ownerApplications && <Badge variant="secondary" className="ms-2">{ownerApplications.length}</Badge>}</Button>
     </div>
-    {section === "payments" ? <PaymentApprovals /> : <div className="space-y-4">
+    {section === "owners" ? (
+      <OwnerApprovals />
+    ) : section === "payments" ? <PaymentApprovals /> : <div className="space-y-4">
       <Button variant="outline" onClick={() => refetch()}>{t("sa_records_refresh")}</Button>
       {isLoading && <p>{t("common_loading")}</p>}
       {error && <p role="alert" className="text-destructive">{errorMessage(error, t("common_error"))}</p>}

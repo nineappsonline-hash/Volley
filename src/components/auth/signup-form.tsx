@@ -200,6 +200,7 @@ export function SignupForm() {
             "id, name, address, capacity, country, governorate, area, school_name, rental_cost, rental_hours"
           )
           .is("academy_id", null)
+          .is("owner_profile_id", null)
           .order("name");
         if (stale) return;
         const venues = (data ?? []) as PoolVenue[];
@@ -1017,6 +1018,14 @@ export function SignupForm() {
                 className="font-medium text-primary hover:underline"
               >
                 {t("signup_login_link")}
+              </Link>
+            </p>
+            <p className="mt-2 text-center text-sm">
+              <Link
+                href="/signup/owner"
+                className="font-medium text-primary hover:underline"
+              >
+                {t("owner_signup_link")} →
               </Link>
             </p>
           </CardContent>

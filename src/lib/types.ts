@@ -1,4 +1,4 @@
-export type Role = "super_admin" | "admin" | "member";
+export type Role = "super_admin" | "admin" | "member" | "playground_owner";
 
 export type MemberPlan = "free" | "premium";
 
@@ -472,6 +472,8 @@ export interface Venue {
   id: string;
   // Null when the venue sits in the platform's unassigned playground pool.
   academy_id: string | null;
+  // Set when the venue belongs to an independent playground owner (not an academy).
+  owner_profile_id: string | null;
   name: string;
   address: string | null;
   lat: number | null;
@@ -524,6 +526,21 @@ export interface AcademyPhoto {
   created_at: string;
 }
 
+export interface PlaygroundOwner {
+  id: string;
+  profile_id: string;
+  status: "pending" | "approved" | "rejected";
+  business_name: string | null;
+  phone: string | null;
+  country: string | null;
+  governorate: string | null;
+  area: string | null;
+  review_note: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
+  created_at: string;
+}
+
 export interface VenueRental {
   id: string;
   academy_id: string;
@@ -544,7 +561,7 @@ export interface VenueRental {
   court_number?: number;
   created_at: string;
   // Embedded select: venue name (via venues(name)).
-  venues?: { name: string } | null;
+  venues?: { name: string; rental_cost?: number | null } | null;
 }
 
 export interface Payment {

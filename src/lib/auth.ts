@@ -46,6 +46,9 @@ export function useAuth() {
         gender?: string;
         birth_date?: string;
         venues?: SignupVenue[];
+        ownerMode?: boolean;
+        businessName?: string;
+        ownerVenues?: SignupVenue[];
       },
       destination = "/dashboard"
     ) => {
@@ -73,6 +76,13 @@ export function useAuth() {
             ...(academy?.city ? { new_academy_area: academy.city } : {}),
             ...(academy?.venues?.length
               ? { new_academy_venues: academy.venues }
+              : {}),
+            ...(academy?.ownerMode ? { owner_mode: true } : {}),
+            ...(academy?.businessName
+              ? { business_name: academy.businessName }
+              : {}),
+            ...(academy?.ownerVenues?.length
+              ? { new_owner_venues: academy.ownerVenues }
               : {}),
           },
         },

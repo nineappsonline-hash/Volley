@@ -111,7 +111,7 @@ export function Topbar({ role, name, username, avatarUrl, avatarId, memberPlan, 
                 </p>
               )}
               <p className="text-xs font-normal text-muted-foreground">
-                {role === "super_admin" ? t("role_super_admin") : role === "admin" ? t("role_admin") : t("role_member")}
+                {role === "super_admin" ? t("role_super_admin") : role === "admin" ? t("role_admin") : role === "playground_owner" ? t("role_playground_owner") : t("role_member")}
               </p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

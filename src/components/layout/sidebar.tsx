@@ -50,6 +50,10 @@ const adminItems = [
   { href: "/upgrade", key: "nav_upgrade", icon: Crown },
 ] as const;
 
+const ownerItems = [
+  { href: "/playgrounds", key: "nav_playgrounds", icon: LandPlot },
+] as const;
+
 const superAdminItems = [
   { href: "/admin?tab=Approvals", key: "nav_approvals", icon: ClipboardCheck },
   { href: "/admin", key: "super_admin_title", icon: Crown },
@@ -98,15 +102,22 @@ export function Sidebar({ role, name, memberPlan, isCoach, onNavigate }: Sidebar
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { t, lang } = useI18n();
-  const catalog = role === "member"
-    ? [...memberItems, ...staffItems, ...adminItems]
-    : [...adminItems, ...academyItems, ...memberItems, ...staffItems];
+  const catalog = role === "super_admin"
+    ? superAdminItems
+    : role === "playground_owner"
+      ? ownerItems
+      : role === "member"
+        ? [...memberItems, ...staffItems, ...adminItems]
+        : [...adminItems, ...academyItems, ...memberItems, ...staffItems];
   const group = (en: string, ar: string, paths: string[]) => ({
     label: lang === "ar" ? ar : en,
     items: paths.map(path => catalog.find(item => item.href === path)!),
   });
   const groups = role === "super_admin"
     ? [{ label: lang === "ar" ? "إدارة المنصة" : "Platform management", items: superAdminItems }]
+    : role === "playground_owner" ? [
+      group("My playgrounds", "الملاعب بتاعتي", ["/playgrounds"]),
+    ]
     : role === "admin" ? [
       group("Daily operations", "الإدارة اليومية", ["/dashboard", "/schedule", "/attendance", "/members"]),
       group("Academy & training", "الأكاديمية والتدريب", ["/teams", "/coaches", "/dashboard/tournaments", "/playgrounds", "/rentals"]),
@@ -123,7 +134,7 @@ export function Sidebar({ role, name, memberPlan, isCoach, onNavigate }: Sidebar
 
   return (
     <div className="playza-navigation flex h-full min-h-0 flex-col gap-4 p-4">
-      <Link onClick={onNavigate} href={role === "super_admin" ? "/admin" : "/dashboard"} className="flex flex-col items-start gap-1 px-2 pt-2">
+      <Link onClick={onNavigate} href={role === "super_admin" ? "/admin" : role === "playground_owner" ? "/playgrounds" : "/dashboard"} className="flex flex-col items-start gap-1 px-2 pt-2">
         <AppLogo />
         <div className="flex flex-col">
 
@@ -175,7 +186,9 @@ export function Sidebar({ role, name, memberPlan, isCoach, onNavigate }: Sidebar
               ? t("role_super_admin")
               : role === "admin"
                 ? t("role_admin")
-                : t("role_member")}
+                : role === "playground_owner"
+                  ? t("role_playground_owner")
+                  : t("role_member")}
           </span>
           {role === "member" && memberPlan === "premium" && (
             <span className="inline-flex items-center gap-0.5 rounded-full bg-attention-100 px-1.5 py-0.5 text-[10px] font-semibold text-warning-ink dark:bg-attention-500/15 dark:text-attention-400">

@@ -29,7 +29,11 @@ export async function requireSession(): Promise<SessionData> {
   const metadataRole = user.app_metadata?.role as Role | undefined;
   const role: Role = isPlatformAdmin(user)
     ? "super_admin"
-    : metadataRole === "admin" ? "admin" : "member";
+    : metadataRole === "admin"
+      ? "admin"
+      : metadataRole === "playground_owner"
+        ? "playground_owner"
+        : "member";
 
   // Fetch profile for display data
   const { data: profile } = await supabase

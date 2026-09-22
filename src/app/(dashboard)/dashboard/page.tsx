@@ -10,6 +10,7 @@ export const metadata: Metadata = { title: "Dashboard" };
 export default async function DashboardPage() {
   const { profile } = await requireSession();
   if (profile.role === "super_admin") redirect("/admin");
+  if (profile.role === "playground_owner") redirect("/playgrounds");
 
   return (
     <div className="space-y-6">
