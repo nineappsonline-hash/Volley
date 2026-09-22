@@ -16,6 +16,7 @@ export type SignupVenue =
       photos?: string[];
       rental_cost?: number | null;
       rental_hours?: number | null;
+      court_count?: number;
     };
 
 export function useAuth() {

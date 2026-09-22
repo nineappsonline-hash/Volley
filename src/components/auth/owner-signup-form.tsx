@@ -63,6 +63,7 @@ type NewVenueDraft = {
   location_link: string;
   photos: string[];
   rental_cost: string;
+  court_count: string;
   fromPool?: boolean;
 };
 
@@ -176,6 +177,7 @@ export function OwnerSignupForm() {
         location_link: v.location_link.trim() || null,
         ...(v.photos.length ? { photos: v.photos } : {}),
         rental_cost: v.rental_cost.trim() !== "" ? Number(v.rental_cost) : null,
+        court_count: v.court_count.trim() !== "" ? Number(v.court_count) : 1,
       }));
       const { session } = await signUp(
         account.email,
@@ -250,7 +252,7 @@ export function OwnerSignupForm() {
   const addNewVenueDraft = () =>
     setSignupVenues((vs) => [
       ...vs,
-      { name: "", address: "", sport: "", location_link: "", photos: [], rental_cost: "" },
+      { name: "", address: "", sport: "", location_link: "", photos: [], rental_cost: "", court_count: "1" },
     ]);
   const addPoolVenueDraft = (v: PoolVenue) =>
     setSignupVenues((vs) => [
@@ -264,6 +266,7 @@ export function OwnerSignupForm() {
         location_link: "",
         photos: [],
         rental_cost: v.rental_cost != null ? String(v.rental_cost) : "",
+        court_count: "1",
       },
     ]);
   const setSignupVenue = (i: number, patch: Partial<NewVenueDraft>) =>
@@ -389,7 +392,7 @@ export function OwnerSignupForm() {
                       </Button>
                     </div>
                     <div className="space-y-3">
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                         <div className="space-y-2">
                           <Label>{t("owner_playground_sport")}</Label>
                           <Select
@@ -408,6 +411,21 @@ export function OwnerSignupForm() {
                               ))}
                             </SelectContent>
                           </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>{t("venues_court_count")}</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            step="1"
+                            dir="ltr"
+                            placeholder="1"
+                            value={v.court_count}
+                            onChange={(e) => setSignupVenue(i, { court_count: e.target.value })}
+                          />
+                          <p className="text-[11px] text-muted-foreground">
+                            {t("venues_court_count_hint")}
+                          </p>
                         </div>
                         <div className="space-y-2">
                           <Label>{t("owner_playground_cost")}</Label>

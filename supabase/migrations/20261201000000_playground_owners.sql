@@ -281,7 +281,7 @@ BEGIN
       ELSE
         INSERT INTO public.venues (
           owner_profile_id, name, address, sport_id,
-          rental_cost, rental_hours, location_link, photos, country, governorate, area
+          rental_cost, rental_hours, court_count, location_link, photos, country, governorate, area
         )
         VALUES (
           NEW.id,
@@ -290,6 +290,7 @@ BEGIN
           (SELECT id FROM public.sports WHERE lower(name) = lower(trim(v_venue ->> 'sport')) LIMIT 1),
           NULLIF(v_venue ->> 'rental_cost', '')::numeric,
           COALESCE(NULLIF(v_venue ->> 'rental_hours', '')::numeric, 1),
+          COALESCE(NULLIF(v_venue ->> 'court_count', '')::integer, 1),
           NULLIF(v_venue ->> 'location_link', ''),
           COALESCE(v_venue -> 'photos', '[]'::jsonb),
           COALESCE(v_new_country, NULLIF(v_venue ->> 'country', '')),
@@ -359,7 +360,7 @@ BEGIN
       ELSE
         INSERT INTO public.venues (
           academy_id, name, address, capacity, sport_id, school_name,
-          rental_cost, rental_hours, location_link, country, governorate, area
+          rental_cost, rental_hours, court_count, location_link, country, governorate, area
         )
         VALUES (
           v_academy,
@@ -370,6 +371,7 @@ BEGIN
           NULLIF(v_venue ->> 'school_name', ''),
           NULLIF(v_venue ->> 'rental_cost', '')::numeric,
           COALESCE(NULLIF(v_venue ->> 'rental_hours', '')::numeric, 1),
+          COALESCE(NULLIF(v_venue ->> 'court_count', '')::integer, 1),
           NULLIF(v_venue ->> 'location_link', ''),
           COALESCE(v_new_country, NULLIF(v_venue ->> 'country', '')),
           COALESCE(v_new_governorate, NULLIF(v_venue ->> 'governorate', '')),
