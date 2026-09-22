@@ -35,7 +35,7 @@ const schema = (t: (k: any) => string) =>
 
 type FormValues = z.infer<ReturnType<typeof schema>>;
 
-type Role = "member" | "tenant";
+type Role = "member" | "tenant" | "owner";
 
 export function LoginForm() {
   const { t } = useI18n();
@@ -46,6 +46,7 @@ export function LoginForm() {
   const [mode, setMode] = useState<Role>(searchParams.get("mode") === "tenant" ? "tenant" : "member");
 
   const isTenant = mode === "tenant";
+  const isOwner = mode === "owner";
 
   useEffect(() => {
     if (searchParams.get("passwordUpdated") === "1") {
@@ -89,21 +90,21 @@ export function LoginForm() {
       </div>
 
       <div className="relative w-full max-w-md">
-        <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
-          {(["member", "tenant"] as const).map((r) => (
+        <div className="mb-6 grid grid-cols-3 gap-1 rounded-xl bg-muted p-1">
+          {(["member", "tenant", "owner"] as const).map((r) => (
             <button
               key={r}
               type="button"
               onClick={() => setMode(r)}
               aria-pressed={mode === r}
               className={cn(
-                "rounded-lg px-3 py-2 text-sm font-semibold transition-all",
+                "rounded-lg px-2 py-2 text-sm font-semibold transition-all",
                 mode === r
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {r === "member" ? t("auth_role_member") : t("auth_role_tenant")}
+              {r === "member" ? t("auth_role_member") : r === "tenant" ? t("auth_role_tenant") : t("auth_role_owner")}
             </button>
           ))}
         </div>
@@ -111,10 +112,10 @@ export function LoginForm() {
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
           <AppLogo className="w-44" />
           <h1 className="text-2xl font-extrabold">
-            {isTenant ? t("login_tenant_title") : t("login_member_title")}
+            {isTenant ? t("login_tenant_title") : isOwner ? t("login_owner_title") : t("login_member_title")}
           </h1>
           <p className="text-sm text-muted-foreground">
-            {isTenant ? t("login_tenant_subtitle") : t("login_member_subtitle")}
+            {isTenant ? t("login_tenant_subtitle") : isOwner ? t("login_owner_subtitle") : t("login_member_subtitle")}
           </p>
         </div>
 
@@ -168,14 +169,16 @@ export function LoginForm() {
               </form>
             </Form>
             <p className="mt-4 text-center text-sm text-muted-foreground">
-              {isTenant ? t("login_tenant_no_account") : t("login_no_account")}{" "}
+              {isTenant ? t("login_tenant_no_account") : isOwner ? t("login_owner_no_account") : t("login_no_account")}{" "}
               <Link
-                href={isTenant ? "/signup?mode=tenant" : "/signup"}
+                href={isTenant ? "/signup?mode=tenant" : isOwner ? "/signup/owner" : "/signup"}
                 className="font-medium text-primary hover:underline"
               >
                 {isTenant
                   ? t("login_tenant_signup_link")
-                  : t("login_signup_link")}
+                  : isOwner
+                    ? t("login_owner_signup_link")
+                    : t("login_signup_link")}
               </Link>
             </p>
           </CardContent>
