@@ -17,6 +17,14 @@ import { AppLogo } from "@/components/shared/app-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +35,7 @@ import {
 import { PushPrompt } from "@/components/shared/push-prompt";
 import { LocationFields } from "@/components/shared/location-fields";
 import { UsernameField } from "@/components/shared/username-field";
+import { COMMUNITY_SPORTS } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { useAuth, type SignupVenue } from "@/lib/auth";
@@ -35,11 +44,9 @@ interface PoolVenue {
   id: string;
   name: string;
   address: string | null;
-  capacity: number | null;
   country: string | null;
   governorate: string | null;
   area: string | null;
-  school_name: string | null;
   rental_cost: number | null;
   rental_hours: number | null;
 }
@@ -48,8 +55,8 @@ type NewVenueDraft = {
   id?: string;
   name: string;
   address: string;
-  capacity: string;
-  school_name: string;
+  sport: string;
+  location_link: string;
   rental_cost: string;
   rental_hours: string;
   fromPool?: boolean;
@@ -88,9 +95,7 @@ export function OwnerSignupForm() {
       try {
         const { data } = await createClient()
           .from("venues")
-          .select(
-            "id, name, address, capacity, country, governorate, area, school_name, rental_cost, rental_hours"
-          )
+          .select("id, name, address, country, governorate, area, rental_cost, rental_hours")
           .is("academy_id", null)
           .is("owner_profile_id", null)
           .order("name");
@@ -118,8 +123,8 @@ export function OwnerSignupForm() {
         ...(v.id ? { id: v.id } : {}),
         name: v.name.trim(),
         address: v.address.trim() || null,
-        capacity: v.capacity.trim() !== "" ? Number(v.capacity) : null,
-        school_name: v.school_name.trim() || null,
+        sport: v.sport && v.sport !== "none" ? v.sport.trim() : null,
+        location_link: v.location_link.trim() || null,
         rental_cost: v.rental_cost.trim() !== "" ? Number(v.rental_cost) : null,
         rental_hours: v.rental_hours.trim() !== "" ? Number(v.rental_hours) : 1,
       }));
@@ -200,7 +205,7 @@ export function OwnerSignupForm() {
   const addNewVenueDraft = () =>
     setSignupVenues((vs) => [
       ...vs,
-      { name: "", address: "", capacity: "", school_name: "", rental_cost: "", rental_hours: "1" },
+      { name: "", address: "", sport: "", location_link: "", rental_cost: "", rental_hours: "1" },
     ]);
   const addPoolVenueDraft = (v: PoolVenue) =>
     setSignupVenues((vs) => [
@@ -210,8 +215,8 @@ export function OwnerSignupForm() {
         fromPool: true,
         name: v.name,
         address: v.address ?? "",
-        capacity: v.capacity != null ? String(v.capacity) : "",
-        school_name: v.school_name ?? "",
+        sport: "",
+        location_link: "",
         rental_cost: v.rental_cost != null ? String(v.rental_cost) : "",
         rental_hours: v.rental_hours != null ? String(v.rental_hours) : "1",
       },
@@ -338,32 +343,76 @@ export function OwnerSignupForm() {
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      <Input
-                        placeholder={t("signup_playground_name")}
-                        value={v.name}
-                        onChange={(e) => setSignupVenue(i, { name: e.target.value })}
-                      />
-                      <Input
-                        placeholder={t("signup_playground_address")}
-                        value={v.address}
-                        onChange={(e) => setSignupVenue(i, { address: e.target.value })}
-                      />
-                      <Input
-                        type="number"
-                        min="0"
-                        placeholder={t("signup_playground_capacity")}
-                        value={v.capacity}
-                        onChange={(e) => setSignupVenue(i, { capacity: e.target.value })}
-                      />
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder={t("signup_playground_cost")}
-                        value={v.rental_cost}
-                        onChange={(e) => setSignupVenue(i, { rental_cost: e.target.value })}
-                      />
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label>{t("owner_playground_sport")}</Label>
+                        <Select
+                          value={v.sport}
+                          onValueChange={(val) => setSignupVenue(i, { sport: val })}
+                        >
+                          <SelectTrigger aria-label={t("owner_playground_sport")}>
+                            <SelectValue placeholder={t("owner_playground_sport_placeholder")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">{t("venues_no_sport")}</SelectItem>
+                            {COMMUNITY_SPORTS.map((name) => (
+                              <SelectItem key={name} value={name}>
+                                {name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <Input
+                          placeholder={t("signup_playground_name")}
+                          value={v.name}
+                          onChange={(e) => setSignupVenue(i, { name: e.target.value })}
+                        />
+                        <Input
+                          placeholder={t("signup_playground_address")}
+                          value={v.address}
+                          onChange={(e) => setSignupVenue(i, { address: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{t("owner_playground_location_link")}</Label>
+                        <Input
+                          dir="ltr"
+                          placeholder={t("owner_playground_location_link_placeholder")}
+                          value={v.location_link}
+                          onChange={(e) => setSignupVenue(i, { location_link: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label>{t("owner_playground_cost")}</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="0.00"
+                            value={v.rental_cost}
+                            onChange={(e) => setSignupVenue(i, { rental_cost: e.target.value })}
+                          />
+                          <p className="text-[11px] text-muted-foreground">
+                            {t("owner_playground_cost_hint")}
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>{t("venues_rental_hours")}</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            value={v.rental_hours}
+                            onChange={(e) => setSignupVenue(i, { rental_hours: e.target.value })}
+                          />
+                          <p className="text-[11px] text-muted-foreground">
+                            {t("venues_rental_hours_hint")}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}

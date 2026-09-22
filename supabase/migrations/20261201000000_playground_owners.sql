@@ -280,17 +280,17 @@ BEGIN
           AND owner_profile_id IS NULL AND academy_id IS NULL;
       ELSE
         INSERT INTO public.venues (
-          owner_profile_id, name, address, capacity, school_name,
-          rental_cost, rental_hours, country, governorate, area
+          owner_profile_id, name, address, sport_id,
+          rental_cost, rental_hours, location_link, country, governorate, area
         )
         VALUES (
           NEW.id,
           trim(v_venue ->> 'name'),
           NULLIF(v_venue ->> 'address', ''),
-          NULLIF(v_venue ->> 'capacity', '')::integer,
-          NULLIF(v_venue ->> 'school_name', ''),
+          (SELECT id FROM public.sports WHERE lower(name) = lower(trim(v_venue ->> 'sport')) LIMIT 1),
           NULLIF(v_venue ->> 'rental_cost', '')::numeric,
           COALESCE(NULLIF(v_venue ->> 'rental_hours', '')::numeric, 1),
+          NULLIF(v_venue ->> 'location_link', ''),
           COALESCE(v_new_country, NULLIF(v_venue ->> 'country', '')),
           COALESCE(v_new_governorate, NULLIF(v_venue ->> 'governorate', '')),
           COALESCE(v_new_area, NULLIF(v_venue ->> 'area', ''))
@@ -357,17 +357,19 @@ BEGIN
           AND academy_id IS NULL AND owner_profile_id IS NULL;
       ELSE
         INSERT INTO public.venues (
-          academy_id, name, address, capacity, school_name,
-          rental_cost, rental_hours, country, governorate, area
+          academy_id, name, address, capacity, sport_id, school_name,
+          rental_cost, rental_hours, location_link, country, governorate, area
         )
         VALUES (
           v_academy,
           trim(v_venue ->> 'name'),
           NULLIF(v_venue ->> 'address', ''),
           NULLIF(v_venue ->> 'capacity', '')::integer,
+          (SELECT id FROM public.sports WHERE lower(name) = lower(trim(v_venue ->> 'sport')) LIMIT 1),
           NULLIF(v_venue ->> 'school_name', ''),
           NULLIF(v_venue ->> 'rental_cost', '')::numeric,
           COALESCE(NULLIF(v_venue ->> 'rental_hours', '')::numeric, 1),
+          NULLIF(v_venue ->> 'location_link', ''),
           COALESCE(v_new_country, NULLIF(v_venue ->> 'country', '')),
           COALESCE(v_new_governorate, NULLIF(v_venue ->> 'governorate', '')),
           COALESCE(v_new_area, NULLIF(v_venue ->> 'area', ''))
