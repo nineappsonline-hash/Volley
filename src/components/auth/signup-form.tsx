@@ -413,21 +413,21 @@ export function SignupForm() {
       </div>
 
       <div className={cn("relative mx-auto my-auto w-full py-16", isTenant ? "max-w-xl" : "max-w-md")}>
-        <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
-          {(["member", "tenant"] as const).map((r) => (
+        <div className="mb-6 grid grid-cols-3 gap-1 rounded-xl bg-muted p-1">
+          {(["member", "tenant", "owner"] as const).map((r) => (
             <button
               key={r}
               type="button"
-              onClick={() => setMode(r)}
-              aria-pressed={mode === r}
+              onClick={() => (r === "owner" ? router.push("/signup/owner") : setMode(r))}
+              aria-pressed={r === "owner" ? false : mode === r}
               className={cn(
                 "rounded-lg px-3 py-2 text-sm font-semibold transition-all",
-                mode === r
+                r !== "owner" && mode === r
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {r === "member" ? t("auth_role_member") : t("auth_role_tenant")}
+              {r === "member" ? t("auth_role_member") : r === "tenant" ? t("auth_role_tenant") : t("auth_role_owner")}
             </button>
           ))}
         </div>

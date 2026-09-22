@@ -2338,6 +2338,7 @@ export const dictionary = {
     // ── Auth role selector ──
     auth_role_member: "Member",
     auth_role_tenant: "Academy owner",
+    auth_role_owner: "Playground owner",
     // ── Not found ──
     notfound_subtitle: "The page you are looking for doesn't exist.",
     notfound_action: "Go to dashboard",
@@ -5135,6 +5136,7 @@ export const dictionary = {
     // ── اختيار الدور في تسجيل الدخول ──
     auth_role_member: "عضو",
     auth_role_tenant: "صاحب أكاديمية",
+    auth_role_owner: "صاحب ملعب",
     // ── الصفحة غير موجودة ──
     notfound_subtitle: "الصفحة التي تبحث عنها غير موجودة.",
     notfound_action: "الانتقال إلى لوحة التحكم",
