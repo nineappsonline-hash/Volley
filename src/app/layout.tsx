@@ -3,6 +3,7 @@ import { OG_IMAGE, SITE_URL } from "@/lib/seo";
 import type { Metadata, Viewport } from "next";
 import { Providers } from "@/providers/providers";
 import { ScrollToTop } from "@/components/shared/scroll-to-top";
+import { AppBackground } from "@/components/shared/app-background";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -252,7 +253,10 @@ export default function RootLayout({
       </head>
       <body className="font-sans">
         <ScrollToTop />
-        <Providers>{children}</Providers>
+        <Providers>
+          <AppBackground />
+          {children}
+        </Providers>
       </body>
     </html>
   );
