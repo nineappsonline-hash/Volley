@@ -4,13 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
 import {
+  ImagePlus,
   LandPlot,
   List,
   Loader2,
   Plus,
   Rocket,
   Trash2,
+  X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { AppLogo } from "@/components/shared/app-logo";
@@ -38,6 +41,7 @@ import { UsernameField } from "@/components/shared/username-field";
 import { COMMUNITY_SPORTS } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/layout/language-toggle";
+import { errorMessage } from "@/lib/utils";
 import { useAuth, type SignupVenue } from "@/lib/auth";
 
 interface PoolVenue {
@@ -57,8 +61,8 @@ type NewVenueDraft = {
   address: string;
   sport: string;
   location_link: string;
+  photos: string[];
   rental_cost: string;
-  rental_hours: string;
   fromPool?: boolean;
 };
 
@@ -88,6 +92,51 @@ export function OwnerSignupForm() {
   const [signupVenues, setSignupVenues] = useState<NewVenueDraft[]>([]);
   const [poolPickerOpen, setPoolPickerOpen] = useState(false);
   const [poolSearch, setPoolSearch] = useState("");
+  const [uploadingPhoto, setUploadingPhoto] = useState<number | null>(null);
+  const photoInputs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const upload = useMutation({
+    mutationFn: async ({ files, index }: { files: File[]; index: number }) => {
+      const supabase = createClient();
+      const urls: string[] = [];
+      for (const file of files) {
+        const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
+        const path = `venues/signup-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error } = await supabase.storage
+          .from("venue-photos")
+          .upload(path, file, { contentType: file.type, upsert: false });
+        if (error) throw error;
+        const { data } = supabase.storage.from("venue-photos").getPublicUrl(path);
+        urls.push(data.publicUrl);
+      }
+      return { urls, index };
+    },
+    onSuccess: ({ urls, index }) => {
+      setSignupVenues((vs) =>
+        vs.map((v, idx) => (idx === index ? { ...v, photos: [...v.photos, ...urls] } : v))
+      );
+    },
+    onError: (err) => toast.error(errorMessage(err, t("sa_photo_failed"))),
+  });
+
+  const handlePhotoInput = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+    setUploadingPhoto(index);
+    upload.mutate({ files, index }, {
+      onSettled: () => {
+        setUploadingPhoto(null);
+        if (photoInputs.current[index]) photoInputs.current[index].value = "";
+      },
+    });
+  };
+
+  const removeVenuePhoto = (index: number, url: string) =>
+    setSignupVenues((vs) =>
+      vs.map((v, idx) =>
+        idx === index ? { ...v, photos: v.photos.filter((p) => p !== url) } : v
+      )
+    );
 
   useEffect(() => {
     let stale = false;
@@ -121,12 +170,12 @@ export function OwnerSignupForm() {
       const destination = "/playgrounds";
       const venues: SignupVenue[] = signupVenues.map((v) => ({
         ...(v.id ? { id: v.id } : {}),
-        name: v.name.trim(),
+        name: v.name.trim() || businessName.trim(),
         address: v.address.trim() || null,
         sport: v.sport && v.sport !== "none" ? v.sport.trim() : null,
         location_link: v.location_link.trim() || null,
+        ...(v.photos.length ? { photos: v.photos } : {}),
         rental_cost: v.rental_cost.trim() !== "" ? Number(v.rental_cost) : null,
-        rental_hours: v.rental_hours.trim() !== "" ? Number(v.rental_hours) : 1,
       }));
       const { session } = await signUp(
         account.email,
@@ -195,17 +244,13 @@ export function OwnerSignupForm() {
       toast.error(t("field_required"));
       return;
     }
-    if (signupVenues.some((v) => !v.name.trim())) {
-      toast.error(t("signup_playground_name_required"));
-      return;
-    }
     void finishSignup();
   };
 
   const addNewVenueDraft = () =>
     setSignupVenues((vs) => [
       ...vs,
-      { name: "", address: "", sport: "", location_link: "", rental_cost: "", rental_hours: "1" },
+      { name: "", address: "", sport: "", location_link: "", photos: [], rental_cost: "" },
     ]);
   const addPoolVenueDraft = (v: PoolVenue) =>
     setSignupVenues((vs) => [
@@ -217,8 +262,8 @@ export function OwnerSignupForm() {
         address: v.address ?? "",
         sport: "",
         location_link: "",
+        photos: [],
         rental_cost: v.rental_cost != null ? String(v.rental_cost) : "",
-        rental_hours: v.rental_hours != null ? String(v.rental_hours) : "1",
       },
     ]);
   const setSignupVenue = (i: number, patch: Partial<NewVenueDraft>) =>
@@ -344,47 +389,26 @@ export function OwnerSignupForm() {
                       </Button>
                     </div>
                     <div className="space-y-3">
-                      <div className="space-y-2">
-                        <Label>{t("owner_playground_sport")}</Label>
-                        <Select
-                          value={v.sport}
-                          onValueChange={(val) => setSignupVenue(i, { sport: val })}
-                        >
-                          <SelectTrigger aria-label={t("owner_playground_sport")}>
-                            <SelectValue placeholder={t("owner_playground_sport_placeholder")} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">{t("venues_no_sport")}</SelectItem>
-                            {COMMUNITY_SPORTS.map((name) => (
-                              <SelectItem key={name} value={name}>
-                                {name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        <Input
-                          placeholder={t("signup_playground_name")}
-                          value={v.name}
-                          onChange={(e) => setSignupVenue(i, { name: e.target.value })}
-                        />
-                        <Input
-                          placeholder={t("signup_playground_address")}
-                          value={v.address}
-                          onChange={(e) => setSignupVenue(i, { address: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>{t("owner_playground_location_link")}</Label>
-                        <Input
-                          dir="ltr"
-                          placeholder={t("owner_playground_location_link_placeholder")}
-                          value={v.location_link}
-                          onChange={(e) => setSignupVenue(i, { location_link: e.target.value })}
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label>{t("owner_playground_sport")}</Label>
+                          <Select
+                            value={v.sport}
+                            onValueChange={(val) => setSignupVenue(i, { sport: val })}
+                          >
+                            <SelectTrigger aria-label={t("owner_playground_sport")}>
+                              <SelectValue placeholder={t("owner_playground_sport_placeholder")} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">{t("venues_no_sport")}</SelectItem>
+                              {COMMUNITY_SPORTS.map((name) => (
+                                <SelectItem key={name} value={name}>
+                                  {name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                         <div className="space-y-2">
                           <Label>{t("owner_playground_cost")}</Label>
                           <Input
@@ -399,19 +423,74 @@ export function OwnerSignupForm() {
                             {t("owner_playground_cost_hint")}
                           </p>
                         </div>
-                        <div className="space-y-2">
-                          <Label>{t("venues_rental_hours")}</Label>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.5"
-                            value={v.rental_hours}
-                            onChange={(e) => setSignupVenue(i, { rental_hours: e.target.value })}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{t("venues_address")}</Label>
+                        <Input
+                          type="text"
+                          placeholder={t("venues_address")}
+                          value={v.address}
+                          onChange={(e) => setSignupVenue(i, { address: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{t("owner_playground_location_link")}</Label>
+                        <Input
+                          dir="ltr"
+                          placeholder={t("owner_playground_location_link_placeholder")}
+                          value={v.location_link}
+                          onChange={(e) => setSignupVenue(i, { location_link: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{t("owner_playground_photos")}</Label>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {v.photos.map((url) => (
+                            <div key={url} className="relative">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={url}
+                                alt={t("owner_playground_photos")}
+                                className="h-16 w-20 rounded-lg object-cover"
+                              />
+                              <button
+                                type="button"
+                                aria-label={t("common_delete")}
+                                onClick={() => removeVenuePhoto(i, url)}
+                                className="absolute -right-2 -top-2 rounded-full bg-background p-0.5 shadow-sm ring-1 ring-border"
+                              >
+                                <X className="h-3.5 w-3.5 text-destructive" />
+                              </button>
+                            </div>
+                          ))}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={uploadingPhoto !== null}
+                            onClick={() => photoInputs.current[i]?.click()}
+                          >
+                            {uploadingPhoto === i ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <ImagePlus className="h-4 w-4" />
+                            )}
+                            {t("owner_playground_add_photos")}
+                          </Button>
+                          <input
+                            ref={(el) => {
+                              photoInputs.current[i] = el;
+                            }}
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            hidden
+                            onChange={(e) => handlePhotoInput(e, i)}
                           />
-                          <p className="text-[11px] text-muted-foreground">
-                            {t("venues_rental_hours_hint")}
-                          </p>
                         </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          {t("owner_playground_photos_hint")}
+                        </p>
                       </div>
                     </div>
                   </div>

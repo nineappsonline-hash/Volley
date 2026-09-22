@@ -13,6 +13,7 @@ export type SignupVenue =
       school_name?: string | null;
       sport?: string | null;
       location_link?: string | null;
+      photos?: string[];
       rental_cost?: number | null;
       rental_hours?: number | null;
     };

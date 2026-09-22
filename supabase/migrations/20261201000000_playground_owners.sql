@@ -281,16 +281,17 @@ BEGIN
       ELSE
         INSERT INTO public.venues (
           owner_profile_id, name, address, sport_id,
-          rental_cost, rental_hours, location_link, country, governorate, area
+          rental_cost, rental_hours, location_link, photos, country, governorate, area
         )
         VALUES (
           NEW.id,
-          trim(v_venue ->> 'name'),
+          COALESCE(NULLIF(trim(v_venue ->> 'name'), ''), v_business),
           NULLIF(v_venue ->> 'address', ''),
           (SELECT id FROM public.sports WHERE lower(name) = lower(trim(v_venue ->> 'sport')) LIMIT 1),
           NULLIF(v_venue ->> 'rental_cost', '')::numeric,
           COALESCE(NULLIF(v_venue ->> 'rental_hours', '')::numeric, 1),
           NULLIF(v_venue ->> 'location_link', ''),
+          COALESCE(v_venue -> 'photos', '[]'::jsonb),
           COALESCE(v_new_country, NULLIF(v_venue ->> 'country', '')),
           COALESCE(v_new_governorate, NULLIF(v_venue ->> 'governorate', '')),
           COALESCE(v_new_area, NULLIF(v_venue ->> 'area', ''))
