@@ -1648,6 +1648,7 @@ export function useSaveVenue() {
         owner_profile_id: venue.owner_profile_id ?? null,
         ...(venue.photos ? { photos: venue.photos } : {}),
         ...(venue.cover_url !== undefined ? { cover_url: venue.cover_url } : {}),
+        ...(venue.blocked_dates ? { blocked_dates: venue.blocked_dates } : {}),
       };
       const { error } = id
         ? await supabase().from("venues").update(payload).eq("id", id)
@@ -1658,6 +1659,7 @@ export function useSaveVenue() {
       qc.invalidateQueries({ queryKey: ["venues"] });
       qc.invalidateQueries({ queryKey: ["playgrounds"] });
       qc.invalidateQueries({ queryKey: ["venue-approvals"] });
+      qc.invalidateQueries({ queryKey: queryKeys.ownerVenues });
     },
   });
 }
@@ -1685,7 +1687,7 @@ export function useOwnerVenues() {
       const user = await supabase().auth.getUser();
       const { data, error } = await supabase()
         .from("venues")
-        .select("id, academy_id, owner_profile_id, approval_status, name, address, lat, lng, location_link, photos, cover_url, capacity, sport_id, school_name, rental_cost, rental_hours, country, governorate, area, unavailable_slots, working_hours, court_count, created_at")
+        .select("id, academy_id, owner_profile_id, approval_status, name, address, lat, lng, location_link, photos, cover_url, capacity, sport_id, school_name, rental_cost, rental_hours, country, governorate, area, unavailable_slots, working_hours, blocked_dates, court_count, created_at")
         .eq("owner_profile_id", user.data.user?.id ?? "")
         .order("name");
       if (error) throw error;

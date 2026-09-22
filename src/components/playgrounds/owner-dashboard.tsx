@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CalendarDays, LandPlot, Pencil, Plus, ShieldCheck, TrendingUp, Trash2 } from "lucide-react";
+import { CalendarDays, CalendarX, LandPlot, Pencil, Plus, ShieldCheck, TrendingUp, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -27,6 +27,7 @@ import {
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PlaygroundFormDialog } from "@/components/playgrounds/playground-form-dialog";
+import { AvailabilityDialog } from "@/components/playgrounds/availability-dialog";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
@@ -49,6 +50,7 @@ export function OwnerDashboard() {
   const [tab, setTab] = useState<"playgrounds" | "schedule" | "revenue">("playgrounds");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Venue | null>(null);
+  const [availabilityVenue, setAvailabilityVenue] = useState<Venue | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Venue | null>(null);
   const [ownerProfileId, setOwnerProfileId] = useState<string | null>(null);
 
@@ -251,6 +253,10 @@ export function OwnerDashboard() {
                         </Button>
                       </div>
                     </div>
+                    <Button variant="outline" size="sm" className="w-full" onClick={() => setAvailabilityVenue(v)}>
+                      <CalendarX className="h-4 w-4" />
+                      {t("owner_availability_button")}
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -369,6 +375,12 @@ export function OwnerDashboard() {
         onOpenChange={setDialogOpen}
         venue={editing}
         ownerProfileId={ownerProfileId}
+      />
+
+      <AvailabilityDialog
+        open={!!availabilityVenue}
+        onOpenChange={(o) => !o && setAvailabilityVenue(null)}
+        venue={availabilityVenue}
       />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>

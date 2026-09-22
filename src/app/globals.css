@@ -241,3 +241,14 @@
 
 /* Bright green fills use navy text; small green text uses an AA ink shade. */
 .text-primary { color: hsl(var(--info-ink)); }
+
+/* Owner availability calendar: highlight blocked days with the error color. */
+.rd-blocked {
+  color: hsl(var(--destructive-foreground));
+  background: hsl(var(--destructive) / .18);
+  border-radius: 9999px;
+  font-weight: 700;
+}
+.rd-blocked:hover {
+  background: hsl(var(--destructive) / .35);
+}

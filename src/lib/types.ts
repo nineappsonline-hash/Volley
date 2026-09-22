@@ -504,9 +504,22 @@ export interface Venue {
    * list means no restriction (always open). Same shape as the excluded
    * times above. */
   working_hours?: VenueUnavailableSlot[];
+  /** One-off blocked dates/times chosen by the owner from a calendar.
+   * Each entry blocks a whole day (all_day) or a time window
+   * (start/end as "HH:MM") on that date. */
+  blocked_dates?: VenueBlockedDate[];
   // How many simultaneous courts the playground has (default 1).
   court_count?: number;
   created_at: string;
+}
+
+/** A single date (or time window within a date) the owner has blocked so no
+ * bookings can be made then. ISO date "YYYY-MM-DD"; times "HH:MM" 24h. */
+export interface VenueBlockedDate {
+  date: string;
+  all_day?: boolean;
+  start?: string | null;
+  end?: string | null;
 }
 
 export interface VenueUnavailableSlot {
