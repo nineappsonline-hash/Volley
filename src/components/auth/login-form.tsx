@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { ArrowLeft, Building2, Loader2, Volleyball } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { AppLogo } from "@/components/shared/app-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,7 +20,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { authDestination } from "@/lib/auth-redirect";
@@ -35,18 +34,12 @@ const schema = (t: (k: any) => string) =>
 
 type FormValues = z.infer<ReturnType<typeof schema>>;
 
-type Role = "member" | "tenant" | "owner";
-
 export function LoginForm() {
   const { t } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<Role>(searchParams.get("mode") === "tenant" ? "tenant" : "member");
-
-  const isTenant = mode === "tenant";
-  const isOwner = mode === "owner";
 
   useEffect(() => {
     if (searchParams.get("passwordUpdated") === "1") {
@@ -90,33 +83,10 @@ export function LoginForm() {
       </div>
 
       <div className="relative w-full max-w-md">
-        <div className="mb-6 grid grid-cols-3 gap-1 rounded-xl bg-muted p-1">
-          {(["member", "tenant", "owner"] as const).map((r) => (
-            <button
-              key={r}
-              type="button"
-              onClick={() => setMode(r)}
-              aria-pressed={mode === r}
-              className={cn(
-                "rounded-lg px-2 py-2 text-sm font-semibold transition-all",
-                mode === r
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {r === "member" ? t("auth_role_member") : r === "tenant" ? t("auth_role_tenant") : t("auth_role_owner")}
-            </button>
-          ))}
-        </div>
-
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
           <AppLogo className="w-44" />
-          <h1 className="text-2xl font-extrabold">
-            {isTenant ? t("login_tenant_title") : isOwner ? t("login_owner_title") : t("login_member_title")}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {isTenant ? t("login_tenant_subtitle") : isOwner ? t("login_owner_subtitle") : t("login_member_subtitle")}
-          </p>
+          <h1 className="text-2xl font-extrabold">{t("login_title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("login_subtitle")}</p>
         </div>
 
         <Card>
@@ -169,16 +139,9 @@ export function LoginForm() {
               </form>
             </Form>
             <p className="mt-4 text-center text-sm text-muted-foreground">
-              {isTenant ? t("login_tenant_no_account") : isOwner ? t("login_owner_no_account") : t("login_no_account")}{" "}
-              <Link
-                href={isTenant ? "/signup?mode=tenant" : isOwner ? "/signup/owner" : "/signup"}
-                className="font-medium text-primary hover:underline"
-              >
-                {isTenant
-                  ? t("login_tenant_signup_link")
-                  : isOwner
-                    ? t("login_owner_signup_link")
-                    : t("login_signup_link")}
+              {t("login_no_account")}{" "}
+              <Link href="/signup" className="font-medium text-primary hover:underline">
+                {t("login_signup_link")}
               </Link>
             </p>
           </CardContent>

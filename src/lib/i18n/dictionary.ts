@@ -101,7 +101,7 @@ export const dictionary = {
     login_button: "Sign in",
     login_loading: "Signing in…",
     login_no_account: "Don't have an account?",
-    login_signup_link: "Sign up as a member",
+    login_signup_link: "Create an account",
     login_error: "Invalid email or password. Please try again.",
     auth_back_home: "Back to home",
     // Password / account security
@@ -2904,7 +2904,7 @@ export const dictionary = {
     nav_insights: "تحليلات الأكاديمية",
     // Auth
     login_title: "مرحباً بعودتك",
-    login_subtitle: "سجّل الدخول إلى حسابك في الأكاديمية",
+    login_subtitle: "سجّل الدخول إلى حسابك في بلايزا",
     login_member_title: "تسجيل دخول الأعضاء",
     login_member_subtitle: "سجّل الدخول إلى حسابك كعضو",
 login_tenant_title: "تسجيل دخول إدارة الأكاديمية",
@@ -2922,7 +2922,7 @@ login_tenant_title: "تسجيل دخول إدارة الأكاديمية",
     login_button: "تسجيل الدخول",
     login_loading: "جارٍ تسجيل الدخول…",
     login_no_account: "ليس لديك حساب؟",
-    login_signup_link: "سجّل كعضو",
+    login_signup_link: "إنشاء حساب",
     login_error: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
     auth_back_home: "العودة إلى الرئيسية",
     // كلمة المرور وأمان الحساب
