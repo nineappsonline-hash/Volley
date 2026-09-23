@@ -8,6 +8,7 @@ export interface SessionData {
     id: string;
     email: string | undefined;
     role: Role;
+    provider?: string;
   };
   profile: Profile;
 }
@@ -87,6 +88,7 @@ export async function requireSession(): Promise<SessionData> {
       id: user.id,
       email: user.email ?? undefined,
       role,
+      provider: user.app_metadata?.provider as string | undefined,
     },
     profile: profile ? { ...profile, role } as Profile : fallback,
   };

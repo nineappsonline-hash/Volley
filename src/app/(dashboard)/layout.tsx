@@ -1,4 +1,5 @@
 import { requireSession } from "@/lib/session";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
@@ -12,7 +13,15 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { profile } = await requireSession();
+  const { user, profile } = await requireSession();
+
+  // Google signups don't carry gender, birth date, or phone — ask for them
+  // before letting the member into the rest of the app.
+  const needsProfileCompletion =
+    profile.role === "member" &&
+    user.provider === "google" &&
+    (!profile.phone || !profile.gender || !profile.birth_date);
+  if (needsProfileCompletion) redirect("/complete-profile");
 
   const supabase = createClient();
   const { data: academyRow } = profile.academy_id
