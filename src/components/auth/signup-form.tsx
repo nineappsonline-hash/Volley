@@ -821,31 +821,6 @@ export function SignupForm() {
                 <form onSubmit={joinForm.handleSubmit(onJoin)} className="space-y-4">
                   <FormField
                     control={joinForm.control}
-                    name="academy_code"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("signup_academy_code")}</FormLabel>
-                        <FormControl>
-                          <Input
-                            dir="ltr"
-                            autoComplete="off"
-                            placeholder="ABC123"
-                            className="uppercase"
-                            {...field}
-                          />
-                        </FormControl>
-                        <p className="text-xs text-muted-foreground">
-                          {t("signup_academy_code_hint")}
-                        </p>
-                        <p className="text-xs text-primary">
-                          {t("signup_academy_code_optional")}
-                        </p>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={joinForm.control}
                     name="name"
                     render={({ field }) => (
                       <FormItem>
