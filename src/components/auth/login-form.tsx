@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/layout/language-toggle";
+import { GoogleSignInButton, OrDivider } from "@/components/auth/google-signin-button";
 import { authDestination } from "@/lib/auth-redirect";
 import { useAuth } from "@/lib/auth";
 import { useEffect } from "react";
@@ -138,6 +139,10 @@ export function LoginForm() {
                 </Button>
               </form>
             </Form>
+            <div className="mt-4">
+              <OrDivider />
+            </div>
+            <GoogleSignInButton className="mt-4 w-full" />
             <p className="mt-4 text-center text-sm text-muted-foreground">
               {t("login_no_account")}{" "}
               <Link href="/signup" className="font-medium text-primary hover:underline">

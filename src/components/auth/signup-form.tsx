@@ -50,6 +50,7 @@ import { UsernameField } from "@/components/shared/username-field";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/layout/language-toggle";
+import { GoogleSignInButton, OrDivider } from "@/components/auth/google-signin-button";
 import { useAuth, type SignupVenue } from "@/lib/auth";
 
 const joinSchema = (t: (k: any) => string) =>
@@ -817,7 +818,12 @@ export function SignupForm() {
                 )}
               </div>
             ) : (
-              <Form {...joinForm}>
+              <>
+                <GoogleSignInButton className="w-full" />
+                <div className="my-4">
+                  <OrDivider />
+                </div>
+                <Form {...joinForm}>
                 <form onSubmit={joinForm.handleSubmit(onJoin)} className="space-y-4">
                   <FormField
                     control={joinForm.control}
@@ -979,6 +985,7 @@ export function SignupForm() {
                   </Button>
                 </form>
               </Form>
+              </>
             )}
 
             {confirming && (

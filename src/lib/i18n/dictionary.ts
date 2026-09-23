@@ -92,6 +92,9 @@ export const dictionary = {
     nav_coach_ai: "AI Coach Assistant",
     nav_insights: "Academy Insights",
     // Auth
+    login_google_continue: "Continue with Google",
+    login_google_divider: "Or",
+    login_google_error: "Could not sign in with Google. Please try again.",
     login_title: "Welcome back",
     login_subtitle: "Sign in to your Playza account",
     login_member_title: "Member sign in",
@@ -2925,6 +2928,9 @@ export const dictionary = {
     // Auth
     login_title: "مرحباً بعودتك",
     login_subtitle: "سجّل الدخول إلى حسابك في بلايزا",
+    login_google_continue: "المتابعة عبر جوجل",
+    login_google_divider: "أو",
+    login_google_error: "تعذّر تسجيل الدخول عبر جوجل. حاول مرة أخرى.",
     login_member_title: "تسجيل دخول الأعضاء",
     login_member_subtitle: "سجّل الدخول إلى حسابك كعضو",
 login_tenant_title: "تسجيل دخول إدارة الأكاديمية",

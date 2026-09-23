@@ -33,6 +33,25 @@ export function useAuth() {
     [queryClient]
   );
 
+  const signInWithGoogle = useCallback(
+    async (destination = "/dashboard") => {
+      const callback = new URL("/auth/callback", window.location.origin);
+      callback.searchParams.set("next", destination);
+      const { error } = await createClient().auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: callback.toString(),
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
+        },
+      });
+      if (error) throw error;
+    },
+    []
+  );
+
   const signUp = useCallback(
     async (
       email: string,
@@ -105,5 +124,5 @@ export function useAuth() {
     queryClient.clear();
   }, [queryClient]);
 
-  return { signIn, signUp, signOut };
+  return { signIn, signInWithGoogle, signUp, signOut };
 }
