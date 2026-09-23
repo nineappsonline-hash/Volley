@@ -14,15 +14,15 @@ export async function GET(request: Request) {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-
-      // Google doesn't provide gender, birth date, or a phone number, so ask
-      // the member to fill them in before entering the app.
-      if (user?.app_metadata?.provider === "google") {
+      if (user) {
         const { data: p } = await supabase
           .from("profiles")
           .select("role, phone, gender, birth_date")
           .eq("id", user.id)
           .maybeSingle();
+
+        // Google doesn't provide gender, birth date, or a phone number, so ask
+        // the member to fill them in before entering the rest of the app.
         if (
           p &&
           p.role === "member" &&

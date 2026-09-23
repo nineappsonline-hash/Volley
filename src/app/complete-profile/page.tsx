@@ -13,11 +13,10 @@ export const metadata: Metadata = {
 };
 
 export default async function CompleteProfilePage() {
-  const { user, profile } = await requireSession();
+  const { profile } = await requireSession();
 
   const needsCompletion =
     profile.role === "member" &&
-    user.provider === "google" &&
     (!profile.phone || !profile.gender || !profile.birth_date);
 
   if (!needsCompletion) redirect("/dashboard");

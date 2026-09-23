@@ -13,13 +13,12 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, profile } = await requireSession();
+  const { profile } = await requireSession();
 
   // Google signups don't carry gender, birth date, or phone — ask for them
   // before letting the member into the rest of the app.
   const needsProfileCompletion =
     profile.role === "member" &&
-    user.provider === "google" &&
     (!profile.phone || !profile.gender || !profile.birth_date);
   if (needsProfileCompletion) redirect("/complete-profile");
 
