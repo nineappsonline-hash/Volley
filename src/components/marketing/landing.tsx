@@ -11,6 +11,7 @@ import { useI18n } from "@/lib/i18n";
 import { DISCOVERY_SPORTS, discoveryPath } from "@/lib/sport-discovery";
 import { SportIcon } from "./sport-icons";
 import { LeaderboardSection, type HomepageCommunityStats, type HomepageLeader } from "./leaderboard";
+import { ContactFormDialog } from "@/components/contact/contact-form-dialog";
 import styles from "./landing.module.css";
 
 function audiences(t: (k: any) => string) {
@@ -79,9 +80,9 @@ export function LandingPage({ leaders, stats }: { leaders: HomepageLeader[]; sta
     <main ref={pageRef} dir={dir} lang={lang === "ar" ? "ar-EG" : "en"} className={styles.page}>
       <header className={styles.header}>
         <Link href="/" aria-label={t("landing_aria_home")}><AppLogo className="w-28" /></Link>
-        <nav aria-label={t("landing_nav_about")} className={styles.desktopNav}>{navLinks.map(([text, href]) => href.startsWith("#") ? <a key={href} href={href}>{text}</a> : <Link key={href} href={href}>{text}</Link>)}</nav>
+        <nav aria-label={t("landing_nav_about")} className={styles.desktopNav}>{navLinks.map(([text, href]) => href.startsWith("#") ? <a key={href} href={href}>{text}</a> : <Link key={href} href={href}>{text}</Link>)}<ContactFormDialog trigger={<button type="button" className="bg-transparent p-0 font-semibold text-current">{t("contact_menu")}</button>} /></nav>
         <div className={styles.headerActions}><LanguageToggle /><Link href="/login">{t("landing_signin")}</Link><Link className={styles.smallCta} href="/signup">{t("landing_cta_start")} <ArrowUpLeft size={16} /></Link><button className={styles.menuButton} aria-label={menuOpen ? t("landing_menu_close") : t("landing_menu_open")} aria-expanded={menuOpen} aria-controls="home-menu" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</button></div>
-        {menuOpen && <nav id="home-menu" className={styles.mobileNav} aria-label={t("landing_nav_about")}>{navLinks.map(([text, href]) => href.startsWith("#") ? <a key={href} href={href} onClick={() => setMenuOpen(false)}>{text}</a> : <Link key={href} href={href} onClick={() => setMenuOpen(false)}>{text}</Link>)}</nav>}
+        {menuOpen && <nav id="home-menu" className={styles.mobileNav} aria-label={t("landing_nav_about")}>{navLinks.map(([text, href]) => href.startsWith("#") ? <a key={href} href={href} onClick={() => setMenuOpen(false)}>{text}</a> : <Link key={href} href={href} onClick={() => setMenuOpen(false)}>{text}</Link>)}<div className="flex flex-col"><ContactFormDialog trigger={<button type="button" className="rounded-md p-2 text-start font-normal hover:bg-accent">{t("contact_menu")}</button>} /></div></nav>}
       </header>
 
       <section id="top" className={styles.hero}>

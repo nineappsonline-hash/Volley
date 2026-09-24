@@ -1099,6 +1099,16 @@ export interface AppNotification {
   created_at: string;
 }
 
+export interface ContactMessage {
+  id: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}
+
 export type ReportStatus = "open" | "resolved" | "dismissed";
 
 export interface CommunityReport {

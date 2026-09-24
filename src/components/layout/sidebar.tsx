@@ -17,7 +17,9 @@ import {
   LayoutDashboard,
   Lightbulb,
   LineChart,
+  Mail,
   Map,
+  MessageCircle,
   Network,
   Radar,
   Search,
@@ -32,6 +34,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import type { Role } from "@/lib/types";
+import { MessagesUnreadBadge } from "@/components/contact/messages-unread-badge";
+import { ContactFormDialog } from "@/components/contact/contact-form-dialog";
 
 const adminItems = [
   { href: "/dashboard", key: "nav_dashboard", icon: LayoutDashboard },
@@ -59,6 +63,7 @@ const superAdminItems = [
   { href: "/admin", key: "super_admin_title", icon: Crown },
   { href: "/admin?tab=Members", key: "nav_members", icon: Users },
   { href: "/admin?tab=Academies", key: "nav_academies", icon: Building2 },
+  { href: "/admin?tab=Messages", key: "nav_messages", icon: Mail },
   { href: "/admin?tab=Friendly%20games", key: "nav_games", icon: Volleyball },
   { href: "/admin?tab=Tournaments", key: "nav_tournaments", icon: Trophy },
   { href: "/admin?tab=Playgrounds", key: "nav_playgrounds", icon: LandPlot },
@@ -171,12 +176,27 @@ export function Sidebar({ role, name, memberPlan, isCoach, onNavigate }: Sidebar
                   active && "text-info-foreground"
                 )}
               />
-              {href === "/profile" && role === "member" ? (lang === "ar" ? "ملفي وعيلتي" : "My profile & family") : t(key)}
+              <span className="min-w-0 flex-1 truncate">
+                {href === "/profile" && role === "member" ? (lang === "ar" ? "ملفي وعيلتي" : "My profile & family") : t(key)}
+              </span>
+              {href === "/admin?tab=Messages" && role === "super_admin" && <MessagesUnreadBadge />}
             </Link>
           );
         })}
         </div>)}
       </nav>
+
+      <ContactFormDialog
+        trigger={
+          <button
+            type="button"
+            className="group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            <MessageCircle className="h-4 w-4" />
+            {t("contact_menu")}
+          </button>
+        }
+      />
 
       <div className="rounded-lg border bg-muted/40 p-3 text-xs text-muted-foreground">
         <p className="font-semibold text-foreground">{name}</p>

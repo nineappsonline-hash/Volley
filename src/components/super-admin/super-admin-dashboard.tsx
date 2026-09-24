@@ -5,6 +5,7 @@ import { PlatformAnalytics } from "./platform-analytics";
 import { AcademyEditDialog } from "./academy-edit-dialog";
 import { ApprovalsPage } from "./approvals-page";
 import { PaymentApprovals } from "./payment-approvals";
+import { MessagesPage } from "./messages-page";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { format } from "date-fns";
@@ -172,6 +173,8 @@ export function SuperAdminDashboard() {
   // The record browser (Members / Academies / Friendly games / Playgrounds)
   // is only shown on its dedicated tabbed routes (/admin?tab=...).
   if (tab === "Approvals") return <ApprovalsPage />;
+
+  if (tab === "Messages") return <MessagesPage />;
 
   if (tab) {
     return (

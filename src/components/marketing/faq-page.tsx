@@ -8,6 +8,7 @@ import { LanguageToggle } from "@/components/layout/language-toggle";
 import { PublicListHero } from "@/components/public/public-listing-ui";
 import { useI18n, type Dict } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { ContactFormDialog } from "@/components/contact/contact-form-dialog";
 
 type FaqCategory = "general" | "members" | "games" | "owners" | "technical";
 
@@ -97,6 +98,16 @@ export function FaqPage() {
         </Link>
         <div className="flex items-center gap-2">
           <LanguageToggle />
+          <ContactFormDialog
+            trigger={
+              <button
+                type="button"
+                className="hidden rounded-md px-3 py-1.5 text-sm font-semibold text-muted-foreground hover:bg-accent hover:text-foreground sm:inline-flex"
+              >
+                {t("contact_menu")}
+              </button>
+            }
+          />
           <Link
             href="/"
             className="hidden rounded-md px-3 py-1.5 text-sm font-semibold text-muted-foreground hover:bg-accent hover:text-foreground sm:inline-flex"

@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from "next";
 import { Providers } from "@/providers/providers";
 import { ScrollToTop } from "@/components/shared/scroll-to-top";
 import { AppBackground } from "@/components/shared/app-background";
+import { ContactWidget } from "@/components/contact/contact-widget";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -256,6 +257,7 @@ export default function RootLayout({
         <Providers>
           <AppBackground />
           {children}
+          <ContactWidget />
         </Providers>
       </body>
     </html>

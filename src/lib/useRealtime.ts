@@ -15,6 +15,7 @@ type TableName =
   | "friendly_game_participants"
   | "friendly_games"
   | "notifications"
+  | "contact_messages"
   | "player_evaluations";
 
 const queryKeyForTable: Record<TableName, string[]> = {
@@ -28,6 +29,7 @@ const queryKeyForTable: Record<TableName, string[]> = {
   friendly_games: ["friendly-games", "my-game-participants"],
   friendly_game_participants: ["my-game-participants", "friendly-games"],
   notifications: ["notifications"],
+  contact_messages: ["contact-messages"],
   player_evaluations: ["evaluations"],
 };
 

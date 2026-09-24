@@ -22,6 +22,7 @@ import type {
   CommunityLeaderboardRow,
   CommunityMember,
   CommunityReport,
+  ContactMessage,
   Expense,
   FriendlyGame,
   FriendlyGameParticipant,
@@ -113,6 +114,7 @@ export const queryKeys = {
     ["children", guardianId ?? "all"] as const,
   notifications: ["notifications"] as const,
   reports: ["reports"] as const,
+  contactMessages: ["contact-messages"] as const,
   blocks: ["blocks"] as const,
   blockedMembers: ["blocked-members"] as const,
   communityRecord: ["community-record"] as const,
@@ -3625,6 +3627,58 @@ export function useMarkNotificationsRead() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.notifications });
+    },
+  });
+}
+
+// ── Contact messages (platform inbox) ───────────────────────
+
+export function useContactMessages(limit = 200) {
+  return useQuery({
+    queryKey: [...queryKeys.contactMessages, limit],
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("contact_messages")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return (data ?? []) as ContactMessage[];
+    },
+  });
+}
+
+export function useUnreadContactCount() {
+  return useQuery({
+    queryKey: [...queryKeys.contactMessages, "unread"],
+    queryFn: async () => {
+      const { count, error } = await supabase()
+        .from("contact_messages")
+        .select("*", { count: "exact", head: true })
+        .eq("is_read", false);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+}
+
+export function useMarkContactRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids?: string[]) => {
+      let query = supabase()
+        .from("contact_messages")
+        .update({ is_read: true });
+      if (ids && ids.length > 0) {
+        query = query.in("id", ids);
+      } else {
+        query = query.eq("is_read", false);
+      }
+      const { error } = await query;
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.contactMessages });
     },
   });
 }
