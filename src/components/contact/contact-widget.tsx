@@ -16,7 +16,7 @@ export function ContactWidget() {
             type="button"
             aria-label={t("contact_widget_label")}
             title={t("contact_widget_label")}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-white p-1 shadow-lg shadow-black/15 ring-1 ring-black/10 transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="flex h-14 w-14 items-center justify-center rounded-full transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             <Image
               src="/favicon.png"
@@ -24,7 +24,7 @@ export function ContactWidget() {
               width={64}
               height={64}
               unoptimized
-              className="h-full w-full rounded-full object-contain"
+              className="h-full w-full object-contain"
             />
           </button>
         }
