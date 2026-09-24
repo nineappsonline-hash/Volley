@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 
@@ -36,9 +36,14 @@ const queryKeyForTable: Record<TableName, string[]> = {
 /**
  * Subscribes to realtime changes on the given tables and invalidates
  * the related React Query caches so the UI stays in sync.
+ *
+ * Each instance uses a unique channel name because connected channels are
+ * deduplicated by topic — reusing the same topic from two components would
+ * call `.on()` on an already-subscribed channel and throw.
  */
 export function useRealtime(tables: TableName[]) {
   const queryClient = useQueryClient();
+  const uid = useId().replace(/[:]/g, "");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -46,7 +51,7 @@ export function useRealtime(tables: TableName[]) {
 
     const channels = tables.map((table) =>
       client
-        .channel(`realtime-${table}`)
+        .channel(`realtime-${table}-${uid}`)
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table },
@@ -62,5 +67,5 @@ export function useRealtime(tables: TableName[]) {
     return () => {
       channels.forEach((c) => client.removeChannel(c));
     };
-  }, [queryClient, tables.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [queryClient, uid, tables.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
 }
