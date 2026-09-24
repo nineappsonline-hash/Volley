@@ -216,6 +216,7 @@ function FilterCombobox({
         </PopoverTrigger>
         <PopoverContent
           align="start"
+          collisionPadding={12}
           className="w-[var(--radix-popover-trigger-width)] overflow-hidden p-0"
         >
           <Input
@@ -225,7 +226,7 @@ function FilterCombobox({
             className="h-9 rounded-none border-0 border-b focus-visible:ring-0"
             dir="auto"
           />
-          <div className="max-h-56 overflow-auto p-1">
+          <div className="max-h-[min(22rem,60dvh)] overscroll-contain overflow-auto p-1">
             <SortedOptions>
               {filtered.length === 0 ? (
                 <button

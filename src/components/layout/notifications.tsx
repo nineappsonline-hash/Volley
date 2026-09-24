@@ -92,6 +92,7 @@ export function Notifications() {
       </PopoverTrigger>
       <PopoverContent
         align="end"
+        collisionPadding={12}
         className="w-[min(21rem,calc(100vw-2rem))] p-0"
       >
         <div className="flex items-center justify-between border-b p-3">
@@ -106,7 +107,7 @@ export function Notifications() {
             </button>
           )}
         </div>
-        <div className="max-h-80 overflow-y-auto p-2">
+        <div className="max-h-[min(22rem,60dvh)] overscroll-contain overflow-y-auto p-2">
           {items && items.length > 0 ? (
             items.map((n) => {
               const Icon = TYPE_ICONS[n.type] ?? Bell;
