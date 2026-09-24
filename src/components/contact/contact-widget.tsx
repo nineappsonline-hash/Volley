@@ -9,7 +9,10 @@ export function ContactWidget() {
   const { t } = useI18n();
 
   return (
-    <div className="fixed bottom-5 end-5 z-40 pb-[env(safe-area-inset-bottom)]">
+    <div className="fixed bottom-5 end-5 z-40 flex items-center gap-2 pb-[env(safe-area-inset-bottom)]">
+      <span className="rounded-full border bg-background/95 px-3 py-1.5 text-sm font-semibold text-foreground shadow-sm backdrop-blur">
+        {t("contact_menu")}
+      </span>
       <ContactFormDialog
         trigger={
           <button
