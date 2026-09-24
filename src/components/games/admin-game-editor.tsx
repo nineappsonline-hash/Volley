@@ -55,6 +55,7 @@ export function AdminGameEditor({ game, onClose }: { game: Game; onClose: () => 
             const value = draft[key];
             changes[key] = value === "" || value == null ? null : type === "number" ? Number(value) : value;
           }
+          changes.status = String(draft.status ?? "open");
           for (const key of ["description", "playground_id", "skill_level", "gender", "recurrence"]) changes[key] = draft[key] || null;
           changes.is_public = !!draft.is_public;
           changes.host_pays = !!draft.host_pays;
@@ -68,6 +69,14 @@ export function AdminGameEditor({ game, onClose }: { game: Game; onClose: () => 
         } finally { setBusy(false); }
       }}>
         <fieldset disabled={busy} className="grid gap-4 sm:grid-cols-2">
+          <label className="space-y-1 text-sm font-medium sm:col-span-2">{ar ? "حالة المباراة" : "Game status"}
+            <NativeSelect className="w-full rounded-md border bg-background p-2" value={String(draft.status ?? "open")} onChange={event => set("status", event.target.value)}>
+              <option value="open">{ar ? "مفتوحة" : "Open"}</option>
+              <option value="full">{ar ? "ممتلئة" : "Full"}</option>
+              <option value="completed">{ar ? "مكتملة" : "Completed"}</option>
+              <option value="cancelled">{ar ? "ملغاة" : "Cancelled"}</option>
+            </NativeSelect>
+          </label>
           {fields.map(([key, en, arabic, type]) => <label key={key} className="space-y-1 text-sm font-medium">{ar ? arabic : en}
             <Input type={type} required={required.has(key)} step={type === "number" ? integers.has(key) ? "1" : "any" : undefined} value={String(draft[key] ?? "")} onChange={event => set(key, event.target.value)} />
           </label>)}
