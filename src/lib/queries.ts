@@ -3551,6 +3551,42 @@ export function useUpdateFriendlyGameMaxPlayers() {
   });
 }
 
+export function useAdminAddGameMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { gameId: string; memberId: string }) => {
+      const { error } = await supabase().rpc("admin_add_friendly_game_member", {
+        p_game_id: input.gameId,
+        p_member_id: input.memberId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["platform-records"] });
+      qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
+      qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
+    },
+  });
+}
+
+export function useAdminRemoveGameMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { gameId: string; memberId: string }) => {
+      const { error } = await supabase().rpc("admin_remove_friendly_game_member", {
+        p_game_id: input.gameId,
+        p_member_id: input.memberId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["platform-records"] });
+      qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
+      qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
+    },
+  });
+}
+
 export function useStopRecurringGame() {
   const qc = useQueryClient();
   return useMutation({

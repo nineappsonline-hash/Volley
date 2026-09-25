@@ -17,7 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { matchesAdminSearch } from "@/lib/admin-record-search";
 import { rentalCoverage, type RentalInterval } from "@/lib/admin-schedule";
 import { PLATFORM_ADMIN_EMAIL, matchesAccountEmail } from "@/lib/platform-admin";
-import { useCancelFriendlyGame, useSuperAdminDeleteAcademy } from "@/lib/queries";
+import { useCancelFriendlyGame, useSuperAdminDeleteAcademy, useAdminAddGameMember, useAdminRemoveGameMember } from "@/lib/queries";
 import type { Academy, VenueUnavailableSlot } from "@/lib/types";
 import type { Dict } from "@/lib/i18n/dictionary";
 import { useI18n } from "@/lib/i18n";
@@ -28,7 +28,7 @@ import { AcademyEditDialog } from "./academy-edit-dialog";
 import { TournamentFormDialog } from "@/components/tournaments/tournaments-client";
 import { LocationFields } from "@/components/shared/location-fields";
 import { Label } from "@/components/ui/label";
-import { Ban, Camera, Check, ChevronDown, Clock, Copy, Loader2, Plus, Search, Star, Trash2, Upload } from "lucide-react";
+import { Ban, Camera, Check, ChevronDown, Clock, Copy, Loader2, Plus, Search, Star, Trash2, Upload, UserPlus, UserRoundX } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { minutesOf } from "@/lib/venue-slots";
 import { formatMoney, formatTime12h, formatHour12, getDefaultMinPlayers } from "@/lib/constants";
@@ -354,6 +354,125 @@ function GameParticipantRow({ participant }: { participant: Row }) {
     <ParticipantPayment participantId={participant.id} name={name} receiptPath={participant.pay_receipt_url ?? null} status={participant.pay_status} />
   </div>;
 }
+function ManageGamePlayers({ game, data }: { game: Row; data: Records }) {
+  const { t, lang } = useI18n();
+  const addMember = useAdminAddGameMember();
+  const removeMember = useAdminRemoveGameMember();
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const participants = data.friendly_game_participants.filter(p => p.game_id === game.id);
+  const memberIds = new Set(participants.map(p => p.member_id));
+  const roster = participants.filter(p => !p.is_waitlisted);
+  const waitlist = participants.filter(p => p.is_waitlisted);
+  const canManage = game.status === "open" || game.status === "full";
+  const busy = addMember.isPending || removeMember.isPending;
+  const notSet = t("sa_unnamed_member");
+
+  const candidates = (data.profiles ?? []).filter((p: Row) => !memberIds.has(p.id));
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? candidates.filter((p: Row) =>
+        String(p.name ?? "").toLowerCase().includes(q) ||
+        (p.username && String(p.username).toLowerCase().includes(q)) ||
+        (p.account_email && String(p.account_email).toLowerCase().includes(q))
+      )
+    : candidates;
+
+  const add = (memberId: string) => {
+    addMember.mutate(
+      { gameId: game.id, memberId },
+      {
+        onSuccess: () => toast.success(t("sa_game_member_added")),
+        onError: error => toast.error(errorMessage(error, t("common_error"))),
+      }
+    );
+    setOpen(false);
+    setQuery("");
+  };
+  const remove = (memberId: string) => {
+    removeMember.mutate(
+      { gameId: game.id, memberId },
+      {
+        onSuccess: () => toast.success(t("sa_game_member_removed")),
+        onError: error => toast.error(errorMessage(error, t("common_error"))),
+      }
+    );
+  };
+
+  const memberRow = (participant: Row, canRemove: boolean) => {
+    const name = participant.name ?? participant.player_name ?? notSet;
+    const pay = participant.is_waitlisted
+      ? <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("sa_waitlisted")}</span>
+      : participant.pay_status === "approved"
+        ? <span className="rounded-full bg-positive-100 px-2 py-0.5 text-xs font-medium text-success-ink dark:bg-positive-500/15 dark:text-positive-400">{t("sa_records_paid")}</span>
+        : participant.pay_status === "pending"
+          ? <span className="rounded-full bg-attention-100 px-2 py-0.5 text-xs font-medium text-warning-ink dark:bg-attention-500/15 dark:text-attention-400">{t("games_share_pending")}</span>
+          : <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("sa_records_unpaid")}</span>;
+    const removing = removeMember.isPending && removeMember.variables?.memberId === participant.member_id;
+    return <div key={participant.id} className="flex flex-wrap items-center gap-2.5 rounded-lg border px-3 py-2">
+      <ProfileAvatar name={name} url={participant.avatar_url} avatarId={participant.avatar_id} className="h-8 w-8 shrink-0" />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium">{name}</p>
+        <p className="text-xs text-muted-foreground">{participant.role === "organizer" ? t("sa_organizer") : t("sa_player")}{participant.share_amount != null && Number(participant.share_amount) > 0 && <span> · {formatMoney(participant.share_amount, lang)}</span>}</p>
+      </div>
+      {pay}
+      {canRemove && <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => remove(participant.member_id)}>
+        {removing ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserRoundX className="me-1 h-4 w-4" />}
+        {t("sa_game_remove_member")}
+      </Button>}
+    </div>;
+  };
+
+  return <section className="space-y-2">
+    <h3 className="text-sm font-semibold">{t("sa_game_manage_players")}</h3>
+    {!canManage ? <p className="text-sm text-muted-foreground">{t("sa_game_finished_no_manage")}</p> : <>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button type="button" variant="outline" role="combobox" aria-expanded={open} disabled={busy} className="h-9 w-full justify-between font-normal">
+            <span className="flex min-w-0 items-center"><UserPlus className="me-1.5 h-4 w-4 shrink-0" /><span className="truncate">{t("sa_game_add_member")}</span></span>
+            <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="start" collisionPadding={12} className="w-[var(--radix-popover-trigger-width)] overflow-hidden p-0">
+          <Input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder={t("sa_game_member_search")}
+            dir="auto"
+            className="h-9 rounded-none border-0 border-b focus-visible:ring-0"
+          />
+          <div className="max-h-[min(22rem,60dvh)] overscroll-contain overflow-auto p-1">
+            <SortedOptions>
+              {filtered.length === 0
+                ? <p className="px-3 py-2 text-sm text-muted-foreground">{query ? t("sa_game_no_roster") : t("sa_game_no_candidates")}</p>
+                : filtered.map((member: Row) => {
+                    const name = member.name ?? notSet;
+                    return <button
+                      key={member.id}
+                      type="button"
+                      onClick={() => add(member.id)}
+                      className="flex w-full items-center gap-2.5 rounded-sm px-3 py-2 text-start text-sm hover:bg-accent focus:outline-none focus:bg-accent"
+                      dir="auto"
+                    >
+                      <ProfileAvatar name={name} url={member.avatar_url} avatarId={member.avatar_id} className="h-8 w-8 shrink-0" />
+                      <span className="min-w-0 flex-1 truncate">{name}</span>
+                      {(member.username || member.account_email) && <span className="shrink-0 truncate text-xs text-muted-foreground">@{member.username ?? member.account_email}</span>}
+                    </button>;
+                  })}
+            </SortedOptions>
+          </div>
+        </PopoverContent>
+      </Popover>
+      <div className="space-y-2">
+        {roster.length ? roster.sort((a, b) => Number(b.role === "organizer") - Number(a.role === "organizer")).map(p => memberRow(p, p.role !== "organizer")) : <p className="text-sm text-muted-foreground">{t("sa_game_no_roster")}</p>}
+      </div>
+      {waitlist.length > 0 && <>
+        <p className="pt-1 text-xs font-semibold text-muted-foreground">{t("sa_game_waitlist")} ({waitlist.length})</p>
+        <div className="space-y-2">{waitlist.map(p => memberRow(p, true))}</div>
+      </>}
+    </>}
+  </section>;
+}
 function GameDetails({ game, data }: { game: Row; data: Records }) {
   const { t, lang } = useI18n();
   const inviteCode = typeof game.invite_code === "string" ? game.invite_code.trim() : "";
@@ -424,6 +543,7 @@ function GameDetails({ game, data }: { game: Row; data: Records }) {
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${game.max_players > 0 ? Math.min(100, (players.length / game.max_players) * 100) : 0}%` }} /></div>
       </div>
     </section>
+    <ManageGamePlayers game={game} data={data} />
     <section className="space-y-2"><h3 className="text-sm font-semibold">{t("sa_game_organizer")}</h3>
       <div className="flex items-center gap-2.5 rounded-lg border px-3 py-2">
         <ProfileAvatar name={creator?.name ?? game.creator_name ?? ""} url={creator?.avatar_url} avatarId={creator?.avatar_id} className="h-9 w-9 shrink-0" />
