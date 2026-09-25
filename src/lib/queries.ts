@@ -3534,6 +3534,23 @@ export function useCancelFriendlyGame() {
   });
 }
 
+export function useUpdateFriendlyGameMaxPlayers() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { gameId: string; maxPlayers: number }) => {
+      const { error } = await supabase().rpc(
+        "organizer_update_friendly_game_max_players",
+        { p_game_id: input.gameId, p_max_players: input.maxPlayers }
+      );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
+      qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
+    },
+  });
+}
+
 export function useStopRecurringGame() {
   const qc = useQueryClient();
   return useMutation({

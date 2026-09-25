@@ -2,7 +2,7 @@
 
 import { AdminGameEditor } from "./admin-game-editor";
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Clock, Eye, EyeOff, ShieldAlert, Trash2 } from "lucide-react";
+import { CalendarDays, Clock, Eye, EyeOff, ShieldAlert, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -23,6 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -33,7 +34,7 @@ import {
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
 import { formatTime12h } from "@/lib/constants";
-import { useCancelFriendlyGame, useSetFriendlyGameVisibility } from "@/lib/queries";
+import { useCancelFriendlyGame, useSetFriendlyGameVisibility, useUpdateFriendlyGameMaxPlayers } from "@/lib/queries";
 import { errorMessage } from "@/lib/utils";
 import type { FriendlyGameWithDetails, Profile } from "@/lib/types";
 
@@ -48,9 +49,11 @@ export function EditGameDialog({ game, profile, open, onOpenChange }: Props) {
   const { t, lang } = useI18n();
   const visibility = useSetFriendlyGameVisibility();
   const cancel = useCancelFriendlyGame();
+  const updateMaxPlayers = useUpdateFriendlyGameMaxPlayers();
   const [adminEditorOpen, setAdminEditorOpen] = useState(false);
   const [isPublic, setIsPublic] = useState(game.is_public);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [maxPlayersInput, setMaxPlayersInput] = useState(String(game.max_players));
 
   const isCreator = game.creator_id === profile.id;
   const isSuperAdmin = profile.role === "super_admin";
@@ -68,13 +71,31 @@ export function EditGameDialog({ game, profile, open, onOpenChange }: Props) {
     [game.participants, profile.id]
   );
 
+  // Every committed seat counts against the cap, organizer included.
+  const joinedCount = useMemo(
+    () => (game.participants ?? []).filter((p) => !p.is_waitlisted).length,
+    [game.participants]
+  );
+
+  const minMaxPlayers = Math.max(game.min_players ?? 2, 2, joinedCount);
+  const maxPlayersValue = Number(maxPlayersInput);
+  const maxPlayersInvalid =
+    !Number.isInteger(maxPlayersValue) ||
+    maxPlayersValue < 2 ||
+    maxPlayersValue > 30 ||
+    maxPlayersValue < minMaxPlayers;
+  const maxPlayersChanged = maxPlayersValue !== game.max_players;
+
   // Super admins can always cancel; a creator can only cancel while they are the
   // only committed player. Otherwise the game auto-cancels + refunds at game time.
   const canCancelDirectly = isSuperAdmin || !othersOptedIn;
 
   useEffect(() => {
-    if (open) setIsPublic(game.is_public);
-  }, [open, game.is_public]);
+    if (open) {
+      setIsPublic(game.is_public);
+      setMaxPlayersInput(String(game.max_players));
+    }
+  }, [open, game.is_public, game.max_players]);
 
   if (!canEdit) return null;
 
@@ -102,6 +123,16 @@ export function EditGameDialog({ game, profile, open, onOpenChange }: Props) {
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
     }
+  };
+
+  const handleSaveMaxPlayers = () => {
+    updateMaxPlayers.mutate(
+      { gameId: game.id, maxPlayers: maxPlayersValue },
+      {
+        onSuccess: () => toast.success(t("games_max_players_saved")),
+        onError: (err) => toast.error(errorMessage(err, t("common_error"))),
+      }
+    );
   };
 
   const cancelled = game.status === "cancelled";
@@ -155,6 +186,46 @@ export function EditGameDialog({ game, profile, open, onOpenChange }: Props) {
                 </Badge>
               </div>
             </div>
+
+            {!cancelled && active && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  {t("community_max_players")}
+                </Label>
+                <div className="flex items-center gap-3">
+                  <Input
+                    type="number"
+                    min="2"
+                    max="30"
+                    dir="ltr"
+                    value={maxPlayersInput}
+                    onChange={(e) => setMaxPlayersInput(e.target.value)}
+                    disabled={updateMaxPlayers.isPending}
+                    className="max-w-[8rem]"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSaveMaxPlayers}
+                    disabled={
+                      maxPlayersInvalid ||
+                      !maxPlayersChanged ||
+                      updateMaxPlayers.isPending
+                    }
+                  >
+                    {updateMaxPlayers.isPending
+                      ? t("common_saving")
+                      : t("common_save")}
+                  </Button>
+                </div>
+                {maxPlayersInvalid && (
+                  <p className="text-xs text-destructive">
+                    {t("games_max_players_hint").replace("{min}", String(minMaxPlayers))}
+                  </p>
+                )}
+              </div>
+            )}
 
             {!cancelled && active && (
               <div className="space-y-2">
