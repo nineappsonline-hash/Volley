@@ -349,7 +349,7 @@ export function RentalsClient() {
                   </TableCell>
                   <TableCell>
                     {r.is_paid ? (
-                      <Badge className="bg-positive-600 text-white">
+                      <Badge className="bg-positive-600 text-brand">
                         {t("rentals_paid")}
                       </Badge>
                     ) : (
