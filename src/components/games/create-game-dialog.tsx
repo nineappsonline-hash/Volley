@@ -49,14 +49,20 @@ import { addDaysInput, errorMessage } from "@/lib/utils";
 import { dayWorkingHoursLabel, findBlockedOverlap, formatBlockedSlot, isWithinWorkingHours, minutesOf, timeSlotsOverlap, unavailableIntervalsForDate } from "@/lib/venue-slots";
 import type { Dict } from "@/lib/i18n/dictionary";
 
+import type { Venue } from "@/lib/types";
+
 export function CreateGameDialog({
   open,
   onOpenChange,
   memberPlan,
+  initialPlayground,
+  initialDate,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   memberPlan?: "free" | "premium";
+  initialPlayground?: Venue;
+  initialDate?: string;
 }) {
   const { t, lang } = useI18n();
   const isPro = memberPlan === "premium";
@@ -84,6 +90,7 @@ export function CreateGameDialog({
   });
 
   useEffect(() => {
+    if (initialPlayground) return;
     let stale = false;
     (async () => {
       try {
@@ -104,7 +111,7 @@ export function CreateGameDialog({
     return () => {
       stale = true;
     };
-  }, []);
+  }, [initialPlayground]);
 
   const locatedPlaygrounds = useMemo(() => {
     const { country, governorate, area } = pickLocation;
@@ -144,9 +151,10 @@ export function CreateGameDialog({
   useEffect(() => {
     if (open) {
       setTitle("");
-      setSport("");
-      setPlaygroundId("");
-      setDate(addDaysInput(1));
+      setSport(initialPlayground?.sport?.name ?? "");
+      setPlaygroundId(initialPlayground?.id ?? "");
+      setDate(initialDate ?? addDaysInput(1));
+      if (initialPlayground) setPickLocation({ country: "all", governorate: "all", area: "all" });
       setTime("");
       setToTime("");
       setMaxPlayers("12");
@@ -163,7 +171,7 @@ export function CreateGameDialog({
       setShowRentInfo(false);
       setSharePaid(false);
     }
-  }, [open]);
+  }, [open, initialPlayground, initialDate]);
 
   const selectedPlayground = playgrounds?.find((p) => p.id === playgroundId);
 
@@ -171,7 +179,7 @@ export function CreateGameDialog({
     () =>
       unavailableIntervalsForDate(
         selectedPlayground?.unavailable_slots,
-        allGames ?? [],
+        (allGames ?? []).filter(game => game.playground_id === selectedPlayground?.id),
         date,
         selectedPlayground?.court_count ?? 1,
       ),
@@ -182,7 +190,7 @@ export function CreateGameDialog({
     () => (iso: string) =>
       unavailableIntervalsForDate(
         selectedPlayground?.unavailable_slots,
-        allGames ?? [],
+        (allGames ?? []).filter(game => game.playground_id === selectedPlayground?.id),
         iso,
         selectedPlayground?.court_count ?? 1,
       ),

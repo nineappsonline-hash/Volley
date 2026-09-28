@@ -1,0 +1,90 @@
+"use client";
+
+import { useState } from "react";
+import { CalendarDays, Plus } from "lucide-react";
+import { usePlaygrounds, useFriendlyGames } from "@/lib/queries";
+import { useI18n } from "@/lib/i18n";
+import { normalizeCountry } from "@/lib/locations";
+import { addDaysInput } from "@/lib/utils";
+import { formatTime12h } from "@/lib/constants";
+import { allowedIntervalsForDate, unavailableIntervalsForDate, padMinutes } from "@/lib/venue-slots";
+import type { Venue } from "@/lib/types";
+import { PageHeader } from "@/components/shared/page-header";
+import { QueryState } from "@/components/shared/query-state";
+import { PlaygroundLocationFilters, type PlaygroundLocationSelection } from "@/components/shared/playground-location-filters";
+import { PlaygroundOptionCard } from "@/components/shared/playground-option-card";
+import { PlaygroundAvailabilityCalendar } from "@/components/shared/playground-availability-calendar";
+import { CreateGameDialog } from "@/components/games/create-game-dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+export function MemberPlaygrounds({ memberPlan }: { memberPlan: "free" | "premium" }) {
+  const { t, lang } = useI18n();
+  const ar = lang === "ar";
+  const query = usePlaygrounds();
+  const [location, setLocation] = useState<PlaygroundLocationSelection>({ country: "all", governorate: "all", area: "all" });
+  const [sport, setSport] = useState("all");
+  const [search, setSearch] = useState("");
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [creating, setCreating] = useState<{ venue: Venue; date: string } | null>(null);
+  const venues = query.data ?? [];
+  const sports = [...new Set(venues.map(venue => venue.sport?.name).filter((name): name is string => !!name))].sort();
+  const filtered = venues.filter(venue =>
+    (location.country === "all" || normalizeCountry(venue.country ?? "") === location.country) &&
+    (location.governorate === "all" || venue.governorate === location.governorate) &&
+    (location.area === "all" || venue.area === location.area) &&
+    (sport === "all" || venue.sport?.name === sport) &&
+    (!search.trim() || [venue.name, venue.address, venue.area, venue.governorate].some(value => value?.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())))
+  );
+
+  return <div className="space-y-6">
+    <PageHeader title={t("nav_playgrounds")} subtitle={ar ? "اكتشف الملاعب المعتمدة، شوف المواعيد وابدأ ماتشك." : "Explore approved playgrounds, check availability and create your game."} />
+    <QueryState queries={[query]}>
+      <div className="space-y-4 rounded-2xl border bg-card p-4">
+        <PlaygroundLocationFilters venues={venues} value={location} onChange={setLocation} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2"><Label htmlFor="playground-search">{ar ? "بحث" : "Search"}</Label><Input id="playground-search" value={search} onChange={event => setSearch(event.target.value)} placeholder={ar ? "اسم الملعب أو العنوان" : "Playground name or address"} /></div>
+          <div className="space-y-2"><Label htmlFor="playground-sport">{ar ? "الرياضة" : "Sport"}</Label><select id="playground-sport" className="h-10 w-full rounded-md border bg-background px-3 text-sm text-foreground" value={sport} onChange={event => setSport(event.target.value)}><option value="all">{ar ? "كل الرياضات" : "All sports"}</option>{sports.map(name => <option key={name} value={name}>{name}</option>)}</select></div>
+        </div>
+        <Button variant="ghost" onClick={() => { setLocation({ country: "all", governorate: "all", area: "all" }); setSport("all"); setSearch(""); }}>{ar ? "مسح الفلاتر" : "Clear filters"}</Button>
+      </div>
+      <p role="status" className="text-sm text-muted-foreground">{filtered.length} {ar ? "ملعب" : "playgrounds"}</p>
+      {!filtered.length && <p className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">{ar ? "لا توجد ملاعب مطابقة. جرّب تغيير الفلاتر." : "No matching playgrounds. Try changing your filters."}</p>}
+      <div className="grid items-start gap-4 lg:grid-cols-2">{filtered.map(venue => <article key={venue.id} className="overflow-hidden rounded-2xl border bg-card">
+        <PlaygroundOptionCard playground={venue} selected={expanded === venue.id} onSelect={() => setExpanded(expanded === venue.id ? null : venue.id)} />
+        <div className="space-y-3 p-4 pt-0">
+          <p className="text-sm font-medium">{venue.sport?.name ?? (ar ? "الرياضة غير محددة" : "Sport not specified")}</p>
+          <Button variant="outline" className="gap-2" aria-expanded={expanded === venue.id} onClick={() => setExpanded(expanded === venue.id ? null : venue.id)}><CalendarDays className="h-4 w-4" />{ar ? "المواعيد المتاحة وإنشاء مباراة" : "Availability & create game"}</Button>
+          {expanded === venue.id && <VenueAvailability venue={venue} onCreate={date => setCreating({ venue, date })} />}
+        </div>
+      </article>)}</div>
+    </QueryState>
+    {creating && <CreateGameDialog open onOpenChange={open => { if (!open) setCreating(null); }} memberPlan={memberPlan} initialPlayground={creating.venue} initialDate={creating.date} />}
+  </div>;
+}
+
+function VenueAvailability({ venue, onCreate }: { venue: Venue; onCreate: (date: string) => void }) {
+  const { lang } = useI18n();
+  const ar = lang === "ar";
+  const query = useFriendlyGames();
+  const [date, setDate] = useState(addDaysInput(1));
+  const games = (query.data ?? []).filter(game => game.playground_id === venue.id);
+  const busyForDate = (day: string) => unavailableIntervalsForDate(venue.unavailable_slots, games, day, venue.court_count ?? 1);
+  let free = allowedIntervalsForDate(venue.working_hours, date);
+  for (const [start, end] of busyForDate(date)) {
+    free = free.flatMap(([from, to]): Array<[number, number]> => end <= from || start >= to ? [[from, to]] : [ ...(start > from ? [[from, start] as [number, number]] : []), ...(end < to ? [[end, to] as [number, number]] : []) ]);
+  }
+  const time = (minutes: number) => minutes === 1440 ? (ar ? "منتصف الليل" : "Midnight") : formatTime12h(padMinutes(minutes), lang);
+  return <QueryState queries={[query]}>
+    <PlaygroundAvailabilityCalendar unavailableSlots={venue.unavailable_slots} workingHours={venue.working_hours} busyForDate={busyForDate} selectedDate={date} onSelectDate={setDate} minDate={addDaysInput(1)} />
+    <div className="space-y-2">
+      <p className="text-sm font-semibold">{date} · {ar ? "الأوقات المتاحة" : "Available times"}</p>
+      <div className="flex flex-wrap gap-2">{free.map(([start, end]) => <span dir="auto" key={`${start}-${end}`} className="rounded-lg bg-muted px-3 py-2 text-sm text-foreground">{time(start)} – {time(end)}</span>)}</div>
+      {!free.length && <p className="text-sm text-muted-foreground">{ar ? "لا توجد أوقات متاحة في هذا اليوم." : "No available times on this day."}</p>}
+      <p className="text-xs text-muted-foreground">{ar ? "المواعيد حسب ساعات العمل والحجوزات الظاهرة. يتم التحقق النهائي عند إنشاء المباراة." : "Based on opening hours and visible bookings. Availability is checked again when creating the game."}</p>
+      {!venue.working_hours?.length && <p className="text-xs text-muted-foreground">{ar ? "الملعب لم يحدد ساعات العمل؛ المواعيد المعروضة تستخدم ساعات التطبيق الافتراضية." : "This venue has not published opening hours; the app’s default hours are shown."}</p>}
+      <Button disabled={!free.length} onClick={() => onCreate(date)} className="gap-2"><Plus className="h-4 w-4" />{ar ? "إنشاء مباراة هنا" : "Create game here"}</Button>
+    </div>
+  </QueryState>;
+}

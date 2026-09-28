@@ -49,9 +49,9 @@ export function PlaygroundAvailabilityCalendar({
 }) {
   const { t, lang } = useI18n();
   const [weekStart, setWeekStart] = useState<Date>(() => {
-    const today = new Date();
-    const day = today.getDay();
-    return addDays(today, (WEEK_START - day + 7) % 7);
+    const anchor = selectedDate ? new Date(`${selectedDate}T00:00:00`) : new Date();
+    const day = anchor.getDay();
+    return addDays(anchor, -((day - WEEK_START + 7) % 7));
   });
 
   const days = useMemo(
@@ -185,7 +185,7 @@ export function PlaygroundAvailabilityCalendar({
               {workingFor(selectedDate) && (
                 <p className="flex items-center gap-1.5 text-muted-foreground">
                   <Clock className="h-3.5 w-3.5 shrink-0" />
-                  {t("wh_outside").replace("{hours}", workingFor(selectedDate)!)}
+                  {lang === "ar" ? "ساعات العمل: " : "Opening hours: "}{workingFor(selectedDate)}
                 </p>
               )}
               {slotsFor(selectedDate).map((slot, i) => (
@@ -194,7 +194,7 @@ export function PlaygroundAvailabilityCalendar({
                   {formatTime12h(slot.start, lang)} {t("avail_to")} {formatTime12h(slot.end, lang)}
                 </p>
               ))}
-              {slotsFor(selectedDate).length === 0 && closedLabel(selectedDate) === null && (
+              {busyOn(selectedDate).length === 0 && closedLabel(selectedDate) === null && (
                 <p className="text-muted-foreground">{t("avail_all_free")}</p>
               )}
               {closedLabel(selectedDate) !== null && (
