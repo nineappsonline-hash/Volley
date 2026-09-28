@@ -1,188 +1,95 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { ArrowUpLeft, Check, CalendarDays, QrCode, Users, TrendingUp, MessageCircle, MapPin, Wallet, Trophy, Heart, Volleyball, Menu, X } from "lucide-react";
+import { ArrowUpRight, ArrowDown, Volleyball, Pause, Play, MapPin, MoveUpRight } from "lucide-react";
 import { AppLogo } from "@/components/shared/app-logo";
 import { LanguageToggle } from "@/components/layout/language-toggle";
-import { InstallBanner } from "@/components/marketing/install-banner";
 import { useI18n } from "@/lib/i18n";
-import { DISCOVERY_SPORTS, discoveryPath } from "@/lib/sport-discovery";
-import { SportIcon } from "./sport-icons";
-import { LeaderboardSection, type HomepageCommunityStats, type HomepageLeader } from "./leaderboard";
-import { ContactFormDialog } from "@/components/contact/contact-form-dialog";
-import styles from "./landing.module.css";
+import { discoveryPath } from "@/lib/sport-discovery";
+import styles from "./volleyball-landing.module.css";
 
-function audiences(t: (k: any) => string) {
-  return [
-    { label: t("landing_aud1_label"), icon: Volleyball, title: t("landing_aud1_title"), text: t("landing_aud1_text"), points: [t("landing_aud1_p1"), t("landing_aud1_p2"), t("landing_aud1_p3")], cta: t("landing_aud1_cta"), href: "/signup" },
-    { label: t("landing_aud2_label"), icon: Heart, title: t("landing_aud2_title"), text: t("landing_aud2_text"), points: [t("landing_aud2_p1"), t("landing_aud2_p2"), t("landing_aud2_p3")], cta: t("landing_aud2_cta"), href: "/academies" },
-    { label: t("landing_aud3_label"), icon: Trophy, title: t("landing_aud3_title"), text: t("landing_aud3_text"), points: [t("landing_aud3_p1"), t("landing_aud3_p2"), t("landing_aud3_p3")], cta: t("landing_aud3_cta"), href: "/signup?mode=tenant" },
-  ];
+type Sport = "volleyball" | "padel" | "tennis";
+
+function Ball({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 200 200" fill="none" aria-hidden="true"><circle cx="100" cy="100" r="94" fill="#f8f4e8" stroke="#182d29" strokeWidth="3" /><path d="M100 6C144 27 165 68 151 111L100 100C80 72 75 35 100 6Z" fill="#cced48" /><path d="M151 111C131 151 94 175 52 179L100 100Z" fill="#728dfa" /><path d="M100 100C56 104 24 82 10 63C0 115 22 153 52 179Z" fill="#cced48" /><g stroke="#182d29" strokeWidth="3"><path d="M100 6C74 40 77 72 100 100C146 106 177 127 181 147M100 100C85 145 66 169 52 179M10 63C39 94 68 108 100 100" /><path d="M125 12C108 46 113 75 133 105M151 111C128 150 106 169 79 191M7 99C37 123 66 133 88 129" /></g></svg>;
 }
 
-function features(t: (k: any) => string) {
-  return [
-    { icon: CalendarDays, title: t("landing_feat1_title"), text: t("landing_feat1_text") },
-    { icon: QrCode, title: t("landing_feat2_title"), text: t("landing_feat2_text") },
-    { icon: TrendingUp, title: t("landing_feat3_title"), text: t("landing_feat3_text") },
-    { icon: Wallet, title: t("landing_feat4_title"), text: t("landing_feat4_text") },
-    { icon: MessageCircle, title: t("landing_feat5_title"), text: t("landing_feat5_text") },
-    { icon: MapPin, title: t("landing_feat6_title"), text: t("landing_feat6_text") },
-  ];
+function CourtScene({ small = false }: { small?: boolean }) {
+  return <div className={small ? styles.miniCourt : styles.scene} aria-hidden="true">
+    <svg viewBox="0 0 640 540" className={styles.courtSvg} fill="none">
+      <ellipse cx="330" cy="443" rx="272" ry="60" fill="#172e29" opacity=".12" />
+      <path d="M45 310L354 161L614 311L305 479Z" fill="#213e35" />
+      <path d="M45 298L354 149L614 299L305 467Z" fill="#cced48" stroke="#172e29" strokeWidth="3" />
+      <path d="M86 296L353 168L574 299L305 445Z" stroke="#f9f7ed" strokeWidth="4" />
+      <path d="M221 231L441 371M151 264L373 409M288 199L509 335" stroke="#f9f7ed" strokeWidth="3" />
+      <path d="M204 230V126L463 274V387" stroke="#182d29" strokeWidth="7" strokeLinecap="round" />
+      <path d="M206 136L460 280V348L206 204Z" fill="#f7f4e8" fillOpacity=".35" stroke="#182d29" strokeWidth="2" />
+      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(i => <path key={i} d={`M${215+i*21} ${141+i*12}v67`} stroke="#182d29" strokeWidth="1.4" />)}
+      <path d="M206 153L460 297M206 170L460 314M206 187L460 331" stroke="#182d29" strokeWidth="1.4" />
+      <g className={styles.player}><ellipse cx="175" cy="323" rx="30" ry="10" fill="#182d29" opacity=".15" /><path d="M174 276L157 311M186 277L201 314" stroke="#182d29" strokeWidth="12" strokeLinecap="round" /><path d="M174 229L165 272L192 280L199 234Z" fill="#728dfa" stroke="#182d29" strokeWidth="3" /><circle cx="191" cy="213" r="14" fill="#f1b99b" stroke="#182d29" strokeWidth="3" /><path d="M175 238L155 221L166 195M197 238L216 214L215 185" stroke="#182d29" strokeWidth="9" strokeLinecap="round" /><path d="M145 316H162M195 319H212" stroke="#f8f4e8" strokeWidth="9" strokeLinecap="round" /></g>
+      <g><ellipse cx="451" cy="269" rx="27" ry="9" fill="#182d29" opacity=".15" /><path d="M445 224L429 261M456 225L474 255" stroke="#182d29" strokeWidth="11" strokeLinecap="round" /><path d="M436 185L433 223L460 230L465 187Z" fill="#f4a17e" stroke="#182d29" strokeWidth="3" /><circle cx="450" cy="169" r="13" fill="#ad7458" stroke="#182d29" strokeWidth="3" /><path d="M438 192L416 211L400 203M461 195L482 183" stroke="#182d29" strokeWidth="9" strokeLinecap="round" /></g>
+      <path d="M257 126Q335 34 425 106" stroke="#182d29" strokeWidth="2" strokeDasharray="7 9" />
+      <path d="M411 94L427 108L408 112" stroke="#182d29" strokeWidth="2" />
+      <g transform="translate(276 71)"><circle r="22" fill="#f8f4e8" stroke="#182d29" strokeWidth="2" /><path d="M-20-8Q0 6 15-16M0 1Q-3 16-13 18M0 1Q17 1 21 7" stroke="#182d29" strokeWidth="2" /></g>
+    </svg>
+  </div>;
 }
 
-export function LandingPage({ leaders, stats }: { leaders: HomepageLeader[]; stats: HomepageCommunityStats }) {
-  const { t, lang, dir } = useI18n();
-  const pageRef = useRef<HTMLElement>(null);
-  useEffect(() => {
-    if (!("IntersectionObserver" in window)) return;
-    const observer = new IntersectionObserver(entries => entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.setAttribute("data-visible", "true");
-        observer.unobserve(entry.target);
-      }
-    }), { threshold: 0.08 });
-    pageRef.current?.querySelectorAll(`section, article, .${styles.kicker}`).forEach(element => observer.observe(element));
-    return () => observer.disconnect();
-  }, []);
-  const [audience, setAudience] = useState(0);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const current = audiences(t)[audience];
-  const [sport, setSport] = useState("football");
-  const sportList: [string, string][] = DISCOVERY_SPORTS.map(sport => [sport.slug, lang === "ar" ? sport.arabic : sport.name]);
-  const arenaSports: [string, string][] = [
-    ["football", t("landing_sport_football")],
-    ["padel", t("landing_sport_padel")],
-    ["swimming", t("landing_sport_swimming")],
-    ["volleyball", t("landing_sport_volleyball")],
-  ];
-  const navLinks: [string, string][] = [
-    [t("landing_nav_about"), "#about"],
-    [t("landing_nav_for_you"), "#for-you"],
-    [t("landing_nav_features"), "#features"],
-    [lang === "ar" ? "العب في القاهرة" : "Play in Cairo", discoveryPath(lang)],
-    [t("landing_nav_faq"), "/faq"],
-  ];
-  const steps: [string, string][] = [
-    [t("landing_step1_title"), t("landing_step1_text")],
-    [t("landing_step2_title"), t("landing_step2_text")],
-    [t("landing_step3_title"), t("landing_step3_text")],
-  ];
-  const faq: [string, string][] = [
-    [t("landing_faq1_q"), t("landing_faq1_a")],
-    [t("landing_faq2_q"), t("landing_faq2_a")],
-    [t("landing_faq3_q"), t("landing_faq3_a")],
-    [t("landing_faq4_q"), t("landing_faq4_a")],
-  ];
-  return (
-    <main ref={pageRef} dir={dir} lang={lang === "ar" ? "ar-EG" : "en"} className={styles.page}>
-      <header className={styles.header}>
-        <Link href="/" aria-label={t("landing_aria_home")}><AppLogo className="w-28" /></Link>
-        <nav aria-label={t("landing_nav_about")} className={styles.desktopNav}>{navLinks.map(([text, href]) => href.startsWith("#") ? <a key={href} href={href}>{text}</a> : <Link key={href} href={href}>{text}</Link>)}<ContactFormDialog trigger={<button type="button" className="bg-transparent p-0 font-semibold text-current">{t("contact_menu")}</button>} /></nav>
-        <div className={styles.headerActions}><LanguageToggle /><Link href="/login">{t("landing_signin")}</Link><Link className={styles.smallCta} href="/signup">{t("landing_cta_start")} <ArrowUpLeft size={16} /></Link><button className={styles.menuButton} aria-label={menuOpen ? t("landing_menu_close") : t("landing_menu_open")} aria-expanded={menuOpen} aria-controls="home-menu" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</button></div>
-        {menuOpen && <nav id="home-menu" className={styles.mobileNav} aria-label={t("landing_nav_about")}>{navLinks.map(([text, href]) => href.startsWith("#") ? <a key={href} href={href} onClick={() => setMenuOpen(false)}>{text}</a> : <Link key={href} href={href} onClick={() => setMenuOpen(false)}>{text}</Link>)}<div className="flex flex-col"><ContactFormDialog trigger={<button type="button" className="rounded-md p-2 text-start font-normal hover:bg-accent">{t("contact_menu")}</button>} /></div></nav>}
-      </header>
+export function LandingPage() {
+  const { lang, dir } = useI18n();
+  const ar = lang === "ar";
+  const [paused, setPaused] = useState(false);
+  const [sport, setSport] = useState<Sport>("volleyball");
+  const copy = (en: string, arabic: string) => ar ? arabic : en;
+  const names = { volleyball: copy("Volleyball", "الكرة الطائرة"), padel: copy("Padel", "البادل"), tennis: copy("Tennis", "التنس") };
 
-      <section id="top" className={styles.hero}>
-        <div className={styles.heroCopy}><span className={styles.eyebrow}><span /> {t("landing_hero_eyebrow")}</span><h1>{t("landing_hero_title_a")}<br /><em>{t("landing_hero_title_b")}</em></h1><p>{t("landing_hero_desc_alt")}</p><div className={styles.actions}><Link className={styles.cta} href="/signup">{t("landing_cta_start")} <ArrowUpLeft size={20} /></Link><Link className={styles.secondary} href="/academies">{t("landing_cta_discover")} <MapPin size={18} /></Link></div><p className={styles.heroNote}>{t("landing_hero_note")}</p></div>
-        <div className={styles.editorialHero}>
-          <Image src="/images/playza-sports-editorial.webp" alt={t("landing_editorial_alt")} width={1200} height={800} priority sizes="(max-width: 700px) 100vw, 50vw" />
-          <div className={styles.editorialCaption}><span>{t("landing_editorial_span")}</span><strong>{t("landing_editorial_strong")}</strong></div>
+  return <div className={styles.page} dir={dir} data-paused={paused}>
+    <header className={styles.header}>
+      <Link href="/" aria-label="Playza"><AppLogo className="w-24 sm:w-28" /></Link>
+      <nav className={styles.nav} aria-label={copy("Main navigation", "القائمة الرئيسية")}><a href="#find-your-court">{copy("Find your court", "لاقي ملعبك")}</a><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><a href="#sports">{copy("The sports", "الرياضات")}</a></nav>
+      <div className={styles.headerActions}><LanguageToggle /><Link href="/login" className={styles.login}>{copy("Log in", "دخول")} <ArrowUpRight size={16} /></Link></div>
+    </header>
+
+    <main>
+      <section className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <p className={styles.eyebrow}><span />{copy("LESS SCROLLING. MORE VOLLEYBALL.", "سيب الموبايل. وانزل العب طايرة.")}</p>
+          <h1>{copy("Your people.", "ناس شبهك.")}<br />{copy("Your court.", "ملعبك.")}<br /><span>{copy("Your game.", "لعبتك.")}<svg viewBox="0 0 400 25" aria-hidden="true"><path d="M5 18Q190-7 395 12M30 23Q210 6 365 18" /></svg></span></h1>
+          <p className={styles.intro}>{copy("Find a volleyball court. Discover an academy. Turn “we should play” into your next plan.", "لاقي ملعب طايرة، واكتشف أكاديمية. وخلّي «يلا نلعب قريب» تبقى خطتك الجاية.")}</p>
+          <div className={styles.actions}><Link className={styles.primary} href="/playgrounds">{copy("Find a playground", "لاقي ملعب")}<ArrowUpRight size={20} /></Link><Link className={styles.textLink} href="/academies">{copy("Explore academies", "اكتشف الأكاديميات")}<ArrowUpRight size={18} /></Link></div>
+          <p className={styles.heroNote}><Volleyball size={17} />{copy("Volleyball at heart. Everyone in.", "الطايرة في القلب. والملعب للجميع.")}</p>
         </div>
-      </section>
-      <InstallBanner />
-      <div className={styles.sports} aria-label={t("landing_sports_prompt")}><span>{t("landing_sports_prompt")}</span>{sportList.map(([id, name]) => <Link key={id} href={discoveryPath(lang, id)}><SportIcon id={id === "beach-volleyball" ? "volleyball" : id} size={18} />{name}</Link>)}</div>
-
-      <section id="about" className={`${styles.section}`}>
-        <div className={styles.sectionHeading}><h2>{t("landing_about_title")}</h2><p>{t("landing_about_desc")}</p></div>
-        <div className={styles.aboutGrid}>{[t("landing_about_point1"), t("landing_about_point2"), t("landing_about_point3")].map((point, i) => <div className={styles.aboutCard} key={point}><span>0{i + 1}</span><p>{point}</p></div>)}</div>
-      </section>
-
-      <section className={`${styles.section} ${styles.playTogether}`}>
-        <div><span className={styles.kicker}>{t("landing_play_kicker")}</span><h2>{t("landing_play_title_a")}<br /><em>{t("landing_play_title_b")}</em></h2><p>{t("landing_play_desc1")}</p><p>{t("landing_play_desc2")}</p><Link className={styles.cta} href="/signup">{t("landing_play_cta")} <ArrowUpLeft size={20} /></Link></div>
-        <div className={styles.matchGraphic} aria-label={t("landing_play_graphic_aria")}><div className={styles.matchGraphicTitle}><span className={styles.iconGreen}><Users size={24} /></span><div><strong>{t("landing_chat_title")}</strong><small>{t("landing_chat_subtitle")}</small></div></div><div className={styles.chatBubble}>{t("landing_chat_bubble")} <Volleyball size={18} /></div><div className={styles.chatReply}>{t("landing_chat_reply")} 🙌</div><div className={styles.matchChecklist}><span><MapPin size={18} /> {t("landing_checklist_place")}</span><span><CalendarDays size={18} /> {t("landing_checklist_time")}</span><span><Wallet size={18} /> {t("landing_checklist_cost")}</span></div><small className={styles.illustrationNote}>{t("landing_illustration_note")}</small></div>
+        <div className={styles.heroArt}>
+          <div className={styles.orbit} aria-hidden="true" />
+          <span className={styles.artLabel}>{copy("MEET YOU AT THE NET", "نتقابل عند الشبكة")}</span>
+          <CourtScene />
+          <Ball className={styles.heroBall} />
+          <span className={styles.sticker}>{copy("GOOD", "أحلى")}<br />{copy("GAME!", "لعبة!")}<span>✳</span></span>
+          <div className={styles.locationTag}><MapPin size={16} />{copy("Your next favourite place", "مكانك المفضل الجاي")}</div>
+          <button type="button" className={styles.motionButton} onClick={() => setPaused(!paused)} aria-pressed={paused} aria-label={paused ? copy("Play animations", "تشغيل الحركة") : copy("Pause animations", "إيقاف الحركة")}>{paused ? <Play size={15} /> : <Pause size={15} />}</button>
+        </div>
+        <a className={styles.scrollHint} href="#find-your-court"><ArrowDown size={16} />{copy("LET’S GET YOU OUT THERE", "يلا ننزل الملعب")}</a>
       </section>
 
-      <section className={styles.arenaSection}>
-        <div className={styles.arenaCopy}><span className={styles.kicker}>{t("landing_arena_kicker")}</span><h2>{t("landing_arena_title_a")}<br /><em>{t("landing_arena_title_b")}</em></h2><p>{t("landing_arena_desc")}</p><Link className={styles.cta} href="/signup">{t("landing_arena_cta")} <ArrowUpLeft size={20} /></Link></div>
-        <div className={styles.arenaArt}>
-          <div className={styles.sportSelector} role="group" aria-label={t("landing_sport_select_aria")}>{arenaSports.map(([id, label]) => <button key={id} aria-pressed={sport === id} onClick={() => setSport(id)}>{label}</button>)}</div>
-          <SportScene sport={sport} /><span>{t("landing_arena_note")}</span>
+      <div className={styles.ribbon} aria-hidden="true"><div>{Array.from({ length: 4 }, (_, i) => <span key={i}> {copy("SERVE. SET. CONNECT.", "إرسال. إعداد. صحبة.")} <span>✳</span> {copy("SEE YOU ON COURT", "نشوفك في الملعب")} <span>✳</span></span>)}</div></div>
+
+      <section id="find-your-court" className={styles.discover}>
+        <div className={styles.sectionHeading}><p className={styles.eyebrow}>{copy("01 / FIND YOUR PLACE", "01 / لاقي مكانك")}</p><h2>{copy("Two ways in.", "طريقين للملعب.")}<br /><span>{copy("A whole lot of play.", "ولعب كتير مستنيك.")}</span></h2></div>
+        <div className={styles.discoveryGrid}>
+          <Link href="/playgrounds" className={`${styles.discoveryCard} ${styles.courtCard}`}><div className={styles.cardTop}><span>{copy("THE PLAYGROUNDS", "الملاعب")}</span><span className={styles.circleArrow}><ArrowUpRight /></span></div><div className={styles.cardGraphic}><CourtScene small /></div><div className={styles.cardCopy}><h3>{copy("Find your home court.", "لاقي ملعب تحسّه بيتك.")}</h3><p>{copy("Explore places to play. Pick your spot and bring your people.", "اكتشف الملاعب، اختار مكانك، واجمع أصحابك.")}</p></div></Link>
+          <Link href="/academies" className={`${styles.discoveryCard} ${styles.academyCard}`}><div className={styles.cardTop}><span>{copy("THE ACADEMIES", "الأكاديميات")}</span><span className={styles.circleArrow}><ArrowUpRight /></span></div><div className={styles.academyGraphic} aria-hidden="true"><span className={styles.stepOne}>01</span><span className={styles.stepTwo}>02</span><span className={styles.stepThree}>03<MoveUpRight /></span><Ball className={styles.academyBall} /><span className={styles.spark}>✳</span></div><div className={styles.cardCopy}><h3>{copy("Your next level starts here.", "مستواك الجاي يبدأ هنا.")}</h3><p>{copy("First serve or a stronger spike. Find an academy to grow with.", "أول إرسال أو ضربة أقوى. لاقي أكاديمية تتطور معاها.")}</p></div></Link>
         </div>
       </section>
 
-      <section id="for-you" className={styles.section}>
-        <div className={styles.sectionHeading}><span className={styles.kicker}>{t("landing_foryou_kicker")}</span><h2>{t("landing_foryou_title")}</h2><p>{t("landing_foryou_desc")}</p></div>
-        <div className={styles.audienceButtons} role="group" aria-label={t("landing_foryou_aria")}>{audiences(t).map((item, index) => <button key={item.label} aria-pressed={index === audience} onClick={() => setAudience(index)}><item.icon size={19} />{item.label}</button>)}</div>
-        <div className={styles.audiencePanel} key={audience}><div><span className={styles.kicker}>{current.label}</span><h3>{current.title}</h3><p>{current.text}</p><Link className={styles.textLink} href={current.href}>{current.cta} <ArrowUpLeft size={19} /></Link></div><div className={styles.benefits}>{current.points.map((point, i) => <div key={point}><span>0{i + 1}</span><p>{point}</p><Check size={20} /></div>)}</div></div>
+      <section id="sports" className={styles.sportsSection}>
+        <div className={styles.sportsCopy}><p className={styles.eyebrow}>{copy("02 / PICK YOUR PLAY", "02 / اختار لعبتك")}</p><h2>{copy("Big on volleyball.", "الطايرة هي الأساس.")}<br /><span>{copy("Room for more.", "وفيه مكان للمزيد.")}</span></h2><p>{copy("We live for the rally. Whether it’s over a volleyball net or with a racket in hand.", "بنحب اللعب اللي يجمعنا. فوق شبكة الطايرة، أو بمضرب في إيدك.")}</p><div className={styles.sportButtons} role="group" aria-label={copy("Choose a sport", "اختار رياضة")}>{(["volleyball", "padel", "tennis"] as const).map(item => <button key={item} type="button" aria-pressed={sport === item} onClick={() => setSport(item)}>{names[item]}{item === "volleyball" && <Volleyball size={17} />}</button>)}</div><Link className={styles.textLink} href={discoveryPath(lang, sport)}>{copy("Explore", "اكتشف")} {names[sport]}<ArrowUpRight size={20} /></Link></div>
+        <div className={styles.sportPoster} data-sport={sport}><span className={styles.posterLabel}>{copy("THE PLAYZA SPORTS CLUB", "نادي بلايزا الرياضي")}</span><div key={sport} className={styles.posterGraphic} aria-hidden="true">{sport === "volleyball" ? <Ball /> : <svg viewBox="0 0 240 280" fill="none"><g transform="rotate(30 120 140)"><ellipse cx="120" cy="100" rx="63" ry="82" fill={sport === "padel" ? "#182d29" : "none"} stroke="#182d29" strokeWidth="10" />{sport === "padel" ? Array.from({ length: 5 }, (_, row) => Array.from({ length: 4 }, (_, col) => <circle key={`${row}-${col}`} cx={87+col*22} cy={52+row*23} r="5" fill="#f4a17e" />)) : <path d="M77 44V156M98 25V176M120 20V180M142 25V176M163 44V156M62 60H178M58 86H182M58 112H182M65 138H175" stroke="#182d29" strokeWidth="2" />}<path d="M102 180L114 216H126L138 180M120 215V263" stroke="#182d29" strokeWidth="12" strokeLinecap="round" /></g><circle cx="202" cy="209" r="21" fill="#cced48" stroke="#182d29" strokeWidth="3" /></svg>}</div><strong>{names[sport]}</strong><span className={styles.posterFooter}>{sport === "volleyball" ? copy("OUR FIRST LOVE. YOUR NEXT GAME.", "حبنا الأول. ولعبتك الجاية.") : copy("NEW RALLIES. SAME GOOD ENERGY.", "لعبة جديدة. ونفس الحماس.")}</span></div>
       </section>
 
-      <section id="features" className={`${styles.section} ${styles.featureSection}`}><div className={styles.sectionHeading}><span className={styles.kicker}>{t("landing_feat_kicker")}</span><h2>{t("landing_feat_title_a")}<br /><em>{t("landing_feat_title_b")}</em></h2><p>{t("landing_feat_desc")}</p></div><div className={styles.featureGrid}>{features(t).map((feature, index) => <article className={styles.featureCard} key={feature.title}><div className={styles.featureTop}><feature.icon size={26} /><span>0{index + 1}</span></div><h3>{feature.title}</h3><p>{feature.text}</p></article>)}</div></section>
-
-      <LeaderboardSection leaders={leaders} stats={stats} />
-
-      <section className={styles.section}><div className={styles.stepsHeading}><div><span className={styles.kicker}>{t("landing_steps_kicker")}</span><h2>{t("landing_steps_title")}</h2></div><Link className={styles.secondary} href="/signup">{t("landing_steps_cta")} <ArrowUpLeft size={18} /></Link></div><div className={styles.steps}>{steps.map(([title, text], i) => <article key={title}><span>{i + 1}</span><h3>{title}</h3><p>{text}</p></article>)}</div></section>
-
-      <section id="questions" className={`${styles.section} ${styles.faq}`}><div><span className={styles.kicker}>{t("landing_faq_kicker")}</span><h2>{t("landing_faq_title")}</h2><p>{t("landing_faq_desc")}</p></div><div>{faq.map(([q, a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}<Link className={styles.textLink} href="/faq">{t("landing_faq_more_cta")} <ArrowUpLeft size={18} /></Link></div></section>
-      <section className={styles.finalCta}><div><span className={styles.kicker}>{t("landing_final_kicker")}</span><h2>{t("landing_final_title")}</h2><p>{t("landing_final_desc")}</p></div><Link className={styles.cta} href="/signup">{t("landing_final_cta")} <ArrowUpLeft size={22} /></Link></section>
-      <footer className={styles.footer}>
-        <div className={styles.footerTop}>
-          <div className={styles.footerBrand}>
-            <AppLogo className="w-28" />
-            <p>{t("appTagline")}</p>
-            <small>{t("landing_footer_desc")}</small>
-          </div>
-          <nav aria-label={t("landing_footer_solutions")} className={styles.footerNav}>
-            <span className={styles.footerHeading}>{t("landing_footer_solutions")}</span>
-            <Link href="/games">{t("landing_footer_games")}</Link>
-            <Link href="/tournaments">{t("landing_footer_tournaments")}</Link>
-            <Link href="/academies">{t("landing_footer_academies")}</Link>
-            <Link href="/book-courts" lang="ar">حجز ملاعب بادل وVolley</Link>
-            <Link href="/faq">{t("landing_footer_faq")}</Link>
-          </nav>
-          <nav aria-label={t("landing_footer_sports")} className={styles.footerNav}>
-            <span className={styles.footerHeading}>{t("landing_footer_sports")}</span>
-            <Link href={discoveryPath(lang, "football")}>{t("landing_sport_football")}</Link>
-            <Link href={discoveryPath(lang, "volleyball")}>{t("landing_sport_volleyball")}</Link>
-            <Link href={discoveryPath(lang, "padel")}>{t("landing_sport_padel")}</Link>
-            <Link href={discoveryPath(lang)}>{lang === "ar" ? "كل الرياضات" : "All sports"}</Link>
-          </nav>
-          <nav aria-label={t("landing_footer_account")} className={styles.footerNav}>
-            <span className={styles.footerHeading}>{t("landing_footer_account")}</span>
-            <Link href="/signup">{t("landing_footer_start_free")}</Link>
-            <Link href="/login">{t("landing_signin")}</Link>
-          </nav>
-        </div>
-        <div className={styles.footerBottom}>
-          <span>
-            © {new Date().getFullYear()} Playza. {t("appTagline")}.
-          </span>
-          <a href="#top" className={styles.backToTop}>
-            {t("landing_footer_top")}
-          </a>
-        </div>
-      </footer>
+      <section className={styles.finalCta}><span className={styles.ctaStar} aria-hidden="true">✳</span><p className={styles.eyebrow}>{copy("LESS PLANNING. MORE PLAYING.", "كلام أقل. لعب أكتر.")}</p><h2>{copy("The court is calling.", "الملعب بيناديك.")}</h2><Link className={styles.primary} href="/games?sport=volleyball">{copy("Find your next volleyball game", "لاقي ماتش الطايرة الجاي")}<ArrowUpRight size={20} /></Link><p>{copy("Come for the game. Stay for the people.", "تعالى عشان اللعبة. وكمّل عشان الصحبة.")}</p></section>
     </main>
-  );
-}
 
-
-function SportScene({ sport }: { sport: string }) {
-  const { t } = useI18n();
-  const labels: Record<string, string> = {
-    football: t("landing_sport_football"),
-    padel: t("landing_sport_padel"),
-    swimming: t("landing_sport_swimming"),
-    volleyball: t("landing_sport_volleyball"),
-  };
-  const scenes: Record<string, { label: string; position: string }> = {
-    football: { label: labels.football, position: "0% 0%" },
-    padel: { label: labels.padel, position: "100% 0%" },
-    swimming: { label: labels.swimming, position: "0% 100%" },
-    volleyball: { label: labels.volleyball, position: "100% 100%" },
-  };
-  const scene = scenes[sport] ?? scenes.football;
-  return <div className={styles.sportPhoto} key={sport} role="img" aria-label={t("landing_scene_aria").replace("{sport}", scene.label)} style={{ backgroundPosition: scene.position }}><span>{scene.label}</span></div>;
+    <footer className={styles.footer}><div><AppLogo className="w-24" /><p>{copy("A little less online. A lot more on court.", "وقت أقل أونلاين. وقت أكتر في الملعب.")}</p></div><nav aria-label={copy("Footer", "روابط إضافية")}><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><Link href="/signup/owner">{copy("List your playground", "ضيف ملعبك")}</Link><Link href="/signup/tenant">{copy("For academy owners", "لأصحاب الأكاديميات")}</Link><Link href="/faq">{copy("FAQs", "أسئلة شائعة")}</Link></nav><span>© {new Date().getFullYear()} Playza</span></footer>
+  </div>;
 }
