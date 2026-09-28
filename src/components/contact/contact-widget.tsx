@@ -9,7 +9,7 @@ export function ContactWidget() {
   const { t } = useI18n();
 
   return (
-    <div className="fixed bottom-5 end-5 z-40 pb-[env(safe-area-inset-bottom)]">
+    <div className="contact-widget fixed bottom-5 end-5 z-40 pb-[env(safe-area-inset-bottom)]">
       <ContactFormDialog
         trigger={
           <button

@@ -67,14 +67,14 @@ export function MyUpcomingGames({ memberId }: { memberId: string }) {
   const waitlistCount = roster.data?.filter(p => p.is_waitlisted).length ?? 0;
 
   return <>
-    <Card id="my-upcoming-games" className="border-2 border-primary/30 bg-primary/5 shadow-md">
-      <CardHeader className="pb-4"><CardTitle className="flex items-center gap-3 text-2xl"><CalendarDays className="h-7 w-7 text-primary" />{t("games_my_upcoming")}</CardTitle></CardHeader>
+    <Card id="my-upcoming-games" className="rounded-2xl shadow-none">
+      <CardHeader className="pb-4"><CardTitle className="flex items-center gap-2 text-base"><CalendarDays className="h-5 w-5 text-primary" />{t("games_my_upcoming")}</CardTitle></CardHeader>
       <CardContent><QueryState queries={[query]}>
         {!query.data?.length ? <p className="text-sm text-muted-foreground">{t("games_my_upcoming_empty")}</p> :
           <ul className="grid gap-4 md:grid-cols-2">{query.data.map(({ id, game, is_waitlisted }) => <li key={id}>
-            <button type="button" onClick={() => setSelectedId(game.id)} className="h-full w-full space-y-3 rounded-xl border bg-card p-6 text-start shadow-sm transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <button type="button" onClick={() => setSelectedId(game.id)} className="h-full w-full space-y-3 rounded-xl border bg-card p-4 text-start shadow-sm transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
               <div className="flex flex-wrap items-center gap-2"><Badge variant="secondary">{game.sport}</Badge>{is_waitlisted && <Badge variant="secondary">{ar ? "قائمة الانتظار" : "Waitlisted"}</Badge>}</div>
-              <h3 className="text-xl font-bold">{game.title}</h3>
+              <h3 className="text-base font-semibold">{game.title}</h3>
               <p className="flex items-center gap-2 text-sm"><CalendarDays className="h-4 w-4 shrink-0" />{prettyDate(game.game_date)}</p>
               <p className="flex items-center gap-2 text-sm"><Clock className="h-4 w-4 shrink-0" />{formatTime12h(game.start_time, lang)} {ar ? "إلى" : "to"} {formatTime12h(addHoursToTime(game.start_time, Number(game.duration_hours) || 1), lang)}</p>
               {(game.location || game.area) && <p className="flex items-center gap-2 text-sm"><MapPin className="h-4 w-4 shrink-0" />{[game.location, game.area].filter(Boolean).join(" · ")}</p>}

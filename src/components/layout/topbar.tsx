@@ -63,7 +63,7 @@ export function Topbar({ role, name, username, avatarUrl, avatarId, memberPlan, 
       <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="lg:hidden" aria-label={lang === "ar" ? "افتح القائمة" : "Open navigation"}>
+          <Button variant="ghost" size="icon" className={role === "member" ? "" : "lg:hidden"} aria-label={lang === "ar" ? "افتح القائمة" : "Open navigation"}>
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>

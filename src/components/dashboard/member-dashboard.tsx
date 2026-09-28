@@ -1,259 +1,89 @@
 "use client";
 
-import { QueryState } from "@/components/shared/query-state";
-import { attendanceSummary } from "@/lib/calculations";
-import { ParentDashboard } from "@/components/workflows/parent-dashboard";
 import Link from "next/link";
-import { DashboardNavigation, DashboardSection } from "./dashboard-navigation";
-import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import {
-  AlarmClock,
-  CalendarDays,
-  CreditCard,
-  Crown,
-  Receipt,
-  ShieldCheck,
-  Timer,
-  TrendingUp,
-  UserRound,
-} from "lucide-react";
+import { ArrowUpRight, CalendarDays, QrCode, Users } from "lucide-react";
+import { QueryState } from "@/components/shared/query-state";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { StatCard } from "@/components/shared/stat-card";
-import { Reveal } from "@/components/shared/reveal";
-import { EmptyState } from "@/components/shared/empty-state";
-import { AnnouncementsCard } from "@/components/dashboard/announcements-card";
+import { MemberDiscoveryCarousels } from "./member-discovery-carousels";
 import { MyUpcomingGames } from "./my-upcoming-games";
-import { MyTournamentsCard } from "@/components/dashboard/my-tournaments-card";
-import { MemberPlanBanner } from "@/components/upgrade/plan-benefit-banner";
-import { UpcomingTournamentsCard } from "@/components/dashboard/upcoming-tournaments-card";
 import { useI18n } from "@/lib/i18n";
-import { EXPIRY_ALERT_THRESHOLD, formatMoney, formatTime12h } from "@/lib/constants";
+import { EXPIRY_ALERT_THRESHOLD, formatTime12h } from "@/lib/constants";
 import { usedSessionsSincePayment } from "@/lib/calculations";
-import {
-  useAllPayments,
-  useAttendance,
-  useProfile,
-  useSessions,
-  useUpcomingSessions,
-} from "@/lib/queries";
+import { useAllPayments, useAttendance, useProfile, useSessions, useUpcomingSessions } from "@/lib/queries";
 import type { Profile } from "@/lib/types";
 
-interface MemberDashboardProps {
-  profile: Profile;
-}
-
-export function MemberDashboard({ profile }: MemberDashboardProps) {
-  const { t, lang, locale } = useI18n();
+export function MemberDashboard({ profile }: { profile: Profile }) {
+  const { lang } = useI18n();
   const { data: ownProfile } = useProfile(profile.id);
-  const paymentsQuery = useAllPayments();
-  const {data: payments} = paymentsQuery;
-  const attendanceQuery = useAttendance();
-  const {data: attendance} = attendanceQuery;
-  const sessionsQuery = useSessions();
-  const {data: sessions} = sessionsQuery;
-  const upcomingQuery = useUpcomingSessions();
-  const {data: upcoming} = upcomingQuery;
-
   const p = ownProfile ?? profile;
-  const myPayments = (payments ?? []).filter((x) => x.member_id === p.id);
-  const totalPaid = myPayments.reduce((s, x) => s + Number(x.amount), 0);
-  const lastPayment = myPayments[0] ?? null;
-
-  const hasPlan = myPayments.length > 0;
-  const used = usedSessionsSincePayment(attendance ?? [], sessions ?? [], myPayments);
-  const remaining = Math.max(p.subscription_sessions - used, 0);
-  const progress =
-    p.subscription_sessions > 0
-      ? Math.min(100, Math.round((used / p.subscription_sessions) * 100))
-      : 0;
-
-  const now = new Date();
-  const {attended: attendedCount, rate: attendanceRate} = attendanceSummary(p.id, sessions ?? [], attendance ?? [], p.join_date, format(now,"yyyy-MM-dd"));
-
-  const perSessionValue =
-    myPayments.length > 0
-      ? Number(myPayments[0].amount) / Math.max(myPayments[0].subscription_sessions, 1)
-      : 0;
+  const ar = lang === "ar";
 
   return (
-    <QueryState queries={[paymentsQuery,attendanceQuery,sessionsQuery,upcomingQuery]}><div className="space-y-8">
-      <DashboardNavigation hasQr={!!p.checkin_code} />
-      <ParentDashboard />
-      <MemberPlanBanner memberPlan={p.member_plan} />
-      {p.member_plan === "premium" && (
-        <div className="flex items-center gap-3 rounded-lg border border-attention-300/60 bg-attention-50 p-4 text-sm dark:bg-attention-500/10">
-          <Crown className="h-5 w-5 shrink-0 text-warning-ink" />
-          <p className="font-medium text-warning-ink dark:text-attention-300">
-            {t("premium_active_message")}
+    <div className="mx-auto min-w-0 max-w-5xl space-y-6">
+      <header className="flex flex-wrap items-center justify-between gap-4 py-2">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            {ar ? "أهلاً" : "Hi"}, {p.name.split(" ")[0]}
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {ar ? "جاهز تلعب؟ شوف ماتشك الجاي." : "Ready to play? Your next game starts here."}
           </p>
         </div>
-      )}
-      {hasPlan && remaining > 0 && remaining <= EXPIRY_ALERT_THRESHOLD && (
-        <div className="flex items-center gap-3 rounded-lg border border-attention-300/60 bg-attention-50 p-4 text-sm dark:bg-attention-500/10">
-          <AlarmClock className="h-5 w-5 shrink-0 text-warning-ink" />
-          <p className="text-warning-ink dark:text-attention-300">
-            {t("alert_subscription_low").replace("{n}", String(remaining))}
-          </p>
-        </div>
-      )}
-      {hasPlan && remaining <= 0 && (
-        <div className="flex items-center gap-3 rounded-lg border border-negative-300/60 bg-negative-50 p-4 text-sm dark:bg-negative-500/10">
-          <AlarmClock className="h-5 w-5 shrink-0 text-error-ink" />
-          <p className="text-error-ink dark:text-negative-300">
-            {t("alert_subscription_empty")}
-          </p>
-        </div>
-      )}
+        {p.checkin_code && <Button asChild variant="outline" className="gap-2 rounded-full">
+          <Link href="/profile#checkin"><QrCode className="h-4 w-4" />{ar ? "كود الحضور" : "Check-in QR"}</Link>
+        </Button>}
+      </header>
+
+      <MemberDiscoveryCarousels />
+
       <MyUpcomingGames memberId={p.id} />
-      <DashboardSection id="overview" title={lang === "ar" ? "نظرة عامة" : "Overview"} hint={lang === "ar" ? "أهم الأرقام في مكان واحد" : "Your key numbers at a glance"}>
-      <Reveal>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title={t("dash_my_remaining")}
-          value={hasPlan ? `${remaining} / ${p.subscription_sessions}` : t("membership_none")}
-          icon={Timer}
-          tone={hasPlan ? (remaining > 0 ? "success" : "destructive") : "default"}
-          hint={hasPlan ? t("dash_sessions_used") : undefined}
-          index={0}
-        />
-        <StatCard
-          title={t("dash_my_last_payment")}
-          value={lastPayment ? formatMoney(Number(lastPayment.amount), lang) : "—"}
-          icon={Receipt}
-          tone="info"
-          hint={
-            lastPayment
-              ? format(new Date(lastPayment.payment_date + "T00:00:00"), "MMM d, yyyy", { locale })
-              : t("common_never")
-          }
-          index={1}
-        />
-        <StatCard
-          title={t("dash_my_attendance_rate")}
-          value={attendanceRate === null ? "—" : `${attendanceRate}%`}
-          icon={TrendingUp}
-          tone={(attendanceRate ?? 0) >= 70 ? "success" : "warning"}
-          hint={`${attendedCount} ${t("schedule_attending")}`}
-          index={2}
-        />
-        <StatCard
-          title={t("dash_my_status")}
-          value={
-            hasPlan ? (remaining > 0 ? t("dash_active") : t("dash_expired")) : t("membership_none")
-          }
-          icon={ShieldCheck}
-          tone={hasPlan ? (remaining > 0 ? "brand" : "destructive") : "default"}
-          index={3}
-        />
-      </div>
-      </Reveal>
-      </DashboardSection>
+      {p.academy_id && <MemberTraining profile={p} />}
 
-      <DashboardSection id="training" title={lang === "ar" ? "التدريب والمتابعة" : "Training & activity"} hint={lang === "ar" ? "مواعيدك وتفاصيل المتابعة" : "Schedules and activity details"}>
-      <Reveal index={1}>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Timer className="h-4 w-4 text-positive-500" />
-              {t("dash_my_remaining")}
-              {hasPlan && (
-                <Badge variant={p.membership_type === "half" ? "outline" : "secondary"}>
-                  {p.membership_type === "half" ? t("membership_half") : t("membership_full")}
-                </Badge>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {hasPlan ? (
-              <div>
-                <div className="mb-1.5 flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {used} {t("dash_sessions_used")}
-                  </span>
-                  <span className="font-semibold">
-                    {remaining} {t("profile_sessions_left")}
-                  </span>
-                </div>
-                <Progress value={progress} className="h-3" />
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
-                <Timer className="h-4 w-4 shrink-0" />
-                {t("members_no_plan_msg")}
-              </div>
-            )}
-            <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
-              <div className="rounded-lg border border-positive-300/50 bg-positive-50/70 p-3 dark:bg-positive-500/10">
-                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <CreditCard className="h-3.5 w-3.5 text-success-ink" />
-                  {t("member_total_paid")}
-                </p>
-                <p className="mt-1 font-extrabold font-mono text-success-ink">{formatMoney(totalPaid, lang)}</p>
-              </div>
-              <div className="rounded-lg border border-interactive-300/50 bg-interactive-50/70 p-3 dark:bg-interactive-500/10">
-                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <UserRound className="h-3.5 w-3.5 text-info-ink" />
-                  {t("profile_your_share")}
-                </p>
-                <p className="mt-1 font-extrabold font-mono text-info-ink">
-                  {perSessionValue > 0 ? formatMoney(perSessionValue, lang) : "—"}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <nav aria-label={ar ? "روابط شخصية" : "Personal links"} className="flex flex-wrap gap-3 border-t pt-4">
+        <Button asChild variant="ghost" className="gap-2"><Link href="/profile">{ar ? "ملفي وتطوري" : "My profile & progress"}<ArrowUpRight className="h-4 w-4" /></Link></Button>
+        <Button asChild variant="ghost" className="gap-2"><Link href="/parent"><Users className="h-4 w-4" />{ar ? "عيلتي" : "My family"}</Link></Button>
+      </nav>
+    </div>
+  );
+}
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <CalendarDays className="h-4 w-4 text-interactive-500" />
-              {t("profile_upcoming_title")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {!upcoming || upcoming.length === 0 ? (
-              <EmptyState message={t("profile_no_upcoming")} icon={CalendarDays} />
-            ) : (
-              (upcoming ?? []).slice(0, 5).map((s) => (
-                <div
-                  key={s.id}
-                  className="flex items-center justify-between rounded-lg border p-3 text-sm"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {format(new Date(s.date + "T00:00:00"), "EEEE, MMM d", { locale })}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatTime12h(s.time, lang)}
-                      {s.location ? ` · ${s.location}` : ""}
-                    </p>
-                  </div>
-                  <Badge variant="secondary">
-                    {formatTime12h(s.time, lang)}
-                  </Badge>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      </Reveal>
-      </DashboardSection>
-      <DashboardSection id="tournaments" title={t("td_my_tournaments")} hint={lang === "ar" ? "بطولاتك ونتائجك في مكان واحد" : "Your tournaments and results in one place"}>
-        <MyTournamentsCard memberId={p.id} />
-      </DashboardSection>
-      <DashboardSection id="updates" title={lang === "ar" ? "الأخبار والتنبيهات" : "Updates"}>
-        <Reveal index={2}>
-        <div className="space-y-5">
-          <UpcomingTournamentsCard />
-          <AnnouncementsCard isAdmin={false} />
-        </div>
-        </Reveal>
-      </DashboardSection>
-    </div></QueryState>
+function MemberTraining({ profile }: { profile: Profile }) {
+  const { t, lang, locale } = useI18n();
+  const paymentsQuery = useAllPayments();
+  const attendanceQuery = useAttendance();
+  const sessionsQuery = useSessions();
+  const upcomingQuery = useUpcomingSessions();
+  const payments = (paymentsQuery.data ?? []).filter(payment => payment.member_id === profile.id);
+  const used = usedSessionsSincePayment(attendanceQuery.data ?? [], sessionsQuery.data ?? [], payments);
+  const remaining = Math.max(profile.subscription_sessions - used, 0);
+  const progress = profile.subscription_sessions > 0 ? Math.min(100, Math.round(used / profile.subscription_sessions * 100)) : 0;
+  const nextSession = upcomingQuery.data?.[0];
+
+  return (
+    <QueryState queries={[paymentsQuery, attendanceQuery, sessionsQuery, upcomingQuery]}>
+      <Card className="rounded-2xl shadow-none">
+        <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0 pb-4">
+          <CardTitle className="text-base">{lang === "ar" ? "تدريبي" : "My training"}</CardTitle>
+          <Link href="/schedule" className="text-sm font-medium text-primary underline-offset-4 hover:underline">{t("nav_schedule")}</Link>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-start gap-3 text-sm">
+            <CalendarDays className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+            {nextSession ? <div>
+              <p className="font-medium">{format(new Date(nextSession.date + "T00:00:00"), "EEEE, MMM d", { locale })}</p>
+              <p className="mt-1 text-muted-foreground">{formatTime12h(nextSession.time, lang)}{nextSession.location ? ` · ${nextSession.location}` : ""}</p>
+            </div> : <p className="text-muted-foreground">{t("profile_no_upcoming")}</p>}
+          </div>
+          {payments.length > 0 && <div className="space-y-2 border-t pt-4">
+            <div className="flex items-center justify-between gap-2 text-sm"><span>{t("dash_my_remaining")}</span><span className="font-semibold">{remaining} / {profile.subscription_sessions}</span></div>
+            <Progress value={progress} className="h-2" />
+            {remaining <= EXPIRY_ALERT_THRESHOLD && <p role="status" className={remaining === 0 ? "text-sm text-error-ink" : "text-sm text-warning-ink"}>{remaining === 0 ? t("alert_subscription_empty") : t("alert_subscription_low").replace("{n}", String(remaining))}</p>}
+          </div>}
+        </CardContent>
+      </Card>
+    </QueryState>
   );
 }

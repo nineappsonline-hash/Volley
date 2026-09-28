@@ -1,3 +1,4 @@
+import { AcademyMemberNavigation } from "@/components/layout/member-bottom-navigation";
 import type { Metadata } from "next";
 import { OG_IMAGE, SITE_URL } from "@/lib/seo";
 
@@ -53,5 +54,5 @@ export default function AcademiesLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return <>{children}<AcademyMemberNavigation /></>;
 }

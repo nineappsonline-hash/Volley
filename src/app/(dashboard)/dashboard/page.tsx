@@ -14,7 +14,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <DashboardHeader isAdmin={profile.role !== "member"} />
+      {profile.role !== "member" && <DashboardHeader isAdmin />}
       {profile.role !== "member" ? (
         <AdminDashboard />
       ) : (

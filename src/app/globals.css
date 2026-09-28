@@ -252,3 +252,8 @@
 .rd-blocked:hover {
   background: hsl(var(--destructive) / .35);
 }
+
+/* Keep support above the member navigation, including the device safe area. */
+body:has([data-member-navigation]) .contact-widget {
+  bottom: 6rem;
+}

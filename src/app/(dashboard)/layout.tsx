@@ -1,6 +1,7 @@
 import { requireSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { MemberBottomNavigation } from "@/components/layout/member-bottom-navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { TrialGate } from "@/components/shared/trial-gate";
@@ -49,10 +50,10 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-background pb-[env(safe-area-inset-bottom)]">
-      <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 border-e bg-brand lg:block">
+      {profile.role !== "member" && <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 border-e bg-brand lg:block">
         <Sidebar role={profile.role} name={profile.name} memberPlan={profile.member_plan} isCoach={isCoach} />
-      </aside>
-      <div className="lg:ps-64">
+      </aside>}
+      <div className={profile.role === "member" ? "pb-[calc(6rem+env(safe-area-inset-bottom))]" : "lg:ps-64"}>
         <Topbar
           role={profile.role}
           name={profile.name}
@@ -64,7 +65,7 @@ export default async function DashboardLayout({
           academy={academy}
         />
         <main className="mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-8">
-          {profile.role !== "super_admin" && <InstallBanner />}
+          {profile.role !== "super_admin" && profile.role !== "member" && <InstallBanner />}
           {profile.role === "super_admin" || profile.role === "playground_owner" ? (
             children
           ) : (
@@ -73,6 +74,7 @@ export default async function DashboardLayout({
         </main>
         {profile.role !== "super_admin" && <PushPrompt />}
         <InAppNotificationToast userId={profile.id} />
+        {profile.role === "member" && <MemberBottomNavigation />}
       </div>
     </div>
   );
