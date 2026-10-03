@@ -15,10 +15,13 @@ export async function POST(request:Request){
  if(error)return NextResponse.json({error:error.message},{status:400});
  if(order.session_url)return NextResponse.json({url:order.session_url});
  if(!order.is_new)return NextResponse.json({error:'Checkout is being prepared. Please retry shortly.'},{status:409});
- const session=await kashierRequest('',{merchantId:c.merchantId,mode:c.mode,order:order.id,amount:Number(order.amount).toFixed(2),currency:'EGP',expireAt:order.expires_at,paymentType:'credit',type:'one-time',maxFailureAttempts:3,allowedMethods:'card',defaultMethod:'card',manualCapture:false,enable3DS:true,retrieveSavedCard:false,display:input.data.lang,merchantRedirect:`${c.origin}/payment-result?order=${order.id}`,serverWebhook:`${c.origin}/webhook`,failureRedirect:true,customer:{email:user.email,reference:user.id},description:'Playza payment'});
- const url=new URL(session.sessionUrl);if(url.protocol!=='https:'||url.hostname!=='payments.kashier.io'||!session._id)throw new Error('Unexpected checkout response');
- const {error:saveError}=await db.from('kashier_orders').update({session_id:session._id,session_url:url.toString()}).eq('id',order.id);
- if(saveError)throw new Error('Checkout could not be saved');
+ const expiresAt=new Date(order.expires_at);if(Number.isNaN(expiresAt.getTime()))throw new Error('Kashier order has no valid expiry');
+ const session=await kashierRequest('',{merchantId:c.merchantId,mode:c.mode,order:order.id,amount:Number(order.amount).toFixed(2),currency:'EGP',expireAt:expiresAt.toISOString(),paymentType:'credit',type:'one-time',maxFailureAttempts:3,allowedMethods:'card',defaultMethod:'card',manualCapture:false,enable3DS:true,retrieveSavedCard:false,display:input.data.lang,merchantRedirect:`${c.origin}/payment-result?order=${order.id}`,serverWebhook:`${c.origin}/webhook`,failureRedirect:true,customer:{email:user.email,reference:user.id},description:'Playza payment'});
+ const sessionUrl=typeof session?.sessionUrl==='string'?session.sessionUrl:'';if(!sessionUrl)throw new Error('Kashier returned no checkout URL');
+ const url=new URL(sessionUrl);if(url.protocol!=='https:'||!(url.hostname==='payments.kashier.io'||url.hostname.endsWith('.kashier.io')))throw new Error(`Untrusted checkout host: ${url.hostname}`);
+ const sessionId=String(session?._id??session?.sessionId??url.pathname.split('/').filter(Boolean).pop()??'');if(!sessionId)throw new Error('Kashier returned no session id');
+ const {error:saveError}=await db.from('kashier_orders').update({session_id:sessionId,session_url:url.toString()}).eq('id',order.id);
+ if(saveError)throw saveError;
  return NextResponse.json({url:url.toString()});
- }catch{return NextResponse.json({error:'Could not open card checkout. Please retry later; do not pay again if your card was charged.'},{status:503});}
+ }catch(error){console.error('Kashier checkout failed',{userId:user.id,request:input.data,error});return NextResponse.json({error:'Could not open card checkout. Please retry later; do not pay again if your card was charged.'},{status:503});}
 }

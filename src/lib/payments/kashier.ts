@@ -23,7 +23,11 @@ export function amountInPiastres(value:unknown):number|null {
 }
 export async function kashierRequest(path:string,body?:unknown) {
  const c=kashierConfig();
- const response=await fetch(`${c.api}/v3/payment/sessions${path}`,{method:body?'POST':'GET',headers:{Authorization:c.secret,'api-key':c.apiKey,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),cache:'no-store',signal:AbortSignal.timeout(15000)});
- if(!response.ok)throw new Error('Kashier is unavailable. Please try again later.');
- return response.json();
+ let response:Response;
+ try{
+  response=await fetch(`${c.api}/v3/payment/sessions${path}`,{method:body?'POST':'GET',headers:{Authorization:c.secret,'api-key':c.apiKey,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),cache:'no-store',signal:AbortSignal.timeout(15000)});
+ }catch(error){throw new Error(`Kashier request failed: ${error instanceof Error?error.message:'network error'}`);}
+ const text=await response.text();
+ if(!response.ok)throw new Error(`Kashier responded ${response.status}: ${text.slice(0,500)}`);
+ try{return JSON.parse(text);}catch{throw new Error('Kashier returned an unreadable response');}
 }

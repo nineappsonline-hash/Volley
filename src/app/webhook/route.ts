@@ -17,5 +17,5 @@ export async function POST(request:Request){
  if(session.status!=='PAID'||session.merchantId!==c.merchantId||session.paymentParams?.order!==order.id||session.paymentParams?.currency!=='EGP'||amountInPiastres(session.capturedAmount)!==amountInPiastres(order.amount)||Number(session.refundedAmount)!==0)return new Response(null,{status:503});
  const {error:settleError}=await db.rpc('settle_kashier_order',{p_order:order.id,p_transaction:String(data.transactionId),p_amount:data.amount,p_currency:data.currency});if(settleError)throw settleError;
  return new Response(null,{status:200});
- }catch{return new Response(null,{status:503});}
+ }catch(error){console.error('Kashier webhook failed',error);return new Response(null,{status:503});}
 }
