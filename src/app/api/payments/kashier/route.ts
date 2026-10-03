@@ -11,10 +11,23 @@ export async function POST(request:Request){
  try{
  const c=kashierConfig();const db=createAdminClient();
  const {error:expiryError}=await db.rpc('expire_kashier_holds');if(expiryError)throw expiryError;
- const {data:order,error}=await db.rpc('prepare_kashier_order',{p_user:user.id,p_request:input.data,p_mode:c.mode});
- if(error)return NextResponse.json({error:error.message},{status:400});
+ const prepared=await db.rpc('prepare_kashier_order',{p_user:user.id,p_request:input.data,p_mode:c.mode});
+ if(prepared.error)return NextResponse.json({error:prepared.error.message},{status:400});
+ let order=prepared.data;
+ if(!order.session_url&&!order.is_new){
+  // A previous attempt reserved this order but never stored a checkout session
+  // (e.g. Kashier/network failure). Expire it, release any provisional hold and
+  // reserve a fresh order so a new session can open without colliding with the
+  // abandoned one.
+  console.warn('Kashier re-reserving an order with no checkout session',{orderId:order.id});
+  const {error:resetError}=await db.from('kashier_orders').update({expires_at:new Date().toISOString()}).eq('id',order.id).is('session_url',null);
+  if(resetError)throw resetError;
+  const {error:releaseError}=await db.rpc('expire_kashier_holds');if(releaseError)throw releaseError;
+  const retry=await db.rpc('prepare_kashier_order',{p_user:user.id,p_request:input.data,p_mode:c.mode});
+  if(retry.error)return NextResponse.json({error:retry.error.message},{status:400});
+  order=retry.data;
+ }
  if(order.session_url)return NextResponse.json({url:order.session_url});
- if(!order.is_new)return NextResponse.json({error:'Checkout is being prepared. Please retry shortly.'},{status:409});
  const expiresAt=new Date(order.expires_at);if(Number.isNaN(expiresAt.getTime()))throw new Error('Kashier order has no valid expiry');
  const session=await kashierRequest('',{merchantId:c.merchantId,mode:c.mode,order:order.id,amount:Number(order.amount).toFixed(2),currency:'EGP',expireAt:expiresAt.toISOString(),paymentType:'credit',type:'one-time',maxFailureAttempts:3,allowedMethods:'card',defaultMethod:'card',manualCapture:false,enable3DS:true,retrieveSavedCard:false,display:input.data.lang,merchantRedirect:`${c.origin}/payment-result?order=${order.id}`,serverWebhook:`${c.origin}/webhook`,failureRedirect:true,customer:{email:user.email,reference:user.id},description:'Playza payment'});
  const sessionUrl=typeof session?.sessionUrl==='string'?session.sessionUrl:'';if(!sessionUrl)throw new Error('Kashier returned no checkout URL');
