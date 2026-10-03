@@ -40,7 +40,7 @@ const PAY_METHODS: { value: PayMethod; icon: typeof Wallet; disabled?: boolean }
   [
     { value: "instapay", icon: LinkIcon },
     { value: "e_wallet", icon: Wallet },
-    { value: "kashier", icon: CreditCard, disabled: true },
+    { value: "kashier", icon: CreditCard },
   ];
 
 export function JoinGameDialog({
@@ -221,7 +221,6 @@ export function JoinGameDialog({
                 : t("games_share_join_desc")}
           </DialogDescription>
         </DialogHeader>
-        {!isFree && amount>0 && <KashierButton target={{kind:isRent?"rent":"share",targetId:game.id,inviteCode}} disabled={busy} />}
 
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 p-3">
@@ -256,8 +255,8 @@ export function JoinGameDialog({
 
           {!isFree && (
             <>
-            <div className="grid grid-cols-2 gap-2">
-            {PAY_METHODS.filter(m=>m.value!=="kashier").map(({ value, icon: Icon, disabled }) => {
+            <div className="grid grid-cols-3 gap-2">
+            {PAY_METHODS.map(({ value, icon: Icon, disabled }) => {
               const selected = payMethod === value;
               return (
                 <button
@@ -409,7 +408,7 @@ export function JoinGameDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("common_cancel")}
           </Button>
-          <Button onClick={submit} disabled={!canSubmit} className="gap-1">
+          {!isFree && payMethod === "kashier" ? <KashierButton target={{kind:isRent?"rent":"share",targetId:game.id,inviteCode}} disabled={busy || amount <= 0} /> : <Button onClick={submit} disabled={!canSubmit} className="gap-1">
             <Wallet className="h-4 w-4" />
             {busy
               ? t("common_saving")
@@ -423,7 +422,7 @@ export function JoinGameDialog({
                         "{amount}",
                         formatMoney(amount, lang)
                       )}
-          </Button>
+          </Button>}
         </DialogFooter>
       </DialogContent>
     </Dialog>

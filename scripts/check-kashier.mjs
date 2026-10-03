@@ -9,7 +9,7 @@ CREATE SCHEMA auth;
 CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
 CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql AS $$ SELECT current_setting('test.role',true) $$;
 CREATE FUNCTION public.is_super_admin() RETURNS boolean LANGUAGE sql AS $$ SELECT false $$;
-CREATE FUNCTION public.is_account_blocked() RETURNS boolean LANGUAGE sql AS $$ SELECT false $$;
+CREATE FUNCTION public.is_account_blocked() RETURNS boolean LANGUAGE sql AS $$ SELECT coalesce(current_setting('test.blocked',true),'false')='true' $$;
 CREATE TABLE profiles(id uuid PRIMARY KEY,role text DEFAULT 'member',is_active boolean DEFAULT true,name text,gender text,birth_date date,academy_id uuid,member_plan text,premium_expires_at timestamptz);
 CREATE TABLE academies(id uuid PRIMARY KEY,plan text,is_trial boolean,trial_ends_at timestamptz);
 CREATE TABLE academy_training_programs(id uuid PRIMARY KEY);
@@ -28,6 +28,7 @@ CREATE FUNCTION plan_price(text,text,text) RETURNS numeric LANGUAGE sql AS $$ SE
 `);
 const old=readFileSync('supabase/migrations/20260927000000_transactional_emails.sql','utf8');await db.exec(old.slice(old.indexOf('CREATE OR REPLACE FUNCTION public.join_friendly_game')));
 await db.exec(readFileSync('supabase/migrations/20261230000000_kashier_payments.sql','utf8'));
+await db.exec(readFileSync('supabase/migrations/20261231000000_card_account_eligibility.sql','utf8'));
 const user=id(1),other=id(2),game=id(3),booking=id(4),program=id(5);
 await db.query("INSERT INTO profiles(id,name) VALUES($1,'Member'),($2,'Other')",[user,other]);
 await db.query("INSERT INTO friendly_games(id,creator_id,title,share_price) VALUES($1,$2,'Test game',70)",[game,other]);
@@ -38,6 +39,11 @@ const prep=async(kind,targetId,extra={})=>(await db.query('SELECT prepare_kashie
 const settle=async(o,tx='tx-'+o.id,amount=o.amount)=>db.query("SELECT settle_kashier_order($1,$2,$3,'EGP')",[o.id,tx,amount]);
 await role('authenticated');await assert.rejects(()=>prep('academy',booking),/Not authorized/);
 await role('service_role');
+// Academy membership activation must not prevent an otherwise eligible payment.
+await db.query('UPDATE profiles SET is_active=false WHERE id=$1',[user]);
+await db.exec("SELECT set_config('test.blocked','true',false)");
+await assert.rejects(()=>prep('academy',booking),/account is blocked/);
+await db.exec("SELECT set_config('test.blocked','false',false)");
 const a=await prep('academy',booking);assert.equal(Number(a.amount),450);
 assert.equal((await prep('academy',booking)).id,a.id);
 assert.equal((await db.query('SELECT * FROM confirmed_payment_emails')).rows.length,0);

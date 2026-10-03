@@ -24,13 +24,13 @@ type PayMethod = "instapay" | "e_wallet" | "kashier";
 const PAY_METHODS: { value: PayMethod; icon: typeof Wallet; disabled?: boolean }[] = [
   { value: "instapay", icon: LinkIcon },
   { value: "e_wallet", icon: Wallet },
-  { value: "kashier", icon: CreditCard, disabled: true },
+  { value: "kashier", icon: CreditCard },
 ];
 
 /**
  * Share-payment step used right after a game is created (or when joining a
- * game that requires a per-player payment). The member picks InstaPay or an
- * e-wallet, pays, and uploads a receipt screenshot to confirm.
+ * game that requires a per-player payment). The member chooses card checkout or pays with InstaPay/an e-wallet
+ * and uploads a receipt for review.
  */
 export function GameSharePayment({
   amount,
@@ -110,9 +110,8 @@ export function GameSharePayment({
         </span>
       </div>
 
-      {cardTarget && <KashierButton target={cardTarget} disabled={submitting} />}
-      <div className="grid grid-cols-2 gap-2">
-        {PAY_METHODS.filter(m=>m.value!=="kashier").map(({ value, icon: Icon, disabled }) => {
+      <div className={cn("grid gap-2", cardTarget ? "grid-cols-3" : "grid-cols-2")}>
+        {PAY_METHODS.filter(m=>m.value!=="kashier" || cardTarget).map(({ value, icon: Icon, disabled }) => {
           const selected = payMethod === value;
           return (
             <button
@@ -206,7 +205,7 @@ export function GameSharePayment({
         </div>
       )}
 
-      <Button
+      {payMethod === "kashier" && cardTarget ? <KashierButton target={cardTarget} disabled={busy} /> : <Button
         type="button"
         className="w-full"
         disabled={!payMethod || payMethod === "kashier" || !receiptUrl || busy}
@@ -218,7 +217,7 @@ export function GameSharePayment({
       >
         {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
         {submitting ? t("common_saving") : (submitLabel ?? t("game_fee_pay")).replace("{amount}", amountLabel)}
-      </Button>
+      </Button>}
     </div>
   );
 }
