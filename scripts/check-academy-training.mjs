@@ -19,9 +19,15 @@ CREATE TABLE public.venues(id uuid PRIMARY KEY,name text,address text,approval_s
 CREATE TABLE public.venue_rentals(id uuid PRIMARY KEY,venue_id uuid,rental_date date,start_time time,hours numeric,court_number integer);
 CREATE TABLE public.friendly_games(id uuid PRIMARY KEY,playground_id uuid,game_date date,start_time time,duration_hours numeric,court_number integer,status text);
 CREATE TABLE storage.objects(bucket_id text,name text);
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+CREATE TABLE storage.buckets(id text PRIMARY KEY,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
+CREATE FUNCTION storage.foldername(text) RETURNS text[] LANGUAGE sql AS $$ SELECT string_to_array($1,'/') $$;
+ALTER TABLE profiles ADD COLUMN gender text, ADD COLUMN birth_date date;
+ALTER TABLE venues ADD COLUMN lat double precision, ADD COLUMN lng double precision, ADD COLUMN area text, ADD COLUMN governorate text;
 `);
 await db.exec(readFileSync('supabase/migrations/20261228000000_academy_training_bookings.sql','utf8'));
-for(const [uid,role] of [[admin,'super_admin'],[member,'member'],[other,'member']])await db.query('INSERT INTO profiles VALUES($1,$2,true,$2)',[uid,role]);
+await db.exec(readFileSync('supabase/migrations/20261229000000_training_groups_media.sql','utf8'));
+for(const [uid,role] of [[admin,'super_admin'],[member,'member'],[other,'member']])await db.query('INSERT INTO profiles(id,role,is_active,name) VALUES($1,$2,true,$2)',[uid,role]);
 await db.query("INSERT INTO venues(id,name,address,approval_status,court_count) VALUES($1,'Test court','Cairo','approved',1)",[venue]);
 const login=async(uid,isAdmin=false)=>db.query("SELECT set_config('test.uid',$1,false),set_config('test.admin',$2,false)",[uid,isAdmin?'yes':'no']);
 const rpc=async(name,args=[],casts=[])=>{const {rows}=await db.query(`SELECT ${name}(${args.map((_,i)=>`$${i+1}${casts[i]?'::'+casts[i]:''}`).join(',')}) AS result`,args);return rows[0].result;};
@@ -59,7 +65,7 @@ await assert.rejects(()=>db.query("INSERT INTO venue_rentals VALUES($1,$2,$3,$4,
 // One shared court supports both members, but cannot be allocated to another game.
 assert.equal(await rpc('pick_free_court',[venue,slot.session_date,slot.starts_at,60],['uuid','date','time','integer']),null);
 await login(admin,true);
-await assert.rejects(()=>rpc('admin_save_training_program',[JSON.stringify({...details,name:'Changed'}),program]),/has bookings/);
+await assert.rejects(()=>rpc('admin_save_training_program',[JSON.stringify({...details,monthly_price:999}),program]),/has bookings/);
 await login(member);
 await assert.rejects(()=>rpc('manage_academy_training_payment',[booking,'approve']),/Only super admins/);
 await assert.rejects(()=>rpc('manage_academy_training_payment',[booking,'submit','instapay',`${other}/receipt.jpg`]),/upload your receipt/);
@@ -95,5 +101,33 @@ await db.query("UPDATE venues SET blocked_dates='[]',working_hours=$1::jsonb WHE
 assert.ok((await db.query('SELECT * FROM training_program_slots($1)',[program])).rows.every(s=>Number(s.seats_left)===0));
 await db.query("UPDATE venues SET working_hours='[]' WHERE id=$1",[venue]);
 
+// Group metadata, eligibility, media validation, and verified ratings.
+await login(admin,true);
+const groupDetails={...details,name:'Adults group',min_age:18,max_age:40,gender:'female',media:[{kind:'youtube',url:'https://www.youtube.com/watch?v=abcdefghijk'}]};
+const group=await rpc('admin_save_training_program',[JSON.stringify(groupDetails)]);
+await assert.rejects(()=>rpc('admin_save_training_program',[JSON.stringify({...groupDetails,min_age:50})]),/training_age_range/);
+await assert.rejects(()=>rpc('admin_save_training_program',[JSON.stringify({...groupDetails,media:[{kind:'image',url:'javascript:alert(1)'}]})]),/Invalid media/);
+await login(other);
+await assert.rejects(()=>rpc('reserve_academy_training',[group,'trial']),/requirements/);
+await db.query("UPDATE profiles SET birth_date=current_date-interval '25 years',gender='male' WHERE id=$1",[other]);
+await assert.rejects(()=>rpc('reserve_academy_training',[group,'trial']),/requirements/);
+await db.query("UPDATE profiles SET gender='female',birth_date=current_date-interval '12 years' WHERE id=$1",[other]);
+await assert.rejects(()=>rpc('reserve_academy_training',[group,'trial']),/requirements/);
+await db.query("UPDATE profiles SET birth_date=current_date-interval '25 years' WHERE id=$1",[other]);
+const groupCatalog=(await rpc('academy_training_catalog',[aid])).find(p=>p.id===group);
+assert.equal(groupCatalog.min_age,18);assert.equal(groupCatalog.media.length,1);assert.equal(groupCatalog.rating_count,0);
+await assert.rejects(()=>rpc('rate_training',[group,5]),/confirmed session/);
+const gb=await rpc('reserve_academy_training',[group,'trial',groupCatalog.slots.find(s=>s.seats_left>0).session_date,groupCatalog.slots.find(s=>s.seats_left>0).starts_at],['uuid','text','date','time']);
+await assert.rejects(()=>rpc('rate_training',[group,5]),/confirmed session/);
+await db.query("UPDATE academy_training_bookings SET status='approved' WHERE id=$1",[gb]);
+await assert.rejects(()=>rpc('rate_training',[group,5]),/confirmed session/);
+await db.query("UPDATE academy_training_booking_sessions SET session_date=current_date-1 WHERE booking_id=$1",[gb]);
+await rpc('rate_training',[group,4]);await rpc('rate_training',[group,5]);
+const rated=(await rpc('academy_training_catalog',[aid])).find(p=>p.id===group);
+assert.equal(Number(rated.rating),5);assert.equal(rated.rating_count,1);
+await assert.rejects(()=>rpc('rate_training',[group,6]),/check constraint/);
+await login(admin,true);
+await rpc('admin_save_training_program',[JSON.stringify({...groupDetails,name:'Updated group',media:[]}),group]);
+await assert.rejects(()=>rpc('admin_save_training_program',[JSON.stringify({...groupDetails,monthly_price:999}),group]),/has bookings/);
 await db.close();
-console.log('Academy training checks passed: admin access, 30-day terms, session capacity, court sharing, overlap prevention, RLS, receipt ownership, approvals, expiry, free trials and paused programs.');
+console.log('Academy training checks passed: admin access, 30-day terms, session capacity, court sharing, overlap prevention, RLS, receipt ownership, approvals, expiry, free trials, paused groups, age/gender eligibility, media validation, and verified ratings.');

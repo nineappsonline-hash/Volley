@@ -1,8 +1,11 @@
 "use client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+export type TrainingMedia = { kind: "image" | "video" | "youtube"; url: string };
 export type TrainingSlot = { session_date: string; starts_at: string; ends_at: string; seats_left: number };
 export type TrainingProgram = {
+ min_age: number | null; max_age: number | null; gender: "mixed" | "male" | "female"; media: TrainingMedia[];
+ venue_lat: number | null; venue_lng: number | null; venue_area: string | null; venue_governorate: string | null; rating: number | null; rating_count: number;
  id: string; academy_id: string; academy_name: string; academy_slug: string; name: string;
  sport: string; venue_id: string; venue_name: string; venue_address: string | null;
  monthly_sessions: number; monthly_price: number; trial_price: number; capacity: number; active: boolean;

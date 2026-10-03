@@ -1,5 +1,6 @@
 "use client";
 
+import { NearbyTraining } from "./nearby-training";
 import Link from "next/link";
 import { format } from "date-fns";
 import { ArrowUpRight, CalendarDays, QrCode, Users } from "lucide-react";
@@ -37,6 +38,7 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
         </Button>}
       </header>
 
+      <NearbyTraining />
       <MemberDiscoveryCarousels />
 
       <MyUpcomingGames memberId={p.id} />
