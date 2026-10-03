@@ -1,4 +1,5 @@
 "use client";
+import { KashierButton } from "@/components/payments/kashier-button";
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -220,6 +221,7 @@ export function JoinGameDialog({
                 : t("games_share_join_desc")}
           </DialogDescription>
         </DialogHeader>
+        {!isFree && amount>0 && <KashierButton target={{kind:isRent?"rent":"share",targetId:game.id,inviteCode}} disabled={busy} />}
 
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 p-3">
@@ -254,8 +256,8 @@ export function JoinGameDialog({
 
           {!isFree && (
             <>
-            <div className="grid grid-cols-3 gap-2">
-            {PAY_METHODS.map(({ value, icon: Icon, disabled }) => {
+            <div className="grid grid-cols-2 gap-2">
+            {PAY_METHODS.filter(m=>m.value!=="kashier").map(({ value, icon: Icon, disabled }) => {
               const selected = payMethod === value;
               return (
                 <button

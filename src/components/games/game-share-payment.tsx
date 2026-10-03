@@ -1,5 +1,6 @@
 "use client";
 
+import { KashierButton, type CardPaymentTarget } from "@/components/payments/kashier-button";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -38,6 +39,7 @@ export function GameSharePayment({
   onPay,
   note,
   submitLabel,
+  cardTarget,
 }: {
   amount: number;
   label: string;
@@ -45,6 +47,7 @@ export function GameSharePayment({
   onPay: (payMethod: "instapay" | "e_wallet", payReceiptUrl: string) => void;
   note?: string;
   submitLabel?: string;
+  cardTarget?: CardPaymentTarget;
 }) {
   const { t, lang } = useI18n();
   const supabase = createClient();
@@ -107,8 +110,9 @@ export function GameSharePayment({
         </span>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
-        {PAY_METHODS.map(({ value, icon: Icon, disabled }) => {
+      {cardTarget && <KashierButton target={cardTarget} disabled={submitting} />}
+      <div className="grid grid-cols-2 gap-2">
+        {PAY_METHODS.filter(m=>m.value!=="kashier").map(({ value, icon: Icon, disabled }) => {
           const selected = payMethod === value;
           return (
             <button

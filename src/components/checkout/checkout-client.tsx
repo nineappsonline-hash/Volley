@@ -1,4 +1,5 @@
 "use client";
+import { KashierButton } from "@/components/payments/kashier-button";
 
 import { useEffect, useRef, useState, type Ref, type RefObject } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -360,7 +361,7 @@ export function CheckoutClient({ profile }: { profile: Profile }) {
               <div className="grid gap-3">
                 {(Object.keys(METHOD_META) as Method[]).map((m) => {
                   const Icon = METHOD_META[m].icon;
-                  const disabled = m === "kashier";
+                  const disabled = false;
                   const selected = method === m;
                   return (
                     <button
@@ -381,11 +382,11 @@ export function CheckoutClient({ profile }: { profile: Profile }) {
                           {t(`checkout_method_${m}` as keyof Dict)}
                         </p>
                         <p className="mt-0.5 text-xs text-muted-foreground">
-                          {t(`checkout_method_${m}_hint` as keyof Dict)}
+                          {m === "kashier" ? "Visa / Mastercard / Meeza" : t(`checkout_method_${m}_hint` as keyof Dict)}
                         </p>
                         {disabled && (
                           <p className="mt-1 text-[11px] font-medium text-warning-ink">
-                            {t("checkout_method_kashier_soon")}
+                            {lang === "ar" ? "Visa / Mastercard / Meeza" : "Visa / Mastercard / Meeza"}
                           </p>
                         )}
                       </div>
@@ -434,18 +435,18 @@ export function CheckoutClient({ profile }: { profile: Profile }) {
                     {amount} {t("currency_egp")}
                   </span>
                 </div>
-                <Button
+                {method==="kashier" ? <KashierButton target={{kind:"subscription",planKind:kind,plan,cycle}} disabled={!canPay}/> : (<Button
                   className="w-full bg-gradient-to-r from-brand to-interactive-700 text-white hover:from-brand hover:to-interactive-800"
                   disabled={!canPay || purchase.isPending}
                   onClick={handlePay}
                 >
                   {purchase.isPending ? "…" : t("checkout_pay_now")}
-                </Button>
+                </Button>) }
                 <div className="flex items-start gap-2 rounded-lg border border-attention-300/60 bg-attention-50 p-3 text-xs dark:bg-attention-500/10">
                   <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning-ink" />
                   <p className="text-warning-ink dark:text-attention-300">
-                    <span className="font-semibold">{t("checkout_warning_title")}: </span>
-                    {t("checkout_warning_body")}
+                    <span className="font-semibold">{method === "kashier" ? (lang === "ar" ? "تأكيد الدفع" : "Payment confirmation") : t("checkout_warning_title")}: </span>
+                    {method === "kashier" ? (lang === "ar" ? "يتم تفعيل الاشتراك بعد تأكيد نجاح الدفع من كاشير." : "Your plan activates only after Kashier confirms successful payment.") : t("checkout_warning_body")}
                   </p>
                 </div>
               </CardContent>

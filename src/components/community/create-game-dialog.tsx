@@ -333,6 +333,7 @@ export function CreateGameDialog({
                 </span>
               </div>
               <GameSharePayment
+                cardTarget={{kind:"rent",targetId:createdGame.id}}
                 amount={createdGame.remaining}
                 label={t("games_rent_label")}
                 submitting={rentPay.isPending}
@@ -342,6 +343,7 @@ export function CreateGameDialog({
             </>
           ) : (
             <GameSharePayment
+              cardTarget={{kind:"share",targetId:createdGame.id}}
               amount={createdGame.amount}
               label={t("games_share_per_player")}
               submitting={pay.isPending}

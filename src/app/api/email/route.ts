@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import {
-  paymentConfirmationEmail,
   renewalReminderEmail,
   welcomeEmail,
   sendEmail,
@@ -41,6 +40,8 @@ export async function POST(request: Request) {
     );
   }
 
+  if (parsed.data.type === "payment") return NextResponse.json({ error: "Payment emails are sent automatically after verification" }, { status: 400 });
+
   // Fetch member profile
   const { data: member } = await supabase
     .from("profiles")
@@ -63,18 +64,6 @@ export async function POST(request: Request) {
   try {
     let emailData;
     switch (parsed.data.type) {
-      case "payment":
-        emailData = paymentConfirmationEmail({
-          memberName: member.name,
-          amount: parsed.data.amount ?? 0,
-          sessions: parsed.data.sessions ?? 0,
-          date: new Date().toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          }),
-        });
-        break;
       case "renewal":
         emailData = renewalReminderEmail({
           memberName: member.name,
