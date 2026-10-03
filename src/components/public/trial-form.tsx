@@ -46,10 +46,11 @@ type FormValues = z.infer<ReturnType<typeof schema>>;
 
 interface TrialFormProps {
   academyId: string;
+  anchorId?: string;
   sports: { id: string; name: string }[];
 }
 
-export function TrialForm({ academyId, sports }: TrialFormProps) {
+export function TrialForm({ academyId, sports, anchorId = "trial" }: TrialFormProps) {
   const { t } = useI18n();
   const submit = useSubmitTrialRequest();
   const [done, setDone] = useState(false);
@@ -83,7 +84,7 @@ export function TrialForm({ academyId, sports }: TrialFormProps) {
 
   if (done) {
     return (
-      <Card id="trial">
+      <Card id={anchorId}>
         <CardContent className="flex flex-col items-center gap-3 p-8 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-positive-100 text-success-ink dark:bg-positive-500/15">
             <CalendarCheck className="h-6 w-6" />
@@ -95,7 +96,7 @@ export function TrialForm({ academyId, sports }: TrialFormProps) {
   }
 
   return (
-    <Card id="trial">
+    <Card id={anchorId}>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <CalendarCheck className="h-4 w-4 text-primary" />

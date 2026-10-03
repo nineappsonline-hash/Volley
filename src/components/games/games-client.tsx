@@ -91,6 +91,7 @@ import type {
   FriendlyGameWithDetails,
   Profile,
 } from "@/lib/types";
+import { GameTeamsButton } from "./game-teams";
 import { CreateGameDialog } from "./create-game-dialog";
 import { EditGameDialog } from "./edit-game-dialog";
 
@@ -541,6 +542,7 @@ function GameCard({
             </DropdownMenu>
           </div>
         </div>
+      <GameTeamsButton gameId={game.id} date={game.game_date} time={game.start_time} status={game.status} canManage={canEdit} />
       <GameBookingStatus game={game} />
       <GameCostEstimate rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} hostPays={game.host_pays} sport={game.sport} />
       {rentRemaining > 0 && (game.status === "open" || game.status === "full") && (
@@ -703,10 +705,13 @@ function InviteBanner({
           )
         )}
         {inviteGame && (
+          <div className="flex flex-wrap items-center gap-2">
+          {(inviteGame.location || inviteGame.area || (inviteGame.lat != null && inviteGame.lng != null)) && <DirectionsLinks lat={inviteGame.lat} lng={inviteGame.lng} query={inviteGame.location ?? inviteGame.area ?? inviteGame.title} />}
           <Button onClick={() => setPayOpen(true)} disabled={!inviteGame}>
             <Plus className="h-4 w-4" />
             {t("games_join_from_link")}
           </Button>
+          </div>
         )}
       </CardContent>
     </Card>

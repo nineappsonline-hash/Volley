@@ -4,6 +4,7 @@ import { PlatformRecords } from "./platform-records";
 import { PlatformAnalytics } from "./platform-analytics";
 import { AcademyEditDialog } from "./academy-edit-dialog";
 import { ApprovalsPage } from "./approvals-page";
+import { AcademyTrainingPaymentApprovals } from "@/components/academies/training-booking";
 import { PaymentApprovals } from "./payment-approvals";
 import { MessagesPage } from "./messages-page";
 import { useMemo, useState } from "react";
@@ -403,6 +404,7 @@ export function SuperAdminDashboard() {
       {/* Payment approvals */}
       <Reveal index={2}>
       <PaymentApprovals />
+      <AcademyTrainingPaymentApprovals />
       </Reveal>
 
 

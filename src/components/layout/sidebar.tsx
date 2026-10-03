@@ -76,6 +76,7 @@ const academyItems = [
 const memberItems = [
   { href: "/dashboard", key: "nav_dashboard", icon: LayoutDashboard },
   { href: "/academies", key: "nav_academies", icon: Search },
+  { href: "/academy-bookings", key: "nav_academies", icon: CalendarDays },
   { href: "/following", key: "nav_following", icon: Heart },
   { href: "/schedule", key: "nav_schedule", icon: CalendarDays },
   { href: "/events", key: "nav_events", icon: Map },
@@ -130,7 +131,7 @@ export function Sidebar({ role, name, memberPlan, isCoach, onNavigate }: Sidebar
       group("AI coach & predictions", "الذكاء الاصطناعي والتنبؤات", ["/coach-ai", "/insights"]),
       group("Academy settings", "إعدادات الأكاديمية", ["/profile", "/settings", "/upgrade"]),
     ] : [
-      group("My Playza", "بلايزا بتاعتي", ["/dashboard", "/schedule", "/profile"]),
+      group("My Playza", "بلايزا بتاعتي", ["/dashboard", "/schedule", "/academy-bookings", "/profile"]),
       ...(isCoach ? [group("Coaching tools", "أدوات التدريب", ["/coaches", "/coach-ai", "/insights"])] : []),
       group("Find a place to play", "اكتشف مكان تلعب فيه", ["/academies", "/following", "/marketplace", "/dashboard/games", "/events"]),
       group("Community", "المجتمع", ["/community", "/leaderboard", "/scouting", "/dashboard/tournaments"]),
@@ -177,7 +178,7 @@ export function Sidebar({ role, name, memberPlan, isCoach, onNavigate }: Sidebar
                 )}
               />
               <span className="min-w-0 flex-1 truncate">
-                {href === "/profile" && role === "member" ? (lang === "ar" ? "ملفي وعيلتي" : "My profile & family") : t(key)}
+                {href === "/academy-bookings" ? (lang === "ar" ? "حجوزات الأكاديميات" : "Academy bookings") : href === "/profile" && role === "member" ? (lang === "ar" ? "ملفي وعيلتي" : "My profile & family") : t(key)}
               </span>
               {href === "/admin?tab=Messages" && role === "super_admin" && <MessagesUnreadBadge />}
             </Link>

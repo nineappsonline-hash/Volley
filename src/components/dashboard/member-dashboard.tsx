@@ -43,6 +43,7 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
       {p.academy_id && <MemberTraining profile={p} />}
 
       <nav aria-label={ar ? "روابط شخصية" : "Personal links"} className="flex flex-wrap gap-3 border-t pt-4">
+        <Button asChild variant="ghost" className="gap-2"><Link href="/academy-bookings">{ar ? "حجوزات الأكاديميات" : "Academy bookings"}</Link></Button>
         <Button asChild variant="ghost" className="gap-2"><Link href="/profile">{ar ? "ملفي وتطوري" : "My profile & progress"}<ArrowUpRight className="h-4 w-4" /></Link></Button>
         <Button asChild variant="ghost" className="gap-2"><Link href="/parent"><Users className="h-4 w-4" />{ar ? "عيلتي" : "My family"}</Link></Button>
       </nav>

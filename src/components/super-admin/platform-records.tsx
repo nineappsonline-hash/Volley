@@ -1,4 +1,7 @@
 "use client";
+
+import { CreateAcademyButton, AcademyTrainingManager } from "./academy-training-manager";
+import { GameTeamsButton } from "@/components/games/game-teams";
 import { GameBookingStatus } from "@/components/games/game-booking-status";
 import { ParticipantPayment } from "./participant-payment";
 import { AdminGameEditor } from "@/components/games/admin-game-editor";
@@ -167,7 +170,7 @@ function VenueDetails({ venue, data }: { venue: Row; data: Records }) {
       <span className="rounded-full bg-muted px-3 py-1 font-medium">{academyName}</span>
       {Number(venue.court_count) > 1 && <span className="rounded-full bg-muted px-3 py-1 font-medium">{venue.court_count} {t("rentals_courts_short")}</span>}
     </div>
-    <dl className="grid grid-cols-3 gap-2 text-center">
+    <dl className="grid grid-cols-1 gap-2 text-center sm:grid-cols-3">
       {[
         { k: t("sa_capacity"), v: venue.capacity ?? notSet },
         { k: t("sa_rental_cost_hour"), v: venue.rental_cost != null ? formatMoney(venue.rental_cost, lang) : notSet },
@@ -285,9 +288,10 @@ function AcademyDetails({ academy, data }: { academy: Row; data: Records }) {
   const date = (value: string | null | undefined) => value ? new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : t("sa_not_set");
   const trialExpired = academy.trial_ends_at && new Date(academy.trial_ends_at) < new Date();
   return <div className="space-y-5">
+    <AcademyTrainingManager academyId={academy.id} />
     <div className="flex flex-wrap gap-2 text-xs">{[planName, academy.is_trial ? trialExpired ? t("sa_trial_expired") : t("sa_trial") : t("sa_non_trial"), academy.is_public ? t("sa_public_listing") : t("sa_private_listing")].map(label => <span key={label} className="rounded-full bg-muted px-3 py-1 font-medium">{label}</span>)}</div>
     {academy.description && <p className="whitespace-pre-wrap break-words text-sm text-muted-foreground">{academy.description}</p>}
-    <dl className="grid grid-cols-3 gap-2 text-center">{[{ k: t("sa_members"), v: members.length }, { k: t("sa_branches"), v: branches.length }, { k: t("sa_playgrounds"), v: venues.length }].map(({ k, v }) => <div key={k} className="rounded-lg border p-3"><dt className="text-xs text-muted-foreground">{k}</dt><dd className="mt-1 text-xl font-semibold">{v}</dd></div>)}</dl>
+    <dl className="grid grid-cols-1 gap-2 text-center sm:grid-cols-3">{[{ k: t("sa_members"), v: members.length }, { k: t("sa_branches"), v: branches.length }, { k: t("sa_playgrounds"), v: venues.length }].map(({ k, v }) => <div key={k} className="rounded-lg border p-3"><dt className="text-xs text-muted-foreground">{k}</dt><dd className="mt-1 text-xl font-semibold">{v}</dd></div>)}</dl>
     <section className="space-y-2"><h3 className="text-sm font-semibold">{t("sa_location")}</h3><Details row={{ Country: academy.country || t("sa_not_provided"), Governorate: academy.governorate || t("sa_not_provided"), "City / area": academy.area || t("sa_not_provided"), Address: academy.address || t("sa_not_provided") }} /></section>
     <section className="space-y-2"><h3 className="text-sm font-semibold">{t("sa_subscription_settings")}</h3><Details row={{ "Academy plan": planName, Created: date(academy.created_at), ...(academy.is_trial ? { "Trial ends": date(academy.trial_ends_at) } : {}), "Session bookings": academy.session_booking_enabled ? t("sa_enabled") : t("sa_inactive"), ...(academy.session_booking_enabled ? { "Platform fee": `${academy.platform_fee_percent ?? 5}%` } : {}) }} /></section>
     <section className="space-y-2"><h3 className="text-sm font-semibold">{t("sa_academy_admins")}</h3>{admins.length ? admins.map(admin => <div key={admin.id} className="rounded-lg border p-3 text-sm"><p className="font-medium">{admin.name}</p><p className="break-all text-muted-foreground">{admin.email}</p>{admin.phone && <p className="text-muted-foreground" dir="ltr">{admin.phone}</p>}</div>) : <p className="text-sm text-muted-foreground">{t("sa_no_admin")}</p>}</section>
@@ -507,6 +511,7 @@ function GameDetails({ game, data }: { game: Row; data: Records }) {
   const rentPerHour = game.playground_hourly_rate ?? null;
   const rentTotal = rentPerHour != null && game.duration_hours != null ? rentPerHour * game.duration_hours : null;
   return <div className="space-y-5">
+    <GameTeamsButton gameId={game.id} date={game.game_date} time={game.start_time} status={game.status} canManage />
     <GameBookingStatus game={{ sport: game.sport, min_players: game.min_players, duration_hours: game.duration_hours,
       playground_hourly_rate: game.playground_hourly_rate, host_pays: game.host_pays, status: game.status,
       participants, rent_payments: (data.friendly_game_rent_payments ?? []).filter(p => p.game_id === game.id).map(p => ({ amount: p.amount, pay_status: p.pay_status })) }} />
@@ -527,7 +532,7 @@ function GameDetails({ game, data }: { game: Row; data: Records }) {
         </Button>
       </div> : <p className="text-sm text-muted-foreground">{notSet}</p>}
     </section>
-    <dl className="grid grid-cols-3 gap-2 text-center">
+    <dl className="grid grid-cols-1 gap-2 text-center sm:grid-cols-3">
       {[
         { k: t("sa_game_date"), v: game.game_date ?? notSet },
         { k: t("sa_game_time"), v: game.start_time ? formatTime12h(String(game.start_time), lang) : notSet },
@@ -768,9 +773,10 @@ export function PlatformRecords() {
     <CardContent className="space-y-4">
       <div className="flex flex-wrap gap-2" role="tablist" aria-label={t("sa_records_title")}>{tabs.map(item => <Button key={item.value} role="tab" aria-selected={tab === item.value} variant={tab === item.value ? "default" : "outline"} onClick={() => { router.push(`/admin?tab=${encodeURIComponent(item.value)}`, { scroll: false }); }}>{item.label}</Button>)}</div>
       <div className="flex flex-wrap gap-2"><Input className="max-w-sm" type="search" aria-label={searchLabel} placeholder={`${searchLabel}…`} value={search} onChange={e => setSearch(e.target.value)} />{tab === "Playgrounds" && <Input className="w-auto" type="date" aria-label={t("sa_records_schedule_date")} value={date} onChange={e => setDate(e.target.value)} />}{tab === "Playgrounds" && <Button disabled={busy} onClick={() => setEditingVenue({ name: "", capacity: "", sport_id: null, school_name: "", rental_cost: "", rental_hours: "1", location_link: "", country: "", governorate: "", area: "", contact_person: "", contact_phone: "", lat: "", lng: "", photos: [], cover_url: null, academy_id: null, court_count: "1", unavailable_slots: [], working_hours: [] })}><Plus className="mr-1 h-4 w-4 rtl:ml-1 rtl:mr-0" />{t("sa_records_add_playground")}</Button>}{tab === "Tournaments" && <Button onClick={() => setTournamentFormOpen(true)}><Plus className="mr-1 h-4 w-4 rtl:ml-1 rtl:mr-0" />{t("sa_records_add_tournament")}</Button>}<Button variant="outline" onClick={() => refetch()}>{t("sa_records_refresh")}</Button></div>
+      {tab === "Academies" && <CreateAcademyButton />}
       {tab === "Playgrounds" && <p className="text-sm text-muted-foreground">{t("sa_records_schedule_note")}</p>}
       <p className="text-xs text-muted-foreground">{t("sa_records_results").replace("{shown}", String(rows.length)).replace("{total}", String(source.length))}</p>
-      <div className="max-h-[650px] space-y-3 overflow-auto">
+      <div className="space-y-3">
       {tab === "Sports" ? (
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">{t("sa_sports_note")}</p>
@@ -855,7 +861,7 @@ export function PlatformRecords() {
       </>
       )}
       </div>
-      <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle>{selected?.name ?? selected?.title ?? t("sa_records_record_details")}</DialogTitle><DialogDescription>{dialogDescription}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails member={selected} data={data} /> : tab === "Academies" ? <AcademyDetails academy={selected} data={data} /> : tab === "Playgrounds" ? <VenueDetails key={selected.id} venue={selected} data={data} /> : tab === "Friendly games" ? <GameDetails game={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && tab !== "Academies" && Object.entries(related).map(([label, records]) => <details key={label} open={label === "Participants"}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => label === "Participants" ? <GameParticipantRow key={r.id} participant={r} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
+      <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className="max-w-3xl max-h-[90dvh] overflow-y-auto p-4 sm:p-6"><DialogHeader><DialogTitle className="min-w-0 break-words pe-6">{selected?.name ?? selected?.title ?? t("sa_records_record_details")}</DialogTitle><DialogDescription>{dialogDescription}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails member={selected} data={data} /> : tab === "Academies" ? <AcademyDetails academy={selected} data={data} /> : tab === "Playgrounds" ? <VenueDetails key={selected.id} venue={selected} data={data} /> : tab === "Friendly games" ? <GameDetails game={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && tab !== "Academies" && Object.entries(related).map(([label, records]) => <details key={label} open={label === "Participants"}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => label === "Participants" ? <GameParticipantRow key={r.id} participant={r} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
       <Dialog open={!!editing} onOpenChange={open => !busy && !open && setEditing(null)}><DialogContent><DialogHeader><DialogTitle>{t("sa_edit_membership")}</DialogTitle><DialogDescription>{editing?.name} · {editing?.email}</DialogDescription></DialogHeader>{editing && <form className="space-y-4" onSubmit={e => { e.preventDefault(); act({ action: "membership", id: editing.id, membership_type: editing.membership_type, subscription_sessions: Number(editing.subscription_sessions), member_plan: editing.member_plan, premium_expires_at: editing.premium_expires_at ? new Date(editing.premium_expires_at).toISOString() : null, is_active: editing.is_active }); }}>
         <label className="block text-sm">{t("sa_academy_membership")}<NativeSelect className="mt-1 w-full rounded border bg-background p-2" value={editing.membership_type} onChange={e => setEditing({ ...editing, membership_type: e.target.value })}><option value="full">{t("sa_full")}</option><option value="half">{t("sa_half")}</option></NativeSelect></label>
         <label className="block text-sm">{t("sa_subscription_sessions")}<Input type="number" min="0" max="10000" required value={editing.subscription_sessions} onChange={e => setEditing({ ...editing, subscription_sessions: e.target.value })} /></label>

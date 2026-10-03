@@ -255,7 +255,33 @@ export function PaymentApprovals() {
             icon={Receipt}
           />
         ) : (
-          <div className="rounded-xl border">
+          <>
+          <div className="space-y-3 md:hidden">
+            {filtered.map(r => (
+              <article key={r.key} className="min-w-0 space-y-3 rounded-xl border p-3">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <h3 className="min-w-0 break-words font-semibold">{r.label}</h3>
+                  <Badge variant={r.status === "pending" ? "warning" : r.status === "approved" ? "success" : "destructive"}>
+                    {t(r.status === "pending" ? "super_admin_payments_pending" : r.status === "approved" ? "super_admin_payments_approved" : "super_admin_payments_rejected")}
+                  </Badge>
+                </div>
+                {r.detail && <p className="break-words text-sm text-muted-foreground">{r.detail}</p>}
+                <div className="flex flex-wrap justify-between gap-2 text-sm">
+                  <span className="min-w-0 break-words">{(r.memberId ? memberName(r.memberId) : undefined) ?? r.playerName ?? "—"}</span>
+                  <strong>{money(r.amount)}</strong>
+                </div>
+                <p className="text-xs text-muted-foreground">{format(new Date(r.createdAt), "MMM d, yyyy · h:mm a", { locale })}{r.method && <> · {t(`game_fee_method_${r.method}` as any)}</>}</p>
+                <div className="flex flex-wrap gap-2">
+                  {r.receiptUrl && <Button variant="outline" className="h-auto min-h-11 whitespace-normal" disabled={openingReceipt !== null} onClick={() => handleViewReceipt(r)}><Eye className="me-1 h-4 w-4 shrink-0" />{t("super_admin_fee_view_receipt")}</Button>}
+                  {r.status === "pending" && <>
+                    <Button variant="outline" className="min-h-11 text-success-ink" disabled={reviewShare.isPending || reviewRent.isPending || reviewSub.isPending} onClick={() => handleApproveReject(r, true)}>{t("super_admin_fee_approve")}</Button>
+                    <Button variant="outline" className="min-h-11" disabled={reviewShare.isPending || reviewRent.isPending || reviewSub.isPending} onClick={() => handleApproveReject(r, false)}>{t("super_admin_fee_reject")}</Button>
+                  </>}
+                </div>
+              </article>
+            ))}
+          </div>
+          <div className="hidden rounded-xl border md:block">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
@@ -357,6 +383,7 @@ export function PaymentApprovals() {
               </TableBody>
             </Table>
           </div>
+          </>
         )}
       </CardContent>
     </Card>

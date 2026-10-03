@@ -1115,7 +1115,7 @@ export const dictionary = {
     checkin_success: "checked in ✓",
     checkin_not_found: "Code not found in this academy",
     // ── Trial requests / public page ──
-    trial_book: "Book a free trial session",
+    trial_book: "Ask about a trial session",
     trial_name: "Full name",
     trial_email: "Email (optional)",
     trial_phone: "Phone",
@@ -4008,7 +4008,7 @@ login_tenant_title: "تسجيل دخول إدارة الأكاديمية",
     checkin_success: "تم تسجيل الحضور ✓",
     checkin_not_found: "الكود غير موجود في هذه الأكاديمية",
     // ── Trial requests / public page ──
-    trial_book: "احجز حصة تجريبية مجانية",
+    trial_book: "استفسر عن حصة تجريبية",
     trial_name: "الاسم الكامل",
     trial_email: "البريد الإلكتروني (اختياري)",
     trial_phone: "الهاتف",

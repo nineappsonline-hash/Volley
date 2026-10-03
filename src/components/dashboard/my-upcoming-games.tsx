@@ -1,5 +1,7 @@
 "use client";
 
+import { GameTeamsButton } from "@/components/games/game-teams";
+
 import { useState } from "react";
 import { format } from "date-fns";
 import {
@@ -119,6 +121,7 @@ export function MyUpcomingGames({ memberId }: { memberId: string }) {
           </header>
 
           <div className="space-y-4 p-6">
+            <GameTeamsButton gameId={game.id} date={game.game_date} time={game.start_time} status={game.status} canManage={game.creator_id === memberId} />
             {/* Playground + directions */}
             {(game.playground || game.location || game.area) && (
               <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-muted/30 p-3">

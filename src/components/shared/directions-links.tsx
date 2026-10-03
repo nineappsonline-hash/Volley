@@ -35,7 +35,7 @@ export function DirectionsLinks({ lat, lng, query }: Props) {
     {
       label: t("directions_google"),
       href: hasCoords
-        ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${encoded}`
+        ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
         : `https://www.google.com/maps/search/?api=1&query=${encoded}`,
     },
     ...(hasCoords

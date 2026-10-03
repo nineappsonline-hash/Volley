@@ -133,6 +133,8 @@ export type SharedGameMeta = {
   is_public: boolean;
   creator_name: string;
   map_label: string;
+  lat: number | null;
+  lng: number | null;
   participants: { id: string; player_name: string; is_waitlisted: boolean }[];
 };
 
@@ -144,7 +146,7 @@ export async function getGameByInviteCode(code: string): Promise<SharedGameMeta 
     const { data, error } = await admin
       .from("friendly_games")
       .select(
-        `id, title, description, sport, gender, area, location, game_date, start_time,
+        `id, title, description, sport, gender, area, location, lat, lng, game_date, start_time,
          max_players, status, share_price, host_pays, host_total, is_public, creator_name,
          playground:venues(name, area, governorate),
          participants:friendly_game_participants(id, player_name, is_waitlisted)`
@@ -160,6 +162,8 @@ export async function getGameByInviteCode(code: string): Promise<SharedGameMeta 
     };
     const playground = Array.isArray(row.playground) ? row.playground[0] ?? null : row.playground;
     const meta: SharedGameMeta = {
+      lat: data.lat,
+      lng: data.lng,
       status: data.status,
       id: data.id,
       title: data.title,

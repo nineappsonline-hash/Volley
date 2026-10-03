@@ -10,6 +10,7 @@ import {
   jsonLdStringify,
   sportsClubJsonLd,
 } from "@/lib/seo";
+import { AcademyTrainingOffers } from "@/components/academies/training-booking";
 import { AcademyTrainingSummary } from "@/components/settings/academy-training-prices";
 import { formatTime12h } from "@/lib/constants";
 import { TrialForm } from "@/components/public/trial-form";
@@ -352,8 +353,13 @@ export default async function PublicAcademyPage({
         {/* Trial booking */}
         <AcademyTrainingSummary academy={academy} />
         <div id="trial" className="scroll-mt-6">
-          <TrialForm academyId={academy.id} sports={sports ?? []} />
+          <AcademyTrainingOffers academyId={academy.id} />
         </div>
+        <details className="rounded-xl border p-4">
+          <summary className="cursor-pointer font-medium"><LangLabel en="Ask the academy about another trial time" ar="اسأل الأكاديمية عن موعد تجريبي آخر" /></summary>
+          <p className="my-3 text-sm text-muted-foreground"><LangLabel en="This sends an enquiry; it does not reserve a session or confirm payment." ar="ده استفسار للأكاديمية، وليس حجزًا لحصة أو تأكيدًا للدفع." /></p>
+          <TrialForm anchorId="trial-enquiry" academyId={academy.id} sports={sports ?? []} />
+        </details>
       </div>
     </main>
   );
