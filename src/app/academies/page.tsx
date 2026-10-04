@@ -1,4 +1,5 @@
 "use client";
+import { AcademyLogo } from "@/components/academies/academy-logo";
 
 import { AppLogo } from "@/components/shared/app-logo";
 import { useEffect, useMemo, useState } from "react";
@@ -577,6 +578,7 @@ export default function AcademiesDirectoryPage() {
                     </div>
                   )}
                   <CardHeader className="pb-2">
+                    <AcademyLogo academyId={a.id} name={a.name} logoUrl={a.logo_url} />
                     <CardTitle className="flex items-start justify-between gap-2">
                       <span className="flex min-w-0 flex-col items-start gap-1">
                         <Link

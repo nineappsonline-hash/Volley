@@ -1,5 +1,6 @@
 "use client";
 import { TrainingSummary } from "./training-summary";
+import { AcademyLogo } from "./academy-logo";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -43,8 +44,8 @@ function ProgramCard({program:p,index}:{program:TrainingProgram;index:number}) {
    setReserved(data as TrainingBooking);await refresh();
   }catch(error){toast.error(errorMessage(error,ar?"تعذر الحجز":"Booking failed"));await refresh();}finally{setBusy(false);}
  };
- return <article id={`training-${p.id}`} className={`training-mobile min-w-0 scroll-mt-24 space-y-4 rounded-2xl border border-t-4 bg-card p-4 shadow-md sm:p-6 ${accents[index%accents.length]}`}><div><div className="mb-3 flex flex-wrap items-center justify-between gap-2"><span className="rounded-full bg-muted px-3 py-1 text-xs font-bold">{ar?"مجموعة":"Group"} {index+1}</span><span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{p.sport}</span></div><h3 className="break-words text-xl font-bold">{p.name}</h3><p className="mt-1 break-words text-sm text-muted-foreground">{p.academy_name} · {p.sport} · {p.venue_name}</p><p className="text-xs text-muted-foreground">{p.venue_address}</p></div>
- <TrainingSummary program={p} compact={!expanded}/>
+return <article id={`training-${p.id}`} className={`training-mobile min-w-0 scroll-mt-24 space-y-4 rounded-2xl border border-t-4 bg-card p-4 shadow-md sm:p-6 ${accents[index%accents.length]}`}><div className="flex items-start gap-3"><AcademyLogo academyId={p.academy_id} name={p.academy_name}/><div className="min-w-0 flex-1"><div className="mb-3 flex flex-wrap items-center justify-between gap-2"><span className="rounded-full bg-muted px-3 py-1 text-xs font-bold">{ar?"مجموعة":"Group"} {index+1}</span><span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{p.sport}</span></div><h3 className="break-words text-xl font-bold">{p.name}</h3><p className="mt-1 break-words text-sm text-muted-foreground">{p.academy_name} · {p.sport} · {p.venue_name}</p><p className="text-xs text-muted-foreground">{p.venue_address}</p></div></div>
+<TrainingSummary program={p} compact={!expanded} showAcademy={false}/>
  {!expanded && <div className="grid grid-cols-2 gap-3 text-sm"><div className="rounded-xl bg-muted/40 p-3"><p className="text-xs text-muted-foreground">{ar?"اشتراك ٣٠ يومًا":"30-day plan"}</p><p className="mt-1 font-bold">{formatMoney(Number(p.monthly_price),lang)}</p><p className="text-xs">{p.monthly_sessions} {ar?"حصص":"sessions"}</p></div><div className="rounded-xl bg-muted/40 p-3"><p className="text-xs text-muted-foreground">{ar?"حصة تجريبية":"Trial session"}</p><p className="mt-1 font-bold">{formatMoney(Number(p.trial_price),lang)}</p></div></div>}
  <Button variant="outline" className="min-h-11 w-full whitespace-normal" aria-expanded={expanded} aria-controls={`group-details-${p.id}`} onClick={()=>setExpanded(!expanded)}>{expanded?(ar?"إخفاء التفاصيل":"Hide details"):(ar?"عرض المواعيد والحجز":"View schedule & book")}<ChevronDown aria-hidden="true" className={`h-4 w-4 shrink-0 transition-transform motion-reduce:transition-none ${expanded?"rotate-180":""}`}/></Button>
  <div id={`group-details-${p.id}`} hidden={!expanded}>

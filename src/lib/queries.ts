@@ -871,6 +871,8 @@ export function useUpdateAcademy() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["academy"] });
+      qc.invalidateQueries({ queryKey: ["academy-logo"] });
+      qc.invalidateQueries({ queryKey: ["public-academies"] });
     },
   });
 }
@@ -955,13 +957,13 @@ export function usePublicAcademies() {
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("academies")
-        .select("id, name, description, country, governorate, area, lat, lng, cover_url, slug")
+        .select("id, name, description, country, governorate, area, lat, lng, cover_url, logo_url, slug")
         .eq("is_public", true)
         .order("name");
       if (error) throw error;
       return (data ?? []) as Pick<
         Academy,
-        "id" | "name" | "description" | "country" | "governorate" | "area" | "lat" | "lng" | "cover_url" | "slug"
+        "id" | "name" | "description" | "country" | "governorate" | "area" | "lat" | "lng" | "cover_url" | "logo_url" | "slug"
       >[];
     },
   });

@@ -1,6 +1,7 @@
+import { AcademyLogo } from "@/components/academies/academy-logo";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CalendarDays, Camera, MapPin, MessageSquareText, Star, Trophy, Volleyball } from "lucide-react";
+import { CalendarDays, Camera, MapPin, MessageSquareText, Star, Trophy } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { dictionary } from "@/lib/i18n/dictionary";
 import {
@@ -83,7 +84,7 @@ export default async function PublicAcademyPage({
 
   const { data: academy } = await admin
     .from("academies")
-    .select("id, name, description, country, governorate, area, lat, lng, cover_url, is_public")
+    .select("id, name, description, country, governorate, area, lat, lng, cover_url, logo_url, is_public")
     .eq("slug", slug)
     .eq("is_public", true)
     .single();
@@ -172,7 +173,7 @@ export default async function PublicAcademyPage({
             />
           )}
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
-            <Volleyball className="h-9 w-9" />
+            <AcademyLogo academyId={academy.id} name={academy.name} logoUrl={academy.logo_url} />
           </div>
           <h1 className="text-3xl font-extrabold sm:text-4xl">{academy.name}</h1>
           {academy.description && (

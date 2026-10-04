@@ -1,5 +1,6 @@
 "use client";
 
+import { AcademyLogo } from "@/components/academies/academy-logo";
 import { useId, useRef } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -16,6 +17,7 @@ type DiscoveryItem = {
   title: string;
   subtitle: string;
   badge?: string;
+  academyLogo?: string | null;
   image?: string | null;
   href?: string;
 };
@@ -68,6 +70,7 @@ function DiscoveryCarousel({ title, href, icon: Icon, items, query, empty }: {
                   {item.badge && <span className="absolute start-3 top-3 max-w-[calc(100%-1.5rem)] truncate rounded-full bg-background/95 px-2.5 py-1 text-xs font-medium text-foreground">{item.badge}</span>}
                 </div>
                 <div className="space-y-2 p-4">
+                  {item.academyLogo !== undefined && <AcademyLogo academyId={item.id} name={item.title} logoUrl={item.academyLogo} />}
                   <h3 className="line-clamp-2 font-semibold group-hover:text-primary">{item.title}</h3>
                   <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">{item.subtitle}</p>
                 </div>
@@ -114,7 +117,7 @@ export function MemberDiscoveryCarousels() {
     image: venueCardPhoto(playground.photos, playground.cover_url),
   }));
   const academyItems = (academies.data ?? []).slice(0, 12).map(academy => ({
-    id: academy.id, title: academy.name, image: academy.cover_url,
+    id: academy.id, title: academy.name, image: academy.cover_url, academyLogo: academy.logo_url,
     subtitle: [academy.area, academy.governorate, academy.country].filter(Boolean).join(" · ") || academy.description || (ar ? "اكتشف الأكاديمية" : "Explore this academy"),
     href: academy.slug ? `/a/${encodeURIComponent(academy.slug)}` : "/academies",
   }));

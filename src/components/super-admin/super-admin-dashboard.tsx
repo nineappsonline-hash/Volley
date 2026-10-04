@@ -3,6 +3,7 @@
 import { PlatformRecords } from "./platform-records";
 import { PlatformAnalytics } from "./platform-analytics";
 import { AcademyEditDialog } from "./academy-edit-dialog";
+import { AcademyLogo, AcademyLogoDialog } from "@/components/academies/academy-logo";
 import { ApprovalsPage } from "./approvals-page";
 import { AcademyTrainingPaymentApprovals } from "@/components/academies/training-booking";
 import { PaymentApprovals } from "./payment-approvals";
@@ -17,6 +18,7 @@ import {
   Crown,
   ExternalLink,
   Flag,
+  ImagePlus,
   Megaphone,
   Pencil,
   Plus,
@@ -83,6 +85,7 @@ export function SuperAdminDashboard() {
   const resolve = useResolveReport();
   const setAcademyPlan = useSetAcademyPlan();
   const [editing, setEditing] = useState<Academy | null>(null);
+  const [logoAcademy, setLogoAcademy] = useState<Academy | null>(null);
   const sendBroadcast = useSendBroadcast();
   const [broadcastTitle, setBroadcastTitle] = useState("");
   const [broadcastBody, setBroadcastBody] = useState("");
@@ -285,17 +288,20 @@ export function SuperAdminDashboard() {
                       <TableRow key={academy.id}>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <p className="font-medium">{academy.name}</p>
-                            {academy.slug && (
-                              <a
-                                href={`/a/${academy.slug}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-muted-foreground hover:text-foreground"
-                              >
-                                <ExternalLink className="h-3 w-3" />
-                              </a>
-                            )}
+                            <AcademyLogo academyId={academy.id} name={academy.name} logoUrl={academy.logo_url} />
+                            <div className="flex min-w-0 flex-col gap-0.5">
+                              <p className="font-medium">{academy.name}</p>
+                              {academy.slug && (
+                                <a
+                                  href={`/a/${academy.slug}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-muted-foreground hover:text-foreground"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              )}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell className="hidden sm:table-cell text-muted-foreground">
@@ -347,6 +353,16 @@ export function SuperAdminDashboard() {
                           </TableCell>
                         <TableCell className="text-end">
                           <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              aria-label={t("sa_academy_logo")}
+                              title={t("sa_academy_logo")}
+                              onClick={() => setLogoAcademy(academy)}
+                            >
+                              <ImagePlus className="h-4 w-4" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"
@@ -588,6 +604,15 @@ export function SuperAdminDashboard() {
         onClose={() => setEditing(null)}
         onDeleted={() => setEditing(null)}
       />
+
+      {logoAcademy && (
+        <AcademyLogoDialog
+          academyId={logoAcademy.id}
+          name={logoAcademy.name}
+          open
+          onOpenChange={(open) => !open && setLogoAcademy(null)}
+        />
+      )}
     </div>
   );
 }
