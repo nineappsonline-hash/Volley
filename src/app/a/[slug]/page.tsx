@@ -11,7 +11,7 @@ import {
   sportsClubJsonLd,
 } from "@/lib/seo";
 import { AcademyTrainingOffers } from "@/components/academies/training-booking";
-import { AcademyTrainingSummary } from "@/components/settings/academy-training-prices";
+import { AcademyNavigation } from "@/components/academies/academy-navigation";
 import { formatTime12h } from "@/lib/constants";
 import { TrialForm } from "@/components/public/trial-form";
 import { LangLabel } from "@/components/shared/lang-label";
@@ -82,7 +82,7 @@ export default async function PublicAcademyPage({
 
   const { data: academy } = await admin
     .from("academies")
-    .select("id, name, description, country, governorate, area, lat, lng, cover_url, is_public, monthly_sessions, monthly_price, tryout_price")
+    .select("id, name, description, country, governorate, area, lat, lng, cover_url, is_public")
     .eq("slug", slug)
     .eq("is_public", true)
     .single();
@@ -152,15 +152,16 @@ export default async function PublicAcademyPage({
   ];
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-muted/20 pb-16">
+      <AcademyNavigation />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@graph": jsonLd }) }}
       />
       {/* Hero */}
-      <section className="relative overflow-hidden border-b bg-gradient-to-br from-brand via-brand to-interactive-800 py-14 text-white">
+      <section className="relative overflow-hidden border-b bg-gradient-to-br from-brand via-brand to-interactive-800 py-8 text-white sm:py-12">
         <div className="pointer-events-none absolute -top-24 start-1/2 h-72 w-[32rem] -translate-x-1/2 rounded-full bg-white/15 blur-3xl rtl:translate-x-1/2" />
-        <div className="relative mx-auto flex max-w-3xl flex-col items-center gap-4 px-6 text-center">
+        <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-4 px-6 text-center">
           {academy.cover_url && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -217,13 +218,13 @@ export default async function PublicAcademyPage({
           )}
           <div className="mt-1 flex flex-wrap items-center justify-center gap-3">
             <a
-              href="#trial"
+              href="#groups"
               className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-2.5 text-sm font-bold text-brand shadow-lg transition-transform hover:scale-105"
             >
               <Trophy className="h-4 w-4" />
               <LangLabel
-                en={dictionary.en.public_book_trial}
-                ar={dictionary.ar.public_book_trial}
+                en="Explore groups & prices"
+                ar="استكشف المجموعات والأسعار"
               />
             </a>
             <FollowAcademyButton
@@ -235,10 +236,20 @@ export default async function PublicAcademyPage({
         </div>
       </section>
 
-      <div className="mx-auto max-w-3xl space-y-8 px-6 py-10">
+      <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
+        <nav aria-label="Academy sections" className="flex flex-wrap gap-2 rounded-2xl border bg-card p-2 shadow-sm">
+          <a href="#groups" className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"><LangLabel en="Training groups" ar="مجموعات التدريب" /></a>
+          <a href="#sports" className="rounded-xl px-4 py-3 text-sm font-medium hover:bg-muted"><LangLabel en="Sports" ar="الرياضات" /></a>
+          {!!sessions?.length && <a href="#sessions" className="rounded-xl px-4 py-3 text-sm font-medium hover:bg-muted"><LangLabel en="Schedule" ar="المواعيد" /></a>}
+          {!!photos?.length && <a href="#photos" className="rounded-xl px-4 py-3 text-sm font-medium hover:bg-muted"><LangLabel en="Photos" ar="الصور" /></a>}
+          {!!reviews.length && <a href="#reviews" className="rounded-xl px-4 py-3 text-sm font-medium hover:bg-muted"><LangLabel en="Reviews" ar="التقييمات" /></a>}
+        </nav>
+        <section id="groups" className="scroll-mt-24">
+          <AcademyTrainingOffers academyId={academy.id} />
+        </section>
         {/* Sports */}
         {(sports ?? []).length > 0 && (
-          <section>
+          <section id="sports" className="scroll-mt-24 rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
             <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
               <Trophy className="h-5 w-5 text-primary" />
               <LangLabel en={dictionary.en.public_sports} ar={dictionary.ar.public_sports} />
@@ -258,7 +269,7 @@ export default async function PublicAcademyPage({
 
         {/* Upcoming sessions */}
         {(sessions ?? []).length > 0 && (
-          <section>
+          <section id="sessions" className="scroll-mt-24 rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
             <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
               <CalendarDays className="h-5 w-5 text-primary" />
               <LangLabel en={dictionary.en.public_upcoming} ar={dictionary.ar.public_upcoming} />
@@ -280,7 +291,7 @@ export default async function PublicAcademyPage({
 
         {/* Photos */}
         {(photos ?? []).length > 0 && (
-          <section>
+          <section id="photos" className="scroll-mt-24 rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
             <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
               <Camera className="h-5 w-5 text-primary" />
               <LangLabel en={dictionary.en.public_photos} ar={dictionary.ar.public_photos} />
@@ -308,7 +319,7 @@ export default async function PublicAcademyPage({
 
         {/* Reviews */}
         {reviews.length > 0 && (
-          <section>
+          <section id="reviews" className="scroll-mt-24 rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
             <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
               <MessageSquareText className="h-5 w-5 text-primary" />
               <LangLabel en={dictionary.en.public_reviews} ar={dictionary.ar.public_reviews} />
@@ -351,11 +362,7 @@ export default async function PublicAcademyPage({
         )}
 
         {/* Trial booking */}
-        <AcademyTrainingSummary academy={academy} />
-        <div id="trial" className="scroll-mt-6">
-          <AcademyTrainingOffers academyId={academy.id} />
-        </div>
-        <details className="rounded-xl border p-4">
+        <details className="rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
           <summary className="cursor-pointer font-medium"><LangLabel en="Ask the academy about another trial time" ar="اسأل الأكاديمية عن موعد تجريبي آخر" /></summary>
           <p className="my-3 text-sm text-muted-foreground"><LangLabel en="This sends an enquiry; it does not reserve a session or confirm payment." ar="ده استفسار للأكاديمية، وليس حجزًا لحصة أو تأكيدًا للدفع." /></p>
           <TrialForm anchorId="trial-enquiry" academyId={academy.id} sports={sports ?? []} />

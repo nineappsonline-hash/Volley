@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
+import { errorMessage } from "@/lib/utils";
 import { formatMoneyShort } from "@/lib/constants";
 import {
   useAllGamePayments,
@@ -138,7 +139,7 @@ export function PaymentApprovals() {
     return out;
   }, [shares, rents, subscriptions, t]);
 
-  const pendingCount = records.filter((r) => r.status === "pending").length;
+  const pendingCount = records.filter((r) => r.status === "pending" && r.method !== "kashier").length;
 
   const filtered = useMemo(
     () =>
@@ -154,6 +155,7 @@ export function PaymentApprovals() {
     record: PaymentRecord,
     approve: boolean,
   ) => {
+    if (record.method === "kashier") return;
     try {
       if (record.kind === "share") {
         const dbId = record.key.slice("share:".length);
@@ -168,8 +170,8 @@ export function PaymentApprovals() {
       toast.success(
         approve ? t("super_admin_fee_approved") : t("super_admin_fee_rejected"),
       );
-    } catch {
-      toast.error(t("common_error"));
+    } catch (error) {
+      toast.error(errorMessage(error, t("common_error")));
     }
   };
 
@@ -272,8 +274,9 @@ export function PaymentApprovals() {
                 </div>
                 <p className="text-xs text-muted-foreground">{format(new Date(r.createdAt), "MMM d, yyyy · h:mm a", { locale })}{r.method && <> · {t(`game_fee_method_${r.method}` as any)}</>}</p>
                 <div className="flex flex-wrap gap-2">
+                  {r.method === "kashier" && <span className="text-xs text-muted-foreground">{lang === "ar" ? (r.status === "pending" ? "بانتظار إتمام الدفع بالبطاقة؛ يتم التأكيد تلقائيًا" : "مدفوعات البطاقة تُراجع تلقائيًا عبر كاشير") : (r.status === "pending" ? "Awaiting card payment; confirmed automatically" : "Card payments are verified automatically by Kashier")}</span>}
                   {r.receiptUrl && <Button variant="outline" className="h-auto min-h-11 whitespace-normal" disabled={openingReceipt !== null} onClick={() => handleViewReceipt(r)}><Eye className="me-1 h-4 w-4 shrink-0" />{t("super_admin_fee_view_receipt")}</Button>}
-                  {r.status === "pending" && <>
+                  {r.status === "pending" && r.method !== "kashier" && <>
                     <Button variant="outline" className="min-h-11 text-success-ink" disabled={reviewShare.isPending || reviewRent.isPending || reviewSub.isPending} onClick={() => handleApproveReject(r, true)}>{t("super_admin_fee_approve")}</Button>
                     <Button variant="outline" className="min-h-11" disabled={reviewShare.isPending || reviewRent.isPending || reviewSub.isPending} onClick={() => handleApproveReject(r, false)}>{t("super_admin_fee_reject")}</Button>
                   </>}
@@ -339,7 +342,8 @@ export function PaymentApprovals() {
                       </TableCell>
                       <TableCell className="text-end">
                         <div className="flex items-center justify-end gap-1">
-                          {r.receiptUrl && (
+                          {r.method === "kashier" && <span className="text-xs text-muted-foreground">{lang === "ar" ? (r.status === "pending" ? "بانتظار إتمام الدفع بالبطاقة؛ يتم التأكيد تلقائيًا" : "مدفوعات البطاقة تُراجع تلقائيًا عبر كاشير") : (r.status === "pending" ? "Awaiting card payment; confirmed automatically" : "Card payments are verified automatically by Kashier")}</span>}
+                  {r.receiptUrl && (
                             <Button
                               variant="ghost"
                               size="sm"
@@ -351,7 +355,7 @@ export function PaymentApprovals() {
                               {t("super_admin_fee_view_receipt")}
                             </Button>
                           )}
-                          {r.status === "pending" && (
+                          {r.status === "pending" && r.method !== "kashier" && (
                             <>
                               <Button
                                 variant="outline"
