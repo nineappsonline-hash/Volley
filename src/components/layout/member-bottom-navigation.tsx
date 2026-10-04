@@ -26,7 +26,7 @@ export function MemberBottomNavigation() {
     >
       <div className="mx-auto grid max-w-xl grid-cols-4 gap-1 px-2 py-2">
         {destinations.map(({ href, key, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(`${href}/`);
+          const active = pathname === href || pathname.startsWith(`${href}/`) || (href === "/academies" && pathname.startsWith("/a/"));
           return (
             <Link
               key={href}

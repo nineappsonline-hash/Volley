@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { Topbar } from "@/components/layout/topbar";
+import { useCurrentProfile } from "@/lib/queries";
 import { Menu, Volleyball, X } from "lucide-react";
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
@@ -8,6 +10,7 @@ import { useI18n } from "@/lib/i18n";
 export function AcademyNavigation() {
   const { lang } = useI18n();
   const ar = lang === "ar";
+  const { data: profile } = useCurrentProfile();
   const [open, setOpen] = useState(false);
   const links = [
     { href: "/dashboard", label: ar ? "الرئيسية" : "Dashboard" },
@@ -17,6 +20,7 @@ export function AcademyNavigation() {
     { href: "/academies", label: ar ? "الأكاديميات" : "Academies" },
     { href: "/academy-bookings", label: ar ? "حجوزاتي" : "My bookings" },
   ];
+  if (profile) return <Topbar role={profile.role} navigationRole="member" name={profile.name} username={profile.username} avatarUrl={profile.avatar_url} avatarId={profile.avatar_id} memberPlan={profile.member_plan} />;
   return <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
     <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
       <Link href="/" className="flex min-h-11 items-center gap-2 text-xl font-extrabold"><Volleyball className="h-6 w-6 text-primary" />Playza</Link>

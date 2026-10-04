@@ -11,6 +11,7 @@ import {
   sportsClubJsonLd,
 } from "@/lib/seo";
 import { AcademyTrainingOffers } from "@/components/academies/training-booking";
+import { MemberBottomNavigation } from "@/components/layout/member-bottom-navigation";
 import { AcademyNavigation } from "@/components/academies/academy-navigation";
 import { formatTime12h } from "@/lib/constants";
 import { TrialForm } from "@/components/public/trial-form";
@@ -152,7 +153,7 @@ export default async function PublicAcademyPage({
   ];
 
   return (
-    <main className="min-h-screen bg-muted/20 pb-16">
+    <main className="min-h-screen bg-muted/20 pb-[calc(6rem+env(safe-area-inset-bottom))]">
       <AcademyNavigation />
       <script
         type="application/ld+json"
@@ -368,6 +369,7 @@ export default async function PublicAcademyPage({
           <TrialForm anchorId="trial-enquiry" academyId={academy.id} sports={sports ?? []} />
         </details>
       </div>
+      <MemberBottomNavigation />
     </main>
   );
 }

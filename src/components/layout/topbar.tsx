@@ -24,6 +24,7 @@ import { ProfileAvatar } from "@/components/shared/profile-avatar";
 
 interface TopbarProps {
   role: Role;
+  navigationRole?: Role;
   name: string;
   username: string;
   avatarUrl?: string | null;
@@ -37,7 +38,7 @@ interface TopbarProps {
   } | null;
 }
 
-export function Topbar({ role, name, username, avatarUrl, avatarId, memberPlan, isCoach, academy }: TopbarProps) {
+export function Topbar({ role, navigationRole = role, name, username, avatarUrl, avatarId, memberPlan, isCoach, academy }: TopbarProps) {
   const { t, lang } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
@@ -63,13 +64,13 @@ export function Topbar({ role, name, username, avatarUrl, avatarId, memberPlan, 
       <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className={role === "member" ? "" : "lg:hidden"} aria-label={lang === "ar" ? "افتح القائمة" : "Open navigation"}>
+          <Button variant="ghost" size="icon" className={navigationRole === "member" ? "" : "lg:hidden"} aria-label={lang === "ar" ? "افتح القائمة" : "Open navigation"}>
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
         <SheetContent side={lang === "ar" ? "right" : "left"} className="w-72 p-0" aria-describedby={undefined}>
           <SheetTitle className="sr-only">{lang === "ar" ? "القائمة الرئيسية" : "Main navigation"}</SheetTitle>
-          <Sidebar onNavigate={() => setMenuOpen(false)} role={role} name={name} memberPlan={memberPlan} isCoach={isCoach} />
+          <Sidebar onNavigate={() => setMenuOpen(false)} role={navigationRole} name={name} memberPlan={memberPlan} isCoach={isCoach} />
         </SheetContent>
       </Sheet>
 
