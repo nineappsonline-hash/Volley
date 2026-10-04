@@ -1,4 +1,5 @@
 "use client";
+import { MemberFamilyManager } from "./member-family-manager";
 
 import { CreateAcademyButton, AcademyTrainingManager } from "./academy-training-manager";
 import { GameTeamsButton } from "@/components/games/game-teams";
@@ -325,6 +326,7 @@ function MemberDetails({ member, data }: { member: Row; data: Records }) {
   };
   return <div className="space-y-5">
     <Details row={summary} />
+    <MemberFamilyManager key={member.id} memberId={member.id} academies={data.academies.map(a=>({id:a.id,name:a.name}))} />
     <details><summary className="cursor-pointer font-medium">{t("sa_payment_history")} ({payments.length})</summary>
       <div className="mt-3 space-y-2">{payments.length === 0 && <p className="text-sm text-muted-foreground">{t("sa_no_payments")}</p>}{payments.map(payment => <div key={payment.id} className="rounded-lg border p-3 text-sm"><p className="font-medium">{payment.payment_date} · {payment.amount} · {String(payment.method ?? "").replaceAll("_", " ")}</p><p className="text-muted-foreground">{payment.subscription_sessions} {t("sa_records_sessions")}{payment.notes ? ` · ${payment.notes}` : ""}</p></div>)}</div>
     </details>
