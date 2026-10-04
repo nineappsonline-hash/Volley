@@ -6,6 +6,7 @@ import { AcademyEditDialog } from "./academy-edit-dialog";
 import { AcademyLogo, AcademyLogoDialog } from "@/components/academies/academy-logo";
 import { ApprovalsPage } from "./approvals-page";
 import { AcademyTrainingPaymentApprovals } from "@/components/academies/training-booking";
+import { ShareIconButton, academyShareTarget } from "@/components/academies/academy-share";
 import { PaymentApprovals } from "./payment-approvals";
 import { MessagesPage } from "./messages-page";
 import { useMemo, useState } from "react";
@@ -363,6 +364,17 @@ export function SuperAdminDashboard() {
                             >
                               <ImagePlus className="h-4 w-4" />
                             </Button>
+                            {academy.slug && (
+                              <ShareIconButton
+                                target={academyShareTarget({
+                                  name: academy.name,
+                                  slug: academy.slug,
+                                  area: academy.area,
+                                  governorate: academy.governorate,
+                                })}
+                                label={t("academy_share_title").replace("{name}", academy.name)}
+                              />
+                            )}
                             <Button
                               variant="ghost"
                               size="icon"

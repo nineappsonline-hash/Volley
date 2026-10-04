@@ -18,6 +18,7 @@ import { formatTime12h } from "@/lib/constants";
 import { TrialForm } from "@/components/public/trial-form";
 import { LangLabel } from "@/components/shared/lang-label";
 import { FollowAcademyButton } from "@/components/academies/follow-badge-button";
+import { AcademyShareButton } from "@/components/academies/academy-share";
 
 export async function generateMetadata({
   params,
@@ -232,6 +233,18 @@ export default async function PublicAcademyPage({
             <FollowAcademyButton
               academyId={academy.id}
               showCount
+              className="border border-white/40 bg-white/10 px-6 py-2.5 text-white hover:bg-white/20 hover:text-white"
+            />
+            <AcademyShareButton
+              academy={{
+                name: academy.name,
+                slug,
+                area: academy.area,
+                governorate: academy.governorate,
+              }}
+              variant="outline"
+              size="lg"
+              align="start"
               className="border border-white/40 bg-white/10 px-6 py-2.5 text-white hover:bg-white/20 hover:text-white"
             />
           </div>
