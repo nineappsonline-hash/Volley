@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { LogOut, Menu, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ import { useI18n } from "@/lib/i18n";
 import type { Role } from "@/lib/types";
 import { useAuth } from "@/lib/auth";
 import { ProfileAvatar } from "@/components/shared/profile-avatar";
+import { AppLogo } from "@/components/shared/app-logo";
 
 interface TopbarProps {
   role: Role;
@@ -73,6 +75,14 @@ export function Topbar({ role, navigationRole = role, name, username, avatarUrl,
           <Sidebar onNavigate={() => setMenuOpen(false)} role={navigationRole} name={name} memberPlan={memberPlan} isCoach={isCoach} />
         </SheetContent>
       </Sheet>
+
+      {/* Members have no persistent sidebar, so the wordmark doubles as their
+          only always-visible way back to the dashboard. */}
+      {navigationRole === "member" && (
+        <Link href="/dashboard" aria-label={lang === "ar" ? "الصفحة الرئيسية" : "Go to dashboard"} className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <AppLogo className="h-7 w-auto" />
+        </Link>
+      )}
 
       <div className="ms-auto flex items-center gap-1">
         {role === "admin" && academy && (

@@ -1,12 +1,17 @@
 "use client";
 
 import { AcademyLogo } from "@/components/academies/academy-logo";
-import { useId, useRef } from "react";
+import { useId } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Building2, ChevronLeft, ChevronRight, LandPlot, Trophy, Volleyball, type LucideIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Building2, LandPlot, Trophy, Volleyball, type LucideIcon } from "lucide-react";
 import { QueryState } from "@/components/shared/query-state";
+import {
+  CarouselArrows,
+  CarouselDots,
+  CarouselFade,
+  useCarousel,
+} from "@/components/shared/carousel";
 import { useI18n } from "@/lib/i18n";
 import { useAllTournaments, useFriendlyGames, usePlaygrounds, usePublicAcademies } from "@/lib/queries";
 import { formatTime12h } from "@/lib/constants";
@@ -35,15 +40,7 @@ function DiscoveryCarousel({ title, href, icon: Icon, items, query, empty }: {
   const { lang } = useI18n();
   const ar = lang === "ar";
   const id = useId();
-  const track = useRef<HTMLUListElement>(null);
-  const scroll = (direction: number) => {
-    const element = track.current;
-    if (!element) return;
-    element.scrollBy({
-      left: direction * (ar ? -1 : 1) * element.clientWidth * 0.85,
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-    });
-  };
+  const { track, scroll, index, pages, atStart, atEnd } = useCarousel(lang);
 
   return (
     <section aria-labelledby={`${id}-title`} className="min-w-0 space-y-3">
@@ -51,13 +48,23 @@ function DiscoveryCarousel({ title, href, icon: Icon, items, query, empty }: {
         <h2 id={`${id}-title`} className="flex items-center gap-2 text-lg font-semibold"><Icon className="h-5 w-5 text-primary" aria-hidden="true" />{title}</h2>
         <div className="flex items-center gap-1">
           <Link href={href} className="me-2 rounded text-xs font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{ar ? "عرض الكل" : "View all"}</Link>
-          <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" disabled={items.length < 2 || query.isPending || query.isError} aria-label={`${ar ? "السابق" : "Previous"}: ${title}`} aria-controls={id} onClick={() => scroll(-1)}>{ar ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}</Button>
-          <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" disabled={items.length < 2 || query.isPending || query.isError} aria-label={`${ar ? "التالي" : "Next"}: ${title}`} aria-controls={id} onClick={() => scroll(1)}>{ar ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</Button>
+          <CarouselArrows
+            onPrev={() => scroll(-1)}
+            onNext={() => scroll(1)}
+            canPrev={!atStart}
+            canEnd={!atEnd}
+            disabled={items.length < 2 || query.isPending || query.isError}
+            prevLabel={`${ar ? "السابق" : "Previous"}: ${title}`}
+            nextLabel={`${ar ? "التالي" : "Next"}: ${title}`}
+          />
         </div>
       </header>
       <QueryState queries={[query]}>
         {items.length === 0 ? <p className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">{empty}</p> : (
-          <ul id={id} ref={track} tabIndex={0} aria-label={title} className="flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain rounded-2xl p-1 pb-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <div className="relative">
+            <CarouselFade side="start" visible={!atStart} />
+            <CarouselFade side="end" visible={!atEnd} />
+            <ul id={id} ref={track} tabIndex={0} aria-label={title} className="flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain rounded-2xl p-1 pb-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             {items.map(item => <li key={item.id} className="w-[82%] max-w-80 shrink-0 snap-start sm:w-[45%] lg:w-[31%]">
               <Link href={item.href ?? href} className="group flex h-full flex-col overflow-hidden rounded-2xl border bg-card transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                 <div className="relative flex aspect-[16/9] items-center justify-center overflow-hidden bg-gradient-to-br from-primary/15 via-muted to-primary/5">
@@ -77,7 +84,9 @@ function DiscoveryCarousel({ title, href, icon: Icon, items, query, empty }: {
               </Link>
             </li>)}
           </ul>
+          </div>
         )}
+        <CarouselDots pages={pages} index={index} />
       </QueryState>
     </section>
   );

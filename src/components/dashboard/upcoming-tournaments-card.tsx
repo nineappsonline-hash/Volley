@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { Trophy, CalendarDays, ArrowRight, MapPin, UserRound, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { formatMoney, formatTime12h } from "@/lib/constants";
@@ -33,7 +34,7 @@ export function UpcomingTournamentsCard() {
     .slice(0, 5);
 
   return (
-    <Card className="border-dashed">
+    <Card className="rounded-2xl shadow-none">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between text-base">
           <span className="flex items-center gap-2">
@@ -57,7 +58,11 @@ export function UpcomingTournamentsCard() {
             ))}
           </div>
         ) : list.length === 0 ? (
-          <EmptyState message={t("td_no_upcoming_tournaments")} icon={Trophy} />
+          <EmptyState
+            message={t("td_no_upcoming_tournaments")}
+            icon={Trophy}
+            action={<Button asChild size="sm"><Link href="/dashboard/tournaments">{t("td_view_all")}</Link></Button>}
+          />
         ) : (
           list.map((tr) => (
             <Link

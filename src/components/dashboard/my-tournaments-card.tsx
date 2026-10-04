@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { Award, Flag, MapPin, Medal, Swords, Trophy, UserRound, Users } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -107,7 +108,7 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
   );
 
   return (
-    <Card>
+    <Card className="rounded-2xl shadow-none">
       <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Trophy className="h-4 w-4 text-primary" />
@@ -132,7 +133,11 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
             </button>
           </div>
         ) : !entries || entries.length === 0 ? (
-          <EmptyState message={t("td_empty")} icon={Trophy} />
+          <EmptyState
+            message={t("td_empty")}
+            icon={Trophy}
+            action={<Button asChild size="sm"><Link href="/dashboard/tournaments">{t("td_view_all")}</Link></Button>}
+          />
         ) : (
           entries.map(({ participant_id, tournament, myTeam }) => {
             const r = tournamentResult(tournament, myTeam?.id ?? null);

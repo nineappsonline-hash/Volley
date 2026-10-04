@@ -1,11 +1,16 @@
 "use client";
 
 import { GameTeamsButton } from "@/components/games/game-teams";
+import { JoinGameDialog } from "@/components/games/join-game-dialog";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { format } from "date-fns";
 import {
+  ArrowUpRight,
   CalendarDays,
+  CheckCircle2,
+  ChevronRight,
   Clock,
   LandPlot,
   MapPin,
@@ -18,8 +23,10 @@ import { useMyUpcomingGames, useUpcomingGameParticipants } from "@/lib/queries";
 import { useI18n } from "@/lib/i18n";
 import type { Dict } from "@/lib/i18n/dictionary";
 import { QueryState } from "@/components/shared/query-state";
+import { EmptyState } from "@/components/shared/empty-state";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { DirectionsLinks } from "@/components/shared/directions-links";
@@ -29,6 +36,15 @@ import { venueCardPhoto } from "@/lib/venue-media";
 import { addHoursToTime, formatMoney, formatTime12h } from "@/lib/constants";
 import { useRealtime } from "@/lib/useRealtime";
 import { cn } from "@/lib/utils";
+import {
+  countdown,
+  dayBucket,
+  groupGamesByDay,
+  shareAmountDue,
+  shareTone,
+  todayISO,
+  type MemberDashboardGame,
+} from "@/lib/member-dashboard";
 
 const STATUS_STYLES: Record<string, string> = {
   open: "bg-positive-100 text-success-ink dark:bg-positive-500/15 dark:text-positive-400",
@@ -37,16 +53,39 @@ const STATUS_STYLES: Record<string, string> = {
   cancelled: "bg-negative-100 text-error-ink dark:bg-negative-500/15 dark:text-negative-400",
 };
 
-export function MyUpcomingGames({ memberId }: { memberId: string }) {
+export function MyUpcomingGames({
+  memberId,
+  onCountChange,
+}: {
+  memberId: string;
+  onCountChange?: (rows: MemberDashboardGame[]) => void;
+}) {
   const { t, lang, locale } = useI18n();
   const ar = lang === "ar";
   const query = useMyUpcomingGames(memberId);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [payGameId, setPayGameId] = useState<string | null>(null);
   const selected = query.data?.find(row => row.game.id === selectedId);
   const roster = useUpcomingGameParticipants(selectedId, memberId);
   useRealtime(["friendly_games", "friendly_game_participants"]);
 
+  // Memoised so the empty case keeps a stable identity; a fresh [] each render
+// would re-fire onCountChange and loop through the parent's state update.
+  const rows = useMemo(() => query.data ?? [], [query.data]);
+  useEffect(() => {
+    onCountChange?.(rows);
+  }, [rows, onCountChange]);
+
+  const groups = useMemo(() => groupGamesByDay(rows, todayISO()), [rows]);
+  const payRow = query.data?.find(row => row.game.id === payGameId);
+
   const prettyDate = (date: string) => format(new Date(date + "T00:00:00"), "EEE, MMM d", { locale });
+  const dayTitle = (date: string) => {
+    const bucket = dayBucket(date, todayISO());
+    if (bucket === "today") return t("dash_today");
+    if (bucket === "tomorrow") return t("dash_tomorrow");
+    return format(new Date(date + "T00:00:00"), "EEEE", { locale });
+  };
 
   const game = selected?.game;
   const playgroundPhoto = game?.playground
@@ -70,21 +109,78 @@ export function MyUpcomingGames({ memberId }: { memberId: string }) {
 
   return <>
     <Card id="my-upcoming-games" className="rounded-2xl shadow-none">
-      <CardHeader className="pb-4"><CardTitle className="flex items-center gap-2 text-base"><CalendarDays className="h-5 w-5 text-primary" />{t("games_my_upcoming")}</CardTitle></CardHeader>
+      <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0 pb-4">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <CalendarDays className="h-5 w-5 text-primary" />{t("games_my_upcoming")}
+        </CardTitle>
+        {query.data?.length ? <Badge variant="secondary">{t("dash_games_count").replace("{n}", String(query.data.length)).replace("{s}", query.data.length === 1 ? "" : "s")}</Badge> : null}
+      </CardHeader>
       <CardContent><QueryState queries={[query]}>
-        {!query.data?.length ? <p className="text-sm text-muted-foreground">{t("games_my_upcoming_empty")}</p> :
-          <ul className="grid gap-4 md:grid-cols-2">{query.data.map(({ id, game, is_waitlisted }) => <li key={id}>
-            <button type="button" onClick={() => setSelectedId(game.id)} className="h-full w-full space-y-3 rounded-xl border bg-card p-4 text-start shadow-sm transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-              <div className="flex flex-wrap items-center gap-2"><Badge variant="secondary">{game.sport}</Badge>{is_waitlisted && <Badge variant="secondary">{ar ? "قائمة الانتظار" : "Waitlisted"}</Badge>}</div>
-              <h3 className="text-base font-semibold">{game.title}</h3>
-              <p className="flex items-center gap-2 text-sm"><CalendarDays className="h-4 w-4 shrink-0" />{prettyDate(game.game_date)}</p>
-              <p className="flex items-center gap-2 text-sm"><Clock className="h-4 w-4 shrink-0" />{formatTime12h(game.start_time, lang)} {ar ? "إلى" : "to"} {formatTime12h(addHoursToTime(game.start_time, Number(game.duration_hours) || 1), lang)}</p>
-              {(game.location || game.area) && <p className="flex items-center gap-2 text-sm"><MapPin className="h-4 w-4 shrink-0" />{[game.location, game.area].filter(Boolean).join(" · ")}</p>}
-              <p className="font-semibold text-info-ink">{ar ? "عرض تفاصيل المباراة والمشاركين" : "View game details and participants"}</p>
-            </button>
-          </li>)}</ul>}
+        {!groups.length ? <EmptyState
+          message={t("games_my_upcoming_empty")}
+          hint={t("dash_games_empty_hint")}
+          icon={CalendarDays}
+          action={<Button asChild className="gap-2"><Link href="/dashboard/games">{t("dash_find_game")}<ArrowUpRight className="h-4 w-4" /></Link></Button>}
+        /> : (
+          <div className="space-y-6">
+            {groups.map(group => <section key={group.date} aria-label={dayTitle(group.date)}>
+              <header className="sticky top-14 z-10 -mx-1 mb-3 flex items-baseline gap-2 bg-card/95 px-1 py-1 backdrop-blur">
+                <h3 className="text-sm font-bold">{dayTitle(group.date)}</h3>
+                <span className="text-xs text-muted-foreground">{prettyDate(group.date)}</span>
+              </header>
+              <ul className="grid gap-4 md:grid-cols-2">{group.items.map(row => {
+                const due = shareAmountDue(row);
+                const tone = shareTone(row);
+                const cue = countdown(row.game.game_date, row.game.start_time, new Date());
+                return <li key={row.id}>
+                  <div className="flex h-full flex-col rounded-2xl border bg-card p-4 text-start transition-colors hover:border-primary/60">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="secondary">{row.game.sport}</Badge>
+                      {row.is_waitlisted && <Badge variant="secondary">{ar ? "قائمة الانتظار" : "Waitlisted"}</Badge>}
+                      {tone === "due" && <Badge className="gap-1 bg-attention-100 text-warning-ink dark:bg-attention-500/15 dark:text-attention-400">
+                        <Wallet className="h-3 w-3" />{t("dash_share_due_badge")}
+                      </Badge>}
+                      {tone === "pending" && <Badge className="bg-info/10 text-info-ink">{t("games_share_pending")}</Badge>}
+                      {tone === "paid" && <Badge className="gap-1 bg-positive-100 text-success-ink dark:bg-positive-500/15 dark:text-positive-400">
+                        <CheckCircle2 className="h-3 w-3" />{t("dash_share_paid_badge")}
+                      </Badge>}
+                      {cue && <Badge variant="outline" className="ms-auto">
+                        {cue.kind === "hours" ? t("dash_in_hours").replace("{n}", String(cue.value)) : t("dash_in_minutes").replace("{n}", String(cue.value))}
+                      </Badge>}
+                    </div>
+                    <h4 className="mt-3 text-base font-semibold">{row.game.title}</h4>
+                    <p className="mt-1 flex items-center gap-2 text-sm"><Clock className="h-4 w-4 shrink-0" />{formatTime12h(row.game.start_time, lang)} {ar ? "إلى" : "to"} {formatTime12h(addHoursToTime(row.game.start_time, Number(row.game.duration_hours) || 1), lang)}</p>
+                    {(row.game.location || row.game.area) && <p className="mt-1 flex items-center gap-2 text-sm"><MapPin className="h-4 w-4 shrink-0" />{[row.game.location, row.game.area].filter(Boolean).join(" · ")}</p>}
+                    {due > 0 && <p className="mt-2 font-semibold text-warning-ink">{t("games_share_per_player")}: {formatMoney(due, lang)}</p>}
+                    <div className="mt-auto flex flex-wrap gap-2 pt-3">
+                      {due > 0 && <Button size="sm" className="gap-1.5" onClick={() => setPayGameId(row.game.id)}>
+                        <Wallet className="h-3.5 w-3.5" />{t("games_share_pay_now")}
+                      </Button>}
+                      <Button size="sm" variant={due > 0 ? "outline" : "secondary"} className="gap-1.5" onClick={() => setSelectedId(row.game.id)}>
+                        {ar ? "التفاصيل" : "Details"}<ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" />
+                      </Button>
+                    </div>
+                  </div>
+                </li>;
+              })}</ul>
+            </section>)}
+          </div>
+        )}
       </QueryState></CardContent>
     </Card>
+
+    <JoinGameDialog
+      open={!!payGameId}
+      onOpenChange={open => { if (!open) setPayGameId(null); }}
+      game={payRow ? {
+        id: payRow.game.id,
+        title: payRow.game.title,
+        share_price: payRow.game.share_price,
+        host_pays: payRow.game.host_pays,
+      } : { id: "", title: "", share_price: null }}
+      inviteCode={payRow?.game.invite_code ?? null}
+      mode="pay"
+    />
 
     <Dialog open={!!selectedId} onOpenChange={open => { if (!open) setSelectedId(null); }}>
       <DialogContent className="max-h-[85vh] overflow-y-auto p-0 sm:max-w-2xl">
