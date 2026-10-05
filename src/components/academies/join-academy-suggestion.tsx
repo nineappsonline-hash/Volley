@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -71,7 +70,6 @@ export function JoinAcademySuggestion({
   highlightAcademyId?: string | null;
 }) {
   const { t } = useI18n();
-  const router = useRouter();
   const { data: academies } = usePublicAcademies();
   const { data: sports } = usePublicSports();
   const { data: ratings } = useAcademyRatings();
@@ -364,11 +362,7 @@ export function JoinAcademySuggestion({
               </DialogDescription>
               <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
                 <Button
-                  onClick={() => {
-                    close();
-                    router.push("/dashboard");
-                    router.refresh();
-                  }}
+                  onClick={close}
                 >
                   {t("suggest_go_dashboard")}
                 </Button>

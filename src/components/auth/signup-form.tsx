@@ -263,18 +263,29 @@ export function SignupForm() {
         };
         if (gameInvite) {
           navigate();
-        } else {
+        } else if (academy?.newName) {
+          // Someone opening an academy has no use for an academy suggestion,
+          // but they do want to hear about new bookings, so they keep the push
+          // prompt on its own.
           pendingNav.current = navigate;
-          // Suggest an academy first, then the push prompt, then the dashboard.
+          setPushPromptOpen(true);
+        } else {
+          // Members see one dialog, not two: the academy suggestion, then the
+          // dashboard. Asking for push permission on top of that is too much at
+          // the exact moment they have just signed up.
+          pendingNav.current = navigate;
           setSuggestOpen(true);
         }
       } else {
         // No session until the email is confirmed, so remember the offer and
-        // let the dashboard raise it instead of losing it.
-        try {
-          localStorage.setItem(SUGGEST_ACADEMY_KEY, joiningAcademyId ?? "1");
-        } catch {
-          // Private browsing can refuse storage; the offer is simply skipped.
+        // let the dashboard raise it instead of losing it. Academy owners have
+        // no use for it, and a game invite already knows where it is going.
+        if (!gameInvite && !academy?.newName) {
+          try {
+            localStorage.setItem(SUGGEST_ACADEMY_KEY, joiningAcademyId ?? "1");
+          } catch {
+            // Private browsing can refuse storage; the offer is simply skipped.
+          }
         }
         setConfirming(true);
         toast.info(t("signup_check_email"));
@@ -1160,7 +1171,11 @@ export function SignupForm() {
           } catch {
             // Nothing to clean up if storage is unavailable.
           }
-          setPushPromptOpen(true);
+          if (pendingNav.current) {
+            const go = pendingNav.current;
+            pendingNav.current = null;
+            go();
+          }
         }}
       />
       <PushPrompt

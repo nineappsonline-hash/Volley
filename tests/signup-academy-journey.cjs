@@ -46,8 +46,30 @@ assert.match(
 );
 assert.match(
   signup,
-  /onDone=\{\(\) => \{[\s\S]{0,300}setPushPromptOpen\(true\)/,
-  'the push prompt follows the suggestion rather than replacing it'
+  /onDone=\{\(\) => \{[\s\S]{0,300}go\(\);/,
+  'dismissing the suggestion continues to the dashboard'
+);
+assert.doesNotMatch(
+  signup.slice(signup.indexOf('<JoinAcademySuggestion'), signup.indexOf('</JoinAcademySuggestion>') + 24),
+  /setPushPromptOpen\(true\)/,
+  'a new member is not made to dismiss a second dialog'
+);
+
+// A member gets one dialog. Someone opening an academy still gets the push
+// prompt, because new bookings are the thing they need to hear about.
+const sessionBranch = signup.slice(
+  signup.indexOf('const { session } = await signUp'),
+  signup.indexOf('setConfirming(true)')
+);
+assert.match(
+  sessionBranch,
+  /if \(gameInvite\)[\s\S]{0,400}else if \(academy\?\.newName\)[\s\S]{0,400}setPushPromptOpen\(true\)[\s\S]{0,400}else[\s\S]{0,400}setSuggestOpen\(true\)/,
+  'a game invite goes straight through, an academy owner gets the push prompt, a member gets the suggestion'
+);
+assert.doesNotMatch(
+  sessionBranch,
+  /setSuggestOpen\(true\)[\s\S]{0,200}academy\?\.newName/,
+  'an academy owner is never asked to join an academy'
 );
 assert.match(signup, /<JoinAcademySuggestion/, 'the modal is rendered after signup');
 assert.match(
@@ -58,7 +80,16 @@ assert.match(
 console.log('PASS: signup shows the academy suggestion, then the dashboard');
 
 // --- the suggestion is not lost when email confirmation is required ------
-assert.match(signup, /localStorage\.setItem\(SUGGEST_ACADEMY_KEY/, 'the offer is parked when there is no session yet');
+const parkBlock = signup.slice(
+  signup.indexOf('// No session until the email is confirmed'),
+  signup.indexOf('setConfirming(true)')
+);
+assert.match(parkBlock, /localStorage\.setItem\(SUGGEST_ACADEMY_KEY/, 'the offer is parked when there is no session yet');
+assert.match(
+  parkBlock,
+  /if \(!gameInvite && !academy\?\.newName\)/,
+  'neither an academy owner nor a game invite is parked an offer they never asked for'
+);
 assert.match(
   onboarding,
   /localStorage\.getItem\(SUGGEST_ACADEMY_KEY\)/,
