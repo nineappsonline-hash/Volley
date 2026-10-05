@@ -1,12 +1,16 @@
+import { memberDetailsAction } from "@/lib/admin/member-details";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isPlatformAdmin } from "@/lib/platform-admin";
 
-const tables = ["profiles", "academies", "friendly_games", "friendly_game_participants", "friendly_game_rent_payments", "venues", "venue_rentals", "training_sessions", "tournaments", "tournament_participants", "tournament_teams", "tournament_team_members", "tournament_matches", "payments", "attendance", "academy_branches", "membership_plans", "sports", "sport_settings"] as const;
+const tables = ["profiles", "academies", "friendly_games", "friendly_game_participants", "friendly_game_rent_payments", "venues", "venue_rentals", "training_sessions", "tournaments", "tournament_participants", "tournament_teams", "tournament_team_members", "tournament_matches", "payments", "attendance", "academy_branches", "membership_plans", "sports", "sport_settings", "academy_training_bookings", "academy_training_programs", "plan_subscriptions"] as const;
 // Deterministic pagination order per table; sport_settings has no id column.
 const orderColumns: Record<(typeof tables)[number], string> = {
+  academy_training_bookings: "id",
+  academy_training_programs: "id",
+  plan_subscriptions: "id",
   profiles: "id",
   academies: "id",
   friendly_games: "id",
@@ -73,6 +77,7 @@ const unavailableSlot = z.object({
   end: z.string().regex(/^\d{2}:\d{2}$/, "expected HH:MM"),
 }).refine(slot => slot.start < slot.end, { message: "excluded time must end after it starts" });
 const actionSchema = z.discriminatedUnion("action", [
+  memberDetailsAction,
   z.object({ action: z.literal("membership"), id: z.string().uuid(), membership_type: z.enum(["full", "half"]), subscription_sessions: z.number().int().min(0).max(10000), member_plan: z.enum(["free", "premium"]), premium_expires_at: z.string().datetime().nullable(), is_active: z.boolean() }),
   z.object({ action: z.literal("sport_setting"), sport: z.string().trim().min(1).max(80), min_players: z.number().int().min(2).max(30) }),
   z.object({ action: z.literal("venue"), id: z.string().uuid().optional(),
@@ -160,7 +165,17 @@ export async function POST(request: Request) {
         .select("name, guardian_id").eq("id", input.id).single();
       if (error || !data || !data.guardian_id) throw new Error("Account not found");
     }
-    if (input.action === "membership") {
+    if (input.action === "member_details") {
+      const { action, id, ...changes } = input;
+      const { data: profile } = await admin.from("profiles").select("role").eq("id",id).single();
+      if (profile?.role !== "member") return NextResponse.json({error:"Choose a member account to edit."},{status:400});
+      if (changes.academy_id) {
+        const {data: academy}=await admin.from("academies").select("id").eq("id",changes.academy_id).single();
+        if (!academy) return NextResponse.json({error:"Selected academy was not found."},{status:400});
+      }
+      const {error}=await admin.from("profiles").update(changes).eq("id",id).eq("role","member").select("id").single();
+      if(error) throw error;
+    } else if (input.action === "membership") {
       const { action, id, ...changes } = input;
       const { error } = await admin.from("profiles").update(changes).eq("id", id).select("id").single();
       if (error) throw error;

@@ -1,4 +1,6 @@
 "use client";
+import { MemberDetailsEditor } from "./member-details-editor";
+import { memberAge } from "@/lib/admin/member-details";
 import { MemberFamilyManager } from "./member-family-manager";
 
 import { CreateAcademyButton, AcademyTrainingManager } from "./academy-training-manager";
@@ -305,13 +307,28 @@ function AcademyDetails({ academy, data }: { academy: Row; data: Records }) {
     ].map(group => <details key={group.label} className="rounded-lg border p-3"><summary className="cursor-pointer text-sm font-semibold">{group.label} ({group.rows.length})</summary><div className="mt-3 space-y-2">{group.rows.length ? group.rows.map(row => <details key={row.id} className="rounded-lg border p-3"><summary className="cursor-pointer text-sm font-medium">{row.name}</summary><div className="mt-3"><Details row={group.fields(row)} /></div></details>) : <p className="text-sm text-muted-foreground">{t("sa_none_added")}</p>}</div></details>)}
   </div>;
 }
-function MemberDetails({ member, data }: { member: Row; data: Records }) {
-  const { t } = useI18n();
+function MemberDetails({ member: selectedMember, data }: { member: Row; data: Records }) {
+  const { t, lang } = useI18n();
+  const ar = lang === "ar";
+  const member = data.profiles.find(row=>row.id===selectedMember.id) ?? selectedMember;
+  const bookings = (data.academy_training_bookings??[]).filter(row=>row.member_id===member.id);
   const payments = data.payments.filter(r => r.member_id === member.id).sort((a, b) => b.payment_date.localeCompare(a.payment_date));
   const attendance = data.attendance.filter(r => r.member_id === member.id);
   const games = data.friendly_game_participants.filter(r => r.member_id === member.id);
   const blocked = member.banned_until && new Date(member.banned_until) > new Date();
   const summary = {
+    [ar?"الاسم":"Name"]: member.name,
+    [ar?"اسم المستخدم":"Username"]: member.username || "—",
+    [ar?"الاسم المستعار":"Nickname"]: member.nickname || "—",
+    [ar?"تاريخ الميلاد":"Date of birth"]: member.birth_date || "—",
+    [ar?"العمر":"Age"]: memberAge(member.birth_date) ?? "—",
+    [ar?"النوع":"Gender"]: member.gender === "male" ? (ar?"ذكر":"Male") : member.gender === "female" ? (ar?"أنثى":"Female") : "—",
+    [ar?"الموقع":"Location"]: [member.area,member.governorate,member.country].filter(Boolean).join(", ") || "—",
+    [ar?"نبذة":"Bio"]: member.bio || "—",
+    [ar?"ولي الأمر":"Parent"]: data.profiles.find(p=>p.id===member.guardian_id)?.name || "—",
+    [ar?"الرياضات المفضلة":"Interested sports"]: (member.interested_sports??[]).join(", ") || "—",
+    [ar?"مستوى اللعب":"Skill level"]: member.skill_level || "—",
+    [ar?"مركز اللعب":"Playing position"]: member.position || "—",
     Email: member.email || (member.guardian_id ? t("sa_no_login") : t("sa_not_provided")),
     Phone: member.phone || t("sa_not_provided"),
     Academy: data.academies.find(a => a.id === member.academy_id)?.name ?? t("sa_independent"),
@@ -325,7 +342,21 @@ function MemberDetails({ member, data }: { member: Row; data: Records }) {
     ...(member.member_plan === "premium" ? { "Premium expires": member.premium_expires_at?.slice(0, 10) ?? t("sa_no_expiry") } : {}),
   };
   return <div className="space-y-5">
-    <Details row={summary} />
+    <div className="rounded-xl border p-4"><Details row={summary} /></div>
+    <MemberDetailsEditor key={member.id} member={member} academies={data.academies} />
+    <section className="space-y-3 rounded-xl border p-4"><h3 className="font-semibold">{ar?"الأكاديميات ومجموعات التدريب":"Academies & training groups"}</h3>
+      <p className="text-sm">{ar?"الأكاديمية الأساسية":"Primary academy"}: {data.academies.find(a=>a.id===member.academy_id)?.name??t("sa_independent")}</p>
+      {!bookings.length&&<p className="text-sm text-muted-foreground">{ar?"لا توجد حجوزات تدريب":"No training bookings"}</p>}
+      {bookings.map(booking=>{const program=(data.academy_training_programs??[]).find(p=>p.id===booking.program_id);const academy=data.academies.find(a=>a.id===program?.academy_id);return <div key={booking.id} className="space-y-1 rounded-lg bg-muted/40 p-3 text-sm"><p className="font-semibold">{academy?.name??booking.details?.academy} · {program?.name??booking.details?.program}</p><p>{booking.details?.sport} · {booking.details?.playground}</p><p>{booking.kind} · {booking.status.replaceAll('_',' ')} · {formatMoney(Number(booking.amount),lang)}</p><p>{booking.registered_on} — {booking.expires_on}</p><details><summary className="cursor-pointer">{ar?"المواعيد المحجوزة":"Booked sessions"}</summary>{(booking.details?.sessions??[]).map((slot:Row)=><p key={`${slot.session_date}-${slot.starts_at}`}>{slot.session_date} · {slot.starts_at} – {slot.ends_at}</p>)}</details></div>;})}
+    </section>
+    <details className="rounded-xl border p-4"><summary className="cursor-pointer font-semibold">{ar?"مدفوعات المباريات والاشتراكات والبطولات":"Game payments, subscriptions & tournaments"}</summary><div className="mt-3 space-y-3">
+      {[
+        {label:ar?"حصص المباريات":"Game shares", rows:games, fields:(r:Row)=>({Game:data.friendly_games.find(g=>g.id===r.game_id)?.title,Amount:r.share_amount,Status:r.pay_status,Method:r.pay_method})},
+        {label:ar?"إيجار الملاعب":"Court rent", rows:(data.friendly_game_rent_payments??[]).filter(r=>r.member_id===member.id),fields:(r:Row)=>({Game:data.friendly_games.find(g=>g.id===r.game_id)?.title,Amount:r.amount,Status:r.pay_status,Method:r.pay_method,Date:r.created_at})},
+        {label:ar?"اشتراكات المنصة":"Platform subscriptions",rows:(data.plan_subscriptions??[]).filter(r=>r.user_id===member.id),fields:(r:Row)=>({Plan:r.plan,Cycle:r.billing_cycle,Amount:r.amount,Status:r.receipt_status,Date:r.created_at})},
+        {label:ar?"البطولات":"Tournaments",rows:(data.tournament_participants??[]).filter(r=>r.member_id===member.id),fields:(r:Row)=>({Tournament:data.tournaments.find(t=>t.id===r.tournament_id)?.name??r.tournament_id,Joined:r.added_at})}
+      ].map(group=><section key={group.label}><h4 className="text-sm font-semibold">{group.label} ({group.rows.length})</h4>{group.rows.map(row=><div key={row.id} className="mt-2 rounded-lg border p-3"><Details row={group.fields(row)}/></div>)}</section>)}
+    </div></details>
     <MemberFamilyManager key={member.id} memberId={member.id} academies={data.academies.map(a=>({id:a.id,name:a.name}))} />
     <details><summary className="cursor-pointer font-medium">{t("sa_payment_history")} ({payments.length})</summary>
       <div className="mt-3 space-y-2">{payments.length === 0 && <p className="text-sm text-muted-foreground">{t("sa_no_payments")}</p>}{payments.map(payment => <div key={payment.id} className="rounded-lg border p-3 text-sm"><p className="font-medium">{payment.payment_date} · {payment.amount} · {String(payment.method ?? "").replaceAll("_", " ")}</p><p className="text-muted-foreground">{payment.subscription_sessions} {t("sa_records_sessions")}{payment.notes ? ` · ${payment.notes}` : ""}</p></div>)}</div>
