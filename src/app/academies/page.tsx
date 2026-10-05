@@ -292,7 +292,9 @@ export default function AcademiesDirectoryPage() {
 
   const onJoin = async (academyId: string) => {
     if (!myId) {
-      router.push("/signup");
+      // Carry the chosen academy into signup so the member is not dropped on
+      // the dashboard and left to hunt for the academy they just picked.
+      router.push(`/signup?academy=${academyId}`);
       return;
     }
     setJoining(academyId);

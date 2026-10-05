@@ -15,6 +15,7 @@ import {
   LandPlot,
   List,
   Loader2,
+  Lock,
   MapPin,
   Plus,
   Rocket,
@@ -45,8 +46,11 @@ import {
 } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PushPrompt } from "@/components/shared/push-prompt";
+import { JoinAcademySuggestion } from "@/components/academies/join-academy-suggestion";
 import { LocationFields } from "@/components/shared/location-fields";
 import { UsernameField } from "@/components/shared/username-field";
+import { SPORT_LABEL_KEYS } from "@/lib/sport-labels";
+import type { Dict } from "@/lib/i18n/dictionary";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/layout/language-toggle";
@@ -92,34 +96,17 @@ type JoinValues = z.infer<ReturnType<typeof joinSchema>>;
 
 type Role = "member" | "tenant";
 
-const SPORTS = [
-  { value: "Football", key: "sport_football" },
-  { value: "Basketball", key: "sport_basketball" },
-  { value: "Handball", key: "sport_handball" },
-  { value: "Volleyball", key: "sport_volleyball" },
-  { value: "Beach Volleyball", key: "sport_beach_volleyball" },
-  { value: "Tennis", key: "sport_tennis" },
-  { value: "Swimming", key: "sport_swimming" },
-  { value: "Padel", key: "sport_padel" },
-  { value: "Squash", key: "sport_squash" },
-  { value: "Table Tennis", key: "sport_table_tennis" },
-  { value: "Badminton", key: "sport_badminton" },
-  { value: "Gymnastics", key: "sport_gymnastics" },
-  { value: "Karate", key: "sport_karate" },
-  { value: "Boxing", key: "sport_boxing" },
-  { value: "Athletics", key: "sport_athletics" },
-  { value: "Kung Fu", key: "sport_kungfu" },
-  { value: "Taekwondo", key: "sport_taekwondo" },
-  { value: "CrossFit", key: "sport_crossfit" },
-  { value: "Judo", key: "sport_judo" },
-  { value: "Kickboxing", key: "sport_kickboxing" },
-  { value: "Wrestling", key: "sport_wrestling" },
-  { value: "Archery", key: "sport_archery" },
-  { value: "Fencing", key: "sport_fencing" },
-  { value: "Equestrian", key: "sport_equestrian" },
-  { value: "Cycling", key: "sport_cycling" },
-  { value: "Weightlifting", key: "sport_weightlifting" },
-  { value: "Parkour", key: "sport_parkour" },
+const SPORTS = (Object.entries(SPORT_LABEL_KEYS) as [string, keyof Dict][]).map(
+  ([value, key]) => ({ value, key })
+);
+
+/** Set at signup, read once by the dashboard after email confirmation. */
+export const SUGGEST_ACADEMY_KEY = "volley:suggest-academy";
+
+const MEMBER_STEPS = [
+  { key: "signup_ws_about_you", icon: UserRound },
+  { key: "signup_ws_location", icon: MapPin },
+  { key: "signup_ws_account", icon: Lock },
 ] as const;
 
 const WIZARD_STEPS = [
@@ -163,6 +150,7 @@ export function SignupForm() {
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [pushPromptOpen, setPushPromptOpen] = useState(false);
+  const [suggestOpen, setSuggestOpen] = useState(false);
   const pendingNav = useRef<(() => void) | null>(null);
   const initialMode: Role = searchParams.get("mode") === "tenant" ? "tenant" : "member";
   const [mode, setMode] = useState<Role>(initialMode);
@@ -190,6 +178,12 @@ export function SignupForm() {
     password_confirm: "",
   });
   const [step, setStep] = useState(0);
+  const [memberStep, setMemberStep] = useState(0);
+
+  // The academy the visitor picked before being sent here. Signup itself never
+  // offers a choice or attaches anyone; it only lets the post-signup
+  // suggestion put that academy first.
+  const joiningAcademyId = searchParams.get("academy");
 
   useEffect(() => {
     let stale = false;
@@ -257,7 +251,9 @@ export function SignupForm() {
       const gameInvite = searchParams.get("gameInvite");
       const destination = gameInvite
         ? `/games?join=${encodeURIComponent(gameInvite)}`
-        : academy?.newName ? "/onboarding" : "/dashboard";
+        : academy?.newName
+          ? "/onboarding"
+          : "/dashboard";
       const { session } = await signUp(email, password, name, username, phone, academy, destination);
       if (session) {
         toast.success(t("signup_success"));
@@ -269,9 +265,17 @@ export function SignupForm() {
           navigate();
         } else {
           pendingNav.current = navigate;
-          setPushPromptOpen(true);
+          // Suggest an academy first, then the push prompt, then the dashboard.
+          setSuggestOpen(true);
         }
       } else {
+        // No session until the email is confirmed, so remember the offer and
+        // let the dashboard raise it instead of losing it.
+        try {
+          localStorage.setItem(SUGGEST_ACADEMY_KEY, joiningAcademyId ?? "1");
+        } catch {
+          // Private browsing can refuse storage; the offer is simply skipped.
+        }
         setConfirming(true);
         toast.info(t("signup_check_email"));
       }
@@ -293,6 +297,27 @@ export function SignupForm() {
       gender: values.gender,
       birth_date: values.birth_date,
     });
+  };
+
+  // Fields each member step owns, so "Next" validates only what is on screen
+  // instead of demanding the whole form up front.
+  const MEMBER_STEP_FIELDS: (keyof JoinValues)[][] = [
+    ["name", "username", "gender", "birth_date"],
+    [],
+    ["email", "phone", "password", "password_confirm"],
+  ];
+
+  const nextMemberStep = async () => {
+    if (memberStep === 1 && !location.country.trim()) {
+      toast.error(t("field_required"));
+      return;
+    }
+    const fields = MEMBER_STEP_FIELDS[memberStep] ?? [];
+    if (fields.length) {
+      const valid = await joinForm.trigger(fields, { shouldFocus: true });
+      if (!valid) return;
+    }
+    setMemberStep((s) => Math.min(s + 1, MEMBER_STEPS.length - 1));
   };
 
   const onCreate = async () => {
@@ -823,8 +848,43 @@ export function SignupForm() {
                 <div className="my-4">
                   <OrDivider />
                 </div>
+                <div className="mb-4 flex items-center" aria-hidden="true">
+                  {MEMBER_STEPS.map((s, i) => (
+                    <div
+                      key={s.key}
+                      className={cn("flex items-center", i < MEMBER_STEPS.length - 1 && "flex-1")}
+                    >
+                      <div className="flex flex-col items-center gap-1">
+                        <div
+                          className={cn(
+                            "flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all",
+                            i < memberStep
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : i === memberStep
+                                ? "border-primary bg-background text-primary"
+                                : "border-muted bg-background text-muted-foreground"
+                          )}
+                        >
+                          {i < memberStep ? <Check className="h-4 w-4" /> : <s.icon className="h-4 w-4" />}
+                        </div>
+                        <p className={cn("text-[10px] font-medium", i <= memberStep ? "text-foreground" : "text-muted-foreground")}>
+                          {t(s.key)}
+                        </p>
+                      </div>
+                      {i < MEMBER_STEPS.length - 1 && (
+                        <div className={cn("mx-2 h-0.5 flex-1 rounded-full", i < memberStep ? "bg-primary" : "bg-muted")} />
+                      )}
+                    </div>
+                  ))}
+                </div>
                 <Form {...joinForm}>
                 <form onSubmit={joinForm.handleSubmit(onJoin)} className="space-y-4">
+                  <p className="sr-only" aria-live="polite">
+                    {t(MEMBER_STEPS[memberStep].key)}
+                  </p>
+                  <div key={memberStep} className="animate-fade-in-up space-y-4">
+                  {memberStep === 0 && (
+                    <>
                   <FormField
                     control={joinForm.control}
                     name="name"
@@ -852,20 +912,6 @@ export function SignupForm() {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
-                  <LocationFields
-                    country={location.country}
-                    governorate={location.governorate}
-                    city={location.city}
-                    onCountryChange={(v) =>
-                      setLocation((l) => ({ ...l, country: v }))
-                    }
-                    onGovernorateChange={(v) =>
-                      setLocation((l) => ({ ...l, governorate: v }))
-                    }
-                    onCityChange={(v) =>
-                      setLocation((l) => ({ ...l, city: v }))
-                    }
                   />
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
@@ -915,6 +961,26 @@ export function SignupForm() {
                       )}
                     />
                   </div>
+                    </>
+                  )}
+                  {memberStep === 1 && (
+                    <LocationFields
+                      country={location.country}
+                      governorate={location.governorate}
+                      city={location.city}
+                      onCountryChange={(v) =>
+                        setLocation((l) => ({ ...l, country: v }))
+                      }
+                      onGovernorateChange={(v) =>
+                        setLocation((l) => ({ ...l, governorate: v }))
+                      }
+                      onCityChange={(v) =>
+                        setLocation((l) => ({ ...l, city: v }))
+                      }
+                    />
+                  )}
+                  {memberStep === 2 && (
+                    <>
                   <FormField
                     control={joinForm.control}
                     name="email"
@@ -979,10 +1045,33 @@ export function SignupForm() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && <Loader2 className="animate-spin" />}
-                    {loading ? t("signup_loading") : t("signup_button")}
-                  </Button>
+                    </>
+                  )}
+                  </div>
+                  <div className="flex items-center justify-between gap-2 pt-2">
+                    {memberStep > 0 ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setMemberStep((s) => s - 1)}
+                      >
+                        {t("signup_step_back")}
+                      </Button>
+                    ) : (
+                      <span />
+                    )}
+                    {memberStep < MEMBER_STEPS.length - 1 ? (
+                      <Button type="button" onClick={nextMemberStep}>
+                        {t("signup_step_next")}
+                        <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                      </Button>
+                    ) : (
+                      <Button type="submit" disabled={loading}>
+                        {loading && <Loader2 className="animate-spin" />}
+                        {loading ? t("signup_loading") : t("signup_button")}
+                      </Button>
+                    )}
+                  </div>
                 </form>
               </Form>
               </>
@@ -1060,6 +1149,20 @@ export function SignupForm() {
           </DialogContent>
         </Dialog>
 
+      <JoinAcademySuggestion
+        open={suggestOpen}
+        onOpenChange={setSuggestOpen}
+        memberName={joinForm.getValues("name")}
+        highlightAcademyId={joiningAcademyId}
+        onDone={() => {
+          try {
+            localStorage.removeItem(SUGGEST_ACADEMY_KEY);
+          } catch {
+            // Nothing to clean up if storage is unavailable.
+          }
+          setPushPromptOpen(true);
+        }}
+      />
       <PushPrompt
         open={pushPromptOpen}
         onOpenChange={(o) => {

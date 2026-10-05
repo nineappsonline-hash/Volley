@@ -16,6 +16,7 @@ import { MemberBottomNavigation } from "@/components/layout/member-bottom-naviga
 import { AcademyNavigation } from "@/components/academies/academy-navigation";
 import { formatTime12h } from "@/lib/constants";
 import { TrialForm } from "@/components/public/trial-form";
+import { JoinAcademyButton } from "@/components/academies/join-academy-button";
 import { LangLabel } from "@/components/shared/lang-label";
 import { FollowAcademyButton } from "@/components/academies/follow-badge-button";
 import { AcademyShareButton } from "@/components/academies/academy-share";
@@ -230,6 +231,10 @@ export default async function PublicAcademyPage({
                 ar="استكشف المجموعات والأسعار"
               />
             </a>
+            <JoinAcademyButton
+              academyId={academy.id}
+              className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-transform hover:scale-105"
+            />
             <FollowAcademyButton
               academyId={academy.id}
               showCount

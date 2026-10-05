@@ -166,12 +166,122 @@
   }
 }
 
+/* ── Post-signup academy suggestion ──────────────────────── */
+/* Modal entrance: lifts in and settles, rather than snapping. */
+@keyframes suggest-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+/* Slow drift for the decorative orbs behind the modal. */
+@keyframes suggest-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -18px, 0) scale(1.06);
+  }
+}
+/* Light sweeping across the hero panel to give it depth. */
+@keyframes suggest-sheen {
+  0% {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(320%) skewX(-18deg);
+  }
+}
+/* Expanding ring that draws the eye to the selected sport. */
+@keyframes suggest-ring {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+/* Checkmark stroke, drawn on after a successful join. */
+@keyframes suggest-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes suggest-burst {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+@keyframes suggest-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
 @layer utilities {
   .animate-fade-in-up {
     animation: fade-in-up 0.35s ease-out both;
   }
   .animate-pop-in {
     animation: pop-in 0.3s ease-out both;
+  }
+  .animate-suggest-rise {
+    animation: suggest-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .animate-suggest-float {
+    animation: suggest-float 9s ease-in-out infinite;
+  }
+  .animate-suggest-sheen {
+    animation: suggest-sheen 2.6s ease-in-out infinite;
+  }
+  .animate-suggest-ring {
+    animation: suggest-ring 1.6s ease-out infinite;
+  }
+  .animate-suggest-draw {
+    animation: suggest-draw 0.5s 0.15s ease-out both;
+  }
+  .animate-suggest-burst {
+    animation: suggest-burst 0.7s ease-out both;
+  }
+  .animate-suggest-shake {
+    animation: suggest-shake 0.35s ease-in-out;
+  }
+  /* Cards cascade in behind the modal; --i is set per item. */
+  .animate-suggest-stagger {
+    animation: suggest-rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--i, 0) * 55ms);
+  }
+  /* Respect a reduced-motion preference for every animation above. */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-suggest-rise,
+    .animate-suggest-float,
+    .animate-suggest-sheen,
+    .animate-suggest-ring,
+    .animate-suggest-draw,
+    .animate-suggest-burst,
+    .animate-suggest-shake,
+    .animate-suggest-stagger {
+      animation: none !important;
+    }
   }
   /* Bar charts: bars grow from their baseline when the dashboard mounts. */
   @keyframes bar-rise {

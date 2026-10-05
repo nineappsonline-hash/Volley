@@ -16,6 +16,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { QueryState } from "@/components/shared/query-state";
+import { AcademySuggestionOnboarding } from "@/components/academies/academy-suggestion-onboarding";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -62,6 +63,10 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
 
   return (
     <div className="mx-auto min-w-0 max-w-5xl space-y-8 pb-2">
+      <AcademySuggestionOnboarding
+        memberName={p.name}
+        hasAcademy={!!p.academy_id}
+      />
       <DashboardNavigation hasQr={!!p.checkin_code} sections={sections} />
 
       <ActionStrip actions={actions} />
