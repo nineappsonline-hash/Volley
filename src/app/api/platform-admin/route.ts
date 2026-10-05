@@ -78,7 +78,7 @@ const unavailableSlot = z.object({
 }).refine(slot => slot.start < slot.end, { message: "excluded time must end after it starts" });
 const actionSchema = z.discriminatedUnion("action", [
   memberDetailsAction,
-  z.object({ action: z.literal("membership"), id: z.string().uuid(), membership_type: z.enum(["full", "half"]), subscription_sessions: z.number().int().min(0).max(10000), member_plan: z.enum(["free", "premium"]), premium_expires_at: z.string().datetime().nullable(), is_active: z.boolean() }),
+  z.object({ action: z.literal("membership"), id: z.string().uuid(), academy_id: z.string().uuid().nullable(), subscription_sessions: z.number().int().min(0).max(10000), member_plan: z.enum(["free", "premium"]), premium_expires_at: z.string().datetime().nullable(), is_active: z.boolean() }),
   z.object({ action: z.literal("sport_setting"), sport: z.string().trim().min(1).max(80), min_players: z.number().int().min(2).max(30) }),
   z.object({ action: z.literal("venue"), id: z.string().uuid().optional(),
     academy_id: z.preprocess(v => v === "" || v == null ? null : v, z.string().uuid().nullable().optional()),
@@ -177,6 +177,12 @@ export async function POST(request: Request) {
       if(error) throw error;
     } else if (input.action === "membership") {
       const { action, id, ...changes } = input;
+      const { data: profile } = await admin.from("profiles").select("role").eq("id", id).single();
+      if (profile?.role !== "member") return NextResponse.json({error:"Choose a member account to edit."},{status:400});
+      if (changes.academy_id) {
+        const {data: academy}=await admin.from("academies").select("id").eq("id",changes.academy_id).single();
+        if (!academy) return NextResponse.json({error:"Selected academy was not found."},{status:400});
+      }
       const { error } = await admin.from("profiles").update(changes).eq("id", id).select("id").single();
       if (error) throw error;
     } else if (input.action === "block") {
