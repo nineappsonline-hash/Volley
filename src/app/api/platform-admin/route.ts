@@ -64,6 +64,16 @@ export async function GET() {
       if (data.users.length < 1000) break;
     }
     result.profiles = result.profiles.map((profile: AdminRow) => ({ ...profile, account_email: accountEmails.get(String(profile.id)) ?? null, banned_until: bans.get(String(profile.id)) ?? null }));
+    // A group's open seats are computed by training_program_slots(), not stored
+    // on the program row, so the enrollment form needs the catalog to tell how
+    // many sessions it can still reserve.
+    const { data: catalog } = await admin.rpc("academy_training_catalog");
+    if (Array.isArray(catalog)) {
+      const slotsByProgram = new Map<string, unknown>(catalog.map((entry: AdminRow) => [String(entry.id), entry.slots ?? []]));
+      result.academy_training_programs = result.academy_training_programs.map((program: AdminRow) => ({ ...program, slots: slotsByProgram.get(String(program.id)) ?? [] }));
+    } else {
+      result.academy_training_programs = result.academy_training_programs.map((program: AdminRow) => ({ ...program, slots: [] }));
+    }
     return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json({ error: "Could not load admin records. Check the database migration and server configuration." }, { status: 500 });

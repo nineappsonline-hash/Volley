@@ -40,6 +40,14 @@ export function groupAvailableSessions(group: GroupLike | null | undefined): num
   return (group.slots ?? []).filter((slot) => numeric(slot?.seats_left) > 0).length;
 }
 
+/**
+ * Every session in the group's next-30-day window, including full ones, so an
+ * empty schedule can be told apart from a fully booked one.
+ */
+export function groupScheduledSessions(group: GroupLike | null | undefined): number {
+  return group?.slots?.length ?? 0;
+}
+
 export type SessionPackageOption = {
   count: SessionPackage;
   amount: number;

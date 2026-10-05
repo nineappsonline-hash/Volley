@@ -8,7 +8,7 @@ import { useI18n } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
 import { formatMoney } from "@/lib/constants";
 import { errorMessage } from "@/lib/utils";
-import { sessionPackageAmount, sessionPackageOptions, type SessionPackage } from "@/lib/admin/training-assignment";
+import { sessionPackageAmount, sessionPackageOptions, groupScheduledSessions, type SessionPackage } from "@/lib/admin/training-assignment";
 
 type Row = Record<string, any>;
 
@@ -35,6 +35,7 @@ export function MemberTrainingAssignment({ member, academies, programs }: { memb
   const options = sessionPackageOptions(group);
   const chosen = options.find((option) => option.count === sessions);
   const amountDue = group && chosen ? sessionPackageAmount(group, chosen.count) : 0;
+  const scheduled = groupScheduledSessions(group);
 
   return <form className="space-y-4 rounded-xl border bg-muted/20 p-4" onSubmit={async (e) => {
     e.preventDefault();
@@ -79,7 +80,9 @@ export function MemberTrainingAssignment({ member, academies, programs }: { memb
           </span>
         </label>)}
       </div>
-      {group && !options.some((option) => option.available) && <p className="mt-2 text-sm text-destructive">{ar ? "لا توجد حصص متاحة في هذه المجموعة حاليًا." : "This group has no sessions available to assign right now."}</p>}
+      {group && !options.some((option) => option.available) && <p className="mt-2 text-sm text-destructive">{scheduled === 0
+        ? ar ? "لا توجد مواعيد قادمة في جدول هذه المجموعة خلال الثلاثين يومًا القادمة." : "This group has no upcoming sessions scheduled in the next 30 days."
+        : ar ? "كل مواعيد هذه المجموعة محجوزة بالفعل." : "Every session in this group is already full."}</p>}
     </fieldset>
 
     <label className="flex min-h-11 items-center gap-3 rounded-lg border p-3 text-sm"><input type="checkbox" checked={paid} disabled={busy} onChange={(e) => setPaid(e.target.checked)} />{ar ? "تم استلام المبلغ بالفعل" : "Payment already received"}</label>

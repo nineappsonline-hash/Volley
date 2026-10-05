@@ -35,6 +35,17 @@ async function checkRoutes() {
   let saved;
   let savedSettings = [];
   const deleted = [];
+  // training_program_slots() rows: one program with two open seats, one that is
+  // full (a zero-seat row), and a program the catalog never mentions.
+  const programs = [
+    { id: '00000000-0000-4000-8000-0000000000a1', name: 'Open group', active: true },
+    { id: '00000000-0000-4000-8000-0000000000a2', name: 'Full group', active: true },
+    { id: '00000000-0000-4000-8000-0000000000a3', name: 'Unscheduled group', active: true },
+  ];
+  const catalog = [
+    { id: '00000000-0000-4000-8000-0000000000a1', slots: [{ seats_left: 1 }, { seats_left: 1 }] },
+    { id: '00000000-0000-4000-8000-0000000000a2', slots: [{ seats_left: 0 }] },
+  ];
   let deletionError = null;
   const source = ts.transpileModule(fs.readFileSync('src/app/api/platform-admin/route.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
   const module = { exports: {} };
@@ -46,11 +57,14 @@ async function checkRoutes() {
       if (!matchesAccountEmail(args.p_confirmation, 'nayera@gmail.com')) return {error:{code:'P0001',message:'Enter the account email to confirm deletion'}};
       deleted.push(args.p_id); return {error:null};
     }, auth: { getUser: async () => ({ data: { user } }) } }) };
-    if (name === '@/lib/supabase/admin') return { createAdminClient: () => { adminCalls++; return { auth: { admin: { getUserById: async id => ({ data: { user: { id, email: 'nayera@gmail.com' } } }), deleteUser: async id => { deleted.push(id); return { error: null }; } } }, from: table => {
+    if (name === '@/lib/supabase/admin') return { createAdminClient: () => { adminCalls++; return { rpc: async fn => fn === 'academy_training_catalog' ? { data: catalog, error: null } : { data: null, error: null }, auth: { admin: { getUserById: async id => ({ data: { user: { id, email: 'nayera@gmail.com' } } }), deleteUser: async id => { deleted.push(id); return { error: null }; }, listUsers: async () => ({ data: { users: [] }, error: null }) } }, from: table => {
       if (table === 'sport_settings') {
-        return { upsert: row => { savedSettings.push(row); return Promise.resolve({ error: null }); } };
+        return { upsert: row => { savedSettings.push(row); return Promise.resolve({ error: null }); }, select: () => ({ order: () => ({ range: async () => ({ data: [], error: null }) }) }) };
       }
-      assert.equal(table, 'venues'); return { update: changes => { saved = changes; return { eq: () => ({ select: () => ({ single: async () => ({ error: null }) }) }) }; } };
+      return {
+        select: () => ({ order: () => ({ range: async () => ({ data: table === 'academy_training_programs' ? programs : [], error: null }) }) }),
+        update: changes => { assert.equal(table, 'venues'); saved = changes; return { eq: () => ({ select: () => ({ single: async () => ({ error: null }) }) }) }; },
+      };
     } }; } };
     if (name === '@/lib/platform-admin') return { isPlatformAdmin, matchesAccountEmail };
     // Load the real module rather than stubbing it so the member_details
@@ -102,6 +116,15 @@ async function checkRoutes() {
   assert.deepEqual(savedSettings, []);
   assert.equal((await POST({ json: async () => ({ action: 'sport_setting', sport: 'Beach Volleyball', min_players: 8 }) })).status, 200);
   assert.deepEqual(savedSettings.map(r => ({ sport: r.sport, min_players: r.min_players })), [{ sport: 'Beach Volleyball', min_players: 8 }]);
-  console.log('Admin route authorization, validation, and self-protection checks passed');
+  // Training enrollment needs each group's open seats, which live in the
+  // computed catalog rather than on the program row itself.
+  const records = await GET();
+  assert.equal(records.status, 200);
+  const enrolled = new Map(records.body.academy_training_programs.map(p => [p.id, p.slots]));
+  assert.deepEqual(enrolled.get('00000000-0000-4000-8000-0000000000a1'), catalog[0].slots, 'every program carries its computed slots');
+  assert.equal(enrolled.get('00000000-0000-4000-8000-0000000000a1').filter(s => s.seats_left > 0).length, 2, 'open seats reach the enrollment form');
+  assert.equal(enrolled.get('00000000-0000-4000-8000-0000000000a2')[0].seats_left, 0, 'a full group reports a zero seat rather than a missing schedule');
+  assert.deepEqual(enrolled.get('00000000-0000-4000-8000-0000000000a3'), [], 'a program absent from the catalog reports no slots instead of crashing');
+  console.log('Admin route authorization, validation, self-protection and training slots checks passed');
 }
 checkRoutes().catch(error => { console.error(error); process.exitCode = 1; });
