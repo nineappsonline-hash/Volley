@@ -17,6 +17,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -310,13 +311,15 @@ function AcademyDetails({ academy, data }: { academy: Row; data: Records }) {
 function MemberDetails({ member: selectedMember, data }: { member: Row; data: Records }) {
   const { t, lang } = useI18n();
   const ar = lang === "ar";
+  const [activeTab, setActiveTab] = useState("overview");
+  const scrollRef = useRef<HTMLDivElement>(null);
   const member = data.profiles.find(row=>row.id===selectedMember.id) ?? selectedMember;
   const bookings = (data.academy_training_bookings??[]).filter(row=>row.member_id===member.id);
   const payments = data.payments.filter(r => r.member_id === member.id).sort((a, b) => b.payment_date.localeCompare(a.payment_date));
   const attendance = data.attendance.filter(r => r.member_id === member.id);
   const games = data.friendly_game_participants.filter(r => r.member_id === member.id);
   const blocked = member.banned_until && new Date(member.banned_until) > new Date();
-  const summary = {
+  const personalDetails = {
     [ar?"الاسم":"Name"]: member.name,
     [ar?"اسم المستخدم":"Username"]: member.username || "—",
     [ar?"الاسم المستعار":"Nickname"]: member.nickname || "—",
@@ -331,6 +334,8 @@ function MemberDetails({ member: selectedMember, data }: { member: Row; data: Re
     [ar?"مركز اللعب":"Playing position"]: member.position || "—",
     Email: member.email || (member.guardian_id ? t("sa_no_login") : t("sa_not_provided")),
     Phone: member.phone || t("sa_not_provided"),
+  };
+  const membershipDetails = {
     Academy: data.academies.find(a => a.id === member.academy_id)?.name ?? t("sa_independent"),
     "Account status": blocked ? t("sa_blocked") : t("sa_enabled"),
     "Membership status": member.is_active ? t("sa_active") : t("sa_inactive"),
@@ -341,27 +346,79 @@ function MemberDetails({ member: selectedMember, data }: { member: Row; data: Re
     Joined: member.join_date ?? member.created_at?.slice(0, 10) ?? t("sa_unknown"),
     ...(member.member_plan === "premium" ? { "Premium expires": member.premium_expires_at?.slice(0, 10) ?? t("sa_no_expiry") } : {}),
   };
-  return <div className="space-y-5">
-    <div className="rounded-xl border p-4"><Details row={summary} /></div>
-    <MemberDetailsEditor key={member.id} member={member} academies={data.academies} />
+  const panelClass = "m-0 space-y-4 data-[state=inactive]:hidden";
+  return <Tabs value={activeTab} onValueChange={value => { setActiveTab(value); if (scrollRef.current) scrollRef.current.scrollTop = 0; }} dir={ar ? "rtl" : "ltr"} className="flex min-h-0 flex-1 flex-col">
+    <div className="shrink-0 space-y-4 border-b bg-muted/20 px-4 pb-4 sm:px-6">
+      <div className="flex items-center gap-3">
+        <ProfileAvatar name={member.name ?? ""} url={member.avatar_url} avatarId={member.avatar_id} className="h-12 w-12 shrink-0 sm:h-14 sm:w-14" />
+        <div className="min-w-0 flex-1">
+          <p className="break-words font-semibold">{member.name}</p>
+          <p className="truncate text-xs text-muted-foreground">{member.username ? `@${member.username} · ` : ""}{data.academies.find(a => a.id === member.academy_id)?.name ?? t("sa_independent")}</p>
+          <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
+            <span className={cn("rounded-full border px-2 py-0.5", blocked ? "border-destructive/30 bg-destructive/10 text-destructive" : "bg-background")}>{blocked ? t("sa_blocked") : member.is_active ? t("sa_active") : t("sa_inactive")}</span>
+            <span className="rounded-full border bg-background px-2 py-0.5">{member.member_plan === "premium" ? t("sa_premium") : t("sa_free")}</span>
+            {member.is_parent && <span className="rounded-full border bg-background px-2 py-0.5">{ar ? "ولي أمر" : "Parent"}</span>}
+          </div>
+        </div>
+      </div>
+      <TabsList aria-label={ar ? "أقسام تفاصيل العضو" : "Member details sections"} className="grid w-full max-w-none grid-cols-3 gap-1 sm:grid-cols-6">
+        {[
+          ["overview", ar ? "نظرة عامة" : "Overview"],
+          ["academies", ar ? "الأكاديميات" : "Academies"],
+          ["payments", ar ? "المدفوعات" : "Payments"],
+          ["family", ar ? "العائلة" : "Family"],
+          ["activity", ar ? "النشاط" : "Activity"],
+          ["edit", ar ? "تعديل" : "Edit details"],
+        ].map(([value, label]) => <TabsTrigger key={value} value={value} className="min-h-11 min-w-0 px-2 text-xs sm:text-sm">{label}</TabsTrigger>)}
+      </TabsList>
+    </div>
+    <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6">
+    <TabsContent value="overview" forceMount className={panelClass}>
+      <section className="space-y-3 rounded-xl border p-4">
+        <h3 className="font-semibold">{ar ? "المعلومات الشخصية والتواصل" : "Personal & contact details"}</h3>
+        <Details row={personalDetails} />
+      </section>
+      <section className="space-y-3 rounded-xl border p-4">
+        <h3 className="font-semibold">{ar ? "العضوية والاشتراك" : "Membership & subscription"}</h3>
+        <Details row={membershipDetails} />
+      </section>
+      <Button variant="outline" onClick={() => { setActiveTab("edit"); if (scrollRef.current) scrollRef.current.scrollTop = 0; }}>{ar ? "تعديل بيانات العضو" : "Edit member details"}</Button>
+    </TabsContent>
+    <TabsContent value="edit" forceMount className={panelClass}>
+      <h3 className="font-semibold">{ar ? "تعديل بيانات العضو" : "Edit member details"}</h3>
+      <p className="text-sm text-muted-foreground">{ar ? "حدّث البيانات الشخصية وإعدادات العضوية هنا. لإدارة الأبناء، افتح قسم العائلة." : "Update personal information and membership settings here. To manage children, open the Family tab."}</p>
+      <MemberDetailsEditor key={member.id} member={member} academies={data.academies} />
+    </TabsContent>
+    <TabsContent value="academies" forceMount className={panelClass}>
     <section className="space-y-3 rounded-xl border p-4"><h3 className="font-semibold">{ar?"الأكاديميات ومجموعات التدريب":"Academies & training groups"}</h3>
       <p className="text-sm">{ar?"الأكاديمية الأساسية":"Primary academy"}: {data.academies.find(a=>a.id===member.academy_id)?.name??t("sa_independent")}</p>
       {!bookings.length&&<p className="text-sm text-muted-foreground">{ar?"لا توجد حجوزات تدريب":"No training bookings"}</p>}
       {bookings.map(booking=>{const program=(data.academy_training_programs??[]).find(p=>p.id===booking.program_id);const academy=data.academies.find(a=>a.id===program?.academy_id);return <div key={booking.id} className="space-y-1 rounded-lg bg-muted/40 p-3 text-sm"><p className="font-semibold">{academy?.name??booking.details?.academy} · {program?.name??booking.details?.program}</p><p>{booking.details?.sport} · {booking.details?.playground}</p><p>{booking.kind} · {booking.status.replaceAll('_',' ')} · {formatMoney(Number(booking.amount),lang)}</p><p>{booking.registered_on} — {booking.expires_on}</p><details><summary className="cursor-pointer">{ar?"المواعيد المحجوزة":"Booked sessions"}</summary>{(booking.details?.sessions??[]).map((slot:Row)=><p key={`${slot.session_date}-${slot.starts_at}`}>{slot.session_date} · {slot.starts_at} – {slot.ends_at}</p>)}</details></div>;})}
     </section>
-    <details className="rounded-xl border p-4"><summary className="cursor-pointer font-semibold">{ar?"مدفوعات المباريات والاشتراكات والبطولات":"Game payments, subscriptions & tournaments"}</summary><div className="mt-3 space-y-3">
+    </TabsContent>
+    <TabsContent value="payments" forceMount className={panelClass}>
+    <section className="rounded-xl border p-4"><h3 className="font-semibold">{ar?"مدفوعات المباريات والاشتراكات":"Game payments & subscriptions"}</h3><div className="mt-3 space-y-3">
       {[
         {label:ar?"حصص المباريات":"Game shares", rows:games, fields:(r:Row)=>({Game:data.friendly_games.find(g=>g.id===r.game_id)?.title,Amount:r.share_amount,Status:r.pay_status,Method:r.pay_method})},
         {label:ar?"إيجار الملاعب":"Court rent", rows:(data.friendly_game_rent_payments??[]).filter(r=>r.member_id===member.id),fields:(r:Row)=>({Game:data.friendly_games.find(g=>g.id===r.game_id)?.title,Amount:r.amount,Status:r.pay_status,Method:r.pay_method,Date:r.created_at})},
         {label:ar?"اشتراكات المنصة":"Platform subscriptions",rows:(data.plan_subscriptions??[]).filter(r=>r.user_id===member.id),fields:(r:Row)=>({Plan:r.plan,Cycle:r.billing_cycle,Amount:r.amount,Status:r.receipt_status,Date:r.created_at})},
-        {label:ar?"البطولات":"Tournaments",rows:(data.tournament_participants??[]).filter(r=>r.member_id===member.id),fields:(r:Row)=>({Tournament:data.tournaments.find(t=>t.id===r.tournament_id)?.name??r.tournament_id,Joined:r.added_at})}
       ].map(group=><section key={group.label}><h4 className="text-sm font-semibold">{group.label} ({group.rows.length})</h4>{group.rows.map(row=><div key={row.id} className="mt-2 rounded-lg border p-3"><Details row={group.fields(row)}/></div>)}</section>)}
-    </div></details>
-    <MemberFamilyManager key={member.id} memberId={member.id} academies={data.academies.map(a=>({id:a.id,name:a.name}))} />
-    <details><summary className="cursor-pointer font-medium">{t("sa_payment_history")} ({payments.length})</summary>
+    </div></section>
+    <section className="rounded-xl border p-4"><h3 className="font-semibold">{t("sa_payment_history")} ({payments.length})</h3>
       <div className="mt-3 space-y-2">{payments.length === 0 && <p className="text-sm text-muted-foreground">{t("sa_no_payments")}</p>}{payments.map(payment => <div key={payment.id} className="rounded-lg border p-3 text-sm"><p className="font-medium">{payment.payment_date} · {payment.amount} · {String(payment.method ?? "").replaceAll("_", " ")}</p><p className="text-muted-foreground">{payment.subscription_sessions} {t("sa_records_sessions")}{payment.notes ? ` · ${payment.notes}` : ""}</p></div>)}</div>
-    </details>
-    <details><summary className="cursor-pointer font-medium">{t("sa_activity")} ({attendance.filter(r => r.is_present).length} / {attendance.length})</summary>
+    </section>
+    </TabsContent>
+    <TabsContent value="family" forceMount className={panelClass}>
+      <MemberFamilyManager key={member.id} memberId={member.id} academies={data.academies.map(a=>({id:a.id,name:a.name}))} />
+    </TabsContent>
+    <TabsContent value="activity" forceMount className={panelClass}>
+    <section className="space-y-3 rounded-xl border p-4">
+      <h3 className="font-semibold">{ar ? "البطولات" : "Tournaments"}</h3>
+      {!(data.tournament_participants ?? []).some(r => r.member_id === member.id) && <p className="text-sm text-muted-foreground">{ar ? "لا توجد مشاركات في البطولات" : "No tournament entries"}</p>}
+      {(data.tournament_participants ?? []).filter(r => r.member_id === member.id).map(r => <Details key={r.id ?? r.tournament_id} row={{ Tournament: data.tournaments.find(item => item.id === r.tournament_id)?.name ?? r.tournament_id, Joined: r.added_at }} />)}
+    </section>
+    <section className="rounded-xl border p-4"><h3 className="font-semibold">{t("sa_activity")}</h3>
+      <p className="mt-1 text-sm text-muted-foreground">{t("sa_attended")}: {attendance.filter(r => r.is_present).length} / {attendance.length}</p>
       <div className="mt-3 space-y-2 text-sm">{attendance.length === 0 && games.length === 0 && <p className="text-muted-foreground">{t("sa_no_activity")}</p>}{attendance.map(record => {
         const session = data.training_sessions.find(item => item.id === record.session_id);
         return <p key={record.id} className="rounded-lg border p-3">{session?.date ?? t("sa_unknown_date")} · {t("sa_training")} · {record.is_present ? t("sa_attended") : t("sa_absent")}</p>;
@@ -369,8 +426,10 @@ function MemberDetails({ member: selectedMember, data }: { member: Row; data: Re
         const game = data.friendly_games.find(item => item.id === record.game_id);
         return <p key={record.id} className="rounded-lg border p-3">{game?.game_date ?? t("sa_unknown_date")} · {game?.title ?? t("sa_friendly_game")} · {record.is_waitlisted ? t("sa_waitlisted") : record.role === "organizer" ? t("sa_organizer") : t("sa_player")}</p>;
       })}</div>
-    </details>
-  </div>;
+    </section>
+    </TabsContent>
+    </div>
+  </Tabs>;
 }
 function GameParticipantRow({ participant }: { participant: Row }) {
   const { t, lang } = useI18n();
@@ -898,7 +957,7 @@ export function PlatformRecords() {
       </>
       )}
       </div>
-      <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className="max-w-3xl max-h-[90dvh] overflow-y-auto p-4 sm:p-6"><DialogHeader><DialogTitle className="min-w-0 break-words pe-6">{selected?.name ?? selected?.title ?? t("sa_records_record_details")}</DialogTitle><DialogDescription>{dialogDescription}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails member={selected} data={data} /> : tab === "Academies" ? <AcademyDetails academy={selected} data={data} /> : tab === "Playgrounds" ? <VenueDetails key={selected.id} venue={selected} data={data} /> : tab === "Friendly games" ? <GameDetails game={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && tab !== "Academies" && Object.entries(related).map(([label, records]) => <details key={label} open={label === "Participants"}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => label === "Participants" ? <GameParticipantRow key={r.id} participant={r} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
+      <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className={tab === "Members" ? "flex h-[90dvh] max-w-4xl flex-col gap-0 overflow-hidden p-0" : "max-w-3xl max-h-[90dvh] overflow-y-auto p-4 sm:p-6"}><DialogHeader className={tab === "Members" ? "shrink-0 px-4 py-4 text-start sm:px-6" : undefined}><DialogTitle className="min-w-0 break-words pe-6">{selected?.name ?? selected?.title ?? t("sa_records_record_details")}</DialogTitle><DialogDescription>{dialogDescription}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails key={selected.id} member={selected} data={data} /> : tab === "Academies" ? <AcademyDetails academy={selected} data={data} /> : tab === "Playgrounds" ? <VenueDetails key={selected.id} venue={selected} data={data} /> : tab === "Friendly games" ? <GameDetails game={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && tab !== "Academies" && Object.entries(related).map(([label, records]) => <details key={label} open={label === "Participants"}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => label === "Participants" ? <GameParticipantRow key={r.id} participant={r} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
       <Dialog open={!!editing} onOpenChange={open => !busy && !open && setEditing(null)}><DialogContent><DialogHeader><DialogTitle>{t("sa_edit_membership")}</DialogTitle><DialogDescription>{editing?.name} · {editing?.email}</DialogDescription></DialogHeader>{editing && <form className="space-y-4" onSubmit={e => { e.preventDefault(); act({ action: "membership", id: editing.id, membership_type: editing.membership_type, subscription_sessions: Number(editing.subscription_sessions), member_plan: editing.member_plan, premium_expires_at: editing.premium_expires_at ? new Date(editing.premium_expires_at).toISOString() : null, is_active: editing.is_active }); }}>
         <label className="block text-sm">{t("sa_academy_membership")}<NativeSelect className="mt-1 w-full rounded border bg-background p-2" value={editing.membership_type} onChange={e => setEditing({ ...editing, membership_type: e.target.value })}><option value="full">{t("sa_full")}</option><option value="half">{t("sa_half")}</option></NativeSelect></label>
         <label className="block text-sm">{t("sa_subscription_sessions")}<Input type="number" min="0" max="10000" required value={editing.subscription_sessions} onChange={e => setEditing({ ...editing, subscription_sessions: e.target.value })} /></label>
