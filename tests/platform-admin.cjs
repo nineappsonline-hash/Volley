@@ -7,6 +7,12 @@ function load(path) {
   new Function('exports', 'module', js)(module.exports, module);
   return module.exports;
 }
+function loadWithRequire(path) {
+  const js = ts.transpileModule(fs.readFileSync(path, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
+  const module = { exports: {} };
+  new Function('exports', 'module', 'require', js)(module.exports, module, require);
+  return module.exports;
+}
 const { isPlatformAdmin, matchesAccountEmail } = load('src/lib/platform-admin.ts');
 assert.equal(isPlatformAdmin(null), false);
 assert.equal(isPlatformAdmin({ email: 'mo.dowaik@gmail.com' }), false);
@@ -47,6 +53,9 @@ async function checkRoutes() {
       assert.equal(table, 'venues'); return { update: changes => { saved = changes; return { eq: () => ({ select: () => ({ single: async () => ({ error: null }) }) }) }; } };
     } }; } };
     if (name === '@/lib/platform-admin') return { isPlatformAdmin, matchesAccountEmail };
+    // Load the real module rather than stubbing it so the member_details
+    // action is exercised through its actual validation schema.
+    if (name === '@/lib/admin/member-details') return loadWithRequire('src/lib/admin/member-details.ts');
     return require(name);
   };
   new Function('exports', 'module', 'require', source)(module.exports, module, mockRequire);

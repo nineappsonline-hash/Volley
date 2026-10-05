@@ -10,8 +10,7 @@ export const memberDetailsAction = z.object({
  gender:z.enum(["male","female"]).nullable(),
  birth_date:date.refine(v=>v<=new Date().toISOString().slice(0,10)&&v>="1900-01-01", "Enter a valid birth date").nullable(),
  country:text(100), bio:text(2000),
- academy_id:z.string().uuid().nullable(), join_date:date.nullable(),
- subscription_sessions:z.number().int().min(0).max(10000),
+ join_date:date.nullable(),
  is_active:z.boolean(), member_plan:z.enum(["free","premium"]), premium_expires_at:z.string().datetime().nullable(),
 });
 export function memberAge(birthDate: string | null | undefined, today = new Date()) {

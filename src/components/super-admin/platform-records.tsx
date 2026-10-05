@@ -1,4 +1,5 @@
 "use client";
+import { MemberTrainingAssignment, ConfirmTrainingPayment, MemberAttendanceEdit } from "./member-training-assignment";
 import { MemberDetailsEditor } from "./member-details-editor";
 import { memberAge } from "@/lib/admin/member-details";
 import { MemberFamilyManager } from "./member-family-manager";
@@ -307,10 +308,10 @@ function AcademyDetails({ academy, data }: { academy: Row; data: Records }) {
     ].map(group => <details key={group.label} className="rounded-lg border p-3"><summary className="cursor-pointer text-sm font-semibold">{group.label} ({group.rows.length})</summary><div className="mt-3 space-y-2">{group.rows.length ? group.rows.map(row => <details key={row.id} className="rounded-lg border p-3"><summary className="cursor-pointer text-sm font-medium">{row.name}</summary><div className="mt-3"><Details row={group.fields(row)} /></div></details>) : <p className="text-sm text-muted-foreground">{t("sa_none_added")}</p>}</div></details>)}
   </div>;
 }
-function MemberDetails({ member: selectedMember, data }: { member: Row; data: Records }) {
+function MemberDetails({ member: selectedMember, data, initialTab = "overview" }: { member: Row; data: Records; initialTab?: string }) {
   const { t, lang } = useI18n();
   const ar = lang === "ar";
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(initialTab);
   const scrollRef = useRef<HTMLDivElement>(null);
   const member = data.profiles.find(row=>row.id===selectedMember.id) ?? selectedMember;
   const bookings = (data.academy_training_bookings??[]).filter(row=>row.member_id===member.id);
@@ -359,14 +360,13 @@ function MemberDetails({ member: selectedMember, data }: { member: Row; data: Re
           </div>
         </div>
       </div>
-      <TabsList aria-label={ar ? "أقسام تفاصيل العضو" : "Member details sections"} className="grid w-full max-w-none grid-cols-3 gap-1 sm:grid-cols-6">
+      <TabsList aria-label={ar ? "أقسام تفاصيل العضو" : "Member details sections"} className="grid w-full max-w-none grid-cols-3 gap-1 sm:grid-cols-5">
         {[
           ["overview", ar ? "نظرة عامة" : "Overview"],
           ["academies", ar ? "الأكاديميات" : "Academies"],
           ["payments", ar ? "المدفوعات" : "Payments"],
           ["family", ar ? "العائلة" : "Family"],
           ["activity", ar ? "النشاط" : "Activity"],
-          ["edit", ar ? "تعديل" : "Edit details"],
         ].map(([value, label]) => <TabsTrigger key={value} value={value} className="min-h-11 min-w-0 px-2 text-xs sm:text-sm">{label}</TabsTrigger>)}
       </TabsList>
     </div>
@@ -380,14 +380,10 @@ function MemberDetails({ member: selectedMember, data }: { member: Row; data: Re
         <h3 className="font-semibold">{ar ? "العضوية والاشتراك" : "Membership & subscription"}</h3>
         <Details row={membershipDetails} />
       </section>
-      <Button variant="outline" onClick={() => { setActiveTab("edit"); if (scrollRef.current) scrollRef.current.scrollTop = 0; }}>{ar ? "تعديل بيانات العضو" : "Edit member details"}</Button>
-    </TabsContent>
-    <TabsContent value="edit" forceMount className={panelClass}>
-      <h3 className="font-semibold">{ar ? "تعديل بيانات العضو" : "Edit member details"}</h3>
-      <p className="text-sm text-muted-foreground">{ar ? "حدّث البيانات الشخصية وإعدادات العضوية هنا. لإدارة الأبناء، افتح قسم العائلة." : "Update personal information and membership settings here. To manage children, open the Family tab."}</p>
-      <MemberDetailsEditor key={member.id} member={member} academies={data.academies} />
+      <MemberDetailsEditor key={member.id} member={member} />
     </TabsContent>
     <TabsContent value="academies" forceMount className={panelClass}>
+    <MemberTrainingAssignment member={member} academies={data.academies} programs={data.academy_training_programs ?? []} />
     <section className="space-y-3 rounded-xl border p-4"><h3 className="font-semibold">{ar?"الأكاديميات ومجموعات التدريب":"Academies & training groups"}</h3>
       <p className="text-sm">{ar?"الأكاديمية الأساسية":"Primary academy"}: {data.academies.find(a=>a.id===member.academy_id)?.name??t("sa_independent")}</p>
       {!bookings.length&&<p className="text-sm text-muted-foreground">{ar?"لا توجد حجوزات تدريب":"No training bookings"}</p>}
@@ -395,6 +391,12 @@ function MemberDetails({ member: selectedMember, data }: { member: Row; data: Re
     </section>
     </TabsContent>
     <TabsContent value="payments" forceMount className={panelClass}>
+      <section className="space-y-3 rounded-xl border p-4">
+        <h3 className="font-semibold">{ar ? "مدفوعات التدريب" : "Training payments"}</h3>
+        {!bookings.length && <p className="text-sm text-muted-foreground">{t("sa_no_payments")}</p>}
+        {bookings.map(booking => <div key={booking.id} className="space-y-2 rounded-lg border p-3 text-sm"><p className="font-medium">{booking.details?.academy} · {booking.details?.program}</p><p>{booking.details?.session_count ?? booking.details?.sessions?.length} {t("sa_records_sessions")} · {formatMoney(Number(booking.amount),lang)} · {booking.status.replaceAll("_"," ")}</p><ConfirmTrainingPayment booking={booking} /></div>)}
+        <Button variant="outline" asChild><a href="/admin?tab=Approvals">{ar ? "مراجعة إيصالات الدفع" : "Review payment receipts"}</a></Button>
+      </section>
     <section className="rounded-xl border p-4"><h3 className="font-semibold">{ar?"مدفوعات المباريات والاشتراكات":"Game payments & subscriptions"}</h3><div className="mt-3 space-y-3">
       {[
         {label:ar?"حصص المباريات":"Game shares", rows:games, fields:(r:Row)=>({Game:data.friendly_games.find(g=>g.id===r.game_id)?.title,Amount:r.share_amount,Status:r.pay_status,Method:r.pay_method})},
@@ -419,7 +421,7 @@ function MemberDetails({ member: selectedMember, data }: { member: Row; data: Re
       <p className="mt-1 text-sm text-muted-foreground">{t("sa_attended")}: {attendance.filter(r => r.is_present).length} / {attendance.length}</p>
       <div className="mt-3 space-y-2 text-sm">{attendance.length === 0 && games.length === 0 && <p className="text-muted-foreground">{t("sa_no_activity")}</p>}{attendance.map(record => {
         const session = data.training_sessions.find(item => item.id === record.session_id);
-        return <p key={record.id} className="rounded-lg border p-3">{session?.date ?? t("sa_unknown_date")} · {t("sa_training")} · {record.is_present ? t("sa_attended") : t("sa_absent")}</p>;
+        return <div key={record.id} className="space-y-2 rounded-lg border p-3"><p>{session?.date ?? t("sa_unknown_date")} · {t("sa_training")} · {record.is_present ? t("sa_attended") : t("sa_absent")}</p><MemberAttendanceEdit memberId={member.id} record={record} /></div>;
       })}{games.map(record => {
         const game = data.friendly_games.find(item => item.id === record.game_id);
         return <p key={record.id} className="rounded-lg border p-3">{game?.game_date ?? t("sa_unknown_date")} · {game?.title ?? t("sa_friendly_game")} · {record.is_waitlisted ? t("sa_waitlisted") : record.role === "organizer" ? t("sa_organizer") : t("sa_player")}</p>;
@@ -699,7 +701,7 @@ export function PlatformRecords() {
   const [date, setDate] = useState(() => `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`);
   const [selected, setSelected] = useState<Row | null>(null);
   const [editingGame, setEditingGame] = useState<Row | null>(null);
-  const [editing, setEditing] = useState<Row | null>(null);
+  const [memberInitialTab, setMemberInitialTab] = useState("overview");
   const [deletingVenue, setDeletingVenue] = useState<Row | null>(null);
   const [deleting, setDeleting] = useState<Row | null>(null);
   const [trainingAcademy, setTrainingAcademy] = useState<Row | null>(null);
@@ -770,7 +772,7 @@ export function PlatformRecords() {
       if (!response.ok) throw new Error(result.error);
       toast.success(body.action === "venue" ? t("sa_playground_updated") : body.action === "delete_venue" ? t("sa_playground_deleted") : body.action === "delete" ? t("sa_account_deleted") : t("sa_account_updated"));
       if (body.action === "venue") setEditingVenue(null);
-      setEditing(null); setDeleting(null); setDeletingVenue(null); setConfirmation("");
+      setDeleting(null); setDeletingVenue(null); setConfirmation("");
       await cache.invalidateQueries();
     } catch (e) { toast.error(e instanceof Error ? e.message : t("sa_action_failed")); }
     finally { setBusy(false); }
@@ -941,7 +943,7 @@ export function PlatformRecords() {
               </div>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => setSelected(row)}>{t("sa_records_details")}</Button>{tab === "Friendly games" && <Button size="sm" variant="outline" onClick={() => setEditingGame(row)}>{t("sa_records_edit")}</Button>}{tab === "Friendly games" && (row.status === "open" || row.status === "full") && <Button size="sm" variant="destructive" disabled={cancelGame.isPending} onClick={() => setCancellingGame(row)}><Ban className="me-1 h-4 w-4" />{t("community_cancel_confirm_btn")}</Button>}{tab === "Members" && <><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => setEditing({ ...row })}>{lang === "ar" ? "الأكاديمية والاشتراك" : "Academy & subscription"}</Button><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => act({ action: "block", id: row.id, blocked: !blocked })}>{blocked ? t("sa_records_unblock") : t("sa_records_block")}</Button><Button size="sm" variant="destructive" disabled={busy || protectedAccount} onClick={() => { setDeleting(row); setConfirmation(""); }}>{t("sa_records_delete")}</Button></>}{tab === "Academies" && <><Button size="sm" className="min-h-11 h-auto whitespace-normal" onClick={() => setTrainingAcademy(row)}>{lang === "ar" ? "مجموعات التدريب" : "Training groups"}</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setLogoAcademy(row as Academy)}>{t("sa_academy_logo")}</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setEditingAcademy(row as Academy)}>{t("sa_records_edit")}</Button><Button size="sm" variant="destructive" disabled={busy} onClick={() => { setDeletingAcademy(row as Academy); setConfirmation(""); }}>{t("sa_records_delete")}</Button></>}          {tab === "Playgrounds" && <><Button size="sm" variant="outline" disabled={busy} onClick={() => duplicateVenue(row)}><Copy className="me-1 h-3.5 w-3.5 rtl:me-0 rtl:ms-1" />{t("sa_records_duplicate")}</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setEditingVenue({ ...row, lat: row.lat ? String(row.lat) : "", lng: row.lng ? String(row.lng) : "" })}>{t("sa_records_edit")}</Button><Button size="sm" variant="destructive" disabled={busy} onClick={() => { setDeletingVenue(row); setConfirmation(""); }}>{t("sa_records_delete")}</Button></>}</div></div>
+          <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => { setMemberInitialTab("overview"); setSelected(row); }}>{t("sa_records_details")}</Button>{tab === "Friendly games" && <Button size="sm" variant="outline" onClick={() => setEditingGame(row)}>{t("sa_records_edit")}</Button>}{tab === "Friendly games" && (row.status === "open" || row.status === "full") && <Button size="sm" variant="destructive" disabled={cancelGame.isPending} onClick={() => setCancellingGame(row)}><Ban className="me-1 h-4 w-4" />{t("community_cancel_confirm_btn")}</Button>}{tab === "Members" && <><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => { setMemberInitialTab("academies"); setSelected(row); }}>{lang === "ar" ? "الأكاديمية والاشتراك" : "Academy & subscription"}</Button><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => act({ action: "block", id: row.id, blocked: !blocked })}>{blocked ? t("sa_records_unblock") : t("sa_records_block")}</Button><Button size="sm" variant="destructive" disabled={busy || protectedAccount} onClick={() => { setDeleting(row); setConfirmation(""); }}>{t("sa_records_delete")}</Button></>}{tab === "Academies" && <><Button size="sm" className="min-h-11 h-auto whitespace-normal" onClick={() => setTrainingAcademy(row)}>{lang === "ar" ? "مجموعات التدريب" : "Training groups"}</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setLogoAcademy(row as Academy)}>{t("sa_academy_logo")}</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setEditingAcademy(row as Academy)}>{t("sa_records_edit")}</Button><Button size="sm" variant="destructive" disabled={busy} onClick={() => { setDeletingAcademy(row as Academy); setConfirmation(""); }}>{t("sa_records_delete")}</Button></>}          {tab === "Playgrounds" && <><Button size="sm" variant="outline" disabled={busy} onClick={() => duplicateVenue(row)}><Copy className="me-1 h-3.5 w-3.5 rtl:me-0 rtl:ms-1" />{t("sa_records_duplicate")}</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setEditingVenue({ ...row, lat: row.lat ? String(row.lat) : "", lng: row.lng ? String(row.lng) : "" })}>{t("sa_records_edit")}</Button><Button size="sm" variant="destructive" disabled={busy} onClick={() => { setDeletingVenue(row); setConfirmation(""); }}>{t("sa_records_delete")}</Button></>}</div></div>
           {tab === "Members" && <dl className="grid grid-cols-1 gap-3 rounded-lg bg-muted/40 p-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
             <div className="min-w-0"><dt className="text-xs text-muted-foreground">{t("sa_academy")}</dt><dd className="mt-1 break-words font-medium">{academy(row.academy_id)}</dd><dd className="text-xs text-muted-foreground">{row.academy_id ? row.is_active ? t("sa_active_membership") : t("sa_pending_membership") : t("sa_not_joined")}</dd></div>
             <div><dt className="text-xs text-muted-foreground">{t("sa_platform_plan")}</dt><dd className="mt-1 font-medium">{row.member_plan === "premium" ? t("sa_premium") : t("sa_free")}</dd></div>
@@ -955,16 +957,7 @@ export function PlatformRecords() {
       </>
       )}
       </div>
-      <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className={tab === "Members" ? "flex h-[90dvh] max-w-4xl flex-col gap-0 overflow-hidden p-0" : "max-w-3xl max-h-[90dvh] overflow-y-auto p-4 sm:p-6"}><DialogHeader className={tab === "Members" ? "shrink-0 px-4 py-4 text-start sm:px-6" : undefined}><DialogTitle className="min-w-0 break-words pe-6">{selected?.name ?? selected?.title ?? t("sa_records_record_details")}</DialogTitle><DialogDescription>{dialogDescription}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails key={selected.id} member={selected} data={data} /> : tab === "Academies" ? <AcademyDetails academy={selected} data={data} /> : tab === "Playgrounds" ? <VenueDetails key={selected.id} venue={selected} data={data} /> : tab === "Friendly games" ? <GameDetails game={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && tab !== "Academies" && Object.entries(related).map(([label, records]) => <details key={label} open={label === "Participants"}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => label === "Participants" ? <GameParticipantRow key={r.id} participant={r} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
-      <Dialog open={!!editing} onOpenChange={open => !busy && !open && setEditing(null)}><DialogContent><DialogHeader><DialogTitle>{lang === "ar" ? "الأكاديمية والاشتراك" : "Academy & subscription"}</DialogTitle><DialogDescription>{editing?.name} · {editing?.email}</DialogDescription></DialogHeader>{editing && <form className="space-y-4" onSubmit={e => { e.preventDefault(); act({ action: "membership", id: editing.id, academy_id: editing.academy_id || null, subscription_sessions: Number(editing.subscription_sessions), member_plan: editing.member_plan, premium_expires_at: editing.premium_expires_at ? new Date(editing.premium_expires_at).toISOString() : null, is_active: editing.is_active }); }}>
-        <label className="block text-sm">{t("sa_academy")}<NativeSelect className="mt-1 min-h-11 w-full rounded border bg-background p-2" value={editing.academy_id ?? ""} onChange={e => setEditing({ ...editing, academy_id: e.target.value || null })}><option value="">{t("sa_independent")}</option>{data.academies.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</NativeSelect></label>
-        <p className="text-xs text-muted-foreground">{lang === "ar" ? "اختر الأكاديمية لإضافة العضو إليها أو تغيير أكاديميته الأساسية. حجوزات مجموعات التدريب وأسعارها تُدار بشكل منفصل." : "Select an academy to add this member or change their primary academy. Training group bookings and prices are managed separately."}</p>
-        <label className="block text-sm">{t("sa_subscription_sessions")}<Input type="number" min="0" max="10000" required value={editing.subscription_sessions} onChange={e => setEditing({ ...editing, subscription_sessions: e.target.value })} /></label>
-        <label className="block text-sm">{t("sa_platform_plan")}<NativeSelect className="mt-1 w-full rounded border bg-background p-2" value={editing.member_plan} onChange={e => setEditing({ ...editing, member_plan: e.target.value })}><option value="free">{t("sa_free")}</option><option value="premium">{t("sa_premium")}</option></NativeSelect></label>
-        <label className="block text-sm">{t("sa_premium_expiry_label")}<Input type="date" value={editing.premium_expires_at?.slice(0,10) ?? ""} onChange={e => setEditing({ ...editing, premium_expires_at: e.target.value })} /></label>
-        <label className="flex gap-2 text-sm"><input type="checkbox" checked={editing.is_active} onChange={e => setEditing({ ...editing, is_active: e.target.checked })} />{t("sa_active_membership_label")}</label>
-        <Button type="submit" disabled={busy}>{busy ? t("sa_saving") : t("sa_save_membership")}</Button>
-      </form>}</DialogContent></Dialog>
+      <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className={tab === "Members" ? "flex h-[90dvh] max-w-4xl flex-col gap-0 overflow-hidden p-0" : "max-w-3xl max-h-[90dvh] overflow-y-auto p-4 sm:p-6"}><DialogHeader className={tab === "Members" ? "shrink-0 px-4 py-4 text-start sm:px-6" : undefined}><DialogTitle className="min-w-0 break-words pe-6">{selected?.name ?? selected?.title ?? t("sa_records_record_details")}</DialogTitle><DialogDescription>{dialogDescription}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails key={selected.id} member={selected} data={data} initialTab={memberInitialTab} /> : tab === "Academies" ? <AcademyDetails academy={selected} data={data} /> : tab === "Playgrounds" ? <VenueDetails key={selected.id} venue={selected} data={data} /> : tab === "Friendly games" ? <GameDetails game={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && tab !== "Academies" && Object.entries(related).map(([label, records]) => <details key={label} open={label === "Participants"}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => label === "Participants" ? <GameParticipantRow key={r.id} participant={r} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
       <Dialog open={!!deleting} onOpenChange={open => !busy && !open && setDeleting(null)}><DialogContent><DialogHeader><DialogTitle>{t("sa_delete_account_title")}</DialogTitle><DialogDescription>{t("sa_delete_account_body").replace("{phrase}", confirmPhrase(deleting) ?? "")}</DialogDescription></DialogHeader><Input aria-label={t("sa_confirmation")} value={confirmation} onChange={e => setConfirmation(e.target.value)} /><Button variant="destructive" disabled={busy || !confirmMatches(confirmation, deleting)} onClick={() => act({ action: "delete", id: deleting!.id, confirmation })}>{busy ? t("sa_deleting") : t("sa_permanently_delete")}</Button></DialogContent></Dialog>
       <AlertDialog open={!!deletingAcademy} onOpenChange={open => !removeAcademy.isPending && !open && setDeletingAcademy(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{t("sa_delete_academy_title")}</AlertDialogTitle><AlertDialogDescription>{t("sa_delete_academy_body").replace("{name}", deletingAcademy?.name ?? "")}</AlertDialogDescription></AlertDialogHeader><Input aria-label={t("sa_academy")} value={confirmation} onChange={e => setConfirmation(e.target.value)} /><AlertDialogFooter><AlertDialogCancel disabled={removeAcademy.isPending}>{t("sa_cancel")}</AlertDialogCancel><AlertDialogAction asChild><Button variant="destructive" disabled={removeAcademy.isPending || confirmation !== deletingAcademy?.name} onClick={async () => { try { await removeAcademy.mutateAsync(deletingAcademy!.id); toast.success(t("sa_academy_deleted")); setDeletingAcademy(null); setConfirmation(""); await cache.invalidateQueries(); } catch (e) { toast.error(e instanceof Error ? e.message : t("sa_deletion_failed")); } }}>{removeAcademy.isPending ? t("sa_deleting") : t("sa_permanently_delete")}</Button></AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
       <AlertDialog open={!!cancellingGame} onOpenChange={open => { if (!open && !cancelGame.isPending) setCancellingGame(null); }}>
