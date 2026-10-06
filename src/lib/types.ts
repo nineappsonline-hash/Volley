@@ -1038,6 +1038,7 @@ export interface FriendlyGameWithDetails extends FriendlyGame {
 }
 
 export interface FriendlyGameParticipant {
+  sponsor_participant_id?: string | null;
   id: string;
   game_id: string;
   member_id: string;

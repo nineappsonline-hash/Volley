@@ -8,7 +8,7 @@ import { useI18n } from "@/lib/i18n";
 import { QueryState } from "@/components/shared/query-state";
 import { cn } from "@/lib/utils";
 
-type Player = { id: string; player_name: string; is_waitlisted: boolean };
+type Player = { sponsor_participant_id?: string | null; id: string; player_name: string; is_waitlisted: boolean };
 
 export function GameParticipantNames({ participants }: { participants: Player[] }) {
   const { lang } = useI18n();
@@ -46,7 +46,7 @@ export function GameParticipantNames({ participants }: { participants: Player[] 
             <ul className="flex flex-wrap gap-2">
               {[...participants].sort((a, b) => a.player_name.localeCompare(b.player_name, lang)).map((player) => (
                 <li key={player.id} className="rounded-md bg-background px-2 py-1 text-sm">
-                  {player.player_name}
+                  {player.player_name}{player.sponsor_participant_id && <span className="ms-1 text-xs text-muted-foreground">({ar ? "ضيف" : "Guest"})</span>}
                   {player.is_waitlisted && (
                     <span className="ms-1 text-xs text-muted-foreground">
                       ({ar ? "قائمة الانتظار" : "Waitlisted"})

@@ -60,6 +60,7 @@ export function JoinGameDialog({
     share_price: number | null;
     host_pays?: boolean;
     host_total?: number | null;
+    gender?: string; min_age?: number | null; max_age?: number | null;
   };
   inviteCode?: string | null;
   mode?: "join" | "pay" | "rent";
@@ -74,6 +75,7 @@ export function JoinGameDialog({
   const isPay = mode === "pay";
   const isRent = mode === "rent";
 
+  const [guests, setGuests] = useState<{name:string;gender:string;age:string}[]>([]);
   const [payMethod, setPayMethod] = useState<PayMethod | null>(null);
   const [receiptUrl, setReceiptUrl] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -81,6 +83,7 @@ export function JoinGameDialog({
 
   useEffect(() => {
     if (open) {
+      setGuests([]);
       setPayMethod(null);
       setReceiptUrl("");
       setUploading(false);
@@ -132,7 +135,7 @@ export function JoinGameDialog({
       ? mode === "pay"
         ? game.host_total ?? 0
         : 0
-      : (game.share_price ?? 0);
+      : (game.share_price ?? 0) * (mode === "join" ? 1 + guests.length : 1);
   const isFree = game.host_pays === true && mode === "join";
   const busy = join.isPending || pay.isPending || rentPay.isPending;
 
@@ -141,6 +144,7 @@ export function JoinGameDialog({
       try {
         const added = await join.mutateAsync({
           gameId: game.id,
+          guests,
           inviteCode,
           payMethod: null,
           payReceiptUrl: null,
@@ -177,6 +181,7 @@ export function JoinGameDialog({
       } else {
         const added = await join.mutateAsync({
           gameId: game.id,
+          guests,
           inviteCode,
           payMethod,
           payReceiptUrl: receiptUrl,
@@ -191,14 +196,15 @@ export function JoinGameDialog({
     }
   };
 
-  const canSubmit = isFree
+  const guestsValid = guests.every(g => g.name.trim().length > 0 && g.name.trim().length <= 100 && (!game.gender || game.gender === "mixed" || g.gender === game.gender) && ((game.min_age == null && game.max_age == null) || (g.age !== "" && Number.isInteger(Number(g.age)) && Number(g.age) >= (game.min_age ?? 0) && Number(g.age) <= (game.max_age ?? 100))));
+  const canSubmit = guestsValid && (isFree
     ? !busy
     : !!payMethod &&
       payMethod !== "kashier" &&
       !!receiptUrl &&
       !uploading &&
       !busy &&
-      amount > 0;
+      amount > 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -223,6 +229,18 @@ export function JoinGameDialog({
         </DialogHeader>
 
         <div className="space-y-4">
+          {mode === "join" && <section className="space-y-3 rounded-lg border p-3">
+            <h3 className="font-semibold">{lang === "ar" ? "ضيوفك" : "Bring guests"}</h3>
+            <p className="text-xs text-muted-foreground">{lang === "ar" ? "أنت تدفع عن نفسك وضيوفك. كل ضيف يشغل مكانًا في المباراة." : "You pay for yourself and your guests. Each guest takes one player place."}</p>
+            {guests.map((guest,index)=><div key={index} className="space-y-2 rounded border p-3">
+              <label className="block text-sm">{lang === "ar" ? "اسم الضيف" : "Guest name"} {index+1}<input maxLength={100} disabled={busy} className="mt-1 min-h-11 w-full rounded border bg-background p-2" value={guest.name} onChange={e=>setGuests(rows=>rows.map((r,i)=>i===index?{...r,name:e.target.value}:r))}/></label>
+              {game.gender && game.gender !== "mixed" && <label className="block text-sm">{lang === "ar" ? "النوع" : "Gender"}<select disabled={busy} className="mt-1 min-h-11 w-full rounded border bg-background p-2" value={guest.gender} onChange={e=>setGuests(rows=>rows.map((r,i)=>i===index?{...r,gender:e.target.value}:r))}><option value="">{lang === "ar" ? "اختر" : "Choose"}</option><option value="male">{lang === "ar" ? "ذكر" : "Male"}</option><option value="female">{lang === "ar" ? "أنثى" : "Female"}</option></select></label>}
+              {(game.min_age != null || game.max_age != null) && <label className="block text-sm">{lang === "ar" ? "العمر" : "Age"}<input disabled={busy} type="number" min={game.min_age??0} max={game.max_age??100} className="mt-1 min-h-11 w-full rounded border bg-background p-2" value={guest.age} onChange={e=>setGuests(rows=>rows.map((r,i)=>i===index?{...r,age:e.target.value}:r))}/></label>}
+              <Button type="button" variant="ghost" disabled={busy} onClick={()=>setGuests(rows=>rows.filter((_,i)=>i!==index))}>{lang === "ar" ? "إزالة الضيف" : "Remove guest"}</Button>
+            </div>)}
+            <Button type="button" variant="outline" disabled={busy||guests.length>=20} onClick={()=>setGuests(rows=>[...rows,{name:"",gender:"",age:""}])}>{lang === "ar" ? "إضافة ضيف" : "Add guest"}</Button>
+            {guests.length>0&&<p className="text-sm font-medium">{lang === "ar" ? "عدد الأماكن" : "Total places"}: {guests.length+1} · {formatMoney(amount,lang)}</p>}
+          </section>}
           <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 p-3">
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">
@@ -408,7 +426,7 @@ export function JoinGameDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("common_cancel")}
           </Button>
-          {!isFree && payMethod === "kashier" ? <KashierButton target={{kind:isRent?"rent":"share",targetId:game.id,inviteCode}} disabled={busy || amount <= 0} /> : <Button onClick={submit} disabled={!canSubmit} className="gap-1">
+          {!isFree && payMethod === "kashier" ? <KashierButton target={{kind:isRent?"rent":"share",targetId:game.id,inviteCode,guests:mode==="join"?guests:undefined}} disabled={busy || !guestsValid || amount <= 0} /> : <Button onClick={submit} disabled={!canSubmit} className="gap-1">
             <Wallet className="h-4 w-4" />
             {busy
               ? t("common_saving")

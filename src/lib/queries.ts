@@ -3132,7 +3132,7 @@ export function useFriendlyGames() {
       const { data, error } = await supabase()
         .from("friendly_games")
         .select(
-          "*, participants:friendly_game_participants(id, member_id, role, player_name, is_waitlisted, share_amount, pay_status, joined_at, kickoff_remind_opt_in), rent_payments:friendly_game_rent_payments(amount, member_id, pay_status, created_at), playground:venues(name, country, area, governorate, address, lat, lng, location_link, photos, cover_url)"
+          "*, participants:friendly_game_participants(id, sponsor_participant_id, member_id, role, player_name, is_waitlisted, share_amount, pay_status, joined_at, kickoff_remind_opt_in), rent_payments:friendly_game_rent_payments(amount, member_id, pay_status, created_at), playground:venues(name, country, area, governorate, address, lat, lng, location_link, photos, cover_url)"
         )
         .neq("status", "cancelled")
         .gte("game_date", today)
@@ -3318,11 +3318,13 @@ export function useJoinFriendlyGame() {
   return useMutation({
     mutationFn: async (input: {
       gameId: string;
+      guests?: {name:string;gender:string;age:string}[];
       inviteCode?: string | null;
       payMethod: "instapay" | "e_wallet" | "kashier" | null;
       payReceiptUrl: string | null;
     }) => {
-      const { data, error } = await supabase().rpc("join_friendly_game", {
+      const { data, error } = await supabase().rpc("join_game_with_guests", {
+        p_guests: input.guests ?? [],
         p_game_id: input.gameId,
         p_invite_code: input.inviteCode ?? null,
         p_pay_method: input.payMethod,
