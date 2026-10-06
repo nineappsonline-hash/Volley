@@ -21,11 +21,11 @@ export function amountInPiastres(value:unknown):number|null {
  const [whole,fraction='']=raw.split('.');const result=Number(whole)*100+Number(fraction.padEnd(2,'0'));
  return Number.isSafeInteger(result)&&result>0?result:null;
 }
-export async function kashierRequest(path:string,body?:unknown) {
+export async function kashierRequest(path:string,body?:unknown,options?:{timeoutMs?:number}) {
  const c=kashierConfig();
  let response:Response;
  try{
-  response=await fetch(`${c.api}/v3/payment/sessions${path}`,{method:body?'POST':'GET',headers:{Authorization:c.secret,'api-key':c.apiKey,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),cache:'no-store',signal:AbortSignal.timeout(15000)});
+  response=await fetch(`${c.api}${path}`,{method:body?'POST':'GET',headers:{Authorization:c.secret,'api-key':c.apiKey,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),cache:'no-store',signal:AbortSignal.timeout(options?.timeoutMs??15000)});
  }catch(error){throw new Error(`Kashier request failed: ${error instanceof Error?error.message:'network error'}`);}
  const text=await response.text();
  if(!response.ok)throw new Error(`Kashier responded ${response.status}: ${text.slice(0,500)}`);
