@@ -848,6 +848,8 @@ export function GamesClient({ profile }: { profile: Profile }) {
   const { data: myParticipants } = useMyGameParticipants();
   useRealtime(["friendly_games"]);
 
+  const todayISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
   const [countryFilter, setCountryFilter] = useState("");
   const [governorateFilter, setGovernorateFilter] = useState("");
   const [sportFilter, setSportFilter] = useState("all");
@@ -938,6 +940,27 @@ export function GamesClient({ profile }: { profile: Profile }) {
     });
     return sorted;
   }, [games, myParticipants, countryFilter, governorateFilter, sportFilter, skillFilter, areaFilter, availability, onlyMine, sortBy, today, weekEnd, profile.id]);
+
+  // Split the filtered list: games I joined (incl. waitlisted) or created that
+  // are still open and upcoming, versus open upcoming games to discover.
+  const mineIds = useMemo(
+    () => new Set((myParticipants ?? []).map((p) => p.game_id)),
+    [myParticipants]
+  );
+  const isMyGame = (g: FriendlyGameWithDetails) =>
+    (mineIds.has(g.id) || g.creator_id === profile.id) &&
+    (g.status === "open" || g.status === "full") &&
+    g.game_date >= todayISO;
+  const myGamesList = useMemo(
+    () => filtered.filter(isMyGame),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filtered, mineIds, profile.id, todayISO]
+  );
+  const discoverGamesList = useMemo(
+    () => filtered.filter((g) => !isMyGame(g)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filtered, mineIds, profile.id, todayISO]
+  );
 
   return (
     <div className="space-y-6">
@@ -1051,21 +1074,66 @@ export function GamesClient({ profile }: { profile: Profile }) {
             <Skeleton key={i} className="h-60 w-full" />
           ))}
         </div>
-      ) : gamesError ? null : filtered.length === 0 ? (
-        <EmptyState message={t("games_no_games")} icon={LandPlot} />
-      ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((g) => (
-            <GameCard
-              key={g.id}
-              game={g}
-              profile={profile}
-              myParticipants={myParticipants ?? []}
-              copiedKey={copiedKey}
-              onCopy={handleCopy}
-            />
-          ))}
-        </div>
+      ) : gamesError ? null : (
+        <>
+          {/* My games: joined or created, still open and upcoming */}
+          <section aria-labelledby="games-mine-title" className="space-y-3">
+            <div className="flex items-center gap-2">
+              <UsersRound className="h-5 w-5 text-primary" aria-hidden="true" />
+              <h2 id="games-mine-title" className="text-lg font-bold">
+                {t("games_my_upcoming")}
+              </h2>
+              <Badge variant="secondary">{myGamesList.length}</Badge>
+            </div>
+            {myGamesList.length === 0 ? (
+              <p className="rounded-xl border border-dashed bg-muted/20 p-4 text-sm text-muted-foreground">
+                {t("games_my_upcoming_empty")}
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {myGamesList.map((g) => (
+                  <GameCard
+                    key={g.id}
+                    game={g}
+                    profile={profile}
+                    myParticipants={myParticipants ?? []}
+                    copiedKey={copiedKey}
+                    onCopy={handleCopy}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Discover upcoming games: open games I am not part of */}
+          <section aria-labelledby="games-discover-title" className="space-y-3">
+            <div className="flex items-center gap-2">
+              <LandPlot className="h-5 w-5 text-primary" aria-hidden="true" />
+              <h2 id="games-discover-title" className="text-lg font-bold">
+                {t("games_discover_upcoming")}
+              </h2>
+              <Badge variant="secondary">{discoverGamesList.length}</Badge>
+            </div>
+            {discoverGamesList.length === 0 ? (
+              <p className="rounded-xl border border-dashed bg-muted/20 p-4 text-sm text-muted-foreground">
+                {t("games_no_games")}
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {discoverGamesList.map((g) => (
+                  <GameCard
+                    key={g.id}
+                    game={g}
+                    profile={profile}
+                    myParticipants={myParticipants ?? []}
+                    copiedKey={copiedKey}
+                    onCopy={handleCopy}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        </>
       )}
 
       <CreateGameDialog open={dialogOpen} onOpenChange={setDialogOpen} memberPlan={profile.member_plan} />
