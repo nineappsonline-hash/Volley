@@ -1,6 +1,5 @@
 "use client";
 
-import { NearbyTraining } from "./nearby-training";
 import Link from "next/link";
 import { format } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
@@ -20,7 +19,7 @@ import { AcademySuggestionOnboarding } from "@/components/academies/academy-sugg
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { MemberDiscoveryCarousels } from "./member-discovery-carousels";
+import { MemberDiscoveryCards } from "./member-discovery-cards";
 import { MyUpcomingGames } from "./my-upcoming-games";
 import { MyTournamentsCard } from "./my-tournaments-card";
 import { UpcomingTournamentsCard } from "./upcoming-tournaments-card";
@@ -101,10 +100,7 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
         title={t("dash_section_discover")}
         hint={t("dash_section_discover_hint")}
       >
-        <div className="space-y-8">
-          <NearbyTraining />
-          <MemberDiscoveryCarousels />
-        </div>
+        <MemberDiscoveryCards />
       </DashboardSection>
 
       <nav

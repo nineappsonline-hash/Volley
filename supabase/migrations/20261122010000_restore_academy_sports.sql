@@ -33,6 +33,12 @@ ON CONFLICT (academy_id, name) DO NOTHING;
 -- 2) Restore playgrounds whose sport_id was wiped. Prefer the sport of the
 --    venue's most recent non-cancelled game; otherwise default to the
 --    academy's primary sport (Volleyball).
+--
+--    guard_venue_approval resubmits any changed listing for review (it flips
+--    approval_status to 'pending'), which would hide a restored playground from
+--    members. Disable it for this backfill so only sport_id changes and the
+--    playground's existing approval is preserved.
+ALTER TABLE public.venues DISABLE TRIGGER guard_venue_approval;
 UPDATE public.venues v
 SET sport_id = s.id
 FROM public.sports s
@@ -52,6 +58,7 @@ WHERE v.sport_id IS NULL
      LIMIT 1),
     'Volleyball'
   );
+ALTER TABLE public.venues ENABLE TRIGGER guard_venue_approval;
 
 -- 3) Academy edit: keep stable sport row IDs (upsert by name) instead of
 --    delete-then-reinsert, so playground sport links survive a re-save.
