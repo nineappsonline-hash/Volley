@@ -1,7 +1,7 @@
 "use client";
 
 import { GameCardShell } from "@/components/games/game-card-shell";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -947,19 +947,20 @@ export function GamesClient({ profile }: { profile: Profile }) {
     () => new Set((myParticipants ?? []).map((p) => p.game_id)),
     [myParticipants]
   );
-  const isMyGame = (g: FriendlyGameWithDetails) =>
-    (mineIds.has(g.id) || g.creator_id === profile.id) &&
-    (g.status === "open" || g.status === "full") &&
-    g.game_date >= todayISO;
+  const isMyGame = useCallback(
+    (g: FriendlyGameWithDetails) =>
+      (mineIds.has(g.id) || g.creator_id === profile.id) &&
+      (g.status === "open" || g.status === "full") &&
+      g.game_date >= todayISO,
+    [mineIds, profile.id, todayISO]
+  );
   const myGamesList = useMemo(
     () => filtered.filter(isMyGame),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filtered, mineIds, profile.id, todayISO]
+    [filtered, isMyGame]
   );
   const discoverGamesList = useMemo(
     () => filtered.filter((g) => !isMyGame(g)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filtered, mineIds, profile.id, todayISO]
+    [filtered, isMyGame]
   );
 
   return (
