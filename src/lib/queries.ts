@@ -109,7 +109,6 @@ export const queryKeys = {
   communityMembers: ["community-members"] as const,
   friendlyGames: ["friendly-games"] as const,
   myGameParticipants: ["my-game-participants"] as const,
-  myGames: ["my-games"] as const,
   poolPlaygrounds: ["playgrounds"] as const,
   children: (guardianId?: string) =>
     ["children", guardianId ?? "all"] as const,
@@ -3253,64 +3252,6 @@ export function useMyGameParticipants() {
         .eq("member_id", user.id);
       if (error) throw error;
       return (data ?? []) as FriendlyGameParticipant[];
-    },
-  });
-}
-
-/** Games the signed-in member has joined or created, with full game + playground details. */
-export function useMyGames() {
-  return useQuery({
-    queryKey: ["my-games"],
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase().auth.getUser();
-      if (!user) return [] as FriendlyGameWithDetails[];
-
-      const { data: participants, error: partError } = await supabase()
-        .from("friendly_game_participants")
-        .select("game_id")
-        .eq("member_id", user.id);
-      if (partError) throw partError;
-      const mineIds = new Set((participants ?? []).map((p) => p.game_id));
-
-      const mineArray = [...mineIds];
-      if (mineArray.length === 0) return [] as FriendlyGameWithDetails[];
-
-      const { data: games, error: gamesError } = await supabase()
-        .from("friendly_games")
-        .select(
-          "*, participants:friendly_game_participants(id, sponsor_participant_id, member_id, role, player_name, is_waitlisted, share_amount, pay_status, joined_at, kickoff_remind_opt_in), rent_payments:friendly_game_rent_payments(amount, member_id, pay_status, created_at), playground:venues(name, country, area, governorate, address, lat, lng, location_link, photos, cover_url)"
-        )
-        .in("id", mineArray)
-        .gte("game_date", new Date().toISOString().slice(0, 10))
-        .in("status", ["open", "full"])
-        .order("game_date")
-        .limit(200);
-      if (gamesError) throw gamesError;
-
-      const hidden: string[] = [];
-      const { data: blockRows } = await supabase()
-        .from("blocks")
-        .select("blocked_id")
-        .eq("blocker_id", user.id);
-      if (blockRows) hidden.push(...(blockRows as any[]).map((b) => b.blocked_id));
-      const hiddenSet = new Set(hidden);
-
-      return ((games ?? []) as any[])
-        .filter((g) => !hiddenSet.has(g.creator_id))
-        .map((g) => {
-          const participants = (g.participants ?? []) as FriendlyGameParticipant[];
-          const active = participants.filter((p) => !p.is_waitlisted);
-          const waitlisted = participants.filter((p) => p.is_waitlisted);
-          return {
-            ...g,
-            participants,
-            participants_count: active.length,
-            waitlist_count: waitlisted.length,
-            rent_payments: (g.rent_payments ?? []) as FriendlyGameRentPayment[],
-          } as FriendlyGameWithDetails;
-        });
     },
   });
 }

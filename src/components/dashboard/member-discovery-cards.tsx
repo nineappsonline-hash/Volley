@@ -1,31 +1,31 @@
 "use client";
 
 import { AcademyLogo } from "@/components/academies/academy-logo";
+import { GameCardBackground } from "@/components/games/game-card-background";
 import { useId } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import {
+  ArrowRight,
   Building2,
   LandPlot,
   Trophy,
   type LucideIcon,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { QueryState } from "@/components/shared/query-state";
 import { useI18n } from "@/lib/i18n";
 import {
   useAllTournaments,
   useFriendlyGames,
-  useMyGames,
   usePlaygrounds,
   usePublicAcademies,
 } from "@/lib/queries";
 import { formatTime12h } from "@/lib/constants";
 import { venueCardPhoto } from "@/lib/venue-media";
+import { sportToSlug, SPORT_SLUGS } from "@/lib/sport-slugs";
 import { cn } from "@/lib/utils";
 import { useRealtime } from "@/lib/useRealtime";
-import {
-  ActiveUpcomingGamesCard,
-} from "./active-upcoming-games-card";
 
 type DiscoveryItem = {
   id: string;
@@ -35,6 +35,8 @@ type DiscoveryItem = {
   academyLogo?: string | null;
   image?: string | null;
   href?: string;
+  /** A recognised sport, for the graphic court-marking background. */
+  sport?: string;
 };
 
 type DiscoveryQuery = {
@@ -50,6 +52,7 @@ function DiscoveryCard({
   items,
   query,
   empty,
+  footer,
 }: {
   title: string;
   href: string;
@@ -57,6 +60,8 @@ function DiscoveryCard({
   items: DiscoveryItem[];
   query: DiscoveryQuery;
   empty: string;
+  /** Optional CTA rendered under the strip (e.g. "Discover more games"). */
+  footer?: React.ReactNode;
 }) {
   const { lang } = useI18n();
   const ar = lang === "ar";
@@ -64,19 +69,33 @@ function DiscoveryCard({
 
   return (
     <section aria-labelledby={`${id}-title`} className="min-w-0">
-      <div className="group relative overflow-hidden rounded-2xl border bg-card transition-colors hover:border-primary/50">
-        {/* Card header */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/40 bg-muted/30 px-4 py-3">
+      <div className="group relative overflow-hidden rounded-2xl border bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg">
+        {/* Dark graphic header with court markings behind the title */}
+        <div className="relative flex flex-wrap items-center justify-between gap-2 overflow-hidden bg-[#0A1E3F] px-4 py-3 text-white">
+          <div className="pointer-events-none absolute inset-0 opacity-25">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 240 60"
+              preserveAspectRatio="xMidYMid slice"
+              className="h-full w-full -scale-x-100 text-success-300"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path d="M0 0h60v60H0M180 0h60v60h-60M60 30h120M120 0v60" />
+              <circle cx="120" cy="30" r="10" />
+            </svg>
+          </div>
           <h2
             id={`${id}-title`}
-            className="flex items-center gap-2 text-base font-semibold"
+            className="relative flex items-center gap-2 text-base font-semibold"
           >
-            <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
+            <Icon className="h-5 w-5 text-[#12C98A]" aria-hidden="true" />
             {title}
           </h2>
           <Link
             href={href}
-            className="rounded text-xs font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="relative rounded text-xs font-semibold text-[#12C98A] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {ar ? "عرض الكل" : "View all"}
           </Link>
@@ -94,22 +113,28 @@ function DiscoveryCard({
                 id={id}
                 role="list"
                 aria-label={title}
-                className="flex gap-4 overflow-x-auto overscroll-x-contain px-4 pb-4 pt-2"
+                className="flex gap-4 overflow-x-auto overscroll-x-contain px-4 pb-4 pt-3"
               >
-                {items.map((item) => (
+                {items.map((item, index) => (
                   <li
                     key={item.id}
                     className="flex min-w-0 shrink-0 basis-[82%] sm:basis-4/9 lg:basis-3/10"
                   >
                     <Link
                       href={item.href ?? href}
-                      className={cn(
-                        "group flex h-full flex-col overflow-hidden rounded-xl border bg-card transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      )}
+                      style={{ "--i": index } as React.CSSProperties}
+                      className="animate-suggest-stagger group flex h-full w-full flex-col overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:hover:translate-y-0"
                     >
-                      {/* Image / icon area */}
-                      <div className="relative flex aspect-[16/9] items-center justify-center overflow-hidden bg-gradient-to-br from-primary/15 via-muted to-primary/5">
-                        <Icon className="h-12 w-12 text-primary/40" aria-hidden="true" />
+                      {/* Graphic area: venue photo, else sport court graphics */}
+                      <div className="relative flex aspect-[16/9] items-center justify-center overflow-hidden bg-[#0A1E3F]">
+                        {/* Court-marking / sport-illustration decorations */}
+                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-[#12C98A]/25 transition-transform duration-500 group-hover:scale-110 motion-reduce:group-hover:scale-100">
+                          {item.sport && Object.hasOwn(SPORT_SLUGS, sportToSlug(item.sport)) ? (
+                            <GameCardBackground sport={item.sport} />
+                          ) : (
+                            <Icon className="h-14 w-14" aria-hidden="true" />
+                          )}
+                        </div>
                         {item.image && (
                           // User-provided venue images may be hosted outside the Next image allowlist.
                           // eslint-disable-next-line @next/next/no-img-element
@@ -117,14 +142,23 @@ function DiscoveryCard({
                             src={item.image}
                             alt=""
                             loading="lazy"
-                            className="absolute inset-0 h-full w-full object-cover"
+                            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:group-hover:scale-100"
                             onError={(event) => {
                               event.currentTarget.style.display = "none";
                             }}
                           />
                         )}
+                        {item.academyLogo !== undefined && (
+                          <span className="absolute start-3 bottom-3 rounded-full bg-background/95 p-1 shadow-sm">
+                            <AcademyLogo
+                              academyId={item.id}
+                              name={item.title}
+                              logoUrl={item.academyLogo}
+                            />
+                          </span>
+                        )}
                         {item.badge && (
-                          <span className="absolute start-3 top-3 max-w-[calc(100%-1.5rem)] truncate rounded-full bg-background/95 px-2.5 py-1 text-xs font-medium text-foreground">
+                          <span className="absolute start-3 top-3 max-w-[calc(100%-1.5rem)] truncate rounded-full bg-background/95 px-2.5 py-1 text-xs font-medium text-foreground shadow-sm">
                             {item.badge}
                           </span>
                         )}
@@ -132,14 +166,7 @@ function DiscoveryCard({
 
                       {/* Content */}
                       <div className="space-y-2 p-3">
-                        {item.academyLogo !== undefined && (
-                          <AcademyLogo
-                            academyId={item.id}
-                            name={item.title}
-                            logoUrl={item.academyLogo}
-                          />
-                        )}
-                        <h3 className="line-clamp-2 font-semibold group-hover:text-primary">
+                        <h3 className="line-clamp-2 font-semibold transition-colors group-hover:text-primary">
                           {item.title}
                         </h3>
                         <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
@@ -152,6 +179,7 @@ function DiscoveryCard({
               </ul>
             )}
           </QueryState>
+          {items.length > 0 && footer && <div className="px-4 pb-4">{footer}</div>}
         </div>
       </div>
     </section>
@@ -162,7 +190,6 @@ export function MemberDiscoveryCards() {
   const { t, lang, locale } = useI18n();
   useRealtime(["friendly_games", "friendly_game_participants"]);
   const games = useFriendlyGames();
-  const myGames = useMyGames();
   const tournaments = useAllTournaments();
   const playgrounds = usePlaygrounds();
   const academies = usePublicAcademies();
@@ -188,6 +215,7 @@ export function MemberDiscoveryCards() {
       id: game.id,
       title: game.title,
       badge: game.sport,
+      sport: game.sport,
       subtitle: [
         dateLabel(game.game_date),
         formatTime12h(game.start_time, lang),
@@ -215,6 +243,7 @@ export function MemberDiscoveryCards() {
       id: tournament.id,
       title: tournament.name,
       badge: t(`tournament_status_${tournament.status}`),
+      sport: tournament.sport?.name ?? undefined,
       subtitle: [
         tournament.sport?.name,
         dateLabel(tournament.start_date),
@@ -230,6 +259,7 @@ export function MemberDiscoveryCards() {
       id: playground.id,
       title: playground.name,
       badge: playground.sport?.name,
+      sport: playground.sport?.name ?? undefined,
       subtitle: [
         playground.area,
         playground.governorate,
@@ -271,10 +301,21 @@ export function MemberDiscoveryCards() {
         query={academies}
         empty={ar ? "مفيش أكاديميات متاحة حالياً." : "No academies available yet."}
       />
-      <ActiveUpcomingGamesCard
-        myGames={myGames}
-        allGames={games}
-        today={today}
+      <DiscoveryCard
+        title={ar ? "مباريات حولك" : "Games around you"}
+        href="/dashboard/games"
+        icon={LandPlot}
+        items={gameItems}
+        query={games}
+        empty={ar ? "مفيش مباريات متاحة حالياً. تابعنا قريب." : "No active games right now. Check back soon."}
+        footer={
+          <Button asChild variant="outline" className="w-full gap-2">
+            <Link href="/dashboard/games">
+              {ar ? "اكتشف المزيد من المباريات" : "Discover more games"}
+              <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+            </Link>
+          </Button>
+        }
       />
       <DiscoveryCard
         title={t("nav_tournaments")}
