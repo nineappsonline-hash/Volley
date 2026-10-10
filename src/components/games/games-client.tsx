@@ -667,6 +667,16 @@ function InviteBanner({
         share_price: inviteGame.share_price,
         host_pays: inviteGame.host_pays,
         host_total: inviteGame.host_total,
+        game_date: inviteGame.game_date,
+        start_time: inviteGame.start_time,
+        location: inviteGame.location,
+        area: inviteGame.area,
+        playground: inviteGame.playground,
+        max_players: inviteGame.max_players,
+        status: inviteGame.status,
+        gender: inviteGame.gender,
+        min_age: inviteGame.min_age,
+        max_age: inviteGame.max_age,
       }
     : null;
 

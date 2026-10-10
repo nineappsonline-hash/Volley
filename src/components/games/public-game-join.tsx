@@ -15,7 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
 
 export function PublicGameJoin({ game, inviteCode }: {
-  game: { id: string; title: string; share_price: number | null; host_pays?: boolean; host_total?: number | null };
+  game: { id: string; title: string; share_price: number | null; host_pays?: boolean; host_total?: number | null; game_date?: string; start_time?: string; location?: string | null; area?: string | null; max_players?: number; participants_count?: number; status?: string };
   inviteCode?: string;
 }) {
   const { t } = useI18n();

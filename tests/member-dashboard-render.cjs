@@ -228,3 +228,65 @@ assert.ok(html.includes('ابحث عن بطولة'));
 assert.ok(html.includes('ابحث عن أكاديمية'));
 lang = 'en';
 console.log('PASS: discovery CTAs reflect membership in English and Arabic, including empty listings');
+
+const { discoveryMatch } = loadFile(path.join(root, 'src/lib/member-discovery.ts'), mocks);
+const preferences = { interested_sports: ['Volleyball'], skill_level: 'beginner', availability_days: [1], lat: 30, lng: 31 };
+const matched = discoveryMatch({ sport: 'volleyball', skill_level: 'beginner', date: '2026-10-12', lat: 30.01, lng: 31.01 }, preferences);
+assert.equal(matched.score, 10);
+assert.deepEqual(matched.reasons, ['sport', 'day', 'skill', 'nearby']);
+assert.equal(discoveryMatch({ sport: 'Tennis' }, preferences).score, 0);
+assert.equal(discoveryMatch({ sport: 'Volleyball', lat: 0, lng: 0 }, {}).score, 0, 'missing preferences do not invent a match');
+assert.ok(!discoveryMatch({ lat: 0, lng: 0 }, preferences).reasons.includes('nearby'), 'distant venues are not nearby');
+console.log('PASS: discovery ranks sport, weekday, skill, and actual distance matches without invented preferences');
+
+mocks['@/lib/queries'].useMyUpcomingGames = useMyUpcomingGames;
+
+// The next-game hero skips waitlists and exposes the nearest confirmed game.
+gameRows = [
+  row({ id: 'waiting', is_waitlisted: true }, { id: 'waiting-game', title: 'Waiting match', game_date: addDaysISO(TODAY, 1) }),
+  row({ id: 'confirmed', pay_status: 'approved' }, { id: 'confirmed-game', title: 'Confirmed next match', game_date: addDaysISO(TODAY, 2) }),
+];
+html = render();
+const hero = html.slice(html.indexOf('aria-label="Your next game"'), html.indexOf('id="my-upcoming-games"'));
+assert.ok(hero.includes('Confirmed next match'));
+assert.ok(!hero.includes('Waiting match'));
+assert.ok(hero.includes('Payment confirmed'));
+assert.ok(hero.includes('Details &amp; players'));
+gameRows = [row({ is_waitlisted: true }, { game_date: addDaysISO(TODAY, 1) })];
+html = render();
+assert.ok(html.includes('Ready to get in the game?'));
+console.log('PASS: next-game hero uses confirmed future games and handles waitlist-only members');
+
+const mutation = () => ({ isPending: false, mutateAsync: async () => false });
+Object.assign(mocks['@/lib/queries'], {
+  useJoinFriendlyGame: mutation,
+  usePayGameShare: mutation,
+  usePayRentRemaining: mutation,
+});
+mocks['@/lib/supabase/client'] = { createClient: () => ({}) };
+mocks['@/lib/push'] = { requestPushPrompt: () => {} };
+mocks['@/components/payments/kashier-button'] = { KashierButton: () => null };
+const wrap = ({ children }) => h('div', null, children);
+mocks['@/components/ui/dialog'] = Object.fromEntries(['Dialog', 'DialogContent', 'DialogDescription', 'DialogFooter', 'DialogHeader', 'DialogTitle'].map(name => [name, wrap]));
+const { JoinGameDialog } = loadFile(path.join(root, 'src/components/games/join-game-dialog.tsx'), mocks);
+const joinSummary = (overrides = {}) => renderToStaticMarkup(h(JoinGameDialog, {
+  open: true, onOpenChange: () => {}, game: {
+    id: 'join-1', title: 'Join this match', share_price: 100, game_date: '2026-10-12', start_time: '18:00',
+    location: 'Main court', max_players: 12, participants_count: 10, ...overrides,
+  },
+}));
+html = joinSummary();
+assert.ok(html.includes('Booking summary'));
+assert.ok(html.includes('Main court'));
+assert.ok(html.includes('2 spots available'));
+assert.ok(html.includes('Total for you and your guests'));
+assert.ok(html.includes('2026-10-12'));
+html = joinSummary({ host_pays: true, status: 'full', participants_count: 12 });
+assert.ok(html.includes('The host covers the cost'));
+assert.ok(html.includes('a place is not confirmed'));
+lang = 'ar';
+html = joinSummary();
+assert.ok(html.includes('ملخص الحجز'));
+assert.ok(html.includes('الإجمالي لك ولضيوفك'));
+lang = 'en';
+console.log('PASS: joining summary shows location, date, spots, total, waitlist guidance, and host-paid guests in both languages');

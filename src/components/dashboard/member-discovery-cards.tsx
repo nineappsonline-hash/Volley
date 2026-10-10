@@ -1,5 +1,6 @@
 "use client";
 
+import { discoveryMatch, type DiscoveryPreferences } from "@/lib/member-discovery";
 import { AcademyLogo } from "@/components/academies/academy-logo";
 import { GameCardBackground } from "@/components/games/game-card-background";
 import { useId } from "react";
@@ -24,7 +25,7 @@ import {
   useMyUpcomingGames,
   useMyTournaments,
 } from "@/lib/queries";
-import { formatTime12h } from "@/lib/constants";
+import { formatMoney, formatTime12h } from "@/lib/constants";
 import { venueCardPhoto } from "@/lib/venue-media";
 import { sportToSlug, SPORT_SLUGS } from "@/lib/sport-slugs";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ type DiscoveryItem = {
   title: string;
   subtitle: string;
   badge?: string;
+  reason?: string;
   academyLogo?: string | null;
   image?: string | null;
   href?: string;
@@ -170,6 +172,7 @@ function DiscoveryCard({
 
                       {/* Content */}
                       <div className="space-y-2 p-3">
+                        {item.reason && <p className="text-xs font-semibold text-primary">{item.reason}</p>}
                         <h3 className="line-clamp-2 font-semibold transition-colors group-hover:text-primary">
                           {item.title}
                         </h3>
@@ -190,7 +193,7 @@ function DiscoveryCard({
   );
 }
 
-export function MemberDiscoveryCards({ memberId, hasAcademy }: { memberId: string; hasAcademy: boolean }) {
+export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {} }: { memberId: string; hasAcademy: boolean; preferences?: DiscoveryPreferences }) {
   const { t, lang, locale } = useI18n();
   useRealtime(["friendly_games", "friendly_game_participants"]);
   const games = useFriendlyGames();
@@ -208,6 +211,23 @@ export function MemberDiscoveryCards({ memberId, hasAcademy }: { memberId: strin
   const dateLabel = (date: string) =>
     format(new Date(`${date}T00:00:00`), "MMM d", { locale });
 
+  const reasonLabel = (match: ReturnType<typeof discoveryMatch>) => {
+    const labels = {
+      sport: ar ? "رياضتك المفضلة" : "Matches your sport",
+      day: ar ? "يناسب أيامك المتاحة" : "Fits your available days",
+      skill: ar ? "يناسب مستواك" : "Matches your skill level",
+      nearby: ar ? "قريب منك" : "Within 20 km of you",
+    };
+    return match.reasons.map(reason => labels[reason]).join(" · ");
+  };
+  const gameMatch = (game: NonNullable<typeof games.data>[number]) => discoveryMatch({
+    sport: game.sport, date: game.game_date, skill_level: game.skill_level,
+    lat: game.playground?.lat ?? game.lat, lng: game.playground?.lng ?? game.lng,
+  }, preferences);
+  const tournamentMatch = (tournament: NonNullable<typeof tournaments.data>[number]) => discoveryMatch({
+    sport: tournament.sport?.name, date: tournament.start_date,
+  }, preferences);
+
   const gameItems = (games.data ?? [])
     .filter(
       (game) =>
@@ -216,6 +236,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy }: { memberId: strin
     )
     .sort(
       (a, b) =>
+        gameMatch(b).score - gameMatch(a).score ||
         `${a.game_date} ${a.start_time}`.localeCompare(
           `${b.game_date} ${b.start_time}`
         )
@@ -224,12 +245,16 @@ export function MemberDiscoveryCards({ memberId, hasAcademy }: { memberId: strin
     .map((game) => ({
       id: game.id,
       title: game.title,
+      reason: reasonLabel(gameMatch(game)),
+      href: game.invite_code ? `/dashboard/games?join=${encodeURIComponent(game.invite_code)}` : "/dashboard/games",
       badge: game.sport,
       sport: game.sport,
       subtitle: [
         dateLabel(game.game_date),
         formatTime12h(game.start_time, lang),
         game.playground?.name ?? game.location ?? game.area,
+        game.host_pays ? (ar ? "المضيف يغطي التكلفة" : "Host pays") : game.share_price == null ? (ar ? "السعر غير محدد" : "Price not set") : formatMoney(game.share_price, lang),
+        `${Math.max(0, game.max_players - game.participants_count)} ${ar ? "مكان متاح" : "spots available"}`,
       ]
         .filter(Boolean)
         .join(" · "),
@@ -244,6 +269,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy }: { memberId: strin
     )
     .sort(
       (a, b) =>
+        tournamentMatch(b).score - tournamentMatch(a).score ||
         Number(b.status === "in_progress") -
         Number(a.status === "in_progress") ||
         a.start_date.localeCompare(b.start_date)
@@ -252,6 +278,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy }: { memberId: strin
     .map((tournament) => ({
       id: tournament.id,
       title: tournament.name,
+      reason: reasonLabel(tournamentMatch(tournament)),
       badge: t(`tournament_status_${tournament.status}`),
       sport: tournament.sport?.name ?? undefined,
       subtitle: [
@@ -263,11 +290,15 @@ export function MemberDiscoveryCards({ memberId, hasAcademy }: { memberId: strin
         .join(" · "),
     }));
 
-  const playgroundItems = (playgrounds.data ?? [])
+  const playgroundMatch = (venue: NonNullable<typeof playgrounds.data>[number]) => discoveryMatch({ sport: venue.sport?.name, lat: venue.lat, lng: venue.lng }, preferences);
+  const playgroundItems = [...(playgrounds.data ?? [])]
+    .sort((a, b) => playgroundMatch(b).score - playgroundMatch(a).score)
     .slice(0, 12)
     .map((playground) => ({
       id: playground.id,
       title: playground.name,
+      reason: reasonLabel(playgroundMatch(playground)),
+      href: `/p/${encodeURIComponent(playground.id)}`,
       badge: playground.sport?.name,
       sport: playground.sport?.name ?? undefined,
       subtitle: [
@@ -303,6 +334,10 @@ export function MemberDiscoveryCards({ memberId, hasAcademy }: { memberId: strin
 
   return (
     <div className="min-w-0 space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/50 px-4 py-3 text-sm">
+        <p>{ar ? "خصّص اقتراحاتك بالرياضات والمستوى وأيامك المتاحة." : "Make these suggestions yours with your sports, skill level, and available days."}</p>
+        <Link href="/profile" className="font-semibold text-primary underline underline-offset-4">{ar ? "تعديل تفضيلاتي" : "Edit my preferences"}</Link>
+      </div>
       <DiscoveryCard
         title={ar ? "الأكاديميات" : "Academies"}
         tone="academies"

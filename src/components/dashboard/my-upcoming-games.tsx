@@ -77,6 +77,11 @@ export function MyUpcomingGames({
   }, [rows, onCountChange]);
 
   const groups = useMemo(() => groupGamesByDay(rows, todayISO()), [rows]);
+  const next = groups.flatMap(group => group.items).find(row =>
+    !row.is_waitlisted && new Date(`${row.game.game_date}T${row.game.start_time}`).getTime() > Date.now()
+  );
+  const nextLocation = next?.game.playground?.name ?? next?.game.location ?? next?.game.area;
+  const nextPin = next?.game.playground?.location_link ? parseMapsCoordinates(next.game.playground.location_link) : null;
   const payRow = query.data?.find(row => row.game.id === payGameId);
 
   const prettyDate = (date: string) => format(new Date(date + "T00:00:00"), "EEE, MMM d", { locale });
@@ -108,6 +113,35 @@ export function MyUpcomingGames({
   const waitlistCount = roster.data?.filter(p => p.is_waitlisted).length ?? 0;
 
   return <>
+    <QueryState queries={[query]}>
+      <section aria-label={ar ? "مباراتك القادمة" : "Your next game"} className="relative mb-4 overflow-hidden rounded-2xl border bg-gradient-to-br from-indigo-800 via-blue-800 to-teal-800 p-5 text-white sm:p-6">
+        <div aria-hidden="true" className="pointer-events-none absolute -end-10 -top-12 h-56 w-56 rounded-full border-[28px] border-white/10" />
+        <p className="relative text-xs font-bold uppercase tracking-wider text-blue-100">{ar ? "مباراتك القادمة" : "Your next game"}</p>
+        {next ? <div className="relative mt-3 space-y-4">
+          <div>
+            <h3 className="text-2xl font-extrabold">{next.game.title}</h3>
+            <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-blue-100">
+              <span className="flex items-center gap-1.5"><CalendarDays className="h-4 w-4" />{prettyDate(next.game.game_date)}</span>
+              <span className="flex items-center gap-1.5"><Clock className="h-4 w-4" />{formatTime12h(next.game.start_time, lang)}</span>
+              {nextLocation && <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" />{nextLocation}</span>}
+            </p>
+          </div>
+          <p className="text-sm font-semibold" role="status">{shareTone(next) === "due"
+            ? `${ar ? "المبلغ المتبقي" : "Amount due"} · ${formatMoney(shareAmountDue(next), lang)}`
+            : shareTone(next) === "pending" ? (ar ? "دفعتك قيد المراجعة" : "Your payment is under review")
+            : shareTone(next) === "paid" ? (ar ? "تم تأكيد الدفع" : "Payment confirmed") : (ar ? "لا توجد دفعة مستحقة" : "No payment due")}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button className="bg-white text-indigo-900 hover:bg-white/90" onClick={() => setSelectedId(next.game.id)}>{ar ? "التفاصيل واللاعبون" : "Details & players"}<ArrowUpRight className="ms-2 h-4 w-4" /></Button>
+            {shareAmountDue(next) > 0 && <Button className="bg-white text-indigo-900 hover:bg-white/90" asChild><a href="#my-upcoming-games"><Wallet className="me-2 h-4 w-4" />{ar ? "مراجعة الدفع" : "Review payment"}</a></Button>}
+            {nextLocation && <div className="rounded-md bg-background text-foreground"><DirectionsLinks lat={nextPin?.lat ?? next.game.playground?.lat ?? next.game.lat} lng={nextPin?.lng ?? next.game.playground?.lng ?? next.game.lng} query={[nextLocation, next.game.area].filter(Boolean).join(", ")} /></div>}
+          </div>
+        </div> : <div className="relative mt-3 space-y-3">
+          <h3 className="text-2xl font-extrabold">{ar ? "جاهز تنزل الملعب؟" : "Ready to get in the game?"}</h3>
+          <p className="max-w-xl text-sm text-blue-100">{ar ? "اكتشف مباراة تناسبك. لو أنت في قائمة الانتظار، تابع حالة مكانك بالأسفل." : "Find a game that suits you. If you’re on a waitlist, check your place below."}</p>
+          <Button asChild className="bg-white text-indigo-900 hover:bg-white/90"><Link href="/dashboard/games">{t("dash_find_game")}<ArrowUpRight className="ms-2 h-4 w-4" /></Link></Button>
+        </div>}
+      </section>
+    </QueryState>
     <Card id="my-upcoming-games" className="overflow-hidden rounded-2xl shadow-none">
       <CardHeader className="mb-5 flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-blue-700 via-indigo-700 to-violet-700 text-white">
         <CardTitle className="flex items-center gap-2 text-base">

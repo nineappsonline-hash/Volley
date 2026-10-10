@@ -4,6 +4,9 @@ import { KashierButton } from "@/components/payments/kashier-button";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
+  CalendarDays,
+  MapPin,
+  Users,
   Check,
   Copy,
   CreditCard,
@@ -28,6 +31,7 @@ import {
   E_WALLET_NUMBER,
   INSTAPAY_LINK,
   formatMoney,
+  formatTime12h,
 } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import { requestPushPrompt } from "@/lib/push";
@@ -60,6 +64,14 @@ export function JoinGameDialog({
     share_price: number | null;
     host_pays?: boolean;
     host_total?: number | null;
+    game_date?: string;
+    start_time?: string;
+    location?: string | null;
+    area?: string | null;
+    playground?: { name: string | null } | null;
+    participants_count?: number;
+    max_players?: number;
+    status?: string;
     gender?: string; min_age?: number | null; max_age?: number | null;
   };
   inviteCode?: string | null;
@@ -149,7 +161,7 @@ export function JoinGameDialog({
           payMethod: null,
           payReceiptUrl: null,
         });
-        toast.success(added ? t("games_waitlist_joined") : t("community_joined"));
+        toast.success(`${game.title} · ${added ? t("games_waitlist_joined") : t("community_joined")}`);
         requestPushPrompt();
         onOpenChange(false);
         onSuccess?.();
@@ -186,7 +198,7 @@ export function JoinGameDialog({
           payMethod,
           payReceiptUrl: receiptUrl,
         });
-        toast.success(added ? t("games_waitlist_joined") : t("community_joined"));
+        toast.success(`${game.title} · ${added ? t("games_waitlist_joined") : t("community_joined")}`);
         requestPushPrompt();
       }
       onOpenChange(false);
@@ -229,9 +241,24 @@ export function JoinGameDialog({
         </DialogHeader>
 
         <div className="space-y-4">
+          {mode === "join" && <section aria-label={lang === "ar" ? "ملخص الحجز" : "Booking summary"} className="space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
+            <h3 className="text-base font-bold">{game.title}</h3>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              {game.game_date && <p className="flex items-center gap-2"><CalendarDays className="h-4 w-4 shrink-0" />{game.game_date}{game.start_time ? ` · ${formatTime12h(game.start_time, lang)}` : ""}</p>}
+              {(game.playground?.name || game.location || game.area) && <p className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0" />{[game.playground?.name ?? game.location, game.area].filter(Boolean).join(" · ")}</p>}
+              {game.max_players != null && game.participants_count != null && <p className="flex items-center gap-2"><Users className="h-4 w-4 shrink-0" />{Math.max(0, game.max_players - game.participants_count)} {lang === "ar" ? "مكان متاح" : "spots available"}</p>}
+              {game.status === "full" && <p className="font-medium text-warning-ink">{lang === "ar" ? "المباراة مكتملة. قد تنضم لقائمة الانتظار؛ مكانك غير مؤكد." : "This game is full. You may join the waitlist; a place is not confirmed."}</p>}
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-primary/15 pt-3">
+              <span className="text-sm font-semibold">{lang === "ar" ? "الإجمالي لك ولضيوفك" : "Total for you and your guests"} · {1 + guests.length} {lang === "ar" ? "لاعب" : "players"}</span>
+              <span aria-live="polite" className="text-lg font-extrabold text-primary">{formatMoney(amount, lang)}</span>
+            </div>
+            <p className="text-xs leading-relaxed text-muted-foreground">{t("community_leave_confirm_desc")}</p>
+            {!isFree && <p className="text-xs leading-relaxed text-muted-foreground">{lang === "ar" ? "الدفع بالتحويل يحتاج إيصالًا ومراجعة. يتم تأكيد المكان عند إتمام الانضمام حسب التوفر." : "Bank and wallet transfers need a receipt and review. Your place is confirmed when joining completes, subject to availability."}</p>}
+          </section>}
           {mode === "join" && <section className="space-y-3 rounded-lg border p-3">
             <h3 className="font-semibold">{lang === "ar" ? "ضيوفك" : "Bring guests"}</h3>
-            <p className="text-xs text-muted-foreground">{lang === "ar" ? "أنت تدفع عن نفسك وضيوفك. كل ضيف يشغل مكانًا في المباراة." : "You pay for yourself and your guests. Each guest takes one player place."}</p>
+            <p className="text-xs text-muted-foreground">{isFree ? (lang === "ar" ? "المضيف يغطي التكلفة. كل ضيف يشغل مكانًا في المباراة." : "The host covers the cost. Each guest takes one player place.") : (lang === "ar" ? "أنت تدفع عن نفسك وضيوفك. كل ضيف يشغل مكانًا في المباراة." : "You pay for yourself and your guests. Each guest takes one player place.")}</p>
             {guests.map((guest,index)=><div key={index} className="space-y-2 rounded border p-3">
               <label className="block text-sm">{lang === "ar" ? "اسم الضيف" : "Guest name"} {index+1}<input maxLength={100} disabled={busy} className="mt-1 min-h-11 w-full rounded border bg-background p-2" value={guest.name} onChange={e=>setGuests(rows=>rows.map((r,i)=>i===index?{...r,name:e.target.value}:r))}/></label>
               {game.gender && game.gender !== "mixed" && <label className="block text-sm">{lang === "ar" ? "النوع" : "Gender"}<select disabled={busy} className="mt-1 min-h-11 w-full rounded border bg-background p-2" value={guest.gender} onChange={e=>setGuests(rows=>rows.map((r,i)=>i===index?{...r,gender:e.target.value}:r))}><option value="">{lang === "ar" ? "اختر" : "Choose"}</option><option value="male">{lang === "ar" ? "ذكر" : "Male"}</option><option value="female">{lang === "ar" ? "أنثى" : "Female"}</option></select></label>}
@@ -280,7 +307,7 @@ export function JoinGameDialog({
                 <button
                   key={value}
                   type="button"
-                  disabled={disabled}
+                  disabled={disabled || busy || uploading}
                   onClick={() => setPayMethod(value)}
                   className={`flex flex-col items-center gap-1.5 rounded-lg border-2 px-2 py-3 text-center transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
                     selected

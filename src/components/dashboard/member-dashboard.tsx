@@ -100,7 +100,7 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
         title={t("dash_section_discover")}
         hint={t("dash_section_discover_hint")}
       >
-        <MemberDiscoveryCards memberId={p.id} hasAcademy={!!p.academy_id} />
+        <MemberDiscoveryCards memberId={p.id} hasAcademy={!!p.academy_id} preferences={p} />
       </DashboardSection>
 
       <nav
