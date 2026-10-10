@@ -38,6 +38,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/shared/empty-state";
+import { GameCardBackground } from "@/components/games/game-card-background";
 import { PageHeader } from "@/components/shared/page-header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -183,15 +184,16 @@ export function TournamentsClient({
           {tournaments.map((tournament) => (
             <Card
               key={tournament.id}
-              className="group overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md"
+              className="group overflow-hidden rounded-2xl transition-shadow hover:shadow-lg hover:shadow-purple-500/10"
             >
               <CardContent className="p-0">
-                <div className="flex items-start justify-between gap-2 border-b bg-muted/30 px-4 py-2.5">
+                <div className="relative isolate flex items-start justify-between gap-3 overflow-hidden border-b bg-gradient-to-br from-fuchsia-900 via-purple-800 to-indigo-800 px-5 py-5 text-white">
+                  <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10"><GameCardBackground sport={tournament.sport?.name ?? "volleyball"} /><Trophy className="absolute -bottom-4 end-8 h-24 w-24 rotate-12 text-amber-200/15" /></div>
                   <div className="min-w-0">
-                    <p className="truncate font-bold">{tournament.name}</p>
+                    <p className="line-clamp-2 text-lg font-bold">{tournament.name}</p>
                     <div className="mt-1 flex flex-wrap gap-1">
                       {tournament.sport && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="border-white/30 bg-white/10 text-xs text-white">
                           {tournament.sport.name}
                         </Badge>
                       )}
@@ -201,7 +203,7 @@ export function TournamentsClient({
                     </div>
                   </div>
                   {canCreate && (academy === null || academy?.id === tournament.academy_id) && (
-                    <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <div className="flex shrink-0 items-center gap-1 rounded-lg bg-background/95 text-foreground">
                       <Button
                         variant="ghost"
                         size="icon"

@@ -1,4 +1,5 @@
 "use client";
+import { PageHeader } from "@/components/shared/page-header";
 import { TrainingSummary } from "./training-summary";
 import { AcademyLogo } from "./academy-logo";
 import { ChevronDown } from "lucide-react";
@@ -82,3 +83,8 @@ function TrainingRating({bookingId}:{bookingId:string}) {
  return <div className="flex flex-wrap items-center gap-2"><label className="text-sm">{ar?"قيّم التدريب بعد حضور الحصة":"Rate training after your session"}<select className="ms-2 rounded border bg-background p-2" value={rating} onChange={e=>setRating(e.target.value)}>{[1,2,3,4,5].map(n=><option key={n} value={n}>{n} / 5</option>)}</select></label><Button variant="outline" disabled={busy} onClick={async()=>{setBusy(true);try{const client=createClient();const {data,error}=await client.from("academy_training_bookings").select("program_id").eq("id",bookingId).single();if(error)throw error;const result=await client.rpc("rate_training",{p_program_id:data.program_id,p_rating:Number(rating)});if(result.error)throw result.error;await refresh();toast.success(ar?"تم حفظ تقييمك":"Rating saved");}catch(error){toast.error(errorMessage(error,ar?"تعذر حفظ التقييم":"Could not rate training"));}finally{setBusy(false);}}}>{ar?"حفظ التقييم":"Save rating"}</Button></div>;
 }
 export function AcademyTrainingPaymentApprovals(){const {lang}=useI18n();const query=useTrainingBookings(true);return <section className="training-mobile space-y-4 rounded-xl border bg-card p-3 sm:p-5"><h2 className="text-xl font-bold">{lang==="ar"?"مدفوعات تدريب الأكاديميات":"Academy training payments"}</h2><QueryState queries={[query]}>{!query.data?.length?<p className="text-sm text-muted-foreground">{lang==="ar"?"لا توجد حجوزات بعد.":"No bookings yet."}</p>:query.data.map(b=><TrainingBookingCard key={b.id} booking={b} admin/>)}</QueryState></section>;}
+
+export function AcademyBookingsHeader() {
+  const { lang } = useI18n();
+  return <PageHeader title={lang === "ar" ? "حجوزات الأكاديميات" : "Academy bookings"} subtitle={lang === "ar" ? "اكتشف التدريب المناسب وتابع حجوزاتك القادمة." : "Explore training that fits you and keep track of your upcoming bookings."} />;
+}

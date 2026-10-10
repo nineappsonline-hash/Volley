@@ -1,5 +1,6 @@
 "use client";
 
+import { GameCardBackground } from "@/components/games/game-card-background";
 import { useState } from "react";
 import { Check, LandPlot, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,8 +31,8 @@ export function PlaygroundOptionCard({ playground: p, selected, onSelect }: {
       <button type="button" onClick={onSelect} aria-pressed={selected} className="flex w-full items-center gap-3 rounded text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         {thumbnail ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumbnail} alt={p.name} loading="lazy" className="h-20 w-24 shrink-0 rounded-md object-cover" />
-        ) : <div className="flex h-20 w-24 shrink-0 items-center justify-center rounded-md bg-muted"><LandPlot className="h-7 w-7 text-muted-foreground" /></div>}
+          <img src={thumbnail} alt={p.name} loading="lazy" className="h-20 w-24 shrink-0 rounded-xl object-cover" />
+        ) : <div className="flex h-20 w-24 shrink-0 items-center justify-center relative isolate overflow-hidden rounded-xl bg-gradient-to-br from-orange-800 via-rose-700 to-purple-800"><GameCardBackground sport={p.sport?.name ?? "volleyball"} /><LandPlot className="relative h-9 w-9 text-white" /></div>}
         <span className="min-w-0 flex-1">
           <span dir="auto" className="block font-medium">{p.name}</span>
           <span dir="auto" className="block text-xs text-muted-foreground">{location}</span>

@@ -1,4 +1,5 @@
 "use client";
+import { Building2, Sparkles } from "lucide-react";
 import { AcademyLogo } from "@/components/academies/academy-logo";
 
 import { AppLogo } from "@/components/shared/app-logo";
@@ -6,7 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Crosshair, Loader2, MapPin, Navigation, Search, Star, Volleyball } from "lucide-react";
+import { Crosshair, Loader2, MapPin, Navigation, Search, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -341,7 +342,8 @@ export default function AcademiesDirectoryPage() {
   return (
     <main className="min-h-screen bg-background">
       {/* Header */}
-      <section className="relative overflow-hidden border-b bg-gradient-to-br from-brand via-brand to-interactive-800 py-14 text-white">
+      <section className="relative isolate overflow-hidden border-b bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-800 py-14 text-white">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10"><Building2 className="absolute -end-6 top-10 h-64 w-64 -rotate-12 text-white/10" /><Sparkles className="absolute end-10 bottom-8 h-12 w-12 text-amber-200/40" /><div className="absolute -start-16 -top-24 h-72 w-72 rounded-full border-[28px] border-white/10" /></div>
         <div className="pointer-events-none absolute -top-24 start-1/2 h-72 w-[32rem] -translate-x-1/2 rounded-full bg-white/15 blur-3xl rtl:translate-x-1/2" />
         <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-3 px-6 text-center">
           <Link href={myId ? "/dashboard" : "/"} aria-label={t("nav_dashboard")}><AppLogo /></Link>
@@ -589,8 +591,8 @@ export default function AcademiesDirectoryPage() {
                       />
                     </div>
                   ) : (
-                    <div className="flex aspect-video w-full items-center justify-center bg-gradient-to-br from-interactive-600/15 to-interactive-400/15">
-                      <Volleyball className="h-10 w-10 text-primary/40" />
+                    <div className="relative isolate flex aspect-video w-full items-center justify-center overflow-hidden bg-gradient-to-br from-teal-800 via-emerald-700 to-cyan-800">
+                      <Building2 className="h-16 w-16 text-white/80" /><div aria-hidden="true" className="absolute -end-10 -top-14 h-48 w-48 rounded-full border-[20px] border-white/10" /><Sparkles aria-hidden="true" className="absolute bottom-5 start-5 h-8 w-8 text-amber-200/60" />
                     </div>
                   )}
                   <CardHeader className="pb-2">
