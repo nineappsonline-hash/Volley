@@ -155,6 +155,60 @@ export function sportsClubJsonLd(academy: {
   return node;
 }
 
+/**
+ * SportsActivityLocation node for a public playground page (/p/<id>).
+ * Covers "ملعب كرة طائرة في القاهرة" style local queries.
+ */
+export function sportsActivityLocationJsonLd(playground: {
+  name: string;
+  description?: string | null;
+  country?: string | null;
+  governorate?: string | null;
+  area?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+  id: string;
+  image?: string | null;
+  sports: string[];
+  ratingValue?: number;
+  ratingCount?: number;
+}): JsonLd {
+  const address: JsonLd = {
+    "@type": "PostalAddress",
+    addressCountry: playground.country || "Egypt",
+  };
+  if (playground.governorate) address.addressRegion = playground.governorate;
+  if (playground.area) address.addressLocality = playground.area;
+
+  const node: JsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SportsActivityLocation",
+    name: playground.name,
+    url: `${SITE_URL}/p/${playground.id}`,
+    sport: playground.sports.length ? playground.sports : undefined,
+    address,
+  };
+  if (playground.description) node.description = playground.description;
+  if (playground.image) node.image = playground.image;
+  if (playground.lat != null && playground.lng != null) {
+    node.geo = {
+      "@type": "GeoCoordinates",
+      latitude: playground.lat,
+      longitude: playground.lng,
+    };
+  }
+  if (playground.ratingCount && playground.ratingCount > 0 && playground.ratingValue) {
+    node.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: playground.ratingValue.toFixed(1),
+      ratingCount: playground.ratingCount,
+      bestRating: "5",
+      worstRating: "1",
+    };
+  }
+  return node;
+}
+
 /** BreadcrumbList node — shown as breadcrumb rich result. */
 export function breadcrumbsJsonLd(
   items: { name: string; url: string }[]

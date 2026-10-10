@@ -86,21 +86,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Query independently so a failed source does not remove other public pages.
   const results = await Promise.allSettled([
     academyEntries(),
+    playgroundEntries(),
     getPublicGameSports(),
     getPublicTournamentSports(),
   ]);
   const academyPages = results[0].status === "fulfilled" ? results[0].value : [];
-  const gameSports = results[1].status === "fulfilled" ? results[1].value : [];
-  const tournamentSports = results[2].status === "fulfilled" ? results[2].value : [];
+  const playgroundPages = results[1].status === "fulfilled" ? results[1].value : [];
+  const gameSports = results[2].status === "fulfilled" ? results[2].value : [];
+  const tournamentSports = results[3].status === "fulfilled" ? results[3].value : [];
   const sportPages: MetadataRoute.Sitemap = [
     ...gameSports.map(sport => `/games?sport=${encodeURIComponent(sportToSlug(sport))}`),
     ...tournamentSports.map(sport => `/tournaments?sport=${encodeURIComponent(sportToSlug(sport))}`),
   ].map(path => ({ url: `${SITE_URL}${path}`, changeFrequency: "daily", priority: 0.7 }));
 
   // Avoid duplicate URLs when sports use equivalent spellings or slugs.
-  return [...new Map([...staticPages, ...academyPages, ...sportPages].map(page => [page.url, page])).values()];
+  return [...new Map([...staticPages, ...academyPages, ...playgroundPages, ...sportPages].map(page => [page.url, page])).values()];
 }
-
 async function academyEntries(): Promise<MetadataRoute.Sitemap> {
   const admin = createAdminClient();
   const pages: MetadataRoute.Sitemap = [];
@@ -119,6 +120,30 @@ async function academyEntries(): Promise<MetadataRoute.Sitemap> {
         url: `${SITE_URL}/a/${encodeURIComponent(academy.slug)}`,
         changeFrequency: "weekly",
         priority: 0.8,
+      });
+    }
+    if (!data || data.length < batchSize) break;
+  }
+  return pages;
+}
+
+async function playgroundEntries(): Promise<MetadataRoute.Sitemap> {
+  const admin = createAdminClient();
+  const pages: MetadataRoute.Sitemap = [];
+  const batchSize = 1000;
+  for (let offset = 0; ; offset += batchSize) {
+    const { data, error } = await admin.from("venues")
+      .select("id")
+      .eq("approval_status", "approved")
+      .order("id")
+      .range(offset, offset + batchSize - 1);
+    // Keep completed batches if a later request fails.
+    if (error) break;
+    for (const venue of data ?? []) {
+      if (venue.id) pages.push({
+        url: `${SITE_URL}/p/${encodeURIComponent(venue.id)}`,
+        changeFrequency: "weekly",
+        priority: 0.7,
       });
     }
     if (!data || data.length < batchSize) break;

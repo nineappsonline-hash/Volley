@@ -12,6 +12,8 @@ import {
   useRatePlayground,
 } from "@/lib/queries";
 import { RatingControl, type RatingSubmit } from "@/components/shared/rating-control";
+import { ShareIconButton } from "@/components/academies/academy-share";
+import { playgroundShareLink, playgroundShareText } from "@/lib/playground-share";
 import { useI18n } from "@/lib/i18n";
 import { normalizeCountry } from "@/lib/locations";
 import { addDaysInput, errorMessage } from "@/lib/utils";
@@ -111,7 +113,17 @@ export function MemberPlaygrounds({ memberPlan }: { memberPlan: "free" | "premiu
             canRate={canRateVenue(venue.id)}
             onSubmit={payload => submitVenueRating(venue.id, payload)}
           />
-          <p className="text-sm font-medium">{venue.sport?.name ?? (ar ? "الرياضة غير محددة" : "Sport not specified")}</p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-medium">{venue.sport?.name ?? (ar ? "الرياضة غير محددة" : "Sport not specified")}</p>
+            <ShareIconButton
+              target={{
+                url: playgroundShareLink(venue.id),
+                title: venue.name,
+                text: playgroundShareText(venue),
+              }}
+              label={ar ? "مشاركة الملعب" : "Share playground"}
+            />
+          </div>
           <Button variant="outline" className="gap-2" aria-expanded={expanded === venue.id} onClick={() => setExpanded(expanded === venue.id ? null : venue.id)}><CalendarDays className="h-4 w-4" />{ar ? "المواعيد المتاحة وإنشاء مباراة" : "Availability & create game"}</Button>
           {expanded === venue.id && <VenueAvailability venue={venue} onCreate={date => setCreating({ venue, date })} />}
         </div>
