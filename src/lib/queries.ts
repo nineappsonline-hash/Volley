@@ -22,6 +22,8 @@ import type {
   CommunityLeaderboardRow,
   CommunityMember,
   CommunityReport,
+  CompletedGameRatingTarget,
+  CompletedSessionRatingTarget,
   ContactMessage,
   Expense,
   FriendlyGame,
@@ -33,6 +35,7 @@ import type {
   MonthlyCost,
   Payment,
   PlayerEvaluation,
+  PlaygroundRating,
   PlanSubscription,
   Profile,
   RecurringSchedule,
@@ -105,6 +108,8 @@ export const queryKeys = {
   recurring: ["recurring"] as const,
   publicAcademies: ["public-academies"] as const,
   academyRatings: ["academy-ratings"] as const,
+  playgroundRatings: ["playground-ratings"] as const,
+  ratingEligibility: ["rating-eligibility"] as const,
   academyFollows: ["academy-follows"] as const,
   communityMembers: ["community-members"] as const,
   friendlyGames: ["friendly-games"] as const,
@@ -998,18 +1003,204 @@ export function useAcademyRatings() {
 export function useRateAcademy() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ academyId, rating }: { academyId: string; rating: number }) => {
+    mutationFn: async ({
+      academyId,
+      rating,
+      comment,
+    }: {
+      academyId: string;
+      rating: number;
+      comment?: string;
+    }) => {
       const { data: session } = await supabase().auth.getSession();
       const uid = session.session?.user.id;
       if (!uid) throw new Error("not authenticated");
       const { error } = await supabase().from("academy_ratings").upsert(
-        { academy_id: academyId, member_id: uid, rating },
+        { academy_id: academyId, member_id: uid, rating, comment: comment ?? null },
         { onConflict: "academy_id,member_id" }
       );
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.academyRatings });
+    },
+  });
+}
+
+export function usePlaygroundRatings() {
+  return useQuery({
+    queryKey: queryKeys.playgroundRatings,
+    queryFn: async () => {
+      const { data, error } = await supabase()
+        .from("playground_ratings")
+        .select("*");
+      if (error) throw error;
+      return (data ?? []) as PlaygroundRating[];
+    },
+  });
+}
+
+export function useRatePlayground() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      venueId,
+      rating,
+      comment,
+    }: {
+      venueId: string;
+      rating: number;
+      comment?: string;
+    }) => {
+      const { data: session } = await supabase().auth.getSession();
+      const uid = session.session?.user.id;
+      if (!uid) throw new Error("not authenticated");
+      const { error } = await supabase().from("playground_ratings").upsert(
+        { venue_id: venueId, member_id: uid, rating, comment: comment ?? null },
+        { onConflict: "venue_id,member_id" }
+      );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.playgroundRatings });
+    },
+  });
+}
+
+/** Academy/venue ids the current member is allowed to rate (attended). */
+export function useMyRatingEligibility() {
+  return useQuery({
+    queryKey: queryKeys.ratingEligibility,
+    queryFn: async () => {
+      const {
+        data: { user },
+      } = await supabase().auth.getUser();
+      if (!user) {
+        return { academies: new Set<string>(), playgrounds: new Set<string>() };
+      }
+      const { data, error } = await supabase().rpc("member_rating_eligibility");
+      if (error) throw error;
+      return {
+        academies: new Set<string>((data?.academies ?? []) as string[]),
+        playgrounds: new Set<string>((data?.playgrounds ?? []) as string[]),
+      };
+    },
+  });
+}
+
+/**
+ * Playgrounds the member just played at (completed friendly game in the last
+ * 14 days) that they haven't rated yet, newest game first. Drives the
+ * post-game rating prompt; excludes waitlist-only entries.
+ */
+export function useUnratedPlaygroundTargets(memberId: string) {
+  return useQuery({
+    queryKey: [...queryKeys.myGameParticipants, "unrated-targets", memberId],
+    enabled: !!memberId,
+    queryFn: async () => {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 14);
+      const cutoffISO = cutoff.toISOString().slice(0, 10);
+
+      const { data: ratings, error: ratingsError } = await supabase()
+        .from("playground_ratings")
+        .select("venue_id")
+        .eq("member_id", memberId);
+      if (ratingsError) throw ratingsError;
+      const ratedVenues = new Set((ratings ?? []).map((r) => r.venue_id));
+
+      const { data, error } = await supabase()
+        .from("friendly_game_participants")
+        .select(
+          "is_waitlisted, game:friendly_games!inner(id, game_date, start_time, playground_id, playground:venues(id, name, address, country, governorate, area, photos, cover_url))"
+        )
+        .eq("member_id", memberId)
+        .gte("game.game_date", cutoffISO)
+        .eq("game.status", "completed")
+        .limit(100);
+      if (error) throw error;
+
+      const targets = new Map<string, CompletedGameRatingTarget>();
+      for (const row of (data ?? []) as any[]) {
+        if (row.is_waitlisted) continue;
+        const game = Array.isArray(row.game) ? row.game[0] : row.game;
+        const venue = Array.isArray(game?.playground) ? game.playground[0] : game?.playground;
+        if (!game || !venue || ratedVenues.has(venue.id)) continue;
+        const key = `${game.game_date}T${game.start_time ?? ""}`;
+        const existing = targets.get(venue.id);
+        if (!existing || key > `${existing.gameDate}T${existing.startTime ?? ""}`) {
+          targets.set(venue.id, {
+            gameId: game.id,
+            gameDate: game.game_date,
+            startTime: game.start_time ?? null,
+            venue,
+          });
+        }
+      }
+      return Array.from(targets.values()).sort(
+        (a, b) => (b.gameDate + (b.startTime ?? "")).localeCompare(a.gameDate + (a.startTime ?? ""))
+      );
+    },
+  });
+}
+
+/**
+ * Academies the member just trained at (present attendance at a completed
+ * session in the last 14 days) that they haven't rated yet, newest first.
+ * Drives the post-session academy rating prompt.
+ */
+export function useUnratedAcademyTargets(memberId: string) {
+  return useQuery({
+    queryKey: [...queryKeys.sessions, "unrated-academy-targets", memberId],
+    enabled: !!memberId,
+    queryFn: async () => {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 14);
+      const cutoffISO = cutoff.toISOString().slice(0, 10);
+
+      const { data: ratings, error: ratingsError } = await supabase()
+        .from("academy_ratings")
+        .select("academy_id")
+        .eq("member_id", memberId);
+      if (ratingsError) throw ratingsError;
+      const ratedAcademies = new Set((ratings ?? []).map((r) => r.academy_id));
+
+      const { data, error } = await supabase()
+        .from("attendance")
+        .select(
+          "is_present, session:training_sessions!inner(id, date, time, status, academy:academies(id, name, cover_url, logo_url, governorate, area))"
+        )
+        .eq("member_id", memberId)
+        .eq("is_present", true)
+        .gte("session.date", cutoffISO)
+        .eq("session.status", "completed")
+        .limit(100);
+      if (error) throw error;
+
+      const targets = new Map<string, CompletedSessionRatingTarget>();
+      for (const row of (data ?? []) as any[]) {
+        const session = Array.isArray(row.session) ? row.session[0] : row.session;
+        const academy = Array.isArray(session?.academy)
+          ? session.academy[0]
+          : session?.academy;
+        if (!session || !academy || ratedAcademies.has(academy.id)) continue;
+        const key = `${session.date}T${session.time ?? ""}`;
+        const existing = targets.get(academy.id);
+        if (!existing || key > `${existing.sessionDate}T${existing.sessionTime ?? ""}`) {
+          targets.set(academy.id, {
+            sessionId: session.id,
+            sessionDate: session.date,
+            sessionTime: session.time ?? null,
+            academy,
+          });
+        }
+      }
+      return Array.from(targets.values()).sort(
+        (a, b) =>
+          (b.sessionDate + (b.sessionTime ?? "")).localeCompare(
+            a.sessionDate + (a.sessionTime ?? "")
+          )
+      );
     },
   });
 }

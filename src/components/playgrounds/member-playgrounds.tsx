@@ -1,11 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { CalendarDays, Plus } from "lucide-react";
-import { usePlaygrounds, useFriendlyGames } from "@/lib/queries";
+import { useMemo, useState } from "react";
+import { CalendarDays, Plus, Star } from "lucide-react";
+import { toast } from "sonner";
+import {
+  useCurrentProfile,
+  useFriendlyGames,
+  useMyRatingEligibility,
+  usePlaygroundRatings,
+  usePlaygrounds,
+  useRatePlayground,
+} from "@/lib/queries";
+import { RatingControl, type RatingSubmit } from "@/components/shared/rating-control";
 import { useI18n } from "@/lib/i18n";
 import { normalizeCountry } from "@/lib/locations";
-import { addDaysInput } from "@/lib/utils";
+import { addDaysInput, errorMessage } from "@/lib/utils";
 import { formatTime12h } from "@/lib/constants";
 import { allowedIntervalsForDate, unavailableIntervalsForDate, padMinutes } from "@/lib/venue-slots";
 import type { Venue } from "@/lib/types";
@@ -23,12 +32,54 @@ export function MemberPlaygrounds({ memberPlan }: { memberPlan: "free" | "premiu
   const { t, lang } = useI18n();
   const ar = lang === "ar";
   const query = usePlaygrounds();
+  const { data: ratings } = usePlaygroundRatings();
+  const { data: ratingEligibility } = useMyRatingEligibility();
+  const { data: profile } = useCurrentProfile();
+  const rate = useRatePlayground();
   const [location, setLocation] = useState<PlaygroundLocationSelection>({ country: "all", governorate: "all", area: "all" });
   const [sport, setSport] = useState("all");
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [creating, setCreating] = useState<{ venue: Venue; date: string } | null>(null);
   const venues = query.data ?? [];
+
+  const statsByVenue = useMemo(() => {
+    const map = new Map<string, { avg: number; count: number; mine?: number; mineComment?: string }>();
+    for (const r of ratings ?? []) {
+      const s = map.get(r.venue_id) ?? { avg: 0, count: 0 };
+      const total = s.avg * s.count + r.rating;
+      s.count += 1;
+      s.avg = total / s.count;
+      map.set(r.venue_id, s);
+    }
+    const uid = profile?.id;
+    if (uid) {
+      for (const r of ratings ?? []) {
+        if (r.member_id === uid) {
+          const s = map.get(r.venue_id);
+          if (s) {
+            s.mine = r.rating;
+            s.mineComment = r.comment ?? undefined;
+          }
+        }
+      }
+    }
+    return map;
+  }, [ratings, profile?.id]);
+
+  const canRateVenue = (venueId: string) =>
+    !!profile && !!ratingEligibility?.playgrounds.has(venueId);
+
+  const submitVenueRating = async (venueId: string, payload: RatingSubmit) => {
+    try {
+      await rate.mutateAsync({ venueId, rating: payload.rating, comment: payload.comment });
+      toast.success(t("rate_submitted"));
+    } catch (err) {
+      toast.error(errorMessage(err, t("common_error")));
+      throw err;
+    }
+  };
+
   const sports = [...new Set(venues.map(venue => venue.sport?.name).filter((name): name is string => !!name))].sort();
   const filtered = venues.filter(venue =>
     (location.country === "all" || normalizeCountry(venue.country ?? "") === location.country) &&
@@ -54,6 +105,12 @@ export function MemberPlaygrounds({ memberPlan }: { memberPlan: "free" | "premiu
       <div className="grid items-start gap-4 lg:grid-cols-2">{filtered.map(venue => <article key={venue.id} className="overflow-hidden rounded-2xl border bg-card">
         <PlaygroundOptionCard playground={venue} selected={expanded === venue.id} onSelect={() => setExpanded(expanded === venue.id ? null : venue.id)} />
         <div className="space-y-3 p-4 pt-0">
+          <VenueRating
+            stat={statsByVenue.get(venue.id)}
+            showControl={!!profile}
+            canRate={canRateVenue(venue.id)}
+            onSubmit={payload => submitVenueRating(venue.id, payload)}
+          />
           <p className="text-sm font-medium">{venue.sport?.name ?? (ar ? "الرياضة غير محددة" : "Sport not specified")}</p>
           <Button variant="outline" className="gap-2" aria-expanded={expanded === venue.id} onClick={() => setExpanded(expanded === venue.id ? null : venue.id)}><CalendarDays className="h-4 w-4" />{ar ? "المواعيد المتاحة وإنشاء مباراة" : "Availability & create game"}</Button>
           {expanded === venue.id && <VenueAvailability venue={venue} onCreate={date => setCreating({ venue, date })} />}
@@ -62,6 +119,46 @@ export function MemberPlaygrounds({ memberPlan }: { memberPlan: "free" | "premiu
     </QueryState>
     {creating && <CreateGameDialog open onOpenChange={open => { if (!open) setCreating(null); }} memberPlan={memberPlan} initialPlayground={creating.venue} initialDate={creating.date} />}
   </div>;
+}
+
+function VenueRating({ stat, showControl, canRate, onSubmit }: {
+  stat?: { avg: number; count: number; mine?: number; mineComment?: string };
+  showControl: boolean;
+  canRate: boolean;
+  onSubmit: (payload: RatingSubmit) => Promise<void>;
+}) {
+  const { t } = useI18n();
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-0.5" dir="ltr">
+            {[1, 2, 3, 4, 5].map(i => (
+              <Star key={i} className={`h-4 w-4 ${i <= Math.round(stat?.avg ?? 0) ? "fill-attention-400 text-attention-400" : "text-muted-foreground/40"}`} />
+            ))}
+          </span>
+          {stat && stat.count > 0 ? (
+            <span className="text-xs text-muted-foreground">
+              {(stat.avg ?? 0).toFixed(1)} · {t("directory_reviews").replace("{n}", String(stat.count))}
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground">{t("directory_no_rating")}</span>
+          )}
+        </div>
+      </div>
+      {showControl && (
+        canRate ? (
+          <RatingControl
+            initialRating={stat?.mine ?? 0}
+            initialComment={stat?.mineComment ?? ""}
+            onSubmit={onSubmit}
+          />
+        ) : (
+          <p className="text-xs text-muted-foreground">{t("directory_rating_play_hint")}</p>
+        )
+      )}
+    </div>
+  );
 }
 
 function VenueAvailability({ venue, onCreate }: { venue: Venue; onCreate: (date: string) => void }) {

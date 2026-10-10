@@ -877,6 +877,46 @@ export interface SessionRating {
   created_at: string;
 }
 
+export interface PlaygroundRating {
+  id: string;
+  venue_id: string;
+  member_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CompletedGameRatingTarget {
+  gameId: string;
+  gameDate: string;
+  startTime: string | null;
+  venue: {
+    id: string;
+    name: string;
+    address: string | null;
+    country: string | null;
+    governorate: string | null;
+    area: string | null;
+    photos: string[];
+    cover_url: string | null;
+  };
+}
+
+export interface CompletedSessionRatingTarget {
+  sessionId: string;
+  sessionDate: string;
+  sessionTime: string | null;
+  academy: {
+    id: string;
+    name: string;
+    cover_url: string | null;
+    logo_url: string | null;
+    governorate: string | null;
+    area: string | null;
+  };
+}
+
 export interface MemberBadge {
   id: string;
   member_id: string;

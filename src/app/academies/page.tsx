@@ -33,11 +33,13 @@ import { createClient } from "@/lib/supabase/client";
 import {
   joinPublicAcademy,
   useAcademyRatings,
+  useMyRatingEligibility,
   usePublicAcademies,
   usePublicSports,
   useRateAcademy,
 } from "@/lib/queries";
 import { FollowAcademyButton } from "@/components/academies/follow-badge-button";
+import { RatingControl, type RatingSubmit } from "@/components/shared/rating-control";
 
 function Stars({
   value,
@@ -69,6 +71,7 @@ export default function AcademiesDirectoryPage() {
   const { data: academies, isLoading } = usePublicAcademies();
   const { data: sports } = usePublicSports();
   const { data: ratings } = useAcademyRatings();
+  const { data: ratingEligibility } = useMyRatingEligibility();
   const rate = useRateAcademy();
 
   const [myId, setMyId] = useState<string | null>(null);
@@ -114,7 +117,7 @@ export default function AcademiesDirectoryPage() {
   const statsByAcademy = useMemo(() => {
     const map = new Map<
       string,
-      { avg: number; count: number; mine?: number }
+      { avg: number; count: number; mine?: number; mineComment?: string }
     >();
     for (const r of ratings ?? []) {
       const s = map.get(r.academy_id) ?? { avg: 0, count: 0 };
@@ -127,7 +130,10 @@ export default function AcademiesDirectoryPage() {
       for (const r of ratings ?? []) {
         if (r.member_id === myId) {
           const s = map.get(r.academy_id);
-          if (s) s.mine = r.rating;
+          if (s) {
+            s.mine = r.rating;
+            s.mineComment = r.comment ?? undefined;
+          }
         }
       }
     }
@@ -315,12 +321,20 @@ export default function AcademiesDirectoryPage() {
     }
   };
 
-  const onRate = async (academyId: string, value: number) => {
+  const canRateAcademy = (academyId: string) =>
+    !!myId && !!ratingEligibility?.academies.has(academyId);
+
+  const submitAcademyRating = async (academyId: string, payload: RatingSubmit) => {
     try {
-      await rate.mutateAsync({ academyId, rating: value });
+      await rate.mutateAsync({
+        academyId,
+        rating: payload.rating,
+        comment: payload.comment,
+      });
       toast.success(t("rate_submitted"));
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
+      throw err;
     }
   };
 
@@ -636,29 +650,25 @@ export default function AcademiesDirectoryPage() {
                       </p>
                     )}
 
-                    {/* Rate (registered members only) */}
+                    {/* Rate (registered members only; only attendees can submit) */}
                     {myId && (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        {t("directory_your_rating")}:
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <button
-                            key={i}
-                            type="button"
-                            aria-label={`${i}`}
-                            disabled={rate.isPending}
-                            onClick={() => onRate(a.id, i)}
-                            className="transition-transform hover:scale-110"
-                          >
-                            <Star
-                              className={`h-4 w-4 ${
-                                i <= (stat?.mine ?? 0)
-                                  ? "fill-attention-400 text-attention-400"
-                                  : "text-muted-foreground/40"
-                              }`}
-                            />
-                          </button>
-                        ))}
-                      </div>
+                      canRateAcademy(a.id) ? (
+                        <div className="space-y-1.5">
+                          <p className="text-xs text-muted-foreground">
+                            {t("directory_your_rating")}:
+                          </p>
+                          <RatingControl
+                            initialRating={stat?.mine ?? 0}
+                            initialComment={stat?.mineComment ?? ""}
+                            size="h-4 w-4"
+                            onSubmit={(payload) => submitAcademyRating(a.id, payload)}
+                          />
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          {t("directory_rating_attend_hint")}
+                        </p>
+                      )
                     )}
 
                     <div className="mt-auto pt-2">

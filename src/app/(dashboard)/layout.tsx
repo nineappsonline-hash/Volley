@@ -8,6 +8,7 @@ import { TrialGate } from "@/components/shared/trial-gate";
 import { InstallBanner } from "@/components/marketing/install-banner";
 import { PushPrompt } from "@/components/shared/push-prompt";
 import { InAppNotificationToast } from "@/components/shared/in-app-notification-toast";
+import { RatingPrompt } from "@/components/shared/rating-prompt";
 
 export default async function DashboardLayout({
   children,
@@ -74,6 +75,7 @@ export default async function DashboardLayout({
         </main>
         {profile.role !== "super_admin" && <PushPrompt />}
         <InAppNotificationToast userId={profile.id} />
+        {profile.role === "member" && <RatingPrompt memberId={profile.id} />}
         {profile.role === "member" && <MemberBottomNavigation />}
       </div>
     </div>
