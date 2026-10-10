@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Building2, CalendarDays, Compass, Heart, LandPlot, ShoppingBag, Sparkles, Trophy, Users, UserRound } from "lucide-react";
+import { Building2, CalendarDays, Compass, Crown, Heart, LandPlot, ShoppingBag, Sparkles, Trophy, Users, UserRound } from "lucide-react";
 
 interface PageHeaderProps {
   title: string;
@@ -12,7 +12,9 @@ interface PageHeaderProps {
 /** Shared visual identity for page introductions, with section-specific art. */
 export function PageHeader({ title, subtitle, children }: PageHeaderProps) {
   const path = usePathname() ?? "";
-  const theme = path.includes("tournament") || path.includes("leaderboard")
+  const theme = path === "/admin"
+    ? { color: "from-slate-900 via-indigo-900 to-purple-900", icon: Crown }
+    : path.includes("tournament") || path.includes("leaderboard")
     ? { color: "from-fuchsia-900 via-purple-800 to-indigo-800", icon: Trophy }
     : path.includes("playground") || path.includes("rental")
       ? { color: "from-orange-900 via-orange-800 to-rose-800", icon: LandPlot }
