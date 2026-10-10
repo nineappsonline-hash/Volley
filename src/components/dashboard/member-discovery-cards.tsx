@@ -20,6 +20,9 @@ import {
   useFriendlyGames,
   usePlaygrounds,
   usePublicAcademies,
+  useMyAcademyFollows,
+  useMyUpcomingGames,
+  useMyTournaments,
 } from "@/lib/queries";
 import { formatTime12h } from "@/lib/constants";
 import { venueCardPhoto } from "@/lib/venue-media";
@@ -52,7 +55,9 @@ function DiscoveryCard({
   items,
   query,
   empty,
-  footer,
+  tone,
+  description,
+  action,
 }: {
   title: string;
   href: string;
@@ -60,45 +65,44 @@ function DiscoveryCard({
   items: DiscoveryItem[];
   query: DiscoveryQuery;
   empty: string;
-  /** Optional CTA rendered under the strip (e.g. "Discover more games"). */
-  footer?: React.ReactNode;
+  tone: "games" | "tournaments" | "academies" | "playgrounds";
+  description: string;
+  action: string;
 }) {
-  const { lang } = useI18n();
-  const ar = lang === "ar";
   const id = useId();
 
   return (
     <section aria-labelledby={`${id}-title`} className="min-w-0">
       <div className="group relative overflow-hidden rounded-2xl border bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg">
-        {/* Dark graphic header with court markings behind the title */}
-        <div className="relative flex flex-wrap items-center justify-between gap-2 overflow-hidden bg-[#0A1E3F] px-4 py-3 text-white">
-          <div className="pointer-events-none absolute inset-0 opacity-25">
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 240 60"
-              preserveAspectRatio="xMidYMid slice"
-              className="h-full w-full -scale-x-100 text-success-300"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <path d="M0 0h60v60H0M180 0h60v60h-60M60 30h120M120 0v60" />
-              <circle cx="120" cy="30" r="10" />
+        <div className={cn("relative isolate overflow-hidden px-5 py-6 text-white sm:px-6", {
+          "bg-gradient-to-br from-blue-700 via-indigo-700 to-violet-700": tone === "games",
+          "bg-gradient-to-br from-fuchsia-800 via-purple-700 to-indigo-700": tone === "tournaments",
+          "bg-gradient-to-br from-teal-800 via-teal-700 to-emerald-700": tone === "academies",
+          "bg-gradient-to-br from-orange-800 via-orange-700 to-rose-700": tone === "playgrounds",
+        })}>
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+            <div className="absolute -end-10 -top-16 h-56 w-56 rounded-full border-[24px] border-white/10" />
+            <div className="absolute bottom-4 end-5 h-24 w-24 rotate-12 rounded-3xl bg-white/10" />
+            <Icon className="absolute bottom-5 end-6 h-20 w-20 -rotate-12 text-white/30 sm:h-28 sm:w-28" strokeWidth={1.25} />
+            {tone === "games" && <GameCardBackground sport="volleyball" />}
+            <svg viewBox="0 0 160 80" className="absolute end-0 top-0 h-20 w-40 text-amber-300/80" fill="currentColor">
+              <path d="m30 12 3 8 8 3-8 3-3 8-3-8-8-3 8-3Zm90 30 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z" />
+              <circle cx="75" cy="15" r="3" /><circle cx="145" cy="20" r="2" />
             </svg>
           </div>
-          <h2
-            id={`${id}-title`}
-            className="relative flex items-center gap-2 text-base font-semibold"
-          >
-            <Icon className="h-5 w-5 text-[#12C98A]" aria-hidden="true" />
-            {title}
-          </h2>
-          <Link
-            href={href}
-            className="relative rounded text-xs font-semibold text-[#12C98A] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {ar ? "عرض الكل" : "View all"}
-          </Link>
+          <div className="max-w-[75%] space-y-3">
+            <h2 id={`${id}-title`} className="flex items-center gap-2 text-xl font-extrabold sm:text-2xl">
+              <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+              {title}
+            </h2>
+            <p className="text-sm leading-relaxed text-white/90">{description}</p>
+            <Button asChild size="sm" className="h-auto min-h-9 max-w-full whitespace-normal bg-white text-slate-900 shadow-sm hover:bg-white/90">
+              <Link href={href} className="gap-2">
+                {action}
+                <ArrowRight className="h-4 w-4 shrink-0 rtl:rotate-180" aria-hidden="true" />
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {/* Card body with horizontal scrollable items */}
@@ -179,21 +183,27 @@ function DiscoveryCard({
               </ul>
             )}
           </QueryState>
-          {items.length > 0 && footer && <div className="px-4 pb-4">{footer}</div>}
+
         </div>
       </div>
     </section>
   );
 }
 
-export function MemberDiscoveryCards() {
+export function MemberDiscoveryCards({ memberId, hasAcademy }: { memberId: string; hasAcademy: boolean }) {
   const { t, lang, locale } = useI18n();
   useRealtime(["friendly_games", "friendly_game_participants"]);
   const games = useFriendlyGames();
   const tournaments = useAllTournaments();
   const playgrounds = usePlaygrounds();
   const academies = usePublicAcademies();
+  const myGames = useMyUpcomingGames(memberId);
+  const myTournaments = useMyTournaments(memberId);
+  const follows = useMyAcademyFollows();
   const ar = lang === "ar";
+  const academyJoined = hasAcademy || !!follows.data?.length;
+  const gameJoined = !!myGames.data?.length;
+  const tournamentJoined = !!myTournaments.data?.length;
   const today = format(new Date(), "yyyy-MM-dd");
   const dateLabel = (date: string) =>
     format(new Date(`${date}T00:00:00`), "MMM d", { locale });
@@ -294,7 +304,10 @@ export function MemberDiscoveryCards() {
   return (
     <div className="min-w-0 space-y-4">
       <DiscoveryCard
-        title={ar ? "أكاديميات حولك" : "Academies around you"}
+        title={ar ? "الأكاديميات" : "Academies"}
+        tone="academies"
+        description={ar ? "طوّر مهاراتك واكتشف مكانك وسط فريق جديد." : "Build your skills. Find your team. Grow your game."}
+        action={academyJoined ? (ar ? "اكتشف المزيد من الأكاديميات" : "Discover more academies") : (ar ? "ابحث عن أكاديمية" : "Find an academy")}
         href="/academies"
         icon={Building2}
         items={academyItems}
@@ -302,23 +315,22 @@ export function MemberDiscoveryCards() {
         empty={ar ? "مفيش أكاديميات متاحة حالياً." : "No academies available yet."}
       />
       <DiscoveryCard
-        title={ar ? "مباريات حولك" : "Games around you"}
+        title={ar ? "المباريات" : "Games"}
+        tone="games"
+        description={ar ? "انزل الملعب وقابل لاعبين وشارك في المباراة الجاية." : "Hit the court, meet new players, and make your next move."}
+        action={gameJoined ? (ar ? "اكتشف المزيد من المباريات" : "Discover more games") : (ar ? "ابحث عن مباراة" : "Find games")}
         href="/dashboard/games"
         icon={LandPlot}
         items={gameItems}
         query={games}
         empty={ar ? "مفيش مباريات متاحة حالياً. تابعنا قريب." : "No active games right now. Check back soon."}
-        footer={
-          <Button asChild variant="outline" className="w-full gap-2">
-            <Link href="/dashboard/games">
-              {ar ? "اكتشف المزيد من المباريات" : "Discover more games"}
-              <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
-            </Link>
-          </Button>
-        }
+
       />
       <DiscoveryCard
         title={t("nav_tournaments")}
+        tone="tournaments"
+        description={ar ? "تحدّى نفسك ونافس على الكأس مع فريقك." : "Bring your team spirit. Chase the trophy. Make it count."}
+        action={tournamentJoined ? (ar ? "اكتشف المزيد من البطولات" : "Discover more tournaments") : (ar ? "ابحث عن بطولة" : "Find tournaments")}
         href="/dashboard/tournaments"
         icon={Trophy}
         items={tournamentItems}
@@ -327,6 +339,9 @@ export function MemberDiscoveryCards() {
       />
       <DiscoveryCard
         title={t("nav_playgrounds")}
+        tone="playgrounds"
+        description={ar ? "اكتشف ملاعب جديدة لمباراتك الجاية." : "Find a fresh court for your next great game."}
+        action={ar ? "ابحث عن ملعب" : "Find playgrounds"}
         href="/playgrounds"
         icon={LandPlot}
         items={playgroundItems}

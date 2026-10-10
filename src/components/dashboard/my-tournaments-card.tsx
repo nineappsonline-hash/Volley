@@ -108,16 +108,17 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
   );
 
   return (
-    <Card className="rounded-2xl shadow-none">
-      <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+    <Card className="overflow-hidden rounded-2xl shadow-none">
+      <CardHeader className="mb-4 flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-fuchsia-800 via-purple-700 to-indigo-700 text-white">
         <CardTitle className="flex items-center gap-2 text-base">
-          <Trophy className="h-4 w-4 text-primary" />
+          <Trophy className="h-6 w-6 text-amber-300" />
           {t("td_my_tournaments")}
         </CardTitle>
-        <Badge variant="outline" className="gap-1">
+        <Badge variant="outline" className="gap-1 border-white/30 text-white">
           <Swords className="h-3 w-3" />
           {entries?.length ?? 0}
         </Badge>
+        {!!entries?.length && <Button asChild size="sm" className="bg-white text-purple-900 hover:bg-white/90"><Link href="/dashboard/tournaments">{lang === "ar" ? "اكتشف المزيد من البطولات" : "Discover more tournaments"}</Link></Button>}
       </CardHeader>
       <CardContent className="space-y-2">
         {isPending ? (
@@ -136,7 +137,7 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
           <EmptyState
             message={t("td_empty")}
             icon={Trophy}
-            action={<Button asChild size="sm"><Link href="/dashboard/tournaments">{t("td_view_all")}</Link></Button>}
+            action={<Button asChild size="sm"><Link href="/dashboard/tournaments">{lang === "ar" ? "ابحث عن بطولة" : "Find tournaments"}</Link></Button>}
           />
         ) : (
           entries.map(({ participant_id, tournament, myTeam }) => {

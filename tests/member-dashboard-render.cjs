@@ -188,3 +188,43 @@ assert.ok(html.includes(dictionary.ar.dash_today), 'Arabic day header');
 lang = 'en';
 
 console.log('PASS: dashboard cards render correctly in both languages');
+// Discovery CTAs depend on membership, even when public listings are empty.
+let joined = false;
+const discoveryQuery = (data = []) => ({ data, isPending: false, isError: false, refetch: () => {} });
+Object.assign(mocks['@/lib/queries'], {
+  useFriendlyGames: () => discoveryQuery(),
+  useAllTournaments: () => discoveryQuery(),
+  usePlaygrounds: () => discoveryQuery(),
+  usePublicAcademies: () => discoveryQuery(),
+  useMyUpcomingGames: () => discoveryQuery(joined ? [{ id: 'game' }] : []),
+  useMyTournaments: () => discoveryQuery(joined ? [{ participant_id: 'entry' }] : []),
+  useMyAcademyFollows: () => discoveryQuery(joined ? [{ academy_id: 'academy' }] : []),
+});
+mocks['@/components/academies/academy-logo'] = { AcademyLogo: () => null };
+const { MemberDiscoveryCards } = loadFile(path.join(root, 'src/components/dashboard/member-discovery-cards.tsx'), mocks);
+const renderDiscovery = (hasAcademy = false) => renderToStaticMarkup(h(MemberDiscoveryCards, { memberId: 'member-1', hasAcademy }));
+html = renderDiscovery();
+for (const label of ['Find games', 'Find tournaments', 'Find an academy', 'Find playgrounds']) {
+  assert.ok(html.includes(label), `empty discovery includes ${label}`);
+}
+for (const href of ['/dashboard/games', '/dashboard/tournaments', '/academies', '/playgrounds']) {
+  assert.ok(html.includes(`href="${href}"`), `discovery links to ${href}`);
+}
+assert.ok(renderDiscovery(true).includes('Discover more academies'), 'academy membership changes the academy CTA');
+joined = true;
+html = renderDiscovery();
+for (const section of ['games', 'tournaments', 'academies']) {
+  assert.ok(html.includes(`Discover more ${section}`), `joined members can discover more ${section}`);
+}
+lang = 'ar';
+html = renderDiscovery();
+assert.ok(html.includes('اكتشف المزيد من المباريات'));
+assert.ok(html.includes('اكتشف المزيد من البطولات'));
+assert.ok(html.includes('اكتشف المزيد من الأكاديميات'));
+joined = false;
+html = renderDiscovery();
+assert.ok(html.includes('ابحث عن مباراة'));
+assert.ok(html.includes('ابحث عن بطولة'));
+assert.ok(html.includes('ابحث عن أكاديمية'));
+lang = 'en';
+console.log('PASS: discovery CTAs reflect membership in English and Arabic, including empty listings');
