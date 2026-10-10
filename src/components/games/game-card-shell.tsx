@@ -3,6 +3,9 @@
 import { useId, useState, type ReactNode } from "react";
 import { format } from "date-fns";
 import { CalendarDays, ChevronDown, Clock, MapPin, Trophy, Users } from "lucide-react";
+import { sportToSlug } from "@/lib/sport-slugs";
+import { SportIcon } from "@/components/marketing/sport-icons";
+import { venueCardPhoto } from "@/lib/venue-media";
 import { GameCardBackground } from "./game-card-background";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney, formatTime12h } from "@/lib/constants";
@@ -18,18 +21,30 @@ export function GameCardShell({ game, joined, waitlisted, children }: { game: Fr
   const players = (game.participants ?? []).filter(p => !p.is_waitlisted);
   const slots = Math.max(0, game.max_players - game.participants_count);
   const percent = Math.min(100, Math.max(0, game.participants_count / Math.max(1, game.max_players) * 100));
+  const sport = sportToSlug(game.sport);
+  const theme = sport === "football" ? "from-emerald-800 via-teal-700 to-cyan-800"
+    : sport === "basketball" ? "from-orange-800 via-orange-700 to-rose-800"
+    : sport === "tennis" || sport === "padel" ? "from-teal-800 via-cyan-700 to-blue-800"
+    : "from-indigo-800 via-violet-700 to-fuchsia-800";
+  const photo = venueCardPhoto(game.playground?.photos, game.playground?.cover_url);
   const booking = gameBookingPayment(game);
-  return <article className="group/card self-start overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-lg">
-    <div className="relative overflow-hidden bg-[#0A1E3F] px-5 pb-5 pt-4 text-white">
+  return <article className="group/card self-start overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-lg hover:shadow-primary/10">
+    <div className={`relative isolate overflow-hidden bg-gradient-to-br ${theme} px-5 pb-5 pt-4 text-white`}>
+      {/* User venue photos can be hosted outside the configured image domains. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {photo && <img src={photo} alt="" loading="lazy" className="absolute inset-0 -z-20 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} />}
+      {photo && <div aria-hidden="true" className={`absolute inset-0 -z-10 bg-gradient-to-br ${theme} opacity-90`} />}
+      <div aria-hidden="true" className="pointer-events-none absolute -end-7 -top-12 h-44 w-44 rounded-full border-[18px] border-white/10" />
+      <div aria-hidden="true" className="pointer-events-none absolute end-4 top-12 rotate-12 text-white/20">{SportIcon({ id: sport, size: 80 })}</div>
       <GameCardBackground sport={game.sport} />
       <div className="relative flex flex-wrap items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-[#12C98A]"><Trophy className="h-4 w-4" />{game.sport}</span>
+        <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-white"><Trophy className="h-4 w-4" />{game.sport}</span>
         <span className="rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[11px] font-medium">{t(`community_status_${game.status}`)}</span>
       </div>
       <h3 className="relative mt-4 line-clamp-2 min-h-12 text-lg font-bold leading-6 text-white">{game.title}</h3>
       <div className="relative mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-white/90">
-        <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-[#12C98A]"/>{format(new Date(`${game.game_date}T00:00:00`), "EEE, d MMM", { locale })}</span>
-        <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-[#12C98A]"/>{formatTime12h(game.start_time, lang)}</span>
+        <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-white"/>{format(new Date(`${game.game_date}T00:00:00`), "EEE, d MMM", { locale })}</span>
+        <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-white"/>{formatTime12h(game.start_time, lang)}</span>
       </div>
     </div>
     <div className="space-y-4 p-5">
@@ -39,7 +54,7 @@ export function GameCardShell({ game, joined, waitlisted, children }: { game: Fr
       </div>
       <div>
         <div className="mb-2 flex items-center justify-between gap-2 text-xs"><span className="inline-flex items-center gap-1.5 font-medium"><Users className="h-3.5 w-3.5"/>{game.participants_count}/{game.max_players} {ar ? "لاعب" : "players"}</span><span className="text-muted-foreground">{slots ? (ar ? `${slots} أماكن متاحة` : `${slots} spots left`) : (ar ? "مكتمل" : "Full")}</span></div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true"><div className="h-full rounded-full bg-primary" style={{ width: `${percent}%` }}/></div>
+        <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true"><div className={`h-full rounded-full bg-gradient-to-r ${theme}`} style={{ width: `${percent}%` }}/></div>
         {players.length > 0 && <p className="mt-2 truncate text-xs text-muted-foreground">{players.slice(0,3).map(p=>p.player_name).join(" · ")}{players.length > 3 ? ` +${players.length - 3}` : ""}</p>}
       </div>
       <div className="flex flex-wrap gap-1.5 text-[11px]">

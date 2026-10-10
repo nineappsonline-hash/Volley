@@ -62,7 +62,9 @@ import {
 import { EmptyState } from "@/components/shared/empty-state";
 import { DirectionsLinks } from "@/components/shared/directions-links";
 import { PlaygroundDistance } from "@/components/shared/playground-distance";
-import { PageHeader } from "@/components/shared/page-header";
+import { GameCardBackground } from "./game-card-background";
+import { SportIcon } from "@/components/marketing/sport-icons";
+import { sportToSlug } from "@/lib/sport-slugs";
 import { ReportDialog } from "@/components/shared/report-dialog";
 import { parseMapsCoordinates } from "@/lib/maps";
 import { venueCardPhoto } from "@/lib/venue-media";
@@ -849,7 +851,7 @@ function DemoFinishedGameCard({ game }: { game: DemoFinishedGame }) {
 }
 
 export function GamesClient({ profile }: { profile: Profile }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const searchParams = useSearchParams();
   const joinCode = searchParams.get("join");
 
@@ -975,12 +977,31 @@ export function GamesClient({ profile }: { profile: Profile }) {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("games_page_title")} subtitle={t("games_page_subtitle")}>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="me-1 h-4 w-4" />
-          {t("games_create")}
-        </Button>
-      </PageHeader>
+      <header className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-900 via-violet-800 to-fuchsia-800 px-5 py-7 text-white sm:px-8 sm:py-10">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+          <GameCardBackground sport="basketball" />
+          <div className="absolute -bottom-20 -end-16 h-72 w-72 rounded-full border-[32px] border-white/10" />
+          <div className="absolute end-8 top-8 hidden -rotate-12 text-amber-300/40 sm:block">{SportIcon({ id: "volleyball", size: 110 })}</div>
+        </div>
+        <div className="relative max-w-2xl space-y-4">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold"><UsersRound className="h-4 w-4" />{lang === "ar" ? "رياضتك. فريقك. مباراتك الجاية." : "Your sport. Your people. Your next game."}</span>
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{t("games_page_title")}</h1>
+          <p className="max-w-lg text-sm leading-relaxed text-violet-100 sm:text-base">{t("games_page_subtitle")}</p>
+          <Button onClick={() => setDialogOpen(true)} className="min-h-11 bg-white text-violet-900 shadow-lg hover:bg-violet-50">
+            <Plus className="me-2 h-4 w-4" />{t("games_create")}
+          </Button>
+        </div>
+      </header>
+
+      <div className="space-y-3 rounded-2xl border bg-gradient-to-br from-violet-50/70 to-blue-50/70 p-4 dark:from-violet-950/30 dark:to-blue-950/30 sm:p-5">
+        <h2 className="text-base font-bold">{lang === "ar" ? "اختار رياضتك" : "Pick your sport"}</h2>
+        <div className="flex gap-2 overflow-x-auto pb-2" aria-label={t("community_sport")}>
+          {["all", ...COMMUNITY_SPORTS].map(sport => <button key={sport} type="button" aria-pressed={sportFilter === sport} onClick={() => setSportFilter(sport)} className={`flex min-h-11 shrink-0 items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${sportFilter === sport ? "border-violet-700 bg-violet-700 text-white shadow-sm" : "border-border bg-background text-foreground hover:border-violet-400 hover:bg-violet-100 dark:hover:bg-violet-950"}`}>
+            {sport !== "all" && <span aria-hidden="true">{SportIcon({ id: sportToSlug(sport), size: 22 })}</span>}
+            {sport === "all" ? t("community_filter_all_sports") : sport}
+          </button>)}
+        </div>
+      </div>
 
       <InviteBanner
         inviteGame={inviteGame}
@@ -989,7 +1010,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
         error={inviteError}
       />
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 rounded-2xl border bg-card p-4 shadow-sm sm:grid-cols-2 sm:p-5 lg:grid-cols-4">
         <div className="sm:col-span-2 lg:col-span-4">
           <LocationFields
             filterMode
