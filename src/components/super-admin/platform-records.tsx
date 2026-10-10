@@ -1,4 +1,8 @@
 "use client";
+import { GameCardBackground } from "@/components/games/game-card-background";
+import { SportIcon } from "@/components/marketing/sport-icons";
+import { sportToSlug } from "@/lib/sport-slugs";
+import { Users, Trophy, Sparkles, ShieldCheck } from "lucide-react";
 import { MemberTrainingAssignment, ConfirmTrainingPayment, MemberAttendanceEdit } from "./member-training-assignment";
 import { MemberDetailsEditor } from "./member-details-editor";
 import { memberAge } from "@/lib/admin/member-details";
@@ -863,7 +867,16 @@ export function PlatformRecords() {
     [t("sa_records_participants")]: data.tournament_participants.filter(r => r.tournament_id === selected.id).map(r => ({ id: r.id, member: data.profiles.find(p => p.id === r.member_id)?.name ?? r.member_id })),
     [t("sa_records_matches")]: data.tournament_matches.filter(r => r.tournament_id === selected.id).sort((a, b) => (a.slot ?? 0) - (b.slot ?? 0)).map(r => ({ id: r.id, round: r.round_name, matchup: `${data.tournament_teams.find(x => x.id === r.team_a_id)?.name ?? "TBD"} vs ${data.tournament_teams.find(x => x.id === r.team_b_id)?.name ?? "TBD"}`, score: r.score_a != null ? `${r.score_a} – ${r.score_b}` : "—", status: r.status })),
   } : {}) : {};
-  return <Card>
+  const colorful = tab === "Members" || tab === "Friendly games";
+  const recordColor = tab === "Members" ? "from-blue-900 via-blue-800 to-cyan-800" : "from-indigo-900 via-violet-800 to-fuchsia-800";
+  const RecordIcon = tab === "Members" ? Users : Trophy;
+  return <Card className="overflow-hidden rounded-2xl">
+    {colorful && <div className={`relative isolate overflow-hidden bg-gradient-to-br ${recordColor} px-5 py-6 text-white sm:px-6`}>
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10"><RecordIcon className="absolute -bottom-4 end-8 h-36 w-36 -rotate-12 text-white/15" strokeWidth={1} /><Sparkles className="absolute top-4 end-5 h-7 w-7 text-amber-200/50" /><div className="absolute -top-20 -end-12 h-64 w-64 rounded-full border-[24px] border-white/10" /></div>
+      <span aria-hidden="true" className="inline-flex rounded-xl border border-white/20 bg-white/10 p-2"><RecordIcon className="h-6 w-6" /></span>
+      <h2 className="mt-3 text-2xl font-extrabold">{tab === "Members" ? t("sa_records_members") : t("sa_records_games")}</h2>
+      <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/90">{tab === "Members" ? (lang === "ar" ? "تابع حسابات اللاعبين والأكاديميات والاشتراكات من مكان واحد." : "Manage player accounts, academy connections, and subscriptions in one place.") : (lang === "ar" ? "تابع المباريات واللاعبين والحجوزات والمدفوعات." : "Keep track of games, players, bookings, and payments.")}</p>
+    </div>}
     <CardHeader><CardTitle>{t("sa_records_title")}</CardTitle><p className="text-sm text-muted-foreground">{t("sa_records_counts").replace("{accounts}", String(data.profiles.length)).replace("{academies}", String(data.academies.length)).replace("{games}", String(data.friendly_games.length)).replace("{playgrounds}", String(data.venues.length))}</p></CardHeader>
     <CardContent className="space-y-4">
       <div className="flex flex-wrap gap-2" role="tablist" aria-label={t("sa_records_title")}>{tabs.map(item => <Button key={item.value} role="tab" aria-selected={tab === item.value} variant={tab === item.value ? "default" : "outline"} onClick={() => { router.push(`/admin?tab=${encodeURIComponent(item.value)}`, { scroll: false }); }}>{item.label}</Button>)}</div>
@@ -927,10 +940,21 @@ export function PlatformRecords() {
         const allBlockedSlots = ((row.unavailable_slots ?? []) as VenueUnavailableSlot[]).slice().sort((a, b) => a.weekday - b.weekday || minutesOf(a.start) - minutesOf(b.start));
         const dayClosed = [...blockedIntervalsForDate((row.unavailable_slots ?? []) as VenueUnavailableSlot[], date), ...closedIntervalsFromWorkingHours((row.working_hours ?? []) as VenueUnavailableSlot[], date)];
         const { occupied, gaps } = rentalCoverage(data.venue_rentals.filter(r => r.venue_id === row.id) as RentalInterval[], date, dayClosed);
-        return <article key={row.id} className="rounded-xl border p-4 space-y-3">
+        return <article key={row.id} className={`space-y-3 overflow-hidden rounded-2xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md ${colorful ? "border-primary/20" : ""}`}>
+          {colorful && <div className={`relative isolate -mx-4 -mt-4 mb-4 flex min-h-20 items-center gap-3 overflow-hidden bg-gradient-to-br ${recordColor} px-4 py-4 text-white`}>
+            {tab === "Friendly games" ? <>
+              <GameCardBackground sport={row.sport ?? "volleyball"} />
+              <span aria-hidden="true" className="rounded-xl border border-white/20 bg-white/10 p-2">{SportIcon({ id: sportToSlug(row.sport ?? "volleyball"), size: 32 })}</span>
+              <div className="relative min-w-0"><p className="text-sm font-bold">{row.sport}</p><p className="mt-1 text-xs text-white/90">{row.game_date} · {row.start_time ? formatTime12h(String(row.start_time), lang) : ""}</p></div>
+            </> : <>
+              <Users aria-hidden="true" className="absolute -bottom-5 end-8 -z-10 h-28 w-28 text-white/15" strokeWidth={1} />
+              <ShieldCheck aria-hidden="true" className="h-8 w-8 text-cyan-200" />
+              <p className="relative text-sm font-semibold">{row.guardian_id ? t("sa_family_member") : t("sa_records_members")}</p>
+            </>}
+          </div>}
           <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 flex-1">
             <div className="flex items-center gap-2.5">
-              {tab === "Members" && <ProfileAvatar name={row.name ?? ""} url={row.avatar_url} avatarId={row.avatar_id} className="h-10 w-10 shrink-0" />}
+              {tab === "Members" && <ProfileAvatar name={row.name ?? ""} url={row.avatar_url} avatarId={row.avatar_id} className="h-12 w-12 shrink-0 ring-2 ring-blue-400/30 ring-offset-2 ring-offset-background" />}
               {tab === "Academies" && <AcademyLogo academyId={row.id} name={row.name ?? ""} logoUrl={row.logo_url ?? null} />}
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -944,7 +968,7 @@ export function PlatformRecords() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => { setMemberInitialTab("overview"); setSelected(row); }}>{t("sa_records_details")}</Button>{tab === "Friendly games" && <Button size="sm" variant="outline" onClick={() => setEditingGame(row)}>{t("sa_records_edit")}</Button>}{tab === "Friendly games" && (row.status === "open" || row.status === "full") && <Button size="sm" variant="destructive" disabled={cancelGame.isPending} onClick={() => setCancellingGame(row)}><Ban className="me-1 h-4 w-4" />{t("community_cancel_confirm_btn")}</Button>}{tab === "Members" && <><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => { setMemberInitialTab("academies"); setSelected(row); }}>{lang === "ar" ? "الأكاديمية والاشتراك" : "Academy & subscription"}</Button><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => act({ action: "block", id: row.id, blocked: !blocked })}>{blocked ? t("sa_records_unblock") : t("sa_records_block")}</Button><Button size="sm" variant="destructive" disabled={busy || protectedAccount} onClick={() => { setDeleting(row); setConfirmation(""); }}>{t("sa_records_delete")}</Button></>}{tab === "Academies" && <><Button size="sm" className="min-h-11 h-auto whitespace-normal" onClick={() => setTrainingAcademy(row)}>{lang === "ar" ? "مجموعات التدريب" : "Training groups"}</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setLogoAcademy(row as Academy)}>{t("sa_academy_logo")}</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setEditingAcademy(row as Academy)}>{t("sa_records_edit")}</Button><Button size="sm" variant="destructive" disabled={busy} onClick={() => { setDeletingAcademy(row as Academy); setConfirmation(""); }}>{t("sa_records_delete")}</Button></>}          {tab === "Playgrounds" && <><Button size="sm" variant="outline" disabled={busy} onClick={() => duplicateVenue(row)}><Copy className="me-1 h-3.5 w-3.5 rtl:me-0 rtl:ms-1" />{t("sa_records_duplicate")}</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setEditingVenue({ ...row, lat: row.lat ? String(row.lat) : "", lng: row.lng ? String(row.lng) : "" })}>{t("sa_records_edit")}</Button><Button size="sm" variant="destructive" disabled={busy} onClick={() => { setDeletingVenue(row); setConfirmation(""); }}>{t("sa_records_delete")}</Button></>}</div></div>
-          {tab === "Members" && <dl className="grid grid-cols-1 gap-3 rounded-lg bg-muted/40 p-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+          {tab === "Members" && <dl className="grid grid-cols-1 gap-3 rounded-xl border border-blue-200/50 bg-gradient-to-br from-blue-50 to-cyan-50 p-4 text-sm dark:border-blue-800/40 dark:from-blue-950/40 dark:to-cyan-950/30 sm:grid-cols-2 lg:grid-cols-4">
             <div className="min-w-0"><dt className="text-xs text-muted-foreground">{t("sa_academy")}</dt><dd className="mt-1 break-words font-medium">{academy(row.academy_id)}</dd><dd className="text-xs text-muted-foreground">{row.academy_id ? row.is_active ? t("sa_active_membership") : t("sa_pending_membership") : t("sa_not_joined")}</dd></div>
             <div><dt className="text-xs text-muted-foreground">{t("sa_platform_plan")}</dt><dd className="mt-1 font-medium">{row.member_plan === "premium" ? t("sa_premium") : t("sa_free")}</dd></div>
             <div><dt className="text-xs text-muted-foreground">{t("sa_academy_subscription")}</dt><dd className="mt-1 font-medium">{row.academy_id && row.subscription_sessions > 0 ? `${row.subscription_sessions} ${t("sa_records_sessions")}` : t("sa_no_subscription")}</dd></div>
