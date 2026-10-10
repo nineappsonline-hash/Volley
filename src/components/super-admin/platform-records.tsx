@@ -24,7 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { matchesAdminSearch } from "@/lib/admin-record-search";
 import { rentalCoverage, type RentalInterval } from "@/lib/admin-schedule";
-import { PLATFORM_ADMIN_EMAIL, matchesAccountEmail } from "@/lib/platform-admin";
+import { PLATFORM_ADMIN_EMAILS, matchesAccountEmail } from "@/lib/platform-admin";
 import { useCancelFriendlyGame, useSuperAdminDeleteAcademy, useAdminAddGameMember, useAdminRemoveGameMember } from "@/lib/queries";
 import type { Academy, VenueUnavailableSlot } from "@/lib/types";
 import type { Dict } from "@/lib/i18n/dictionary";
@@ -921,7 +921,7 @@ export function PlatformRecords() {
       {recordsPagination}
       {visibleRows.map(row => {
         const blocked = row.banned_until && new Date(row.banned_until) > new Date();
-        const protectedAccount = row.email?.toLowerCase() === PLATFORM_ADMIN_EMAIL;
+        const protectedAccount = PLATFORM_ADMIN_EMAILS.includes(row.email?.toLowerCase() ?? "");
         const rentals = data.venue_rentals.filter(r => r.venue_id === row.id && r.rental_date === date);
         const events = [...rentals.map(r => ({ time: r.start_time, label: `${t("sa_rental")} · ${r.customer_name} · ${r.hours} ${t("sa_records_hours")} · ${r.is_paid ? t("sa_records_paid") : t("sa_records_unpaid")}` })), ...data.training_sessions.filter(r => r.venue_id === row.id && r.date === date && r.status !== "canceled").map(r => ({ time: r.time, label: `${t("sa_training")} · ${t(STATUS_LABELS[r.status] ?? "sa_records_scheduled")} · ${t("sa_records_end_time_unknown")}` })), ...data.tournament_matches.filter(r => r.venue_id === row.id && r.match_date === date && r.status !== "canceled").map(r => ({ time: r.match_time ?? "", label: `${t("sa_tournament")} · ${r.round_name} · ${t("sa_records_end_time_unknown")}` }))].sort((a,b) => a.time.localeCompare(b.time));
         const allBlockedSlots = ((row.unavailable_slots ?? []) as VenueUnavailableSlot[]).slice().sort((a, b) => a.weekday - b.weekday || minutesOf(a.start) - minutesOf(b.start));
