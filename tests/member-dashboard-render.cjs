@@ -411,3 +411,25 @@ for (const [language, labels] of [['en', ['Today', 'Tomorrow', 'Day after tomorr
 }
 lang = 'en';
 console.log('PASS: Games carousel displays Today, Tomorrow and Day after tomorrow in both languages');
+
+// Personal goals expose creation and only personal progress controls.
+let workflowGoals = [{ id: 'own', created_by: 'member-1', title: 'Personal goal', notes: '', progress: 0 }, { id: 'coach', created_by: 'coach-1', title: 'Coach goal', notes: '', progress: 25 }];
+let workflowPlans = [];
+mocks['@tanstack/react-query'] = {
+  useQuery: ({ queryKey }) => discoveryQuery(queryKey[0] === 'training-goals' ? workflowGoals : queryKey[0] === 'renewal-plans' ? workflowPlans : []),
+  useQueryClient: () => ({ invalidateQueries: () => {} }),
+  useMutation: () => ({ isPending: false, mutate: () => {}, mutateAsync: async () => {} }),
+};
+mocks['@/lib/academy-training'] = { useTrainingPrograms: () => discoveryQuery([{ id: 'group-1', name: 'Adult volleyball', active: true, monthly_sessions: 8, monthly_price: 800 }]) };
+const workflows = loadFile(path.join(root, 'src/components/workflows/player-workflows.tsx'), mocks);
+html = renderToStaticMarkup(h(workflows.TrainingGoals, { memberId: 'member-1', canEdit: true, ownGoals: true }));
+assert.ok(html.includes('Add goal'));
+assert.equal(times(html, 'Update progress'), 1, 'members only edit their personal goal progress');
+html = renderToStaticMarkup(h(workflows.TrainingRenewal, { memberId: 'member-1', academyId: 'academy-1' }));
+assert.ok(html.includes('Adult volleyball'));
+assert.ok(!html.includes('Request renewal'), 'empty legacy packages switch to real training groups');
+workflowPlans = [{ id: 'plan-1', name: 'Full training package', sessions_count: 8, price: 800 }];
+html = renderToStaticMarkup(h(workflows.TrainingRenewal, { memberId: 'member-1', academyId: 'academy-1' }));
+assert.ok(html.includes('Full training package'));
+assert.ok(html.includes('Request renewal'));
+console.log('PASS: personal goal creation/ownership controls and current/legacy renewal package options');

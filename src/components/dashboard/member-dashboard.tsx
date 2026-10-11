@@ -80,7 +80,7 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
         <DashboardSection id="training" title={t("dash_section_training")}>
           <div className="space-y-4">
             <MemberTraining profile={p} onRemainingChange={setRemaining} />
-            {/* /profile#checkin only exists once the member has a QR code. */}
+            {/* The QR member pass is at the top of this dashboard. */}
             {p.checkin_code && <CheckInCard />}
           </div>
         </DashboardSection>
@@ -191,7 +191,7 @@ function CheckInCard() {
           </div>
         </div>
         <Button asChild className="gap-2">
-          <Link href="/profile#checkin">
+          <Link href="#checkin">
             <QrCode className="h-4 w-4" />
             {t("dash_checkin_now")}
           </Link>

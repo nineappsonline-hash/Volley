@@ -128,7 +128,7 @@ export function EvaluationsCard({ memberId, isAdmin }: EvaluationsCardProps) {
   const previous = evaluations?.[1];
 
   return (
-    <><TrainingGoals memberId={memberId} canEdit={isAdmin}/><Card>
+    <>{isAdmin && <TrainingGoals memberId={memberId} canEdit />}<Card>
       <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <ClipboardList className="h-4 w-4 text-primary" />
@@ -142,7 +142,7 @@ export function EvaluationsCard({ memberId, isAdmin }: EvaluationsCardProps) {
         )}
       </CardHeader>
       <CardContent className="space-y-2">
-        <p className="text-sm text-muted-foreground">{ar ? "تابع تقييم المدرب وملاحظاته، وقارن آخر تقييم باللي قبله. كل درجة من 5." : "Review coach feedback and compare the latest evaluation with the previous one. Scores are out of 5."}</p>
+        <p className="text-sm text-muted-foreground">{ar ? "تسجل إدارة الأكاديمية تقييم المدرب من ملف العضو: المهارات والتكتيك واللياقة والسلوك، بدرجات من ٥. تظهر المقارنة بعد تقييمين." : "Your academy records coach assessments from your member record: technique, tactics, fitness and attitude, scored out of 5. Progress comparisons appear after two assessments."}</p>
         {isLoading ? <p role="status" className="text-sm text-muted-foreground">{ar ? "جاري تحميل التقييمات…" : "Loading evaluations…"}</p>
           : isError ? <div role="alert"><p className="text-sm text-error-ink">{ar ? "تعذر تحميل التقييمات" : "Could not load evaluations"}</p><Button variant="outline" onClick={() => void refetch()}>{ar ? "حاول تاني" : "Retry"}</Button></div>
           : !evaluations || evaluations.length === 0 ? (
