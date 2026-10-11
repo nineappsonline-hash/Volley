@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { MemberTrainingPreview } from "./member-training-preview";
 import { CheckinQrCard } from "@/components/profile/checkin-qr-card";
-import { format } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
@@ -26,9 +26,9 @@ import { MyTournamentsCard } from "./my-tournaments-card";
 import { UpcomingTournamentsCard } from "./upcoming-tournaments-card";
 import { DashboardNavigation, DashboardSection } from "./dashboard-navigation";
 import { useI18n } from "@/lib/i18n";
-import { EXPIRY_ALERT_THRESHOLD, formatTime12h } from "@/lib/constants";
+import { EXPIRY_ALERT_THRESHOLD } from "@/lib/constants";
 import { usedSessionsSincePayment } from "@/lib/calculations";
-import { useAllPayments, useAttendance, useProfile, useSessions, useUpcomingSessions } from "@/lib/queries";
+import { useAllPayments, useAttendance, useProfile, useSessions } from "@/lib/queries";
 import {
   memberActions,
   translateAction,
@@ -63,7 +63,7 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
 
   return (
     <div className="mx-auto min-w-0 max-w-5xl space-y-8 pb-2">
-      {p.checkin_code && <section id="checkin" className="scroll-mt-24"><CheckinQrCard code={p.checkin_code} memberName={p.name} compact /></section>}
+      {p.checkin_code && <section id="checkin" className="scroll-mt-24"><CheckinQrCard code={p.checkin_code} memberName={p.name} profile={p} compact /></section>}
       <AcademySuggestionOnboarding
         memberName={p.name}
         hasAcademy={!!p.academy_id}
@@ -79,6 +79,8 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
       >
         <MyUpcomingGames memberId={p.id} onCountChange={setGames} />
       </DashboardSection>
+
+      <MemberTrainingPreview profile={p} />
 
       {p.academy_id && (
         <DashboardSection id="training" title={t("dash_section_training")}>
@@ -221,11 +223,10 @@ function MemberTraining({
   profile: Profile;
   onRemainingChange: (remaining: number) => void;
 }) {
-  const { t, lang, locale } = useI18n();
+  const { t, lang } = useI18n();
   const paymentsQuery = useAllPayments();
   const attendanceQuery = useAttendance();
   const sessionsQuery = useSessions();
-  const upcomingQuery = useUpcomingSessions();
   const payments = (paymentsQuery.data ?? []).filter(payment => payment.member_id === profile.id);
   const used = usedSessionsSincePayment(attendanceQuery.data ?? [], sessionsQuery.data ?? [], payments);
   const remaining = Math.max(profile.subscription_sessions - used, 0);
@@ -233,14 +234,14 @@ function MemberTraining({
     profile.subscription_sessions > 0
       ? Math.min(100, Math.round((used / profile.subscription_sessions) * 100))
       : 0;
-  const nextSession = upcomingQuery.data?.[0];
+
 
   useEffect(() => {
     onRemainingChange(remaining);
   }, [remaining, onRemainingChange]);
 
   return (
-    <QueryState queries={[paymentsQuery, attendanceQuery, sessionsQuery, upcomingQuery]}>
+    <QueryState queries={[paymentsQuery, attendanceQuery, sessionsQuery]}>
       <Card className="rounded-2xl shadow-none">
         <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0 pb-4">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -255,22 +256,6 @@ function MemberTraining({
           </Link>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-start gap-3 text-sm">
-            <CalendarDays className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
-            {nextSession ? (
-              <div>
-                <p className="font-medium">
-                  {format(new Date(nextSession.date + "T00:00:00"), "EEEE, MMM d", { locale })}
-                </p>
-                <p className="mt-1 text-muted-foreground">
-                  {formatTime12h(nextSession.time, lang)}
-                  {nextSession.location ? ` · ${nextSession.location}` : ""}
-                </p>
-              </div>
-            ) : (
-              <p className="text-muted-foreground">{t("profile_no_upcoming")}</p>
-            )}
-          </div>
           {payments.length > 0 && (
             <div className="space-y-2 border-t pt-4">
               <div className="flex items-center justify-between gap-2 text-sm">

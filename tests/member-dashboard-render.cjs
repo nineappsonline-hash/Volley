@@ -5,6 +5,15 @@ const ts = require('typescript');
 const React = require('react');
 const { renderToStaticMarkup } = require('react-dom/server');
 
+// Keep same-day fixtures upcoming regardless of the time the suite runs.
+const RealDate = Date;
+const fixedNow = new RealDate();
+fixedNow.setHours(12, 0, 0, 0);
+globalThis.Date = class extends RealDate {
+  constructor(...args) { super(...(args.length ? args : [fixedNow.getTime()])); }
+  static now() { return fixedNow.getTime(); }
+};
+
 const root = path.join(__dirname, '..');
 
 // Classic JSX output calls the global `React`, so expose it rather than passing

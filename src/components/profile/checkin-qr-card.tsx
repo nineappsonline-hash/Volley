@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
+import { useQuery } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase/client";
+import type { Profile } from "@/lib/types";
+import { profileAge } from "@/lib/member-training";
 import { Button } from "@/components/ui/button";
 import { QrCode } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,10 +16,32 @@ interface CheckinQrCardProps {
   code: string;
   memberName: string;
   compact?: boolean;
+  profile?: Profile;
 }
 
-export function CheckinQrCard({ code, memberName, compact = false }: CheckinQrCardProps) {
+export function CheckinQrCard({ code, memberName, compact = false, profile }: CheckinQrCardProps) {
   const { t, lang } = useI18n();
+  const academy = useQuery({
+    queryKey: ["member-qr-academy", profile?.academy_id],
+    enabled: !!profile?.academy_id,
+    queryFn: async () => {
+      const { data, error } = await createClient().from("academies").select("name").eq("id", profile!.academy_id!).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const ar = lang === "ar";
+  const age = profileAge(profile?.birth_date ?? null);
+  const details = profile ? [
+    [ar ? "الاسم" : "Name", profile.name],
+    [ar ? "اسم المستخدم" : "Username", profile.username],
+    [ar ? "كود العضو" : "Member code", code],
+    [ar ? "الهاتف" : "Phone", profile.phone],
+    [ar ? "النوع" : "Gender", profile.gender === "male" ? (ar ? "ذكر" : "Male") : profile.gender === "female" ? (ar ? "أنثى" : "Female") : null],
+    [ar ? "العمر" : "Age", age == null ? null : String(age)],
+    [ar ? "الأكاديمية" : "Academy", profile.academy_id ? academy.data?.name ?? (academy.isError ? (ar ? "تعذر تحميل الاسم" : "Name unavailable") : (ar ? "جار التحميل…" : "Loading…")) : (ar ? "غير مسجل في أكاديمية" : "No academy membership")],
+    [ar ? "الحالة" : "Status", profile.is_active ? (ar ? "نشط" : "Active") : (ar ? "غير نشط" : "Inactive")],
+  ] : [];
   const [dataUrl, setDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,6 +70,7 @@ export function CheckinQrCard({ code, memberName, compact = false }: CheckinQrCa
           {t("qr_title")}
         </CardTitle>
         <p className="text-xs text-muted-foreground">{t("qr_hint")}</p>
+        {profile && <dl className="mt-4 grid grid-cols-2 gap-x-5 gap-y-3 text-sm">{details.map(([label, value]) => <div key={label} className="min-w-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 break-words font-medium">{value || (ar ? "غير محدد" : "Not provided")}</dd></div>)}</dl>}
       </CardHeader>
       <CardContent className={compact ? "flex flex-col items-center gap-2 pt-0 sm:pt-6" : "flex flex-col items-center gap-3"}>
         {dataUrl ? (
