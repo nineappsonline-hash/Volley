@@ -1,5 +1,6 @@
 "use client";
 
+import { QueryState } from "@/components/shared/query-state";
 import Link from "next/link";
 import { format } from "date-fns";
 import { CalendarDays, ChevronRight, Clock, MapPin } from "lucide-react";
@@ -13,20 +14,21 @@ import { useUpcomingSessions } from "@/lib/queries";
 
 export function UpcomingSessions({ isAdmin }: { isAdmin: boolean }) {
   const { t, lang, locale } = useI18n();
-  const { data: sessions, isLoading } = useUpcomingSessions();
+  const query = useUpcomingSessions();
+  const { data: sessions, isLoading } = query;
 
   return (
-    <Card>
-      <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+    <Card className="overflow-hidden rounded-2xl">
+      <CardHeader className={isAdmin ? "mb-4 flex-row flex-wrap items-center justify-between gap-2 space-y-0 bg-gradient-to-br from-teal-800 to-emerald-800 text-white" : "flex-row items-center justify-between space-y-0 pb-3"}>
         <CardTitle className="text-base">{t("dash_upcoming_sessions")}</CardTitle>
-        <Button asChild variant="ghost" size="sm">
+        <Button asChild variant="ghost" size="sm" className={isAdmin ? "text-white hover:bg-white/10 hover:text-white" : undefined}>
           <Link href="/schedule">
             {t("nav_schedule")}
             <ChevronRight className="h-4 w-4" />
           </Link>
         </Button>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-2"><QueryState queries={[query]}>
         {isLoading && (
           <div className="space-y-2">
             <Skeleton className="h-16 w-full" />
@@ -49,7 +51,7 @@ export function UpcomingSessions({ isAdmin }: { isAdmin: boolean }) {
                 {format(new Date(s.date + "T00:00:00"), "MMM", { locale })}
               </span>
             </div>
-            <div className="min-w-0 flex-1">
+            <Link href={`/schedule?session=${s.id}`} className="min-w-0 flex-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover:text-primary">
               <p className="truncate text-sm font-semibold">
                 {format(new Date(s.date + "T00:00:00"), "EEEE", { locale })}
               </p>
@@ -65,7 +67,7 @@ export function UpcomingSessions({ isAdmin }: { isAdmin: boolean }) {
                   </span>
                 )}
               </p>
-            </div>
+            </Link>
             {isAdmin && s.status === "scheduled" && (
               <Button asChild variant="outline" size="sm">
                 <Link href={`/attendance?session=${s.id}`}>{t("nav_attendance")}</Link>
@@ -73,7 +75,7 @@ export function UpcomingSessions({ isAdmin }: { isAdmin: boolean }) {
             )}
           </div>
         ))}
-      </CardContent>
+      </QueryState></CardContent>
     </Card>
   );
 }

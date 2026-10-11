@@ -89,14 +89,14 @@ export function AnnouncementsCard({ isAdmin }: AnnouncementsCardProps) {
   };
 
   return (
-    <Card>
-      <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+    <Card className="overflow-hidden rounded-2xl">
+      <CardHeader className={isAdmin ? "mb-4 flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-purple-800 to-fuchsia-800 text-white" : "flex-row items-center justify-between space-y-0 pb-3"}>
         <CardTitle className="flex items-center gap-2 text-base">
-          <Megaphone className="h-4 w-4 text-primary" />
+          <Megaphone className="h-5 w-5 text-fuchsia-300" />
           {t("ann_title")}
         </CardTitle>
         {isAdmin && (
-          <Button size="sm" variant="outline" onClick={openNew}>
+          <Button size="sm" variant="outline" className="text-foreground" onClick={openNew}>
             <Plus className="h-4 w-4" />
             {t("ann_add")}
           </Button>

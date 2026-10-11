@@ -118,8 +118,8 @@ export function AdminAlerts() {
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       {/* Expiring subscriptions */}
-      <Card>
-        <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+      <Card className="overflow-hidden rounded-2xl">
+        <CardHeader className="mb-4 flex-row flex-wrap items-center justify-between gap-2 space-y-0 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/40 dark:to-blue-950/30">
           <CardTitle className="flex items-center gap-2 text-base">
             <AlarmClock className="h-4 w-4 text-warning-ink" />
             {t("dash_expiring_members")}
@@ -163,8 +163,8 @@ export function AdminAlerts() {
       </Card>
 
       {/* Outstanding balances */}
-      <Card>
-        <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+      <Card className="overflow-hidden rounded-2xl">
+        <CardHeader className="mb-4 flex-row flex-wrap items-center justify-between gap-2 space-y-0 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/40 dark:to-blue-950/30">
           <CardTitle className="flex items-center gap-2 text-base">
             <HandCoins className="h-4 w-4 text-error-ink" />
             {t("dash_debtors")}
@@ -204,8 +204,8 @@ export function AdminAlerts() {
       </Card>
 
       {/* At-risk attendance */}
-      <Card>
-        <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+      <Card className="overflow-hidden rounded-2xl">
+        <CardHeader className="mb-4 flex-row flex-wrap items-center justify-between gap-2 space-y-0 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/40 dark:to-blue-950/30">
           <CardTitle className="flex items-center gap-2 text-base">
             <TrendingDown className="h-4 w-4 text-warning-ink" />
             {t("dash_at_risk")}

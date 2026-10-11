@@ -11,9 +11,10 @@ import { useI18n } from "@/lib/i18n";
 interface CheckinQrCardProps {
   code: string;
   memberName: string;
+  compact?: boolean;
 }
 
-export function CheckinQrCard({ code, memberName }: CheckinQrCardProps) {
+export function CheckinQrCard({ code, memberName, compact = false }: CheckinQrCardProps) {
   const { t, lang } = useI18n();
   const [dataUrl, setDataUrl] = useState<string | null>(null);
 
@@ -36,24 +37,24 @@ export function CheckinQrCard({ code, memberName }: CheckinQrCardProps) {
   }, [code]);
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Card className={compact ? "overflow-hidden rounded-2xl border-indigo-300/30 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/40 dark:to-blue-950/30 sm:flex sm:items-center sm:justify-between" : undefined}>
+      <CardHeader className={compact ? "pb-3 sm:max-w-sm sm:pb-6" : "pb-3"}>
         <CardTitle className="flex items-center gap-2 text-base">
           <QrCode className="h-4 w-4 text-primary" />
           {t("qr_title")}
         </CardTitle>
         <p className="text-xs text-muted-foreground">{t("qr_hint")}</p>
       </CardHeader>
-      <CardContent className="flex flex-col items-center gap-3">
+      <CardContent className={compact ? "flex flex-col items-center gap-2 pt-0 sm:pt-6" : "flex flex-col items-center gap-3"}>
         {dataUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={dataUrl}
             alt={`QR ${code}`}
-            className="h-52 w-52 rounded-xl border bg-white p-2"
+            className={compact ? "h-40 w-40 rounded-xl border bg-white p-2" : "h-52 w-52 rounded-xl border bg-white p-2"}
           />
         ) : (
-          <Skeleton className="h-52 w-52 rounded-xl" />
+          <Skeleton className={compact ? "h-40 w-40 rounded-xl" : "h-52 w-52 rounded-xl"} />
         )}
         <p className="max-w-full break-all text-center font-mono text-sm font-extrabold tracking-wider">{code}</p>
         <p className="text-xs text-muted-foreground">{memberName}</p>

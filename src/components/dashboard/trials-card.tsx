@@ -1,5 +1,7 @@
 "use client";
 
+import { QueryState } from "@/components/shared/query-state";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { format } from "date-fns";
 import { CalendarClock, UserPlus } from "lucide-react";
@@ -23,7 +25,9 @@ import type { TrialStatus } from "@/lib/types";
 
 export function TrialsCard() {
   const { t, locale } = useI18n();
-  const { data: trials } = useTrialRequests();
+  const cache = useQueryClient();
+  const trialsQuery = useTrialRequests();
+  const { data: trials } = trialsQuery;
   const { data: sports } = useSports();
   const update = useUpdateTrialRequest();
   const [approvingId, setApprovingId] = useState<string | null>(null);
@@ -70,6 +74,7 @@ export function TrialsCard() {
         throw new Error(body.error || "Failed");
       }
       await update.mutateAsync({ id: trial.id, status: "converted" });
+      await cache.invalidateQueries({ queryKey: ["profiles"] });
       toast.success(`${trial.name}: ${t("trials_approve_done")}`);
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
@@ -79,17 +84,17 @@ export function TrialsCard() {
   };
 
   return (
-    <Card>
-      <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+    <Card className="overflow-hidden rounded-2xl">
+      <CardHeader className="mb-4 flex-row flex-wrap items-center justify-between gap-2 space-y-0 bg-gradient-to-br from-orange-900 to-rose-800 text-white">
         <CardTitle className="flex items-center gap-2 text-base">
-          <CalendarClock className="h-4 w-4 text-primary" />
+          <CalendarClock className="h-5 w-5 text-orange-200" />
           {t("trials_title")}
         </CardTitle>
         {(trials ?? []).length > 0 && (
           <Badge variant="secondary">{trials!.length}</Badge>
         )}
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-2"><QueryState queries={[trialsQuery]}>
         {!trials || trials.length === 0 ? (
           <EmptyState message={t("trials_empty")} icon={CalendarClock} />
         ) : (
@@ -152,7 +157,7 @@ export function TrialsCard() {
               </div>
             ))
         )}
-      </CardContent>
+      </QueryState></CardContent>
     </Card>
   );
 }

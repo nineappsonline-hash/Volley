@@ -32,6 +32,7 @@ import { useI18n } from "@/lib/i18n";
 import { formatMoney, formatTime12h } from "@/lib/constants";
 import {
   useAcademy,
+  useAttendanceCounts,
   useAllPayments,
   useMonthlyCosts,
   useProfiles,
@@ -51,7 +52,9 @@ export function AdminDashboard() {
   const { data: sessions } = sessionsQuery;
   const calculationsQuery = useSessionCalculations();
   const { data: calculations } = calculationsQuery;
-  const { data: academy } = useAcademy();
+  const academyQuery = useAcademy();
+  const { data: academy } = academyQuery;
+  const attendanceQuery = useAttendanceCounts();
 
   const expensesQuery = useExpenses();
   const rentalsQuery = useVenueRentals();
@@ -73,7 +76,8 @@ export function AdminDashboard() {
   const net = monthlyRevenue - monthlyCosts;
 
   const recentSessions = (sessions ?? [])
-    .filter((s) => s.date <= now.toISOString().slice(0, 10))
+    .filter((s) => s.date <= format(now, "yyyy-MM-dd"))
+    .sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`))
     .slice(0, 5);
 
   const calcBySession = new Map(
@@ -83,7 +87,7 @@ export function AdminDashboard() {
   const incomplete = academy != null && !academy.logo_url;
 
   return (
-    <QueryState queries={[profilesQuery,paymentsQuery,costsQuery,sessionsQuery,calculationsQuery,expensesQuery,rentalsQuery,guestsQuery]}><div className="space-y-8">
+    <QueryState queries={[profilesQuery,paymentsQuery,costsQuery,sessionsQuery,calculationsQuery,expensesQuery,rentalsQuery,guestsQuery,academyQuery,attendanceQuery]}><div className="space-y-8">
       <DashboardNavigation admin />
       {incomplete && (
         <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
@@ -118,6 +122,7 @@ export function AdminDashboard() {
         ) : (
           <>
             <StatCard
+              colorful
               title={t("dash_total_members")}
               value={String(members.length)}
               icon={Users}
@@ -126,6 +131,7 @@ export function AdminDashboard() {
               index={0}
             />
             <StatCard
+              colorful
               title={t("dash_monthly_revenue")}
               value={formatMoney(monthlyRevenue, lang)}
               icon={Receipt}
@@ -134,6 +140,7 @@ export function AdminDashboard() {
               index={1}
             />
             <StatCard
+              colorful
               title={t("dash_monthly_costs")}
               value={formatMoney(monthlyCosts, lang)}
               icon={CreditCard}
@@ -141,6 +148,7 @@ export function AdminDashboard() {
               index={2}
             />
             <StatCard
+              colorful
               title={t("dash_net_profit")}
               value={formatMoney(net, lang)}
               icon={PiggyBank}
@@ -165,15 +173,15 @@ export function AdminDashboard() {
       <Reveal index={1}>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <UpcomingSessions isAdmin />
-        <Card>
-          <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+        <Card className="overflow-hidden rounded-2xl">
+          <CardHeader className="mb-4 flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-blue-800 to-indigo-800 text-white">
             <CardTitle className="flex items-center gap-2 text-base">
-              <TrendingUp className="h-4 w-4 text-interactive-500" />
+              <TrendingUp className="h-5 w-5 text-blue-200" />
               {t("dash_attendance_summary")}
             </CardTitle>
             <Link
               href="/reports"
-              className="text-sm font-medium text-primary hover:underline"
+              className="text-sm font-medium text-white underline-offset-4 hover:underline"
             >
               {t("nav_reports")}
             </Link>
@@ -204,9 +212,13 @@ export function AdminDashboard() {
                             : t("schedule_today")}
                       </p>
                     </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1">
+                      <span className="text-xs font-semibold">{attendanceQuery.data?.[s.id]?.present ?? 0} / {attendanceQuery.data?.[s.id]?.total ?? 0} {lang === "ar" ? "حاضر" : "present"}</span>
+                      <Link href={`/schedule?session=${s.id}`} className="text-xs font-medium text-primary underline underline-offset-4">{lang === "ar" ? "تفاصيل الحصة" : "Session details"}</Link>
                     {calc && (
                       <ProfitLossIndicator value={calc.profit_loss} showLabel={false} />
                     )}
+                    </div>
                   </div>
                 );
               })

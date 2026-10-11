@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { CheckinQrCard } from "@/components/profile/checkin-qr-card";
 import { format } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -62,6 +63,7 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
 
   return (
     <div className="mx-auto min-w-0 max-w-5xl space-y-8 pb-2">
+      {p.checkin_code && <section id="checkin" className="scroll-mt-24"><CheckinQrCard code={p.checkin_code} memberName={p.name} compact /></section>}
       <AcademySuggestionOnboarding
         memberName={p.name}
         hasAcademy={!!p.academy_id}

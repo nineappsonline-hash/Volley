@@ -290,3 +290,36 @@ assert.ok(html.includes('ملخص الحجز'));
 assert.ok(html.includes('الإجمالي لك ولضيوفك'));
 lang = 'en';
 console.log('PASS: joining summary shows location, date, spots, total, waitlist guidance, and host-paid guests in both languages');
+
+// Academy dashboard wires attendance summaries to real session detail links.
+const pastDay = addDaysISO(TODAY, -2);
+Object.assign(mocks['@/lib/queries'], {
+  useProfiles: () => discoveryQuery([{ id: 'member-1', role: 'member' }]),
+  useAllPayments: () => discoveryQuery(),
+  useMonthlyCosts: () => discoveryQuery(),
+  useSessions: () => discoveryQuery([{ id: 'past-session', date: pastDay, time: '18:00', status: 'completed' }]),
+  useSessionCalculations: () => discoveryQuery(),
+  useAcademy: () => discoveryQuery({ id: 'academy-1', plan: 'starter', is_trial: false, logo_url: 'logo.png' }),
+  useAttendanceCounts: () => discoveryQuery({ 'past-session': { present: 7, total: 10 } }),
+  useExpenses: () => discoveryQuery(),
+  useVenueRentals: () => discoveryQuery(),
+  useSessionGuests: () => discoveryQuery(),
+});
+mocks['@/components/dashboard/dashboard-navigation'] = {
+  DashboardNavigation: stub('navigation'),
+  DashboardSection: ({ id, title, children }) => h('section', { id }, h('h2', null, title), children),
+};
+mocks['./dashboard-navigation'] = mocks['@/components/dashboard/dashboard-navigation'];
+mocks['@/components/workflows/player-workflows'] = { TrainingRenewal: stub('renewals') };
+mocks['@/components/dashboard/admin-alerts'] = { AdminAlerts: stub('alerts') };
+mocks['@/components/dashboard/announcements-card'] = { AnnouncementsCard: stub('announcements') };
+mocks['@/components/dashboard/trials-card'] = { TrialsCard: stub('trials') };
+mocks['@/components/upgrade/plan-benefit-banner'] = { AdminPlanBanner: stub('plan') };
+mocks['@/components/schedule/upcoming-sessions'] = { UpcomingSessions: stub('upcoming') };
+const { AdminDashboard } = loadFile(path.join(root, 'src/components/dashboard/admin-dashboard.tsx'), mocks);
+html = renderToStaticMarkup(h(AdminDashboard));
+assert.ok(html.includes('7 / 10'));
+assert.ok(html.includes('href="/schedule?session=past-session"'));
+for (const id of ['overview', 'training', 'updates']) assert.ok(html.includes(`id="${id}"`));
+assert.ok(html.includes('from-blue-800 to-indigo-800'));
+console.log('PASS: academy dashboard renders real attendance counts, linked session details, colorful stats, and navigation anchors');

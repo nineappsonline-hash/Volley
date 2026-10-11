@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { CalendarCheck, CalendarPlus, CalendarRange, LayoutTemplate, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -77,6 +77,14 @@ export function ScheduleClient({
   const [editing, setEditing] = useState<TrainingSession | null>(null);
   const [deleting, setDeleting] = useState<TrainingSession | null>(null);
   const [details, setDetails] = useState<TrainingSession | null>(null);
+  const openedSession = useRef<string | null>(null);
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("session");
+    if (!id || openedSession.current === id) return;
+    const session = sessions?.find(item => item.id === id);
+    if (session) { openedSession.current = id; setDetails(session); }
+  }, [sessions]);
+
 
   const sportNameById = useMemo(
     () => new Map((sports ?? []).map((s) => [s.id, s.name])),
