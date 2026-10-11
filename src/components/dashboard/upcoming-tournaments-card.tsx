@@ -18,7 +18,7 @@ const STATUS_CLS: Record<string, string> = {
   canceled: "bg-muted text-muted-foreground",
 };
 
-export function UpcomingTournamentsCard() {
+export function UpcomingTournamentsCard({ embedded = false, excludeIds = [] }: { embedded?: boolean; excludeIds?: string[] }) {
   const { t, lang } = useI18n();
   const { data: all, isLoading } = useAllTournaments();
   const { data: venues } = useVenues();
@@ -29,12 +29,14 @@ export function UpcomingTournamentsCard() {
 
   const today = new Date().toISOString().slice(0, 10);
   const list = (all ?? [])
+    .filter(t => !excludeIds.includes(t.id))
     .filter((t) => t.status === "upcoming" || t.status === "in_progress")
     .filter((t) => t.status === "in_progress" || t.start_date >= today)
     .slice(0, 5);
 
+  const Container = embedded ? "section" : Card;
   return (
-    <Card className="rounded-2xl shadow-none">
+    <Container className={embedded ? "mt-5 border-t pt-4" : "rounded-2xl shadow-none"}>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between text-base">
           <span className="flex items-center gap-2">
@@ -124,6 +126,6 @@ export function UpcomingTournamentsCard() {
           ))
         )}
       </CardContent>
-    </Card>
+    </Container>
   );
 }

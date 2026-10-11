@@ -12,7 +12,7 @@ export type TrainingProgram = {
  schedule: { weekday: number; start: string; end: string }[]; slots: TrainingSlot[];
 };
 export type TrainingBooking = {
- id: string; member_id: string; kind: "monthly" | "trial"; registered_on: string; expires_on: string; amount: number;
+ id: string; program_id?: string; reviewed_at?: string | null; member_id: string; kind: "monthly" | "trial"; registered_on: string; expires_on: string; amount: number;
  status: "awaiting_payment" | "submitted" | "approved" | "rejected" | "cancelled";
  hold_until: string; receipt_path: string | null; pay_method: string | null; review_note: string | null;
  details: { program: string; academy: string; academy_slug: string; sport: string; playground: string; address: string | null; member: string; sessions: TrainingSlot[] };

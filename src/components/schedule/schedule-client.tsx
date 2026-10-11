@@ -1,4 +1,7 @@
 "use client";
+import { useMemberTraining } from "@/lib/use-member-training";
+import type { Profile } from "@/lib/types";
+import Link from "next/link";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -50,12 +53,15 @@ export function ScheduleClient({
   isAdmin,
   memberId,
   memberPlan,
+  memberProfile,
 }: {
   isAdmin: boolean;
   memberId?: string;
+  memberProfile?: Profile;
   memberPlan?: "free" | "premium";
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const training = useMemberTraining(memberProfile);
   const { data: sessions, isLoading, isError, refetch } = useSessions();
   const games = useMyUpcomingGames(memberId ?? "");
   const { data: counts } = useAttendanceCounts();
@@ -188,14 +194,15 @@ export function ScheduleClient({
         )}
       </PageHeader>
 
-      {isError || games.isError ? <div role="alert" className="space-y-3 rounded-lg border p-6"><p>{t("common_error")}</p><Button variant="outline" onClick={() => void Promise.all([refetch(), ...(memberId ? [games.refetch()] : [])])}>{t("common_retry")}</Button></div> : isLoading || (!!memberId && games.isLoading) ? (
+      {isError || games.isError || (!isAdmin && training.isError) ? <div role="alert" className="space-y-3 rounded-lg border p-6"><p>{t("common_error")}</p><Button variant="outline" onClick={() => void Promise.all([refetch(), ...(!isAdmin ? [training.refetch()] : []), ...(memberId ? [games.refetch()] : [])])}>{t("common_retry")}</Button></div> : isLoading || (!!memberId && games.isLoading) || (!isAdmin && training.isLoading) ? (
         <Skeleton className="h-96 w-full" />
       ) : (
         <>
           <Card>
             <CardContent className="p-4 sm:p-6">
               <CalendarView
-                sessions={sortedSessions}
+                sessions={isAdmin ? sortedSessions : []}
+                training={isAdmin ? [] : training.agenda}
                 sportNameById={sportNameById}
                 venueNameById={venueNameById}
                 coachNameById={coachNameById}
@@ -205,7 +212,8 @@ export function ScheduleClient({
             </CardContent>
           </Card>
 
-          <div>
+          {!isAdmin && <div className="grid gap-3 sm:grid-cols-2">{training.agenda.map(item => <Link key={item.id} href={item.href} className="rounded-xl border bg-card p-4 hover:border-primary"><p className="font-semibold">{item.name || (lang === "ar" ? "تدريب الأكاديمية" : "Academy training")}</p><p className="mt-1 text-sm">{item.date} · {item.time.slice(0, 5)}</p><p className="text-xs text-muted-foreground">{item.academy} · {item.location}</p></Link>)}</div>}
+          {isAdmin && <div>
             <h2 className="mb-3 text-lg font-bold">{t("schedule_list_view")}</h2>
             {sortedSessions.length === 0 ? (
               <EmptyState message={t("schedule_no_sessions")} />
@@ -255,7 +263,7 @@ export function ScheduleClient({
                 ))}
               </div>
             )}
-          </div>
+          </div>}
         </>
       )}
 

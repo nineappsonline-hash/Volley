@@ -1,7 +1,6 @@
 "use client";
 
 import { discoveryMatch, type DiscoveryPreferences } from "@/lib/member-discovery";
-import { AcademyLogo } from "@/components/academies/academy-logo";
 import { GameCardBackground } from "@/components/games/game-card-background";
 import { useId } from "react";
 import Link from "next/link";
@@ -10,20 +9,16 @@ import {
   ArrowRight,
   Building2,
   LandPlot,
-  Trophy,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QueryState } from "@/components/shared/query-state";
 import { useI18n } from "@/lib/i18n";
 import {
-  useAllTournaments,
   useFriendlyGames,
-  usePlaygrounds,
   usePublicAcademies,
   useMyAcademyFollows,
   useMyUpcomingGames,
-  useMyTournaments,
 } from "@/lib/queries";
 import { formatMoney, formatTime12h } from "@/lib/constants";
 import { venueCardPhoto } from "@/lib/venue-media";
@@ -148,20 +143,11 @@ function DiscoveryCard({
                             src={item.image}
                             alt=""
                             loading="lazy"
-                            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:group-hover:scale-100"
+                            className={`absolute inset-0 h-full w-full transition-transform duration-500 group-hover:scale-105 motion-reduce:group-hover:scale-100 ${item.academyLogo !== undefined ? "bg-white object-contain p-5" : "object-cover"}`}
                             onError={(event) => {
                               event.currentTarget.style.display = "none";
                             }}
                           />
-                        )}
-                        {item.academyLogo !== undefined && (
-                          <span className="absolute start-3 bottom-3 rounded-full bg-background/95 p-1 shadow-sm">
-                            <AcademyLogo
-                              academyId={item.id}
-                              name={item.title}
-                              logoUrl={item.academyLogo}
-                            />
-                          </span>
                         )}
                         {item.badge && (
                           <span className="absolute start-3 top-3 max-w-[calc(100%-1.5rem)] truncate rounded-full bg-background/95 px-2.5 py-1 text-xs font-medium text-foreground shadow-sm">
@@ -197,16 +183,12 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {} }:
   const { t, lang, locale } = useI18n();
   useRealtime(["friendly_games", "friendly_game_participants"]);
   const games = useFriendlyGames();
-  const tournaments = useAllTournaments();
-  const playgrounds = usePlaygrounds();
   const academies = usePublicAcademies();
   const myGames = useMyUpcomingGames(memberId);
-  const myTournaments = useMyTournaments(memberId);
   const follows = useMyAcademyFollows();
   const ar = lang === "ar";
   const academyJoined = hasAcademy || !!follows.data?.length;
   const gameJoined = !!myGames.data?.length;
-  const tournamentJoined = !!myTournaments.data?.length;
   const today = format(new Date(), "yyyy-MM-dd");
   const dateLabel = (date: string) =>
     format(new Date(`${date}T00:00:00`), "MMM d", { locale });
@@ -224,10 +206,6 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {} }:
     sport: game.sport, date: game.game_date, skill_level: game.skill_level,
     lat: game.playground?.lat ?? game.lat, lng: game.playground?.lng ?? game.lng,
   }, preferences);
-  const tournamentMatch = (tournament: NonNullable<typeof tournaments.data>[number]) => discoveryMatch({
-    sport: tournament.sport?.name, date: tournament.start_date,
-  }, preferences);
-
   const gameItems = (games.data ?? [])
     .filter(
       (game) =>
@@ -261,64 +239,12 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {} }:
       image: venueCardPhoto(game.playground?.photos, game.playground?.cover_url),
     }));
 
-  const tournamentItems = (tournaments.data ?? [])
-    .filter(
-      (tournament) =>
-        tournament.status === "in_progress" ||
-        (tournament.status === "upcoming" && tournament.start_date >= today)
-    )
-    .sort(
-      (a, b) =>
-        tournamentMatch(b).score - tournamentMatch(a).score ||
-        Number(b.status === "in_progress") -
-        Number(a.status === "in_progress") ||
-        a.start_date.localeCompare(b.start_date)
-    )
-    .slice(0, 12)
-    .map((tournament) => ({
-      id: tournament.id,
-      title: tournament.name,
-      reason: reasonLabel(tournamentMatch(tournament)),
-      badge: t(`tournament_status_${tournament.status}`),
-      sport: tournament.sport?.name ?? undefined,
-      subtitle: [
-        tournament.sport?.name,
-        dateLabel(tournament.start_date),
-        tournament.academy?.name,
-      ]
-        .filter(Boolean)
-        .join(" · "),
-    }));
-
-  const playgroundMatch = (venue: NonNullable<typeof playgrounds.data>[number]) => discoveryMatch({ sport: venue.sport?.name, lat: venue.lat, lng: venue.lng }, preferences);
-  const playgroundItems = [...(playgrounds.data ?? [])]
-    .sort((a, b) => playgroundMatch(b).score - playgroundMatch(a).score)
-    .slice(0, 12)
-    .map((playground) => ({
-      id: playground.id,
-      title: playground.name,
-      reason: reasonLabel(playgroundMatch(playground)),
-      href: `/p/${encodeURIComponent(playground.id)}`,
-      badge: playground.sport?.name,
-      sport: playground.sport?.name ?? undefined,
-      subtitle: [
-        playground.area,
-        playground.governorate,
-        playground.country,
-      ]
-        .filter(Boolean)
-        .join(" · ") ||
-      playground.address ||
-      (ar ? "اكتشف الملعب" : "Explore this playground"),
-      image: venueCardPhoto(playground.photos, playground.cover_url),
-    }));
-
   const academyItems = (academies.data ?? [])
     .slice(0, 12)
     .map((academy) => ({
       id: academy.id,
       title: academy.name,
-      image: academy.cover_url,
+      image: academy.logo_url,
       academyLogo: academy.logo_url,
       subtitle: [
         academy.area,
@@ -361,28 +287,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {} }:
         empty={ar ? "مفيش مباريات متاحة حالياً. تابعنا قريب." : "No active games right now. Check back soon."}
 
       />
-      <DiscoveryCard
-        title={t("nav_tournaments")}
-        tone="tournaments"
-        description={ar ? "تحدّى نفسك ونافس على الكأس مع فريقك." : "Bring your team spirit. Chase the trophy. Make it count."}
-        action={tournamentJoined ? (ar ? "اكتشف المزيد من البطولات" : "Discover more tournaments") : (ar ? "ابحث عن بطولة" : "Find tournaments")}
-        href="/dashboard/tournaments"
-        icon={Trophy}
-        items={tournamentItems}
-        query={tournaments}
-        empty={ar ? "مفيش بطولات حالية أو قادمة." : "No active or upcoming tournaments right now."}
-      />
-      <DiscoveryCard
-        title={t("nav_playgrounds")}
-        tone="playgrounds"
-        description={ar ? "اكتشف ملاعب جديدة لمباراتك الجاية." : "Find a fresh court for your next great game."}
-        action={ar ? "ابحث عن ملعب" : "Find playgrounds"}
-        href="/playgrounds"
-        icon={LandPlot}
-        items={playgroundItems}
-        query={playgrounds}
-        empty={ar ? "مفيش ملاعب متاحة حالياً." : "No playgrounds available yet."}
-      />
+
     </div>
   );
 }

@@ -1,4 +1,8 @@
 "use client";
+import { QueryState } from "@/components/shared/query-state";
+import { useMemberTraining } from "@/lib/use-member-training";
+import { trainingPaymentHistory, bookingBalance } from "@/lib/member-training";
+import { MemberTrainingPreview } from "@/components/dashboard/member-training-preview";
 
 import { AvatarCropDialog } from "./avatar-crop-dialog";
 import { TrainingGoals, TrainingRenewal } from "@/components/workflows/player-workflows";
@@ -71,7 +75,6 @@ import {
   useProfile,
   useSessions,
   useUpdateOwnProfile,
-  useUpcomingSessions,
 } from "@/lib/queries";
 import type { Profile } from "@/lib/types";
 
@@ -306,10 +309,11 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const updateProfile = useUpdateOwnProfile();
 
-  const { data: payments, isLoading: loadingPayments } = useAllPayments();
+  const paymentsQuery = useAllPayments();
+  const { data: payments, isLoading: loadingPayments } = paymentsQuery;
   const { data: attendance } = useAttendance();
   const { data: sessions } = useSessions();
-  const { data: upcoming } = useUpcomingSessions();
+  const training = useMemberTraining(p);
   const { data: record } = useMyCommunityRecord();
   const { data: streaks } = useMyStreaks();
 
@@ -322,10 +326,9 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
     return null;
   }, [p.premium_expires_at]);
 
-  const myPayments = useMemo(
-    () => (payments ?? []).filter((x) => x.member_id === p.id),
-    [payments, p.id]
-  );
+  const legacyPayments = (payments ?? []).filter(x => x.member_id === p.id);
+  const myPayments = trainingPaymentHistory(p.id, payments ?? [], training.bookings.data ?? []);
+  const balance = bookingBalance(p.id, training.bookings.data ?? []);
 
   const myAttendance = useMemo(
     () => (attendance ?? []).filter((a) => a.member_id === p.id),
@@ -337,11 +340,12 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
     [sessions]
   );
 
-  const used = usedSessionsSincePayment(myAttendance, sessions ?? [], myPayments);
-  const remaining = Math.max(p.subscription_sessions - used, 0);
+  const used = usedSessionsSincePayment(myAttendance, sessions ?? [], legacyPayments);
+  const sessionTotal = balance.hasBooking ? balance.total : p.subscription_sessions;
+  const remaining = balance.hasBooking ? balance.remaining : Math.max(sessionTotal - used, 0);
   const progress =
-    p.subscription_sessions > 0
-      ? Math.min(100, Math.round((used / p.subscription_sessions) * 100))
+    sessionTotal > 0
+      ? Math.min(100, Math.round(((sessionTotal - remaining) / sessionTotal) * 100))
       : 0;
 
   const attendedSessions = myAttendance
@@ -352,7 +356,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
 
   const lastPayment = myPayments[0];
   const totalPaid = myPayments.reduce((s, x) => s + Number(x.amount), 0);
-  const hasPlan = myPayments.length > 0;
+  const hasPlan = balance.hasBooking || legacyPayments.length > 0;
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -698,7 +702,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
 <section id="family" className="scroll-mt-24"><FamilyCard /></section>
 <TrainingRenewal memberId={p.id} academyId={p.academy_id}/><TrainingGoals memberId={p.id}/><section id="evaluations" className="scroll-mt-24"><EvaluationsCard memberId={p.id} isAdmin={false} /></section>
 {p.checkin_code && (
-            <section id="checkin" className="scroll-mt-24"><CheckinQrCard code={p.checkin_code} memberName={p.name} /></section>
+            <section id="checkin" className="scroll-mt-24"><CheckinQrCard code={p.checkin_code} memberName={p.name} profile={p} /></section>
           )}
           <Card>
             <CardHeader className="pb-3">
@@ -825,13 +829,12 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                 {t("profile_remaining_sessions")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4"><QueryState queries={[paymentsQuery, training.bookings]}>
               {hasPlan ? (
                 <div>
                   <div className="mb-1.5 flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">
-                      {used} {t("dash_sessions_used")} {t("member_sessions_remaining_of")}{" "}
-                      {p.subscription_sessions}
+                      {balance.hasBooking ? (lang === "ar" ? "الجلسات المجدولة المتبقية" : "Scheduled sessions remaining") : `${used} ${t("dash_sessions_used")}`} · {sessionTotal}
                     </span>
                     <span className="font-semibold">
                       {remaining} {t("profile_sessions_left")}
@@ -871,7 +874,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                 <span className="font-medium">
                   {lastPayment
                     ? `${formatMoney(Number(lastPayment.amount), lang)} · ${format(
-                        new Date(lastPayment.payment_date + "T00:00:00"),
+                        new Date(lastPayment.date + "T00:00:00"),
                         "MMM d, yyyy",
                         { locale }
                       )}`
@@ -879,7 +882,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                 </span>
               </div>
 
-            </CardContent>
+            </QueryState></CardContent>
           </Card>
 
           <Card id="payments" className="scroll-mt-24">
@@ -889,8 +892,8 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                 {t("profile_payment_status")}
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              {loadingPayments ? (
+            <CardContent><QueryState queries={[paymentsQuery, training.bookings]}>
+              {loadingPayments || training.bookings.isPending ? (
                 <Skeleton className="h-24 w-full" />
               ) : myPayments.length === 0 ? (
                 <EmptyState message={t("member_no_payments")} icon={CreditCard} />
@@ -906,13 +909,13 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                           {formatMoney(Number(x.amount), lang)}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {format(new Date(x.payment_date + "T00:00:00"), "MMM d, yyyy", {
+                          {format(new Date(x.date + "T00:00:00"), "MMM d, yyyy", {
                             locale,
                           })}
                           {" · "}
-                          {x.membership_type === "half" ? t("membership_half") : t("membership_full")}
+                          {x.source === "booking" ? x.label : x.label === "half" ? t("membership_half") : t("membership_full")}
                           {" · "}
-                          {x.subscription_sessions} {t("member_payment_sessions")}
+                          {x.sessions} {t("member_payment_sessions")}
                         </p>
                       </div>
                       <Badge variant="success">{t("dash_active")}</Badge>
@@ -920,7 +923,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                   ))}
                 </div>
               )}
-            </CardContent>
+            </QueryState></CardContent>
           </Card>
         </div>
       </div>
@@ -961,42 +964,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
         </CardContent>
       </Card>
 
-      {/* Upcoming */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Timer className="h-4 w-4 text-primary" />
-            {t("profile_upcoming_title")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {!upcoming || upcoming.length === 0 ? (
-            <EmptyState message={t("profile_no_upcoming")} />
-          ) : (
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {upcoming.map((s) => (
-                <div
-                  key={s.id}
-                  className="flex items-center justify-between rounded-lg border p-3 text-sm"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {format(new Date(s.date + "T00:00:00"), "EEEE, MMM d", { locale })}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatTime12h(s.time, lang)}
-                      {s.location ? ` · ${s.location}` : ""}
-                    </p>
-                  </div>
-                  <Badge variant="secondary" className="font-mono">
-                    {formatTime12h(s.time, lang)}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <MemberTrainingPreview profile={p} />
 
       <div className="flex items-center justify-between gap-3 rounded-lg border p-4">
         <div className="text-sm">

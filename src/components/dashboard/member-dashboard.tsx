@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useTrainingBookings } from "@/lib/academy-training";
+import { bookingBalance } from "@/lib/member-training";
 import { MemberTrainingPreview } from "./member-training-preview";
 import { CheckinQrCard } from "@/components/profile/checkin-qr-card";
 import { useEffect, useMemo, useState } from "react";
@@ -23,7 +25,6 @@ import { Progress } from "@/components/ui/progress";
 import { MemberDiscoveryCards } from "./member-discovery-cards";
 import { MyUpcomingGames } from "./my-upcoming-games";
 import { MyTournamentsCard } from "./my-tournaments-card";
-import { UpcomingTournamentsCard } from "./upcoming-tournaments-card";
 import { DashboardNavigation, DashboardSection } from "./dashboard-navigation";
 import { useI18n } from "@/lib/i18n";
 import { EXPIRY_ALERT_THRESHOLD } from "@/lib/constants";
@@ -93,9 +94,8 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
       )}
 
       <DashboardSection id="tournaments" title={t("dash_section_tournaments")}>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-4">
           <MyTournamentsCard memberId={p.id} />
-          <UpcomingTournamentsCard />
         </div>
       </DashboardSection>
 
@@ -225,14 +225,17 @@ function MemberTraining({
 }) {
   const { t, lang } = useI18n();
   const paymentsQuery = useAllPayments();
+  const bookingsQuery = useTrainingBookings();
+  const balance = bookingBalance(profile.id, bookingsQuery.data ?? []);
   const attendanceQuery = useAttendance();
   const sessionsQuery = useSessions();
   const payments = (paymentsQuery.data ?? []).filter(payment => payment.member_id === profile.id);
   const used = usedSessionsSincePayment(attendanceQuery.data ?? [], sessionsQuery.data ?? [], payments);
-  const remaining = Math.max(profile.subscription_sessions - used, 0);
+  const total = balance.hasBooking ? balance.total : profile.subscription_sessions;
+  const remaining = balance.hasBooking ? balance.remaining : Math.max(total - used, 0);
   const progress =
-    profile.subscription_sessions > 0
-      ? Math.min(100, Math.round((used / profile.subscription_sessions) * 100))
+    total > 0
+      ? Math.min(100, Math.round(((total - remaining) / total) * 100))
       : 0;
 
 
@@ -241,7 +244,7 @@ function MemberTraining({
   }, [remaining, onRemainingChange]);
 
   return (
-    <QueryState queries={[paymentsQuery, attendanceQuery, sessionsQuery]}>
+    <QueryState queries={[paymentsQuery, bookingsQuery, attendanceQuery, sessionsQuery]}>
       <Card className="rounded-2xl shadow-none">
         <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0 pb-4">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -256,12 +259,12 @@ function MemberTraining({
           </Link>
         </CardHeader>
         <CardContent className="space-y-4">
-          {payments.length > 0 && (
+          {(payments.length > 0 || balance.hasBooking) && (
             <div className="space-y-2 border-t pt-4">
               <div className="flex items-center justify-between gap-2 text-sm">
-                <span>{t("dash_my_remaining")}</span>
+                <span>{balance.hasBooking ? (lang === "ar" ? "الجلسات المجدولة المتبقية" : "Scheduled sessions remaining") : t("dash_my_remaining")}</span>
                 <span className="font-semibold">
-                  {remaining} / {profile.subscription_sessions}
+                  {remaining} / {total}
                 </span>
               </div>
               <Progress value={progress} className="h-2" />

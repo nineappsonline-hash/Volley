@@ -71,6 +71,12 @@ function loadFile(file, mocks) {
   }).outputText;
   new Function('require', 'exports', output)((id) => {
     if (id in mocks) return mocks[id];
+    if (id.startsWith('.')) {
+      for (const extension of EXTENSIONS) {
+        const relative = path.resolve(path.dirname(file), id + extension);
+        if (fs.existsSync(relative) && fs.statSync(relative).isFile()) return loadFile(relative, mocks);
+      }
+    }
     const aliased = resolveAlias(id);
     if (aliased) return loadFile(aliased, mocks);
     return require(id);
@@ -213,27 +219,28 @@ mocks['@/components/academies/academy-logo'] = { AcademyLogo: () => null };
 const { MemberDiscoveryCards } = loadFile(path.join(root, 'src/components/dashboard/member-discovery-cards.tsx'), mocks);
 const renderDiscovery = (hasAcademy = false) => renderToStaticMarkup(h(MemberDiscoveryCards, { memberId: 'member-1', hasAcademy }));
 html = renderDiscovery();
-for (const label of ['Find games', 'Find tournaments', 'Find an academy', 'Find playgrounds']) {
+for (const label of ['Find games', 'Find an academy']) {
   assert.ok(html.includes(label), `empty discovery includes ${label}`);
 }
-for (const href of ['/dashboard/games', '/dashboard/tournaments', '/academies', '/playgrounds']) {
+for (const href of ['/dashboard/games', '/academies']) {
   assert.ok(html.includes(`href="${href}"`), `discovery links to ${href}`);
 }
 assert.ok(renderDiscovery(true).includes('Discover more academies'), 'academy membership changes the academy CTA');
 joined = true;
 html = renderDiscovery();
-for (const section of ['games', 'tournaments', 'academies']) {
+for (const section of ['games', 'academies']) {
   assert.ok(html.includes(`Discover more ${section}`), `joined members can discover more ${section}`);
 }
 lang = 'ar';
 html = renderDiscovery();
 assert.ok(html.includes('اكتشف المزيد من المباريات'));
-assert.ok(html.includes('اكتشف المزيد من البطولات'));
+assert.ok(!html.includes('اكتشف المزيد من البطولات'));
 assert.ok(html.includes('اكتشف المزيد من الأكاديميات'));
 joined = false;
 html = renderDiscovery();
 assert.ok(html.includes('ابحث عن مباراة'));
-assert.ok(html.includes('ابحث عن بطولة'));
+assert.ok(!html.includes('ابحث عن بطولة'));
+assert.ok(!html.includes('href="/playgrounds"'), 'playgrounds discovery card is removed');
 assert.ok(html.includes('ابحث عن أكاديمية'));
 lang = 'en';
 console.log('PASS: discovery CTAs reflect membership in English and Arabic, including empty listings');
@@ -332,3 +339,41 @@ assert.ok(html.includes('href="/schedule?session=past-session"'));
 for (const id of ['overview', 'training', 'updates']) assert.ok(html.includes(`id="${id}"`));
 assert.ok(html.includes('from-blue-800 to-indigo-800'));
 console.log('PASS: academy dashboard renders real attendance counts, linked session details, colorful stats, and navigation anchors');
+
+// Member QR includes a visible enlarge control and member identity details.
+mocks['@tanstack/react-query'] = { useQuery: () => ({ data: { name: 'Spike Nova' } }) };
+const { CheckinQrCard } = loadFile(path.join(root, 'src/components/profile/checkin-qr-card.tsx'), mocks);
+html = renderToStaticMarkup(h(CheckinQrCard, { code: 'MEM-123', memberName: 'Nayra', compact: true, profile: { name: 'Nayra', username: 'nayra', phone: '01012345678', gender: 'female', birth_date: '2000-01-01', academy_id: 'academy', is_active: true } }));
+for (const value of ['Nayra', '@nayra', '01012345678', 'Female', 'Spike Nova', 'MEM-123', 'Enlarge QR']) assert.ok(html.includes(value));
+assert.ok(html.includes('aria-label="Enlarge attendance QR"'));
+console.log('PASS: QR member pass renders personal details and an accessible enlarge control');
+
+// The calendar receives actual booked training alongside games.
+const { CalendarView } = loadFile(path.join(root, 'src/components/schedule/calendar-view.tsx'), mocks);
+html = renderToStaticMarkup(h(CalendarView, { sessions: [], training: [{ id: 'booked-session', date: TODAY, time: '19:00:00', name: 'Spike Nova training', location: 'Aspire court', href: '/academy-bookings' }], games: [] }));
+assert.ok(html.includes('Spike Nova training'));
+assert.ok(html.includes('Aspire court'));
+assert.ok(html.includes('href="/academy-bookings"'));
+console.log('PASS: calendar renders booked training with its venue and booking details link');
+
+Object.assign(mocks['@/lib/queries'], { useMyTournaments: () => discoveryQuery(), useAllTournaments: () => discoveryQuery(), useVenues: () => discoveryQuery() });
+const { MyTournamentsCard } = loadFile(path.join(root, 'src/components/dashboard/my-tournaments-card.tsx'), mocks);
+html = renderToStaticMarkup(h(MyTournamentsCard, { memberId: 'member-1' }));
+assert.ok(html.includes(dictionary.en.td_no_upcoming_tournaments));
+assert.equal(times(html, 'shadow-none'), 1, 'tournament content has only one outer card');
+console.log('PASS: combined tournaments card includes upcoming discovery');
+
+// Discovery uses exactly the academy logo as its large image.
+mocks['@/lib/queries'].usePublicAcademies = () => discoveryQuery([{ id: 'academy-logo', name: 'Spike Nova', logo_url: 'https://example.com/logo.png', cover_url: 'https://example.com/cover.png', slug: 'spike-nova' }]);
+html = renderDiscovery(true);
+assert.equal(times(html, 'src="https://example.com/logo.png"'), 1);
+assert.ok(!html.includes('https://example.com/cover.png'));
+assert.ok(html.includes('object-contain'));
+console.log('PASS: academy discovery displays one large logo without a cover image');
+
+// Each upcoming game displays its own venue image before opening details.
+gameRows = [row({ pay_status: 'approved' }, { title: 'Photo game', game_date: addDaysISO(TODAY, 1), playground: { name: 'Aspire', photos: ['https://example.com/court.jpg'], cover_url: null } })];
+html = render();
+assert.ok(html.includes('src="https://example.com/court.jpg"'));
+assert.ok(html.includes('alt="Aspire"'));
+console.log('PASS: upcoming game cards display the playground image');

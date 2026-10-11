@@ -20,10 +20,12 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { formatTime12h } from "@/lib/constants";
+import type { TrainingAgendaItem } from "@/lib/member-training";
 import type { TrainingSession } from "@/lib/types";
 
 interface CalendarViewProps {
   sessions: TrainingSession[];
+  training?: TrainingAgendaItem[];
   sportNameById?: Map<string, string>;
   venueNameById?: Map<string, string>;
   coachNameById?: Map<string, string>;
@@ -33,7 +35,7 @@ interface CalendarViewProps {
 
 type ViewMode = "month" | "week";
 
-export function CalendarView({ sessions, onSelectSession, sportNameById, venueNameById, coachNameById, games = [] }: CalendarViewProps) {
+export function CalendarView({ sessions, onSelectSession, sportNameById, venueNameById, coachNameById, games = [], training = [] }: CalendarViewProps) {
   const { t, lang, locale } = useI18n();
   const [cursor, setCursor] = useState(new Date());
   const [mode, setMode] = useState<ViewMode>("month");
@@ -154,6 +156,7 @@ export function CalendarView({ sessions, onSelectSession, sportNameById, venueNa
               >
                 {format(day, "d")}
               </span>
+              {training.filter(item => item.date === key).map(item => <Link key={item.id} href={item.href} className="rounded bg-emerald-100 px-2 py-1.5 text-xs text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-200"><span className="block font-bold">{item.name || (lang === "ar" ? "تدريب" : "Training")}</span><span className="block">{formatTime12h(item.time, lang)}</span><span className="block">{item.location}</span></Link>)}
               {daySessions.map((s) => (
                 <button
                   type="button"

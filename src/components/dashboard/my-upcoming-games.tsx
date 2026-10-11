@@ -169,6 +169,10 @@ export function MyUpcomingGames({
                 const cue = countdown(row.game.game_date, row.game.start_time, new Date());
                 return <li key={row.id}>
                   <div className="flex h-full flex-col rounded-2xl border bg-card p-4 text-start transition-colors hover:border-primary/60">
+                    {venueCardPhoto(row.game.playground?.photos, row.game.playground?.cover_url) && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={venueCardPhoto(row.game.playground?.photos, row.game.playground?.cover_url)!} alt={row.game.playground?.name ?? row.game.title} loading="lazy" className="mb-4 aspect-[16/9] w-full rounded-xl object-cover" onError={e => { e.currentTarget.style.display = "none"; }} />
+                    )}
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant="secondary">{row.game.sport}</Badge>
                       {row.is_waitlisted && <Badge variant="secondary">{ar ? "قائمة الانتظار" : "Waitlisted"}</Badge>}

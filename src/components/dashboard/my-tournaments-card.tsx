@@ -1,4 +1,5 @@
 "use client";
+import { UpcomingTournamentsCard } from "./upcoming-tournaments-card";
 
 import { useMemo } from "react";
 import { format } from "date-fns";
@@ -112,7 +113,7 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
       <CardHeader className="mb-4 flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-fuchsia-800 via-purple-700 to-indigo-700 text-white">
         <CardTitle className="flex items-center gap-2 text-base">
           <Trophy className="h-6 w-6 text-amber-300" />
-          {t("td_my_tournaments")}
+          {t("nav_tournaments")}
         </CardTitle>
         <Badge variant="outline" className="gap-1 border-white/30 text-white">
           <Swords className="h-3 w-3" />
@@ -206,6 +207,7 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
           })
         )}
       </CardContent>
+      <UpcomingTournamentsCard embedded excludeIds={(entries ?? []).map(entry => entry.tournament.id)} />
     </Card>
   );
 }
