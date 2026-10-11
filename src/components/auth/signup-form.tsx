@@ -1085,6 +1085,14 @@ export function SignupForm() {
                   </div>
                 </form>
               </Form>
+                <div className="mt-10 rounded-2xl border border-teal-200 bg-gradient-to-br from-teal-50 to-emerald-50 p-4 dark:border-teal-800 dark:from-teal-950/40 dark:to-emerald-950/40">
+                  <Button type="button" onClick={() => setMode("tenant")} className="min-h-11 w-full gap-2 bg-teal-800 text-white hover:bg-teal-900">
+                    <Building2 className="h-5 w-5" aria-hidden="true" />
+                    {t("signup_register_academy")}
+                    <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+                  </Button>
+                  <p className="mt-2 text-center text-xs leading-relaxed text-muted-foreground">{t("signup_register_academy_hint")}</p>
+                </div>
               </>
             )}
 
