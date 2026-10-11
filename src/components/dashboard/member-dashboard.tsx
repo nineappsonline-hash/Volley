@@ -57,7 +57,6 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
     { id: "activity", label: lang === "ar" ? "المباريات" : "Games" },
     ...(p.academy_id ? [{ id: "training", label: t("dash_section_training") }] : []),
     { id: "tournaments", label: t("dash_section_tournaments") },
-    { id: "discover", label: t("dash_section_discover") },
   ];
 
   return (
@@ -91,14 +90,6 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
         <div className="space-y-4">
           <MyTournamentsCard memberId={p.id} />
         </div>
-      </DashboardSection>
-
-      <DashboardSection
-        id="discover"
-        title={t("dash_section_discover")}
-        hint={t("dash_section_discover_hint")}
-      >
-        <MemberDiscoveryCards memberId={p.id} hasAcademy={!!p.academy_id} preferences={p} mode="academies" />
       </DashboardSection>
 
       <nav
@@ -239,29 +230,27 @@ function MemberTraining({
 
   return (
     <QueryState queries={[paymentsQuery, bookingsQuery, attendanceQuery, sessionsQuery]}>
-      <Card className="rounded-2xl shadow-none">
-        <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0 pb-4">
+      <Card className="overflow-hidden rounded-2xl border-border/80 shadow-md shadow-black/5">
+        <CardHeader className="flex-row flex-wrap items-center justify-between gap-3 space-y-0 border-b border-border/60 bg-blue-500/5 px-5 py-5">
           <CardTitle className="flex items-center gap-2 text-base">
-            <CalendarDays className="h-5 w-5 text-primary" />
+            <span className="rounded-xl bg-blue-500/10 p-2.5"><CalendarDays className="h-5 w-5 text-blue-600 dark:text-blue-300" /></span>
             {lang === "ar" ? "تدريبي" : "My training"}
           </CardTitle>
           <Link
             href="/schedule"
-            className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+            className="rounded-lg border border-border/70 bg-background px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-accent"
           >
             {t("nav_schedule")}
           </Link>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 p-5">
           {(payments.length > 0 || balance.hasBooking) && (
-            <div className="space-y-2 border-t pt-4">
-              <div className="flex items-center justify-between gap-2 text-sm">
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-end justify-between gap-3 rounded-xl bg-muted/40 p-4 text-sm">
                 <span>{balance.hasBooking ? (lang === "ar" ? "الجلسات المجدولة المتبقية" : "Scheduled sessions remaining") : t("dash_my_remaining")}</span>
-                <span className="font-semibold">
-                  {remaining} / {total}
-                </span>
+                <span className="flex items-baseline gap-2"><strong className="text-3xl font-semibold tracking-tight">{remaining}</strong><span className="text-sm text-muted-foreground">/ {total}</span></span>
               </div>
-              <Progress value={progress} className="h-2" />
+              <Progress value={progress} className="h-2 rounded-full" />
               {remaining <= EXPIRY_ALERT_THRESHOLD && (
                 <p
                   role="status"
@@ -282,6 +271,7 @@ function MemberTraining({
               )}
             </div>
           )}
+          {!payments.length && !balance.hasBooking && <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">{lang === "ar" ? "لم يتم تسجيل اشتراك تدريب مؤكد بعد." : "No confirmed training subscription recorded yet."}</p>}
         </CardContent>
       </Card>
     </QueryState>
