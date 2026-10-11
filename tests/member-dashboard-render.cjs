@@ -92,7 +92,7 @@ const mocks = {
   '@/components/games/join-game-dialog': { JoinGameDialog: () => null },
   '@/components/shared/playground-distance': { PlaygroundDistance: () => null },
   '@/components/shared/directions-links': { DirectionsLinks: () => null },
-  '@/lib/queries': { useMyUpcomingGames, useUpcomingGameParticipants },
+  '@/lib/queries': { useMyUpcomingGames, useUpcomingGameParticipants, usePlaygrounds: () => ({ data: [] }) },
   '@/lib/i18n': { useI18n },
 };
 
@@ -377,3 +377,14 @@ html = render();
 assert.ok(html.includes('src="https://example.com/court.jpg"'));
 assert.ok(html.includes('alt="Aspire"'));
 console.log('PASS: upcoming game cards display the playground image');
+
+// Legacy games with only a location name still use the matching playground photo.
+mocks['@/lib/queries'].usePlaygrounds = () => discoveryQuery([{ id: 'free-life', name: 'Free Life', area: 'New Cairo', photos: ['https://example.com/free-life.jpg'] }]);
+gameRows = [row({ pay_status: 'approved' }, { title: 'Legacy venue game', game_date: addDaysISO(TODAY, 1), playground: null, location: 'Free Life', area: 'New Cairo' })];
+html = render();
+assert.ok(html.includes('src="https://example.com/free-life.jpg"'));
+console.log('PASS: upcoming games resolve playground photos for legacy location-only games');
+const { gamePlaygroundPhoto } = loadFile(path.join(root, 'src/lib/venue-media.ts'), mocks);
+const duplicateVenues = [{ id: 'one', name: 'Court', area: 'Cairo', photos: ['one.jpg'] }, { id: 'two', name: 'Court', area: 'Cairo', photos: ['two.jpg'] }];
+assert.equal(gamePlaygroundPhoto({ location: 'Court', area: 'Cairo' }, duplicateVenues), null, 'ambiguous venue names must not display another playground photo');
+assert.equal(gamePlaygroundPhoto({ playground_id: 'two', location: 'Court' }, duplicateVenues), 'two.jpg', 'venue identity takes precedence over the location name');

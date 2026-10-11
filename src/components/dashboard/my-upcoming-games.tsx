@@ -19,7 +19,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { useMyUpcomingGames, useUpcomingGameParticipants } from "@/lib/queries";
+import { useMyUpcomingGames, useUpcomingGameParticipants, usePlaygrounds } from "@/lib/queries";
 import { useI18n } from "@/lib/i18n";
 import type { Dict } from "@/lib/i18n/dictionary";
 import { QueryState } from "@/components/shared/query-state";
@@ -32,7 +32,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { DirectionsLinks } from "@/components/shared/directions-links";
 import { PlaygroundDistance } from "@/components/shared/playground-distance";
 import { parseMapsCoordinates } from "@/lib/maps";
-import { venueCardPhoto } from "@/lib/venue-media";
+import { gamePlaygroundPhoto } from "@/lib/venue-media";
 import { addHoursToTime, formatMoney, formatTime12h } from "@/lib/constants";
 import { useRealtime } from "@/lib/useRealtime";
 import { cn } from "@/lib/utils";
@@ -63,6 +63,7 @@ export function MyUpcomingGames({
   const { t, lang, locale } = useI18n();
   const ar = lang === "ar";
   const query = useMyUpcomingGames(memberId);
+  const playgrounds = usePlaygrounds();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [payGameId, setPayGameId] = useState<string | null>(null);
   const selected = query.data?.find(row => row.game.id === selectedId);
@@ -93,9 +94,7 @@ export function MyUpcomingGames({
   };
 
   const game = selected?.game;
-  const playgroundPhoto = game?.playground
-    ? venueCardPhoto(game.playground.photos, game.playground.cover_url)
-    : null;
+  const playgroundPhoto = game ? gamePlaygroundPhoto(game, playgrounds.data ?? []) : null;
 
   const directionTarget = (() => {
     const pg = game?.playground;
@@ -164,14 +163,15 @@ export function MyUpcomingGames({
                 <span className="text-xs text-muted-foreground">{prettyDate(group.date)}</span>
               </header>
               <ul className="grid gap-4 md:grid-cols-2">{group.items.map(row => {
+                const photo = gamePlaygroundPhoto(row.game, playgrounds.data ?? []);
                 const due = shareAmountDue(row);
                 const tone = shareTone(row);
                 const cue = countdown(row.game.game_date, row.game.start_time, new Date());
                 return <li key={row.id}>
-                  <div className="flex h-full flex-col rounded-2xl border bg-card p-4 text-start transition-colors hover:border-primary/60">
-                    {venueCardPhoto(row.game.playground?.photos, row.game.playground?.cover_url) && (
+                  <div className="flex h-full flex-col overflow-hidden rounded-2xl border bg-card p-4 text-start transition-colors hover:border-primary/60">
+                    {photo && (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={venueCardPhoto(row.game.playground?.photos, row.game.playground?.cover_url)!} alt={row.game.playground?.name ?? row.game.title} loading="lazy" className="mb-4 aspect-[16/9] w-full rounded-xl object-cover" onError={e => { e.currentTarget.style.display = "none"; }} />
+                      <img src={photo!} alt={row.game.playground?.name ?? row.game.title} loading="lazy" className="mb-4 aspect-[16/9] w-full rounded-xl object-cover" onError={e => { e.currentTarget.style.display = "none"; }} />
                     )}
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant="secondary">{row.game.sport}</Badge>
