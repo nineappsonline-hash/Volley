@@ -1085,13 +1085,13 @@ export function SignupForm() {
                   </div>
                 </form>
               </Form>
-                <div className="mt-10 rounded-2xl border border-teal-200 bg-gradient-to-br from-teal-50 to-emerald-50 p-4 dark:border-teal-800 dark:from-teal-950/40 dark:to-emerald-950/40">
-                  <Button type="button" onClick={() => setMode("tenant")} className="min-h-11 w-full gap-2 bg-teal-800 text-white hover:bg-teal-900">
-                    <Building2 className="h-5 w-5" aria-hidden="true" />
-                    {t("signup_register_academy")}
-                    <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+                <div className="mt-10 border-t border-border/60 pt-6">
+                  <Button type="button" onClick={() => setMode("tenant")} variant="outline" className="group h-auto min-h-14 w-full justify-start gap-3 whitespace-normal rounded-xl border-teal-600/20 bg-gradient-to-br from-teal-50/80 to-background px-4 py-3 text-start text-teal-950 shadow-sm transition-colors hover:border-teal-600/40 hover:bg-teal-50 hover:text-teal-950 dark:border-teal-400/20 dark:from-teal-400/5 dark:to-transparent dark:text-teal-100 dark:hover:border-teal-400/40 dark:hover:bg-teal-400/10 dark:hover:text-teal-50">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-teal-700/10 text-teal-700 dark:bg-teal-300/10 dark:text-teal-300"><Building2 className="h-[18px] w-[18px]" aria-hidden="true" /></span>
+                    <span className="flex-1 text-sm font-semibold">{t("signup_register_academy")}</span>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-teal-700/70 dark:text-teal-300/70 rtl:rotate-180" aria-hidden="true" />
                   </Button>
-                  <p className="mt-2 text-center text-xs leading-relaxed text-muted-foreground">{t("signup_register_academy_hint")}</p>
+                  <p className="mx-auto mt-3 max-w-xs text-center text-xs leading-relaxed text-muted-foreground">{t("signup_register_academy_hint")}</p>
                 </div>
               </>
             )}
