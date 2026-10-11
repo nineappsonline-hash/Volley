@@ -156,23 +156,24 @@ export function MyUpcomingGames({
           icon={CalendarDays}
           action={<Button asChild className="gap-2"><Link href="/dashboard/games">{t("dash_find_game")}<ArrowUpRight className="h-4 w-4" /></Link></Button>}
         /> : (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {groups.map(group => <section key={group.date} aria-label={dayTitle(group.date)}>
-              <header className="sticky top-14 z-10 -mx-1 mb-3 flex items-baseline gap-2 bg-card/95 px-1 py-1 backdrop-blur">
-                <h3 className="text-sm font-bold">{dayTitle(group.date)}</h3>
+              <header className="mb-4 flex flex-wrap items-center gap-2 border-b border-border/70 pb-3">
+                <h3 className="rounded-lg bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">{dayTitle(group.date)}</h3>
                 <span className="text-xs text-muted-foreground">{prettyDate(group.date)}</span>
               </header>
-              <ul className="grid gap-4 md:grid-cols-2">{group.items.map(row => {
+              <ul className="grid gap-6 md:grid-cols-2">{group.items.map(row => {
                 const photo = gamePlaygroundPhoto(row.game, playgrounds.data ?? []);
                 const due = shareAmountDue(row);
                 const tone = shareTone(row);
                 const cue = countdown(row.game.game_date, row.game.start_time, new Date());
                 return <li key={row.id}>
-                  <div className="flex h-full flex-col overflow-hidden rounded-2xl border bg-card p-4 text-start transition-colors hover:border-primary/60">
+                  <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-start shadow-md shadow-slate-900/5 transition-shadow hover:shadow-lg dark:border-slate-600/60 dark:bg-slate-900 dark:shadow-black/20">
                     {photo && (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={photo!} alt={row.game.playground?.name ?? row.game.title} loading="lazy" className="mb-4 aspect-[16/9] w-full rounded-xl object-cover" onError={e => { e.currentTarget.style.display = "none"; }} />
+                      <img src={photo!} alt={row.game.playground?.name ?? row.game.title} loading="lazy" className="aspect-[16/9] w-full border-b border-slate-200 object-cover dark:border-slate-600/60" onError={e => { e.currentTarget.style.display = "none"; }} />
                     )}
+                    <div className="flex flex-1 flex-col p-5">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant="secondary">{row.game.sport}</Badge>
                       {row.is_waitlisted && <Badge variant="secondary">{ar ? "قائمة الانتظار" : "Waitlisted"}</Badge>}
@@ -187,19 +188,20 @@ export function MyUpcomingGames({
                         {cue.kind === "hours" ? t("dash_in_hours").replace("{n}", String(cue.value)) : t("dash_in_minutes").replace("{n}", String(cue.value))}
                       </Badge>}
                     </div>
-                    <h4 className="mt-3 text-base font-semibold">{row.game.title}</h4>
-                    <p className="mt-1 flex items-center gap-2 text-sm"><Clock className="h-4 w-4 shrink-0" />{formatTime12h(row.game.start_time, lang)} {ar ? "إلى" : "to"} {formatTime12h(addHoursToTime(row.game.start_time, Number(row.game.duration_hours) || 1), lang)}</p>
-                    {(row.game.location || row.game.area) && <p className="mt-1 flex items-center gap-2 text-sm"><MapPin className="h-4 w-4 shrink-0" />{[row.game.location, row.game.area].filter(Boolean).join(" · ")}</p>}
+                    <h4 className="mt-4 text-lg font-semibold leading-snug tracking-tight">{row.game.title}</h4>
+                    <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground"><Clock className="h-4 w-4 shrink-0" />{formatTime12h(row.game.start_time, lang)} {ar ? "إلى" : "to"} {formatTime12h(addHoursToTime(row.game.start_time, Number(row.game.duration_hours) || 1), lang)}</p>
+                    {(row.game.location || row.game.area) && <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4 shrink-0" />{[row.game.location, row.game.area].filter(Boolean).join(" · ")}</p>}
                     {due > 0 && <p className="mt-2 font-semibold text-warning-ink">{t("games_share_per_player")}: {formatMoney(due, lang)}</p>}
-                    <div className="mt-auto flex flex-wrap gap-2 pt-3">
+                    <div className="mt-5 flex flex-wrap gap-2 border-t border-border/70 pt-4">
                       {due > 0 && <Button size="sm" className="gap-1.5" onClick={() => setPayGameId(row.game.id)}>
                         <Wallet className="h-3.5 w-3.5" />{t("games_share_pay_now")}
                       </Button>}
-                      <Button size="sm" variant={due > 0 ? "outline" : "secondary"} className="gap-1.5" onClick={() => setSelectedId(row.game.id)}>
+                      <Button size="sm" variant="outline" className="gap-1.5 rounded-lg" onClick={() => setSelectedId(row.game.id)}>
                         {ar ? "التفاصيل" : "Details"}<ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" />
                       </Button>
                     </div>
-                  </div>
+                    </div>
+                  </article>
                 </li>;
               })}</ul>
             </section>)}
