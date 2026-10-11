@@ -32,6 +32,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { DirectionsLinks } from "@/components/shared/directions-links";
 import { PlaygroundDistance } from "@/components/shared/playground-distance";
 import { parseMapsCoordinates } from "@/lib/maps";
+import { cairoNow } from "@/lib/member-training";
 import { gamePlaygroundPhoto } from "@/lib/venue-media";
 import { addHoursToTime, formatMoney, formatTime12h } from "@/lib/constants";
 import { useRealtime } from "@/lib/useRealtime";
@@ -78,11 +79,6 @@ export function MyUpcomingGames({
   }, [rows, onCountChange]);
 
   const groups = useMemo(() => groupGamesByDay(rows, todayISO()), [rows]);
-  const next = groups.flatMap(group => group.items).find(row =>
-    !row.is_waitlisted && new Date(`${row.game.game_date}T${row.game.start_time}`).getTime() > Date.now()
-  );
-  const nextLocation = next?.game.playground?.name ?? next?.game.location ?? next?.game.area;
-  const nextPin = next?.game.playground?.location_link ? parseMapsCoordinates(next.game.playground.location_link) : null;
   const payRow = query.data?.find(row => row.game.id === payGameId);
 
   const prettyDate = (date: string) => format(new Date(date + "T00:00:00"), "EEE, MMM d", { locale });
@@ -112,35 +108,6 @@ export function MyUpcomingGames({
   const waitlistCount = roster.data?.filter(p => p.is_waitlisted).length ?? 0;
 
   return <>
-    <QueryState queries={[query]}>
-      <section aria-label={ar ? "مباراتك القادمة" : "Your next game"} className="relative mb-4 overflow-hidden rounded-2xl border bg-gradient-to-br from-indigo-800 via-blue-800 to-teal-800 p-5 text-white sm:p-6">
-        <div aria-hidden="true" className="pointer-events-none absolute -end-10 -top-12 h-56 w-56 rounded-full border-[28px] border-white/10" />
-        <p className="relative text-xs font-bold uppercase tracking-wider text-blue-100">{ar ? "مباراتك القادمة" : "Your next game"}</p>
-        {next ? <div className="relative mt-3 space-y-4">
-          <div>
-            <h3 className="text-2xl font-extrabold">{next.game.title}</h3>
-            <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-blue-100">
-              <span className="flex items-center gap-1.5"><CalendarDays className="h-4 w-4" />{prettyDate(next.game.game_date)}</span>
-              <span className="flex items-center gap-1.5"><Clock className="h-4 w-4" />{formatTime12h(next.game.start_time, lang)}</span>
-              {nextLocation && <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" />{nextLocation}</span>}
-            </p>
-          </div>
-          <p className="text-sm font-semibold" role="status">{shareTone(next) === "due"
-            ? `${ar ? "المبلغ المتبقي" : "Amount due"} · ${formatMoney(shareAmountDue(next), lang)}`
-            : shareTone(next) === "pending" ? (ar ? "دفعتك قيد المراجعة" : "Your payment is under review")
-            : shareTone(next) === "paid" ? (ar ? "تم تأكيد الدفع" : "Payment confirmed") : (ar ? "لا توجد دفعة مستحقة" : "No payment due")}</p>
-          <div className="flex flex-wrap gap-2">
-            <Button className="bg-white text-indigo-900 hover:bg-white/90" onClick={() => setSelectedId(next.game.id)}>{ar ? "التفاصيل واللاعبون" : "Details & players"}<ArrowUpRight className="ms-2 h-4 w-4" /></Button>
-            {shareAmountDue(next) > 0 && <Button className="bg-white text-indigo-900 hover:bg-white/90" asChild><a href="#my-upcoming-games"><Wallet className="me-2 h-4 w-4" />{ar ? "مراجعة الدفع" : "Review payment"}</a></Button>}
-            {nextLocation && <div className="rounded-md bg-background text-foreground"><DirectionsLinks lat={nextPin?.lat ?? next.game.playground?.lat ?? next.game.lat} lng={nextPin?.lng ?? next.game.playground?.lng ?? next.game.lng} query={[nextLocation, next.game.area].filter(Boolean).join(", ")} /></div>}
-          </div>
-        </div> : <div className="relative mt-3 space-y-3">
-          <h3 className="text-2xl font-extrabold">{ar ? "جاهز تنزل الملعب؟" : "Ready to get in the game?"}</h3>
-          <p className="max-w-xl text-sm text-blue-100">{ar ? "اكتشف مباراة تناسبك. لو أنت في قائمة الانتظار، تابع حالة مكانك بالأسفل." : "Find a game that suits you. If you’re on a waitlist, check your place below."}</p>
-          <Button asChild className="bg-white text-indigo-900 hover:bg-white/90"><Link href="/dashboard/games">{t("dash_find_game")}<ArrowUpRight className="ms-2 h-4 w-4" /></Link></Button>
-        </div>}
-      </section>
-    </QueryState>
     <Card id="my-upcoming-games" className="overflow-hidden rounded-2xl shadow-none">
       <CardHeader className="mb-5 flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-blue-700 via-indigo-700 to-violet-700 text-white">
         <CardTitle className="flex items-center gap-2 text-base">
@@ -167,15 +134,20 @@ export function MyUpcomingGames({
                 const due = shareAmountDue(row);
                 const tone = shareTone(row);
                 const cue = countdown(row.game.game_date, row.game.start_time, new Date());
+                const daysLeft = Math.max(0, Math.round((Date.parse(`${row.game.game_date}T00:00:00Z`) - Date.parse(`${cairoNow().slice(0, 10)}T00:00:00Z`)) / 86400000));
+                const daysLabel = daysLeft === 0 ? (ar ? "اليوم" : "Today") : daysLeft === 1 ? (ar ? "غداً · باقي يوم" : "Tomorrow · 1 day to go") : (ar ? `باقي ${daysLeft} أيام` : `${daysLeft} days to go`);
                 return <li key={row.id}>
-                  <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-start shadow-md shadow-slate-900/5 transition-shadow hover:shadow-lg dark:border-slate-600/60 dark:bg-slate-900 dark:shadow-black/20">
+                  <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-card text-start shadow-md shadow-black/5 transition-shadow hover:shadow-lg dark:border-slate-600/60 dark:shadow-black/20">
+                    <div className="relative flex aspect-[16/9] items-center justify-center overflow-hidden bg-gradient-to-br from-blue-950 to-slate-800">
+                    {!photo && <LandPlot className="h-16 w-16 text-blue-200/30" aria-hidden="true" />}
                     {photo && (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={photo!} alt={row.game.playground?.name ?? row.game.title} loading="lazy" className="aspect-[16/9] w-full border-b border-slate-200 object-cover dark:border-slate-600/60" onError={e => { e.currentTarget.style.display = "none"; }} />
+                      <img src={photo!} alt={row.game.playground?.name ?? row.game.title} loading="lazy" className="absolute inset-0 h-full w-full object-cover" onError={e => { e.currentTarget.style.display = "none"; }} />
                     )}
+                    <span className="absolute start-3 top-3 rounded-full bg-slate-950/90 px-3 py-1 text-xs font-medium text-white shadow-sm">{row.game.sport}</span>
+                    </div>
                     <div className="flex flex-1 flex-col p-5">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="secondary">{row.game.sport}</Badge>
                       {row.is_waitlisted && <Badge variant="secondary">{ar ? "قائمة الانتظار" : "Waitlisted"}</Badge>}
                       {tone === "due" && <Badge className="gap-1 bg-attention-100 text-warning-ink dark:bg-attention-500/15 dark:text-attention-400">
                         <Wallet className="h-3 w-3" />{t("dash_share_due_badge")}
@@ -189,8 +161,11 @@ export function MyUpcomingGames({
                       </Badge>}
                     </div>
                     <h4 className="mt-4 text-lg font-semibold leading-snug tracking-tight">{row.game.title}</h4>
-                    <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground"><Clock className="h-4 w-4 shrink-0" />{formatTime12h(row.game.start_time, lang)} {ar ? "إلى" : "to"} {formatTime12h(addHoursToTime(row.game.start_time, Number(row.game.duration_hours) || 1), lang)}</p>
-                    {(row.game.location || row.game.area) && <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4 shrink-0" />{[row.game.location, row.game.area].filter(Boolean).join(" · ")}</p>}
+                    <dl className="mt-4 space-y-3 rounded-xl bg-muted/40 p-3.5 text-sm">
+                      <div className="flex items-start gap-3"><CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><div className="min-w-0"><dt className="text-xs text-muted-foreground">{ar ? "اليوم والتاريخ" : "Day & date"}</dt><dd className="mt-0.5 font-medium">{format(new Date(`${row.game.game_date}T00:00:00`), "EEEE, MMM d", { locale })}</dd><dd className="mt-1 text-xs font-semibold text-primary">{daysLabel}</dd></div></div>
+                      <div className="flex items-start gap-3"><Clock className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><div><dt className="text-xs text-muted-foreground">{ar ? "الوقت" : "Time"}</dt><dd className="mt-0.5 font-medium">{formatTime12h(row.game.start_time, lang)} {ar ? "إلى" : "to"} {formatTime12h(addHoursToTime(row.game.start_time, Number(row.game.duration_hours) || 1), lang)}</dd></div></div>
+                      {(row.game.playground?.name || row.game.location || row.game.area) && <div className="flex items-start gap-3"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><div className="min-w-0"><dt className="text-xs text-muted-foreground">{ar ? "الملعب" : "Playground"}</dt><dd className="mt-0.5 break-words font-medium">{[row.game.playground?.name || row.game.location, row.game.area].filter(Boolean).join(" · ")}</dd></div></div>}
+                    </dl>
                     {due > 0 && <p className="mt-2 font-semibold text-warning-ink">{t("games_share_per_player")}: {formatMoney(due, lang)}</p>}
                     <div className="mt-5 flex flex-wrap gap-2 border-t border-border/70 pt-4">
                       {due > 0 && <Button size="sm" className="gap-1.5" onClick={() => setPayGameId(row.game.id)}>

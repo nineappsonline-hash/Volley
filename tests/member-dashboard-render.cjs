@@ -263,15 +263,16 @@ gameRows = [
   row({ id: 'confirmed', pay_status: 'approved' }, { id: 'confirmed-game', title: 'Confirmed next match', game_date: addDaysISO(TODAY, 2) }),
 ];
 html = render();
-const hero = html.slice(html.indexOf('aria-label="Your next game"'), html.indexOf('id="my-upcoming-games"'));
-assert.ok(hero.includes('Confirmed next match'));
-assert.ok(!hero.includes('Waiting match'));
-assert.ok(hero.includes('Payment confirmed'));
-assert.ok(hero.includes('Details &amp; players'));
+assert.equal(times(html, 'Confirmed next match'), 1, 'a game is shown once instead of repeated in a separate hero');
+assert.ok(!html.includes('aria-label="Your next game"'));
+assert.ok(html.includes('2 days to go'));
+assert.ok(html.includes('Tomorrow · 1 day to go'));
+assert.ok(html.includes('Day &amp; date'));
+assert.ok(html.includes('Playground'));
 gameRows = [row({ is_waitlisted: true }, { game_date: addDaysISO(TODAY, 1) })];
 html = render();
-assert.ok(html.includes('Ready to get in the game?'));
-console.log('PASS: next-game hero uses confirmed future games and handles waitlist-only members');
+assert.ok(html.includes('Waitlisted'));
+console.log('PASS: photo-first game cards show organized metadata and day countdowns without a duplicate hero');
 
 const mutation = () => ({ isPending: false, mutateAsync: async () => false });
 Object.assign(mocks['@/lib/queries'], {

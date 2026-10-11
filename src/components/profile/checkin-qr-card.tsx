@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/types";
 import { profileAge } from "@/lib/member-training";
 import { Button } from "@/components/ui/button";
-import { QrCode, Maximize2, Download } from "lucide-react";
+import { QrCode, Maximize2, Download, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -63,25 +63,25 @@ export function CheckinQrCard({ code, memberName, compact = false, profile }: Ch
   }, [code]);
 
   return <>
-    <Card className="overflow-hidden rounded-2xl border-border/70 shadow-sm">
-      <CardHeader className="border-b bg-gradient-to-r from-indigo-500/10 via-blue-500/5 to-transparent pb-5">
-        <div className="flex items-center justify-between gap-3"><CardTitle className="flex items-center gap-3 text-base"><span className="rounded-xl bg-primary/10 p-2.5"><QrCode className="h-5 w-5 text-primary" /></span>{t("qr_title")}</CardTitle><span className="rounded-full border bg-background px-3 py-1 text-xs font-medium">{ar ? "بطاقة العضو" : "Member pass"}</span></div>
-        <p className="text-xs leading-relaxed text-muted-foreground">{t("qr_hint")}</p>
+    <Card className="overflow-hidden rounded-2xl border-amber-300/30 bg-gradient-to-br from-slate-950 via-[#10284d] to-slate-950 text-slate-100 shadow-xl shadow-blue-950/15">
+      <CardHeader className="border-b border-white/10 bg-white/[0.03] pb-5">
+        <div className="flex items-center justify-between gap-3"><CardTitle className="flex items-center gap-3 text-base"><span className="rounded-xl border border-amber-200/20 bg-amber-200/10 p-2.5"><QrCode className="h-5 w-5 text-amber-200" /></span>{t("qr_title")}</CardTitle><span className="flex shrink-0 items-center gap-1.5 rounded-full border border-amber-200/25 bg-amber-200/10 px-3 py-1 text-xs font-medium text-amber-100"><Sparkles className="h-3 w-3" />{ar ? "بطاقة العضو" : "Member pass"}</span></div>
+        <p className="text-xs leading-relaxed text-slate-300">{t("qr_hint")}</p>
       </CardHeader>
       <CardContent className={`grid gap-6 p-5 ${compact ? "sm:grid-cols-[1fr_240px]" : "md:grid-cols-[1fr_240px]"}`}>
-        <div className="min-w-0"><p className="text-xl font-semibold tracking-tight">{memberName}</p><p className="mt-1 text-sm text-muted-foreground">{profile?.username ? `@${profile.username}` : (ar ? "بطاقة حضورك الشخصية" : "Your personal attendance pass")}</p>
-          {profile && <dl className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4 border-t pt-5 text-sm">{details.filter(([label]) => ![ar ? "الاسم" : "Name", ar ? "اسم المستخدم" : "Username"].includes(label!)).map(([label, value]) => <div key={label} className="min-w-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 break-words font-medium">{value || (ar ? "غير محدد" : "Not provided")}</dd></div>)}</dl>}
+        <div className="min-w-0"><p className="text-2xl font-semibold tracking-tight text-white">{memberName}</p><p className="mt-1 text-sm text-slate-300">{profile?.username ? `@${profile.username}` : (ar ? "بطاقة حضورك الشخصية" : "Your personal attendance pass")}</p>
+          {profile && <dl className="mt-5 grid grid-cols-2 gap-3 border-t border-white/10 pt-5 text-sm">{details.filter(([label]) => ![ar ? "الاسم" : "Name", ar ? "اسم المستخدم" : "Username", ar ? "كود العضو" : "Member code"].includes(label!)).map(([label, value]) => <div key={label} className="min-w-0 rounded-xl border border-white/5 bg-white/[0.04] px-3 py-3"><dt className="text-xs text-slate-400">{label}</dt><dd className="mt-1 break-words font-medium">{value || (ar ? "غير محدد" : "Not provided")}</dd></div>)}</dl>}
         </div>
-        <div className="flex flex-col items-center gap-3 rounded-xl border bg-muted/20 p-4">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-amber-200/30 bg-white p-5 text-slate-950 shadow-lg">
           <button type="button" disabled={!dataUrl} onClick={() => setExpanded(true)} aria-label={ar ? "تكبير كود الحضور" : "Enlarge attendance QR"} className="rounded-xl bg-white p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             {dataUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={dataUrl} alt={`QR ${code}`} className="h-40 w-40" />
             ) : <Skeleton className="h-40 w-40" />}
           </button>
-          <p className="max-w-full break-all text-center font-mono text-xs font-semibold tracking-wider">{code}</p>
-          <Button variant="outline" size="sm" disabled={!dataUrl} onClick={() => setExpanded(true)} className="w-full gap-2"><Maximize2 className="h-4 w-4" />{ar ? "تكبير الكود" : "Enlarge QR"}</Button>
-          {dataUrl && <Button asChild variant="ghost" size="sm" className="w-full gap-2"><a href={dataUrl} download="member-qr.png"><Download className="h-4 w-4" />{ar ? "تحميل" : "Download"}</a></Button>}
+          <div className="text-center"><p className="text-[10px] font-medium uppercase tracking-widest text-slate-500">{ar ? "كود العضو" : "Member code"}</p><p className="mt-1 max-w-full break-all font-mono text-sm font-semibold tracking-wider">{code}</p></div>
+          <Button variant="outline" size="sm" disabled={!dataUrl} onClick={() => setExpanded(true)} className="w-full gap-2 border-slate-200 bg-slate-950 text-white hover:bg-slate-800 hover:text-white"><Maximize2 className="h-4 w-4" />{ar ? "تكبير الكود" : "Enlarge QR"}</Button>
+          {dataUrl && <Button asChild variant="ghost" size="sm" className="w-full gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-950"><a href={dataUrl} download="member-qr.png"><Download className="h-4 w-4" />{ar ? "تحميل" : "Download"}</a></Button>}
         </div>
       </CardContent>
     </Card>
