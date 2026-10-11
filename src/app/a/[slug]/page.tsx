@@ -1,3 +1,4 @@
+import { LocationMap } from "@/components/shared/location-map";
 import { AcademyLogo } from "@/components/academies/academy-logo";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -264,6 +265,8 @@ export default async function PublicAcademyPage({
           {!!photos?.length && <a href="#photos" className="rounded-xl px-4 py-3 text-sm font-medium hover:bg-muted"><LangLabel en="Photos" ar="الصور" /></a>}
           {!!reviews.length && <a href="#reviews" className="rounded-xl px-4 py-3 text-sm font-medium hover:bg-muted"><LangLabel en="Reviews" ar="التقييمات" /></a>}
         </nav>
+        <LocationMap name={academy.name} address={[academy.area, academy.governorate, academy.country].filter(Boolean).join(", ")} lat={academy.lat} lng={academy.lng} />
+
         <section id="groups" className="scroll-mt-24">
           <AcademyTrainingOffers academyId={academy.id} />
         </section>

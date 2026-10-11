@@ -1,4 +1,5 @@
 "use client";
+import { LocationMap } from "@/components/shared/location-map";
 
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
@@ -280,6 +281,8 @@ export function PublicPlaygroundPage({
             )}
           </div>
         </section>
+
+        <LocationMap name={venue.name} address={[venue.address, place].filter(Boolean).join(", ")} lat={coordinates?.lat} lng={coordinates?.lng} />
 
         {/* Photos */}
         {photos.length > 0 && (
