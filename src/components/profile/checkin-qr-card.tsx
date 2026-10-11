@@ -72,16 +72,16 @@ export function CheckinQrCard({ code, memberName, compact = false, profile }: Ch
         <div className="min-w-0"><p className="text-2xl font-semibold tracking-tight text-white">{memberName}</p><p className="mt-1 text-sm text-slate-300">{profile?.username ? `@${profile.username}` : (ar ? "بطاقة حضورك الشخصية" : "Your personal attendance pass")}</p>
           {profile && <dl className="mt-5 grid grid-cols-2 gap-3 border-t border-white/10 pt-5 text-sm">{details.filter(([label]) => ![ar ? "الاسم" : "Name", ar ? "اسم المستخدم" : "Username", ar ? "كود العضو" : "Member code"].includes(label!)).map(([label, value]) => <div key={label} className="min-w-0 rounded-xl border border-white/5 bg-white/[0.04] px-3 py-3"><dt className="text-xs text-slate-400">{label}</dt><dd className="mt-1 break-words font-medium">{value || (ar ? "غير محدد" : "Not provided")}</dd></div>)}</dl>}
         </div>
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-amber-200/30 bg-white p-5 text-slate-950 shadow-lg">
+        <div className="flex flex-col items-center justify-center gap-3 self-start rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-slate-100">
           <button type="button" disabled={!dataUrl} onClick={() => setExpanded(true)} aria-label={ar ? "تكبير كود الحضور" : "Enlarge attendance QR"} className="rounded-xl bg-white p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             {dataUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={dataUrl} alt={`QR ${code}`} className="h-40 w-40" />
             ) : <Skeleton className="h-40 w-40" />}
           </button>
-          <div className="text-center"><p className="text-[10px] font-medium uppercase tracking-widest text-slate-500">{ar ? "كود العضو" : "Member code"}</p><p className="mt-1 max-w-full break-all font-mono text-sm font-semibold tracking-wider">{code}</p></div>
-          <Button variant="outline" size="sm" disabled={!dataUrl} onClick={() => setExpanded(true)} className="w-full gap-2 border-slate-200 bg-slate-950 text-white hover:bg-slate-800 hover:text-white"><Maximize2 className="h-4 w-4" />{ar ? "تكبير الكود" : "Enlarge QR"}</Button>
-          {dataUrl && <Button asChild variant="ghost" size="sm" className="w-full gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-950"><a href={dataUrl} download="member-qr.png"><Download className="h-4 w-4" />{ar ? "تحميل" : "Download"}</a></Button>}
+          <div className="text-center"><p className="text-[10px] font-medium uppercase tracking-widest text-slate-400">{ar ? "كود العضو" : "Member code"}</p><p className="mt-1 max-w-full break-all font-mono text-sm font-semibold tracking-wider">{code}</p></div>
+          <Button variant="outline" size="sm" disabled={!dataUrl} onClick={() => setExpanded(true)} className="w-full gap-2 border-white/20 bg-white/5 text-slate-100 hover:bg-white/10 hover:text-white"><Maximize2 className="h-4 w-4" />{ar ? "تكبير الكود" : "Enlarge QR"}</Button>
+          {dataUrl && <Button asChild variant="ghost" size="sm" className="w-full gap-2 text-slate-300 hover:bg-white/10 hover:text-white"><a href={dataUrl} download="member-qr.png"><Download className="h-4 w-4" />{ar ? "تحميل" : "Download"}</a></Button>}
         </div>
       </CardContent>
     </Card>
