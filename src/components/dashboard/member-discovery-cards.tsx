@@ -7,6 +7,10 @@ import Link from "next/link";
 import { format } from "date-fns";
 import {
   ArrowRight,
+  CalendarDays,
+  Clock,
+  MapPin,
+  Users,
   Building2,
   LandPlot,
   type LucideIcon,
@@ -37,6 +41,7 @@ type DiscoveryItem = {
   href?: string;
   /** A recognised sport, for the graphic court-marking background. */
   sport?: string;
+  details?: { date: string; time: string; location?: string | null; price: string; places: string };
 };
 
 type DiscoveryQuery = {
@@ -162,9 +167,12 @@ function DiscoveryCard({
                         <h3 className="line-clamp-2 font-semibold transition-colors group-hover:text-primary">
                           {item.title}
                         </h3>
-                        <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                          {item.subtitle}
-                        </p>
+                        {item.details ? <div className="space-y-2 border-t border-border/60 pt-3 text-xs">
+                          <p className="flex items-start gap-2 font-medium"><CalendarDays className="h-3.5 w-3.5 shrink-0 text-primary" />{item.details.date}</p>
+                          <p className="flex items-center gap-2 text-muted-foreground"><Clock className="h-3.5 w-3.5 shrink-0" />{item.details.time}</p>
+                          {item.details.location && <p className="flex items-start gap-2 text-muted-foreground"><MapPin className="h-3.5 w-3.5 shrink-0" />{item.details.location}</p>}
+                          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-2"><span className="font-semibold text-primary">{item.details.price}</span><span className="flex items-center gap-1 text-muted-foreground"><Users className="h-3.5 w-3.5" />{item.details.places}</span></div>
+                        </div> : <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">{item.subtitle}</p>}
                       </div>
                     </Link>
                   </li>
@@ -179,7 +187,7 @@ function DiscoveryCard({
   );
 }
 
-export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {} }: { memberId: string; hasAcademy: boolean; preferences?: DiscoveryPreferences }) {
+export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, mode = "all" }: { memberId: string; hasAcademy: boolean; preferences?: DiscoveryPreferences; mode?: "all" | "games" | "academies" }) {
   const { t, lang, locale } = useI18n();
   useRealtime(["friendly_games", "friendly_game_participants"]);
   const games = useFriendlyGames();
@@ -191,7 +199,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {} }:
   const gameJoined = !!myGames.data?.length;
   const today = format(new Date(), "yyyy-MM-dd");
   const dateLabel = (date: string) =>
-    format(new Date(`${date}T00:00:00`), "MMM d", { locale });
+    format(new Date(`${date}T00:00:00`), "EEEE, MMM d", { locale });
 
   const reasonLabel = (match: ReturnType<typeof discoveryMatch>) => {
     const labels = {
@@ -227,6 +235,13 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {} }:
       href: game.invite_code ? `/dashboard/games?join=${encodeURIComponent(game.invite_code)}` : "/dashboard/games",
       badge: game.sport,
       sport: game.sport,
+      details: {
+        date: dateLabel(game.game_date),
+        time: formatTime12h(game.start_time, lang),
+        location: game.playground?.name ?? game.location ?? game.area,
+        price: game.host_pays ? (ar ? "المضيف يغطي التكلفة" : "Host pays") : game.share_price == null ? (ar ? "السعر غير محدد" : "Price not set") : formatMoney(game.share_price, lang),
+        places: `${Math.max(0, game.max_players - game.participants_count)} ${ar ? "مكان متاح" : "spots available"}`,
+      },
       subtitle: [
         dateLabel(game.game_date),
         formatTime12h(game.start_time, lang),
@@ -260,11 +275,11 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {} }:
 
   return (
     <div className="min-w-0 space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/50 px-4 py-3 text-sm">
+      {mode !== "games" && <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/50 px-4 py-3 text-sm">
         <p>{ar ? "خصّص اقتراحاتك بالرياضات والمستوى وأيامك المتاحة." : "Make these suggestions yours with your sports, skill level, and available days."}</p>
         <Link href="/profile" className="font-semibold text-primary underline underline-offset-4">{ar ? "تعديل تفضيلاتي" : "Edit my preferences"}</Link>
-      </div>
-      <DiscoveryCard
+      </div>}
+      {mode !== "games" && <DiscoveryCard
         title={ar ? "الأكاديميات" : "Academies"}
         tone="academies"
         description={ar ? "طوّر مهاراتك واكتشف مكانك وسط فريق جديد." : "Build your skills. Find your team. Grow your game."}
@@ -274,8 +289,8 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {} }:
         items={academyItems}
         query={academies}
         empty={ar ? "مفيش أكاديميات متاحة حالياً." : "No academies available yet."}
-      />
-      <DiscoveryCard
+      />}
+      {mode !== "academies" && <DiscoveryCard
         title={ar ? "المباريات" : "Games"}
         tone="games"
         description={ar ? "انزل الملعب وقابل لاعبين وشارك في المباراة الجاية." : "Hit the court, meet new players, and make your next move."}
@@ -286,7 +301,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {} }:
         query={games}
         empty={ar ? "مفيش مباريات متاحة حالياً. تابعنا قريب." : "No active games right now. Check back soon."}
 
-      />
+      />}
 
     </div>
   );

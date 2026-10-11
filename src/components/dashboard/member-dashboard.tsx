@@ -23,18 +23,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { MemberDiscoveryCards } from "./member-discovery-cards";
-import { MyUpcomingGames } from "./my-upcoming-games";
 import { MyTournamentsCard } from "./my-tournaments-card";
 import { DashboardNavigation, DashboardSection } from "./dashboard-navigation";
 import { useI18n } from "@/lib/i18n";
 import { EXPIRY_ALERT_THRESHOLD } from "@/lib/constants";
 import { usedSessionsSincePayment } from "@/lib/calculations";
-import { useAllPayments, useAttendance, useProfile, useSessions } from "@/lib/queries";
+import { useAllPayments, useAttendance, useProfile, useSessions, useMyUpcomingGames } from "@/lib/queries";
 import {
   memberActions,
   translateAction,
   type MemberAction,
-  type MemberDashboardGame,
 } from "@/lib/member-dashboard";
 import { cn } from "@/lib/utils";
 import type { Profile } from "@/lib/types";
@@ -47,7 +45,7 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
 
   // Fed upward by the children that already own these queries, so the action
   // strip never triggers a second copy of the same request.
-  const [games, setGames] = useState<MemberDashboardGame[]>([]);
+  const { data: games = [] } = useMyUpcomingGames(p.id);
   const [remaining, setRemaining] = useState<number | null>(null);
 
   const actions = useMemo(
@@ -56,7 +54,7 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
   );
 
   const sections = [
-    { id: "activity", label: t("dash_section_activity") },
+    { id: "activity", label: lang === "ar" ? "المباريات" : "Games" },
     ...(p.academy_id ? [{ id: "training", label: t("dash_section_training") }] : []),
     { id: "tournaments", label: t("dash_section_tournaments") },
     { id: "discover", label: t("dash_section_discover") },
@@ -73,13 +71,9 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
 
       <ActionStrip actions={actions} />
 
-      <DashboardSection
-        id="activity"
-        title={t("dash_section_activity")}
-        hint={t("dash_section_activity_hint")}
-      >
-        <MyUpcomingGames memberId={p.id} onCountChange={setGames} />
-      </DashboardSection>
+      <section id="activity" className="scroll-mt-24">
+        <MemberDiscoveryCards memberId={p.id} hasAcademy={!!p.academy_id} preferences={p} mode="games" />
+      </section>
 
       <MemberTrainingPreview profile={p} />
 
@@ -104,7 +98,7 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
         title={t("dash_section_discover")}
         hint={t("dash_section_discover_hint")}
       >
-        <MemberDiscoveryCards memberId={p.id} hasAcademy={!!p.academy_id} preferences={p} />
+        <MemberDiscoveryCards memberId={p.id} hasAcademy={!!p.academy_id} preferences={p} mode="academies" />
       </DashboardSection>
 
       <nav

@@ -389,3 +389,14 @@ const { gamePlaygroundPhoto } = loadFile(path.join(root, 'src/lib/venue-media.ts
 const duplicateVenues = [{ id: 'one', name: 'Court', area: 'Cairo', photos: ['one.jpg'] }, { id: 'two', name: 'Court', area: 'Cairo', photos: ['two.jpg'] }];
 assert.equal(gamePlaygroundPhoto({ location: 'Court', area: 'Cairo' }, duplicateVenues), null, 'ambiguous venue names must not display another playground photo');
 assert.equal(gamePlaygroundPhoto({ playground_id: 'two', location: 'Court' }, duplicateVenues), 'two.jpg', 'venue identity takes precedence over the location name');
+
+mocks['@/lib/queries'].useFriendlyGames = () => discoveryQuery([{ id: 'organized-game', title: 'Organized game', sport: 'Volleyball', status: 'open', game_date: addDaysISO(TODAY, 2), start_time: '20:00', max_players: 12, participants_count: 7, share_price: 145, location: 'Aspire', playground: null }]);
+html = renderToStaticMarkup(h(MemberDiscoveryCards, { memberId: 'member-1', hasAcademy: true, mode: 'games' }));
+assert.ok(html.includes('Organized game'));
+assert.ok(html.includes('5 spots available'));
+assert.ok(html.includes('Aspire'));
+assert.ok(html.includes(new RealDate(addDaysISO(TODAY, 2) + 'T00:00:00').toLocaleDateString('en', { weekday: 'long' })));
+assert.ok(!html.includes('Spike Nova'), 'games-only card does not repeat academy discovery');
+const academyOnly = renderToStaticMarkup(h(MemberDiscoveryCards, { memberId: 'member-1', hasAcademy: true, mode: 'academies' }));
+assert.ok(!academyOnly.includes('Organized game'), 'academy discovery does not repeat the top Games card');
+console.log('PASS: replacement Games carousel displays weekday, venue, price and places without duplicate sections');
