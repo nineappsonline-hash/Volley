@@ -4672,3 +4672,13 @@ export function useToggleScoutNote() {
     },
   });
 }
+
+export function useRequestGamePlayers() {
+  return useMutation({
+    mutationFn: async (gameId: string) => {
+      const { data, error } = await supabase().rpc("request_game_players", { p_game_id: gameId });
+      if (error) throw error;
+      return Number(data ?? 0);
+    },
+  });
+}

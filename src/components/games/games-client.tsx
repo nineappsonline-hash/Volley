@@ -1,5 +1,6 @@
 "use client";
 
+import { useRequestGamePlayers } from "@/lib/queries";
 import { GameCardShell } from "@/components/games/game-card-shell";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
@@ -139,6 +140,8 @@ function GameCard({
 }) {
   const router = useRouter();
   const { t, locale, lang } = useI18n();
+  const recruit = useRequestGamePlayers();
+  const [recruited, setRecruited] = useState(false);
   const leave = useLeaveFriendlyGame();
   const join = useJoinFriendlyGame();
   const reminder = useSetKickoffReminder();
@@ -432,6 +435,14 @@ function GameCard({
         </div>
 
         <div className="flex flex-wrap gap-2 pt-1">
+          {isOrganizer && !isPrivate && game.status === "open" && slotsLeft > 0 && gameStart > Date.now() && <Button variant="outline" disabled={recruit.isPending || recruited} className="gap-2 border-violet-300 bg-violet-50 text-violet-900 hover:bg-violet-100 dark:border-violet-700 dark:bg-violet-950 dark:text-violet-100" onClick={async () => {
+            try {
+              const sent = await recruit.mutateAsync(game.id);
+              if (sent > 0) setRecruited(true);
+              toast.success(sent > 0 ? (lang === "ar" ? `تم تنبيه ${sent} لاعب مناسب` : `Alerted ${sent} matching players`) : (lang === "ar" ? "لا يوجد لاعبون مطابقون مشتركين في التنبيهات حاليًا" : "No matching members have game alerts enabled right now"));
+            } catch (err) { toast.error(errorMessage(err, t("common_error"))); }
+          }}><Bell className="h-4 w-4" />{recruit.isPending ? t("common_saving") : recruited ? (lang === "ar" ? "تم إرسال التنبيه" : "Players alerted") : (lang === "ar" ? `نحتاج ${slotsLeft} لاعب إضافي` : `Need ${slotsLeft} more ${slotsLeft === 1 ? "player" : "players"}`)}</Button>}
+
           {isPrivate && !isOrganizer && !joined && (
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <LinkIcon className="h-3.5 w-3.5" />
