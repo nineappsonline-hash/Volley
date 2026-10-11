@@ -400,3 +400,14 @@ assert.ok(!html.includes('Spike Nova'), 'games-only card does not repeat academy
 const academyOnly = renderToStaticMarkup(h(MemberDiscoveryCards, { memberId: 'member-1', hasAcademy: true, mode: 'academies' }));
 assert.ok(!academyOnly.includes('Organized game'), 'academy discovery does not repeat the top Games card');
 console.log('PASS: replacement Games carousel displays weekday, venue, price and places without duplicate sections');
+
+for (const [language, labels] of [['en', ['Today', 'Tomorrow', 'Day after tomorrow']], ['ar', ['اليوم', 'غداً', 'بعد غد']]]) {
+  lang = language;
+  for (let offset = 0; offset < labels.length; offset++) {
+    mocks['@/lib/queries'].useFriendlyGames = () => discoveryQuery([{ id: 'relative-game', title: 'Relative day game', sport: 'Volleyball', status: 'open', game_date: addDaysISO(TODAY, offset), start_time: '20:00', max_players: 12, participants_count: 7, share_price: 145 }]);
+    const relativeHtml = renderToStaticMarkup(h(MemberDiscoveryCards, { memberId: 'member-1', hasAcademy: true, mode: 'games' }));
+    assert.ok(relativeHtml.includes(labels[offset] + ' · '), `relative date in ${language} at offset ${offset}`);
+  }
+}
+lang = 'en';
+console.log('PASS: Games carousel displays Today, Tomorrow and Day after tomorrow in both languages');

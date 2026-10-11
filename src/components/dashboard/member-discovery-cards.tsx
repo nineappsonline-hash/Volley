@@ -1,5 +1,6 @@
 "use client";
 
+import { cairoNow } from "@/lib/member-training";
 import { discoveryMatch, type DiscoveryPreferences } from "@/lib/member-discovery";
 import { GameCardBackground } from "@/components/games/game-card-background";
 import { useId } from "react";
@@ -197,9 +198,13 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
   const ar = lang === "ar";
   const academyJoined = hasAcademy || !!follows.data?.length;
   const gameJoined = !!myGames.data?.length;
-  const today = format(new Date(), "yyyy-MM-dd");
-  const dateLabel = (date: string) =>
-    format(new Date(`${date}T00:00:00`), "EEEE, MMM d", { locale });
+  const today = cairoNow().slice(0, 10);
+  const dateLabel = (date: string) => {
+    const days = Math.round((Date.parse(`${date}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86400000);
+    const relative = days === 0 ? (ar ? "اليوم" : "Today") : days === 1 ? (ar ? "غداً" : "Tomorrow") : days === 2 ? (ar ? "بعد غد" : "Day after tomorrow") : null;
+    const fullDate = format(new Date(`${date}T00:00:00`), "EEEE, MMM d", { locale });
+    return relative ? `${relative} · ${fullDate}` : fullDate;
+  };
 
   const reasonLabel = (match: ReturnType<typeof discoveryMatch>) => {
     const labels = {
