@@ -457,3 +457,26 @@ assert.ok(!html.includes('aria-haspopup'), 'directions opens directly without a 
 assert.ok(!html.includes('apple') && !html.includes('waze'));
 assert.equal(directDirections.directionsUrl(null, null, 'Free Life'), 'https://www.google.com/maps/dir/?api=1&destination=Free+Life');
 console.log('PASS: shared directions button opens Google Maps directly without provider options');
+
+const googleDirections = loadFile(path.join(root, 'src/lib/google-directions.ts'), mocks);
+const savedPin = 'https://www.google.com/maps/place/Aspire/@30.2,31.5,15z/data=!3d30.1!4d31.4';
+assert.equal(googleDirections.googleDirectionsUrl(1, 2, 'Wrong label', savedPin), 'https://www.google.com/maps/dir/?api=1&destination=30.1%2C31.4', 'saved place pin overrides viewport, coordinates and labels');
+assert.ok(googleDirections.googleDirectionsUrl(1, 2, '', 'https://maps.app.goo.gl/example').startsWith('/api/directions?location='));
+assert.equal(googleDirections.trustedMapsLink('https://evil.example/maps'), null);
+assert.equal(googleDirections.trustedMapsLink('javascript:alert(1)'), null);
+const route = loadFile(path.join(root, 'src/app/api/directions/route.ts'), mocks);
+(async () => {
+  const originalFetch = globalThis.fetch;
+  const fetched = [];
+  globalThis.fetch = async url => { fetched.push(url); return new Response(null, { status: 302, headers: { location: savedPin } }); };
+  try {
+    const result = await route.GET(new Request('https://playza.example/api/directions?location=' + encodeURIComponent('https://maps.app.goo.gl/example')));
+    assert.equal(result.headers.get('location'), 'https://www.google.com/maps/dir/?api=1&destination=30.1%2C31.4');
+    assert.equal(fetched.length, 1);
+    assert.equal((await route.GET(new Request('https://playza.example/api/directions?location=https://evil.example'))).status, 400);
+    globalThis.fetch = async () => new Response(null, { status: 302, headers: { location: 'http://127.0.0.1/private' } });
+    const blocked = await route.GET(new Request('https://playza.example/api/directions?location=' + encodeURIComponent('https://maps.app.goo.gl/example')));
+    assert.equal(blocked.headers.get('location'), 'https://maps.app.goo.gl/example', 'untrusted redirects are never fetched');
+    console.log('PASS: saved Maps pins and short links open directions while untrusted links/redirects are rejected');
+  } finally { globalThis.fetch = originalFetch; }
+})().catch(error => { console.error(error); process.exitCode = 1; });

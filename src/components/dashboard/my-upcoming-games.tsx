@@ -256,7 +256,7 @@ export function MyUpcomingGames({
                   </p>
                 </div>
                 {directionQuery && (
-                  <DirectionsLinks lat={directionTarget?.lat} lng={directionTarget?.lng} query={directionQuery} />
+                  <DirectionsLinks locationLink={game.playground?.location_link} lat={directionTarget?.lat} lng={directionTarget?.lng} query={directionQuery} />
                 )}
               </div>
             )}

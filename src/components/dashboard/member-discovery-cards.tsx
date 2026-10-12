@@ -1,6 +1,6 @@
 "use client";
 
-import { parseMapsCoordinates } from "@/lib/maps";
+import { googleDirectionsUrl } from "@/lib/google-directions";
 import { cairoNow } from "@/lib/member-training";
 import { discoveryMatch, type DiscoveryPreferences } from "@/lib/member-discovery";
 import { GameCardBackground } from "@/components/games/game-card-background";
@@ -246,14 +246,9 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
       href: game.invite_code ? `/dashboard/games?join=${encodeURIComponent(game.invite_code)}` : "/dashboard/games",
       badge: game.sport,
       sport: game.sport,
-      directionsHref: (() => {
-        const pg = game.playground;
-        const pin = (pg?.location_link ? parseMapsCoordinates(pg.location_link) : null)
-          ?? (pg?.lat != null && pg?.lng != null ? { lat: pg.lat, lng: pg.lng } : null)
-          ?? (game.lat != null && game.lng != null ? { lat: game.lat, lng: game.lng } : null);
-        const destination = pin ? `${pin.lat},${pin.lng}` : [pg?.name || game.location, pg?.area || game.area, pg?.governorate, pg?.country].filter(Boolean).join(", ");
-        return destination ? `https://www.google.com/maps/dir/?${new URLSearchParams({ api: "1", destination })}` : undefined;
-      })(),
+      directionsHref: game.playground?.location_link || game.playground?.name || game.location || game.area || (game.lat != null && game.lng != null)
+        ? googleDirectionsUrl(game.playground?.lat ?? game.lat, game.playground?.lng ?? game.lng, [game.playground?.name || game.location, game.playground?.area || game.area].filter(Boolean).join(", "), game.playground?.location_link)
+        : undefined,
       details: {
         date: dateLabel(game.game_date),
         time: formatTime12h(game.start_time, lang),

@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { PlaygroundDistance } from "./playground-distance";
 import { useI18n } from "@/lib/i18n";
 import { parseMapsCoordinates } from "@/lib/maps";
+import { googleDirectionsUrl } from "@/lib/google-directions";
 import { venueCardPhoto } from "@/lib/venue-media";
 import { cn } from "@/lib/utils";
 import type { Venue } from "@/lib/types";
@@ -23,8 +24,7 @@ export function PlaygroundOptionCard({ playground: p, selected, onSelect }: {
   const photos = [...new Set([p.cover_url, ...(p.photos ?? [])].filter((url): url is string => !!url))];
   const location = [p.country, p.governorate, p.area, p.address].filter(Boolean).join(" · ");
   const coordinates = p.lat != null && p.lng != null ? { lat: p.lat, lng: p.lng } : parseMapsCoordinates(p.location_link ?? "");
-  const destination = coordinates ? `${coordinates.lat},${coordinates.lng}` : [p.name, location].filter(Boolean).join(", ");
-  const directions = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
+  const directions = googleDirectionsUrl(p.lat, p.lng, [p.name, location].filter(Boolean).join(", "), p.location_link);
 
   return (
     <div className={cn("space-y-2 border-t p-3", selected && "bg-accent")}>

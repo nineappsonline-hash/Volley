@@ -531,8 +531,9 @@ function GameCard({
             </>
           )}
 
-          {game.lat != null && game.lng != null && (
+          {(game.playground?.location_link || (game.lat != null && game.lng != null)) && (
             <DirectionsLinks
+              locationLink={game.playground?.location_link}
               lat={game.lat}
               lng={game.lng}
               query={game.location ?? game.area ?? game.title}

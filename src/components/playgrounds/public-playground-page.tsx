@@ -1,4 +1,5 @@
 "use client";
+import { googleDirectionsUrl } from "@/lib/google-directions";
 import { LocationMap } from "@/components/shared/location-map";
 
 import { useCallback, useMemo, useState } from "react";
@@ -105,7 +106,7 @@ export function PublicPlaygroundPage({
   const destination = coordinates
     ? `${coordinates.lat},${coordinates.lng}`
     : [venue.name, place].filter(Boolean).join(", ");
-  const directions = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
+  const directions = googleDirectionsUrl(coordinates?.lat, coordinates?.lng, destination, venue.location_link);
 
   return (
     <>
@@ -282,7 +283,7 @@ export function PublicPlaygroundPage({
           </div>
         </section>
 
-        <LocationMap name={venue.name} address={[venue.address, place].filter(Boolean).join(", ")} lat={coordinates?.lat} lng={coordinates?.lng} />
+        <LocationMap name={venue.name} address={[venue.address, place].filter(Boolean).join(", ")} lat={coordinates?.lat} lng={coordinates?.lng} locationLink={venue.location_link} />
 
         {/* Photos */}
         {photos.length > 0 && (
