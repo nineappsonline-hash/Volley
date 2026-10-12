@@ -449,3 +449,11 @@ assert.ok(html.includes(dictionary.en.directions));
 assert.ok(html.includes('target="_blank"'));
 assert.ok(html.includes('<article'), 'directions links sit in a card rather than inside another link');
 console.log('PASS: member game carousel shows free Google Maps directions with coordinates');
+
+const directDirections = loadFile(path.join(root, 'src/components/shared/directions-links.tsx'), mocks);
+html = renderToStaticMarkup(h(directDirections.DirectionsLinks, { lat: 30.1, lng: 31.4, query: 'Aspire' }));
+assert.ok(html.includes('https://www.google.com/maps/dir/?api=1&amp;destination=30.1%2C31.4'));
+assert.ok(!html.includes('aria-haspopup'), 'directions opens directly without a provider dropdown');
+assert.ok(!html.includes('apple') && !html.includes('waze'));
+assert.equal(directDirections.directionsUrl(null, null, 'Free Life'), 'https://www.google.com/maps/dir/?api=1&destination=Free+Life');
+console.log('PASS: shared directions button opens Google Maps directly without provider options');
