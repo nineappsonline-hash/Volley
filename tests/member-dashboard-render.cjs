@@ -441,3 +441,11 @@ assert.ok(!html.includes('<iframe'), 'location links require no embedded API or 
 assert.ok(html.includes('destination=30.1%2C31.4'), 'coordinates take priority over address text');
 assert.equal(renderToStaticMarkup(h(LocationMap, { name: 'Unknown location' })), '', 'do not guess a location when address and coordinates are missing');
 console.log('PASS: location directions require no API key, embedded API or billing account');
+
+mocks['@/lib/queries'].useFriendlyGames = () => discoveryQuery([{ id: 'directions-game', title: 'Directions game', sport: 'Volleyball', status: 'open', game_date: TODAY, start_time: '20:00', max_players: 12, participants_count: 7, share_price: 145, lat: 30.1, lng: 31.4, location: 'Aspire' }]);
+html = renderToStaticMarkup(h(MemberDiscoveryCards, { memberId: 'member-1', hasAcademy: true, mode: 'games' }));
+assert.ok(html.includes('https://www.google.com/maps/dir/?api=1&amp;destination=30.1%2C31.4'));
+assert.ok(html.includes(dictionary.en.directions));
+assert.ok(html.includes('target="_blank"'));
+assert.ok(html.includes('<article'), 'directions links sit in a card rather than inside another link');
+console.log('PASS: member game carousel shows free Google Maps directions with coordinates');

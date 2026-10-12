@@ -1,5 +1,6 @@
 "use client";
 
+import { parseMapsCoordinates } from "@/lib/maps";
 import { cairoNow } from "@/lib/member-training";
 import { discoveryMatch, type DiscoveryPreferences } from "@/lib/member-discovery";
 import { GameCardBackground } from "@/components/games/game-card-background";
@@ -9,6 +10,7 @@ import { format } from "date-fns";
 import {
   ArrowRight,
   CalendarDays,
+  Navigation,
   Clock,
   MapPin,
   Users,
@@ -40,6 +42,7 @@ type DiscoveryItem = {
   academyLogo?: string | null;
   image?: string | null;
   href?: string;
+  directionsHref?: string;
   /** A recognised sport, for the graphic court-marking background. */
   sport?: string;
   details?: { date: string; time: string; location?: string | null; price: string; places: string };
@@ -72,6 +75,7 @@ function DiscoveryCard({
   description: string;
   action: string;
 }) {
+  const { t } = useI18n();
   const id = useId();
 
   return (
@@ -127,11 +131,11 @@ function DiscoveryCard({
                     key={item.id}
                     className="flex min-w-0 shrink-0 basis-[82%] sm:basis-4/9 lg:basis-3/10"
                   >
-                    <Link
-                      href={item.href ?? href}
+                    <article
                       style={{ "--i": index } as React.CSSProperties}
                       className="animate-suggest-stagger group flex h-full w-full flex-col overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:hover:translate-y-0"
                     >
+                      <Link href={item.href ?? href} aria-label={item.title}>
                       {/* Graphic area: venue photo, else sport court graphics */}
                       <div className="relative flex aspect-[16/9] items-center justify-center overflow-hidden bg-[#0A1E3F]">
                         {/* Court-marking / sport-illustration decorations */}
@@ -162,11 +166,12 @@ function DiscoveryCard({
                         )}
                       </div>
 
+                      </Link>
                       {/* Content */}
                       <div className="space-y-2 p-3">
                         {item.reason && <p className="text-xs font-semibold text-primary">{item.reason}</p>}
                         <h3 className="line-clamp-2 font-semibold transition-colors group-hover:text-primary">
-                          {item.title}
+                          <Link href={item.href ?? href} className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{item.title}</Link>
                         </h3>
                         {item.details ? <div className="space-y-2 border-t border-border/60 pt-3 text-xs">
                           <p className="flex items-start gap-2 font-medium"><CalendarDays className="h-3.5 w-3.5 shrink-0 text-primary" />{item.details.date}</p>
@@ -174,8 +179,9 @@ function DiscoveryCard({
                           {item.details.location && <p className="flex items-start gap-2 text-muted-foreground"><MapPin className="h-3.5 w-3.5 shrink-0" />{item.details.location}</p>}
                           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-2"><span className="font-semibold text-primary">{item.details.price}</span><span className="flex items-center gap-1 text-muted-foreground"><Users className="h-3.5 w-3.5" />{item.details.places}</span></div>
                         </div> : <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">{item.subtitle}</p>}
+                        {item.directionsHref && <div className="border-t border-border/60 pt-3"><Button asChild variant="outline" size="sm" className="w-full gap-2"><a href={item.directionsHref} target="_blank" rel="noopener noreferrer"><Navigation className="h-3.5 w-3.5" />{t("directions")}</a></Button></div>}
                       </div>
-                    </Link>
+                    </article>
                   </li>
                 ))}
               </ul>
@@ -240,6 +246,14 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
       href: game.invite_code ? `/dashboard/games?join=${encodeURIComponent(game.invite_code)}` : "/dashboard/games",
       badge: game.sport,
       sport: game.sport,
+      directionsHref: (() => {
+        const pg = game.playground;
+        const pin = (pg?.location_link ? parseMapsCoordinates(pg.location_link) : null)
+          ?? (pg?.lat != null && pg?.lng != null ? { lat: pg.lat, lng: pg.lng } : null)
+          ?? (game.lat != null && game.lng != null ? { lat: game.lat, lng: game.lng } : null);
+        const destination = pin ? `${pin.lat},${pin.lng}` : [pg?.name || game.location, pg?.area || game.area, pg?.governorate, pg?.country].filter(Boolean).join(", ");
+        return destination ? `https://www.google.com/maps/dir/?${new URLSearchParams({ api: "1", destination })}` : undefined;
+      })(),
       details: {
         date: dateLabel(game.game_date),
         time: formatTime12h(game.start_time, lang),
