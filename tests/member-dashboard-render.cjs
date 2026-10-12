@@ -435,14 +435,14 @@ assert.ok(html.includes('Request renewal'));
 console.log('PASS: personal goal creation/ownership controls and current/legacy renewal package options');
 
 const { LocationMap } = loadFile(path.join(root, 'src/components/shared/location-map.tsx'), mocks);
-html = renderToStaticMarkup(h(LocationMap, { name: 'Aspire', address: 'New Cairo', lat: 30.1, lng: 31.4 }));
+html = renderToStaticMarkup(h(LocationMap, { name: 'Aspire', address: 'New Cairo', lat: 1, lng: 2, locationLink: 'https://www.google.com/maps?q=30.1,31.4' }));
 assert.ok(html.includes('Google Maps directions'));
 assert.ok(!html.includes('<iframe'), 'location links require no embedded API or billing account');
 assert.ok(html.includes('destination=30.1%2C31.4'), 'coordinates take priority over address text');
 assert.equal(renderToStaticMarkup(h(LocationMap, { name: 'Unknown location' })), '', 'do not guess a location when address and coordinates are missing');
 console.log('PASS: location directions require no API key, embedded API or billing account');
 
-mocks['@/lib/queries'].useFriendlyGames = () => discoveryQuery([{ id: 'directions-game', title: 'Directions game', sport: 'Volleyball', status: 'open', game_date: TODAY, start_time: '20:00', max_players: 12, participants_count: 7, share_price: 145, lat: 30.1, lng: 31.4, location: 'Aspire' }]);
+mocks['@/lib/queries'].useFriendlyGames = () => discoveryQuery([{ id: 'directions-game', title: 'Directions game', sport: 'Volleyball', status: 'open', game_date: TODAY, start_time: '20:00', max_players: 12, participants_count: 7, share_price: 145, lat: 30.1, lng: 31.4, location: 'Aspire', playground: { location_link: 'https://www.google.com/maps?q=30.1,31.4' } }]);
 html = renderToStaticMarkup(h(MemberDiscoveryCards, { memberId: 'member-1', hasAcademy: true, mode: 'games' }));
 assert.ok(html.includes('https://www.google.com/maps/dir/?api=1&amp;destination=30.1%2C31.4'));
 assert.ok(html.includes(dictionary.en.directions));
@@ -451,17 +451,18 @@ assert.ok(html.includes('<article'), 'directions links sit in a card rather than
 console.log('PASS: member game carousel shows free Google Maps directions with coordinates');
 
 const directDirections = loadFile(path.join(root, 'src/components/shared/directions-links.tsx'), mocks);
-html = renderToStaticMarkup(h(directDirections.DirectionsLinks, { lat: 30.1, lng: 31.4, query: 'Aspire' }));
+html = renderToStaticMarkup(h(directDirections.DirectionsLinks, { lat: 1, lng: 2, query: 'Aspire', locationLink: 'https://www.google.com/maps?q=30.1,31.4' }));
 assert.ok(html.includes('https://www.google.com/maps/dir/?api=1&amp;destination=30.1%2C31.4'));
 assert.ok(!html.includes('aria-haspopup'), 'directions opens directly without a provider dropdown');
 assert.ok(!html.includes('apple') && !html.includes('waze'));
-assert.equal(directDirections.directionsUrl(null, null, 'Free Life'), 'https://www.google.com/maps/dir/?api=1&destination=Free+Life');
+assert.equal(directDirections.directionsUrl(30.1, 31.4, 'Free Life'), undefined, 'coordinates and names cannot create directions without a saved link');
+assert.equal(renderToStaticMarkup(h(directDirections.DirectionsLinks, { lat: 30.1, lng: 31.4, query: 'Free Life' })), '', 'hide directions when no saved link exists');
 console.log('PASS: shared directions button opens Google Maps directly without provider options');
 
 const googleDirections = loadFile(path.join(root, 'src/lib/google-directions.ts'), mocks);
 const savedPin = 'https://www.google.com/maps/place/Aspire/@30.2,31.5,15z/data=!3d30.1!4d31.4';
-assert.equal(googleDirections.googleDirectionsUrl(1, 2, 'Wrong label', savedPin), 'https://www.google.com/maps/dir/?api=1&destination=30.1%2C31.4', 'saved place pin overrides viewport, coordinates and labels');
-assert.ok(googleDirections.googleDirectionsUrl(1, 2, '', 'https://maps.app.goo.gl/example').startsWith('/api/directions?location='));
+assert.equal(googleDirections.googleDirectionsUrl(savedPin), 'https://www.google.com/maps/dir/?api=1&destination=30.1%2C31.4', 'saved place pin overrides viewport, coordinates and labels');
+assert.ok(googleDirections.googleDirectionsUrl('https://maps.app.goo.gl/example').startsWith('/api/directions?location='));
 assert.equal(googleDirections.trustedMapsLink('https://evil.example/maps'), null);
 assert.equal(googleDirections.trustedMapsLink('javascript:alert(1)'), null);
 const route = loadFile(path.join(root, 'src/app/api/directions/route.ts'), mocks);
@@ -480,3 +481,10 @@ const route = loadFile(path.join(root, 'src/app/api/directions/route.ts'), mocks
     console.log('PASS: saved Maps pins and short links open directions while untrusted links/redirects are rejected');
   } finally { globalThis.fetch = originalFetch; }
 })().catch(error => { console.error(error); process.exitCode = 1; });
+
+assert.equal(googleDirections.googleDirectionsUrl(), undefined);
+assert.equal(googleDirections.googleDirectionsUrl('https://untrusted.example/place'), undefined);
+mocks['@/lib/queries'].useFriendlyGames = () => discoveryQuery([{ id: 'no-link', title: 'No saved link', sport: 'Volleyball', status: 'open', game_date: TODAY, start_time: '20:00', max_players: 12, participants_count: 7, share_price: 145, lat: 30.1, lng: 31.4, location: 'Aspire' }]);
+const noLinkCard = renderToStaticMarkup(h(MemberDiscoveryCards, { memberId: 'member-1', hasAcademy: true, mode: 'games' }));
+assert.ok(!noLinkCard.includes('google.com/maps'), 'member cards never build directions from names or coordinates');
+console.log('PASS: every directions helper requires a valid saved playground link');

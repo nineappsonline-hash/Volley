@@ -24,7 +24,7 @@ export function PlaygroundOptionCard({ playground: p, selected, onSelect }: {
   const photos = [...new Set([p.cover_url, ...(p.photos ?? [])].filter((url): url is string => !!url))];
   const location = [p.country, p.governorate, p.area, p.address].filter(Boolean).join(" · ");
   const coordinates = p.lat != null && p.lng != null ? { lat: p.lat, lng: p.lng } : parseMapsCoordinates(p.location_link ?? "");
-  const directions = googleDirectionsUrl(p.lat, p.lng, [p.name, location].filter(Boolean).join(", "), p.location_link);
+  const directions = googleDirectionsUrl(p.location_link);
 
   return (
     <div className={cn("space-y-2 border-t p-3", selected && "bg-accent")}>
@@ -42,9 +42,9 @@ export function PlaygroundOptionCard({ playground: p, selected, onSelect }: {
       </button>
       {coordinates && <PlaygroundDistance {...coordinates} />}
       <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" size="sm" asChild>
+        {directions && <Button type="button" variant="outline" size="sm" asChild>
           <a href={directions} target="_blank" rel="noopener noreferrer"><Navigation className="me-1 h-4 w-4" />{t("directions")}</a>
-        </Button>
+        </Button>}
         <Button type="button" variant="outline" size="sm" onClick={() => setDetailsOpen(true)}>{t("games_playground_details")}</Button>
       </div>
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
@@ -57,7 +57,7 @@ export function PlaygroundOptionCard({ playground: p, selected, onSelect }: {
               <img src={url} alt={p.name} loading="lazy" className="w-full rounded-lg object-contain" />
             </a>
           ))}</div> : <p className="text-sm text-muted-foreground">{t("games_playground_no_photos")}</p>}
-          <Button type="button" variant="outline" asChild><a href={directions} target="_blank" rel="noopener noreferrer">{t("directions")}</a></Button>
+          {directions && <Button type="button" variant="outline" asChild><a href={directions} target="_blank" rel="noopener noreferrer">{t("directions")}</a></Button>}
         </DialogContent>
       </Dialog>
     </div>

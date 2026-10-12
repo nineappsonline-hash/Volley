@@ -36,7 +36,7 @@ export type PublicGame = {
   gender: string;
   share_price: number | null;
   creator_name: string;
-  playground: { name: string | null; area: string | null; governorate: string | null } | null;
+  playground: { name: string | null; area: string | null; governorate: string | null; location_link?: string | null } | null;
   joined: number;
 };
 
@@ -133,6 +133,7 @@ export type SharedGameMeta = {
   is_public: boolean;
   creator_name: string;
   map_label: string;
+  location_link?: string | null;
   lat: number | null;
   lng: number | null;
   participants: { id: string; player_name: string; is_waitlisted: boolean }[];
@@ -148,7 +149,7 @@ export async function getGameByInviteCode(code: string): Promise<SharedGameMeta 
       .select(
         `id, title, description, sport, gender, area, location, lat, lng, game_date, start_time,
          max_players, status, share_price, host_pays, host_total, is_public, creator_name,
-         playground:venues(name, area, governorate),
+         playground:venues(name, area, governorate, location_link),
          participants:friendly_game_participants(id, player_name, is_waitlisted)`
       )
       .eq("invite_code", code.trim().toUpperCase())
@@ -162,6 +163,7 @@ export async function getGameByInviteCode(code: string): Promise<SharedGameMeta 
     };
     const playground = Array.isArray(row.playground) ? row.playground[0] ?? null : row.playground;
     const meta: SharedGameMeta = {
+      location_link: playground?.location_link ?? null,
       lat: data.lat,
       lng: data.lng,
       status: data.status,

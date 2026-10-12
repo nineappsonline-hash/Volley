@@ -246,9 +246,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
       href: game.invite_code ? `/dashboard/games?join=${encodeURIComponent(game.invite_code)}` : "/dashboard/games",
       badge: game.sport,
       sport: game.sport,
-      directionsHref: game.playground?.location_link || game.playground?.name || game.location || game.area || (game.lat != null && game.lng != null)
-        ? googleDirectionsUrl(game.playground?.lat ?? game.lat, game.playground?.lng ?? game.lng, [game.playground?.name || game.location, game.playground?.area || game.area].filter(Boolean).join(", "), game.playground?.location_link)
-        : undefined,
+      directionsHref: googleDirectionsUrl(game.playground?.location_link),
       details: {
         date: dateLabel(game.game_date),
         time: formatTime12h(game.start_time, lang),

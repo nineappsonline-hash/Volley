@@ -531,7 +531,7 @@ function GameCard({
             </>
           )}
 
-          {(game.playground?.location_link || (game.lat != null && game.lng != null)) && (
+          {game.playground?.location_link && (
             <DirectionsLinks
               locationLink={game.playground?.location_link}
               lat={game.lat}
@@ -730,7 +730,7 @@ function InviteBanner({
         )}
         {inviteGame && (
           <div className="flex flex-wrap items-center gap-2">
-          {(inviteGame.location || inviteGame.area || (inviteGame.lat != null && inviteGame.lng != null)) && <DirectionsLinks lat={inviteGame.lat} lng={inviteGame.lng} query={inviteGame.location ?? inviteGame.area ?? inviteGame.title} />}
+          {inviteGame.playground?.location_link && <DirectionsLinks locationLink={inviteGame.playground?.location_link} lat={inviteGame.lat} lng={inviteGame.lng} query={inviteGame.location ?? inviteGame.area ?? inviteGame.title} />}
           <Button onClick={() => setPayOpen(true)} disabled={!inviteGame}>
             <Plus className="h-4 w-4" />
             {t("games_join_from_link")}

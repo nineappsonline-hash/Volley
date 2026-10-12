@@ -22,7 +22,7 @@ export function SharedGamePage({ game, inviteCode }: { game: SharedGameMeta | nu
           <p>{game.sport} · {game.game_date} · {formatTime12h(game.start_time, lang)}</p>
           <p>{t(`games_gender_${game.gender}`)}</p>
           <p>{[game.map_label, game.governorate, game.area].filter(Boolean).join(" · ")}</p>
-          <DirectionsLinks lat={game.lat} lng={game.lng} query={game.map_label} />
+          <DirectionsLinks locationLink={game.location_link} lat={game.lat} lng={game.lng} query={game.map_label} />
           <GameParticipantNames participants={game.participants} />
           {game.description && <p className="whitespace-pre-wrap break-words">{game.description}</p>}
           <p>{formatMoney(game.host_pays ? 0 : (game.share_price ?? 0), lang)}</p>

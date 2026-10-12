@@ -1,4 +1,5 @@
 "use client";
+import { DirectionsLinks } from "@/components/shared/directions-links";
 
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
@@ -281,15 +282,7 @@ export default function DiscoverMap({ profile }: { profile: Profile }) {
                         <Users className="h-3 w-3" />
                         {g.participants_count}/{g.max_players}
                       </p>
-                      <a
-                        className="flex items-center gap-1 text-xs font-medium text-primary"
-                        href={`https://www.google.com/maps?q=${g.lat},${g.lng}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Navigation className="h-3 w-3" />
-                        {t("map_directions")}
-                      </a>
+                      <DirectionsLinks locationLink={g.playground?.location_link} query={g.title} />
                     </div>
                   </Popup>
                 </Marker>

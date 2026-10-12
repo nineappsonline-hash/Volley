@@ -25,10 +25,7 @@ export function directionsFromMapsLink(url: URL): string | null {
   return `https://www.google.com/maps/dir/?${params}`;
 }
 
-export function googleDirectionsUrl(lat?: number | null, lng?: number | null, query = "", locationLink?: string | null): string {
+export function googleDirectionsUrl(locationLink?: string | null): string | undefined {
   const saved = trustedMapsLink(locationLink);
-  if (saved) return directionsFromMapsLink(saved) ?? `/api/directions?${new URLSearchParams({ location: saved.href })}`;
-  const hasCoords = lat != null && lng != null && Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
-  const destination = hasCoords ? `${lat},${lng}` : query.trim();
-  return destination ? `https://www.google.com/maps/dir/?${new URLSearchParams({ api: "1", destination })}` : "https://www.google.com/maps";
+  return saved ? directionsFromMapsLink(saved) ?? `/api/directions?${new URLSearchParams({ location: saved.href })}` : undefined;
 }

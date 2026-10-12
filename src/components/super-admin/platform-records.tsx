@@ -214,8 +214,8 @@ function VenueDetails({ venue, data }: { venue: Row; data: Records }) {
     </section>
     <section className="space-y-2">
       <h3 className="text-sm font-semibold">{t("sa_map")}</h3>
-      {coords
-        ? <DirectionsLinks lat={coords.lat} lng={coords.lng} query={venue.name} />
+      {venue.location_link
+        ? <DirectionsLinks locationLink={venue.location_link} query={venue.name} />
         : <p className="text-sm text-muted-foreground">{t("sa_map_missing")}</p>}
       {venue.location_link && (
         <div className="flex items-center gap-2">

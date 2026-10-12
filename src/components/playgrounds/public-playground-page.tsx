@@ -103,10 +103,7 @@ export function PublicPlaygroundPage({
     venue.lat != null && venue.lng != null
       ? { lat: venue.lat, lng: venue.lng }
       : parseMapsCoordinates(venue.location_link ?? "");
-  const destination = coordinates
-    ? `${coordinates.lat},${coordinates.lng}`
-    : [venue.name, place].filter(Boolean).join(", ");
-  const directions = googleDirectionsUrl(coordinates?.lat, coordinates?.lng, destination, venue.location_link);
+  const directions = googleDirectionsUrl(venue.location_link);
 
   return (
     <>
@@ -174,7 +171,7 @@ export function PublicPlaygroundPage({
               <CalendarDays className="h-4 w-4" />
               {t("public_playground_book")}
             </a>
-            <a
+            {directions && <a
               href={directions}
               target="_blank"
               rel="noopener noreferrer"
@@ -182,7 +179,7 @@ export function PublicPlaygroundPage({
             >
               <Navigation className="h-4 w-4" />
               {lang === "ar" ? "الاتجاهات" : "Directions"}
-            </a>
+            </a>}
           </div>
         </div>
       </section>

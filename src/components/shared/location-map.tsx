@@ -15,13 +15,12 @@ export function LocationMap({ name, address, lat, lng, locationLink }: {
   const { lang } = useI18n();
   const ar = lang === "ar";
   const hasCoordinates = lat != null && lng != null && Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
-  const destination = hasCoordinates ? `${lat},${lng}` : [name, address].filter(Boolean).join(", ");
-  const directions = googleDirectionsUrl(lat, lng, destination, locationLink);
+  const directions = googleDirectionsUrl(locationLink);
   if (!hasCoordinates && !address?.trim() && !locationLink) return null;
   return <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
     <div className="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-6">
       <div><h2 className="flex items-center gap-2 text-lg font-semibold"><MapPin className="h-5 w-5 text-primary" />{ar ? "الموقع" : "Location"}</h2>{address && <p className="mt-1 text-sm text-muted-foreground">{address}</p>}</div>
-      <Button asChild variant="outline" className="gap-2"><a href={directions} target="_blank" rel="noopener noreferrer"><Navigation className="h-4 w-4" />{ar ? "الاتجاهات على خرائط جوجل" : "Google Maps directions"}</a></Button>
+      {directions && <Button asChild variant="outline" className="gap-2"><a href={directions} target="_blank" rel="noopener noreferrer"><Navigation className="h-4 w-4" />{ar ? "الاتجاهات على خرائط جوجل" : "Google Maps directions"}</a></Button>}
     </div>
   </section>;
 }
