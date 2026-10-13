@@ -3,7 +3,7 @@ import { venueCardPhoto } from "@/lib/venue-media";
 import { GameCardBackground } from "@/components/games/game-card-background";
 import { SportIcon } from "@/components/marketing/sport-icons";
 import { sportToSlug } from "@/lib/sport-slugs";
-import { Users, Trophy, Sparkles, ShieldCheck, CalendarDays } from "lucide-react";
+import { Users, Trophy, Sparkles, ShieldCheck, CalendarDays, CheckCircle2 } from "lucide-react";
 import { MemberTrainingAssignment, ConfirmTrainingPayment, MemberAttendanceEdit } from "./member-training-assignment";
 import { MemberDetailsEditor } from "./member-details-editor";
 import { memberAge } from "@/lib/admin/member-details";
@@ -944,7 +944,7 @@ export function PlatformRecords() {
         const allBlockedSlots = ((row.unavailable_slots ?? []) as VenueUnavailableSlot[]).slice().sort((a, b) => a.weekday - b.weekday || minutesOf(a.start) - minutesOf(b.start));
         const dayClosed = [...blockedIntervalsForDate((row.unavailable_slots ?? []) as VenueUnavailableSlot[], date), ...closedIntervalsFromWorkingHours((row.working_hours ?? []) as VenueUnavailableSlot[], date)];
         const { occupied, gaps } = rentalCoverage(data.venue_rentals.filter(r => r.venue_id === row.id) as RentalInterval[], date, dayClosed);
-        return <article key={row.id} className={`min-w-0 space-y-3 overflow-hidden rounded-2xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md ${colorful ? "border-primary/20" : ""}`}>
+        return <article key={row.id} className={`min-w-0 space-y-3 overflow-hidden rounded-2xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md ${tab === "Friendly games" ? row.status === "completed" ? "border-emerald-500/50 bg-emerald-500/[0.04]" : row.status === "open" ? "border-blue-400/60 ring-1 ring-blue-400/15" : "border-border/70" : colorful ? "border-primary/20" : ""}`}>
           {colorful && <div className={`relative isolate -mx-4 -mt-4 mb-4 flex min-h-20 items-center gap-3 overflow-hidden bg-gradient-to-br ${recordColor} px-4 py-4 text-white ${tab === "Friendly games" && gamePhoto ? "min-h-36 items-end sm:min-h-40" : ""}`}>
             {tab === "Friendly games" ? <>
               <GameCardBackground sport={row.sport ?? "volleyball"} />
@@ -953,6 +953,11 @@ export function PlatformRecords() {
                 <img src={gamePhoto} alt={gameVenue?.name ?? row.title} loading="lazy" className="absolute inset-0 -z-10 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} />
                 <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-slate-950/95 via-slate-950/30 to-slate-950/10" />
               </>}
+              {row.status === "completed" && <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-emerald-900/55" />}
+              <span className={`absolute end-3 top-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm ${row.status === "completed" ? "border-emerald-200/40 bg-emerald-700 text-white" : row.status === "open" ? "border-blue-200/40 bg-blue-600 text-white" : "border-white/25 bg-slate-900/90 text-white"}`}>
+                {row.status === "completed" ? <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> : row.status === "open" ? <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden="true" /> : null}
+                {t(`community_status_${row.status}` as keyof Dict)}
+              </span>
               <span aria-hidden="true" className="rounded-xl border border-white/20 bg-white/10 p-2">{SportIcon({ id: sportToSlug(row.sport ?? "volleyball"), size: 32 })}</span>
               <div className="relative min-w-0"><p className="text-sm font-bold">{row.sport}</p>{gameVenue?.name && <p className="mt-1 text-base font-semibold">{gameVenue.name}</p>}<p className="mt-1 text-xs text-white/90">{row.game_date} · {row.start_time ? formatTime12h(String(row.start_time), lang) : ""}</p></div>
             </> : <>
