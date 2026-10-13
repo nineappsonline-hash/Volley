@@ -3296,6 +3296,8 @@ export function useCommunityMembers() {
 export function useFriendlyGames() {
   return useQuery({
     queryKey: queryKeys.friendlyGames,
+    refetchInterval: 15_000,
+    refetchOnWindowFocus: "always",
     queryFn: async () => {
       // Lazy-materialize weekly series so recurring games always show the
       // next instances without waiting for a scheduler.
@@ -3392,6 +3394,8 @@ export function useMyUpcomingGames(memberId: string) {
   return useQuery({
     queryKey: [...queryKeys.myGameParticipants, "upcoming", memberId],
     enabled: !!memberId,
+    refetchInterval: 15_000,
+    refetchOnWindowFocus: "always",
     queryFn: async () => {
       const { data, error } = await supabase().from("friendly_game_participants")
         .select("id, is_waitlisted, pay_status, game:friendly_games!inner(id, playground_id, creator_id, title, sport, game_date, start_time, status, invite_code, area, location, duration_hours, description, max_players, min_players, lat, lng, is_public, share_price, host_pays, playground:venues(name, country, area, governorate, address, lat, lng, location_link, photos, cover_url))")

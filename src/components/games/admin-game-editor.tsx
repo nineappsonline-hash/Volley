@@ -47,7 +47,6 @@ const fields = [
   ["max_age", "Maximum age", "الحد الأقصى للعمر", "number"],
   ["playground_hourly_rate", "Hourly rental price", "إيجار الساعة", "number"],
   ["share_price", "Price per player", "السعر لكل لاعب", "number"],
-  ["host_total", "Host total", "إجمالي المنظم", "number"],
 ] as const;
 const required = new Set(["title", "sport", "game_date", "start_time", "duration_hours", "min_players", "max_players"]);
 const integers = new Set(["min_players", "max_players", "court_number", "min_age", "max_age"]);
@@ -250,12 +249,9 @@ export function AdminGameEditor({ game, onClose }: { game: Game; onClose: () => 
                 <Field label={ar ? "إيجار الساعة" : "Hourly rental"}>
                   {input("playground_hourly_rate", "number")}
                 </Field>
-                <Field label={ar ? "إجمالي المنظم" : "Host total"}>
-                  {input("host_total", "number")}
-                </Field>
               </div>
               <div className="space-y-3 rounded-xl border border-primary/25 bg-primary/5 p-4">
-                <Field label={ar ? "تجاوز السعر لكل لاعب لهذه المباراة (ج.م)" : "Override price per player for this game (EGP)"}>
+                <Field label={ar ? "السعر لكل لاعب (ج.م) — لهذه المباراة فقط" : "Price per player (EGP) — this game only"}>
                   {input("share_price", "number", { min: 0, step: "0.01", disabled: !!draft.host_pays })}
                 </Field>
                 <p className="text-xs leading-relaxed text-muted-foreground">{draft.host_pays

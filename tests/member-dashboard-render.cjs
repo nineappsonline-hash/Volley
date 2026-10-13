@@ -488,3 +488,12 @@ mocks['@/lib/queries'].useFriendlyGames = () => discoveryQuery([{ id: 'no-link',
 const noLinkCard = renderToStaticMarkup(h(MemberDiscoveryCards, { memberId: 'member-1', hasAcademy: true, mode: 'games' }));
 assert.ok(!noLinkCard.includes('google.com/maps'), 'member cards never build directions from names or coordinates');
 console.log('PASS: every directions helper requires a valid saved playground link');
+
+// Separate browser sessions need their own refreshes after another admin saves a price.
+mocks['@tanstack/react-query'].useQuery = options => options;
+const realGameQueries = loadFile(path.join(root, 'src/lib/queries.ts'), mocks);
+for (const options of [realGameQueries.useFriendlyGames(), realGameQueries.useMyUpcomingGames('member-1')]) {
+  assert.equal(options.refetchOnWindowFocus, 'always', 'returning to a game list must refresh even when global focus refresh is disabled');
+  assert.equal(options.refetchInterval, 15000, 'visible game lists refresh without depending on realtime publication configuration');
+}
+console.log('PASS: game lists refresh prices across separate user sessions on focus and every 15 seconds');
