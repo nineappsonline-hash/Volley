@@ -410,3 +410,13 @@ input[type="checkbox"], input[type="radio"] { accent-color: hsl(var(--playza-nav
   outline-offset: 3px;
   box-shadow: 0 0 0 3px hsl(var(--playza-navy));
 }
+
+/* Reserve a separate row for auth navigation before the centered logo/form. */
+.pwa-pad-top.auth-page {
+  padding-top: calc(5rem + env(safe-area-inset-top, 0px));
+}
+@media (display-mode: standalone) {
+  .pwa-pad-top.auth-page {
+    padding-top: calc(7rem + env(safe-area-inset-top, 0px));
+  }
+}
