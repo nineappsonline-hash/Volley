@@ -65,7 +65,10 @@ function loadFile(file, mocks) {
   if (cache.has(file)) return cache.get(file);
   const exports = {};
   cache.set(file, exports);
-  if (file.endsWith('.css')) return exports;
+  if (file.endsWith('.css')) {
+    exports.default = new Proxy({}, { get: (_target, key) => String(key) });
+    return exports;
+  }
   const output = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, target: ts.ScriptTarget.ES2020 },
   }).outputText;

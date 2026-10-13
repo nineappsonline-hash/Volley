@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import styles from "./dashboard.module.css";
 import { useTrainingBookings } from "@/lib/academy-training";
 import { bookingBalance } from "@/lib/member-training";
 import { MemberTrainingPreview } from "./member-training-preview";
@@ -231,17 +232,18 @@ function MemberTraining({
   return (
     <QueryState queries={[paymentsQuery, bookingsQuery, attendanceQuery, sessionsQuery]}>
       <Card className="overflow-hidden rounded-2xl border-border/80 shadow-md shadow-black/5">
-        <CardHeader className="flex-row flex-wrap items-center justify-between gap-3 space-y-0 border-b border-border/60 bg-blue-500/5 px-5 py-5">
+        <CardHeader className={`${styles.colorCardHeader} flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-sky-800 via-blue-700 to-cyan-700`}>
           <CardTitle className="flex items-center gap-2 text-base">
-            <span className="rounded-xl bg-blue-500/10 p-2.5"><CalendarDays className="h-5 w-5 text-blue-600 dark:text-blue-300" /></span>
+            <span className="rounded-xl bg-white/10 p-2.5"><CalendarDays className="h-5 w-5 text-white" /></span>
             {lang === "ar" ? "تدريبي" : "My training"}
           </CardTitle>
           <Link
             href="/schedule"
-            className="rounded-lg border border-border/70 bg-background px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-accent"
+            className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-slate-900 shadow-sm transition-colors hover:bg-white/90"
           >
             {t("nav_schedule")}
           </Link>
+          <p className={`${styles.colorCardHint} basis-full`}>{lang === "ar" ? "تابع حصصك وتقدمك في التدريب." : "Keep track of your sessions and training progress."}</p>
         </CardHeader>
         <CardContent className="space-y-4 p-5">
           {(payments.length > 0 || balance.hasBooking) && (

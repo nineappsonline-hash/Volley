@@ -1,4 +1,5 @@
 "use client";
+import styles from "./dashboard.module.css";
 import { AcademyLogo } from "@/components/academies/academy-logo";
 import { useMemberTraining } from "@/lib/use-member-training";
 import Link from "next/link";
@@ -22,7 +23,7 @@ export function MemberTrainingPreview({ profile }: { profile: Profile }) {
   }).slice(0, 3);
   const dateLabel = (date: string) => new Date(`${date}T00:00:00`).toLocaleDateString(locale?.code ?? (ar ? "ar" : "en"), { weekday: "long", month: "short", day: "numeric" });
   return <Card className="overflow-hidden rounded-2xl border-border/80 shadow-md shadow-black/5">
-    <CardHeader className="border-b border-border/60 bg-emerald-500/5 px-5 py-5"><CardTitle className="flex items-center gap-3 text-base"><span className="rounded-xl bg-emerald-500/10 p-2.5"><CalendarDays className="h-5 w-5 text-emerald-600 dark:text-emerald-300" /></span>{ar ? "التدريب القادم" : "Upcoming training"}</CardTitle></CardHeader>
+    <CardHeader className={`${styles.colorCardHeader} bg-gradient-to-br from-teal-800 via-teal-700 to-emerald-700`}><CardTitle className="flex items-center gap-3 text-base"><span className="rounded-xl bg-white/10 p-2.5"><CalendarDays className="h-5 w-5 text-white" /></span>{ar ? "التدريب القادم" : "Upcoming training"}</CardTitle><p className={styles.colorCardHint}>{ar ? "موعدك القادم في الأكاديمية، وكل التفاصيل في مكان واحد." : "Your next academy session, with every detail in one place."}</p></CardHeader>
     <CardContent className="space-y-4 p-5">
       <QueryState queries={profile.academy_id ? [bookings, sessions, recurring, programs] : [bookings]}>
         {next && <div className="space-y-5">

@@ -1,4 +1,5 @@
 "use client";
+import styles from "./dashboard.module.css";
 import { UpcomingTournamentsCard } from "./upcoming-tournaments-card";
 
 import { useMemo } from "react";
@@ -110,9 +111,9 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
 
   return (
     <Card className="overflow-hidden rounded-2xl shadow-none">
-      <CardHeader className="mb-4 flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-fuchsia-800 via-purple-700 to-indigo-700 text-white">
+      <CardHeader className={`${styles.colorCardHeader} mb-4 flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-fuchsia-800 via-purple-700 to-indigo-700`}>
         <CardTitle className="flex items-center gap-2 text-base">
-          <Trophy className="h-6 w-6 text-amber-300" />
+          <Trophy className="h-6 w-6 text-white" />
           {t("nav_tournaments")}
         </CardTitle>
         <Badge variant="outline" className="gap-1 border-white/30 text-white">
@@ -120,6 +121,7 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
           {entries?.length ?? 0}
         </Badge>
         {!!entries?.length && <Button asChild size="sm" className="bg-white text-purple-900 hover:bg-white/90"><Link href="/dashboard/tournaments">{lang === "ar" ? "اكتشف المزيد من البطولات" : "Discover more tournaments"}</Link></Button>}
+        <p className={`${styles.colorCardHint} basis-full`}>{lang === "ar" ? "بطولاتك والمنافسات القادمة، في مكان واحد." : "Your tournaments and upcoming competitions, all in one place."}</p>
       </CardHeader>
       <CardContent className="space-y-2">
         {isPending ? (
