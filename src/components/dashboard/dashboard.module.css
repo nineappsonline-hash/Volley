@@ -10,3 +10,6 @@
 .action .actionIcon,.action:nth-child(2) .actionIcon,.action:nth-child(4) .actionIcon{color:white;background:rgba(255,255,255,.15)}
 .action small,.action .arrow{color:rgba(255,255,255,.85)}
 .action::after{content:"";position:absolute;width:85px;height:85px;border:12px solid rgba(255,255,255,.08);border-radius:50%;inset-inline-end:-24px;bottom:-35px;pointer-events:none}
+
+/* Keep gradient-card text readable in both themes, overriding global heading colors. */
+.introTop h2,.action strong{color:#fff1b8}
