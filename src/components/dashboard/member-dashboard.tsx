@@ -61,13 +61,13 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
   ];
 
   return (
-    <div className="mx-auto min-w-0 max-w-5xl space-y-8 pb-2">
-      {p.checkin_code && <section id="checkin" className="scroll-mt-24"><CheckinQrCard code={p.checkin_code} memberName={p.name} profile={p} compact /></section>}
+    <div className="mx-auto min-w-0 max-w-6xl space-y-6 pb-2">
       <AcademySuggestionOnboarding
         memberName={p.name}
         hasAcademy={!!p.academy_id}
       />
       <DashboardNavigation hasQr={!!p.checkin_code} sections={sections} />
+      {p.checkin_code && <section id="checkin" className="scroll-mt-24"><CheckinQrCard code={p.checkin_code} memberName={p.name} profile={p} compact appearance="dashboard" /></section>}
 
       <ActionStrip actions={actions} />
 
@@ -231,8 +231,8 @@ function MemberTraining({
 
   return (
     <QueryState queries={[paymentsQuery, bookingsQuery, attendanceQuery, sessionsQuery]}>
-      <Card className="overflow-hidden rounded-2xl border-border/80 shadow-md shadow-black/5">
-        <CardHeader className={`${styles.colorCardHeader} flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-sky-800 via-blue-700 to-brand-700`}>
+      <Card className="overflow-hidden rounded-2xl border-border/80 shadow-sm">
+        <CardHeader className={`${styles.colorCardHeader} flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-brand to-brand-900`}>
           <CardTitle className="flex items-center gap-2 text-base">
             <span className="rounded-xl bg-white/10 p-2.5"><CalendarDays className="h-5 w-5 text-white" /></span>
             {lang === "ar" ? "تدريبي" : "My training"}

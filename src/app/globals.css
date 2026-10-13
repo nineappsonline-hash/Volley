@@ -54,6 +54,7 @@
     --surface: var(--playza-navy);
     --foreground: 204 45.455% 97.843%;
     --text-secondary: var(--playza-slate-300);
+    --muted-foreground: var(--text-secondary);
     --body-text: var(--playza-slate-100);
     --primary: var(--playza-lime);
     --ring: var(--playza-lime);

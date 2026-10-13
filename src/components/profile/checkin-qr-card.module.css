@@ -1,0 +1,34 @@
+/* Member dashboard pass: the same navy header and white surface as management cards. */
+.dashboard {
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border-color: hsl(var(--border));
+  box-shadow: 0 1px 2px hsl(var(--playza-navy) / .05);
+}
+.dashboard .header {
+  background: linear-gradient(135deg, hsl(var(--playza-navy)), hsl(var(--playza-navy-900)));
+  color: white;
+  border-color: transparent;
+}
+.dashboard .header :is(span) {
+  border-color: hsl(var(--playza-lime) / .25);
+  background: hsl(var(--playza-lime) / .12);
+  color: hsl(var(--playza-lime));
+}
+.dashboard .header svg { color: hsl(var(--playza-lime)); }
+.dashboard .header p { color: hsl(var(--playza-slate-200)); }
+.dashboard .content :is(p, dt) { color: hsl(var(--muted-foreground)); }
+.dashboard .content .identity { color: hsl(var(--foreground)); }
+.dashboard .content :is(dl, dl > div) { border-color: hsl(var(--border)); }
+.dashboard .content dl > div { background: hsl(var(--muted)); }
+.dashboard .qrSurface {
+  border-color: hsl(var(--border));
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+.dashboard .enlarge {
+  border-color: hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+}
+.dashboard .enlarge:hover { background: hsl(var(--accent)); }
