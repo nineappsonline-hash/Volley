@@ -100,8 +100,8 @@ function DiscoveryCard({
             </svg>
           </div>
           <div className="max-w-[75%] space-y-3">
-            <h2 id={`${id}-title`} className="flex items-center gap-2 text-xl font-extrabold sm:text-2xl">
-              <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+            <h2 id={`${id}-title`} className={cn("flex items-center gap-2 text-xl font-extrabold sm:text-2xl", tone === "games" && "text-[#fff1b8]")}>
+              <Icon className="h-5 w-5 shrink-0 text-white" aria-hidden="true" />
               {title}
             </h2>
             <p className="text-sm leading-relaxed text-white/90">{description}</p>
