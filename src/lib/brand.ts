@@ -2,23 +2,24 @@
  * UI components use the matching tokens in app/playza-palette.css.
  */
 export const PLAYZA = {
-  navy: "#0A1E3F",
-  green: "#12C98A",
-  blue: "#3B82F6",
-  orange: "#FF7A3D",
-  red: "#EF4444",
-  background: "#F6F9FC",
+  navy: "#14213D",
+  lime: "#C7F23D",
+  green: "#15803D",
+  blue: "#1D4ED8",
+  orange: "#92400E",
+  red: "#B91C1C",
+  background: "#F6F8FA",
   surface: "#FFFFFF",
-  secondaryText: "#44546A",
-  border: "#DFE6EE",
+  secondaryText: "#64748B",
+  border: "#E2E8F0",
 } as const;
 
 /** SVG charts inherit light/dark UI colors, including tooltip text. */
 export const CHART_COLORS = {
-  interaction: "hsl(var(--info))",
+  interaction: "hsl(var(--chart-brand))",
   success: "hsl(var(--success))",
   attention: "hsl(var(--warning))",
   error: "hsl(var(--error))",
-  brand: "hsl(var(--chart-brand))",
+  brand: "hsl(var(--playza-lime))",
   neutral: "hsl(var(--muted-foreground))",
 } as const;

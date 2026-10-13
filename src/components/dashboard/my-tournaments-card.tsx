@@ -111,7 +111,7 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
 
   return (
     <Card className="overflow-hidden rounded-2xl shadow-none">
-      <CardHeader className={`${styles.colorCardHeader} mb-4 flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-fuchsia-800 via-purple-700 to-indigo-700`}>
+      <CardHeader className={`${styles.colorCardHeader} mb-4 flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-brand to-brand-900`}>
         <CardTitle className="flex items-center gap-2 text-base">
           <Trophy className="h-6 w-6 text-white" />
           {t("nav_tournaments")}
@@ -120,7 +120,7 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
           <Swords className="h-3 w-3" />
           {entries?.length ?? 0}
         </Badge>
-        {!!entries?.length && <Button asChild size="sm" className="bg-white text-purple-900 hover:bg-white/90"><Link href="/dashboard/tournaments">{lang === "ar" ? "اكتشف المزيد من البطولات" : "Discover more tournaments"}</Link></Button>}
+        {!!entries?.length && <Button asChild size="sm" className="bg-white text-brand-900 hover:bg-white/90"><Link href="/dashboard/tournaments">{lang === "ar" ? "اكتشف المزيد من البطولات" : "Discover more tournaments"}</Link></Button>}
         <p className={`${styles.colorCardHint} basis-full`}>{lang === "ar" ? "بطولاتك والمنافسات القادمة، في مكان واحد." : "Your tournaments and upcoming competitions, all in one place."}</p>
       </CardHeader>
       <CardContent className="space-y-2">

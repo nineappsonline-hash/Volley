@@ -19,7 +19,7 @@ export function UpcomingSessions({ isAdmin }: { isAdmin: boolean }) {
 
   return (
     <Card className="overflow-hidden rounded-2xl">
-      <CardHeader className={isAdmin ? "mb-4 flex-row flex-wrap items-center justify-between gap-2 space-y-0 bg-gradient-to-br from-teal-800 to-emerald-800 text-white" : "flex-row items-center justify-between space-y-0 pb-3"}>
+      <CardHeader className={isAdmin ? "mb-4 flex-row flex-wrap items-center justify-between gap-2 space-y-0 bg-gradient-to-br from-brand to-brand-900 text-white" : "flex-row items-center justify-between space-y-0 pb-3"}>
         <CardTitle className="text-base">{t("dash_upcoming_sessions")}</CardTitle>
         <Button asChild variant="ghost" size="sm" className={isAdmin ? "text-white hover:bg-white/10 hover:text-white" : undefined}>
           <Link href="/schedule">

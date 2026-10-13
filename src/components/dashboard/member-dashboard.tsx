@@ -232,7 +232,7 @@ function MemberTraining({
   return (
     <QueryState queries={[paymentsQuery, bookingsQuery, attendanceQuery, sessionsQuery]}>
       <Card className="overflow-hidden rounded-2xl border-border/80 shadow-md shadow-black/5">
-        <CardHeader className={`${styles.colorCardHeader} flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-sky-800 via-blue-700 to-cyan-700`}>
+        <CardHeader className={`${styles.colorCardHeader} flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-sky-800 via-blue-700 to-brand-700`}>
           <CardTitle className="flex items-center gap-2 text-base">
             <span className="rounded-xl bg-white/10 p-2.5"><CalendarDays className="h-5 w-5 text-white" /></span>
             {lang === "ar" ? "تدريبي" : "My training"}

@@ -53,7 +53,7 @@ export function PremiumGate({ profile, children, description }: PremiumGateProps
           ))}
         </ul>
         <Button
-          className="w-full bg-gradient-to-r from-interactive-600 to-interactive-700 text-white hover:from-interactive-700 hover:to-interactive-800"
+          className="w-full"
           onClick={() => router.push("/upgrade")}
         >
           <Crown className="mr-2 h-4 w-4" />

@@ -104,7 +104,7 @@ export function CalendarView({ sessions, onSelectSession, sportNameById, venueNa
               className={cn(
                 "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
                 mode === "month"
-                  ? "bg-info text-info-foreground"
+                  ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -115,7 +115,7 @@ export function CalendarView({ sessions, onSelectSession, sportNameById, venueNa
               className={cn(
                 "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
                 mode === "week"
-                  ? "bg-info text-info-foreground"
+                  ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >

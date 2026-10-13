@@ -198,12 +198,12 @@ export function SuperAdminDashboard() {
 
       <nav aria-label={lang === "ar" ? "إدارة المنصة" : "Platform management"} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {[
-          { tab: "Members", title: t("sa_records_members"), icon: Users, color: "from-blue-800 to-cyan-800" },
-          { tab: "Academies", title: t("sa_records_academies"), icon: Building2, color: "from-teal-800 to-emerald-800" },
-          { tab: "Friendly games", title: t("sa_records_games"), icon: LandPlot, color: "from-indigo-800 to-violet-800" },
-          { tab: "Tournaments", title: t("sa_records_tournaments"), icon: Trophy, color: "from-purple-800 to-fuchsia-800" },
-          { tab: "Approvals", title: t("nav_approvals"), icon: CheckCircle2, color: "from-orange-900 to-rose-800" },
-          { tab: "Messages", title: lang === "ar" ? "الرسائل" : "Messages", icon: Megaphone, color: "from-rose-800 to-pink-800" },
+          { tab: "Members", title: t("sa_records_members"), icon: Users, color: "from-brand to-brand-900" },
+          { tab: "Academies", title: t("sa_records_academies"), icon: Building2, color: "from-brand to-brand-900" },
+          { tab: "Friendly games", title: t("sa_records_games"), icon: LandPlot, color: "from-brand to-brand-900" },
+          { tab: "Tournaments", title: t("sa_records_tournaments"), icon: Trophy, color: "from-brand to-brand-900" },
+          { tab: "Approvals", title: t("nav_approvals"), icon: CheckCircle2, color: "from-brand to-brand-900" },
+          { tab: "Messages", title: lang === "ar" ? "الرسائل" : "Messages", icon: Megaphone, color: "from-brand to-brand-900" },
         ].map(({ tab: destination, title, icon: Icon, color }) => <Link key={destination} href={`/admin?tab=${encodeURIComponent(destination)}`} className={`group relative isolate flex min-h-28 items-center gap-4 overflow-hidden rounded-2xl bg-gradient-to-br ${color} p-5 text-white shadow-sm transition-shadow hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`}>
           <Icon aria-hidden="true" className="absolute -bottom-4 end-7 -z-10 h-24 w-24 -rotate-12 text-white/15" strokeWidth={1} />
           <span className="rounded-xl border border-white/20 bg-white/10 p-3"><Icon aria-hidden="true" className="h-6 w-6" /></span>
@@ -215,15 +215,15 @@ export function SuperAdminDashboard() {
       <Reveal>
         <div className="grid gap-4 min-[420px]:grid-cols-2 lg:grid-cols-4">
           {[
-            { label: t("super_admin_all_academies"), value: stats.total, icon: Crown, color: "from-indigo-800 to-blue-800" },
-            { label: t("super_admin_active"), value: stats.paid, icon: CheckCircle2, color: "from-teal-800 to-emerald-800" },
+            { label: t("super_admin_all_academies"), value: stats.total, icon: Crown, color: "from-brand to-brand-900" },
+            { label: t("super_admin_active"), value: stats.paid, icon: CheckCircle2, color: "from-brand to-brand-900" },
             { label: t("super_admin_trial"), value: stats.activeTrials, icon: CalendarClock, color: "from-orange-900 to-amber-800" },
             { label: t("super_admin_expired"), value: stats.expiredTrials, icon: ShieldAlert, color: "from-rose-900 to-red-800" },
-          ].map(({ label, value, icon: Icon, color }) => <Card key={label} className={`relative isolate overflow-hidden rounded-2xl border-0 bg-gradient-to-br ${color} text-white shadow-sm`}>
-            <Icon aria-hidden="true" className="absolute -bottom-4 -end-3 -z-10 h-28 w-28 -rotate-12 text-white/15" strokeWidth={1} />
+          ].map(({ label, value, icon: Icon }) => <Card key={label} className="relative isolate overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm">
+            <Icon aria-hidden="true" className="absolute -bottom-4 -end-3 -z-10 h-28 w-28 -rotate-12 text-muted-foreground/10" strokeWidth={1} />
             <CardContent className="space-y-3 p-5">
-              <Icon aria-hidden="true" className="h-6 w-6 text-white/90" />
-              <p className="text-sm font-medium text-white/90">{label}</p>
+              <Icon aria-hidden="true" className="h-6 w-6 text-foreground" />
+              <p className="text-sm font-medium text-muted-foreground">{label}</p>
               <p className="text-3xl font-extrabold tabular-nums">{isLoading ? "—" : value}</p>
             </CardContent>
           </Card>)}
@@ -244,7 +244,7 @@ export function SuperAdminDashboard() {
       ) : (
         <Reveal index={1}>
         <Card className="overflow-hidden rounded-2xl">
-          <CardHeader className="relative mb-4 overflow-hidden bg-gradient-to-br from-teal-900 to-emerald-800 py-5 text-white">
+          <CardHeader className="relative mb-4 overflow-hidden bg-gradient-to-br from-brand to-brand-900 py-5 text-white">
             <Sparkles aria-hidden="true" className="pointer-events-none absolute -end-2 top-1 h-24 w-24 text-white/10" />
           <CardTitle className="relative flex flex-wrap items-center gap-2 text-base">
               <Crown className="h-6 w-6 text-amber-200" />
@@ -422,10 +422,10 @@ export function SuperAdminDashboard() {
       {/* Broadcast to all users */}
       <Reveal index={5}>
       <Card className="overflow-hidden rounded-2xl">
-        <CardHeader className="relative mb-4 overflow-hidden bg-gradient-to-br from-indigo-900 to-violet-800 py-5 text-white">
+        <CardHeader className="relative mb-4 overflow-hidden bg-gradient-to-br from-brand to-brand-900 py-5 text-white">
           <Sparkles aria-hidden="true" className="pointer-events-none absolute -end-2 top-1 h-24 w-24 text-white/10" />
           <CardTitle className="relative flex flex-wrap items-center gap-2 text-base">
-            <Megaphone className="h-6 w-6 text-violet-200" />
+            <Megaphone className="h-6 w-6 text-brand-200" />
             {t("super_admin_broadcast")}
           </CardTitle>
         </CardHeader>
@@ -481,7 +481,7 @@ export function SuperAdminDashboard() {
       {/* Community moderation */}
       <Reveal index={6}>
       <Card className="overflow-hidden rounded-2xl">
-        <CardHeader className="relative mb-4 overflow-hidden bg-gradient-to-br from-rose-900 to-orange-900 py-5 text-white">
+        <CardHeader className="relative mb-4 overflow-hidden bg-gradient-to-br from-brand to-brand-900 py-5 text-white">
           <Sparkles aria-hidden="true" className="pointer-events-none absolute -end-2 top-1 h-24 w-24 text-white/10" />
           <CardTitle className="relative flex flex-wrap items-center gap-2 text-base">
             <ShieldAlert className="h-6 w-6 text-orange-200" />

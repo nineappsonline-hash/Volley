@@ -32,7 +32,7 @@ export function PlaygroundOptionCard({ playground: p, selected, onSelect }: {
         {thumbnail ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={thumbnail} alt={p.name} loading="lazy" className="h-20 w-24 shrink-0 rounded-xl object-cover" />
-        ) : <div className="flex h-20 w-24 shrink-0 items-center justify-center relative isolate overflow-hidden rounded-xl bg-gradient-to-br from-orange-800 via-rose-700 to-purple-800"><GameCardBackground sport={p.sport?.name ?? "volleyball"} /><LandPlot className="relative h-9 w-9 text-white" /></div>}
+        ) : <div className="flex h-20 w-24 shrink-0 items-center justify-center relative isolate overflow-hidden rounded-xl bg-gradient-to-br from-brand to-brand-900"><GameCardBackground sport={p.sport?.name ?? "volleyball"} /><LandPlot className="relative h-9 w-9 text-white" /></div>}
         <span className="min-w-0 flex-1">
           <span dir="auto" className="block font-medium">{p.name}</span>
           <span dir="auto" className="block text-xs text-muted-foreground">{location}</span>

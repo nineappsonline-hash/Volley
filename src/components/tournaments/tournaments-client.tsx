@@ -184,10 +184,10 @@ export function TournamentsClient({
           {tournaments.map((tournament) => (
             <Card
               key={tournament.id}
-              className="group overflow-hidden rounded-2xl transition-shadow hover:shadow-lg hover:shadow-purple-500/10"
+              className="group overflow-hidden rounded-2xl transition-shadow hover:shadow-lg hover:shadow-brand-500/10"
             >
               <CardContent className="p-0">
-                <div className="relative isolate flex items-start justify-between gap-3 overflow-hidden border-b bg-gradient-to-br from-fuchsia-900 via-purple-800 to-indigo-800 px-5 py-5 text-white">
+                <div className="relative isolate flex items-start justify-between gap-3 overflow-hidden border-b bg-gradient-to-br from-brand to-brand-900 px-5 py-5 text-white">
                   <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10"><GameCardBackground sport={tournament.sport?.name ?? "volleyball"} /><Trophy className="absolute -bottom-4 end-8 h-24 w-24 rotate-12 text-amber-200/15" /></div>
                   <div className="min-w-0">
                     <p className="line-clamp-2 text-lg font-bold">{tournament.name}</p>

@@ -85,7 +85,7 @@ export function TrialsCard() {
 
   return (
     <Card className="overflow-hidden rounded-2xl">
-      <CardHeader className="mb-4 flex-row flex-wrap items-center justify-between gap-2 space-y-0 bg-gradient-to-br from-orange-900 to-rose-800 text-white">
+      <CardHeader className="mb-4 flex-row flex-wrap items-center justify-between gap-2 space-y-0 bg-gradient-to-br from-brand to-brand-900 text-white">
         <CardTitle className="flex items-center gap-2 text-base">
           <CalendarClock className="h-5 w-5 text-orange-200" />
           {t("trials_title")}

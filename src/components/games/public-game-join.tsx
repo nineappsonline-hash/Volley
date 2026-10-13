@@ -72,7 +72,7 @@ export function PublicGameJoin({ game, inviteCode }: {
           <Label className="block">{t("login_email")}<Input type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} /></Label>
           <Label className="block">{t("login_password")}<Input type="password" autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} /></Label>
           <Button type="submit" disabled={busy}>{t("login_button")}</Button>
-          <Link className="block text-sm text-info-ink" href={inviteCode ? `/signup?gameInvite=${encodeURIComponent(inviteCode)}` : "/signup"}>{t("login_signup_link")}</Link>
+          <Link className="block text-sm text-foreground hover:underline underline-offset-4" href={inviteCode ? `/signup?gameInvite=${encodeURIComponent(inviteCode)}` : "/signup"}>{t("login_signup_link")}</Link>
         </form>
       </DialogContent>
     </Dialog>

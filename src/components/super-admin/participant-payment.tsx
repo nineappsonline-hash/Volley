@@ -58,7 +58,7 @@ export function ParticipantPayment({ participantId, name, receiptPath, status }:
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={receipt.data} alt={`${label}: ${name}`} className="max-h-[70vh] w-full object-contain" onError={() => setImageFailed(true)} />
           </>}
-          <a className="text-sm text-info-ink underline" href={receipt.data} target="_blank" rel="noopener noreferrer">{ar ? "فتح الإيصال بالحجم الكامل" : "Open full-size receipt"}</a>
+          <a className="text-sm text-foreground hover:underline underline-offset-4 underline" href={receipt.data} target="_blank" rel="noopener noreferrer">{ar ? "فتح الإيصال بالحجم الكامل" : "Open full-size receipt"}</a>
         </>}
       </DialogContent>
     </Dialog>

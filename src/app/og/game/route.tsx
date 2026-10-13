@@ -46,17 +46,17 @@ export async function GET(request: Request): Promise<Response> {
 
   return new ImageResponse(
     <div style={{ display: "flex", width: "100%", height: "100%", background: PLAYZA.navy, color: "white", fontFamily: "Noto Sans, Arabic", padding: 44, position: "relative", overflow: "hidden" }}>
-      <div style={{ display: "flex", position: "absolute", right: 0, top: 0, width: 420, height: 630, background: "linear-gradient(150deg, #123E4C, #0E7256)" }} />
+      <div style={{ display: "flex", position: "absolute", right: 0, top: 0, width: 420, height: 630, background: "linear-gradient(150deg, #14213D, #0E182D)" }} />
       <div style={{ display: "flex", flexDirection: "column", width: 675, position: "relative" }}>
         {logo ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={logo} width={240} height={120} alt="Playza" style={{ borderRadius: 16 }} />
-        ) : <div style={{ display: "flex", fontSize: 52, fontWeight: 700, color: PLAYZA.green }}>Playza</div>}
+        ) : <div style={{ display: "flex", fontSize: 52, fontWeight: 700, color: PLAYZA.lime }}>Playza</div>}
         <div style={{ display: "flex", fontSize: game && isArabic(game.title) ? 30 : 40, fontWeight: 700, lineHeight: 1.3, marginTop: 22, height: 112, overflow: "hidden", width: 650, flexDirection: game && isArabic(game.title) ? "row-reverse" : "row", flexWrap: "wrap", alignContent: "flex-start", columnGap: 8 }}>
           {game ? words(truncate(game.title, 70)) : "Your next game starts on Playza"}
         </div>
         {game ? <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 16 }}>
-          <div style={{ display: "flex", fontSize: 27, fontWeight: 700, color: PLAYZA.green }}>{date} · {time}</div>
+          <div style={{ display: "flex", fontSize: 27, fontWeight: 700, color: PLAYZA.lime }}>{date} · {time}</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
             <div style={{ display: "flex", fontSize: 16, color: "#A7BACB", letterSpacing: 2 }}>LOCATION</div>
             <div style={{ display: "flex", fontSize: 25, lineHeight: 1.3, height: 66, overflow: "hidden", width: 640, flexDirection: isArabic(game.map_label) ? "row-reverse" : "row", flexWrap: "wrap", alignContent: "flex-start", columnGap: 6 }}>{words(truncate(game.map_label, 85))}</div>
@@ -66,7 +66,7 @@ export async function GET(request: Request): Promise<Response> {
         <div style={{ display: "flex", marginTop: "auto", fontSize: 17, color: "#A7BACB" }}>{game ? (game.is_public ? "Public game · Open the link for details" : "Invitation game · Open the link for details") : "Games · Academies · Tournaments"}</div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 370, position: "absolute", right: 25, top: 60, bottom: 48 }}>
-        <div style={{ display: "flex", fontSize: 29, fontWeight: 700, textAlign: "center", color: PLAYZA.green }}>{game?.sport ?? "LET’S PLAY"}</div>
+        <div style={{ display: "flex", fontSize: 29, fontWeight: 700, textAlign: "center", color: PLAYZA.lime }}>{game?.sport ?? "LET’S PLAY"}</div>
         {game && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 320, marginTop: 20 }}>{GameCardBackground({ sport: game.sport, variant: "share" })}</div>}
         {game && <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "auto" }}>
           <div style={{ display: "flex", fontSize: 48, fontWeight: 700 }}>{game.joined} / {game.max_players}</div>

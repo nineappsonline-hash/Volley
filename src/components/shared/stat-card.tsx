@@ -49,10 +49,10 @@ export function StatCard({
   const delay: CSSProperties = index != null ? { animationDelay: `${index * 70}ms` } : {};
   return (
     <Card
-      className={cn("group relative h-full animate-fade-in-up overflow-hidden rounded-2xl transition-shadow hover:shadow-md motion-reduce:animate-none", colorful && "border-0 bg-gradient-to-br text-white", colorful && ({ info: "from-blue-800 to-indigo-800", success: "from-teal-800 to-emerald-800", warning: "from-orange-900 to-rose-800", destructive: "from-rose-900 to-red-800", default: "from-indigo-800 to-violet-800", brand: "from-indigo-800 to-violet-800" }[tone]))}
+      className="group relative h-full animate-fade-in-up overflow-hidden rounded-2xl bg-card text-card-foreground transition-shadow hover:shadow-md motion-reduce:animate-none"
       style={delay}
     >
-      {colorful && <Icon aria-hidden="true" className="pointer-events-none absolute -bottom-4 -end-3 h-24 w-24 -rotate-12 text-white/15" strokeWidth={1} />}
+      {colorful && <Icon aria-hidden="true" className="pointer-events-none absolute -bottom-4 -end-3 h-24 w-24 -rotate-12 text-muted-foreground/10" strokeWidth={1} />}
       <span
         aria-hidden
         className={cn(
@@ -64,17 +64,17 @@ export function StatCard({
         <div
           className={cn(
             "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:-rotate-3 group-hover:scale-110",
-            colorful ? "bg-white/15 text-white" : toneClasses[tone]
+            toneClasses[tone]
           )}
         >
           <Icon className="h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <p className={cn("text-sm", colorful ? "text-white/90" : "text-muted-foreground")}>{title}</p>
+          <p className={cn("text-sm", "text-muted-foreground")}>{title}</p>
           <p className="mt-1 truncate text-2xl font-extrabold tracking-tight">
             {value}
           </p>
-          {hint && <p className={cn("mt-0.5 text-xs", colorful ? "text-white/80" : "text-muted-foreground")}>{hint}</p>}
+          {hint && <p className={cn("mt-0.5 text-xs", "text-muted-foreground")}>{hint}</p>}
         </div>
       </CardContent>
     </Card>

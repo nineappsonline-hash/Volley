@@ -7,63 +7,64 @@
 @layer base {
   :root {
     color-scheme: light;
-    --background: 210.0000 50.0000% 97.6471%;
+    --background: 210.0000 28.5714% 97.2549%;
     --surface: 0 0% 100%;
     --on-brand: 0 0% 100%;
     --foreground: var(--playza-navy);
     --text-primary: var(--foreground);
-    --text-secondary: 214.5455 15.0685% 42.9412%;
-    --body-text: 214.7368 21.8391% 34.1176%;
+    --text-secondary: 215.3846 16.3180% 46.8627%;
+    --body-text: 216.0000 32.7103% 20.9804%;
     --card: var(--surface);
     --card-foreground: var(--body-text);
     --popover: var(--surface);
     --popover-foreground: var(--foreground);
     --chart-brand: var(--playza-navy);
-    --primary: var(--playza-green);
-    --primary-hover: 159.3631 85.7923% 35.8824%;
+    --primary: var(--playza-lime);
+    --primary-hover: var(--playza-lime-hover);
     --primary-foreground: var(--playza-navy);
     --secondary: var(--surface);
     --secondary-foreground: var(--playza-navy);
-    --muted: 210.0000 50.0000% 97.6471%;
-    --muted-foreground: var(--text-secondary);
-    --accent: 158.8235 68.0000% 95.0980%;
-    --accent-foreground: var(--playza-blue-700);
-    --destructive: var(--playza-red-600);
+    --muted: 210.0000 28.5714% 97.2549%;
+    /* Slightly deeper ink passes AA on the off-white page (the supplied secondary is 4.47:1). */
+    --muted-foreground: 215.3846 16.5957% 46.0784%;
+    --accent: var(--playza-soft-lime);
+    --accent-foreground: var(--playza-navy);
+    --destructive: var(--playza-red);
     --destructive-foreground: 0 0% 100%;
     --success: var(--playza-green);
-    --success-foreground: var(--playza-navy);
-    --success-ink: var(--playza-green-800);
+    --success-foreground: 0 0% 100%;
+    --success-ink: var(--playza-green);
     --warning: var(--playza-orange);
-    --warning-foreground: var(--playza-navy);
-    --warning-ink: var(--playza-orange-800);
+    --warning-foreground: 0 0% 100%;
+    --warning-ink: var(--playza-orange);
     --info: var(--playza-blue);
-    --info-foreground: 215 68.571% 11%;
-    --info-ink: var(--playza-blue-700);
+    --info-foreground: 0 0% 100%;
+    --info-ink: var(--playza-blue);
     --error: var(--playza-red);
-    --error-ink: var(--playza-red-700);
-    --border: 212.0000 30.6122% 90.3922%;
+    --error-ink: var(--playza-red);
+    --border: 214.2857 31.8182% 91.3725%;
     --input: var(--border);
-    --ring: var(--playza-green-700);
+    --ring: var(--playza-navy);
     --radius: 0.625rem;
   }
   .dark {
     color-scheme: dark;
     --chart-brand: var(--playza-blue-200);
-    --background: 218.4615 76.4706% 10.0000%;
+    --background: var(--playza-navy-950);
     --surface: var(--playza-navy);
     --foreground: 204 45.455% 97.843%;
     --text-secondary: var(--playza-slate-300);
     --body-text: var(--playza-slate-100);
-    --primary: var(--playza-green);
-    --ring: var(--playza-green);
+    --primary: var(--playza-lime);
+    --ring: var(--playza-lime);
     --primary-foreground: var(--playza-navy);
-    --secondary: var(--playza-blue-900);
-    --secondary-foreground: var(--playza-blue-200);
+    --secondary: var(--playza-navy-800);
+    --secondary-foreground: var(--playza-slate-100);
     --muted: var(--playza-slate-900);
-    --accent: var(--playza-blue-900);
-    --accent-foreground: var(--playza-blue-200);
-    --success-ink: var(--playza-green);
-    --warning-ink: var(--playza-orange);
+    --accent: 218 35% 25%;
+    --accent-foreground: var(--playza-lime);
+    --success-ink: var(--playza-green-300);
+    --warning-ink: var(--playza-orange-200);
     --info-ink: var(--playza-blue-200);
     --error-ink: var(--playza-red-200);
     --border: var(--playza-slate-800);
@@ -323,9 +324,9 @@
   --foreground: 0 0% 100%;
   --body-text: var(--playza-slate-100);
   --muted-foreground: var(--playza-slate-200);
-  --primary: var(--playza-blue);
+  --primary: var(--playza-lime);
   --primary-foreground: var(--playza-navy);
-  --accent: var(--playza-blue-900);
+  --accent: 218 35% 25%;
   --accent-foreground: 0 0% 100%;
   --border: var(--playza-slate-800);
   --muted: var(--playza-slate-900);
@@ -335,22 +336,22 @@
   --normal-bg: hsl(var(--card));
   --normal-text: hsl(var(--foreground));
   --normal-border: hsl(var(--border));
-  --success-bg: hsl(var(--card));
+  --success-bg: hsl(var(--playza-green-100));
   --success-text: hsl(var(--success-ink));
   --success-border: hsl(var(--success) / .45);
-  --warning-bg: hsl(var(--card));
+  --warning-bg: hsl(var(--playza-orange-100));
   --warning-text: hsl(var(--warning-ink));
   --warning-border: hsl(var(--warning) / .45);
-  --error-bg: hsl(var(--card));
+  --error-bg: hsl(var(--playza-red-100));
   --error-text: hsl(var(--error-ink));
   --error-border: hsl(var(--error) / .45);
-  --info-bg: hsl(var(--card));
+  --info-bg: hsl(var(--playza-blue-100));
   --info-text: hsl(var(--info-ink));
   --info-border: hsl(var(--info) / .45);
 }
 
-/* Bright green fills use navy text; small green text uses an AA ink shade. */
-.text-primary { color: hsl(var(--info-ink)); }
+/* Accent text uses readable foreground ink rather than the lime fill. */
+.text-primary { color: hsl(var(--foreground)); }
 
 /* Owner availability calendar: highlight blocked days with the error color. */
 .rd-blocked {
@@ -393,4 +394,18 @@ body:has([data-member-navigation]) .contact-widget {
     min-height: 44px;
     font-size: 16px;
   }
+}
+
+/* Visible focus for native controls and custom links on either surface. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
+.playza-navigation { --ring: var(--playza-lime); --accent: 218 35% 25%; }
+input[type="checkbox"], input[type="radio"] { accent-color: hsl(var(--playza-navy)); }
+
+.dark [data-sonner-toaster] { --success-bg: hsl(var(--card)); --warning-bg: hsl(var(--card)); --error-bg: hsl(var(--card)); --info-bg: hsl(var(--card)); }
+
+/* A two-color focus edge stays visible within navy heroes and light controls. */
+:is(.bg-brand, .from-brand) :focus-visible {
+  outline: 2px solid hsl(var(--playza-lime));
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px hsl(var(--playza-navy));
 }

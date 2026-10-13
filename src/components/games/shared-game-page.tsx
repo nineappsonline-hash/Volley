@@ -28,7 +28,7 @@ export function SharedGamePage({ game, inviteCode }: { game: SharedGameMeta | nu
           <p>{formatMoney(game.host_pays ? 0 : (game.share_price ?? 0), lang)}</p>
           {game.status !== "completed" && game.game_date >= new Date().toISOString().slice(0, 10) && <PublicGameJoin game={game} inviteCode={inviteCode} />}
         </>}
-        <Link className="block text-sm text-info-ink" href="/dashboard">{t("nav_dashboard")}</Link>
+        <Link className="block text-sm text-foreground hover:underline underline-offset-4" href="/dashboard">{t("nav_dashboard")}</Link>
       </CardContent>
     </Card>
   </main>;

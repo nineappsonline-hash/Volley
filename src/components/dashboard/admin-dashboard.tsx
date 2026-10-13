@@ -174,7 +174,7 @@ export function AdminDashboard() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <UpcomingSessions isAdmin />
         <Card className="overflow-hidden rounded-2xl">
-          <CardHeader className="mb-4 flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-blue-800 to-indigo-800 text-white">
+          <CardHeader className="mb-4 flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-brand to-brand-900 text-white">
             <CardTitle className="flex items-center gap-2 text-base">
               <TrendingUp className="h-5 w-5 text-blue-200" />
               {t("dash_attendance_summary")}

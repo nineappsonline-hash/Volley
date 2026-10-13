@@ -109,12 +109,12 @@ export function MyUpcomingGames({
 
   return <>
     <Card id="my-upcoming-games" className="overflow-hidden rounded-2xl shadow-none">
-      <CardHeader className="mb-5 flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-blue-700 via-indigo-700 to-violet-700 text-white">
+      <CardHeader className="mb-5 flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-brand to-brand-900 text-white">
         <CardTitle className="flex items-center gap-2 text-base">
           <CalendarDays className="h-6 w-6 text-blue-200" />{t("games_my_upcoming")}
         </CardTitle>
         {query.data?.length ? <Badge variant="secondary">{t("dash_games_count").replace("{n}", String(query.data.length)).replace("{s}", query.data.length === 1 ? "" : "s")}</Badge> : null}
-        {!!groups.length && <Button asChild size="sm" className="bg-white text-indigo-900 hover:bg-white/90"><Link href="/dashboard/games">{ar ? "اكتشف المزيد من المباريات" : "Discover more games"}<ArrowUpRight className="ms-2 h-4 w-4" /></Link></Button>}
+        {!!groups.length && <Button asChild size="sm" className="bg-white text-brand-900 hover:bg-white/90"><Link href="/dashboard/games">{ar ? "اكتشف المزيد من المباريات" : "Discover more games"}<ArrowUpRight className="ms-2 h-4 w-4" /></Link></Button>}
       </CardHeader>
       <CardContent><QueryState queries={[query]}>
         {!groups.length ? <EmptyState

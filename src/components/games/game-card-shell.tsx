@@ -22,10 +22,10 @@ export function GameCardShell({ game, joined, waitlisted, children }: { game: Fr
   const slots = Math.max(0, game.max_players - game.participants_count);
   const percent = Math.min(100, Math.max(0, game.participants_count / Math.max(1, game.max_players) * 100));
   const sport = sportToSlug(game.sport);
-  const theme = sport === "football" ? "from-emerald-800 via-teal-700 to-cyan-800"
-    : sport === "basketball" ? "from-orange-800 via-orange-700 to-rose-800"
-    : sport === "tennis" || sport === "padel" ? "from-teal-800 via-cyan-700 to-blue-800"
-    : "from-indigo-800 via-violet-700 to-fuchsia-800";
+  const theme = sport === "football" ? "from-brand to-brand-900"
+    : sport === "basketball" ? "from-brand to-brand-900"
+    : sport === "tennis" || sport === "padel" ? "from-brand to-brand-900"
+    : "from-brand to-brand-900";
   const photo = venueCardPhoto(game.playground?.photos, game.playground?.cover_url);
   const booking = gameBookingPayment(game);
   const statusStyle = game.status === "completed" ? "border-emerald-200/40 bg-emerald-700" : game.status === "open" ? "border-blue-200/40 bg-blue-600" : game.status === "full" ? "border-amber-200/40 bg-amber-700" : "border-red-200/40 bg-red-700";

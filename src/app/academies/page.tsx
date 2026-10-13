@@ -342,7 +342,7 @@ export default function AcademiesDirectoryPage() {
   return (
     <main className="min-h-screen bg-background">
       {/* Header */}
-      <section className="relative isolate overflow-hidden border-b bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-800 py-14 text-white">
+      <section className="relative isolate overflow-hidden border-b bg-gradient-to-br from-brand to-brand-900 py-14 text-white">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10"><Building2 className="absolute -end-6 top-10 h-64 w-64 -rotate-12 text-white/10" /><Sparkles className="absolute end-10 bottom-8 h-12 w-12 text-amber-200/40" /><div className="absolute -start-16 -top-24 h-72 w-72 rounded-full border-[28px] border-white/10" /></div>
         <div className="pointer-events-none absolute -top-24 start-1/2 h-72 w-[32rem] -translate-x-1/2 rounded-full bg-white/15 blur-3xl rtl:translate-x-1/2" />
         <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-3 px-6 text-center">
@@ -361,7 +361,7 @@ export default function AcademiesDirectoryPage() {
               </Button>
             </div>
           )}
-          <h1 className="text-2xl font-extrabold sm:text-3xl">
+          <h1 className="text-white text-2xl font-extrabold sm:text-3xl">
             {t("directory_title")}
           </h1>
           <p className="max-w-xl text-sm text-white/85">
@@ -591,7 +591,7 @@ export default function AcademiesDirectoryPage() {
                       />
                     </div>
                   ) : (
-                    <div className="relative isolate flex aspect-video w-full items-center justify-center overflow-hidden bg-gradient-to-br from-teal-800 via-emerald-700 to-cyan-800">
+                    <div className="relative isolate flex aspect-video w-full items-center justify-center overflow-hidden bg-gradient-to-br from-brand to-brand-900">
                       <Building2 className="h-16 w-16 text-white/80" /><div aria-hidden="true" className="absolute -end-10 -top-14 h-48 w-48 rounded-full border-[20px] border-white/10" /><Sparkles aria-hidden="true" className="absolute bottom-5 start-5 h-8 w-8 text-amber-200/60" />
                     </div>
                   )}

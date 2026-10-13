@@ -83,12 +83,7 @@ function DiscoveryCard({
   return (
     <section aria-labelledby={`${id}-title`} className="min-w-0">
       <div className="group relative overflow-hidden rounded-2xl border bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg">
-        <div className={cn("relative isolate overflow-hidden px-5 py-6 text-white sm:px-6", {
-          "bg-gradient-to-br from-blue-700 via-indigo-700 to-violet-700": tone === "games",
-          "bg-gradient-to-br from-fuchsia-800 via-purple-700 to-indigo-700": tone === "tournaments",
-          "bg-gradient-to-br from-teal-800 via-teal-700 to-emerald-700": tone === "academies",
-          "bg-gradient-to-br from-orange-800 via-orange-700 to-rose-700": tone === "playgrounds",
-        })}>
+        <div className="relative isolate overflow-hidden bg-brand px-5 py-6 text-white sm:px-6">
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
             <div className="absolute -end-10 -top-16 h-56 w-56 rounded-full border-[24px] border-white/10" />
             <div className="absolute bottom-4 end-5 h-24 w-24 rotate-12 rounded-3xl bg-white/10" />
@@ -100,7 +95,7 @@ function DiscoveryCard({
             </svg>
           </div>
           <div className="max-w-[75%] space-y-3">
-            <h2 id={`${id}-title`} className={cn("flex items-center gap-2 text-xl font-extrabold sm:text-2xl", tone === "games" && "text-[#fff1b8]")}>
+            <h2 id={`${id}-title`} className={cn("flex items-center gap-2 text-xl font-extrabold sm:text-2xl", "text-white")}>
               <Icon className="h-5 w-5 shrink-0 text-white" aria-hidden="true" />
               {title}
             </h2>
@@ -139,9 +134,9 @@ function DiscoveryCard({
                     >
                       <Link href={item.href ?? href} aria-label={item.title}>
                       {/* Graphic area: venue photo, else sport court graphics */}
-                      <div className="relative flex aspect-[16/9] items-center justify-center overflow-hidden bg-[#0A1E3F]">
+                      <div className="relative flex aspect-[16/9] items-center justify-center overflow-hidden bg-[#14213D]">
                         {/* Court-marking / sport-illustration decorations */}
-                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-[#12C98A]/25 transition-transform duration-500 group-hover:scale-110 motion-reduce:group-hover:scale-100">
+                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-[#C7F23D]/25 transition-transform duration-500 group-hover:scale-110 motion-reduce:group-hover:scale-100">
                           {item.sport && Object.hasOwn(SPORT_SLUGS, sportToSlug(item.sport)) ? (
                             <GameCardBackground sport={item.sport} />
                           ) : (

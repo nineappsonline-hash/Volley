@@ -598,7 +598,7 @@ function MessageRow({
           }}
           className={`max-w-full rounded-2xl px-3 py-2 text-start text-sm shadow-sm ${
             mine
-              ? "bg-[#d9fdd3] text-emerald-950 dark:bg-[#005c4b] dark:text-white"
+              ? "bg-[hsl(var(--accent))] text-emerald-950 dark:bg-[hsl(var(--playza-navy))] dark:text-white"
               : "border bg-card text-card-foreground"
           }`}
         >

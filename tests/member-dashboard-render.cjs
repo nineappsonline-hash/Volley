@@ -341,8 +341,8 @@ html = renderToStaticMarkup(h(AdminDashboard));
 assert.ok(html.includes('7 / 10'));
 assert.ok(html.includes('href="/schedule?session=past-session"'));
 for (const id of ['overview', 'training', 'updates']) assert.ok(html.includes(`id="${id}"`));
-assert.ok(html.includes('from-blue-800 to-indigo-800'));
-console.log('PASS: academy dashboard renders real attendance counts, linked session details, colorful stats, and navigation anchors');
+assert.ok(html.includes('from-brand to-brand-900'));
+console.log('PASS: academy dashboard renders real attendance counts, linked session details, restrained stats, and navigation anchors');
 
 // Member QR includes a visible enlarge control and member identity details.
 mocks['@tanstack/react-query'] = { useQuery: () => ({ data: { name: 'Spike Nova' } }) };

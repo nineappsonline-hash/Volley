@@ -33,8 +33,8 @@ export function SportDiscoveryIndex({ lang }: { lang: DiscoveryLanguage }) {
     }) }} />
     <div className="mx-auto max-w-6xl space-y-8 px-5">
       <section className="rounded-3xl bg-brand p-8 text-white sm:p-12">
-        <p className="mb-3 font-semibold text-[#12C98A]">Playza · {ar ? "القاهرة، مصر" : "Cairo, Egypt"}</p>
-        <h1 className="text-3xl font-bold sm:text-5xl">{title}</h1>
+        <p className="mb-3 font-semibold text-[#C7F23D]">Playza · {ar ? "القاهرة، مصر" : "Cairo, Egypt"}</p>
+        <h1 className="text-white text-3xl font-bold sm:text-5xl">{title}</h1>
         <p className="mt-5 max-w-3xl text-lg leading-relaxed">{ar ? "عاوز تنزل تلعب أو تبدأ تدريب؟ اختار رياضتك، اعرف إيه اللي تراجعه قبل المشاركة، واكتشف المباريات والأكاديميات والبطولات المنشورة على بلايزا." : "Looking for a game or a place to train? Choose your sport, learn what to check before joining, and explore games, academies and tournaments published on Playza."}</p>
         <p className="mt-4 text-sm text-white/80">{ar ? "التسجيل مجاني. توفر الأنشطة والمواعيد والأسعار بيختلف حسب المنظم والمكان؛ راجع الإعلان قبل المشاركة." : "Registration is free. Activities, schedules and prices depend on the organizer and venue; check each listing before joining."}</p>
       </section>
@@ -78,8 +78,8 @@ export async function SportDiscoveryPage({ slug, lang }: { slug: string; lang: D
     ] }) }} />
     <div className="mx-auto max-w-6xl space-y-10 px-5">
       <section className="rounded-3xl bg-brand p-8 text-white sm:p-12">
-        <SportIcon id={slug === "beach-volleyball" ? "volleyball" : slug} size={48} className="mb-4 text-[#12C98A]" />
-        <h1 className="text-3xl font-bold sm:text-5xl">{title}</h1>
+        <SportIcon id={slug === "beach-volleyball" ? "volleyball" : slug} size={48} className="mb-4 text-[#C7F23D]" />
+        <h1 className="text-white text-3xl font-bold sm:text-5xl">{title}</h1>
         <p className="mt-5 max-w-3xl text-lg leading-relaxed">{sport.advice[lang]}</p>
         <div className="mt-6 flex flex-wrap gap-3"><Link href={gamesUrl} className="rounded-xl bg-white px-5 py-3 font-bold text-brand">{ar ? "شوف الأنشطة المنشورة" : "Browse published activities"}</Link><Link href="/academies" className="rounded-xl border border-white/40 px-5 py-3 font-semibold">{ar ? "اكتشف الأكاديميات" : "Explore academies"}</Link></div>
       </section>

@@ -70,7 +70,7 @@ export function LoginForm() {
   return (
     <main className="pwa-pad-top relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-6">
       <div className="pointer-events-none absolute inset-0 bg-grid opacity-40" />
-      <div className="pointer-events-none absolute -top-32 start-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-interactive-500/20 blur-3xl rtl:translate-x-1/2" />
+      <div className="pointer-events-none absolute -top-32 start-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-accent blur-3xl rtl:translate-x-1/2" />
       <div className="absolute end-4 top-4">
         <LanguageToggle />
       </div>
@@ -150,11 +150,11 @@ export function LoginForm() {
               </Link>
             </p>
             <div className="mt-10 border-t border-border/60 pt-6">
-              <Button asChild variant="outline" className="group h-auto min-h-14 w-full justify-start gap-3 whitespace-normal rounded-xl border-teal-600/20 bg-gradient-to-br from-teal-50/80 to-background px-4 py-3 text-start text-teal-950 shadow-sm transition-colors hover:border-teal-600/40 hover:bg-teal-50 hover:text-teal-950 dark:border-teal-400/20 dark:from-teal-400/5 dark:to-transparent dark:text-teal-100 dark:hover:border-teal-400/40 dark:hover:bg-teal-400/10 dark:hover:text-teal-50">
+              <Button asChild variant="outline" className="group h-auto min-h-14 w-full justify-start gap-3 whitespace-normal rounded-xl border-border bg-gradient-to-br from-card to-background px-4 py-3 text-start text-brand-950 shadow-sm transition-colors hover:border-brand-600/40 hover:bg-accent hover:text-brand-950 dark:border-brand-400/20 dark:from-brand-400/5 dark:to-transparent dark:text-brand-100 dark:hover:border-brand-400/40 dark:hover:bg-brand-400/10 dark:hover:text-brand-50">
                 <Link href="/signup?mode=tenant">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-teal-700/10 text-teal-700 dark:bg-teal-300/10 dark:text-teal-300"><Building2 className="h-[18px] w-[18px]" aria-hidden="true" /></span>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-700/10 text-brand-700 dark:bg-brand-300/10 dark:text-brand-300"><Building2 className="h-[18px] w-[18px]" aria-hidden="true" /></span>
                   <span className="flex-1 text-sm font-semibold">{t("signup_register_academy")}</span>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-teal-700/70 dark:text-teal-300/70 rtl:rotate-180" aria-hidden="true" />
+                  <ArrowRight className="h-4 w-4 shrink-0 text-brand-700/70 dark:text-brand-300/70 rtl:rotate-180" aria-hidden="true" />
                 </Link>
               </Button>
               <p className="mx-auto mt-3 max-w-xs text-center text-xs leading-relaxed text-muted-foreground">{t("signup_register_academy_hint")}</p>
