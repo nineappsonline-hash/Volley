@@ -933,6 +933,7 @@ export function PlatformRecords() {
       <>
       {rows.length === 0 && <p className="py-8 text-center text-muted-foreground">{t("sa_records_empty")}</p>}
       {recordsPagination}
+      <div className={tab === "Friendly games" ? "grid grid-cols-1 gap-4 lg:grid-cols-3" : "space-y-3"}>
       {visibleRows.map(row => {
         const gameVenue = tab === "Friendly games" ? data.venues.find(venue => venue.id === row.playground_id) : undefined;
         const gamePhoto = venueCardPhoto(gameVenue?.photos, gameVenue?.cover_url);
@@ -943,8 +944,8 @@ export function PlatformRecords() {
         const allBlockedSlots = ((row.unavailable_slots ?? []) as VenueUnavailableSlot[]).slice().sort((a, b) => a.weekday - b.weekday || minutesOf(a.start) - minutesOf(b.start));
         const dayClosed = [...blockedIntervalsForDate((row.unavailable_slots ?? []) as VenueUnavailableSlot[], date), ...closedIntervalsFromWorkingHours((row.working_hours ?? []) as VenueUnavailableSlot[], date)];
         const { occupied, gaps } = rentalCoverage(data.venue_rentals.filter(r => r.venue_id === row.id) as RentalInterval[], date, dayClosed);
-        return <article key={row.id} className={`space-y-3 overflow-hidden rounded-2xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md ${colorful ? "border-primary/20" : ""}`}>
-          {colorful && <div className={`relative isolate -mx-4 -mt-4 mb-4 flex min-h-20 items-center gap-3 overflow-hidden bg-gradient-to-br ${recordColor} px-4 py-4 text-white ${tab === "Friendly games" && gamePhoto ? "min-h-44 items-end sm:min-h-48" : ""}`}>
+        return <article key={row.id} className={`min-w-0 space-y-3 overflow-hidden rounded-2xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md ${colorful ? "border-primary/20" : ""}`}>
+          {colorful && <div className={`relative isolate -mx-4 -mt-4 mb-4 flex min-h-20 items-center gap-3 overflow-hidden bg-gradient-to-br ${recordColor} px-4 py-4 text-white ${tab === "Friendly games" && gamePhoto ? "min-h-36 items-end sm:min-h-40" : ""}`}>
             {tab === "Friendly games" ? <>
               <GameCardBackground sport={row.sport ?? "volleyball"} />
               {gamePhoto && <>
@@ -985,6 +986,7 @@ export function PlatformRecords() {
           {tab === "Playgrounds" && <div className="space-y-2 text-sm"><p className="font-medium">{t("sa_records_rental_hours_today").replace("{hours}", (occupied / 60).toFixed(1)).replace("{percent}", String(Math.round(occupied / 1440 * 100)))}</p>{events.map((event,i) => <p key={i} className="rounded bg-muted p-2">{formatTime12h(event.time) || t("sa_records_time_unknown")} · {event.label}</p>)}{allBlockedSlots.map((slot,i) => <p key={`blocked-${i}`} className={`flex items-center gap-1.5 rounded p-2 ${weekdayOf(date) === slot.weekday ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}><Ban className="h-3.5 w-3.5 shrink-0" />{t("sa_records_blocked_slot").replace("{slot}", formatBlockedSlot(slot, d => t(`avail_day_${d}` as keyof Dict)))}</p>)}{events.length === 0 && allBlockedSlots.length === 0 && <p>{t("sa_records_no_bookings")}</p>}<p className="text-muted-foreground">{t("sa_records_rental_gaps").replace("{gaps}", gaps.map(g => g.replace(/\d{2}:\d{2}/g, m => formatHour12(m, lang))).join(", ") || t("sa_records_none_gaps"))}</p></div>}
         </article>;
       })}
+      </div>
       {recordsPagination}
       </>
       )}
