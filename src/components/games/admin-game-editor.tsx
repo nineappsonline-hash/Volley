@@ -104,9 +104,12 @@ export function AdminGameEditor({ game, onClose }: { game: Game; onClose: () => 
   const [busy, setBusy] = useState(false);
   const set = (key: string, value: unknown) => setDraft(current => ({ ...current, [key]: value }));
 
-  const input = (key: string, type: string, opts: { required?: boolean; step?: string; className?: string } = {}) => (
+  const input = (key: string, type: string, opts: { required?: boolean; step?: string; className?: string; min?: number; disabled?: boolean } = {}) => (
     <Input
       type={type}
+      min={opts.min}
+      disabled={opts.disabled}
+      aria-label={key === "share_price" ? (ar ? "تجاوز السعر لكل لاعب لهذه المباراة" : "Override price per player for this game") : undefined}
       required={opts.required ?? required.has(key)}
       step={opts.step ?? (type === "number" ? (integers.has(key) ? "1" : "any") : undefined)}
       className={opts.className}
@@ -139,6 +142,10 @@ export function AdminGameEditor({ game, onClose }: { game: Game; onClose: () => 
               for (const key of ["description", "playground_id", "skill_level", "gender", "recurrence"]) changes[key] = draft[key] || null;
               changes.is_public = !!draft.is_public;
               changes.host_pays = !!draft.host_pays;
+              if (changes.host_pays) changes.share_price = 0;
+              if (changes.share_price != null && (!Number.isFinite(changes.share_price as number) || Number(changes.share_price) < 0)) {
+                throw new Error(ar ? "أدخل سعراً صحيحاً لا يقل عن صفر." : "Enter a valid price of zero or more.");
+              }
               const { error } = await createClient().rpc("admin_update_friendly_game", { p_game_id: game.id, p_changes: changes });
               if (error) throw error;
               await Promise.all(["platform-records", "friendly-games", "my-game-participants"].map(key => cache.invalidateQueries({ queryKey: [key] })));
@@ -239,16 +246,21 @@ export function AdminGameEditor({ game, onClose }: { game: Game; onClose: () => 
             </Section>
 
             <Section icon={Banknote} title={ar ? "الأسعار" : "Pricing"}>
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <Field label={ar ? "إيجار الساعة" : "Hourly rental"}>
                   {input("playground_hourly_rate", "number")}
-                </Field>
-                <Field label={ar ? "سعر المشاركة" : "Price per player"}>
-                  {input("share_price", "number")}
                 </Field>
                 <Field label={ar ? "إجمالي المنظم" : "Host total"}>
                   {input("host_total", "number")}
                 </Field>
+              </div>
+              <div className="space-y-3 rounded-xl border border-primary/25 bg-primary/5 p-4">
+                <Field label={ar ? "تجاوز السعر لكل لاعب لهذه المباراة (ج.م)" : "Override price per player for this game (EGP)"}>
+                  {input("share_price", "number", { min: 0, step: "0.01", disabled: !!draft.host_pays })}
+                </Field>
+                <p className="text-xs leading-relaxed text-muted-foreground">{draft.host_pays
+                  ? (ar ? "المنظم يغطي التكلفة، لذلك سعر اللاعب صفر. أوقف خيار دفع المنظم لتحديد سعر للاعب." : "The host covers the cost, so the player price is zero. Turn off host-paid mode to set a player price.")
+                  : (ar ? "يطبق هذا السعر على هذه المباراة فقط. لا تتغير أسعار الملعب أو المباريات الأخرى. أدخل صفر لجعل المشاركة مجانية." : "This price applies only to this game. Playground rates and other games stay the same. Enter zero for free participation.")}</p>
               </div>
               <p className="text-xs text-muted-foreground">
                 {ar

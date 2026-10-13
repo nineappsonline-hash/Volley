@@ -50,6 +50,21 @@ const assert = require('node:assert/strict');
   assert.equal(row.game_date,'2026-12-02');
   await edit({max_players:2});
   assert.equal((await db.query('SELECT status FROM friendly_games WHERE id=$1',[id])).rows[0].status,'full');
+  // Verify the current super-admin RPC can override one game's price independently.
+  await db.exec(fs.readFileSync(path.join(__dirname, '../supabase/migrations/20261204000000_admin_set_game_status.sql'), 'utf8'));
+  const otherId = '00000000-0000-0000-0000-000000000011';
+  await db.exec(`INSERT INTO friendly_games (id,title,sport,game_date,start_time,duration_hours,min_players,max_players,gender,is_public,host_pays,share_price,status,recurrence)
+    VALUES ('${otherId}','Other weekly game','Football','2026-12-09','19:00',1,2,8,'mixed',true,false,50,'open','weekly')`);
+  await edit({ share_price: 125.50, recurrence: 'weekly' });
+  assert.equal(Number((await db.query('SELECT share_price FROM friendly_games WHERE id=$1', [id])).rows[0].share_price), 125.50);
+  assert.equal(Number((await db.query('SELECT share_price FROM friendly_games WHERE id=$1', [otherId])).rows[0].share_price), 50);
+  assert.deepEqual((await db.query('SELECT share_amount, pay_status FROM friendly_game_participants ORDER BY member_id')).rows.map(r => [Number(r.share_amount),r.pay_status]), [[50,'approved'],[50,'pending']]);
+  await edit({ share_price: 0 });
+  assert.equal(Number((await db.query('SELECT share_price FROM friendly_games WHERE id=$1', [id])).rows[0].share_price), 0);
+  await assert.rejects(edit({ share_price: -1 }), /Prices/);
+  await db.exec("SET test.admin = 'no'");
+  await assert.rejects(edit({ share_price: 200 }), /Only a super admin/);
   await db.close();
+  console.log('PASS: game-specific decimal/zero price overrides preserve other weekly games and existing payments; unauthorized edits are rejected');
   console.log('PASS: admin authorization, field validation, booking conflicts, status updates, notifications, and payment preservation');
 })().catch(error => { console.error(error); process.exitCode=1; });
