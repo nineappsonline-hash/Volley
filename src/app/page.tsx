@@ -1,3 +1,4 @@
+import { LANDING_TITLE, LANDING_DESCRIPTION, landingPageJsonLd } from "@/lib/landing-content";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LandingPage } from "@/components/marketing/landing";
@@ -13,11 +14,14 @@ import {
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Volleyball Courts & Academies in Egypt | Padel & Tennis",
-  description:
-    "Find volleyball playgrounds, academies and games in Egypt with Playza. Explore padel and tennis too. اكتشف ملاعب وأكاديميات الكرة الطائرة في مصر، وكمان البادل والتنس.",
+  title: { absolute: LANDING_TITLE },
+  description: LANDING_DESCRIPTION,
   keywords: [
     "volleyball courts Egypt", "volleyball playgrounds Cairo", "volleyball academy",
+    "beach volleyball Egypt", "beach volleyball Cairo", "beach volleyball courts",
+    "beach volleyball games", "beach volleyball training", "sand volleyball courts Egypt",
+    "الكرة الطائرة الشاطئية", "كرة طائرة شاطئية في مصر", "الطائرة الشاطئية في القاهرة",
+    "ملاعب كرة طائرة شاطئية",
     "volleyball games Egypt", "padel courts", "tennis academies Egypt",
     "ملاعب كرة طائرة", "أكاديميات كرة طائرة في مصر", "مباريات كرة طائرة",
     "ملاعب بادل", "أكاديميات تنس", "ملاعب في القاهرة",
@@ -26,9 +30,9 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Playza — ملاعب وأكاديميات كرة طائرة، بادل وتنس",
+    title: "Playza — كرة طائرة وطائرة شاطئية في مصر",
     description:
-      "لاقي ملعب كرة طائرة واكتشف أكاديمية في مصر. العب مع ناس شبهك، واكتشف البادل والتنس كمان.",
+      "اكتشف الكرة الطائرة والطائرة الشاطئية في مصر، ومباريات الملاعب الرملية والأكاديميات، وكمان البادل والتنس.",
     url: SITE_URL,
     siteName: "Playza",
     images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
@@ -38,9 +42,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Playza — ملاعب وأكاديميات كرة طائرة، بادل وتنس",
+    title: "Playza — كرة طائرة وطائرة شاطئية في مصر",
     description:
-      "اختار لعبتك وانزل العب. اكتشف مباريات وملاعب في مصر، وتابع تفاصيل مشاركتك مع Playza.",
+      "اكتشف مباريات الكرة الطائرة والطائرة الشاطئية والملاعب والأكاديميات في مصر مع Playza.",
     images: [OG_IMAGE],
   },
 };
@@ -56,6 +60,7 @@ export default async function HomePage() {
   const jsonLd = [
     organizationJsonLd(),
     websiteJsonLd(),
+    landingPageJsonLd(SITE_URL),
     softwareAppJsonLd(),
     breadcrumbsJsonLd([{ name: "Home", url: SITE_URL }]),
   ];

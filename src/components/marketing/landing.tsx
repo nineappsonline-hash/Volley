@@ -7,6 +7,8 @@ import { AppLogo } from "@/components/shared/app-logo";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { useI18n } from "@/lib/i18n";
 import { discoveryPath } from "@/lib/sport-discovery";
+import { BEACH_DESCRIPTION } from "@/lib/landing-content";
+import { BeachVolleyballScene } from "./beach-volleyball-scene";
 import styles from "./volleyball-landing.module.css";
 
 type Sport = "volleyball" | "padel" | "tennis";
@@ -47,7 +49,7 @@ export function LandingPage() {
   return <div className={styles.page} dir={dir} data-paused={paused}>
     <header className={styles.header}>
       <Link href="/" aria-label="Playza"><AppLogo className="w-24 sm:w-28" /></Link>
-      <nav className={styles.nav} aria-label={copy("Main navigation", "القائمة الرئيسية")}><a href="#find-your-court">{copy("Find your court", "لاقي ملعبك")}</a><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><a href="#sports">{copy("The sports", "الرياضات")}</a></nav>
+      <nav className={styles.nav} aria-label={copy("Main navigation", "القائمة الرئيسية")}><a href="#find-your-court">{copy("Find your court", "لاقي ملعبك")}</a><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><a href="#beach-volleyball">{copy("Beach volleyball", "الطائرة الشاطئية")}</a><a href="#sports">{copy("The sports", "الرياضات")}</a></nav>
       <div className={styles.headerActions}><LanguageToggle /><Link href="/login" className={styles.login}>{copy("Log in", "تسجيل الدخول")} <ArrowUpRight size={16} /></Link></div>
     </header>
 
@@ -87,9 +89,34 @@ export function LandingPage() {
         <div className={styles.sportPoster} data-sport={sport}><span className={styles.posterLabel}>{copy("THE PLAYZA SPORTS CLUB", "نادي بلايزا الرياضي")}</span><div key={sport} className={styles.posterGraphic} aria-hidden="true">{sport === "volleyball" ? <Ball /> : <svg viewBox="0 0 240 280" fill="none"><g transform="rotate(30 120 140)"><ellipse cx="120" cy="100" rx="63" ry="82" fill={sport === "padel" ? "#182d29" : "none"} stroke="#182d29" strokeWidth="10" />{sport === "padel" ? Array.from({ length: 5 }, (_, row) => Array.from({ length: 4 }, (_, col) => <circle key={`${row}-${col}`} cx={87+col*22} cy={52+row*23} r="5" fill="#f4a17e" />)) : <path d="M77 44V156M98 25V176M120 20V180M142 25V176M163 44V156M62 60H178M58 86H182M58 112H182M65 138H175" stroke="#182d29" strokeWidth="2" />}<path d="M102 180L114 216H126L138 180M120 215V263" stroke="#182d29" strokeWidth="12" strokeLinecap="round" /></g><circle cx="202" cy="209" r="21" fill="#cced48" stroke="#182d29" strokeWidth="3" /></svg>}</div><strong>{names[sport]}</strong><span className={styles.posterFooter}>{sport === "volleyball" ? copy("OUR FIRST LOVE. YOUR NEXT GAME.", "بنحب الطايرة. ومستنيينك في الملعب.") : copy("NEW RALLIES. SAME GOOD ENERGY.", "لعبة جديدة. ونفس الحماس.")}</span></div>
       </section>
 
+      <section id="beach-volleyball" aria-labelledby="beach-volleyball-title" className={styles.beachSection}>
+        <div className={styles.beachCopy}>
+          <p className={styles.eyebrow}><span />{copy("03 / TAKE IT TO THE SAND", "03 / اللعب على الرمل")}</p>
+          <h2 id="beach-volleyball-title">{copy("Beach volleyball.", "الكرة الطائرة الشاطئية.")}<br /><span>{copy("Same rally. New rhythm.", "نفس الحماس. على الرمل.")}</span></h2>
+          <p>{BEACH_DESCRIPTION[lang]}</p>
+          <ul className={styles.beachHighlights}>
+            <li><Volleyball size={18} aria-hidden="true" />{copy("Explore beach volleyball games and training", "اكتشف مباريات وتدريبات الطائرة الشاطئية")}</li>
+            <li><MapPin size={18} aria-hidden="true" />{copy("Check the court, playing level and session details", "راجع الملعب ومستوى اللعب وتفاصيل الميعاد")}</li>
+          </ul>
+          <div className={styles.actions}>
+            <Link className={styles.primary} href={discoveryPath(lang, "beach-volleyball")}>{copy("Explore beach volleyball", "اكتشف الطائرة الشاطئية")}<ArrowUpRight size={20} aria-hidden="true" /></Link>
+            <Link className={styles.textLink} href="/academies">{copy("Explore academies", "اكتشف الأكاديميات")}<ArrowUpRight size={18} aria-hidden="true" /></Link>
+          </div>
+          <p className={styles.beachNote}>{copy("Availability varies by organizer and venue. Check each listing before joining.", "المواعيد والتوفر بيختلفوا حسب المنظم والمكان. راجع تفاصيل الإعلان قبل المشاركة.")}</p>
+        </div>
+        <div className={styles.beachArt}>
+          <span className={styles.beachArtLabel}>{copy("SAND. SERVE. REPEAT.", "رمل. إرسال. حماس.")}</span>
+          <BeachVolleyballScene />
+          <span className={styles.beachTag}><Volleyball size={16} aria-hidden="true" />{copy("Your next rally starts here", "حماسك الجاي يبدأ هنا")}</span>
+          <button type="button" className={styles.beachMotion} onClick={() => setPaused(!paused)} aria-pressed={paused} aria-label={copy(paused ? "Resume animations" : "Pause animations", paused ? "تشغيل الحركة" : "إيقاف الحركة")}>
+            {paused ? <Play size={15} aria-hidden="true" /> : <Pause size={15} aria-hidden="true" />}
+          </button>
+        </div>
+      </section>
+
       <section className={styles.finalCta}><svg className={styles.ctaStar} viewBox="0 0 100 100" aria-hidden="true" focusable="false"><path d="M50 8V92M8 50H92M20 20L80 80M20 80L80 20" fill="none" stroke="currentColor" strokeWidth="12" /></svg><p className={styles.eyebrow}>{copy("LESS PLANNING. MORE PLAYING.", "كلام أقل. لعب أكتر.")}</p><h2>{copy("The court is calling.", "الملعب بيناديك.")}</h2><Link className={styles.primary} href="/games?sport=volleyball">{copy("Find your next volleyball game", "لاقي ماتش كرة طائرة")}<ArrowUpRight size={20} /></Link><p>{copy("Come for the game. Stay for the people.", "تعالى العب، واتعرّف على ناس بتحب نفس لعبتك.")}</p></section>
     </main>
 
-    <footer className={styles.footer}><div><AppLogo className="w-24" /><p>{copy("A little less online. A lot more on court.", "وقت أقل على الموبايل. ووقت أكتر في الملعب.")}</p></div><nav aria-label={copy("Footer", "روابط إضافية")}><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><Link href="/signup/owner">{copy("List your playground", "أضف ملعبك")}</Link><Link href="/signup/tenant">{copy("For academy owners", "لأصحاب الأكاديميات")}</Link><Link href="/faq">{copy("FAQs", "أسئلة شائعة")}</Link></nav><span>© {new Date().getFullYear()} Playza</span></footer>
+    <footer className={styles.footer}><div><AppLogo className="w-24" /><p>{copy("A little less online. A lot more on court.", "وقت أقل على الموبايل. ووقت أكتر في الملعب.")}</p></div><nav aria-label={copy("Footer", "روابط إضافية")}><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><Link href="/signup/owner">{copy("List your playground", "أضف ملعبك")}</Link><Link href="/signup/tenant">{copy("For academy owners", "لأصحاب الأكاديميات")}</Link><Link href={discoveryPath(lang, "beach-volleyball")}>{copy("Beach volleyball", "الطائرة الشاطئية")}</Link><Link href="/faq">{copy("FAQs", "أسئلة شائعة")}</Link></nav><span>© {new Date().getFullYear()} Playza</span></footer>
   </div>;
 }
