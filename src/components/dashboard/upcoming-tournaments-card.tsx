@@ -36,8 +36,8 @@ export function UpcomingTournamentsCard({ embedded = false, excludeIds = [] }: {
 
   const Container = embedded ? "section" : Card;
   return (
-    <Container className={embedded ? "mt-5 border-t pt-4" : "rounded-2xl shadow-none"}>
-      <CardHeader className="pb-2">
+    <Container className={embedded ? "mt-3 border-t pt-1" : "rounded-2xl shadow-none"}>
+      <CardHeader className={embedded ? "px-4 pb-2 pt-3" : "pb-2"}>
         <CardTitle className="flex items-center justify-between text-base">
           <span className="flex items-center gap-2">
             <Trophy className="h-4 w-4 text-primary" />
@@ -52,7 +52,7 @@ export function UpcomingTournamentsCard({ embedded = false, excludeIds = [] }: {
           </Link>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className={embedded ? "space-y-2 px-4 pb-4" : "space-y-2"}>
         {isLoading ? (
           <div className="space-y-2">
             {[1, 2].map((i) => (
@@ -61,6 +61,7 @@ export function UpcomingTournamentsCard({ embedded = false, excludeIds = [] }: {
           </div>
         ) : list.length === 0 ? (
           <EmptyState
+            compact={embedded}
             message={t("td_no_upcoming_tournaments")}
             icon={Trophy}
             action={<Button asChild size="sm"><Link href="/dashboard/tournaments">{t("td_view_all")}</Link></Button>}

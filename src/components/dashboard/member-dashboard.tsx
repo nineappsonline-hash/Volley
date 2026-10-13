@@ -75,23 +75,24 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
         <MemberDiscoveryCards memberId={p.id} hasAcademy={!!p.academy_id} preferences={p} mode="games" />
       </section>
 
-      <MemberTrainingPreview profile={p} />
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        <div className="min-w-0 space-y-4">
+          <MemberTrainingPreview profile={p} />
 
-      {p.academy_id && (
-        <section id="training" className="scroll-mt-24">
-          <div className="space-y-4">
-            <MemberTraining profile={p} onRemainingChange={setRemaining} />
-            {/* The QR member pass is at the top of this dashboard. */}
-            {p.checkin_code && <CheckInCard />}
-          </div>
-        </section>
-      )}
-
-      <section id="tournaments" className="scroll-mt-24">
-        <div className="space-y-4">
-          <MyTournamentsCard memberId={p.id} />
+          {p.academy_id && (
+            <section id="training" className="scroll-mt-24">
+              <div className="space-y-4">
+                <MemberTraining profile={p} onRemainingChange={setRemaining} />
+                {/* The QR member pass is at the top of this dashboard. */}
+                {p.checkin_code && <CheckInCard />}
+              </div>
+            </section>
+          )}
         </div>
-      </section>
+        <section id="tournaments" className="min-w-0 scroll-mt-24">
+          <MyTournamentsCard memberId={p.id} />
+        </section>
+      </div>
 
       <nav
         aria-label={ar ? "روابط شخصية" : "Personal links"}
@@ -232,9 +233,9 @@ function MemberTraining({
   return (
     <QueryState queries={[paymentsQuery, bookingsQuery, attendanceQuery, sessionsQuery]}>
       <Card className="overflow-hidden rounded-2xl border-border/80 shadow-sm">
-        <CardHeader className={`${styles.colorCardHeader} flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-brand to-brand-900`}>
+        <CardHeader className={`${styles.colorCardHeader} ${styles.compactCardHeader} flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-brand to-brand-900`}>
           <CardTitle className="flex items-center gap-2 text-base">
-            <span className="rounded-xl bg-white/10 p-2.5"><CalendarDays className="h-5 w-5 text-white" /></span>
+            <span className="rounded-lg bg-white/10 p-2"><CalendarDays className="h-5 w-5 text-white" /></span>
             {lang === "ar" ? "تدريبي" : "My training"}
           </CardTitle>
           <Link
@@ -245,7 +246,7 @@ function MemberTraining({
           </Link>
           <p className={`${styles.colorCardHint} basis-full`}>{lang === "ar" ? "تابع حصصك وتقدمك في التدريب." : "Keep track of your sessions and training progress."}</p>
         </CardHeader>
-        <CardContent className="space-y-4 p-5">
+        <CardContent className="space-y-3 p-4">
           {(payments.length > 0 || balance.hasBooking) && (
             <div className="space-y-4">
               <div className="flex flex-wrap items-end justify-between gap-3 rounded-xl bg-muted/40 p-4 text-sm">

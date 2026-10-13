@@ -32,3 +32,10 @@
   color: hsl(var(--foreground));
 }
 .dashboard .enlarge:hover { background: hsl(var(--accent)); }
+
+.dashboard .header{padding:14px 16px}
+.dashboard .content{padding:16px;gap:16px}
+.dashboard .content dl{margin-top:12px;padding-top:12px;gap:8px}
+.dashboard .content dl > div{padding:8px 12px}
+.dashboard .qrSurface{padding:12px;gap:8px}
+.dashboard .qrSurface :is(img,button > div){width:128px;height:128px}

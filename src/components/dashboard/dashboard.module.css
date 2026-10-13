@@ -5,3 +5,8 @@
 .colorCardHeader{position:relative;overflow:hidden;padding:24px 20px;background:hsl(var(--playza-navy));color:white}
 .colorCardHeader h3{color:white;font-size:20px;font-weight:800}
 .colorCardHint{font-size:13px;color:hsl(var(--playza-slate-200));line-height:1.6}
+
+/* Compact member cards keep the navy identity without oversized header bands. */
+.compactCardHeader{padding:14px 16px}
+.compactCardHeader h3{font-size:16px;line-height:1.5}
+.compactCardHeader .colorCardHint{font-size:12px}

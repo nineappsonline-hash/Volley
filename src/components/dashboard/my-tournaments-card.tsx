@@ -111,7 +111,7 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
 
   return (
     <Card className="overflow-hidden rounded-2xl shadow-none">
-      <CardHeader className={`${styles.colorCardHeader} mb-4 flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-brand to-brand-900`}>
+      <CardHeader className={`${styles.colorCardHeader} ${styles.compactCardHeader} mb-3 flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-brand to-brand-900`}>
         <CardTitle className="flex items-center gap-2 text-base">
           <Trophy className="h-6 w-6 text-white" />
           {t("nav_tournaments")}
@@ -123,7 +123,7 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
         {!!entries?.length && <Button asChild size="sm" className="bg-white text-brand-900 hover:bg-white/90"><Link href="/dashboard/tournaments">{lang === "ar" ? "اكتشف المزيد من البطولات" : "Discover more tournaments"}</Link></Button>}
         <p className={`${styles.colorCardHint} basis-full`}>{lang === "ar" ? "بطولاتك والمنافسات القادمة، في مكان واحد." : "Your tournaments and upcoming competitions, all in one place."}</p>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-2 px-4 pb-4">
         {isPending ? (
           <div className="space-y-2">
             <Skeleton className="h-16 w-full" />
@@ -138,6 +138,7 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
           </div>
         ) : !entries || entries.length === 0 ? (
           <EmptyState
+            compact
             message={t("td_empty")}
             icon={Trophy}
             action={<Button asChild size="sm"><Link href="/dashboard/tournaments">{lang === "ar" ? "ابحث عن بطولة" : "Find tournaments"}</Link></Button>}
