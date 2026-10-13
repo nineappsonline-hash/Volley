@@ -25,7 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { MemberDiscoveryCards } from "./member-discovery-cards";
 import { MyTournamentsCard } from "./my-tournaments-card";
-import { DashboardNavigation, DashboardSection } from "./dashboard-navigation";
+import { DashboardNavigation } from "./dashboard-navigation";
 import { useI18n } from "@/lib/i18n";
 import { EXPIRY_ALERT_THRESHOLD } from "@/lib/constants";
 import { usedSessionsSincePayment } from "@/lib/calculations";
@@ -78,20 +78,20 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
       <MemberTrainingPreview profile={p} />
 
       {p.academy_id && (
-        <DashboardSection id="training" title={t("dash_section_training")}>
+        <section id="training" className="scroll-mt-24">
           <div className="space-y-4">
             <MemberTraining profile={p} onRemainingChange={setRemaining} />
             {/* The QR member pass is at the top of this dashboard. */}
             {p.checkin_code && <CheckInCard />}
           </div>
-        </DashboardSection>
+        </section>
       )}
 
-      <DashboardSection id="tournaments" title={t("dash_section_tournaments")}>
+      <section id="tournaments" className="scroll-mt-24">
         <div className="space-y-4">
           <MyTournamentsCard memberId={p.id} />
         </div>
-      </DashboardSection>
+      </section>
 
       <nav
         aria-label={ar ? "روابط شخصية" : "Personal links"}
