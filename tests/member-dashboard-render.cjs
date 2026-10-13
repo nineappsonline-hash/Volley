@@ -497,3 +497,14 @@ for (const options of [realGameQueries.useFriendlyGames(), realGameQueries.useMy
   assert.equal(options.refetchInterval, 15000, 'visible game lists refresh without depending on realtime publication configuration');
 }
 console.log('PASS: game lists refresh prices across separate user sessions on focus and every 15 seconds');
+
+// Existing-game pricing must honor the saved override instead of the rental estimate.
+const { GameCostEstimate } = loadFile(path.join(root, 'src/components/games/game-cost-estimate.tsx'), mocks);
+const overrideBox = renderToStaticMarkup(h(GameCostEstimate, { rate: 600, hours: 14, min: 8, sport: 'Football', pricePerPlayer: 145 }));
+assert.ok(overrideBox.includes('145.00'));
+assert.ok(!overrideBox.includes('1,070'), 'the overridden price is not recalculated from rent and duration');
+const freeBox = renderToStaticMarkup(h(GameCostEstimate, { rate: 600, hours: 14, min: 8, sport: 'Football', pricePerPlayer: 0 }));
+assert.ok(freeBox.includes('0.00'), 'a zero-price override stays free');
+const estimateBox = renderToStaticMarkup(h(GameCostEstimate, { rate: 600, hours: 14, min: 8, sport: 'Football' }));
+assert.ok(!estimateBox.includes('145.00'), 'creation forms retain calculated estimates when no saved price exists');
+console.log('PASS: existing-game price boxes use the saved admin price, including zero, while creation forms retain estimates');

@@ -9,16 +9,22 @@ export function GameCostEstimate({
   min,
   hostPays = false,
   sport = "",
+  pricePerPlayer,
 }: {
   rate: number | null | undefined;
   hours: number;
   min: number;
   hostPays?: boolean;
   sport?: string;
+  /** Saved price takes precedence on existing games; creation forms still estimate. */
+  pricePerPlayer?: number | null;
 }) {
   const { lang } = useI18n();
   const ar = lang === "ar";
-  const estimate = hostPays
+  const savedPrice = pricePerPlayer != null && Number.isFinite(pricePerPlayer) && pricePerPlayer >= 0 ? pricePerPlayer : null;
+  const estimate = !hostPays && savedPrice != null
+    ? { total: savedPrice }
+    : hostPays
     ? estimateHostTotal(rate, hours, sport)
     : estimateSharePrice(rate, hours, min, sport);
 
