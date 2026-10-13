@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QueryState } from "@/components/shared/query-state";
+import type { Dict } from "@/lib/i18n/dictionary";
 import { useI18n } from "@/lib/i18n";
 import {
   useFriendlyGames,
@@ -43,6 +44,7 @@ type DiscoveryItem = {
   image?: string | null;
   href?: string;
   directionsHref?: string;
+  status?: string;
   /** A recognised sport, for the graphic court-marking background. */
   sport?: string;
   details?: { date: string; time: string; location?: string | null; price: string; places: string };
@@ -159,6 +161,7 @@ function DiscoveryCard({
                             }}
                           />
                         )}
+                        {item.status && <span className={`absolute end-3 top-3 rounded-full border px-2.5 py-1 text-xs font-semibold text-white shadow-sm ${item.status === "open" ? "border-blue-200/40 bg-blue-600" : item.status === "completed" ? "border-emerald-200/40 bg-emerald-700" : "border-amber-200/40 bg-amber-700"}`}>{t(`community_status_${item.status}` as keyof Dict)}</span>}
                         {item.badge && (
                           <span className="absolute start-3 top-3 max-w-[calc(100%-1.5rem)] truncate rounded-full bg-background/95 px-2.5 py-1 text-xs font-medium text-foreground shadow-sm">
                             {item.badge}
@@ -245,6 +248,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
       reason: reasonLabel(gameMatch(game)),
       href: game.invite_code ? `/dashboard/games?join=${encodeURIComponent(game.invite_code)}` : "/dashboard/games",
       badge: game.sport,
+      status: game.status,
       sport: game.sport,
       directionsHref: googleDirectionsUrl(game.playground?.location_link),
       details: {

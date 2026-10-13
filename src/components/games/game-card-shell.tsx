@@ -2,7 +2,7 @@
 
 import { useId, useState, type ReactNode } from "react";
 import { format } from "date-fns";
-import { CalendarDays, ChevronDown, Clock, MapPin, Trophy, Users } from "lucide-react";
+import { CalendarDays, ChevronDown, Clock, MapPin, Trophy, Users, CheckCircle2 } from "lucide-react";
 import { sportToSlug } from "@/lib/sport-slugs";
 import { SportIcon } from "@/components/marketing/sport-icons";
 import { venueCardPhoto } from "@/lib/venue-media";
@@ -28,18 +28,20 @@ export function GameCardShell({ game, joined, waitlisted, children }: { game: Fr
     : "from-indigo-800 via-violet-700 to-fuchsia-800";
   const photo = venueCardPhoto(game.playground?.photos, game.playground?.cover_url);
   const booking = gameBookingPayment(game);
-  return <article className="group/card self-start overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-lg hover:shadow-primary/10">
-    <div className={`relative isolate overflow-hidden bg-gradient-to-br ${theme} px-5 pb-5 pt-4 text-white`}>
+  const statusStyle = game.status === "completed" ? "border-emerald-200/40 bg-emerald-700" : game.status === "open" ? "border-blue-200/40 bg-blue-600" : game.status === "full" ? "border-amber-200/40 bg-amber-700" : "border-red-200/40 bg-red-700";
+  return <article className={`group/card self-start overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-lg hover:shadow-primary/10 ${game.status === "completed" ? "border-emerald-500/50" : game.status === "open" ? "border-blue-400/60 ring-1 ring-blue-400/15" : "border-border"}`}>
+    <div className={`relative isolate min-h-48 overflow-hidden bg-gradient-to-br ${theme} px-5 pb-5 pt-4 text-white`}>
       {/* User venue photos can be hosted outside the configured image domains. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {photo && <img src={photo} alt="" loading="lazy" className="absolute inset-0 -z-20 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} />}
-      {photo && <div aria-hidden="true" className={`absolute inset-0 -z-10 bg-gradient-to-br ${theme} opacity-90`} />}
+      {photo && <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-slate-950/15" />}
       <div aria-hidden="true" className="pointer-events-none absolute -end-7 -top-12 h-44 w-44 rounded-full border-[18px] border-white/10" />
       <div aria-hidden="true" className="pointer-events-none absolute end-4 top-12 rotate-12 text-white/20">{SportIcon({ id: sport, size: 80 })}</div>
-      <GameCardBackground sport={game.sport} />
+      {!photo && <GameCardBackground sport={game.sport} />}
+      {game.status === "completed" && <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-emerald-900/55" />}
       <div className="relative flex flex-wrap items-center justify-between gap-2">
         <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-white"><Trophy className="h-4 w-4" />{game.sport}</span>
-        <span className="rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[11px] font-medium">{t(`community_status_${game.status}`)}</span>
+        <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold text-white shadow-sm ${statusStyle}`}>{game.status === "completed" && <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />}{t(`community_status_${game.status}`)}</span>
       </div>
       <h3 className="relative mt-4 line-clamp-2 min-h-12 text-lg font-bold leading-6 text-white">{game.title}</h3>
       <div className="relative mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-white/90">
