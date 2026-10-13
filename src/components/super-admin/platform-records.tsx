@@ -1,4 +1,5 @@
 "use client";
+import { venueCardPhoto } from "@/lib/venue-media";
 import { GameCardBackground } from "@/components/games/game-card-background";
 import { SportIcon } from "@/components/marketing/sport-icons";
 import { sportToSlug } from "@/lib/sport-slugs";
@@ -933,6 +934,8 @@ export function PlatformRecords() {
       {rows.length === 0 && <p className="py-8 text-center text-muted-foreground">{t("sa_records_empty")}</p>}
       {recordsPagination}
       {visibleRows.map(row => {
+        const gameVenue = tab === "Friendly games" ? data.venues.find(venue => venue.id === row.playground_id) : undefined;
+        const gamePhoto = venueCardPhoto(gameVenue?.photos, gameVenue?.cover_url);
         const blocked = row.banned_until && new Date(row.banned_until) > new Date();
         const protectedAccount = PLATFORM_ADMIN_EMAILS.includes(row.email?.toLowerCase() ?? "");
         const rentals = data.venue_rentals.filter(r => r.venue_id === row.id && r.rental_date === date);
@@ -941,11 +944,16 @@ export function PlatformRecords() {
         const dayClosed = [...blockedIntervalsForDate((row.unavailable_slots ?? []) as VenueUnavailableSlot[], date), ...closedIntervalsFromWorkingHours((row.working_hours ?? []) as VenueUnavailableSlot[], date)];
         const { occupied, gaps } = rentalCoverage(data.venue_rentals.filter(r => r.venue_id === row.id) as RentalInterval[], date, dayClosed);
         return <article key={row.id} className={`space-y-3 overflow-hidden rounded-2xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md ${colorful ? "border-primary/20" : ""}`}>
-          {colorful && <div className={`relative isolate -mx-4 -mt-4 mb-4 flex min-h-20 items-center gap-3 overflow-hidden bg-gradient-to-br ${recordColor} px-4 py-4 text-white`}>
+          {colorful && <div className={`relative isolate -mx-4 -mt-4 mb-4 flex min-h-20 items-center gap-3 overflow-hidden bg-gradient-to-br ${recordColor} px-4 py-4 text-white ${tab === "Friendly games" && gamePhoto ? "min-h-44 items-end sm:min-h-48" : ""}`}>
             {tab === "Friendly games" ? <>
               <GameCardBackground sport={row.sport ?? "volleyball"} />
+              {gamePhoto && <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={gamePhoto} alt={gameVenue?.name ?? row.title} loading="lazy" className="absolute inset-0 -z-10 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} />
+                <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-slate-950/95 via-slate-950/30 to-slate-950/10" />
+              </>}
               <span aria-hidden="true" className="rounded-xl border border-white/20 bg-white/10 p-2">{SportIcon({ id: sportToSlug(row.sport ?? "volleyball"), size: 32 })}</span>
-              <div className="relative min-w-0"><p className="text-sm font-bold">{row.sport}</p><p className="mt-1 text-xs text-white/90">{row.game_date} · {row.start_time ? formatTime12h(String(row.start_time), lang) : ""}</p></div>
+              <div className="relative min-w-0"><p className="text-sm font-bold">{row.sport}</p>{gameVenue?.name && <p className="mt-1 text-base font-semibold">{gameVenue.name}</p>}<p className="mt-1 text-xs text-white/90">{row.game_date} · {row.start_time ? formatTime12h(String(row.start_time), lang) : ""}</p></div>
             </> : <>
               <Users aria-hidden="true" className="absolute -bottom-5 end-8 -z-10 h-28 w-28 text-white/15" strokeWidth={1} />
               <ShieldCheck aria-hidden="true" className="h-8 w-8 text-cyan-200" />
