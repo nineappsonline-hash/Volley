@@ -1,4 +1,5 @@
 "use client";
+import { GoogleMapsDirectionsButton } from "@/components/shared/google-maps-directions-button";
 import { googleDirectionsUrl } from "@/lib/google-directions";
 import { LocationMap } from "@/components/shared/location-map";
 
@@ -11,7 +12,6 @@ import {
   LandPlot,
   MapPin,
   MessageSquareText,
-  Navigation,
   Plus,
   Star,
   Users,
@@ -171,15 +171,7 @@ export function PublicPlaygroundPage({
               <CalendarDays className="h-4 w-4" />
               {t("public_playground_book")}
             </a>
-            {directions && <a
-              href={directions}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/10 px-6 py-2.5 text-sm font-bold text-white transition-transform hover:scale-105"
-            >
-              <Navigation className="h-4 w-4" />
-              {lang === "ar" ? "الاتجاهات" : "Directions"}
-            </a>}
+            {directions && <GoogleMapsDirectionsButton href={directions} />}
           </div>
         </div>
       </section>

@@ -1,8 +1,9 @@
 "use client";
 
+import { GoogleMapsDirectionsButton } from "@/components/shared/google-maps-directions-button";
 import { GameCardBackground } from "@/components/games/game-card-background";
 import { useState } from "react";
-import { Check, LandPlot, Navigation } from "lucide-react";
+import { Check, LandPlot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { PlaygroundDistance } from "./playground-distance";
@@ -42,9 +43,7 @@ export function PlaygroundOptionCard({ playground: p, selected, onSelect }: {
       </button>
       {coordinates && <PlaygroundDistance {...coordinates} />}
       <div className="flex flex-wrap gap-2">
-        {directions && <Button type="button" variant="outline" size="sm" asChild>
-          <a href={directions} target="_blank" rel="noopener noreferrer"><Navigation className="me-1 h-4 w-4" />{t("directions")}</a>
-        </Button>}
+        {directions && <GoogleMapsDirectionsButton href={directions} />}
         <Button type="button" variant="outline" size="sm" onClick={() => setDetailsOpen(true)}>{t("games_playground_details")}</Button>
       </div>
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
@@ -57,7 +56,7 @@ export function PlaygroundOptionCard({ playground: p, selected, onSelect }: {
               <img src={url} alt={p.name} loading="lazy" className="w-full rounded-lg object-contain" />
             </a>
           ))}</div> : <p className="text-sm text-muted-foreground">{t("games_playground_no_photos")}</p>}
-          {directions && <Button type="button" variant="outline" asChild><a href={directions} target="_blank" rel="noopener noreferrer">{t("directions")}</a></Button>}
+          {directions && <GoogleMapsDirectionsButton href={directions} />}
         </DialogContent>
       </Dialog>
     </div>

@@ -1,9 +1,9 @@
 "use client";
 
+import { GoogleMapsDirectionsButton } from "@/components/shared/google-maps-directions-button";
 import { googleDirectionsUrl } from "@/lib/google-directions";
-import { MapPin, Navigation } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { Button } from "@/components/ui/button";
 
 export function LocationMap({ name, address, lat, lng, locationLink }: {
   name: string;
@@ -20,7 +20,7 @@ export function LocationMap({ name, address, lat, lng, locationLink }: {
   return <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
     <div className="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-6">
       <div><h2 className="flex items-center gap-2 text-lg font-semibold"><MapPin className="h-5 w-5 text-primary" />{ar ? "الموقع" : "Location"}</h2>{address && <p className="mt-1 text-sm text-muted-foreground">{address}</p>}</div>
-      {directions && <Button asChild variant="outline" className="gap-2"><a href={directions} target="_blank" rel="noopener noreferrer"><Navigation className="h-4 w-4" />{ar ? "الاتجاهات على خرائط جوجل" : "Google Maps directions"}</a></Button>}
+      {directions && <GoogleMapsDirectionsButton href={directions} />}
     </div>
   </section>;
 }

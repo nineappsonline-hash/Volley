@@ -1,5 +1,6 @@
 "use client";
 
+import { GoogleMapsDirectionsButton } from "@/components/shared/google-maps-directions-button";
 import { googleDirectionsUrl } from "@/lib/google-directions";
 import { cairoNow } from "@/lib/member-training";
 import { discoveryMatch, type DiscoveryPreferences } from "@/lib/member-discovery";
@@ -10,7 +11,6 @@ import { format } from "date-fns";
 import {
   ArrowRight,
   CalendarDays,
-  Navigation,
   Clock,
   MapPin,
   Users,
@@ -177,7 +177,7 @@ function DiscoveryCard({
                           {item.details.location && <p className="flex items-start gap-2 text-muted-foreground"><MapPin className="h-3.5 w-3.5 shrink-0" />{item.details.location}</p>}
                           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-2"><span className="font-semibold text-primary">{item.details.price}</span><span className="flex items-center gap-1 text-muted-foreground"><Users className="h-3.5 w-3.5" />{item.details.places}</span></div>
                         </div> : <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">{item.subtitle}</p>}
-                        {item.directionsHref && <div className="border-t border-border/60 pt-2"><Button asChild variant="outline" size="sm" className="w-full gap-2"><a href={item.directionsHref} target="_blank" rel="noopener noreferrer"><Navigation className="h-3.5 w-3.5" />{t("directions")}</a></Button></div>}
+                        {item.directionsHref && <div className="border-t border-border/60 pt-2"><GoogleMapsDirectionsButton href={item.directionsHref} className="w-full" /></div>}
                       </div>
                     </article>
                   </li>

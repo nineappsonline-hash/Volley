@@ -1,5 +1,6 @@
 "use client";
 
+import { GoogleMapsDirectionsButton } from "@/components/shared/google-maps-directions-button";
 import { GameCardShell } from "@/components/games/game-card-shell";
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
@@ -13,7 +14,6 @@ import {
   LandPlot,
   Link as LinkIcon,
   MapPin,
-  Navigation,
   Pencil,
   Plus,
   Repeat,
@@ -237,7 +237,7 @@ function GameCard({
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-3">
         {game.playground && (
-          <div className="flex items-start gap-2 rounded-lg border bg-muted/30 p-2.5">
+          <div className="flex flex-wrap items-start gap-2 rounded-lg border bg-muted/30 p-2.5">
             {playgroundPhoto ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={playgroundPhoto} alt={game.playground.name ?? ""} className="mt-0.5 h-10 w-10 shrink-0 rounded-md border object-cover" />
@@ -255,12 +255,7 @@ function GameCard({
               )}
             </div>
             {game.playground.location_link && (
-              <Button asChild variant="outline" size="sm" className="shrink-0">
-                <a href={game.playground.location_link} target="_blank" rel="noopener noreferrer">
-                  <Navigation className="me-1 h-3.5 w-3.5" />
-                  {t("directions")}
-                </a>
-              </Button>
+              <GoogleMapsDirectionsButton href={game.playground.location_link} className="w-full" />
             )}
           </div>
         )}

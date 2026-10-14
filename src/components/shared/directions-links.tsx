@@ -1,10 +1,10 @@
 "use client";
 
+import { GoogleMapsDirectionsButton } from "@/components/shared/google-maps-directions-button";
 import { googleDirectionsUrl } from "@/lib/google-directions";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { Navigation } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
 import { useI18n } from "@/lib/i18n";
 
 type Props = {
@@ -30,11 +30,7 @@ export function DirectionsLinks({ locationLink, venueId }: Props) {
   });
   const href = googleDirectionsUrl(locationLink || saved.data);
   if (!href) return null;
-  return <Button asChild variant="outline" size="sm">
-    <a href={href} target="_blank" rel="noopener noreferrer">
-      <Navigation className="me-1 h-3.5 w-3.5" />{t("directions")}
-    </a>
-  </Button>;
+  return <GoogleMapsDirectionsButton href={href} />;
 }
 
 export function directionsUrl(lat: number | null | undefined, lng: number | null | undefined, query = "", locationLink?: string | null): string | undefined {

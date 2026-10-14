@@ -1,5 +1,6 @@
 "use client";
 
+import { GoogleMapsDirectionsButton } from "@/components/shared/google-maps-directions-button";
 import { useRequestGamePlayers } from "@/lib/queries";
 import { GameCardShell } from "@/components/games/game-card-shell";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -16,7 +17,6 @@ import {
   LandPlot,
   Link as LinkIcon,
   MapPin,
-  Navigation,
   Plus,
   Pencil,
   Repeat,
@@ -303,14 +303,14 @@ function GameCard({
       <CardContent className="flex flex-1 flex-col gap-3">
         <GameParticipantNames participants={game.participants ?? []} />
         {/* Playground */}
-        <div className="flex items-start gap-2 rounded-lg border bg-muted/30 p-2.5">
+        <div className="flex flex-wrap items-start gap-2 rounded-lg border bg-muted/30 p-2.5">
           {playgroundThumb ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={playgroundThumb} alt={game.playground?.name ?? ""} className="mt-0.5 h-10 w-10 shrink-0 rounded-md border object-cover" />
           ) : (
             <LandPlot className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
           )}
-          <div className="min-w-0 text-sm">
+          <div className="min-w-0 flex-1 text-sm">
             <p className="truncate font-semibold">
               {game.playground?.name ?? game.location ?? t("games_no_playground")}
             </p>
@@ -326,12 +326,7 @@ function GameCard({
             )}
           </div>
           {game.playground?.location_link && (
-            <Button asChild variant="outline" size="sm" className="shrink-0">
-              <a href={game.playground.location_link} target="_blank" rel="noopener noreferrer">
-                <Navigation className="me-1 h-3.5 w-3.5" />
-                {t("directions")}
-              </a>
-            </Button>
+            <GoogleMapsDirectionsButton href={game.playground.location_link} className="w-full" />
           )}
           <Badge variant="secondary" className="shrink-0 gap-1 text-[10px]">
             <UsersRound className="h-3 w-3" />
