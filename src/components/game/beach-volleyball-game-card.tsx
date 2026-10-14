@@ -138,11 +138,11 @@ export function BeachVolleyballGameCard() {
           <div
             className={cn(
               fullscreen
-                ? "fixed inset-0 z-[120] flex flex-col justify-center overflow-y-auto bg-[#0E182D] p-2 sm:p-6"
+                ? "fixed inset-0 z-[120] flex flex-col overflow-y-auto bg-[#0E182D] p-2 sm:p-6"
                 : "p-3 sm:p-4",
             )}
           >
-            <div className={cn("mx-auto w-full", fullscreen ? "max-w-5xl" : "")}>
+            <div className={cn("mx-auto w-full", fullscreen ? "my-auto max-w-5xl shrink-0" : "")}>
               <div className="mb-2 flex items-center justify-between gap-2">
                 <button
                   type="button"

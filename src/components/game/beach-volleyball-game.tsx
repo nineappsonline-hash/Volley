@@ -549,7 +549,7 @@ export function BeachVolleyballGame({
         className,
       )}
     >
-      <div ref={wrapperRef} className="relative w-full" style={{ aspectRatio: "16 / 9" }}>
+      <div ref={wrapperRef} className="relative w-full" style={{ aspectRatio: ui === "ready" ? undefined : "16 / 9" }}>
         <canvas
           ref={canvasRef}
           className="absolute inset-0 h-full w-full"
@@ -682,8 +682,8 @@ export function BeachVolleyballGame({
 
         {/* Start screen */}
         {ui === "ready" && (
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-[#14213D]/85 p-4 text-center backdrop-blur-sm">
-            <h2 className="text-2xl font-black sm:text-3xl">{t.title}</h2>
+          <div className="relative z-20 flex min-h-96 flex-col items-center justify-center gap-4 bg-[#14213D]/85 px-4 py-8 text-center backdrop-blur-sm">
+            <h2 className="text-2xl font-black text-white sm:text-3xl">{t.title}</h2>
             <p className="max-w-md text-sm text-white/80">{t.cardDesc}</p>
             <div>
               <p className="mb-2 text-xs font-bold uppercase tracking-wide text-white/70">
