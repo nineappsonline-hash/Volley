@@ -233,14 +233,14 @@ function drawPlayer(
   // Separate shoulder joints and fixed-length bones avoid stretching elbows.
   const armY = y - h + 36 + jumpTuck;
   const pose = (front: boolean) => {
-    const shoulder = x + facing * (front ? -12 : 12);
+    const shoulder = x + facing * (front ? 12 : -12);
     let tx = shoulder + facing * (front ? 6 : -5);
     let ty = armY + 34;
     if (anim === "hit") {
       const progress = Math.max(0, Math.min(1, 1 - p.animTime / 0.25));
       // Cock behind the head, extend toward contact, then follow through.
       const t = progress < 0.4 ? progress / 0.4 : (progress - 0.4) / 0.6;
-      if (!front) {
+      if (front) {
         tx = shoulder + facing * (progress < 0.4 ? lerp(-14, 22, t) : lerp(22, 24, t));
         ty = armY + (progress < 0.4 ? lerp(-30, -40, t) : lerp(-40, 12, t));
       } else { tx = shoulder - facing * 22; ty = armY + 12; }

@@ -25,6 +25,8 @@ import {
   Volume2,
   VolumeX,
   X,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -95,6 +97,7 @@ export function BeachVolleyballGame({
   const [look, setLook] = useState(0);
   const [soundOn, setSoundOn] = useState(false);
   const [touchInput, setTouchInput] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [phase, setPhase] = useState<GameState["phase"]>("ready");
   const [hud, setHud] = useState({
     humanPoints: 0,
@@ -148,6 +151,22 @@ export function BeachVolleyballGame({
   const clearInput = useCallback(() => {
     inputRef.current = inputController.current.clear();
     containerRef.current?.querySelectorAll("[data-pressed]").forEach(node => node.removeAttribute("data-pressed"));
+  }, []);
+
+  const toggleFullscreen = useCallback(async () => {
+    if (!document.fullscreenElement) {
+      await containerRef.current?.requestFullscreen?.();
+    } else {
+      await document.exitFullscreen?.();
+    }
+  }, []);
+
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
   }, []);
 
   const beginSession = useCallback(
@@ -455,16 +474,41 @@ export function BeachVolleyballGame({
     return () => window.removeEventListener("keydown", handler);
   }, [pause]);
 
-  // Reset inputs if the tab loses focus mid-rally.
+  // Reset inputs if the tab loses focus, and pause when it is hidden so the
+  // 90-second clock never runs in the background.
   useEffect(() => {
-    const reset = () => clearInput();
-    window.addEventListener("blur", reset);
-    document.addEventListener("visibilitychange", reset);
-    return () => {
-      window.removeEventListener("blur", reset);
-      document.removeEventListener("visibilitychange", reset);
+    const onBlur = () => clearInput();
+    const onVisibility = () => {
+      clearInput();
+      if (document.hidden && uiRef.current === "playing" && !pausedRef.current) {
+        pause();
+      }
     };
-  }, [clearInput]);
+    window.addEventListener("blur", onBlur);
+    window.addEventListener("pagehide", onVisibility);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("pagehide", onVisibility);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [clearInput, pause]);
+
+  // Pause while the game surface is scrolled out of view.
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node || ui !== "playing") return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.intersectionRatio < 0.15 && !pausedRef.current) pause();
+        }
+      },
+      { threshold: [0.15] },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [ui, pause]);
 
   // Clean up audio when unmounted.
   useEffect(() => {
@@ -596,6 +640,14 @@ export function BeachVolleyballGame({
                   {soundOn ? <Volume2 size={16} /> : <VolumeX size={16} />}
                 </button>
                 <button
+                  type="button"
+                  onClick={toggleFullscreen}
+                  aria-label={isFullscreen ? t.exitBiggerScreen : t.biggerScreen}
+                  className={cn("rounded-full bg-black/45 p-2 backdrop-blur hover:bg-black/60", focusStyles)}
+                >
+                  {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                </button>
+                                <button
                   type="button"
                   onClick={pause}
                   aria-label={t.pause}
@@ -794,6 +846,17 @@ export function BeachVolleyballGame({
                     )}
                   >
                     {t.quit}
+                  </button>
+                                    <button
+                    type="button"
+                    onClick={toggleFullscreen}
+                    className={cn(
+                      "inline-flex items-center gap-2 rounded-full border border-white/30 px-5 py-2.5 font-bold text-white hover:bg-white/10",
+                      focusStyles,
+                    )}
+                  >
+                    {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                    {isFullscreen ? t.exitBiggerScreen : t.biggerScreen}
                   </button>
                 </div>
                 <p className="max-w-xs text-xs text-white/70">{t.quitConfirm}</p>
