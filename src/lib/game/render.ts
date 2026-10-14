@@ -1,11 +1,9 @@
+import { drawCourtEnvironment } from "./environment";
 import { PLAYER, WORLD } from "./config";
 import type { GameState, PlayerState } from "./types";
 
 const NAVY = "#14213D";
 const LIME = "#C7F23D";
-const SAND_LIGHT = "#F5EAD3";
-const SAND_DARK = "#E4D3AD";
-const LINE = "#FBF8EF";
 
 export interface HumanLook {
   shirt: string;
@@ -28,191 +26,43 @@ export interface RenderOptions {
   aiLook: HumanLook;
 }
 
-let bgCanvas: HTMLCanvasElement | null = null;
-
 function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
 
-function drawBackground(): HTMLCanvasElement {
-  if (bgCanvas) return bgCanvas;
-  const canvas = document.createElement("canvas");
-  canvas.width = WORLD.width;
-  canvas.height = WORLD.height;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return canvas;
-
-  const sky = ctx.createLinearGradient(0, 0, 0, 470);
-  sky.addColorStop(0, "#BEE0F0");
-  sky.addColorStop(0.6, "#E7E7D8");
-  sky.addColorStop(1, "#F4E4C6");
-  ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, WORLD.width, 470);
-
-  // Sun haze
-  ctx.globalAlpha = 0.5;
-  ctx.fillStyle = "#FFF3D0";
-  ctx.beginPath();
-  ctx.arc(1050, 130, 90, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.globalAlpha = 1;
-
-  // Distant skyline
-  ctx.fillStyle = "#C9D3D8";
-  const buildings = [
-    [40, 330, 90, 130],
-    [140, 300, 70, 160],
-    [220, 350, 110, 110],
-    [350, 320, 80, 140],
-    [900, 340, 100, 120],
-    [1010, 300, 90, 160],
-    [1120, 350, 120, 110],
-  ];
-  for (const [x, y, w, h] of buildings) ctx.fillRect(x, y, w, h);
-
-  // Trees / palms
-  const palm = (x: number, baseY: number, scale: number) => {
-    ctx.save();
-    ctx.translate(x, baseY);
-    ctx.scale(scale, scale);
-    ctx.strokeStyle = "#8A6B45";
-    ctx.lineWidth = 8;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(10, -70, 4, -140);
-    ctx.stroke();
-    ctx.fillStyle = "#4E8B57";
-    for (let i = 0; i < 6; i += 1) {
-      const a = (i / 6) * Math.PI * 2;
-      ctx.beginPath();
-      ctx.ellipse(4 + Math.cos(a) * 34, -140 + Math.sin(a) * 16, 40, 12, a, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-  };
-  palm(120, 470, 1.05);
-  palm(1160, 470, 1.15);
-  palm(1010, 470, 0.85);
-
-  // Floodlight poles
-  for (const x of [180, 1100]) {
-    ctx.strokeStyle = "#9AA3AA";
-    ctx.lineWidth = 8;
-    ctx.beginPath();
-    ctx.moveTo(x, 470);
-    ctx.lineTo(x, 210);
-    ctx.stroke();
-    ctx.fillStyle = "#B9C2C8";
-    ctx.fillRect(x - 34, 190, 68, 22);
-    ctx.fillStyle = "#FFF6D8";
-    for (let i = 0; i < 3; i += 1) ctx.fillRect(x - 30 + i * 22, 193, 16, 16);
-  }
-
-  // Back wall / fence
-  ctx.fillStyle = "#DCE7DF";
-  ctx.fillRect(0, 440, WORLD.width, 30);
-  ctx.strokeStyle = "#B9C9C0";
-  ctx.lineWidth = 2;
-  for (let x = 0; x < WORLD.width; x += 26) {
-    ctx.beginPath();
-    ctx.moveTo(x, 440);
-    ctx.lineTo(x, 470);
-    ctx.stroke();
-  }
-
-  // Sand
-  const sand = ctx.createLinearGradient(0, 470, 0, WORLD.height);
-  sand.addColorStop(0, SAND_LIGHT);
-  sand.addColorStop(1, SAND_DARK);
-  ctx.fillStyle = sand;
-  ctx.fillRect(0, 470, WORLD.width, WORLD.height - 470);
-
-  // Gentle court floor shading
-  ctx.fillStyle = "#EADFC2";
-  ctx.beginPath();
-  ctx.moveTo(60, 470);
-  ctx.lineTo(1220, 470);
-  ctx.lineTo(1260, WORLD.height);
-  ctx.lineTo(20, WORLD.height);
-  ctx.closePath();
-  ctx.fill();
-
-  bgCanvas = canvas;
-  return canvas;
-}
-
-function drawCourtLines(ctx: CanvasRenderingContext2D) {
-  ctx.strokeStyle = LINE;
-  ctx.lineWidth = 5;
-  ctx.setLineDash([]);
-
-  // Side lines / baselines (vertical markers in a side-view court).
-  const topY = WORLD.groundY - 2;
-  ctx.beginPath();
-  ctx.moveTo(WORLD.minX, topY - 8);
-  ctx.lineTo(WORLD.minX, topY + 60);
-  ctx.moveTo(WORLD.maxX, topY - 8);
-  ctx.lineTo(WORLD.maxX, topY + 60);
-  ctx.stroke();
-
-  // Ground line
-  ctx.strokeStyle = "#D8C79E";
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(20, WORLD.groundY + 2);
-  ctx.lineTo(WORLD.width - 20, WORLD.groundY + 2);
-  ctx.stroke();
-}
-
 function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number, rx: number) {
-  ctx.fillStyle = "rgba(20,33,61,0.16)";
-  ctx.beginPath();
-  ctx.ellipse(x, y + 2, rx, rx * 0.28, 0, 0, Math.PI * 2);
-  ctx.fill();
+  const shadow = ctx.createRadialGradient(x, y + 3, 1, x, y + 3, rx);
+  shadow.addColorStop(0, "rgba(39,40,35,0.3)");
+  shadow.addColorStop(1, "rgba(39,40,35,0)");
+  ctx.save();ctx.translate(x, y + 3);ctx.scale(1, 0.28);ctx.translate(-x, -y - 3);
+  ctx.fillStyle = shadow;ctx.beginPath();ctx.arc(x,y+3,rx,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+
+function drawNetDepth(ctx: CanvasRenderingContext2D) {
+  const x = WORLD.netX, top = WORLD.netTop, ground = WORLD.groundY;
+  const depthX = 30, depthY = 72;
+  ctx.fillStyle = "rgba(50,64,60,0.12)";
+  ctx.beginPath();ctx.moveTo(x,ground);ctx.lineTo(x+depthX,ground-depthY);ctx.lineTo(x+95,ground-depthY+14);ctx.lineTo(x+65,ground+14);ctx.closePath();ctx.fill();
+  ctx.strokeStyle = "#5B7076";ctx.lineWidth = 5;
+  ctx.beginPath();ctx.moveTo(x+depthX,top-depthY-10);ctx.lineTo(x+depthX,ground-depthY);ctx.stroke();
+  ctx.fillStyle = "rgba(225,237,230,0.1)";
+  ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x+depthX,top-depthY);ctx.lineTo(x+depthX,ground-depthY);ctx.lineTo(x,ground);ctx.closePath();ctx.fill();
+  ctx.strokeStyle = "rgba(39,58,65,0.32)";ctx.lineWidth=1;
+  for(let y=top;y<=ground;y+=13){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+depthX,y-depthY);ctx.stroke();}
+  for(let t=0;t<=1;t+=0.25){ctx.beginPath();ctx.moveTo(x+depthX*t,top-depthY*t);ctx.lineTo(x+depthX*t,ground-depthY*t);ctx.stroke();}
+  ctx.strokeStyle = "#E8F0E4";ctx.lineWidth=6;
+  ctx.beginPath();ctx.moveTo(x,top-2);ctx.lineTo(x+depthX,top-depthY-2);ctx.stroke();
 }
 
 function drawNet(ctx: CanvasRenderingContext2D) {
-  const left = WORLD.netX - WORLD.netHalf;
-  const right = WORLD.netX + WORLD.netHalf;
-  const top = WORLD.netTop;
-  const bottom = WORLD.groundY;
-
-  // Posts
-  ctx.strokeStyle = NAVY;
-  ctx.lineWidth = 7;
-  ctx.lineCap = "round";
-  ctx.beginPath();
-  ctx.moveTo(left - 4, top - 16);
-  ctx.lineTo(left - 4, bottom);
-  ctx.moveTo(right + 4, top - 16);
-  ctx.lineTo(right + 4, bottom);
-  ctx.stroke();
-
-  // Net mesh
-  ctx.fillStyle = "rgba(255,255,255,0.28)";
-  ctx.fillRect(left, top, right - left, bottom - top);
-  ctx.strokeStyle = "rgba(20,33,61,0.45)";
-  ctx.lineWidth = 1;
-  for (let y = top; y <= bottom; y += 14) {
-    ctx.beginPath();
-    ctx.moveTo(left, y);
-    ctx.lineTo(right, y);
-    ctx.stroke();
-  }
-  for (let x = left; x <= right; x += 14) {
-    ctx.beginPath();
-    ctx.moveTo(x, top);
-    ctx.lineTo(x, bottom);
-    ctx.stroke();
-  }
-
-  // Top band
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillRect(left - 2, top - 6, right - left + 4, 8);
-  ctx.strokeStyle = NAVY;
-  ctx.lineWidth = 2;
-  ctx.strokeRect(left - 2, top - 6, right - left + 4, 8);
+  // The near post marks the exact collision plane; the mesh recedes behind it.
+  const x = WORLD.netX, top = WORLD.netTop;
+  const metal = ctx.createLinearGradient(x - 8, 0, x + 8, 0);
+  metal.addColorStop(0, "#0E182D");metal.addColorStop(0.35, "#617487");metal.addColorStop(0.6, "#293E57");metal.addColorStop(1, "#0E182D");
+  ctx.fillStyle = metal;ctx.beginPath();ctx.roundRect(x-8,top-12,16,WORLD.groundY-top+14,5);ctx.fill();
+  ctx.fillStyle = "#E8F0E4";ctx.fillRect(x-8,top-3,16,6);
+  ctx.fillStyle = "rgba(255,255,255,0.23)";ctx.fillRect(x-4,top+7,2,WORLD.groundY-top-12);
+  ctx.fillStyle = "#304155";ctx.beginPath();ctx.ellipse(x,WORLD.groundY+2,12,4,0,0,Math.PI*2);ctx.fill();
 }
 
 function drawPlayer(
@@ -250,13 +100,17 @@ function drawPlayer(
   ctx.stroke();
 
   // Shorts
-  ctx.fillStyle = NAVY;
+  const shorts = ctx.createLinearGradient(x - 18, 0, x + 18, 0);
+  shorts.addColorStop(0, "#354767");shorts.addColorStop(1, "#0E182D");
+  ctx.fillStyle = shorts;
   ctx.beginPath();
   ctx.roundRect(x - 18, y - 60 + jumpTuck, 36, 24, 6);
   ctx.fill();
 
   // Torso
-  ctx.fillStyle = palette.shirt;
+  const jersey = ctx.createLinearGradient(x - 18, 0, x + 20, 0);
+  jersey.addColorStop(0, "#FFFFFF");jersey.addColorStop(0.18, palette.shirt);jersey.addColorStop(0.7, palette.shirt);jersey.addColorStop(1, "#435168");
+  ctx.fillStyle = jersey;
   ctx.strokeStyle = NAVY;
   ctx.lineWidth = 3;
   ctx.beginPath();
@@ -273,7 +127,9 @@ function drawPlayer(
   ctx.fillText(isHuman ? "1" : "2", x, y - 45 + jumpTuck);
 
   // Head
-  ctx.fillStyle = palette.skin;
+  const skin = ctx.createRadialGradient(x - 6, y - h + 8 + jumpTuck, 1, x, y - h + 14 + jumpTuck, 19);
+  skin.addColorStop(0, "#FFE7CC");skin.addColorStop(0.5, palette.skin);skin.addColorStop(1, "#936B55");
+  ctx.fillStyle = skin;
   ctx.beginPath();
   ctx.arc(x, y - h + 14 + jumpTuck, 15, 0, Math.PI * 2);
   ctx.fill();
@@ -290,6 +146,9 @@ function drawPlayer(
     ctx.fill();
   }
 
+  ctx.strokeStyle = "rgba(255,255,255,0.2)";ctx.lineWidth = 2;
+  ctx.beginPath();ctx.arc(x - 2, y - h + 10 + jumpTuck, 11, Math.PI * 1.15, Math.PI * 1.7);ctx.stroke();
+
   // Face looks toward the net.
   ctx.fillStyle = NAVY;
   ctx.beginPath();
@@ -298,7 +157,9 @@ function drawPlayer(
 
   // Arms
   const armUp = anim === "hit" ? -1 : 0;
-  ctx.strokeStyle = palette.skin;
+  const limb = ctx.createLinearGradient(x - 24, 0, x + 35, 0);
+  limb.addColorStop(0,"#FFE7CC");limb.addColorStop(0.45,palette.skin);limb.addColorStop(1,"#936B55");
+  ctx.strokeStyle = limb;
   ctx.lineWidth = 8;
   const armY = y - h + 34 + jumpTuck;
   if (anim === "hit") {
@@ -345,7 +206,7 @@ function drawPlayer(
   ctx.font = "700 15px Manrope, Alexandria, sans-serif";
   ctx.textAlign = "center";
   ctx.fillStyle = "rgba(20,33,61,0.65)";
-  ctx.fillText(label, x, y + 26);
+  ctx.fillText(label, x, WORLD.groundY + 32);
 }
 
 function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number, spin: number) {
@@ -361,6 +222,7 @@ function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number, spin: num
   ctx.fill();
   ctx.stroke();
 
+  ctx.save();ctx.beginPath();ctx.arc(0,0,r-1,0,Math.PI*2);ctx.clip();
   ctx.beginPath();
   ctx.moveTo(-r, -4);
   ctx.quadraticCurveTo(0, 6, r, -4);
@@ -380,6 +242,10 @@ function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number, spin: num
   ctx.globalAlpha = 0.35;
   ctx.fill();
   ctx.globalAlpha = 1;
+  ctx.restore();ctx.rotate(-spin);
+  const light = ctx.createRadialGradient(-6,-7,1,1,3,r+3);
+  light.addColorStop(0,"rgba(255,255,255,0.8)");light.addColorStop(0.45,"rgba(255,255,255,0)");light.addColorStop(1,"rgba(14,24,45,0.48)");
+  ctx.fillStyle=light;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
   ctx.restore();
 }
 
@@ -413,8 +279,9 @@ export function renderGame(
     ctx.translate((Math.random() - 0.5) * shake * 10, (Math.random() - 0.5) * shake * 10);
   }
 
-  ctx.drawImage(drawBackground(), 0, 0);
-  drawCourtLines(ctx);
+  drawCourtEnvironment(ctx, options.reducedMotion ? 0 : Math.max(-4, Math.min(4, (state.ball.x - WORLD.width / 2) * 0.006)));
+
+  drawNetDepth(ctx);
 
   const hx = lerp(state.human.prevX, state.human.x, alpha);
   const hy = lerp(state.human.prevY, state.human.y, alpha);
@@ -426,6 +293,7 @@ export function renderGame(
 
   const bx = lerp(state.ball.prevX, state.ball.x, alpha);
   const by = lerp(state.ball.prevY, state.ball.y, alpha);
+  drawShadow(ctx, bx, WORLD.groundY, Math.max(9, 22 - (WORLD.groundY - by) * 0.025));
   drawBall(ctx, bx, by, state.ball.spin);
 
   drawNet(ctx);
