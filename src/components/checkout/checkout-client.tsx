@@ -49,8 +49,8 @@ type Method = "instapay" | "e_wallet" | "kashier";
 
 const ACADEMY_PRICES: Record<AcademyTier, Partial<Record<Cycle, number>>> = {
   starter: {},
-  plus: { monthly: 600, yearly: 6000 },
-  elite: { monthly: 999, yearly: 9990 },
+  plus: { monthly: 1500, yearly: 15000 },
+  elite: { monthly: 1900, yearly: 19000 },
 };
 
 const MEMBER_PRICES: Record<"pro", Record<Cycle, number>> = {

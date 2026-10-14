@@ -2435,7 +2435,7 @@ export const dictionary = {
       "When you create an academy you start a free trial with the full feature set — no credit card required. After the trial, you can stay on the free Starter plan or upgrade to Plus or Elite.",
     faq_item_owners_plans_q: "What are the academy plans?",
     faq_item_owners_plans_a:
-      "Three plans: Starter (free), Plus (600 EGP/month or 6000 EGP/year) and Elite (999 EGP/month or 9990 EGP/year). Higher plans unlock member management, attendance, payments, analytics, events, marketplace, scouting, the AI Coach Assistant and support.",
+      "Three plans: Starter (free), Plus (1500 EGP/month or 15000 EGP/year) and Elite (1900 EGP/month or 19000 EGP/year). Higher plans unlock member management, attendance, payments, analytics, events, marketplace, scouting, the AI Coach Assistant and support.",
     faq_item_owners_collect_q: "How do I collect payments from my members?",
     faq_item_owners_collect_a:
       "Record each payment with amount, date, plan and method (cash, card, wallet, bank transfer or other). There's a printable receipt for every payment and a CSV export for your accountant. For online subscriptions, members pay via Instapay or e-wallet and upload a screenshot.",
@@ -5410,7 +5410,7 @@ login_tenant_title: "تسجيل دخول إدارة الأكاديمية",
       "لما تعمل أكاديمية جديدة بتشتغل بفترة تجريبية مجانية بالمميزات كاملة — من غير كارت ائتمان. بعد التجربة تقدر تكمل على باقة البداية المجانية أو ترقي لـ Plus أو Elite.",
     faq_item_owners_plans_q: "إيه باقات الأكاديميات؟",
     faq_item_owners_plans_a:
-      "3 باقات: البداية (مجانية)، Plus (600 جنيه شهرياً أو 6000 سنوياً) وElite (999 جنيه شهرياً أو 9990 سنوياً). الباقات الأعلى بتفتح إدارة الأعضاء والحضور والمدفوعات والتحليلات والفعاليات والسوق والاسكاوتنج ومساعد المدرب الذكي والدعم.",
+      "3 باقات: البداية (مجانية)، Plus (1500 جنيه شهرياً أو 15000 سنوياً) وElite (1900 جنيه شهرياً أو 19000 سنوياً). الباقات الأعلى بتفتح إدارة الأعضاء والحضور والمدفوعات والتحليلات والفعاليات والسوق والاسكاوتنج ومساعد المدرب الذكي والدعم.",
     faq_item_owners_collect_q: "أجمع مدفوعات الأعضاء إزاي؟",
     faq_item_owners_collect_a:
       "سجّل كل دفعة بالمبلغ والتاريخ والباقة وطريقة الدفع (كاش، كارت، محفظة، تحويل بنكي أو غيرها). في إيصال جاهز للطباعة لكل دفعة وتصدير CSV لمحاسبك. وللاشتراكات أونلاين، العضو بيدفع عن طريق إنستاباي أو محفظة ويرفع لقطة.",
