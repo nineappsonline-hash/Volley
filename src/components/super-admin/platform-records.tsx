@@ -939,6 +939,35 @@ export function PlatformRecords() {
         const gamePhoto = venueCardPhoto(gameVenue?.photos, gameVenue?.cover_url);
         const blocked = row.banned_until && new Date(row.banned_until) > new Date();
         const protectedAccount = PLATFORM_ADMIN_EMAILS.includes(row.email?.toLowerCase() ?? "");
+        if (["Members"].includes(tab)) return (
+          <details key={row.id} className="group min-w-0 overflow-hidden rounded-xl border border-border bg-card open:border-primary/30">
+            <summary className="flex min-h-16 cursor-pointer list-none items-center gap-3 px-3 py-2.5 transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring [&::-webkit-details-marker]:hidden sm:px-4">
+              <ProfileAvatar name={row.name ?? ""} url={row.avatar_url} avatarId={row.avatar_id} className="h-9 w-9 shrink-0" />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold">{row.name ?? row.title}</span>
+                <span className="block truncate text-xs text-muted-foreground">{row.email || t("sa_no_login")}</span>
+              </span>
+              <span className="hidden max-w-40 truncate text-xs text-muted-foreground lg:block">{academy(row.academy_id)}</span>
+              <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${blocked ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>{blocked ? t("sa_blocked") : t("sa_enabled")}</span>
+              <ChevronDown aria-hidden="true" className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="space-y-3 border-t border-border px-3 py-3 sm:px-4">
+              {row.guardian_id && <p className="text-xs font-medium text-muted-foreground">{t("sa_family_member")}</p>}
+              <dl className="grid grid-cols-1 gap-3 rounded-lg bg-muted/40 p-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+            <div className="min-w-0"><dt className="text-xs text-muted-foreground">{t("sa_academy")}</dt><dd className="mt-1 break-words font-medium">{academy(row.academy_id)}</dd><dd className="text-xs text-muted-foreground">{row.academy_id ? row.is_active ? t("sa_active_membership") : t("sa_pending_membership") : t("sa_not_joined")}</dd></div>
+            <div><dt className="text-xs text-muted-foreground">{t("sa_platform_plan")}</dt><dd className="mt-1 font-medium">{row.member_plan === "premium" ? t("sa_premium") : t("sa_free")}</dd></div>
+            <div><dt className="text-xs text-muted-foreground">{t("sa_academy_subscription")}</dt><dd className="mt-1 font-medium">{row.academy_id && row.subscription_sessions > 0 ? `${row.subscription_sessions} ${t("sa_records_sessions")}` : t("sa_no_subscription")}</dd></div>
+            <div><dt className="text-xs text-muted-foreground">{t("sa_sessions_attended")}</dt><dd className="mt-1 font-medium">{row.sessions_attended ?? 0}</dd></div>
+          </dl>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" onClick={() => { setMemberInitialTab("overview"); setSelected(row); }}>{t("sa_records_details")}</Button>
+                <Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => { setMemberInitialTab("academies"); setSelected(row); }}>{lang === "ar" ? "الأكاديمية والاشتراك" : "Academy & subscription"}</Button>
+                <Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => act({ action: "block", id: row.id, blocked: !blocked })}>{blocked ? t("sa_records_unblock") : t("sa_records_block")}</Button>
+                <Button size="sm" variant="destructive" disabled={busy || protectedAccount} onClick={() => { setDeleting(row); setConfirmation(""); }}>{t("sa_records_delete")}</Button>
+              </div>
+            </div>
+          </details>
+        );
         const rentals = data.venue_rentals.filter(r => r.venue_id === row.id && r.rental_date === date);
         const events = [...rentals.map(r => ({ time: r.start_time, label: `${t("sa_rental")} · ${r.customer_name} · ${r.hours} ${t("sa_records_hours")} · ${r.is_paid ? t("sa_records_paid") : t("sa_records_unpaid")}` })), ...data.training_sessions.filter(r => r.venue_id === row.id && r.date === date && r.status !== "canceled").map(r => ({ time: r.time, label: `${t("sa_training")} · ${t(STATUS_LABELS[r.status] ?? "sa_records_scheduled")} · ${t("sa_records_end_time_unknown")}` })), ...data.tournament_matches.filter(r => r.venue_id === row.id && r.match_date === date && r.status !== "canceled").map(r => ({ time: r.match_time ?? "", label: `${t("sa_tournament")} · ${r.round_name} · ${t("sa_records_end_time_unknown")}` }))].sort((a,b) => a.time.localeCompare(b.time));
         const allBlockedSlots = ((row.unavailable_slots ?? []) as VenueUnavailableSlot[]).slice().sort((a, b) => a.weekday - b.weekday || minutesOf(a.start) - minutesOf(b.start));
