@@ -8,7 +8,7 @@ import type { Difficulty } from "./types";
  * Bump RULES_VERSION whenever physics, scoring or rules change; leaderboard
  * buckets depend on it (see the product spec).
  */
-export const RULES_VERSION = 2;
+export const RULES_VERSION = 3;
 
 export const WORLD = {
   width: 1280,
@@ -33,9 +33,12 @@ export const PLAYER = {
   reachHigh: 138,
 } as const;
 
+// Scale launch velocities and gravity together to preserve the familiar arcs.
+export const BALL_PACE = 0.85;
+
 export const PHYSICS = {
   gravity: 1500,
-  ballGravity: 1500,
+  ballGravity: 1500 * BALL_PACE * BALL_PACE,
   playerMaxSpeed: 360,
   playerAccel: 2200,
   playerDecel: 2600,
@@ -46,7 +49,7 @@ export const PHYSICS = {
   hitCooldown: 0.22,
   hitBufferTime: 0.13,
   contactCooldown: 0.18,
-  ballMaxSpeed: 1000,
+  ballMaxSpeed: 1000 * BALL_PACE,
   ballRestitution: 0.55,
   netRestitution: 0.6,
   groundFriction: 0.86,
@@ -61,7 +64,7 @@ export const TIMING = {
   countdown: 3,
   activeMatch: 90,
   extraTime: 10,
-  pointFreeze: 0.7,
+  pointFreeze: 1,
   humanServeDelay: 2,
   aiServeDelay: 0.8,
   tutorialRespawn: 1,

@@ -1,4 +1,5 @@
 import {
+  BALL_PACE,
   HIT,
   MAX_TOUCHES,
   PHYSICS,
@@ -210,8 +211,8 @@ function doServe(state: GameState) {
   const point = serveContactPoint(state);
   state.ball.x = point.x;
   state.ball.y = point.y;
-  state.ball.vx = dir * 360;
-  state.ball.vy = -800;
+  state.ball.vx = dir * 360 * BALL_PACE;
+  state.ball.vy = -800 * BALL_PACE;
   state.ball.active = true;
   state.ball.spin = dir * 4;
   state.phase = "rally";
@@ -449,6 +450,8 @@ function applyPlayerHit(
     vy = -700 + toward * 60;
   }
 
+  vx *= BALL_PACE;
+  vy *= BALL_PACE;
   const speed = Math.hypot(vx, vy);
   if (speed > PHYSICS.ballMaxSpeed) {
     vx *= PHYSICS.ballMaxSpeed / speed;
