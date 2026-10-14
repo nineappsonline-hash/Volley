@@ -67,6 +67,9 @@ export interface PlayerState {
   prevHit: boolean;
   prevTip: boolean;
   hitCooldown: number;
+  hitBuffer: number;
+  bufferedTip: boolean;
+  stride: number;
   contactCooldown: number;
   /** Ball has separated from the body since the last contact. */
   armed: boolean;

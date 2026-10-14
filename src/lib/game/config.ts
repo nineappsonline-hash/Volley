@@ -8,7 +8,7 @@ import type { Difficulty } from "./types";
  * Bump RULES_VERSION whenever physics, scoring or rules change; leaderboard
  * buckets depend on it (see the product spec).
  */
-export const RULES_VERSION = 1;
+export const RULES_VERSION = 2;
 
 export const WORLD = {
   width: 1280,
@@ -30,7 +30,7 @@ export const PLAYER = {
   /** Hand line is offset toward the net by this many units. */
   reachOffset: 24,
   reachLow: 30,
-  reachHigh: 205,
+  reachHigh: 138,
 } as const;
 
 export const PHYSICS = {
@@ -44,6 +44,7 @@ export const PHYSICS = {
   jumpBufferTime: 0.1,
   coyoteTime: 0.08,
   hitCooldown: 0.22,
+  hitBufferTime: 0.13,
   contactCooldown: 0.18,
   ballMaxSpeed: 1000,
   ballRestitution: 0.55,
@@ -116,11 +117,11 @@ export function sideBounds(side: "human" | "ai") {
   if (side === "human") {
     return {
       min: WORLD.minX + PLAYER.halfWidth,
-      max: WORLD.netX - WORLD.netHalf - PLAYER.halfWidth,
+      max: WORLD.netX - WORLD.netHalf - PLAYER.halfWidth - 12,
     };
   }
   return {
-    min: WORLD.netX + WORLD.netHalf + PLAYER.halfWidth,
+    min: WORLD.netX + WORLD.netHalf + PLAYER.halfWidth + 12,
     max: WORLD.maxX - PLAYER.halfWidth,
   };
 }

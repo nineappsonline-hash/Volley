@@ -919,15 +919,15 @@ export function BeachVolleyballGame({
       {/* Touch controls */}
       {showTouch && (
         <div
-          className="flex select-none items-end justify-between gap-3 border-t border-white/10 bg-[#0E182D] p-3"
+          className="flex select-none items-end justify-between gap-2 sm:gap-3 border-t border-white/10 bg-[#0E182D] p-2 sm:p-3"
           style={{ touchAction: "none" }}
         >
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             <button
               type="button"
               aria-label={t.move + " ◀"}
               {...holdHandlers("left")}
-              className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15 text-2xl font-black active:bg-[#C7F23D] active:text-[#14213D]"
+              className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-white/15 text-2xl font-black active:bg-[#C7F23D] active:text-[#14213D]"
             >
               ◀
             </button>
@@ -935,12 +935,12 @@ export function BeachVolleyballGame({
               type="button"
               aria-label={t.move + " ▶"}
               {...holdHandlers("right")}
-              className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15 text-2xl font-black active:bg-[#C7F23D] active:text-[#14213D]"
+              className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-white/15 text-2xl font-black active:bg-[#C7F23D] active:text-[#14213D]"
             >
               ▶
             </button>
           </div>
-          <div className="flex items-end gap-3">
+          <div className="flex items-end gap-2 sm:gap-3">
             <button
               type="button"
               aria-label={t.tip}
@@ -953,7 +953,7 @@ export function BeachVolleyballGame({
               type="button"
               aria-label={t.jump}
               {...holdHandlers("jump")}
-              className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#C7F23D] text-sm font-black text-[#14213D] active:bg-[#B4DF2D]"
+              className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-[#C7F23D] text-sm font-black text-[#14213D] active:bg-[#B4DF2D]"
             >
               {t.jump}
             </button>
@@ -961,7 +961,7 @@ export function BeachVolleyballGame({
               type="button"
               aria-label={t.hit}
               {...holdHandlers("hit")}
-              className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 text-sm font-black active:bg-[#C7F23D] active:text-[#14213D]"
+              className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-white/20 text-sm font-black active:bg-[#C7F23D] active:text-[#14213D]"
             >
               {t.hit}
             </button>

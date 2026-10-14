@@ -52,6 +52,9 @@ function createPlayer(side: Side): PlayerState {
     prevHit: false,
     prevTip: false,
     hitCooldown: 0,
+    hitBuffer: 0,
+    bufferedTip: false,
+    stride: 0,
     contactCooldown: 0,
     armed: true,
     anim: "idle",
@@ -141,6 +144,13 @@ function resetPositions(state: GameState) {
     p.anim = "idle";
     p.animTime = 0;
     p.hitCooldown = 0;
+    p.hitBuffer = 0;
+    p.bufferedTip = false;
+    p.jumpBuffer = 0;
+    p.coyote = 0;
+    p.prevJump = false;
+    p.prevHit = false;
+    p.prevTip = false;
     p.contactCooldown = 0;
     p.armed = true;
   }
@@ -403,7 +413,7 @@ function applyPlayerHit(
   input: InputState,
 ): void {
   if (!state.ball.active) return;
-  if (!input.hit || p.prevHit) return;
+  if (p.hitBuffer <= 0 || !p.armed || p.contactCooldown > 0) return;
   if (p.hitCooldown > 0) return;
   const onOwnSide =
     p.side === "human"
@@ -418,7 +428,7 @@ function applyPlayerHit(
   const toward = clamp(moveInput * dir, -1, 1);
 
   let kind: HitKind;
-  if (input.tip) {
+  if (p.bufferedTip) {
     kind = "tip";
   } else if (!p.onGround && state.ball.y < WORLD.netTop + 40) {
     kind = "spike";
@@ -453,6 +463,7 @@ function applyPlayerHit(
   state.ball.vx = vx;
   state.ball.vy = vy;
   state.ball.spin += dir * 8;
+  p.hitBuffer = 0;
   p.hitCooldown = PHYSICS.hitCooldown;
   p.contactCooldown = PHYSICS.contactCooldown;
   p.armed = false;
@@ -471,26 +482,22 @@ function applyPlayerHit(
 
 function collidePlayer(state: GameState, p: PlayerState) {
   const ball = state.ball;
-  const left = p.x - PLAYER.halfWidth;
-  const right = p.x + PLAYER.halfWidth;
-  const top = p.y - PLAYER.height;
-  const bottom = p.y;
-  const cx = clamp(ball.x, left, right);
-  const cy = clamp(ball.y, top, bottom);
+  const radius = PLAYER.halfWidth;
+  const cx = p.x;
+  const cy = clamp(ball.y, p.y - PLAYER.height + radius, p.y - radius);
   let dx = ball.x - cx;
   let dy = ball.y - cy;
   let dist = Math.hypot(dx, dy);
-  if (dist >= WORLD.ballRadius) return;
-
-  if (dist === 0) {
-    dx = p.side === "human" ? 1 : -1;
+  if (dist >= WORLD.ballRadius + radius) return;
+  if (dist < 0.001) {
+    dx = 0;
     dy = -1;
-    dist = Math.hypot(dx, dy);
+    dist = 1;
   }
   const nx = dx / dist;
   const ny = dy / dist;
-  ball.x = cx + nx * WORLD.ballRadius;
-  ball.y = cy + ny * WORLD.ballRadius;
+  ball.x = cx + nx * (WORLD.ballRadius + radius + 0.1);
+  ball.y = cy + ny * (WORLD.ballRadius + radius + 0.1);
 
   if (p.armed && p.contactCooldown <= 0 && state.phase === "rally") {
     p.contactCooldown = PHYSICS.contactCooldown;
@@ -499,7 +506,7 @@ function collidePlayer(state: GameState, p: PlayerState) {
     state.pendingEvents.push({ type: "hit", side: p.side, kind: "block" });
   }
 
-  const dot = ball.vx * nx + ball.vy * ny;
+  const dot = (ball.vx - p.vx) * nx + (ball.vy - p.vy) * ny;
   if (dot < 0) {
     const e = PHYSICS.ballRestitution;
     ball.vx = ball.vx - (1 + e) * dot * nx + p.vx * 0.35;
@@ -623,6 +630,13 @@ function updatePlayerMovement(
   allowControl: boolean,
 ) {
   p.hitCooldown = Math.max(0, p.hitCooldown - dt);
+  p.hitBuffer = Math.max(0, p.hitBuffer - dt);
+  if (allowControl && input.hit && !p.prevHit && p.hitCooldown <= 0) {
+    p.hitBuffer = PHYSICS.hitBufferTime;
+    p.bufferedTip = input.tip;
+    p.anim = "hit";
+    p.animTime = 0.22;
+  }
   p.contactCooldown = Math.max(0, p.contactCooldown - dt);
   if (p.animTime > 0) p.animTime -= dt;
   updateArmed(state, p);
@@ -642,7 +656,7 @@ function updatePlayerMovement(
       p.vx = Math.sign(p.vx) * PHYSICS.playerMaxSpeed;
     }
   } else {
-    const dec = PHYSICS.playerDecel * dt;
+    const dec = PHYSICS.playerDecel * (p.onGround ? 1 : 0.35) * dt;
     if (Math.abs(p.vx) <= dec) p.vx = 0;
     else p.vx -= Math.sign(p.vx) * dec;
   }
@@ -663,6 +677,7 @@ function updatePlayerMovement(
       state.tutorialTasks.jumped = true;
     }
   }
+  if (!input.jump && p.prevJump && p.vy < -300) p.vy *= 0.55;
   p.prevJump = input.jump;
 
   p.vy += PHYSICS.gravity * dt;
@@ -697,6 +712,7 @@ function updatePlayerMovement(
     else if (Math.abs(p.vx) > 25) p.anim = "run";
     else p.anim = "idle";
   }
+  p.stride += Math.abs(p.vx) * dt * 0.035;
   p.facing = sideBaseDir(p.side);
 
   if (

@@ -57,7 +57,12 @@ export function computeAiInput(state: GameState, dt: number): InputState {
   if (ai.aiTimer <= 0) {
     ai.aiTimer = cfg.reaction;
     const landing = predictLandingX(ball);
-    ai.aiPredictedX = landing + randRange(state, -cfg.error, cfg.error);
+    // Intercept before ground contact rather than chase an unreachable landing point.
+    const height = ai.y - PLAYER.height - 25;
+    const disc = ball.vy * ball.vy + 2 * PHYSICS.ballGravity * (height - ball.y);
+    const arrival = disc >= 0 ? (-ball.vy + Math.sqrt(disc)) / PHYSICS.ballGravity : 0;
+    const intercept = arrival > 0 && arrival < 2.5 ? ball.x + ball.vx * arrival : landing;
+    ai.aiPredictedX = intercept + PLAYER.reachOffset + randRange(state, -cfg.error, cfg.error);
 
     const headingToAi = ball.vx > 0 || ball.x > WORLD.netX;
     if (headingToAi) {
@@ -76,8 +81,11 @@ export function computeAiInput(state: GameState, dt: number): InputState {
 
   const target = Math.max(bounds.min, Math.min(bounds.max, ai.aiTargetX));
   const diff = target - ai.x;
-  if (diff > 10) input.right = true;
-  else if (diff < -10) input.left = true;
+  // Brake before the target; a dead zone prevents rapid left/right oscillation.
+  const stoppingDistance = ai.vx * Math.abs(ai.vx) / (2 * PHYSICS.playerDecel);
+  const remaining = diff - stoppingDistance;
+  if (remaining > 22) input.right = true;
+  else if (remaining < -22) input.left = true;
 
   const onAiSide = ball.x > WORLD.netX - 30;
   const dist = reachDistance(ball, ai.x, ai.y, ai.facing);

@@ -121,3 +121,46 @@ assert.equal(score.betterBest({ score: 100, playerPoints: 1, opponentPoints: 0, 
 assert.equal(config.bucketId('hard'), `beach-volleyball:hard:v${config.RULES_VERSION}`, 'best-score bucket is versioned');
 
 console.log('PASS: beach volleyball simulation awards points, faults over-touches, finishes the match, is seed-reproducible and tracks tutorial progress');
+
+// A swing pressed just before contact stays active briefly, but never repeats while held.
+{
+ const state = sim.createGameState({mode:'match', difficulty:'easy', seed:41});
+ sim.beginCountdown(state);state.phase='rally';state.ball.active=true;
+ state.ball.x=state.human.x+115;state.ball.y=state.human.y-130;
+ state.ball.vx=-200;state.ball.vy=0;
+ sim.stepGame(state,{...types.emptyInput(),hit:true},FIXED_DT);
+ assert.equal(state.touches.human,0);
+ state.ball.x=state.human.x+65;state.ball.y=state.human.y-130;
+ sim.stepGame(state,types.emptyInput(),FIXED_DT);
+ assert.equal(state.touches.human,1,'buffered swing connects after key release');
+ assert.equal(state.human.hitBuffer,0,'swing consumed exactly once');
+}
+// Running cycles advance with travelled distance rather than reverse with world position.
+{
+ const state=sim.createGameState({mode:'tutorial', difficulty:'easy',seed:9});sim.beginTutorial(state);
+ for(let i=0;i<20;i++) sim.stepGame(state,{...types.emptyInput(),right:true},FIXED_DT);
+ const stride=state.human.stride;
+ for(let i=0;i<30;i++) sim.stepGame(state,{...types.emptyInput(),left:true},FIXED_DT);
+ assert.ok(state.human.stride>stride);
+ sim.beginCountdown(state);
+ assert.equal(state.human.hitBuffer,0);assert.equal(state.human.jumpBuffer,0);assert.equal(state.human.prevJump,false);
+}
+console.log('PASS: forgiving single-use swings, continuous stride and round input reset');
+{
+ function peak(holdFrames) {
+  const state=sim.createGameState({mode:'tutorial',difficulty:'easy',seed:10});sim.beginTutorial(state);
+  let y=state.human.y;
+  for(let i=0;i<35;i++){sim.stepGame(state,{...types.emptyInput(),jump:i<holdFrames},FIXED_DT);y=Math.min(y,state.human.y);}
+  return y;
+ }
+ assert.ok(peak(30)<peak(2)-30,'holding jump gives a meaningfully higher jump than tapping');
+}
+console.log('PASS: tap and held jumps produce distinct controllable heights');
+
+{
+ const state=sim.createGameState({mode:'match',difficulty:'easy',seed:21});sim.beginCountdown(state);state.phase='rally';state.ball.active=true;
+ state.human.armed=false;state.human.contactCooldown=0.15;
+ state.ball.x=state.human.x+50;state.ball.y=state.human.y-130;
+ sim.stepGame(state,{...types.emptyInput(),hit:true},FIXED_DT);
+ assert.equal(state.touches.human,0,'a buffered swing cannot count a second contact before separation');
+}

@@ -230,21 +230,23 @@ function drawPlayer(
   const cy = y - h; // top of head area
   const anim = p.anim;
 
-  drawShadow(ctx, x, y, 34);
+  drawShadow(ctx, x, WORLD.groundY, Math.max(16, 34 - (WORLD.groundY - y) * 0.045));
 
-  const runPhase = p.animTime;
+  const runPhase = p.stride;
 
   // Legs
   ctx.strokeStyle = NAVY;
   ctx.lineWidth = 11;
   ctx.lineCap = "round";
-  const legSwing = anim === "run" ? Math.sin(p.x * 0.08 + runPhase) * 10 : 0;
-  const jumpTuck = anim === "jump" ? 14 : 0;
+  const legSwing = anim === "run" ? Math.sin(runPhase) * 15 : 0;
+  const jumpTuck = !p.onGround ? 6 + Math.min(7, Math.abs(p.vy) * 0.01) : anim === "land" ? 6 * Math.max(0, p.animTime / 0.15) : 0;
   ctx.beginPath();
   ctx.moveTo(x - 10, y - 46 + jumpTuck);
-  ctx.lineTo(x - 12 + legSwing, y);
+  ctx.lineTo(x - 12 + legSwing * 0.55, y - 24 + jumpTuck);
+  ctx.lineTo(x - 14 + legSwing, y - (!p.onGround ? 14 : Math.max(0, Math.sin(runPhase)) * 7));
   ctx.moveTo(x + 10, y - 46 + jumpTuck);
-  ctx.lineTo(x + 12 - legSwing, y);
+  ctx.lineTo(x + 12 - legSwing * 0.55, y - 24 + jumpTuck);
+  ctx.lineTo(x + 14 - legSwing, y - (!p.onGround ? 10 : Math.max(0, -Math.sin(runPhase)) * 7));
   ctx.stroke();
 
   // Shorts
@@ -261,6 +263,14 @@ function drawPlayer(
   ctx.roundRect(x - 18, y - h + 26 + jumpTuck, 36, 48, 10);
   ctx.fill();
   ctx.stroke();
+
+  // Jersey trim and number stay readable as the character moves.
+  ctx.fillStyle = "rgba(255,255,255,0.75)";
+  ctx.fillRect(x - 15, y - h + 32 + jumpTuck, 30, 4);
+  ctx.fillStyle = NAVY;
+  ctx.font = "800 17px Manrope, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(isHuman ? "1" : "2", x, y - 45 + jumpTuck);
 
   // Head
   ctx.fillStyle = palette.skin;
@@ -280,6 +290,12 @@ function drawPlayer(
     ctx.fill();
   }
 
+  // Face looks toward the net.
+  ctx.fillStyle = NAVY;
+  ctx.beginPath();
+  ctx.arc(x + facing * 6, y - h + 14 + jumpTuck, 2, 0, Math.PI * 2);
+  ctx.fill();
+
   // Arms
   const armUp = anim === "hit" ? -1 : 0;
   ctx.strokeStyle = palette.skin;
@@ -289,7 +305,9 @@ function drawPlayer(
     // Reaching arm toward the net, other arm balancing.
     ctx.beginPath();
     ctx.moveTo(x, armY);
-    ctx.lineTo(x + facing * 30, armY - 34);
+    const swing = Math.sin(Math.min(1, Math.max(0, 1 - p.animTime / 0.25)) * Math.PI);
+    ctx.lineTo(x + facing * (18 + swing * 12), armY - 18);
+    ctx.lineTo(x + facing * (30 + swing * 9), armY - 34 - swing * 8);
     ctx.moveTo(x, armY);
     ctx.lineTo(x - facing * 20, armY + 16);
     ctx.stroke();
@@ -317,9 +335,9 @@ function drawPlayer(
   } else {
     ctx.beginPath();
     ctx.moveTo(x, armY);
-    ctx.lineTo(x - 16, armY + 18 + armUp);
+    ctx.lineTo(x - 16 - legSwing * 0.55, armY + 18 + armUp);
     ctx.moveTo(x, armY);
-    ctx.lineTo(x + 16, armY + 18 + armUp);
+    ctx.lineTo(x + 16 + legSwing * 0.55, armY + 18 + armUp);
     ctx.stroke();
   }
 
