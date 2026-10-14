@@ -32,7 +32,7 @@ export function generateSolutionMetadata(
 ): Metadata {
   const slug = sport.toLowerCase();
   return {
-    title: `${sport} Academy Management — ${sport} Academy Software | Playza`,
+    title: `${sport} Academy Management — ${sport} Academy Software`,
     description: `${sport} academy management software for Egypt & the Gulf: members, subscriptions, QR attendance, training schedules, payments and automatic profit tracking. ${description}`,
     keywords,
     alternates: {

@@ -16,6 +16,9 @@ export function GET() {
 - [Home](${SITE_URL})
 - [Sports in Cairo](${SITE_URL}/sports): Guides for all 27 supported sports, with public activity and academy links.
 - [الرياضة في القاهرة](${SITE_URL}/ar/sports): Arabic versions of the sport guides.
+- [Public courts](${SITE_URL}/courts): Approved Egypt courts with addresses, sports, listed rental prices and public venue profiles. [العربية](${SITE_URL}/ar/courts)
+- [Volleyball courts](${SITE_URL}/courts?sport=volleyball)
+- [Beach volleyball courts](${SITE_URL}/courts?sport=beach-volleyball)
 - [Games](${SITE_URL}/games): Upcoming public activities with dates, places and participation costs.
 - [Academies](${SITE_URL}/academies): Public academy directory; each academy page describes its published location and sports.
 - [Tournaments](${SITE_URL}/tournaments): Tournament discovery for free and paid accounts.

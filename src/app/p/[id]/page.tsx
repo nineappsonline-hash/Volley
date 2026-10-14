@@ -28,8 +28,8 @@ export async function generateMetadata({
     .filter(Boolean)
     .join(", ");
   const title = place
-    ? `${venue.name} — ${place} | Playza`
-    : `${venue.name} | Playza`;
+    ? `${venue.name}${venue.sport?.name ? ` — ${venue.sport.name}` : ""} — ${place}`
+    : `${venue.name}`;
   const lead = venue.sport?.name ? `${venue.sport.name} playground` : "Playground";
   const description =
     `${lead} at ${venue.name}${place ? ` in ${place}` : ""}. Check the available times and book a court with Playza.`;

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SportIcon } from "@/components/marketing/sport-icons";
 import { AppLogo } from "@/components/shared/app-logo";
+import { getPublicCourtDirectory } from "@/lib/public-playgrounds";
+import { courtsPath } from "@/lib/court-discovery";
 import { getPublicGames } from "@/lib/public-games";
 import { getCairoSportAcademies } from "@/lib/public-sport-academies";
 import { DISCOVERY_SPORTS, discoveryPath, findDiscoverySport, type DiscoveryLanguage } from "@/lib/sport-discovery";
@@ -55,7 +57,9 @@ export async function SportDiscoveryPage({ slug, lang }: { slug: string; lang: D
   const ar = lang === "ar";
   const name = ar ? sport.arabic : sport.name;
   const gamesUrl = `/games?sport=${sport.slug}`;
-  const [games, academies] = await Promise.all([getPublicGames(sport.name), getCairoSportAcademies(sport.name)]);
+  const volleyball = slug === "volleyball" || slug === "beach-volleyball";
+  const [games, academies, publicCourts] = await Promise.all([getPublicGames(sport.name), getCairoSportAcademies(sport.name), volleyball ? getPublicCourtDirectory(sport.name) : Promise.resolve([])]);
+  const courts = publicCourts.filter(c => ["cairo", "القاهرة"].includes(c.governorate?.trim().toLowerCase() ?? ""));
   const cairoGames = games.filter(game => ["cairo", "القاهرة"].includes(game.playground?.governorate?.trim().toLowerCase() ?? ""));
   const questions: [string, string][] = ar ? [
     [`إزاي ألاقي ${name} في القاهرة؟`, `ابدأ بالمباريات والأكاديميات المنشورة على Playza. راجع عنوان المكان والمنطقة والميعاد ومستوى المشاركين. لو مفيش إعلان مناسب حاليًا، تقدر تتابع الأكاديميات أو تنظم نشاط من حسابك؛ توفر الأنشطة مش مضمون في كل منطقة.`],
@@ -87,9 +91,30 @@ export async function SportDiscoveryPage({ slug, lang }: { slug: string; lang: D
         <h2 className="text-2xl font-bold">{ar ? "اختار مكان وميعاد مناسبين ليك" : "Choose a location and time that work for you"}</h2>
         <p className="max-w-4xl leading-relaxed text-muted-foreground">{ar ? "في القاهرة، ابدأ بمكان تقدر تروح له بانتظام. راجع العنوان الفعلي والمنطقة، مثل مدينة نصر أو المعادي أو مصر الجديدة أو القاهرة الجديدة، بدل الاعتماد على اسم الرياضة فقط. راجع عنوان الإعلان وخطة المواصلات قبل اختيار الميعاد." : "In Cairo, start with a location you can reach regularly. Check the actual address and district, such as Nasr City, Maadi, Heliopolis or New Cairo, rather than choosing by sport alone. Check the listing’s address and your travel plans before choosing a session time."}</p>
       </section>
+      {volleyball && <>
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold">{ar ? `ملاعب ${name} المنشورة في القاهرة` : `Published ${name} courts in Cairo`}</h2>
+          {courts.length ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{courts.map(c => <article key={c.id} className="space-y-3 rounded-2xl border bg-card p-4">
+            <h3 className="font-bold"><Link href={`/p/${encodeURIComponent(c.id)}`}>{c.name}</Link></h3>
+            <p className="text-sm">{[c.area, c.governorate].filter(Boolean).join(" · ")}</p>
+            {c.address && <p className="text-sm text-muted-foreground">{c.address}</p>}
+            <p className="text-sm font-semibold">{c.rental_cost != null && c.rental_cost >= 0 && c.rental_hours != null && c.rental_hours > 0 ? `${formatMoney(c.rental_cost, lang)} / ${c.rental_hours} ${ar ? "ساعة" : "hour(s)"}` : ar ? "راجع صفحة الملعب للأسعار" : "Check the court page for prices"}</p>
+            <Link href={`/p/${encodeURIComponent(c.id)}`} className="inline-block text-sm font-semibold underline underline-offset-4">{ar ? "المكان والمواعيد وتفاصيل الحجز" : "Location, schedule & booking details"}</Link>
+          </article>)}</div> : <p className="rounded-2xl border bg-card p-4 text-muted-foreground">{ar ? "مفيش ملاعب منشورة متاحة للعرض هنا بالاختيار ده حاليًا." : "No published courts are available to display here for this selection right now."}</p>}
+          <Link className={linkStyle} href={courtsPath(lang, slug)}>{ar ? `اكتشف ملاعب ${name} في مصر` : `Explore ${sport.name} courts in Egypt`}</Link>
+        </section>
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold">{ar ? "قبل ما تختار لعب أو تدريب" : "Before choosing a game or training session"}</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <article className="rounded-2xl border bg-card p-5"><h3 className="font-bold">{ar ? "صالات ولا ملاعب رملية؟" : "Indoor or sand-court volleyball?"}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{ar ? "كرة الطائرة الشاطئية بتتلعب على الرمل، أما الكرة الطائرة في الصالات أو الملاعب المفتوحة فلها أرضيات وتجهيزات مختلفة. راجع نوع الأرضية ونظام الفرق والإضاءة مع المكان قبل الحجز؛ اسم الرياضة لوحده مش كفاية لتحديد التجهيزات." : "Beach volleyball is played on sand; indoor and other outdoor volleyball courts have different surfaces and facilities. Confirm the surface, team format and lighting with the venue before booking; a sport label alone does not establish the facilities."}</p></article>
+            <article className="rounded-2xl border bg-card p-5"><h3 className="font-bold">{ar ? "مبتدئ أو جاي لوحدك؟" : "Starting out or joining alone?"}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{ar ? "اختار نشاط مستواه وشروط السن مناسبة ليك. التدريب مع أكاديمية مختلف عن مباراة ودية؛ راجع عدد الأماكن، وإذا كان التنظيم بيقبل لاعبين أفراد، وما إذا كانت المعدات أو التدريب مشمولة في الرسوم." : "Choose an activity with suitable experience and age requirements. Academy coaching differs from a friendly game: check available places, whether individual players can join, and whether equipment or instruction is included in the fee."}</p></article>
+          </div>
+          <p className="text-sm leading-relaxed text-muted-foreground">{ar ? "سعر إيجار الملعب مش هو بالضرورة تكلفة الفرد في المباراة أو سعر اشتراك التدريب. قارن مدة الإيجار والرسوم اللي بيعلنها المنظم، وافتح التفاصيل للتأكد من الميعاد وشروط الحجز." : "A court's rental rate is not necessarily the per-player game fee or academy subscription price. Compare the rental duration and organizer's published fees, then open the details to confirm the schedule and booking conditions."}</p>
+        </section>
+      </>}
       <section className="space-y-4">
         <h2 className="text-2xl font-bold">{ar ? `أكاديميات ${name} المنشورة في القاهرة` : `Published ${name} academies in Cairo`}</h2>
-        {academies.length ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{academies.map(academy => <Link key={academy.slug} href={`/a/${encodeURIComponent(academy.slug)}`} className="rounded-2xl border bg-card p-5 hover:border-primary"><h3 className="font-bold">{academy.name}</h3><p className="mt-2 text-sm text-muted-foreground">{[academy.area, academy.governorate].filter(Boolean).join(" · ")}</p></Link>)}</div> : <p className="rounded-2xl border p-5 text-muted-foreground">{ar ? "لا توجد إعلانات أكاديميات متاحة للعرض هنا حاليًا. راجع دليل الأكاديميات لاكتشاف الخيارات المنشورة ومناطقها." : "No academy listings are available to display here right now. Explore the academy directory for published options and their locations."}</p>}
+        {academies.length ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{academies.map(academy => <Link key={academy.slug} href={`/a/${encodeURIComponent(academy.slug)}`} className="rounded-2xl border bg-card p-5 hover:border-primary"><h3 className="font-bold">{academy.name}</h3><p className="mt-2 text-sm text-muted-foreground">{[academy.area, academy.governorate].filter(Boolean).join(" · ")}</p>{academy.description && <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{academy.description}</p>}</Link>)}</div> : <p className="rounded-2xl border p-5 text-muted-foreground">{ar ? "لا توجد إعلانات أكاديميات متاحة للعرض هنا حاليًا. راجع دليل الأكاديميات لاكتشاف الخيارات المنشورة ومناطقها." : "No academy listings are available to display here right now. Explore the academy directory for published options and their locations."}</p>}
       </section>
       <section className="space-y-4">
         <h2 className="text-2xl font-bold">{ar ? `أنشطة ${name} القادمة في القاهرة` : `Upcoming ${name} activities in Cairo`}</h2>

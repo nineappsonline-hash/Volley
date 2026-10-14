@@ -83,6 +83,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
+  for (const sport of [undefined, "volleyball", "beach-volleyball"]) {
+    const suffix = sport ? `?sport=${sport}` : "";
+    for (const lang of ["en", "ar"]) staticPages.push({
+      url: `${SITE_URL}${lang === "ar" ? "/ar" : ""}/courts${suffix}`,
+      changeFrequency: "weekly", priority: 0.8,
+      alternates: { languages: { en: `${SITE_URL}/courts${suffix}`, "ar-EG": `${SITE_URL}/ar/courts${suffix}`, "x-default": `${SITE_URL}/courts${suffix}` } },
+    });
+  }
+
   // Query independently so a failed source does not remove other public pages.
   const results = await Promise.allSettled([
     academyEntries(),

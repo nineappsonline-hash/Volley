@@ -197,3 +197,33 @@ export async function resolvePublicPlayground(
   if (!venue) return null;
   return { venue, games, rating: reviews.rating, reviews: reviews.reviews };
 }
+/** Small allowlisted projection for crawlable court discovery; never owner/member data. */
+export type PublicCourt = Pick<PublicPlayground, "id" | "name" | "address" | "country" | "governorate" | "area" | "rental_cost" | "rental_hours" | "capacity" | "court_count" | "cover_url" | "photos"> & { sport: { name: string } | null };
+
+export async function getPublicCourtDirectory(sport?: string): Promise<PublicCourt[]> {
+  const admin = getAdmin();
+  if (!admin) return [];
+  const courts: PublicCourt[] = [];
+  try {
+    for (let offset = 0; ; offset += 1000) {
+      const { data, error } = await admin.from("venues")
+        .select("id, name, address, country, governorate, area, rental_cost, rental_hours, capacity, court_count, cover_url, photos, sport:sports(name)")
+        .eq("approval_status", "approved")
+        .in("country", ["Egypt", "مصر"])
+        .order("name").order("id")
+        .range(offset, offset + 999);
+      if (error) break;
+      for (const row of data ?? []) {
+        const joined = row.sport as { name: string } | { name: string }[] | null;
+        const resolved = Array.isArray(joined) ? joined[0] ?? null : joined;
+        if (sport && resolved?.name.toLowerCase() !== sport.toLowerCase()) continue;
+        courts.push({ id: row.id, name: row.name, address: row.address, country: row.country,
+          governorate: row.governorate, area: row.area, rental_cost: row.rental_cost,
+          rental_hours: row.rental_hours, capacity: row.capacity, court_count: row.court_count,
+          cover_url: row.cover_url, photos: row.photos ?? [], sport: resolved });
+      }
+      if (!data || data.length < 1000) break;
+    }
+  } catch { /* Return completed batches if a later request fails. */ }
+  return courts;
+}

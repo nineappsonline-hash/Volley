@@ -41,9 +41,7 @@ export async function generateMetadata({
   const place = [academy.area, academy.governorate, academy.country]
     .filter(Boolean)
     .join(", ");
-  const title = place
-    ? `${academy.name} — ${place} | Playza`
-    : `${academy.name} | Playza`;
+  const title = [academy.name, place].filter(Boolean).join(" — ");
   const description =
     academy.description ||
     `${academy.name} academy${place ? ` in ${place}` : ""}. Learn about training schedules, sports and subscriptions, and book a tryout session with Playza.`;

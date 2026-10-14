@@ -44,6 +44,7 @@ for (lang of ['en', 'ar']) {
   const viewportDir = lang === 'ar' ? 'rtl' : 'ltr';
   assert.ok(html.includes(`dir="${viewportDir}"`));
 }
+assert.ok(renderToStaticMarkup(React.createElement(LandingPage)).includes('href="/ar/courts"'));
 const metadata = content.landingPageJsonLd(seo.SITE_URL);
 assert.equal(metadata.hasPart.description, content.BEACH_DESCRIPTION.en);
 assert.equal(metadata.hasPart.url, `${seo.SITE_URL}/#beach-volleyball`);

@@ -14,6 +14,15 @@ Target audience: people looking to play or train in Cairo. English and Egyptian 
 - Existing public access for Google, Bing, OAI-SearchBot, Gemini's Google-Extended control, Claude and Perplexity is preserved. Training access and search inclusion are different controls.
 - Removed the unsupported fixed EGP 500 offer and expiry from homepage structured data.
 
+## Volleyball rollout — 14 October 2026
+
+- Added public English/Arabic `/courts` directories, with crawlable sport filters, approved Egypt venue profiles, addresses and actual published rental rates. Management `/playgrounds` remains authenticated; booking and payments keep their existing permissions.
+- Homepage court links now lead to public court discovery. Volleyball and beach-volleyball guides include matching Cairo courts, public academy descriptions and practical preparation/price guidance.
+- Removed generated “recently finished games” examples from the public games page. Only actual public activities remain.
+- Removed repeated brand suffixes from academy/venue metadata and the unsupported “#1” volleyball software claim.
+- Added court directories to the sitemap and `llms.txt`. No new database policies or schema changes.
+- The user has confirmed Google Search Console verification. Owner actions still needed: inspect priority URLs and indexing reasons, verify sitemap processing and Search generative AI inclusion, import the property into Bing, and maintain genuine partner facts/references. These account actions have not been executed here.
+
 ## Release and verify
 
 1. Deploy the reviewed changes to the primary domain. Keep `NEXT_PUBLIC_SITE_URL=https://playza.nineapps.online`; use one canonical domain and permanent redirects if another domain is introduced.

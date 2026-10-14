@@ -6,6 +6,7 @@ import { ArrowUpRight, ArrowDown, Volleyball, Pause, Play, MapPin, MoveUpRight }
 import { AppLogo } from "@/components/shared/app-logo";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { useI18n } from "@/lib/i18n";
+import { courtsPath } from "@/lib/court-discovery";
 import { discoveryPath } from "@/lib/sport-discovery";
 import { BEACH_DESCRIPTION } from "@/lib/landing-content";
 import { BeachVolleyballScene } from "./beach-volleyball-scene";
@@ -59,7 +60,7 @@ export function LandingPage() {
           <p className={styles.eyebrow}><span />{copy("LESS SCROLLING. MORE VOLLEYBALL.", "سيب الموبايل شوية. وانزل العب طايرة.")}</p>
           <h1>{copy("Your people.", "ناس شبهك.")}<br />{copy("Your court.", "ملعبك.")}<br /><span>{copy("Your game.", "لعبتك.")}<svg viewBox="0 0 400 25" aria-hidden="true"><path d="M5 18Q190-7 395 12M30 23Q210 6 365 18" /></svg></span></h1>
           <p className={styles.intro}>{copy("Find a volleyball court. Discover an academy. Turn “we should play” into your next plan.", "لاقي ملعب كرة طائرة أو أكاديمية تناسبك، واجمع أصحابك وانزلوا العبوا.")}</p>
-          <div className={styles.actions}><Link className={styles.primary} href="/playgrounds">{copy("Find a playground", "لاقي ملعب")}<ArrowUpRight size={20} /></Link><Link className={styles.textLink} href="/academies">{copy("Explore academies", "اكتشف الأكاديميات")}<ArrowUpRight size={18} /></Link></div>
+          <div className={styles.actions}><Link className={styles.primary} href={courtsPath(lang)}>{copy("Find a playground", "لاقي ملعب")}<ArrowUpRight size={20} /></Link><Link className={styles.textLink} href="/academies">{copy("Explore academies", "اكتشف الأكاديميات")}<ArrowUpRight size={18} /></Link></div>
           <p className={styles.heroNote}><Volleyball size={17} />{copy("Volleyball at heart. Everyone in.", "بنحب الطايرة. وبنرحّب بكل اللي حابب يلعب.")}</p>
         </div>
         <div className={styles.heroArt}>
@@ -79,7 +80,7 @@ export function LandingPage() {
       <section id="find-your-court" className={styles.discover}>
         <div className={styles.sectionHeading}><p className={styles.eyebrow}>{copy("01 / FIND YOUR PLACE", "01 / لاقي مكانك")}</p><h2>{copy("Two ways in.", "ملعب تلعب فيه.")}<br /><span>{copy("A whole lot of play.", "وأكاديمية تتدرّب فيها.")}</span></h2></div>
         <div className={styles.discoveryGrid}>
-          <Link href="/playgrounds" className={`${styles.discoveryCard} ${styles.courtCard}`}><div className={styles.cardTop}><span>{copy("THE PLAYGROUNDS", "الملاعب")}</span><span className={styles.circleArrow}><ArrowUpRight /></span></div><div className={styles.cardGraphic}><CourtScene small /></div><div className={styles.cardCopy}><h3>{copy("Find your home court.", "لاقي الملعب اللي يناسبك.")}</h3><p>{copy("Explore places to play. Pick your spot and bring your people.", "اكتشف الملاعب، اختار مكانك، واجمع أصحابك.")}</p></div></Link>
+          <Link href={courtsPath(lang)} className={`${styles.discoveryCard} ${styles.courtCard}`}><div className={styles.cardTop}><span>{copy("THE PLAYGROUNDS", "الملاعب")}</span><span className={styles.circleArrow}><ArrowUpRight /></span></div><div className={styles.cardGraphic}><CourtScene small /></div><div className={styles.cardCopy}><h3>{copy("Find your home court.", "لاقي الملعب اللي يناسبك.")}</h3><p>{copy("Explore places to play. Pick your spot and bring your people.", "اكتشف الملاعب، اختار مكانك، واجمع أصحابك.")}</p></div></Link>
           <Link href="/academies" className={`${styles.discoveryCard} ${styles.academyCard}`}><div className={styles.cardTop}><span>{copy("THE ACADEMIES", "الأكاديميات")}</span><span className={styles.circleArrow}><ArrowUpRight /></span></div><div className={styles.academyGraphic} aria-hidden="true"><span className={styles.stepOne}>01</span><span className={styles.stepTwo}>02</span><span className={styles.stepThree}>03<MoveUpRight /></span><Ball className={styles.academyBall} /><span className={styles.spark}>✳</span></div><div className={styles.cardCopy}><h3>{copy("Your next level starts here.", "طوّر مستواك من هنا.")}</h3><p>{copy("First serve or a stronger spike. Find an academy to grow with.", "سواء لسه بتبدأ أو عايز تطوّر مستواك، لاقي أكاديمية تتدرّب معاها.")}</p></div></Link>
         </div>
       </section>

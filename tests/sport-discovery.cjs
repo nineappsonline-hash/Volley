@@ -33,6 +33,8 @@ const page = load('src/components/public/sport-discovery-page.tsx', {
   'next/navigation': { notFound: () => { throw Error('NOT_FOUND'); } },
   '@/components/marketing/sport-icons': { SportIcon: () => null },
   '@/components/shared/app-logo': { AppLogo: () => 'Playza' },
+  '@/lib/public-playgrounds': { getPublicCourtDirectory: async () => [] },
+  '@/lib/court-discovery': { courtsPath: (lang, slug) => `${lang === 'ar' ? '/ar' : ''}/courts${slug ? `?sport=${slug}` : ''}` },
   '@/lib/public-games': { getPublicGames: async sport => { assert.ok(Object.values(modules['@/lib/sport-slugs'].SPORT_SLUGS).includes(sport)); return listed ? [game, { ...game, id: 'other', title: 'Elsewhere', playground: { governorate: 'Alexandria' } }] : []; } },
   '@/lib/public-sport-academies': { getCairoSportAcademies: async () => listed ? [{ name: 'Public Academy', slug: 'public-academy', area: 'Maadi', governorate: 'Cairo' }] : [] },
   '@/lib/constants': { formatTime12h: value => value, formatMoney: value => String(value) },

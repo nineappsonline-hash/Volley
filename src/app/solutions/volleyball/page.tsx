@@ -55,7 +55,7 @@ export default function VolleyballPage() {
       sport="Volleyball"
       emoji="🏐"
       heroGradient="from-brand via-brand to-interactive-800"
-      tagline="The #1 management platform for volleyball academies — track players, attendance and per-session profit automatically."
+      tagline="A management platform for volleyball academies — track players, attendance and per-session profit automatically."
       description="Playza was built from the ground up for volleyball academies. Whether you run a single court or a multi-branch operation, our platform handles member management, subscription tracking, training schedules, QR code check-in and automatic profit/loss calculations — so you can focus on coaching, not spreadsheets."
       features={[
         {
