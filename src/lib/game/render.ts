@@ -31,6 +31,20 @@ function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
 
+function shadeColor(color: string, percent: number): string {
+  let R = parseInt(color.substring(1, 3), 16);
+  let G = parseInt(color.substring(3, 5), 16);
+  let B = parseInt(color.substring(5, 7), 16);
+  R = Math.round(Math.min(255, Math.max(0, R + (R * percent) / 100)));
+  G = Math.round(Math.min(255, Math.max(0, G + (G * percent) / 100)));
+  B = Math.round(Math.min(255, Math.max(0, B + (B * percent) / 100)));
+  const RR = R.toString(16).padStart(2, "0");
+  const GG = G.toString(16).padStart(2, "0");
+  const BB = B.toString(16).padStart(2, "0");
+  return "#" + RR + GG + BB;
+}
+
+
 function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number, rx: number) {
   const shadow = ctx.createRadialGradient(x, y + 3, 1, x, y + 3, rx);
   shadow.addColorStop(0, "rgba(39,40,35,0.3)");
@@ -87,37 +101,68 @@ function drawPlayer(
 
   // Legs
   ctx.strokeStyle = NAVY;
-  ctx.lineWidth = 11;
+  ctx.lineWidth = 12;
   ctx.lineCap = "round";
+  ctx.lineJoin = "round";
   const legSwing = anim === "run" ? Math.sin(runPhase) * 15 : 0;
   const jumpTuck = !p.onGround ? 6 + Math.min(7, Math.abs(p.vy) * 0.01) : anim === "land" ? 6 * Math.max(0, p.animTime / 0.15) : 0;
+  // Thigh and calf with slight shading
   ctx.beginPath();
   ctx.moveTo(x - 10, y - 46 + jumpTuck);
   ctx.lineTo(x - 12 + legSwing * 0.55, y - 24 + jumpTuck);
   ctx.lineTo(x - 14 + legSwing, y - (!p.onGround ? 14 : Math.max(0, Math.sin(runPhase)) * 7));
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(0,0,0,0.15)";ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(x - 12 + legSwing * 0.55, y - 24 + jumpTuck);
+  ctx.lineTo(x - 14 + legSwing, y - (!p.onGround ? 14 : Math.max(0, Math.sin(runPhase)) * 7));
+  ctx.stroke();
+  ctx.strokeStyle = NAVY;ctx.lineWidth = 12;
+  ctx.beginPath();
   ctx.moveTo(x + 10, y - 46 + jumpTuck);
   ctx.lineTo(x + 12 - legSwing * 0.55, y - 24 + jumpTuck);
   ctx.lineTo(x + 14 - legSwing, y - (!p.onGround ? 10 : Math.max(0, -Math.sin(runPhase)) * 7));
   ctx.stroke();
+  ctx.strokeStyle = "rgba(0,0,0,0.15)";ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(x + 12 - legSwing * 0.55, y - 24 + jumpTuck);
+  ctx.lineTo(x + 14 - legSwing, y - (!p.onGround ? 10 : Math.max(0, -Math.sin(runPhase)) * 7));
+  ctx.stroke();
 
   // Shorts
-  const shorts = ctx.createLinearGradient(x - 18, 0, x + 18, 0);
-  shorts.addColorStop(0, "#354767");shorts.addColorStop(1, "#0E182D");
+  const shorts = ctx.createLinearGradient(x - 18, y - 60, x + 18, y - 36 + jumpTuck);
+  shorts.addColorStop(0, "#354767");shorts.addColorStop(0.5, "#1A2538");shorts.addColorStop(1, "#0E182D");
   ctx.fillStyle = shorts;
+  ctx.strokeStyle = "#060B16";ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.roundRect(x - 18, y - 60 + jumpTuck, 36, 24, 6);
+  ctx.roundRect(x - 18, y - 60 + jumpTuck, 36, 24, 8);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "rgba(199,242,61,0.15)";
+  ctx.beginPath();
+  ctx.roundRect(x - 14, y - 56 + jumpTuck, 28, 4, 2);
   ctx.fill();
 
   // Torso
-  const jersey = ctx.createLinearGradient(x - 18, 0, x + 20, 0);
-  jersey.addColorStop(0, "#FFFFFF");jersey.addColorStop(0.18, palette.shirt);jersey.addColorStop(0.7, palette.shirt);jersey.addColorStop(1, "#435168");
+  const jersey = ctx.createLinearGradient(x - 18, y - h + 26, x + 20, y - h + 74 + jumpTuck);
+  jersey.addColorStop(0, "#FFFFFF");jersey.addColorStop(0.15, palette.shirt);jersey.addColorStop(0.5, palette.shirt);jersey.addColorStop(0.85, shadeColor(palette.shirt, -15));jersey.addColorStop(1, "#435168");
   ctx.fillStyle = jersey;
   ctx.strokeStyle = NAVY;
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.roundRect(x - 18, y - h + 26 + jumpTuck, 36, 48, 10);
+  ctx.roundRect(x - 18, y - h + 26 + jumpTuck, 36, 48, 12);
   ctx.fill();
   ctx.stroke();
+  // Collar
+  ctx.fillStyle = "rgba(255,255,255,0.25)";
+  ctx.beginPath();
+  ctx.ellipse(x, y - h + 30 + jumpTuck, 10, 4, 0, 0, Math.PI);
+  ctx.fill();
+  // Side shading
+  ctx.fillStyle = "rgba(0,0,0,0.08)";
+  ctx.beginPath();
+  ctx.roundRect(x + 8, y - h + 36 + jumpTuck, 8, 32, 4);
+  ctx.fill();
 
   // Jersey trim and number stay readable as the character moves.
   ctx.fillStyle = "rgba(255,255,255,0.75)";
@@ -134,23 +179,52 @@ function drawPlayer(
   ctx.beginPath();
   ctx.arc(x, y - h + 14 + jumpTuck, 15, 0, Math.PI * 2);
   ctx.fill();
-  ctx.stroke();
-
-  // Hair
-  ctx.fillStyle = palette.hair;
+  ctx.stroke();  // Ears
+  ctx.fillStyle = palette.skin;
   ctx.beginPath();
-  ctx.arc(x, y - h + 10 + jumpTuck, 15, Math.PI, Math.PI * 2);
+  ctx.ellipse(x - 15, y - h + 14 + jumpTuck, 2.5, 5, -0.3, 0, Math.PI*2);
+  ctx.ellipse(x + 15, y - h + 14 + jumpTuck, 2.5, 5, 0.3, 0, Math.PI*2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(0,0,0,0.08)";ctx.lineWidth = 1;
+  ctx.beginPath();ctx.ellipse(x - 15, y - h + 14 + jumpTuck, 2.5, 5, -0.3, 0, Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.ellipse(x + 15, y - h + 14 + jumpTuck, 2.5, 5, 0.3, 0, Math.PI*2);ctx.stroke();
+
+  // Head highlight
+  ctx.fillStyle = "rgba(255,255,255,0.3)";
+  ctx.beginPath();
+  ctx.arc(x - 3, y - h + 10 + jumpTuck, 3.5, 0, Math.PI*2);
+  ctx.fill();
+    // Hair
+  const hairGrad = ctx.createLinearGradient(x - 15, y - h, x + 15, y - h + 20);
+  hairGrad.addColorStop(0, palette.hair);hairGrad.addColorStop(1, shadeColor(palette.hair, -20));
+  ctx.fillStyle = hairGrad;
+  ctx.beginPath();
+  ctx.arc(x, y - h + 10 + jumpTuck, 16, Math.PI, Math.PI * 2);
+  ctx.ellipse(x, y - h + 6 + jumpTuck, 14, 8, 0, Math.PI, 0);
   ctx.fill();
   if (isHuman) {
     ctx.beginPath();
-    ctx.ellipse(x - facing * 12, y - h + 16 + jumpTuck, 7, 12, 0, 0, Math.PI * 2);
+    ctx.ellipse(x - facing * 12, y - h + 16 + jumpTuck, 8, 13, facing * 0.2, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  ctx.strokeStyle = "rgba(255,255,255,0.2)";ctx.lineWidth = 2;
-  ctx.beginPath();ctx.arc(x - 2, y - h + 10 + jumpTuck, 11, Math.PI * 1.15, Math.PI * 1.7);ctx.stroke();
+  // Smile
+  ctx.strokeStyle = "rgba(120,70,50,0.5)";ctx.lineWidth = 1.8;
+  ctx.beginPath();ctx.arc(x + facing * 1, y - h + 7 + jumpTuck, 8, Math.PI * 0.25, Math.PI * 0.75);ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,0.25)";ctx.lineWidth = 1.5;
+  ctx.beginPath();ctx.arc(x - 1, y - h + 9 + jumpTuck, 11, Math.PI * 1.15, Math.PI * 1.6);ctx.stroke();
 
-  // Face looks toward the net.
+  // Cheek shading
+  ctx.fillStyle = "rgba(0,0,0,0.05)";
+  ctx.beginPath();
+  ctx.arc(x - facing * 8, y - h + 16 + jumpTuck, 3, 0, Math.PI*2);
+  ctx.arc(x + facing * 2, y - h + 16 + jumpTuck, 2.5, 0, Math.PI*2);
+  ctx.fill();
+  // Nose
+  ctx.fillStyle = shadeColor(palette.skin, -10);
+  ctx.beginPath();
+  ctx.ellipse(x + facing * 3, y - h + 12 + jumpTuck, 1.5, 3, facing * 0.3, 0, Math.PI*2);
+  ctx.fill();  // Face looks toward the net.
   ctx.fillStyle = NAVY;
   ctx.beginPath();
   ctx.arc(x + facing * 6, y - h + 14 + jumpTuck, 2, 0, Math.PI * 2);
@@ -159,14 +233,14 @@ function drawPlayer(
   // Separate shoulder joints and fixed-length bones avoid stretching elbows.
   const armY = y - h + 36 + jumpTuck;
   const pose = (front: boolean) => {
-    const shoulder = x + facing * (front ? 12 : -12);
+    const shoulder = x + facing * (front ? -12 : 12);
     let tx = shoulder + facing * (front ? 6 : -5);
     let ty = armY + 34;
     if (anim === "hit") {
       const progress = Math.max(0, Math.min(1, 1 - p.animTime / 0.25));
       // Cock behind the head, extend toward contact, then follow through.
       const t = progress < 0.4 ? progress / 0.4 : (progress - 0.4) / 0.6;
-      if (front) {
+      if (!front) {
         tx = shoulder + facing * (progress < 0.4 ? lerp(-14, 22, t) : lerp(22, 24, t));
         ty = armY + (progress < 0.4 ? lerp(-30, -40, t) : lerp(-40, 12, t));
       } else { tx = shoulder - facing * 22; ty = armY + 12; }
@@ -174,12 +248,25 @@ function drawPlayer(
     else if (!p.onGround) { tx = shoulder + facing * (front ? 15 : -15); ty = armY - (p.vy < 0 ? 22 : 10); }
     else if (anim === "run") { tx = shoulder + Math.sin(runPhase + (front ? Math.PI : 0)) * 18; ty = armY + 29; }
     else if (anim === "losePoint") { tx = shoulder + facing * (front ? 9 : -9); ty = armY + 39; }
-    const joint = armPose(shoulder, armY, tx, ty, front ? facing : -facing);
+    const joint = armPose(shoulder, armY, tx, ty, -(front ? facing : -facing));
     const limb = ctx.createLinearGradient(shoulder - 8, 0, shoulder + 10, 0);
     limb.addColorStop(0,"#FFE7CC");limb.addColorStop(0.5,palette.skin);limb.addColorStop(1,"#936B55");
-    ctx.lineCap = "round";ctx.lineJoin = "round";ctx.strokeStyle = limb;ctx.lineWidth = 8;
-    ctx.beginPath();ctx.moveTo(shoulder,armY);ctx.lineTo(joint.ex,joint.ey);ctx.lineTo(joint.wx,joint.wy);ctx.stroke();
-    ctx.fillStyle = palette.skin;ctx.beginPath();ctx.arc(joint.wx,joint.wy,4.5,0,Math.PI*2);ctx.fill();
+    ctx.lineCap = "round";ctx.lineJoin = "round";
+    // Upper arm
+    ctx.strokeStyle = limb;ctx.lineWidth = 9;
+    ctx.beginPath();ctx.moveTo(shoulder,armY);ctx.lineTo(joint.ex,joint.ey);ctx.stroke();
+    // Forearm with slight tapering for realism
+    const forearmGrad = ctx.createLinearGradient(joint.ex, joint.ey, joint.wx, joint.wy);
+    forearmGrad.addColorStop(0, palette.skin);forearmGrad.addColorStop(1, "#A07C5A");
+    ctx.strokeStyle = forearmGrad;ctx.lineWidth = 7;
+    ctx.beginPath();ctx.moveTo(joint.ex,joint.ey);ctx.lineTo(joint.wx,joint.wy);ctx.stroke();
+    // Elbow joint
+    ctx.fillStyle = palette.skin;ctx.beginPath();ctx.arc(joint.ex,joint.ey,4.5,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle = "rgba(0,0,0,0.1)";ctx.lineWidth = 1;ctx.beginPath();ctx.arc(joint.ex,joint.ey,4.5,0,Math.PI*2);ctx.stroke();
+    // Hand - more detailed
+    ctx.fillStyle = "#FFE7CC";
+    ctx.beginPath();ctx.ellipse(joint.wx,joint.wy,5,6,Math.atan2(joint.wy-joint.ey,joint.wx-joint.ex),0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle = "rgba(0,0,0,0.08)";ctx.lineWidth = 1;ctx.beginPath();ctx.ellipse(joint.wx,joint.wy,5,6,Math.atan2(joint.wy-joint.ey,joint.wx-joint.ex),0,Math.PI*2);ctx.stroke();
   };
   pose(false);pose(true);
 
