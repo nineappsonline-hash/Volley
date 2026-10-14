@@ -31,9 +31,10 @@ function GoogleIcon({ className }: { className?: string }) {
 
 interface GoogleSignInButtonProps {
   className?: string;
+  destination?: string;
 }
 
-export function GoogleSignInButton({ className }: GoogleSignInButtonProps) {
+export function GoogleSignInButton({ className, destination }: GoogleSignInButtonProps) {
   const { t } = useI18n();
   const { signInWithGoogle } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -41,7 +42,7 @@ export function GoogleSignInButton({ className }: GoogleSignInButtonProps) {
   const handleClick = async () => {
     setLoading(true);
     try {
-      await signInWithGoogle();
+      await signInWithGoogle(destination);
     } catch {
       toast.error(t("login_google_error"));
       setLoading(false);

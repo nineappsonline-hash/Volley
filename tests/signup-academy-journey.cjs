@@ -63,7 +63,7 @@ const sessionBranch = signup.slice(
 );
 assert.match(
   sessionBranch,
-  /if \(gameInvite\)[\s\S]{0,400}else if \(academy\?\.newName\)[\s\S]{0,400}setPushPromptOpen\(true\)[\s\S]{0,400}else[\s\S]{0,400}setSuggestOpen\(true\)/,
+  /if \(destination !== "\/dashboard" && !academy\?\.newName\)[\s\S]{0,400}else if \(academy\?\.newName\)[\s\S]{0,400}setPushPromptOpen\(true\)[\s\S]{0,400}else[\s\S]{0,400}setSuggestOpen\(true\)/,
   'a game invite goes straight through, an academy owner gets the push prompt, a member gets the suggestion'
 );
 assert.doesNotMatch(
@@ -74,7 +74,7 @@ assert.doesNotMatch(
 assert.match(signup, /<JoinAcademySuggestion/, 'the modal is rendered after signup');
 assert.match(
   signup,
-  /: "\/dashboard";/,
+  /registrationDestination\(searchParams.get\("redirectedFrom"\), gameInvite\)/,
   'the member still lands on the dashboard'
 );
 console.log('PASS: signup shows the academy suggestion, then the dashboard');
@@ -87,7 +87,7 @@ const parkBlock = signup.slice(
 assert.match(parkBlock, /localStorage\.setItem\(SUGGEST_ACADEMY_KEY/, 'the offer is parked when there is no session yet');
 assert.match(
   parkBlock,
-  /if \(!gameInvite && !academy\?\.newName\)/,
+  /if \(destination === "\/dashboard" && !academy\?\.newName\)/,
   'neither an academy owner nor a game invite is parked an offer they never asked for'
 );
 assert.match(

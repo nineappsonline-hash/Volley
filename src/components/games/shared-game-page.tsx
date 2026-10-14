@@ -1,5 +1,6 @@
 "use client";
 
+import { PlayerJoiningGuide } from "./player-joining-guide";
 import Link from "next/link";
 import { DirectionsLinks } from "@/components/shared/directions-links";
 import { AppLogo } from "@/components/shared/app-logo";
@@ -23,6 +24,7 @@ export function SharedGamePage({ game, inviteCode }: { game: SharedGameMeta | nu
           <p>{t(`games_gender_${game.gender}`)}</p>
           <p>{[game.map_label, game.governorate, game.area].filter(Boolean).join(" · ")}</p>
           <DirectionsLinks locationLink={game.location_link} lat={game.lat} lng={game.lng} query={game.map_label} />
+          <PlayerJoiningGuide />
           <GameParticipantNames participants={game.participants} />
           {game.description && <p className="whitespace-pre-wrap break-words">{game.description}</p>}
           <p>{formatMoney(game.host_pays ? 0 : (game.share_price ?? 0), lang)}</p>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { registrationDestination, authLink } from "@/lib/auth-redirect";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -249,11 +250,7 @@ export function SignupForm() {
     setLoading(true);
     try {
       const gameInvite = searchParams.get("gameInvite");
-      const destination = gameInvite
-        ? `/games?join=${encodeURIComponent(gameInvite)}`
-        : academy?.newName
-          ? "/onboarding"
-          : "/dashboard";
+      const destination = academy?.newName ? "/onboarding" : registrationDestination(searchParams.get("redirectedFrom"), gameInvite);
       const { session } = await signUp(email, password, name, username, phone, academy, destination);
       if (session) {
         toast.success(t("signup_success"));
@@ -261,7 +258,7 @@ export function SignupForm() {
           router.push(destination);
           router.refresh();
         };
-        if (gameInvite) {
+        if (destination !== "/dashboard" && !academy?.newName) {
           navigate();
         } else if (academy?.newName) {
           // Someone opening an academy has no use for an academy suggestion,
@@ -280,7 +277,7 @@ export function SignupForm() {
         // No session until the email is confirmed, so remember the offer and
         // let the dashboard raise it instead of losing it. Academy owners have
         // no use for it, and a game invite already knows where it is going.
-        if (!gameInvite && !academy?.newName) {
+        if (destination === "/dashboard" && !academy?.newName) {
           try {
             localStorage.setItem(SUGGEST_ACADEMY_KEY, joiningAcademyId ?? "1");
           } catch {
@@ -855,7 +852,7 @@ export function SignupForm() {
               </div>
             ) : (
               <>
-                <GoogleSignInButton className="w-full" />
+                <GoogleSignInButton className="w-full" destination={registrationDestination(searchParams.get("redirectedFrom"), searchParams.get("gameInvite"))} />
                 <div className="my-4">
                   <OrDivider />
                 </div>
@@ -1104,7 +1101,7 @@ export function SignupForm() {
             <p className="mt-4 text-center text-sm text-muted-foreground">
               {t("signup_have_account")}{" "}
               <Link
-                href="/login"
+                href={authLink("/login", registrationDestination(searchParams.get("redirectedFrom"), searchParams.get("gameInvite")))}
                 className="font-medium text-primary hover:underline"
               >
                 {t("signup_login_link")}

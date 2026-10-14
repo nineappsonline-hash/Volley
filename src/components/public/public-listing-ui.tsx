@@ -23,10 +23,10 @@ export function PublicListHero({
       <div className="pointer-events-none absolute -top-24 start-1/2 h-72 w-[32rem] -translate-x-1/2 rounded-full bg-white/15 blur-3xl rtl:translate-x-1/2" />
       <div className="relative mx-auto flex max-w-3xl flex-col items-center gap-3 px-6 text-center">
         <Link href="/" aria-label="Playza"><AppLogo className="w-36" /></Link>
-        <h1 className="text-3xl font-extrabold sm:text-4xl">{title}</h1>
+        <h1 className="text-3xl font-extrabold text-white sm:text-4xl">{title}</h1>
         <p className="max-w-xl text-sm text-white/85 sm:text-base">{subtitle}</p>
         {note && <p className="max-w-xl text-xs text-white/70">{note}</p>}
-        <Button asChild size="lg" className="mt-2 bg-white text-info-ink hover:bg-white/90">
+        <Button asChild size="lg" className="mt-2">
           <Link href={ctaHref}>{ctaLabel}</Link>
         </Button>
       </div>

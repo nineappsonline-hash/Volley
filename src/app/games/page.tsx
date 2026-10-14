@@ -1,3 +1,4 @@
+import { PlayerJoiningGuide } from "@/components/games/player-joining-guide";
 import { gameSharePrice } from "@/lib/game-share";
 import { SignedInGameParticipantNames } from "@/components/games/game-participant-names";
 import { SharedGamePage } from "@/components/games/shared-game-page";
@@ -32,7 +33,7 @@ import {
 
 export const revalidate = 300; // refresh listing every 5 minutes
 
-type SP = Promise<{ sport?: string; join?: string }>;
+type SP = Promise<{ sport?: string; join?: string; focus?: string }>;
 
 const GAME_OG_IMAGE = (code: string) => `${SITE_URL}/og/game?code=${encodeURIComponent(code)}&v=3`;
 
@@ -150,7 +151,7 @@ function fmtTime(t: string): string {
 }
 
 export default async function GamesPage({ searchParams }: { searchParams: SP }) {
-  const { sport: sportParam, join } = await searchParams;
+  const { sport: sportParam, join, focus } = await searchParams;
   if (join) return <SharedGamePage game={await getGameByInviteCode(join)} inviteCode={join} />;
   const sport = sportParam ? slugToSport(sportParam) : undefined;
 
@@ -206,11 +207,13 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
         title={sport ? `Upcoming ${sport} Friendly Games` : "Friendly & Casual Games in Egypt"}
         subtitle="The players are out there — you just need to gather. Pick a game near you, with dates, location and price clear from the start."
         note="Sign up free and join any open game. Some games have age or skill requirements — shown before you join."
+        ctaHref={`/signup?redirectedFrom=${encodeURIComponent(sport ? `/games?sport=${sportToSlug(sport)}` : "/games")}`}
         ctaLabel="Sign up free and get playing"
       />
 
       <div className="mx-auto max-w-5xl px-6 py-10">
-        <SportFilterLinks
+        {focus && !games.some(g => g.id === focus) && <p role="status" className="mx-auto max-w-6xl rounded-lg border bg-card p-4 text-muted-foreground">The selected game is no longer in the upcoming public list. Review available games below; your account has not reserved a place.</p>}
+      <SportFilterLinks
           sports={sports}
           to={(s) => (s ? `/games?sport=${sportToSlug(s)}` : "/games")}
           current={sport}
@@ -221,7 +224,7 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
           <EmptyState sport={sport} />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
-            {games.map((g) => {
+            {[...games].sort((a, b) => Number(b.id === focus) - Number(a.id === focus)).map((g) => {
               const place = [
                 g.playground?.name,
                 g.playground?.area ?? g.area,
@@ -233,6 +236,7 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
               return (
                 <article
                   key={g.id}
+                  id={`game-${g.id}`}
                   className="flex flex-col rounded-xl border bg-card p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -289,7 +293,8 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
 
                   <div className="mt-4"><SignedInGameParticipantNames gameId={g.id} /></div>
                   <div className="mt-auto pt-4">
-                    <PublicGameJoin game={g} />
+                    <PlayerJoiningGuide skillLevel={g.skill_level} />
+                    <PublicGameJoin game={g} returnTo={`/games?sport=${encodeURIComponent(sportToSlug(g.sport))}&focus=${encodeURIComponent(g.id)}`} />
                   </div>
                 </article>
               );

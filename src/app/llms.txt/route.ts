@@ -25,6 +25,13 @@ export function GET() {
 - [Court booking guide](${SITE_URL}/book-courts)
 - [Frequently asked questions](${SITE_URL}/faq)
 
+## Volleyball playing guides
+
+- [Volleyball in Cairo](${SITE_URL}/guides/volleyball-cairo): Court rental, organized games and academy training explained.
+- [Join without a team](${SITE_URL}/guides/join-volleyball-without-team): Individual requests, level requirements, registration and waitlist/payment checks.
+- [Beach volleyball for beginners](${SITE_URL}/guides/beach-volleyball-beginners): Choosing a session, sand-court facilities and equipment questions.
+- [Arabic playing guides](${SITE_URL}/ar/guides)
+
 ## Sport guides
 
 ${sports}

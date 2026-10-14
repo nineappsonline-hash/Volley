@@ -12,13 +12,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AppLogo } from "@/components/shared/app-logo";
 import { JoinGameDialog } from "./join-game-dialog";
 import { createClient } from "@/lib/supabase/client";
+import { GoogleSignInButton } from "@/components/auth/google-signin-button";
+import { authLink } from "@/lib/auth-redirect";
 import { useI18n } from "@/lib/i18n";
 
-export function PublicGameJoin({ game, inviteCode }: {
+export function PublicGameJoin({ game, inviteCode, returnTo }: {
   game: { id: string; title: string; share_price: number | null; host_pays?: boolean; host_total?: number | null; game_date?: string; start_time?: string; location?: string | null; area?: string | null; max_players?: number; participants_count?: number; status?: string };
   inviteCode?: string;
+  returnTo?: string;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const router = useRouter();
   const qc = useQueryClient();
   const [signInOpen, setSignInOpen] = useState(false);
@@ -56,7 +59,7 @@ export function PublicGameJoin({ game, inviteCode }: {
     <Dialog open={signInOpen} onOpenChange={setSignInOpen}>
       <DialogContent>
         <AppLogo />
-        <DialogHeader><DialogTitle>{t("login_title")}</DialogTitle><DialogDescription>{game.title}</DialogDescription></DialogHeader>
+        <DialogHeader><DialogTitle>{t("login_title")}</DialogTitle><DialogDescription>{game.title} · {lang === "ar" ? "بعد إنشاء الحساب، هترجع لنفس المباراة لإكمال الانضمام." : "After creating your account, return to this game to complete joining."}</DialogDescription></DialogHeader>
         <form className="space-y-4" onSubmit={async (event) => {
           event.preventDefault(); setBusy(true);
           try {
@@ -72,7 +75,9 @@ export function PublicGameJoin({ game, inviteCode }: {
           <Label className="block">{t("login_email")}<Input type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} /></Label>
           <Label className="block">{t("login_password")}<Input type="password" autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} /></Label>
           <Button type="submit" disabled={busy}>{t("login_button")}</Button>
-          <Link className="block text-sm text-foreground hover:underline underline-offset-4" href={inviteCode ? `/signup?gameInvite=${encodeURIComponent(inviteCode)}` : "/signup"}>{t("login_signup_link")}</Link>
+          <GoogleSignInButton className="w-full" destination={inviteCode ? `/games?join=${encodeURIComponent(inviteCode)}` : returnTo ?? `/games?focus=${encodeURIComponent(game.id)}`} />
+          <Link href="/auth/forgot-password" className="block text-sm text-foreground hover:underline">{t("login_forgot_password")}</Link>
+          <Link className="block text-sm text-foreground hover:underline underline-offset-4" href={authLink("/signup", inviteCode ? `/games?join=${encodeURIComponent(inviteCode)}` : returnTo ?? `/games?focus=${encodeURIComponent(game.id)}`)}>{t("login_signup_link")}</Link>
         </form>
       </DialogContent>
     </Dialog>

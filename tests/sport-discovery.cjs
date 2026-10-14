@@ -12,6 +12,7 @@ function load(file, mocks = {}) {
 }
 modules['@/lib/seo'] = load('src/lib/seo.ts');
 modules['@/lib/sport-slugs'] = load('src/lib/sport-slugs.ts');
+modules['@/lib/volleyball-guides'] = load('src/lib/volleyball-guides.ts');
 const discovery = modules['@/lib/sport-discovery'] = load('src/lib/sport-discovery.ts');
 const { DISCOVERY_SPORTS, discoveryMetadata, discoveryPath } = discovery;
 assert.equal(DISCOVERY_SPORTS.length, 27);

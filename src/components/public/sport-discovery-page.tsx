@@ -1,3 +1,4 @@
+import { VOLLEYBALL_GUIDES, guidePath } from "@/lib/volleyball-guides";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SportIcon } from "@/components/marketing/sport-icons";
@@ -75,6 +76,7 @@ export async function SportDiscoveryPage({ slug, lang }: { slug: string; lang: D
   const title = ar ? `${name} في القاهرة` : `Play ${name} in Cairo`;
   return <main lang={lang} dir={ar ? "rtl" : "ltr"} className="min-h-screen bg-background pb-16">
     <Header lang={lang} slug={slug} />
+    {volleyball && <nav className="mx-auto flex max-w-6xl flex-wrap gap-4 px-5 pb-5" aria-label={ar ? "إرشادات اللعب" : "Playing guides"}>{VOLLEYBALL_GUIDES.map(g => <Link key={g.slug} className="text-brand underline underline-offset-4" href={guidePath(lang, g.slug)}>{g[lang].title}</Link>)}</nav>}
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@context": "https://schema.org", "@graph": [
       { "@type": "WebPage", name: title, url: `${SITE_URL}${discoveryPath(lang, slug)}`, inLanguage: ar ? "ar-EG" : "en", description: sport.advice[lang], about: { "@type": "Thing", name: sport.name } },
       breadcrumbsJsonLd([{ name: ar ? "الرئيسية" : "Home", url: SITE_URL }, { name: ar ? "الرياضات" : "Sports", url: `${SITE_URL}${discoveryPath(lang)}` }, { name, url: `${SITE_URL}${discoveryPath(lang, slug)}` }]),

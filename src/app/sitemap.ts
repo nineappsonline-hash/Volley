@@ -1,3 +1,4 @@
+import { VOLLEYBALL_GUIDES, guidePath } from "@/lib/volleyball-guides";
 import type { MetadataRoute } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SITE_URL } from "@/lib/seo";
@@ -98,6 +99,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     alternates: { languages: { en: `${SITE_URL}/academy-management`, "ar-EG": `${SITE_URL}/ar/academy-management`, "x-default": `${SITE_URL}/academy-management` } },
   });
 
+  for (const slug of [undefined, ...VOLLEYBALL_GUIDES.map(g => g.slug)]) {
+    for (const lang of ["en", "ar"] as const) staticPages.push({ url: `${SITE_URL}${guidePath(lang, slug)}`, changeFrequency: "monthly", priority: 0.8, alternates: { languages: { en: `${SITE_URL}${guidePath("en", slug)}`, "ar-EG": `${SITE_URL}${guidePath("ar", slug)}` } } });
+  }
   // Query independently so a failed source does not remove other public pages.
   const results = await Promise.allSettled([
     academyEntries(),
