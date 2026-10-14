@@ -11,6 +11,7 @@ import { courtsPath } from "@/lib/court-discovery";
 import { discoveryPath } from "@/lib/sport-discovery";
 import { BEACH_DESCRIPTION } from "@/lib/landing-content";
 import { BeachVolleyballScene } from "./beach-volleyball-scene";
+import { BeachVolleyballGameCard } from "@/components/game/beach-volleyball-game-card";
 import styles from "./volleyball-landing.module.css";
 
 type Sport = "volleyball" | "padel" | "tennis";
@@ -51,7 +52,7 @@ export function LandingPage() {
   return <div className={styles.page} dir={dir} data-paused={paused}>
     <header className={styles.header}>
       <Link href="/" aria-label="Playza"><AppLogo className="w-24 sm:w-28" /></Link>
-      <nav className={styles.nav} aria-label={copy("Main navigation", "القائمة الرئيسية")}><a href="#find-your-court">{copy("Find your court", "لاقي ملعبك")}</a><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><a href="#beach-volleyball">{copy("Beach volleyball", "الطائرة الشاطئية")}</a><a href="#sports">{copy("The sports", "الرياضات")}</a></nav>
+      <nav className={styles.nav} aria-label={copy("Main navigation", "القائمة الرئيسية")}><a href="#find-your-court">{copy("Find your court", "لاقي ملعبك")}</a><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><a href="#beach-volleyball">{copy("Beach volleyball", "الطائرة الشاطئية")}</a><a href="#beach-challenge">{copy("Play now", "العب دلوقتي")}</a><a href="#sports">{copy("The sports", "الرياضات")}</a></nav>
       <div className={styles.headerActions}><LanguageToggle /><Link href="/login" className={styles.login}>{copy("Log in", "تسجيل الدخول")} <ArrowUpRight size={16} /></Link></div>
     </header>
 
@@ -115,6 +116,8 @@ export function LandingPage() {
           </button>
         </div>
       </section>
+
+      <BeachVolleyballGameCard />
 
       <section id="academy-management" aria-labelledby="academy-management-title" className="mx-auto max-w-6xl px-6 py-12">
         <div className="rounded-2xl border bg-card p-6 sm:p-10">
