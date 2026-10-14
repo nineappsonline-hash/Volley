@@ -10,6 +10,11 @@ import {
 } from "react";
 import Link from "next/link";
 import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  Crosshair,
+  Zap,
   CalendarDays,
   Gift,
   Pause,
@@ -23,6 +28,8 @@ import {
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { GameInputController, gameKeyInput } from "@/lib/game/input-controller";
+import controls from "./game-controls.module.css";
 import { DIFFICULTIES, WORLD } from "@/lib/game/config";
 import { AI_LOOK, HUMAN_LOOKS, renderGame, type HumanLook } from "@/lib/game/render";
 import {
@@ -137,12 +144,10 @@ export function BeachVolleyballGame({
     audioRef.current = new GameAudio(true);
   }
 
-  const setInput = useCallback((patch: Partial<InputState>) => {
-    inputRef.current = { ...inputRef.current, ...patch };
-  }, []);
-
+  const inputController = useRef(new GameInputController());
   const clearInput = useCallback(() => {
-    inputRef.current = emptyInput();
+    inputRef.current = inputController.current.clear();
+    containerRef.current?.querySelectorAll("[data-pressed]").forEach(node => node.removeAttribute("data-pressed"));
   }, []);
 
   const beginSession = useCallback(
@@ -166,7 +171,7 @@ export function BeachVolleyballGame({
         difficulty: next.difficulty,
         rulesVersion: next.rulesVersion,
       });
-      requestAnimationFrame(() => containerRef.current?.focus());
+      requestAnimationFrame(() => containerRef.current?.focus({ preventScroll: true }));
     },
     [clearInput],
   );
@@ -298,7 +303,7 @@ export function BeachVolleyballGame({
           if (uiRef.current === "paused") {
             uiRef.current = "playing";
             setUi("playing");
-            requestAnimationFrame(() => containerRef.current?.focus());
+            requestAnimationFrame(() => containerRef.current?.focus({ preventScroll: true }));
           }
         }
       }
@@ -426,46 +431,18 @@ export function BeachVolleyballGame({
     }
   }, [hud.tutorial.moved, hud.tutorial.jumped, hud.tutorial.hit]);
 
-  // Keyboard controls on the focused game surface.
-  const onKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
-      const state = stateRef.current;
-      if (!state) return;
-      const key = e.key;
-      const playing = uiRef.current === "playing";
-      let handled = true;
-      if (key === "ArrowLeft" || key === "a" || key === "A") setInput({ left: true });
-      else if (key === "ArrowRight" || key === "d" || key === "D") setInput({ right: true });
-      else if (
-        key === "ArrowUp" ||
-        key === "w" ||
-        key === "W" ||
-        key === " "
-      )
-        setInput({ jump: true });
-      else if (key === "j" || key === "J") setInput({ hit: true });
-      else if (key === "k" || key === "K") setInput({ hit: true, tip: true });
-      else if (key === "Escape") {
-        if (playing) pause();
-      } else handled = false;
-      if (handled && playing) e.preventDefault();
-    },
-    [pause, setInput],
-  );
-
-  const onKeyUp = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
-      const key = e.key;
-      if (key === "ArrowLeft" || key === "a" || key === "A") setInput({ left: false });
-      else if (key === "ArrowRight" || key === "d" || key === "D")
-        setInput({ right: false });
-      else if (key === "ArrowUp" || key === "w" || key === "W" || key === " ")
-        setInput({ jump: false });
-      else if (key === "j" || key === "J") setInput({ hit: false });
-      else if (key === "k" || key === "K") setInput({ hit: false, tip: false });
-    },
-    [setInput],
-  );
+  // Keyboard and fingers have independent ownership of their held actions.
+  const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (uiRef.current !== "playing" || pausedRef.current) return;
+    if (e.key === "Escape") { e.preventDefault(); pause(); return; }
+    const input = gameKeyInput(e.key);
+    if (!input) return;
+    e.preventDefault();
+    inputRef.current = inputController.current.set(`keyboard:${e.code || e.key}`, input);
+  }, [pause]);
+  const onKeyUp = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (gameKeyInput(e.key)) inputRef.current = inputController.current.release(`keyboard:${e.code || e.key}`);
+  }, []);
 
   // Escape anywhere while playing.
   useEffect(() => {
@@ -497,30 +474,29 @@ export function BeachVolleyballGame({
     };
   }, []);
 
-  const holdHandlers = useCallback(
-    (
-      key: keyof InputState,
-      downExtra?: Partial<InputState>,
-      upExtra?: Partial<InputState>,
-    ) => ({
+  const holdHandlers = useCallback((key: keyof InputState, extra?: Partial<InputState>) => {
+    const release = (e: ReactPointerEvent<HTMLButtonElement>) => {
+      inputRef.current = inputController.current.release(`pointer:${e.pointerId}`);
+      if (inputRef.current[key]) e.currentTarget.setAttribute("data-pressed", "true");
+      else e.currentTarget.removeAttribute("data-pressed");
+    };
+    return {
       onPointerDown: (e: ReactPointerEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+        if (uiRef.current !== "playing" || pausedRef.current) return;
+        containerRef.current?.focus({ preventScroll: true });
+        e.currentTarget.setPointerCapture(e.pointerId);
+        e.currentTarget.setAttribute("data-pressed", "true");
         audioRef.current?.unlock();
-        setInput({ [key]: true, ...(downExtra ?? {}) } as Partial<InputState>);
+        inputRef.current = inputController.current.set(`pointer:${e.pointerId}`, { [key]: true, ...extra });
       },
-      onPointerUp: (e: ReactPointerEvent<HTMLButtonElement>) => {
-        e.preventDefault();
-        setInput({ [key]: false, ...(upExtra ?? {}) } as Partial<InputState>);
-      },
-      onPointerCancel: () =>
-        setInput({ [key]: false, ...(upExtra ?? {}) } as Partial<InputState>),
-      onPointerLeave: () =>
-        setInput({ [key]: false, ...(upExtra ?? {}) } as Partial<InputState>),
+      onPointerUp: release,
+      onPointerCancel: release,
+      onLostPointerCapture: release,
+      onClick: (e: React.MouseEvent) => e.preventDefault(),
       onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
-    }),
-    [setInput],
-  );
+    };
+  }, []);
 
   const onShare = useCallback(async () => {
     const state = stateRef.current;
@@ -581,6 +557,20 @@ export function BeachVolleyballGame({
           role="img"
         />
 
+        {showTouch && (
+          <div className={controls.overlay} dir="ltr" aria-label={t.move}>
+            <div className={controls.group}>
+              <button type="button" aria-label={t.move + " ◀"} className={controls.button} {...holdHandlers("left")}><ArrowLeft aria-hidden="true" /></button>
+              <button type="button" aria-label={t.move + " ▶"} className={controls.button} {...holdHandlers("right")}><ArrowRight aria-hidden="true" /></button>
+            </div>
+            <div className={controls.group}>
+              <button type="button" aria-label={t.tip} className={controls.button} {...holdHandlers("tip", { hit: true })}><Crosshair aria-hidden="true" /><span>{t.tip}</span></button>
+              <button type="button" aria-label={t.jump} className={`${controls.button} ${controls.accent}`} {...holdHandlers("jump")}><ArrowUp aria-hidden="true" /><span>{t.jump}</span></button>
+              <button type="button" aria-label={t.hit} className={controls.button} {...holdHandlers("hit")}><Zap aria-hidden="true" /><span>{t.hit}</span></button>
+            </div>
+          </div>
+        )}
+
         {/* HUD */}
         {isPlaying && (
           <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-2 sm:p-3">
@@ -620,7 +610,7 @@ export function BeachVolleyballGame({
 
         {/* Countdown */}
         {isPlaying && phase === "countdown" && (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 z-20 flex items-center justify-center">
             <span className="text-6xl font-black text-white drop-shadow-lg sm:text-8xl">
               {Math.max(1, Math.ceil(hud.countdown))}
             </span>
@@ -692,7 +682,7 @@ export function BeachVolleyballGame({
 
         {/* Start screen */}
         {ui === "ready" && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[#14213D]/85 p-4 text-center backdrop-blur-sm">
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-[#14213D]/85 p-4 text-center backdrop-blur-sm">
             <h2 className="text-2xl font-black sm:text-3xl">{t.title}</h2>
             <p className="max-w-md text-sm text-white/80">{t.cardDesc}</p>
             <div>
@@ -778,7 +768,7 @@ export function BeachVolleyballGame({
 
         {/* Pause overlay */}
         {ui === "paused" && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/70 p-4 text-center">
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-black/70 p-4 text-center">
             {resumeIn > 0 ? (
               <span className="text-6xl font-black">{Math.ceil(resumeIn)}</span>
             ) : pauseMenu ? (
@@ -814,7 +804,7 @@ export function BeachVolleyballGame({
 
         {/* Result overlay */}
         {ui === "result" && result && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 overflow-y-auto bg-[#14213D]/90 p-4 text-center">
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 overflow-y-auto bg-[#14213D]/90 p-4 text-center">
             <Trophy className="text-[#C7F23D]" size={34} />
             <h3 className="text-2xl font-black">
               {wins(stateRef.current?.winner ?? null, "human")
@@ -915,59 +905,6 @@ export function BeachVolleyballGame({
           </button>
         )}
       </div>
-
-      {/* Touch controls */}
-      {showTouch && (
-        <div
-          className="flex select-none items-end justify-between gap-2 sm:gap-3 border-t border-white/10 bg-[#0E182D] p-2 sm:p-3"
-          style={{ touchAction: "none" }}
-        >
-          <div className="flex gap-2 sm:gap-3">
-            <button
-              type="button"
-              aria-label={t.move + " ◀"}
-              {...holdHandlers("left")}
-              className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-white/15 text-2xl font-black active:bg-[#C7F23D] active:text-[#14213D]"
-            >
-              ◀
-            </button>
-            <button
-              type="button"
-              aria-label={t.move + " ▶"}
-              {...holdHandlers("right")}
-              className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-white/15 text-2xl font-black active:bg-[#C7F23D] active:text-[#14213D]"
-            >
-              ▶
-            </button>
-          </div>
-          <div className="flex items-end gap-2 sm:gap-3">
-            <button
-              type="button"
-              aria-label={t.tip}
-              {...holdHandlers("tip", { hit: true }, { hit: false })}
-              className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-xs font-bold active:bg-[#C7F23D] active:text-[#14213D]"
-            >
-              {t.tip}
-            </button>
-            <button
-              type="button"
-              aria-label={t.jump}
-              {...holdHandlers("jump")}
-              className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-[#C7F23D] text-sm font-black text-[#14213D] active:bg-[#B4DF2D]"
-            >
-              {t.jump}
-            </button>
-            <button
-              type="button"
-              aria-label={t.hit}
-              {...holdHandlers("hit")}
-              className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-white/20 text-sm font-black active:bg-[#C7F23D] active:text-[#14213D]"
-            >
-              {t.hit}
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Accessible live region: results and point messages only, never per-frame. */}
       <p className="sr-only" role="status" aria-live="polite">

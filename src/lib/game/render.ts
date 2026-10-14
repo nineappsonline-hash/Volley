@@ -1,3 +1,4 @@
+import { armPose } from "./arm-pose";
 import { drawCourtEnvironment } from "./environment";
 import { PLAYER, WORLD } from "./config";
 import type { GameState, PlayerState } from "./types";
@@ -155,52 +156,32 @@ function drawPlayer(
   ctx.arc(x + facing * 6, y - h + 14 + jumpTuck, 2, 0, Math.PI * 2);
   ctx.fill();
 
-  // Arms
-  const armUp = anim === "hit" ? -1 : 0;
-  const limb = ctx.createLinearGradient(x - 24, 0, x + 35, 0);
-  limb.addColorStop(0,"#FFE7CC");limb.addColorStop(0.45,palette.skin);limb.addColorStop(1,"#936B55");
-  ctx.strokeStyle = limb;
-  ctx.lineWidth = 8;
-  const armY = y - h + 34 + jumpTuck;
-  if (anim === "hit") {
-    // Reaching arm toward the net, other arm balancing.
-    ctx.beginPath();
-    ctx.moveTo(x, armY);
-    const swing = Math.sin(Math.min(1, Math.max(0, 1 - p.animTime / 0.25)) * Math.PI);
-    ctx.lineTo(x + facing * (18 + swing * 12), armY - 18);
-    ctx.lineTo(x + facing * (30 + swing * 9), armY - 34 - swing * 8);
-    ctx.moveTo(x, armY);
-    ctx.lineTo(x - facing * 20, armY + 16);
-    ctx.stroke();
-  } else if (anim === "celebrate") {
-    ctx.beginPath();
-    ctx.moveTo(x, armY);
-    ctx.lineTo(x - 22, armY - 30);
-    ctx.moveTo(x, armY);
-    ctx.lineTo(x + 22, armY - 30);
-    ctx.stroke();
-  } else if (anim === "losePoint") {
-    ctx.beginPath();
-    ctx.moveTo(x, armY);
-    ctx.lineTo(x - 16, armY + 22);
-    ctx.moveTo(x, armY);
-    ctx.lineTo(x + 16, armY + 22);
-    ctx.stroke();
-  } else if (anim === "jump") {
-    ctx.beginPath();
-    ctx.moveTo(x, armY);
-    ctx.lineTo(x - 16, armY - 26);
-    ctx.moveTo(x, armY);
-    ctx.lineTo(x + 16, armY - 26);
-    ctx.stroke();
-  } else {
-    ctx.beginPath();
-    ctx.moveTo(x, armY);
-    ctx.lineTo(x - 16 - legSwing * 0.55, armY + 18 + armUp);
-    ctx.moveTo(x, armY);
-    ctx.lineTo(x + 16 + legSwing * 0.55, armY + 18 + armUp);
-    ctx.stroke();
-  }
+  // Separate shoulder joints and fixed-length bones avoid stretching elbows.
+  const armY = y - h + 36 + jumpTuck;
+  const pose = (front: boolean) => {
+    const shoulder = x + facing * (front ? 12 : -12);
+    let tx = shoulder + facing * (front ? 6 : -5);
+    let ty = armY + 34;
+    if (anim === "hit") {
+      const progress = Math.max(0, Math.min(1, 1 - p.animTime / 0.25));
+      // Cock behind the head, extend toward contact, then follow through.
+      const t = progress < 0.4 ? progress / 0.4 : (progress - 0.4) / 0.6;
+      if (front) {
+        tx = shoulder + facing * (progress < 0.4 ? lerp(-14, 22, t) : lerp(22, 24, t));
+        ty = armY + (progress < 0.4 ? lerp(-30, -40, t) : lerp(-40, 12, t));
+      } else { tx = shoulder - facing * 22; ty = armY + 12; }
+    } else if (anim === "celebrate") { tx = shoulder + facing * (front ? 13 : -13); ty = armY - 40; }
+    else if (!p.onGround) { tx = shoulder + facing * (front ? 15 : -15); ty = armY - (p.vy < 0 ? 22 : 10); }
+    else if (anim === "run") { tx = shoulder + Math.sin(runPhase + (front ? Math.PI : 0)) * 18; ty = armY + 29; }
+    else if (anim === "losePoint") { tx = shoulder + facing * (front ? 9 : -9); ty = armY + 39; }
+    const joint = armPose(shoulder, armY, tx, ty, front ? facing : -facing);
+    const limb = ctx.createLinearGradient(shoulder - 8, 0, shoulder + 10, 0);
+    limb.addColorStop(0,"#FFE7CC");limb.addColorStop(0.5,palette.skin);limb.addColorStop(1,"#936B55");
+    ctx.lineCap = "round";ctx.lineJoin = "round";ctx.strokeStyle = limb;ctx.lineWidth = 8;
+    ctx.beginPath();ctx.moveTo(shoulder,armY);ctx.lineTo(joint.ex,joint.ey);ctx.lineTo(joint.wx,joint.wy);ctx.stroke();
+    ctx.fillStyle = palette.skin;ctx.beginPath();ctx.arc(joint.wx,joint.wy,4.5,0,Math.PI*2);ctx.fill();
+  };
+  pose(false);pose(true);
 
   // Label
   ctx.font = "700 15px Manrope, Alexandria, sans-serif";
