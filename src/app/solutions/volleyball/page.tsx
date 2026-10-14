@@ -16,7 +16,7 @@ import {
 
 export const metadata: Metadata = generateSolutionMetadata(
   "Volleyball",
-  "Playza is the #1 management platform built specifically for volleyball academies. Track players, subscriptions, attendance and per-session profitability — all in one place.",
+  "Playza provides management tools for volleyball academies. Track players, subscriptions, attendance and per-session profitability — all in one place.",
   [
     "volleyball academy management",
     "volleyball club management software",

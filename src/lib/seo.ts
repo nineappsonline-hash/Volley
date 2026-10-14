@@ -37,7 +37,7 @@ export function organizationJsonLd(): JsonLd {
     logo: `${SITE_URL}/icons/icon-512.png`,
     image: `${SITE_URL}${OG_IMAGE}`,
     description:
-      "Playza helps people find sports activities, public academies and tournaments, with guides for playing 27 sports in Cairo, Egypt.",
+      "Playza helps people find sports activities, public academies and tournaments, with guides for playing 27 sports in Cairo, Egypt. Academy owners manage members, subscriptions, training schedules, QR attendance and session finances in Arabic and English.",
     areaServed: [
       { "@type": "Country", name: "Egypt" },
       { "@type": "Country", name: "Saudi Arabia" },

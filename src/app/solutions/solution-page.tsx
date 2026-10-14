@@ -51,7 +51,7 @@ export function generateSolutionMetadata(
     twitter: {
       card: "summary_large_image",
       title: `Playza — ${sport} Academy Management`,
-      description: `The most complete platform for ${sport} academy management: members, attendance, payments and automatic profits.`,
+      description: `A platform for ${sport} academy management: members, attendance, payments and automatic profits.`,
       images: [OG_IMAGE],
     },
   };
@@ -81,13 +81,6 @@ export function SolutionPage({
       operatingSystem: "Web",
       description,
       url: `${SITE_URL}/solutions/${slug}`,
-      offers: {
-        "@type": "Offer",
-        priceCurrency: "EGP",
-        price: "500",
-        priceValidUntil: "2027-12-31",
-        availability: "https://schema.org/InStock",
-      },
       featureList: features.map((f) => f.title),
     },
   ];
@@ -236,6 +229,8 @@ export function SolutionPage({
           </p>
           <div className="flex flex-wrap justify-center gap-3 text-sm">
             {[
+              { label: "Academy management in Egypt", href: "/academy-management" },
+              { label: "إدارة الأكاديميات الرياضية", href: "/ar/academy-management" },
               { label: "حجز ملاعب بادل وVolley", href: "/book-courts" },
               { label: "🏐 Volleyball", href: "/solutions/volleyball" },
               { label: "⚽ Football", href: "/solutions/football" },

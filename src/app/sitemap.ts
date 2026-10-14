@@ -92,6 +92,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
+  for (const lang of ["en", "ar"]) staticPages.push({
+    url: `${SITE_URL}${lang === "ar" ? "/ar" : ""}/academy-management`,
+    changeFrequency: "monthly", priority: 0.9,
+    alternates: { languages: { en: `${SITE_URL}/academy-management`, "ar-EG": `${SITE_URL}/ar/academy-management`, "x-default": `${SITE_URL}/academy-management` } },
+  });
+
   // Query independently so a failed source does not remove other public pages.
   const results = await Promise.allSettled([
     academyEntries(),

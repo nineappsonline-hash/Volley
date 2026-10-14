@@ -6,6 +6,7 @@ import { ArrowUpRight, ArrowDown, Volleyball, Pause, Play, MapPin, MoveUpRight }
 import { AppLogo } from "@/components/shared/app-logo";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { useI18n } from "@/lib/i18n";
+import { academyManagementPath } from "@/lib/academy-management";
 import { courtsPath } from "@/lib/court-discovery";
 import { discoveryPath } from "@/lib/sport-discovery";
 import { BEACH_DESCRIPTION } from "@/lib/landing-content";
@@ -115,9 +116,18 @@ export function LandingPage() {
         </div>
       </section>
 
+      <section id="academy-management" aria-labelledby="academy-management-title" className="mx-auto max-w-6xl px-6 py-12">
+        <div className="rounded-2xl border bg-card p-6 sm:p-10">
+          <p className="text-sm font-semibold text-brand">{copy("FOR ACADEMY OWNERS", "لأصحاب الأكاديميات")}</p>
+          <h2 id="academy-management-title" className="mt-3 text-2xl font-bold text-brand sm:text-3xl">{copy("Run your sports academy with Playza.", "أدر أكاديميتك الرياضية مع بلايزا.")}</h2>
+          <p className="mt-4 max-w-3xl leading-relaxed text-muted-foreground">{copy("Manage players, subscriptions, training schedules, QR attendance and session finances in one Arabic and English application built for sports academies in Egypt.", "نظّم اللاعبين والاشتراكات وجداول التدريب والحضور عبر QR ومالية الجلسات في تطبيق واحد بالعربية والإنجليزية للأكاديميات الرياضية في مصر.")}</p>
+          <Link className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 font-semibold text-primary-foreground hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" href={academyManagementPath(lang)}>{copy("Explore academy management", "اكتشف إدارة الأكاديميات")}<ArrowUpRight size={18} aria-hidden="true" /></Link>
+        </div>
+      </section>
+
       <section className={styles.finalCta}><svg className={styles.ctaStar} viewBox="0 0 100 100" aria-hidden="true" focusable="false"><path d="M50 8V92M8 50H92M20 20L80 80M20 80L80 20" fill="none" stroke="currentColor" strokeWidth="12" /></svg><p className={styles.eyebrow}>{copy("LESS PLANNING. MORE PLAYING.", "كلام أقل. لعب أكتر.")}</p><h2>{copy("The court is calling.", "الملعب بيناديك.")}</h2><Link className={styles.primary} href="/games?sport=volleyball">{copy("Find your next volleyball game", "لاقي ماتش كرة طائرة")}<ArrowUpRight size={20} /></Link><p>{copy("Come for the game. Stay for the people.", "تعالى العب، واتعرّف على ناس بتحب نفس لعبتك.")}</p></section>
     </main>
 
-    <footer className={styles.footer}><div><AppLogo className="w-24" /><p>{copy("A little less online. A lot more on court.", "وقت أقل على الموبايل. ووقت أكتر في الملعب.")}</p></div><nav aria-label={copy("Footer", "روابط إضافية")}><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><Link href="/signup/owner">{copy("List your playground", "أضف ملعبك")}</Link><Link href="/signup/tenant">{copy("For academy owners", "لأصحاب الأكاديميات")}</Link><Link href={discoveryPath(lang, "beach-volleyball")}>{copy("Beach volleyball", "الطائرة الشاطئية")}</Link><Link href="/faq">{copy("FAQs", "أسئلة شائعة")}</Link></nav><span>© {new Date().getFullYear()} Playza</span></footer>
+    <footer className={styles.footer}><div><AppLogo className="w-24" /><p>{copy("A little less online. A lot more on court.", "وقت أقل على الموبايل. ووقت أكتر في الملعب.")}</p></div><nav aria-label={copy("Footer", "روابط إضافية")}><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><Link href="/signup/owner">{copy("List your playground", "أضف ملعبك")}</Link><Link href={academyManagementPath(lang)}>{copy("For academy owners", "لأصحاب الأكاديميات")}</Link><Link href={discoveryPath(lang, "beach-volleyball")}>{copy("Beach volleyball", "الطائرة الشاطئية")}</Link><Link href="/faq">{copy("FAQs", "أسئلة شائعة")}</Link></nav><span>© {new Date().getFullYear()} Playza</span></footer>
   </div>;
 }

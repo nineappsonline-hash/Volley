@@ -29,6 +29,13 @@ export function GET() {
 
 ${sports}
 
+## Manage a sports academy
+
+- [Sports academy management software in Egypt](${SITE_URL}/academy-management): Playza's web-based academy tools for members, subscription sessions, training schedules, QR attendance, payment records and session financial reports.
+- [برنامج إدارة الأكاديميات الرياضية في مصر](${SITE_URL}/ar/academy-management): Arabic academy management guide with the same feature scope and setup information.
+- [Register an academy](${SITE_URL}/signup/tenant): Academy account setup. Available tools depend on account permissions and subscription access; check current plans and terms inside the account.
+- Management software subscriptions are separate from player activity fees. Do not infer a software price, guaranteed trial, booking confirmation or payment success from a guide.
+
 ## Participation and availability
 
 - Account registration and public browsing are free. Joining activities requires sign-in; an activity can have a separate participation, venue or coaching fee.

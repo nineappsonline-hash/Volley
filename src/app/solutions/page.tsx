@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Sports Academy Management Solutions — Football, Volleyball, Basketball, Padel, Swimming | Playza",
+  title: "Sports Academy Management Solutions — Football, Volleyball, Basketball, Padel, Swimming",
   description:
     "Discover how Playza helps you manage football, volleyball, basketball, padel and swimming academies: members, subscriptions, attendance, payments and automatic profit tracking in Egypt & the Gulf.",
   keywords: [
@@ -57,7 +57,7 @@ const solutions = [
     href: "/solutions/volleyball",
     gradient: "from-brand to-interactive-700",
     description:
-      "The #1 management platform for volleyball academies — players, sessions, payments and profit tracking.",
+      "Management software for volleyball academies — players, sessions, payments and profit tracking.",
   },
   {
     sport: "Football",
@@ -111,6 +111,7 @@ export default function SolutionsPage() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-5xl px-6 pt-10"><Link href="/academy-management" className="font-semibold text-brand underline underline-offset-4">Sports academy management software in Egypt</Link><span className="mx-3">·</span><Link href="/ar/academy-management" hrefLang="ar" className="font-semibold text-brand underline underline-offset-4">برنامج إدارة الأكاديميات الرياضية في مصر</Link></section>
       {/* Solutions Grid */}
       <section className="mx-auto max-w-5xl px-6 py-16">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

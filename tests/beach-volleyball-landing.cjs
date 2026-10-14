@@ -41,6 +41,8 @@ for (lang of ['en', 'ar']) {
   assert.ok(section.includes('aria-pressed="false"'), 'motion control exposes its initial state');
   assert.ok(section.includes('aria-hidden="true"'), 'decorative art is excluded from the reading order');
   assert.ok(!html.includes('/beach-volleyball/cairo'), 'do not link to a nonexistent nested route');
+  assert.ok(html.includes('id="academy-management"'), 'owners have a visible homepage entry point');
+  assert.ok(html.includes(`href="${lang === 'ar' ? '/ar' : ''}/academy-management"`), 'management link follows homepage language');
   const viewportDir = lang === 'ar' ? 'rtl' : 'ltr';
   assert.ok(html.includes(`dir="${viewportDir}"`));
 }
