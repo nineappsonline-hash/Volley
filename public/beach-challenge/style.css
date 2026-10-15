@@ -9,3 +9,28 @@ html[lang="ar-EG"] .eyebrow,html[lang="ar-EG"] #feedback,html[lang="ar-EG"] .pan
 
 /* Avoid full-resolution backdrop compositing on phone GPUs. */
 #game.performance-mode .overlay{backdrop-filter:none;-webkit-backdrop-filter:none;background:#14213df2}
+
+/* Keep the court visible on phones in both orientations, including wide landscape viewports. */
+@media (pointer:coarse), (max-height:500px), (max-width:550px){
+ .hud{top:max(8px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));flex-wrap:nowrap;gap:6px;align-items:center}
+ .hud #exit{font-size:0;min-height:44px;padding:4px;background:#14213D99}
+ #exit img{width:40px;height:24px}
+ .scoreboard{order:0;margin:0;border-radius:7px;box-shadow:none}
+ .scoreboard>span{padding:5px;font-size:8px;letter-spacing:0;white-space:nowrap}
+ .scoreboard b{font-size:21px;margin:0 4px}
+ .scoreboard>div{padding:5px 9px}
+ .scoreboard strong{font-size:20px}
+ .scoreboard small{display:none}
+ .tools{gap:2px}.tools button{width:44px;height:44px;min-width:44px;min-height:44px;font-size:18px;background:#14213D88}
+ #feedback{top:max(60px,calc(env(safe-area-inset-top) + 52px));font-size:10px;letter-spacing:.3px;padding:5px 10px;max-width:85%;white-space:normal;pointer-events:none}
+ .game-bottom{bottom:max(8px,env(safe-area-inset-bottom));left:12px;right:12px;font-size:9px;letter-spacing:0;pointer-events:none}
+ .game-bottom #hint{display:none}
+ .game-bottom #touches{margin-left:auto}
+ #joystick{width:88px;height:88px;left:max(16px,env(safe-area-inset-left));bottom:max(28px,env(safe-area-inset-bottom))}
+ #stick{width:46px;height:46px;left:20px;top:20px}
+ .touch-actions{width:auto;flex-wrap:nowrap;right:max(16px,env(safe-area-inset-right));bottom:max(28px,env(safe-area-inset-bottom));gap:8px}
+ .touch-actions button:first-child{position:static;width:48px;height:48px}
+ .touch-actions button:nth-child(2){width:52px;height:52px}
+ .touch-actions button:last-child{width:64px;height:64px}
+ .panel{max-height:calc(100dvh - 24px);overflow:auto;padding:20px}.panel h2{font-size:26px;margin:10px 0}.result-logo{width:100px;height:50px;margin-bottom:8px}
+}

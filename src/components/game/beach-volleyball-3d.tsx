@@ -30,7 +30,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = previous; };
   }, [expanded]);
-  async function toggleFullscreen() {
+  const toggleFullscreen = useCallback(async () => {
     if (document.fullscreenElement) { await document.exitFullscreen().catch(() => {});return; }
     if (expanded) { setExpanded(false);setScreenNotice("");return; }
     try {
@@ -38,7 +38,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
       await container.current.requestFullscreen();
       setScreenNotice("");
     } catch { setExpanded(true);setScreenNotice(lang === "ar" ? "عرض موسّع — ملء الشاشة مش متاح في المتصفح ده." : "Expanded view — browser fullscreen is unavailable."); }
-  }
+  }, [expanded, lang]);
 
   const [difficulty, setDifficulty] = useState("easy");
   const [session, setSession] = useState<{ mode: "match" | "practice"; lang: string; difficulty: string } | null>(null);
@@ -56,6 +56,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
     function receive(event: MessageEvent) {
       if (event.origin !== window.location.origin || event.source !== frame.current?.contentWindow || event.data?.channel !== "playza-beach") return;
       switch (event.data.type) {
+        case "fullscreen": void toggleFullscreen();break;
         case "ready": setLoading(false);trackGameEvent("game_load_complete", { renderer: "3d" });break;
         case "exit": closeGame();onRequestClose?.();break;
         case "error": setFailed(true);setSession(null);setLoading(false);trackGameEvent("game_load_error", { renderer: "3d" });break;
@@ -69,7 +70,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
     }
     window.addEventListener("message", receive);
     return () => window.removeEventListener("message", receive);
-  }, [onRequestClose, closeGame]);
+  }, [onRequestClose, closeGame, toggleFullscreen]);
 
   useEffect(() => {
     if (!session || !loading) return;
@@ -83,7 +84,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
   }
 
   return <div ref={container} className={cn("relative overflow-hidden rounded-2xl bg-[#14213D] text-white", (fullscreen || expanded) && "fixed inset-0 z-[150] flex h-[100dvh] w-full flex-col rounded-none", className)} dir={dir}>
-    <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 border-b border-white/10 p-3">
+    <div className={cn("flex shrink-0 flex-wrap items-center justify-end gap-3 border-b border-white/10 p-3", session && (fullscreen || expanded) && "hidden")}>
       {screenNotice && <span className="mr-auto text-xs text-white/80" role="status">{screenNotice}</span>}
       <button type="button" onClick={() => void toggleFullscreen()} aria-pressed={fullscreen || expanded} className="min-h-12 rounded-full border border-white/30 px-5 py-2 text-sm font-bold text-white">
         {fullscreen || expanded ? copy("Exit fullscreen", "اخرج من ملء الشاشة") : copy("Play fullscreen ⛶", "العب بملء الشاشة ⛶")}
