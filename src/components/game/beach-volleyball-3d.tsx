@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { AppLogo } from "@/components/shared/app-logo";
@@ -13,11 +13,43 @@ import type { BeachVolleyballGameProps } from "./beach-volleyball-game";
 export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?sport=beach-volleyball", onRequestClose, className }: BeachVolleyballGameProps) {
   const { lang, dir } = useI18n();
   const frame = useRef<HTMLIFrameElement>(null);
+  const container = useRef<HTMLDivElement>(null);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [screenNotice, setScreenNotice] = useState("");
+  useEffect(() => {
+    const change = () => setFullscreen(document.fullscreenElement === container.current);
+    const key = (event: KeyboardEvent) => { if (event.key === "Escape") {setExpanded(false);setScreenNotice("");} };
+    document.addEventListener("fullscreenchange", change);
+    document.addEventListener("keydown", key);
+    return () => { document.removeEventListener("fullscreenchange", change);document.removeEventListener("keydown", key); };
+  }, []);
+  useEffect(() => {
+    if (!expanded) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previous; };
+  }, [expanded]);
+  async function toggleFullscreen() {
+    if (document.fullscreenElement) { await document.exitFullscreen().catch(() => {});return; }
+    if (expanded) { setExpanded(false);setScreenNotice("");return; }
+    try {
+      if (!container.current?.requestFullscreen || !document.fullscreenEnabled) throw new Error("Fullscreen unavailable");
+      await container.current.requestFullscreen();
+      setScreenNotice("");
+    } catch { setExpanded(true);setScreenNotice(lang === "ar" ? "عرض موسّع — ملء الشاشة مش متاح في المتصفح ده." : "Expanded view — browser fullscreen is unavailable."); }
+  }
+
   const [difficulty, setDifficulty] = useState("easy");
   const [session, setSession] = useState<{ mode: "match" | "practice"; lang: string; difficulty: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
   const playButton = useRef<HTMLButtonElement>(null);
+  const closeGame = useCallback(() => {
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
+    setExpanded(false);setScreenNotice("");setSession(null);setLoading(false);
+    requestAnimationFrame(() => playButton.current?.focus());
+  }, []);
   const copy = (en: string, ar: string) => lang === "ar" ? ar : en;
 
   useEffect(() => {
@@ -25,7 +57,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
       if (event.origin !== window.location.origin || event.source !== frame.current?.contentWindow || event.data?.channel !== "playza-beach") return;
       switch (event.data.type) {
         case "ready": setLoading(false);trackGameEvent("game_load_complete", { renderer: "3d" });break;
-        case "exit": setSession(null);setLoading(false);onRequestClose?.();requestAnimationFrame(() => playButton.current?.focus());break;
+        case "exit": closeGame();onRequestClose?.();break;
         case "error": setFailed(true);setSession(null);setLoading(false);trackGameEvent("game_load_error", { renderer: "3d" });break;
         case "match-start": trackGameEvent("game_match_start", { mode: event.data.mode === "practice" ? "practice" : "match", renderer: "3d" });break;
         case "result": {
@@ -37,7 +69,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
     }
     window.addEventListener("message", receive);
     return () => window.removeEventListener("message", receive);
-  }, [onRequestClose]);
+  }, [onRequestClose, closeGame]);
 
   useEffect(() => {
     if (!session || !loading) return;
@@ -50,18 +82,22 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
     trackGameEvent("game_open", { source: variant === "inline" ? "homepage-3d" : "page-3d", mode });
   }
 
-  return <div className={cn("relative overflow-hidden rounded-2xl bg-[#14213D] text-white", className)} dir={dir}>
+  return <div ref={container} className={cn("relative overflow-hidden rounded-2xl bg-[#14213D] text-white", (fullscreen || expanded) && "fixed inset-0 z-[150] flex h-[100dvh] w-full flex-col rounded-none", className)} dir={dir}>
+    <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 border-b border-white/10 p-3">
+      {screenNotice && <span className="mr-auto text-xs text-white/80" role="status">{screenNotice}</span>}
+      <button type="button" onClick={() => void toggleFullscreen()} aria-pressed={fullscreen || expanded} className="min-h-12 rounded-full border border-white/30 px-5 py-2 text-sm font-bold text-white">
+        {fullscreen || expanded ? copy("Exit fullscreen", "اخرج من ملء الشاشة") : copy("Play fullscreen ⛶", "العب بملء الشاشة ⛶")}
+      </button>
+      {session && <button type="button" onClick={closeGame} className="min-h-12 rounded-full bg-white/10 px-5 py-2 text-sm text-white">{copy("Close game", "اقفل اللعبة")}</button>}
+    </div>
     {session ? <>
       <iframe ref={frame} title={copy("Playza Beach Challenge — 3D volleyball", "تحدي بلايزا — كرة طائرة ثلاثية الأبعاد")}
         src={`/beach-challenge/index.html?embed=1&mode=${session.mode}&lang=${session.lang}&difficulty=${session.difficulty}`}
         allow="fullscreen" allowFullScreen
-        className={cn("block w-full border-0", variant === "page" ? "h-[min(75vh,800px)] min-h-[500px]" : "h-[500px] sm:h-[600px]")}
+        className={cn("block w-full border-0", (fullscreen || expanded) ? "min-h-0 flex-1" : variant === "page" ? "h-[min(75vh,800px)] min-h-[500px]" : "h-[500px] sm:h-[600px]")}
       />
       {loading && <div className="absolute inset-0 flex items-center justify-center bg-[#14213D]" role="status">{copy("Loading the 3D court…", "بنجهز الملعب…")}</div>}
-      <button type="button" className="absolute bottom-3 right-3 rounded-full bg-[#14213D]/90 px-4 py-2 text-xs text-white" onClick={() => { setSession(null);setLoading(false);playButton.current?.focus(); }}>
-        {copy("Close game", "اقفل اللعبة")}
-      </button>
-    </> : <div className="grid gap-8 p-6 sm:p-10 md:grid-cols-2 md:items-center">
+    </> : <div className="grid gap-8 overflow-auto p-6 sm:p-10 md:grid-cols-2 md:items-center">
       <div>
         <AppLogo className="mb-5 w-36" />
         <p className="text-xs font-bold uppercase tracking-widest text-[#C7F23D]">{copy("PLAYZA BEACH CHALLENGE · 3D", "تحدي بلايزا · ثلاثي الأبعاد")}</p>

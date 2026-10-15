@@ -1,3 +1,5 @@
+import {createHands} from './hands.js';
+import {handPose,contactPose,animationWeight} from './hand-pose.js';
 import * as THREE from '../vendor/three.module.js';
 export {THREE};
 export function loadBrandLogo(){return new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(new Error('Playza logo could not load'));image.src=new URL('../assets/playza-logo.webp',import.meta.url).href})}
@@ -92,17 +94,8 @@ export function createWorld(canvas,settings,logo){
   capsule(.085,.11,teal,0,-.095,0,shoulder);capsule(.065,.18,skin,0,-.245,0,shoulder);
   const forearm=new THREE.Group();forearm.position.set(0,-.37,0);shoulder.add(forearm);capsule(.054,.15,skin,0,-.095,0,forearm);sphere(.061,skin,0,-.23,0,forearm);
  }
- // First-person hands: palms, thumbs and fingers, with shadow-free view geometry.
- const arms=new THREE.Group();camera.add(arms);const hands=[];
- for(let side of [-1,1]){
-  const limb=new THREE.Group();limb.position.set(side*.30,-.40,-.45);arms.add(limb);hands.push(limb);
-  const forearm=capsule(.057,.32,skin,side*.05,-.045,.035,limb);forearm.rotation.x=Math.PI/2;forearm.rotation.z=-side*.15;
-  const cuff=box(.13,.13,.09,teal,side*.075,-.045,.225,limb);
-  const palm=sphere(.079,skin,0,.015,-.23,limb);palm.scale.set(.80,.48,1.2);
-  for(let j=0;j<4;j++){const finger=capsule(.017,.055,skin,(j-1.5)*.034,.017,-.315-(j===0||j===3?0:.017),limb);finger.rotation.x=Math.PI/2}
-  const thumb=capsule(.025,.055,skin,-side*.077,.0,-.24,limb);thumb.rotation.x=Math.PI/2;thumb.rotation.y=-side*.6;
- }
- arms.traverse(o=>{o.castShadow=false;o.receiveShadow=false});
+ const hands=createHands(camera,skin,teal);
+ let displayedPose=handPose();
  const ballMaterial=mat(0xffffff,{map:ballTexture(logo),roughness:.55});const ball=mesh(new THREE.SphereGeometry(.105,28,20),ballMaterial);
  const shadowMap=paintedTexture(64,64,(ctx,w,h)=>{const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);g.addColorStop(0,'rgba(55,47,34,.45)');g.addColorStop(.4,'rgba(55,47,34,.22)');g.addColorStop(1,'rgba(55,47,34,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h)});
  const shadow=mesh(new THREE.PlaneGeometry(.65,.65),new THREE.MeshBasicMaterial({map:shadowMap,transparent:true,depthWrite:false}),0,.026,0);shadow.rotation.x=-Math.PI/2;shadow.castShadow=false;shadow.receiveShadow=false;
@@ -127,9 +120,17 @@ export function createWorld(canvas,settings,logo){
    const age=m.clock-(m.hitEvent?.at??-10),cpuContact=m.hitEvent?.side===1&&age<.42,playerContact=m.hitEvent?.side===0&&age<.36;
    const pulse=cpuContact?Math.sin(Math.min(1,age/.42)*Math.PI):0;
    cpuArms.forEach((a,i)=>{a.rotation.x=cpuContact?(m.hitEvent.type==='spike'?2.6:-1.2)*pulse:(moving?stride*(i?-1:1)*.65:-.08);a.rotation.z=(i?-.08:.08)});
-   hands.forEach((hand,i)=>{hand.position.x=(i?1:-1)*(playerContact ? .30-.16*Math.sin(age/.36*Math.PI) : .30);hand.rotation.z=(i?-1:1)*(playerContact ? .15 : 0)});
-   arms.position.y=playerContact?Math.sin(age/.36*Math.PI)*(m.hitEvent.type==='tip' ? .12 : .23):0;
-   arms.rotation.x=playerContact&&m.hitEvent.type==='spike'?-Math.sin(age/.36*Math.PI)*1.1:0;
+   const hit=m.hitEvent;
+   const confirmed=hit?.side===0&&age>=0&&age<.65;
+   // Anticipation poses follow ball height; only a confirmed contact plays the strike.
+   const near=m.phase==='rally'&&b.z>0&&Math.hypot(b.x-p.x,b.z-p.z)<2.2;
+   const height=b.y-p.y;
+   const anticipating=near?(height>2.55&&p.y>.45?'spike':height>1.85?'set':'receive'):'ready';
+   const pose=confirmed?(hit.pose||contactPose(hit.type,hit.height??1.45,hit.playerY??0)):anticipating;
+   const weight=confirmed?animationWeight(age):near?.65:0;
+   const targetPose=handPose(pose,weight),blendPose=1-Math.exp(-18*Math.min(.05,delta||1/60));
+   displayedPose=displayedPose.map((v,i)=>({position:v.position.map((x,j)=>THREE.MathUtils.lerp(x,targetPose[i].position[j],blendPose)),rotation:v.rotation.map((x,j)=>THREE.MathUtils.lerp(x,targetPose[i].rotation[j],blendPose)),curl:THREE.MathUtils.lerp(v.curl,targetPose[i].curl,blendPose),spread:THREE.MathUtils.lerp(v.spread,targetPose[i].spread,blendPose)}));
+   hands.update(displayedPose);
    shadow.position.set(ball.position.x,.026,ball.position.z);shadow.visible=Math.abs(b.x)<6&&Math.abs(b.z)<10;shadow.scale.setScalar(1+Math.max(0,b.y)*.08);shadow.material.opacity=Math.max(.25,1-b.y*.1);
    landing.visible=settings.assist&&(settings.difficulty==='easy'||m.config.practice)&&m.phase==='rally';const t=(b.vy+Math.sqrt(Math.max(0,b.vy*b.vy+19.62*(b.y-.105))))/9.81;landing.position.set(b.x+b.vx*t,.03,b.z+b.vz*t);
    target.visible=settings.assist&&m.phase==='rally';target.position.x=Math.max(-3.6,Math.min(3.6,Math.sin(-yaw)*7));

@@ -1,0 +1,10 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {contactPose,handPose,animationWeight} from '../public/beach-challenge/game/hand-pose.js';
+import {Match} from '../public/beach-challenge/game/simulation.js';
+test('low receives and overhead sets select different poses from actual ball height',()=>{assert.equal(contactPose('receive',1.1,0),'receive');assert.equal(contactPose('receive',2.3,0),'set');assert.equal(contactPose('receive',2.3,1),'receive');assert.equal(contactPose('spike',3,1),'spike')});
+test('low receive forms a compact two-forearm platform with folded fingers',()=>{const p=handPose('receive');assert.ok(Math.abs(p[0].position[0]-p[1].position[0])<.12);assert.ok(p.every(h=>h.curl>1));assert.ok(p.every(h=>h.position[1]<0))});
+test('overhead set has raised, spread fingers on both hands',()=>{const p=handPose('set');assert.ok(p.every(h=>h.position[1]>.08&&h.spread>.15&&h.curl<.6))});
+test('spike raises the striking hand while keeping the support arm down',()=>{const p=handPose('spike');assert.ok(p[1].position[1]>.15&&p[0].position[1]<0);assert.ok(p[1].curl<.15)});
+test('animation finishes in the ready pose with bounded weights',()=>{assert.equal(animationWeight(-.1),0);assert.equal(animationWeight(.7),0);assert.equal(animationWeight(.04),1);assert.deepEqual(handPose('receive',0),handPose('ready'));for(let t=0;t<1;t+=.01)assert.ok(animationWeight(t)>=0&&animationWeight(t)<=1)});
+test('confirmed contacts record the actual height pose for animation',()=>{const m=new Match();m.serve();m.ball.y=2.2;m.contact(0);assert.equal(m.hitEvent.pose,'set');assert.equal(m.hitEvent.height,2.2);m.reset(0);m.serve();m.ball.y=1.1;m.contact(0);assert.equal(m.hitEvent.pose,'receive')});
+
+test('jumping with a ball below overhead reach does not trigger a high spike animation',()=>{const m=new Match();m.serve();m.player.y=1;m.ball.y=2.6;m.contact(0);assert.equal(m.hitEvent.type,'receive');assert.equal(m.hitEvent.pose,'receive');m.reset(0);m.serve();m.player.y=.6;m.ball.y=2.8;m.contact(0);assert.equal(m.hitEvent.type,'spike');assert.equal(m.hitEvent.pose,'spike')});
