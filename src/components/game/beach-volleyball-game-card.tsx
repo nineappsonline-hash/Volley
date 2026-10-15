@@ -103,7 +103,7 @@ export function BeachVolleyballGameCard() {
               </p>
               <h2
                 id="beach-challenge-title"
-                className="mt-3 text-3xl font-black leading-tight sm:text-4xl"
+                className="mt-3 text-3xl font-black leading-tight text-white sm:text-4xl"
               >
                 {t.cardTitle}
               </h2>
