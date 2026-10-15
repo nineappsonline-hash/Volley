@@ -65,11 +65,11 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
       <div>
         <AppLogo className="mb-5 w-36" />
         <p className="text-xs font-bold uppercase tracking-widest text-[#C7F23D]">{copy("PLAYZA BEACH CHALLENGE · 3D", "تحدي بلايزا · ثلاثي الأبعاد")}</p>
-        <h2 className="mt-3 text-3xl font-black">{copy("Your court. Your next point.", "ملعبك. ونقطتك الجاية.")}</h2>
+        <h2 className="mt-3 text-3xl font-black text-white">{copy("Your court. Your next point.", "ملعبك. ونقطتك الجاية.")}</h2>
         <p className="mt-3 text-sm leading-7 text-white/75">{copy("90 seconds. You versus the computer. Free first-person volleyball, with no account needed.", "٩٠ ثانية. إنت ضد الكمبيوتر. كرة طائرة بمنظور الشخص الأول، ببلاش ومن غير حساب.")}</p>
         {failed && <p className="mt-3 text-sm text-[#C7F23D]" role="alert">{copy("The game couldn’t load. Try again in a WebGL2-capable browser.", "اللعبة مقدرتش تشتغل. جرّب تاني بمتصفح بيدعم WebGL2.")}</p>}
-        <label className="mt-5 block text-sm">{copy("Opponent", "المنافس")}
-          <select className="mt-2 block w-full rounded-lg border border-white/25 bg-[#0E182D] p-3" value={difficulty} onChange={event => setDifficulty(event.target.value)}>
+        <label className="mt-5 block text-sm text-white">{copy("Opponent", "المنافس")}
+          <select className="mt-2 block w-full rounded-lg border border-white/25 bg-[#0E182D] p-3 text-white" value={difficulty} onChange={event => setDifficulty(event.target.value)}>
             <option value="easy">{copy("Easy", "سهل")}</option><option value="medium">{copy("Medium", "متوسط")}</option><option value="hard">{copy("Hard", "صعب")}</option>
           </select>
         </label>
