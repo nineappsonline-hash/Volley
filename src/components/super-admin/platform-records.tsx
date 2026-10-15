@@ -1,4 +1,5 @@
 "use client";
+import { splitGameParticipants } from "@/lib/games/participants";
 import { venueCardPhoto } from "@/lib/venue-media";
 import { GameCardBackground } from "@/components/games/game-card-background";
 import { SportIcon } from "@/components/marketing/sport-icons";
@@ -337,7 +338,7 @@ function MemberDetails({ member: selectedMember, data, initialTab = "overview" }
     [ar?"الرياضات المفضلة":"Interested sports"]: (member.interested_sports??[]).join(", ") || "—",
     [ar?"مستوى اللعب":"Skill level"]: member.skill_level || "—",
     [ar?"مركز اللعب":"Playing position"]: member.position || "—",
-    Email: member.email || (member.guardian_id ? t("sa_no_login") : t("sa_not_provided")),
+    Email: member.account_email || member.email || (member.guardian_id ? t("sa_no_login") : t("sa_not_provided")),
     Phone: member.phone || t("sa_not_provided"),
   };
   const membershipDetails = {
@@ -436,7 +437,26 @@ function MemberDetails({ member: selectedMember, data, initialTab = "overview" }
     </div>
   </Tabs>;
 }
-function GameParticipantRow({ participant }: { participant: Row }) {
+function GameParticipantAccount({ participant, data }: { participant: Row; data: Records }) {
+  const { lang } = useI18n();
+  const [open, setOpen] = useState(false);
+  const member = data.profiles.find(p => p.id === participant.member_id);
+  const name = member?.name ?? participant.player_name ?? (lang === "ar" ? "لاعب" : "Player");
+  if (!participant.member_id) return <p className="text-sm font-medium">{name} <span className="text-xs text-muted-foreground">({lang === "ar" ? "ضيف بدون حساب" : "Guest · no account"})</span></p>;
+  return <>
+    <button type="button" onClick={() => setOpen(true)} className="max-w-full truncate text-start text-sm font-semibold underline decoration-dotted underline-offset-4 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring" aria-label={`${lang === "ar" ? "عرض حساب" : "View account:"} ${name}`}>{name}</button>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="flex h-[90dvh] max-w-4xl flex-col gap-0 overflow-hidden p-0">
+        <DialogHeader className="shrink-0 px-4 py-4 text-start sm:px-6">
+          <DialogTitle>{name}</DialogTitle>
+          <DialogDescription>{lang === "ar" ? "تفاصيل الحساب — اقفل للرجوع إلى المباراة." : "Account details — close to return to the game."}</DialogDescription>
+        </DialogHeader>
+        {member ? <MemberDetails key={member.id} member={member} data={data} /> : <p className="p-6 text-sm text-muted-foreground">{lang === "ar" ? "الحساب غير متاح." : "This account is unavailable."}</p>}
+      </DialogContent>
+    </Dialog>
+  </>;
+}
+function GameParticipantRow({ participant, data }: { participant: Row; data: Records }) {
   const { t, lang } = useI18n();
   const pay = participant.is_waitlisted
     ? <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("sa_waitlisted")}</span>
@@ -449,7 +469,7 @@ function GameParticipantRow({ participant }: { participant: Row }) {
   return <div className="flex flex-wrap items-center gap-2.5 rounded-lg border px-3 py-2">
     <ProfileAvatar name={name} url={participant.avatar_url} avatarId={participant.avatar_id} className="h-8 w-8 shrink-0" />
     <div className="min-w-0 flex-1">
-      <p className="truncate text-sm font-medium">{name}</p>
+      <GameParticipantAccount participant={participant} data={data} />
       <p className="text-xs text-muted-foreground">{participant.role === "organizer" ? t("sa_organizer") : t("sa_player")}{participant.share_amount != null && Number(participant.share_amount) > 0 && <span> · {formatMoney(participant.share_amount, lang)}</span>}</p>
     </div>
     {pay}
@@ -464,8 +484,7 @@ function ManageGamePlayers({ game, data }: { game: Row; data: Records }) {
   const [query, setQuery] = useState("");
   const participants = data.friendly_game_participants.filter(p => p.game_id === game.id);
   const memberIds = new Set(participants.map(p => p.member_id));
-  const roster = participants.filter(p => !p.is_waitlisted);
-  const waitlist = participants.filter(p => p.is_waitlisted);
+  const { confirmed: roster, awaitingPayment, waitlisted: waitlist } = splitGameParticipants(participants);
   const canManage = game.status === "open" || game.status === "full";
   const busy = addMember.isPending || removeMember.isPending;
   const notSet = t("sa_unnamed_member");
@@ -514,7 +533,7 @@ function ManageGamePlayers({ game, data }: { game: Row; data: Records }) {
     return <div key={participant.id} className="flex flex-wrap items-center gap-2.5 rounded-lg border px-3 py-2">
       <ProfileAvatar name={name} url={participant.avatar_url} avatarId={participant.avatar_id} className="h-8 w-8 shrink-0" />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">{name}</p>
+        <GameParticipantAccount participant={participant} data={data} />
         <p className="text-xs text-muted-foreground">{participant.role === "organizer" ? t("sa_organizer") : t("sa_player")}{participant.share_amount != null && Number(participant.share_amount) > 0 && <span> · {formatMoney(participant.share_amount, lang)}</span>}</p>
       </div>
       {pay}
@@ -565,9 +584,14 @@ function ManageGamePlayers({ game, data }: { game: Row; data: Records }) {
           </div>
         </PopoverContent>
       </Popover>
+      <p className="text-xs font-semibold">{lang === "ar" ? "اللاعبون المؤكدون (الدفع معتمد)" : "Confirmed players (payment approved)"} ({roster.length})</p>
       <div className="space-y-2">
         {roster.length ? roster.sort((a, b) => Number(b.role === "organizer") - Number(a.role === "organizer")).map(p => memberRow(p, p.role !== "organizer")) : <p className="text-sm text-muted-foreground">{t("sa_game_no_roster")}</p>}
       </div>
+      {awaitingPayment.length > 0 && <>
+        <p className="pt-1 text-xs font-semibold text-warning-ink">{lang === "ar" ? "في انتظار تأكيد الدفع — غير مقبولين بعد" : "Awaiting payment confirmation — not accepted yet"} ({awaitingPayment.length})</p>
+        <div className="space-y-2">{awaitingPayment.map(p => memberRow(p, p.role !== "organizer"))}</div>
+      </>}
       {waitlist.length > 0 && <>
         <p className="pt-1 text-xs font-semibold text-muted-foreground">{t("sa_game_waitlist")} ({waitlist.length})</p>
         <div className="space-y-2">{waitlist.map(p => memberRow(p, true))}</div>
@@ -590,9 +614,8 @@ function GameDetails({ game, data }: { game: Row; data: Records }) {
   };
   const notSet = t("sa_not_set");
   const participants = data.friendly_game_participants.filter(p => p.game_id === game.id);
-  const players = participants.filter(p => !p.is_waitlisted);
-  const waitlist = participants.filter(p => p.is_waitlisted);
-  const paid = players.filter(p => p.pay_status === "approved");
+  const { confirmed: players, awaitingPayment, waitlisted: waitlist } = splitGameParticipants(participants);
+  const paid = players;
   const creator = data.profiles.find(p => p.id === game.creator_id);
   const playground = data.venues.find(v => v.id === game.playground_id);
   const statusStyle = GAME_STATUS_STYLES[game.status] ?? "bg-muted text-muted-foreground";
@@ -637,7 +660,7 @@ function GameDetails({ game, data }: { game: Row; data: Records }) {
         { k: t("sa_game_duration"), v: game.duration_hours != null ? `${game.duration_hours} ${t("sa_records_hours")}` : notSet },
       ].map(({ k, v }) => <div key={k} className="rounded-lg border p-3"><dt className="text-xs text-muted-foreground">{k}</dt><dd className="mt-1 text-xl font-semibold">{v}</dd></div>)}
     </dl>
-    <section className="space-y-2"><h3 className="text-sm font-semibold">{t("sa_game_players")}</h3>
+    <section className="space-y-2"><h3 className="text-sm font-semibold">{lang === "ar" ? "اللاعبون المؤكدون (الدفع معتمد)" : "Confirmed players (payment approved)"}</h3>
       <div className="rounded-lg border p-3">
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
           <span className="text-lg font-semibold">{players.length}/{game.max_players}</span>
@@ -673,7 +696,7 @@ function GameDetails({ game, data }: { game: Row; data: Records }) {
         <div><p className="text-xs text-muted-foreground">{t("sa_game_share_price")}</p><p className="font-semibold">{game.share_price != null ? formatMoney(game.share_price, lang) : notSet}</p></div>
         <div><p className="text-xs text-muted-foreground">{t("sa_rental_cost_hour")}</p><p className="font-semibold">{rentPerHour != null ? formatMoney(rentPerHour, lang) : notSet}</p></div>
         <div><p className="text-xs text-muted-foreground">{t("sa_game_total_rent")}</p><p className="font-semibold">{rentTotal != null ? formatMoney(rentTotal, lang) : notSet}</p></div>
-        <div><p className="text-xs text-muted-foreground">{t("sa_game_covered")}</p><p className="font-semibold">{players.length ? `${paid.length}/${players.length}` : "0/0"}</p></div>
+        <div><p className="text-xs text-muted-foreground">{t("sa_game_covered")}</p><p className="font-semibold">{`${paid.length}/${players.length + awaitingPayment.length}`}</p></div>
       </div>
     </section>
     <dl className="grid grid-cols-2 gap-2 text-sm"><div className="rounded-lg bg-muted/40 p-3"><dt className="text-xs text-muted-foreground">{t("sa_created")}</dt><dd className="mt-1 break-words font-medium">{game.created_at?.slice(0, 10) ?? notSet}</dd></div></dl>
@@ -860,10 +883,10 @@ export function PlatformRecords() {
   const searchLabel = tab === "Members" ? t("sa_records_search_members")
     : tab === "Academies" ? t("sa_records_search_academies")
     : t("sa_records_search_general");
-  const related = selected ? (tab === "Members" ? { Payments: data.payments.filter(r => r.member_id === selected.id), Attendance: data.attendance.filter(r => r.member_id === selected.id), Games: data.friendly_game_participants.filter(r => r.member_id === selected.id) } : tab === "Academies" ? { [t("sa_members")]: data.profiles.filter(r => r.academy_id === selected.id), [t("sa_branches")]: data.academy_branches.filter(r => r.academy_id === selected.id), [t("sa_membership_plans")]: data.membership_plans.filter(r => r.academy_id === selected.id), [t("sa_playgrounds")]: data.venues.filter(r => r.academy_id === selected.id) } : tab === "Friendly games" ? { Participants: data.friendly_game_participants.filter(r => r.game_id === selected.id).map(r => {
+  const related = selected ? (tab === "Members" ? { Payments: data.payments.filter(r => r.member_id === selected.id), Attendance: data.attendance.filter(r => r.member_id === selected.id), Games: data.friendly_game_participants.filter(r => r.member_id === selected.id) } : tab === "Academies" ? { [t("sa_members")]: data.profiles.filter(r => r.academy_id === selected.id), [t("sa_branches")]: data.academy_branches.filter(r => r.academy_id === selected.id), [t("sa_membership_plans")]: data.membership_plans.filter(r => r.academy_id === selected.id), [t("sa_playgrounds")]: data.venues.filter(r => r.academy_id === selected.id) } : tab === "Friendly games" ? Object.fromEntries(Object.entries(splitGameParticipants(data.friendly_game_participants.filter(r => r.game_id === selected.id))).map(([group, rows]) => [group === "confirmed" ? (lang === "ar" ? "اللاعبون المؤكدون" : "Confirmed players") : group === "awaitingPayment" ? (lang === "ar" ? "في انتظار تأكيد الدفع — غير مقبولين بعد" : "Awaiting payment confirmation — not accepted yet") : (lang === "ar" ? "قائمة الانتظار" : "Waitlist"), rows.map(r => {
     const profile = data.profiles.find(p => p.id === r.member_id);
     return { ...r, name: profile?.name ?? r.player_name, avatar_url: profile?.avatar_url, avatar_id: profile?.avatar_id ?? null };
-  }) } : tab === "Tournaments" ? {
+  })])) : tab === "Tournaments" ? {
     [t("sa_records_teams")]: data.tournament_teams.filter(r => r.tournament_id === selected.id).map(r => ({ id: r.id, name: r.name, players: data.tournament_team_members.filter(m => m.team_id === r.id).length })),
     [t("sa_records_participants")]: data.tournament_participants.filter(r => r.tournament_id === selected.id).map(r => ({ id: r.id, member: data.profiles.find(p => p.id === r.member_id)?.name ?? r.member_id })),
     [t("sa_records_matches")]: data.tournament_matches.filter(r => r.tournament_id === selected.id).sort((a, b) => (a.slot ?? 0) - (b.slot ?? 0)).map(r => ({ id: r.id, round: r.round_name, matchup: `${data.tournament_teams.find(x => x.id === r.team_a_id)?.name ?? "TBD"} vs ${data.tournament_teams.find(x => x.id === r.team_b_id)?.name ?? "TBD"}`, score: r.score_a != null ? `${r.score_a} – ${r.score_b}` : "—", status: r.status })),
@@ -1033,7 +1056,7 @@ export function PlatformRecords() {
       </>
       )}
       </div>
-      <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className={tab === "Members" ? "flex h-[90dvh] max-w-4xl flex-col gap-0 overflow-hidden p-0" : "max-w-3xl max-h-[90dvh] overflow-y-auto p-4 sm:p-6"}><DialogHeader className={tab === "Members" ? "shrink-0 px-4 py-4 text-start sm:px-6" : undefined}><DialogTitle className="min-w-0 break-words pe-6">{selected?.name ?? selected?.title ?? t("sa_records_record_details")}</DialogTitle><DialogDescription>{dialogDescription}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails key={selected.id} member={selected} data={data} initialTab={memberInitialTab} /> : tab === "Academies" ? <AcademyDetails academy={selected} data={data} /> : tab === "Playgrounds" ? <VenueDetails key={selected.id} venue={selected} data={data} /> : tab === "Friendly games" ? <GameDetails game={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && tab !== "Academies" && Object.entries(related).map(([label, records]) => <details key={label} open={label === "Participants"}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => label === "Participants" ? <GameParticipantRow key={r.id} participant={r} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
+      <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className={tab === "Members" ? "flex h-[90dvh] max-w-4xl flex-col gap-0 overflow-hidden p-0" : "max-w-3xl max-h-[90dvh] overflow-y-auto p-4 sm:p-6"}><DialogHeader className={tab === "Members" ? "shrink-0 px-4 py-4 text-start sm:px-6" : undefined}><DialogTitle className="min-w-0 break-words pe-6">{selected?.name ?? selected?.title ?? t("sa_records_record_details")}</DialogTitle><DialogDescription>{dialogDescription}</DialogDescription></DialogHeader>{selected && (tab === "Members" ? <MemberDetails key={selected.id} member={selected} data={data} initialTab={memberInitialTab} /> : tab === "Academies" ? <AcademyDetails academy={selected} data={data} /> : tab === "Playgrounds" ? <VenueDetails key={selected.id} venue={selected} data={data} /> : tab === "Friendly games" ? <GameDetails game={selected} data={data} /> : <Details row={selected} />)}{tab !== "Members" && tab !== "Academies" && Object.entries(related).map(([label, records]) => <details key={label} open={tab === "Friendly games"}><summary className="cursor-pointer font-medium">{label} ({records?.length ?? 0})</summary><div className="space-y-4 py-3">{records?.map((r: Row) => tab === "Friendly games" ? <GameParticipantRow key={r.id} participant={r} data={data} /> : <Details key={r.id} row={r} />)}</div></details>)}</DialogContent></Dialog>
       <Dialog open={!!deleting} onOpenChange={open => !busy && !open && setDeleting(null)}><DialogContent><DialogHeader><DialogTitle>{t("sa_delete_account_title")}</DialogTitle><DialogDescription>{t("sa_delete_account_body").replace("{phrase}", confirmPhrase(deleting) ?? "")}</DialogDescription></DialogHeader><Input aria-label={t("sa_confirmation")} value={confirmation} onChange={e => setConfirmation(e.target.value)} /><Button variant="destructive" disabled={busy || !confirmMatches(confirmation, deleting)} onClick={() => act({ action: "delete", id: deleting!.id, confirmation })}>{busy ? t("sa_deleting") : t("sa_permanently_delete")}</Button></DialogContent></Dialog>
       <AlertDialog open={!!deletingAcademy} onOpenChange={open => !removeAcademy.isPending && !open && setDeletingAcademy(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{t("sa_delete_academy_title")}</AlertDialogTitle><AlertDialogDescription>{t("sa_delete_academy_body").replace("{name}", deletingAcademy?.name ?? "")}</AlertDialogDescription></AlertDialogHeader><Input aria-label={t("sa_academy")} value={confirmation} onChange={e => setConfirmation(e.target.value)} /><AlertDialogFooter><AlertDialogCancel disabled={removeAcademy.isPending}>{t("sa_cancel")}</AlertDialogCancel><AlertDialogAction asChild><Button variant="destructive" disabled={removeAcademy.isPending || confirmation !== deletingAcademy?.name} onClick={async () => { try { await removeAcademy.mutateAsync(deletingAcademy!.id); toast.success(t("sa_academy_deleted")); setDeletingAcademy(null); setConfirmation(""); await cache.invalidateQueries(); } catch (e) { toast.error(e instanceof Error ? e.message : t("sa_deletion_failed")); } }}>{removeAcademy.isPending ? t("sa_deleting") : t("sa_permanently_delete")}</Button></AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
       <AlertDialog open={!!cancellingGame} onOpenChange={open => { if (!open && !cancelGame.isPending) setCancellingGame(null); }}>
