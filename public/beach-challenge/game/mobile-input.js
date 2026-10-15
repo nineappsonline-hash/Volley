@@ -31,3 +31,8 @@ export function lookDelta(dx,dy,sensitivity=1,touch=false){
 export function motionVelocity(x,z,yaw,speed=4.5){
  const n=Math.max(1,Math.hypot(x,z));return{x:(x*Math.cos(yaw)-z*Math.sin(yaw))/n*speed,z:(-x*Math.sin(yaw)-z*Math.cos(yaw))/n*speed};
 }
+
+// Leave the HUD and right-hand aiming/actions outside the movement region.
+export function isMovementTouch(x,y,width,height){
+ return x>=0&&x<width*.45&&y>=Math.max(96,height*.35)&&y<=height;
+}

@@ -1,5 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
-import {TouchInput,motionVelocity,lookDelta} from '../public/beach-challenge/game/mobile-input.js';
+import {TouchInput,motionVelocity,lookDelta,isMovementTouch} from '../public/beach-challenge/game/mobile-input.js';
 import {Match} from '../public/beach-challenge/game/simulation.js';
 test('joystick direction uses the finger starting point with a center dead zone',()=>{const t=new TouchInput();t.begin(1,'move',80,50);t.move(1,82,51);assert.equal(t.x,0);assert.equal(t.z,0);t.move(1,80,10);assert.equal(t.x,0);assert.equal(t.z,1)});
 test('second fingers cannot steal or clear movement and look ownership',()=>{const t=new TouchInput();assert.ok(t.begin(1,'move',0,0));t.move(1,40,0);assert.equal(t.begin(2,'move',0,0),false);assert.ok(t.begin(3,'look',20,20));assert.equal(t.begin(4,'look',20,20),false);t.end(2);t.end(4);assert.equal(t.x,1);assert.equal(t.looking,true);t.end(1);assert.equal(t.x,0);assert.equal(t.looking,true)});
@@ -10,3 +10,6 @@ test('diagonal speed and acceleration never exceed straight movement',()=>{asser
 test('released movement decelerates to a stop and remains stationary',()=>{const m=new Match();for(let i=0;i<20;i++)m.step({x:1});for(let i=0;i<20;i++)m.step();assert.equal(m.player.vx,0);const x=m.player.x;for(let i=0;i<20;i++)m.step();assert.equal(m.player.x,x)});
 test('point celebrations freeze movement instead of carrying a held joystick into a reset',()=>{const m=new Match();m.serve();m.point(0,'test');const p={...m.player};for(let i=0;i<30;i++)m.step({x:1,z:1});assert.equal(m.player.x,p.x);assert.equal(m.player.z,p.z)});
 test('camera deltas reject pointer warps and non-finite input',()=>{assert.deepEqual(lookDelta(200,0,1,true),{yaw:0,pitch:0});assert.deepEqual(lookDelta(NaN,2),{yaw:0,pitch:0});assert.ok(lookDelta(20,-20,1,true).yaw<0);assert.ok(lookDelta(20,-20,1,true).pitch>0)});
+
+test('expanded movement region includes touches beside the joystick in either orientation',()=>{for(const [w,h] of [[800,370],[390,844]]){assert.ok(isMovementTouch(165,h-90,w,h));assert.ok(isMovementTouch(20,h*.5,w,h));assert.equal(isMovementTouch(w*.6,h-90,w,h),false);assert.equal(isMovementTouch(40,40,w,h),false);assert.equal(isMovementTouch(-1,h-90,w,h),false)}});
+test('movement fingers keep their role when dragged across into the look area',()=>{const t=new TouchInput();t.begin(1,'move',160,280);t.begin(2,'look',600,200);assert.equal(t.move(1,650,250).role,'move');assert.equal(t.move(2,100,200).role,'look');t.end(1);assert.equal(t.x,0);assert.equal(t.z,0);assert.ok(t.looking)});
