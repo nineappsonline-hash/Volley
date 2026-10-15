@@ -38,3 +38,11 @@ html[lang="ar-EG"] .eyebrow,html[lang="ar-EG"] #feedback,html[lang="ar-EG"] .pan
 /* Touch holds are game input, including on HUD text and the logo. */
 #game, #game *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #game img{-webkit-user-drag:none}
+
+/* Give the real-world games invitation a clear primary action. */
+#booking{margin:18px 0 0;padding-top:16px}
+.booking-cta{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;padding:14px 18px;border:2px solid #14213D;border-radius:10px;background:var(--lime);color:var(--ink);text-decoration:none;box-shadow:0 3px 0 #14213D;line-height:1.35}
+.booking-cta strong{font-size:20px;font-weight:800}
+.booking-cta span{font-size:14px;font-weight:700}
+.booking-cta:hover{background:#d8ff60}
+.booking-cta:active{transform:translateY(2px);box-shadow:0 1px 0 #14213D}

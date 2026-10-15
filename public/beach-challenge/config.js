@@ -1,1 +1,1 @@
-export const SITE_CONFIG={showHomepageGame:true,bookingUrl:'/games?sport=beach-volleyball',rulesVersion:'1.2.1'};
+export const SITE_CONFIG={showHomepageGame:true,bookingUrl:'/games',rulesVersion:'1.2.1'};
