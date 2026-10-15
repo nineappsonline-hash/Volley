@@ -53,3 +53,13 @@ html[lang="ar-EG"] .eyebrow,html[lang="ar-EG"] #feedback,html[lang="ar-EG"] .pan
  #joystick{width:128px;height:128px}
  #stick{width:56px;height:56px;left:35px;top:35px}
 }
+
+/* Result card viewer opened from "View card". */
+.card-status{margin:12px 0 0;font-size:12px;line-height:1.6;color:var(--muted)}
+.card-viewer{z-index:20}
+.card-sheet{display:flex;flex-direction:column;gap:16px;max-width:min(92vw,420px);max-height:calc(100dvh - 40px);padding:20px;border-radius:16px;background:var(--cream)}
+.card-sheet img{display:block;width:100%;height:auto;border-radius:10px;box-shadow:0 12px 30px #14213D33}
+.card-sheet .panel-actions{margin-top:0}
+@media (pointer:coarse), (max-height:500px), (max-width:550px){
+ .card-sheet{gap:12px;padding:14px}
+}

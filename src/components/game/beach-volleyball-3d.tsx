@@ -94,7 +94,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
     {session ? <>
       <iframe ref={frame} title={copy("Playza Beach Challenge — 3D volleyball", "تحدي بلايزا — كرة طائرة ثلاثية الأبعاد")}
         src={`/beach-challenge/index.html?embed=1&mode=${session.mode}&lang=${session.lang}&difficulty=${session.difficulty}`}
-        allow="fullscreen" allowFullScreen
+        allow="fullscreen; clipboard-write; web-share" allowFullScreen
         className={cn("block w-full border-0", (fullscreen || expanded) ? "min-h-0 flex-1" : variant === "page" ? "h-[min(75vh,800px)] min-h-[500px]" : "h-[500px] sm:h-[600px]")}
       />
       {loading && <div className="absolute inset-0 flex items-center justify-center bg-[#14213D]" role="status">{copy("Loading the 3D court…", "بنجهز الملعب…")}</div>}
