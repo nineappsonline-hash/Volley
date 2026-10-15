@@ -5,7 +5,7 @@ import { OG_IMAGE, SITE_URL, jsonLdStringify } from "@/lib/seo";
 const CANONICAL = `${SITE_URL}/games/beach-volleyball`;
 const TITLE = "Playza Beach Challenge — Free 90-Second Beach Volleyball Game";
 const DESCRIPTION =
-  "Play Playza Beach Challenge: a free 90-second arcade beach volleyball game you can play in your browser on mobile or desktop. Beat the computer, score Perfect Hits and share your result.";
+  "Play Playza Beach Challenge: a free 90-second 3D first-person beach volleyball game you can play in your browser on mobile or desktop. Beat the computer, score Perfect Hits and share your result.";
 
 export const metadata: Metadata = {
   title: TITLE,

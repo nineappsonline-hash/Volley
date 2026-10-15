@@ -21,7 +21,7 @@ export function BeachVolleyballPage() {
 
   useEffect(() => {
     let active = true;
-    import("@/components/game/beach-volleyball-game")
+    import("@/components/game/beach-volleyball-3d")
       .then((mod) => {
         if (active) setGame(() => mod.BeachVolleyballGame);
       })

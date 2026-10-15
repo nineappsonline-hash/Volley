@@ -117,7 +117,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <BeachVolleyballGameCard />
+      {process.env.NEXT_PUBLIC_BEACH_GAME_ENABLED !== "false" && <BeachVolleyballGameCard />}
 
       <section id="academy-management" aria-labelledby="academy-management-title" className="mx-auto max-w-6xl px-6 py-12">
         <div className="rounded-2xl border bg-card p-6 sm:p-10">

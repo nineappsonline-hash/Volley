@@ -58,7 +58,7 @@ export function BeachVolleyballGameCard() {
     setFailed(false);
     if (Game) return;
     setLoading(true);
-    import("@/components/game/beach-volleyball-game")
+    import("@/components/game/beach-volleyball-3d")
       .then((mod) => {
         setGame(() => mod.BeachVolleyballGame);
       })
