@@ -25,6 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { MemberDiscoveryCards } from "./member-discovery-cards";
 import { MyTournamentsCard } from "./my-tournaments-card";
+import { VirtualCourtCard } from "./virtual-court-card";
 import { DashboardNavigation } from "./dashboard-navigation";
 import { useI18n } from "@/lib/i18n";
 import { EXPIRY_ALERT_THRESHOLD } from "@/lib/constants";
@@ -54,8 +55,13 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
     [games, remaining]
   );
 
+  const showVirtualCourt = process.env.NEXT_PUBLIC_BEACH_GAME_ENABLED !== "false";
+
   const sections = [
     { id: "activity", label: lang === "ar" ? "المباريات" : "Games" },
+    ...(showVirtualCourt
+      ? [{ id: "play", label: lang === "ar" ? "الملعب الافتراضي" : "Virtual court" }]
+      : []),
     ...(p.academy_id ? [{ id: "training", label: t("dash_section_training") }] : []),
     { id: "tournaments", label: t("dash_section_tournaments") },
   ];
@@ -74,6 +80,12 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
       <section id="activity" className="scroll-mt-24">
         <MemberDiscoveryCards memberId={p.id} hasAcademy={!!p.academy_id} preferences={p} mode="games" />
       </section>
+
+      {showVirtualCourt && (
+        <section id="play" className="scroll-mt-24">
+          <VirtualCourtCard />
+        </section>
+      )}
 
       <div className="grid items-start gap-4 lg:grid-cols-2">
         <div className="min-w-0 space-y-4">
