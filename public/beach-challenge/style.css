@@ -46,3 +46,10 @@ html[lang="ar-EG"] .eyebrow,html[lang="ar-EG"] #feedback,html[lang="ar-EG"] .pan
 .booking-cta span{font-size:14px;font-weight:700}
 .booking-cta:hover{background:#d8ff60}
 .booking-cta:active{transform:translateY(2px);box-shadow:0 1px 0 #14213D}
+
+.auto-hit{position:absolute;right:max(16px,env(safe-area-inset-right));bottom:max(124px,calc(env(safe-area-inset-bottom) + 96px));min-height:44px;padding:8px 14px;border:1px solid #ffffff99;border-radius:10px;background:#14213de8;color:white;font-size:12px;font-weight:800;touch-action:manipulation}
+.auto-hit[aria-pressed=true]{background:var(--lime);color:var(--ink);border-color:var(--ink)}
+@media (pointer:coarse), (max-height:500px), (max-width:550px){
+ #joystick{width:128px;height:128px}
+ #stick{width:56px;height:56px;left:35px;top:35px}
+}
