@@ -1,4 +1,5 @@
 import {createAthlete,createAthleteHands} from './athlete.js';
+import {shotTarget} from './simulation.js';
 import {createHands} from './hands.js';
 import {handPose,contactPose,animationWeight} from './hand-pose.js';
 import * as THREE from '../vendor/three.module.js';
@@ -41,11 +42,11 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
  renderer.setPixelRatio(Math.min(devicePixelRatio,low?Math.min(1,Math.sqrt(650000/(innerWidth*innerHeight))):1.5));
  renderer.shadowMap.enabled=!low&&!mobileAuto;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
- const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xd4e0db,34,90);
+ const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xdce4df,38,100);
  scene.background=paintedTexture(16,256,(ctx,w,h)=>{const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'#86b8cd');g.addColorStop(.62,'#d2e3df');g.addColorStop(1,'#f2e9d1');ctx.fillStyle=g;ctx.fillRect(0,0,w,h)});
  const camera=new THREE.PerspectiveCamera(settings.fov,1,.05,100);camera.rotation.order='YXZ';scene.add(camera);
- scene.add(new THREE.HemisphereLight(0xf3f8ff,0xb59568,2));
- const sun=new THREE.DirectionalLight(0xffecd2,2.5);sun.position.set(-15,22,12);sun.castShadow=true;
+ scene.add(new THREE.HemisphereLight(0xe8f3ff,0xb59568,1.75));
+ const sun=new THREE.DirectionalLight(0xffe4c2,2.8);sun.position.set(-15,22,12);sun.castShadow=true;
  sun.shadow.mapSize.set(settings.quality==='high'?2048:1024,settings.quality==='high'?2048:1024);
  Object.assign(sun.shadow.camera,{left:-16,right:16,top:16,bottom:-16,near:.5,far:60});sun.shadow.bias=-.0004;sun.shadow.normalBias=.035;sun.shadow.radius=3;scene.add(sun);
  const mat=(c,extra={})=>{
@@ -87,6 +88,16 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
  const wood=mat(0xb58a58),slats=[];for(let x of [-7,7]){for(let i=0;i<4;i++)slats.push({position:[x+(i-1.5)*.14,.58,4],scale:[.12,.08,3]});box(.08,.5,2.4,metal,x,.27,4);box(.1,.8,3,wood,x+Math.sign(x)*.35,.8,4)}batch(new THREE.BoxGeometry(1,1,1),wood,slats);
  const bannerMap=paintedTexture(1024,256,(ctx,w,h)=>{ctx.fillStyle='#14213D';ctx.fillRect(0,0,w,h);ctx.fillStyle='#C7F23D';ctx.fillStyle='#ffffff';ctx.fillRect(44,40,280,140);ctx.drawImage(logo,54,45,260,130);ctx.fillStyle='#C7F23D';ctx.font='24px sans-serif';ctx.fillStyle='#f4f0df';ctx.fillText('BEACH CHALLENGE  /  NEW CAIRO',365,140);ctx.strokeStyle='#d5ef67';ctx.lineWidth=3;ctx.strokeRect(22,22,w-44,h-44)});
  const banner=mesh(new THREE.PlaneGeometry(4.5,1.15),mat(0xffffff,{map:bannerMap,side:THREE.DoubleSide}),0,1.5,-13);banner.castShadow=false;
+ // Instanced palms: all leaf blades share one geometry and one material.
+ const palmTrunks=[],palmLeaves=[];
+ for(const x of [-7,7])for(const z of [-10,10]){palmTrunks.push({position:[x,2.05,z]});for(let i=0;i<8;i++)palmLeaves.push({position:[x,4.1,z],rotation:[0,i*Math.PI/4,0]})}
+ batch(new THREE.CylinderGeometry(.10,.17,4.1,8),mat(0x907253),palmTrunks);
+ const bladePositions=[],bladeIndices=[];
+ for(let i=0;i<=10;i++){const t=i/10,width=Math.sin(Math.PI*t)*.29;for(const side of [-1,1])bladePositions.push(t*2.5,Math.sin(t*Math.PI)*.55-t*t*.75,side*width)}
+ for(let i=0;i<10;i++){const v=i*2;bladeIndices.push(v,v+1,v+2,v+1,v+3,v+2)}
+ const bladeGeometry=new THREE.BufferGeometry();bladeGeometry.setAttribute('position',new THREE.Float32BufferAttribute(bladePositions,3));bladeGeometry.setIndex(bladeIndices);bladeGeometry.computeVertexNormals();
+ batch(bladeGeometry,mat(0x476b3c,{side:THREE.DoubleSide}),palmLeaves);
+ const sunDisc=mesh(new THREE.SphereGeometry(2.8,12,8),new THREE.MeshBasicMaterial({color:0xfff1d1,fog:false}),-30,35,-70);sunDisc.position.copy(sun.position).normalize().multiplyScalar(80);sunDisc.castShadow=false;sunDisc.receiveShadow=false;
  // Articulated adult sports character: limbs pivot at joints instead of their centres.
  const opponent=new THREE.Group();scene.add(opponent);
  const jerseyMap=jerseyTexture();jerseyMap.wrapS=jerseyMap.wrapT=THREE.RepeatWrapping;jerseyMap.repeat.set(4,2);
@@ -119,7 +130,11 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
  const cpuShadow=mesh(new THREE.PlaneGeometry(.9,1.1),new THREE.MeshBasicMaterial({map:shadowMap,transparent:true,depthWrite:false,opacity:.75}),0,.027,-5.5);cpuShadow.rotation.x=-Math.PI/2;cpuShadow.castShadow=false;cpuShadow.receiveShadow=false;
  const shadow=mesh(new THREE.PlaneGeometry(.65,.65),new THREE.MeshBasicMaterial({map:shadowMap,transparent:true,depthWrite:false}),0,.026,0);shadow.rotation.x=-Math.PI/2;shadow.castShadow=false;shadow.receiveShadow=false;
  const landing=mesh(new THREE.RingGeometry(.30,.35,40),new THREE.MeshBasicMaterial({color:0xf5fdc4,side:THREE.DoubleSide,transparent:true,opacity:.7}),0,.03,0);landing.rotation.x=-Math.PI/2;landing.castShadow=false;
- const target=mesh(new THREE.RingGeometry(.14,.17,24),new THREE.MeshBasicMaterial({color:0xd5ef67,side:THREE.DoubleSide}),0,.035,-5.5);target.rotation.x=-Math.PI/2;target.castShadow=false;
+ const target=mesh(new THREE.RingGeometry(.14,.17,24),new THREE.MeshBasicMaterial({color:0xd5ef67,side:THREE.DoubleSide}),0,.035,-5.5);target.name='shot-aim-marker';target.rotation.x=-Math.PI/2;target.castShadow=false;
+ // A short history line helps assisted players read fast returns. It never spans contacts or resets.
+ const trailCount=7,trailPoints=new Float32Array(trailCount*3),trailGeometry=new THREE.BufferGeometry();trailGeometry.setAttribute('position',new THREE.BufferAttribute(trailPoints,3));
+ const trail=new THREE.Line(trailGeometry,new THREE.LineBasicMaterial({color:0xf5ffd0,transparent:true,opacity:.45,depthWrite:false}));trail.name='assisted-ball-trail';trail.frustumCulled=false;scene.add(trail);
+ let trailClock=-1,trailHit=-1;
  let previousAI={x:0,z:-5.5},previousClock=0,walkPhase=0,lastHands=-1;
  function resize(){if(low)renderer.setPixelRatio(Math.min(renderer.getPixelRatio(),devicePixelRatio,1,Math.sqrt(650000/(innerWidth*innerHeight))));renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}resize();
  return {scene,camera,renderer,resize,
@@ -131,6 +146,11 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
    const blend=old&&old.phase===m.phase&&old.hitAt===(m.hitEvent?.at??-1);
    ball.position.set(blend?THREE.MathUtils.lerp(old.x,b.x,alpha):b.x,blend?THREE.MathUtils.lerp(old.y,b.y,alpha):b.y,blend?THREE.MathUtils.lerp(old.z,b.z,alpha):b.z);
    ball.rotation.set(m.clock*2.4,m.clock*1.1,m.clock*1.7);
+   const newTrail=m.phase!=='rally'||m.clock<trailClock||trailHit!==(m.hitEvent?.at??-1);
+   if(newTrail){for(let i=0;i<trailCount;i++)trailPoints.set([ball.position.x,ball.position.y,ball.position.z],i*3);trailClock=m.clock;trailHit=m.hitEvent?.at??-1;trailGeometry.attributes.position.needsUpdate=true}
+   else if(m.clock-trailClock>=1/40){trailPoints.copyWithin(3,0,trailPoints.length-3);trailPoints.set([ball.position.x,ball.position.y,ball.position.z]);trailClock=m.clock;trailGeometry.attributes.position.needsUpdate=true}
+   trail.visible=settings.assist&&m.phase==='rally'&&Math.hypot(b.vx,b.vy,b.vz)>2;
+
    athlete?.update(m);
    cpuShadow.position.set(m.ai.x,.027,m.ai.z);cpuShadow.material.opacity=Math.max(.25,.75-m.ai.y*.25);
    opponent.position.set(m.ai.x,m.ai.y,m.ai.z);opponent.rotation.y=Math.atan2(p.x-m.ai.x,p.z-m.ai.z)*.5;
@@ -154,7 +174,7 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
    if(!low||m.clock-lastHands>=1/30||lastHands<0){hands.update(displayedPose);lastHands=m.clock}
    shadow.position.set(ball.position.x,.026,ball.position.z);shadow.visible=Math.abs(b.x)<6&&Math.abs(b.z)<10;shadow.scale.setScalar(1+Math.max(0,b.y)*.08);shadow.material.opacity=Math.max(.25,1-b.y*.1);
    landing.visible=settings.assist&&(settings.difficulty==='easy'||m.config.practice)&&m.phase==='rally';const t=(b.vy+Math.sqrt(Math.max(0,b.vy*b.vy+19.62*(b.y-.105))))/9.81;landing.position.set(b.x+b.vx*t,.03,b.z+b.vz*t);
-   target.visible=settings.assist&&m.phase==='rally';target.position.x=Math.max(-3.6,Math.min(3.6,Math.sin(-yaw)*7));
+   target.visible=settings.assist&&m.phase==='rally';const aim=shotTarget(yaw,pitch,m.window>0&&m.tip);target.position.set(aim.x,.035,aim.z);
    renderer.render(scene,camera);
   },
   dispose(){const geometries=new Set(),materials=new Set(),textures=new Set(),skeletons=new Set();scene.traverse(o=>{if(o.skeleton)skeletons.add(o.skeleton);if(o.geometry)geometries.add(o.geometry);for(const material of o.material?(Array.isArray(o.material)?o.material:[o.material]):[]){materials.add(material);for(const value of Object.values(material))if(value?.isTexture)textures.add(value)}});textures.add(scene.background);for(const s of skeletons)s.dispose();for(const t of textures)t?.dispose();for(const m of materials)m.dispose();for(const g of geometries)g.dispose();renderer.dispose()}

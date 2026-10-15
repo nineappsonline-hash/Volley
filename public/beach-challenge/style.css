@@ -69,3 +69,5 @@ html[lang="ar-EG"] .eyebrow,html[lang="ar-EG"] #feedback,html[lang="ar-EG"] .pan
  .scoreboard{position:absolute;left:0;top:52px;order:0;margin:0}
  #feedback{left:max(10px,env(safe-area-inset-left));right:auto;transform:none;text-align:left;top:max(102px,calc(env(safe-area-inset-top) + 94px));max-width:min(48%,320px)}
 }
+
+#crosshair.contact-ready{color:#C7F23D;opacity:1;text-shadow:0 1px 3px #14213D,0 0 10px #C7F23D;font-weight:800;transform:translate(-50%,-50%) scale(1.25)}
