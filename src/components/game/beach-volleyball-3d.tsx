@@ -83,7 +83,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
     trackGameEvent("game_open", { source: variant === "inline" ? "homepage-3d" : "page-3d", mode });
   }
 
-  return <div ref={container} className={cn("relative overflow-hidden rounded-2xl bg-[#14213D] text-white", (fullscreen || expanded) && "fixed inset-0 z-[150] flex h-[100dvh] w-full flex-col rounded-none", className)} dir={dir}>
+  return <div ref={container} className={cn("relative select-none overflow-hidden rounded-2xl bg-[#14213D] text-white", (fullscreen || expanded) && "fixed inset-0 z-[150] flex h-[100dvh] w-full flex-col rounded-none", className)} dir={dir}>
     <div className={cn("flex shrink-0 flex-wrap items-center justify-end gap-3 border-b border-white/10 p-3", session && (fullscreen || expanded) && "hidden")}>
       {screenNotice && <span className="mr-auto text-xs text-white/80" role="status">{screenNotice}</span>}
       <button type="button" onClick={() => void toggleFullscreen()} aria-pressed={fullscreen || expanded} className="min-h-12 rounded-full border border-white/30 px-5 py-2 text-sm font-bold text-white">

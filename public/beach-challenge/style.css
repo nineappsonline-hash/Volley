@@ -34,3 +34,7 @@ html[lang="ar-EG"] .eyebrow,html[lang="ar-EG"] #feedback,html[lang="ar-EG"] .pan
  .touch-actions button:last-child{width:64px;height:64px}
  .panel{max-height:calc(100dvh - 24px);overflow:auto;padding:20px}.panel h2{font-size:26px;margin:10px 0}.result-logo{width:100px;height:50px;margin-bottom:8px}
 }
+
+/* Touch holds are game input, including on HUD text and the logo. */
+#game, #game *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#game img{-webkit-user-drag:none}
