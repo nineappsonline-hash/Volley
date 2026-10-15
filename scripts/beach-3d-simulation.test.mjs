@@ -1,4 +1,4 @@
-import {test} from 'node:test';import assert from 'node:assert/strict';import {Match,inCourt,integrate,trajectory} from '../public/beach-challenge/game/simulation.js';
+import {test} from 'node:test';import assert from 'node:assert/strict';import {Match,inCourt,integrate,trajectory,shotFlightTime} from '../public/beach-challenge/game/simulation.js';
 test('sphere footprint: lines count in, rounded corners stay exact',()=>{assert.ok(inCourt(4.105,0));assert.ok(!inCourt(4.106,0));assert.ok(inCourt(4.07,8.07));assert.ok(!inCourt(4.1,8.1))});
 test('fast net collision cannot tunnel',()=>{let b={x:0,y:1,z:.15,vx:0,vy:0,vz:-18};assert.equal(integrate(b,1/60),'net');assert.ok(b.z>0);assert.ok(b.vz>0)});
 test('low ball cannot pass underneath net',()=>{let b={x:0,y:.4,z:.1,vx:0,vy:0,vz:-18};assert.equal(integrate(b,1/60),'net')});
@@ -21,3 +21,13 @@ test('auto hit receives a reachable ball without a manual action',()=>{const m=i
 test('auto hit stays optional and respects reach and facing',()=>{for(const input of [{},{autoHit:false},{autoHit:true,yaw:Math.PI}]){const m=incomingBall();m.step(input);assert.equal(m.hitEvent,null)}const far=incomingBall();far.ball.x=3;far.step({autoHit:true});assert.equal(far.hitEvent,null)});
 test('auto hit respects cooldown and does not repeatedly contact an outgoing ball',()=>{const m=incomingBall();m.cooldown=.2;m.step({autoHit:true});assert.equal(m.hitEvent,null);m.cooldown=0;m.step({autoHit:true});const hit=m.hitEvent;for(let i=0;i<10;i++)m.step({autoHit:true});assert.equal(m.hitEvent,hit);assert.equal(m.touches,1)});
 test('manual tip overrides auto receive while the hit window is active',()=>{const m=incomingBall();m.action(true);m.step({autoHit:true});assert.equal(m.hitEvent?.type,'tip')});
+
+test('easy CPU leaves scoring opportunities and difficulties have distinct return rates',()=>{
+ const returns={};for(const difficulty of ['easy','medium','hard']){let saved=0;for(let seed=1;seed<=120;seed++){
+  const m=new Match({difficulty,seed});m.phase='rally';m.last=0;m.hitEvent={side:0,at:0,type:'receive'};m.ball={x:0,y:2,z:4,vx:0,vy:0,vz:0};
+  const target={x:[-3,0,3][seed%3],z:[-3,-5.5,-7][Math.floor(seed/3)%3]};m.launch(target,shotFlightTime(m.ball,target,1.45));
+  for(let i=0;i<300&&m.phase==='rally'&&m.hitEvent?.side!==1;i++)m.step();if(m.hitEvent?.side===1)saved++;
+ }returns[difficulty]=saved;}
+ assert.ok(returns.easy>=24&&returns.easy<=72,JSON.stringify(returns));assert.ok(returns.medium>returns.easy,JSON.stringify(returns));assert.ok(returns.hard>returns.medium&&returns.hard<114,JSON.stringify(returns));
+});
+test('easy CPU waits to read an incoming ball and stays still during its reaction delay',()=>{const m=new Match({difficulty:'easy'});m.serve();const before={...m.ai};for(let i=0;i<20;i++)m.step();assert.equal(m.ai.x,before.x);assert.equal(m.ai.z,before.z);assert.equal(m.hitEvent.side,0)});

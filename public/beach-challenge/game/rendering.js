@@ -16,7 +16,15 @@ function sandTexture(){
   ctx.fillStyle='#e2c392';ctx.fillRect(0,0,w,h);let seed=214;
   const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
   for(let i=0;i<28000;i++){const light=random()>.5;ctx.fillStyle=light?'rgba(255,248,224,.22)':'rgba(105,75,45,.10)';const r=.3+random()*1.2;ctx.fillRect(random()*w,random()*h,r,r)}
+  for(let i=0;i<90;i++){const x=random()*w,y=random()*h;ctx.strokeStyle='rgba(104,72,38,.055)';ctx.lineWidth=2+random()*3;ctx.beginPath();ctx.ellipse(x,y,3+random()*6,1.5+random()*2,random()*Math.PI,0,Math.PI*2);ctx.stroke()}
   for(let i=0;i<14;i++){ctx.beginPath();ctx.strokeStyle='rgba(159,125,78,.045)';ctx.lineWidth=3;ctx.moveTo(0,i*42);for(let x=0;x<=w;x+=8)ctx.lineTo(x,i*42+Math.sin(x*.032+i)*5);ctx.stroke()}
+ });
+}
+function jerseyTexture(){
+ return paintedTexture(128,128,(ctx,w,h)=>{
+  ctx.fillStyle='#ff795b';ctx.fillRect(0,0,w,h);
+  for(let y=0;y<h;y+=3){ctx.fillStyle=y%2?'rgba(255,255,255,.07)':'rgba(106,33,33,.07)';ctx.fillRect(0,y,w,1)}
+  for(let x=0;x<w;x+=3){ctx.fillStyle='rgba(255,233,213,.06)';ctx.fillRect(x,0,1,h)}
  });
 }
 function ballTexture(logo){
@@ -80,28 +88,33 @@ export function createWorld(canvas,settings,logo){
  const banner=mesh(new THREE.PlaneGeometry(4.5,1.15),mat(0xffffff,{map:bannerMap,side:THREE.DoubleSide}),0,1.5,-13);banner.castShadow=false;
  // Articulated adult sports character: limbs pivot at joints instead of their centres.
  const opponent=new THREE.Group();scene.add(opponent);
- const shirt=mesh(new THREE.CylinderGeometry(.23,.19,.58,16),teal,0,1.2,0,opponent);shirt.scale.z=.72;
- const collar=mesh(new THREE.TorusGeometry(.10,.025,6,16),cream,0,1.5,0,opponent);collar.rotation.x=Math.PI/2;
+ const jerseyMap=jerseyTexture();jerseyMap.wrapS=jerseyMap.wrapT=THREE.RepeatWrapping;jerseyMap.repeat.set(4,2);
+ const jersey=mat(0xffffff,{map:jerseyMap,roughness:1,bumpMap:jerseyMap,bumpScale:.003});
+ const shirt=mesh(new THREE.CylinderGeometry(.23,.19,.58,low?16:24),jersey,0,1.2,0,opponent);shirt.scale.z=.72;
+ const chestMap=paintedTexture(512,256,(ctx,w,h)=>{ctx.fillStyle='#ff795b';ctx.fillRect(0,0,w,h);ctx.fillStyle='#fff';ctx.beginPath();ctx.roundRect(20,22,w-40,h-44,18);ctx.fill();ctx.drawImage(logo,36,30,w-72,h-60)});
+ const crest=mesh(new THREE.CylinderGeometry(.223,.208,.22,16,1,true,-.82,1.64),mat(0xffffff,{map:chestMap,roughness:.95}),0,1.25,0,opponent);crest.scale.z=.72;crest.castShadow=false;
+ const collar=mesh(new THREE.TorusGeometry(.10,.025,6,16),teal,0,1.5,0,opponent);collar.rotation.x=Math.PI/2;
  const shorts=box(.40,.17,.25,dark,0,.85,0,opponent);
  const head=new THREE.Group();head.position.y=1.70;opponent.add(head);
  const face=sphere(.175,skin,0,0,0,head);face.scale.set(.86,1.12,.88);
- const hair=sphere(.18,mat(0x2c302e),0,.055,-.025,head);hair.scale.set(.88,.72,.82);
- for(let x of [-.071,.071]){sphere(.024,cream,x,.01,.142,head);sphere(.013,dark,x,.012,.164,head)}
+ const hair=sphere(.18,mat(0x2c302e),0,.105,-.015,head);hair.scale.set(.88,.60,.85);
+ for(let x of [-.057,.057]){sphere(.014,cream,x,.014,.147,head);sphere(.007,dark,x,.014,.160,head);box(.034,.008,.009,mat(0x47372e),x,.046,.145,head)}
  const nose=sphere(.03,skin,0,-.025,.15,head);nose.scale.set(.65,1,1);
  const mouth=box(.065,.012,.008,mat(0x915947),0,-.075,.145,head);
  const legs=[],cpuArms=[];
  for(let side of [-1,1]){
   const hip=new THREE.Group();hip.position.set(side*.13,.85,0);opponent.add(hip);legs.push(hip);
-  capsule(.085,.25,dark,0,-.17,0,hip);capsule(.07,.23,dark,0,-.49,.005,hip);
+  capsule(.09,.11,dark,0,-.10,0,hip);capsule(.077,.17,skin,0,-.28,0,hip);capsule(.064,.22,skin,0,-.51,.005,hip);
   const shoe=box(.15,.11,.29,cream,0,-.74,.065,hip);box(.15,.03,.30,mat(0xddb43f),0,-.79,.065,hip);
   const shoulder=new THREE.Group();shoulder.position.set(side*.27,1.43,0);opponent.add(shoulder);cpuArms.push(shoulder);
-  capsule(.085,.11,teal,0,-.095,0,shoulder);capsule(.065,.18,skin,0,-.245,0,shoulder);
+  capsule(.085,.11,jersey,0,-.095,0,shoulder);capsule(.065,.18,skin,0,-.245,0,shoulder);
   const forearm=new THREE.Group();forearm.position.set(0,-.37,0);shoulder.add(forearm);capsule(.054,.15,skin,0,-.095,0,forearm);sphere(.061,skin,0,-.23,0,forearm);
  }
  const hands=createHands(camera,skin,teal,low);
  let displayedPose=handPose();
  const ballMaterial=mat(0xffffff,{map:ballTexture(logo),roughness:.55});const ball=mesh(new THREE.SphereGeometry(.105,low?16:28,low?10:20),ballMaterial);
  const shadowMap=paintedTexture(64,64,(ctx,w,h)=>{const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);g.addColorStop(0,'rgba(55,47,34,.45)');g.addColorStop(.4,'rgba(55,47,34,.22)');g.addColorStop(1,'rgba(55,47,34,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h)});
+ const cpuShadow=mesh(new THREE.PlaneGeometry(.9,1.1),new THREE.MeshBasicMaterial({map:shadowMap,transparent:true,depthWrite:false,opacity:.75}),0,.027,-5.5);cpuShadow.rotation.x=-Math.PI/2;cpuShadow.castShadow=false;cpuShadow.receiveShadow=false;
  const shadow=mesh(new THREE.PlaneGeometry(.65,.65),new THREE.MeshBasicMaterial({map:shadowMap,transparent:true,depthWrite:false}),0,.026,0);shadow.rotation.x=-Math.PI/2;shadow.castShadow=false;shadow.receiveShadow=false;
  const landing=mesh(new THREE.RingGeometry(.30,.35,40),new THREE.MeshBasicMaterial({color:0xf5fdc4,side:THREE.DoubleSide,transparent:true,opacity:.7}),0,.03,0);landing.rotation.x=-Math.PI/2;landing.castShadow=false;
  const target=mesh(new THREE.RingGeometry(.14,.17,24),new THREE.MeshBasicMaterial({color:0xd5ef67,side:THREE.DoubleSide}),0,.035,-5.5);target.rotation.x=-Math.PI/2;target.castShadow=false;
@@ -116,6 +129,7 @@ export function createWorld(canvas,settings,logo){
    const blend=old&&old.phase===m.phase&&old.hitAt===(m.hitEvent?.at??-1);
    ball.position.set(blend?THREE.MathUtils.lerp(old.x,b.x,alpha):b.x,blend?THREE.MathUtils.lerp(old.y,b.y,alpha):b.y,blend?THREE.MathUtils.lerp(old.z,b.z,alpha):b.z);
    ball.rotation.set(m.clock*2.4,m.clock*1.1,m.clock*1.7);
+   cpuShadow.position.set(m.ai.x,.027,m.ai.z);cpuShadow.material.opacity=Math.max(.25,.75-m.ai.y*.25);
    opponent.position.set(m.ai.x,m.ai.y,m.ai.z);opponent.rotation.y=Math.atan2(p.x-m.ai.x,p.z-m.ai.z)*.5;
    const delta=Math.max(0,m.clock-previousClock),distance=Math.hypot(m.ai.x-previousAI.x,m.ai.z-previousAI.z);
    const moving=delta>0&&distance/delta>.15&&m.phase==='rally';if(moving)walkPhase+=distance*7;
