@@ -1,3 +1,4 @@
+import {createAthlete,createAthleteHands} from './athlete.js';
 import {createHands} from './hands.js';
 import {handPose,contactPose,animationWeight} from './hand-pose.js';
 import * as THREE from '../vendor/three.module.js';
@@ -34,7 +35,7 @@ function ballTexture(logo){
   for(const x of [58,314]){ctx.fillStyle='#ffffff';ctx.fillRect(x,89,140,78);ctx.drawImage(logo,x+4,93,132,66)}
  });
 }
-export function createWorld(canvas,settings,logo){
+export function createWorld(canvas,settings,logo,athleteAsset=null){
  const mobileAuto=settings.touch&&settings.quality!=='high',low=settings.quality==='low'||mobileAuto;
  const renderer=new THREE.WebGLRenderer({canvas,antialias:!low});
  renderer.setPixelRatio(Math.min(devicePixelRatio,low?Math.min(1,Math.sqrt(650000/(innerWidth*innerHeight))):1.5));
@@ -110,7 +111,8 @@ export function createWorld(canvas,settings,logo){
   capsule(.085,.11,jersey,0,-.095,0,shoulder);capsule(.065,.18,skin,0,-.245,0,shoulder);
   const forearm=new THREE.Group();forearm.position.set(0,-.37,0);shoulder.add(forearm);capsule(.054,.15,skin,0,-.095,0,forearm);sphere(.061,skin,0,-.23,0,forearm);
  }
- const hands=createHands(camera,skin,teal,low);
+ const athlete=athleteAsset?createAthlete(scene,athleteAsset,logo,low):null;if(athlete)opponent.visible=false;
+ const hands=athleteAsset?createAthleteHands(camera,athleteAsset,low):createHands(camera,skin,teal,low);
  let displayedPose=handPose();
  const ballMaterial=mat(0xffffff,{map:ballTexture(logo),roughness:.55});const ball=mesh(new THREE.SphereGeometry(.105,low?16:28,low?10:20),ballMaterial);
  const shadowMap=paintedTexture(64,64,(ctx,w,h)=>{const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);g.addColorStop(0,'rgba(55,47,34,.45)');g.addColorStop(.4,'rgba(55,47,34,.22)');g.addColorStop(1,'rgba(55,47,34,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h)});
@@ -129,6 +131,7 @@ export function createWorld(canvas,settings,logo){
    const blend=old&&old.phase===m.phase&&old.hitAt===(m.hitEvent?.at??-1);
    ball.position.set(blend?THREE.MathUtils.lerp(old.x,b.x,alpha):b.x,blend?THREE.MathUtils.lerp(old.y,b.y,alpha):b.y,blend?THREE.MathUtils.lerp(old.z,b.z,alpha):b.z);
    ball.rotation.set(m.clock*2.4,m.clock*1.1,m.clock*1.7);
+   athlete?.update(m);
    cpuShadow.position.set(m.ai.x,.027,m.ai.z);cpuShadow.material.opacity=Math.max(.25,.75-m.ai.y*.25);
    opponent.position.set(m.ai.x,m.ai.y,m.ai.z);opponent.rotation.y=Math.atan2(p.x-m.ai.x,p.z-m.ai.z)*.5;
    const delta=Math.max(0,m.clock-previousClock),distance=Math.hypot(m.ai.x-previousAI.x,m.ai.z-previousAI.z);
@@ -154,6 +157,6 @@ export function createWorld(canvas,settings,logo){
    target.visible=settings.assist&&m.phase==='rally';target.position.x=Math.max(-3.6,Math.min(3.6,Math.sin(-yaw)*7));
    renderer.render(scene,camera);
   },
-  dispose(){const geometries=new Set(),materials=new Set(),textures=new Set();scene.traverse(o=>{if(o.geometry)geometries.add(o.geometry);for(const material of o.material?(Array.isArray(o.material)?o.material:[o.material]):[]){materials.add(material);for(const value of Object.values(material))if(value?.isTexture)textures.add(value)}});textures.add(scene.background);for(const t of textures)t?.dispose();for(const m of materials)m.dispose();for(const g of geometries)g.dispose();renderer.dispose()}
+  dispose(){const geometries=new Set(),materials=new Set(),textures=new Set(),skeletons=new Set();scene.traverse(o=>{if(o.skeleton)skeletons.add(o.skeleton);if(o.geometry)geometries.add(o.geometry);for(const material of o.material?(Array.isArray(o.material)?o.material:[o.material]):[]){materials.add(material);for(const value of Object.values(material))if(value?.isTexture)textures.add(value)}});textures.add(scene.background);for(const s of skeletons)s.dispose();for(const t of textures)t?.dispose();for(const m of materials)m.dispose();for(const g of geometries)g.dispose();renderer.dispose()}
  };
 }
