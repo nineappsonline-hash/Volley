@@ -63,3 +63,9 @@ html[lang="ar-EG"] .eyebrow,html[lang="ar-EG"] #feedback,html[lang="ar-EG"] .pan
 @media (pointer:coarse), (max-height:500px), (max-width:550px){
  .card-sheet{gap:12px;padding:14px}
 }
+
+/* Landscape phones: keep the score card and live commentary on the left edge. */
+@media (orientation:landscape) and (pointer:coarse), (orientation:landscape) and (max-height:500px){
+ .scoreboard{position:absolute;left:0;top:52px;order:0;margin:0}
+ #feedback{left:max(10px,env(safe-area-inset-left));right:auto;transform:none;text-align:left;top:max(102px,calc(env(safe-area-inset-top) + 94px));max-width:min(48%,320px)}
+}
