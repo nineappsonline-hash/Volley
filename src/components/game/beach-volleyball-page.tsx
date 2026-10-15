@@ -45,10 +45,10 @@ export function BeachVolleyballPage() {
         </Link>
 
         <header className="mt-4">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-[#14213D]/70">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">
             {t.cardKicker}
           </p>
-          <h1 className="mt-2 text-3xl font-black text-[#14213D] sm:text-4xl">{t.title}</h1>
+          <h1 className="mt-2 text-3xl font-black text-foreground sm:text-4xl">{t.title}</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t.cardDesc}</p>
         </header>
 
@@ -80,7 +80,7 @@ export function BeachVolleyballPage() {
         <section className="mt-8 grid gap-6 sm:grid-cols-2">
           <div className="rounded-2xl border bg-card p-5">
             <h2 className="flex items-center gap-2 text-lg font-bold">
-              <Gamepad2 size={18} className="text-[#14213D]" />
+              <Gamepad2 size={18} className="text-foreground" />
               {t.gameRules}
             </h2>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
@@ -92,8 +92,8 @@ export function BeachVolleyballPage() {
           </div>
 
           <div className="rounded-2xl border border-[#C7F23D]/50 bg-[#C7F23D]/10 p-5">
-            <h2 className="text-lg font-bold text-[#14213D]">{t.ctaTitle}</h2>
-            <p className="mt-2 text-sm text-[#14213D]/80">{t.ctaDesc}</p>
+            <h2 className="text-lg font-bold text-foreground">{t.ctaTitle}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{t.ctaDesc}</p>
             <Link
               href={BOOKING_HREF}
               onClick={() =>
