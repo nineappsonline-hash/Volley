@@ -27,9 +27,9 @@ function ballTexture(logo){
  });
 }
 export function createWorld(canvas,settings,logo){
- const low=settings.quality==='low',mobileAuto=settings.quality==='auto'&&settings.touch;
+ const mobileAuto=settings.touch&&settings.quality!=='high',low=settings.quality==='low'||mobileAuto;
  const renderer=new THREE.WebGLRenderer({canvas,antialias:!low});
- renderer.setPixelRatio(Math.min(devicePixelRatio,low?1:mobileAuto?1.25:1.5));
+ renderer.setPixelRatio(Math.min(devicePixelRatio,low?Math.min(1,Math.sqrt(650000/(innerWidth*innerHeight))):1.5));
  renderer.shadowMap.enabled=!low&&!mobileAuto;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
  const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xd4e0db,34,90);
@@ -39,12 +39,16 @@ export function createWorld(canvas,settings,logo){
  const sun=new THREE.DirectionalLight(0xffecd2,2.5);sun.position.set(-15,22,12);sun.castShadow=true;
  sun.shadow.mapSize.set(settings.quality==='high'?2048:1024,settings.quality==='high'?2048:1024);
  Object.assign(sun.shadow.camera,{left:-16,right:16,top:16,bottom:-16,near:.5,far:60});sun.shadow.bias=-.0004;sun.shadow.normalBias=.035;sun.shadow.radius=3;scene.add(sun);
- const mat=(c,extra={})=>new THREE.MeshStandardMaterial({color:c,roughness:.85,...extra});
+ const mat=(c,extra={})=>{
+  if(!low)return new THREE.MeshStandardMaterial({color:c,roughness:.85,...extra});
+  const options={color:c};for(const key of ['map','side','transparent','opacity','emissive','emissiveIntensity'])if(extra[key]!==undefined)options[key]=extra[key];
+  return new THREE.MeshLambertMaterial(options);
+ };
  const teal=mat(0x14213d),dark=mat(0x253e44),skin=mat(0xc89270),cream=mat(0xf4f0df),green=mat(0x658854),metal=mat(0x52676c,{roughness:.4,metalness:.35});
  function mesh(geometry,material,x=0,y=0,z=0,parent=scene){const o=new THREE.Mesh(geometry,material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
  const box=(w,h,d,m,x=0,y=0,z=0,parent=scene)=>mesh(new THREE.BoxGeometry(w,h,d),m,x,y,z,parent);
- const sphere=(r,m,x=0,y=0,z=0,parent=scene)=>mesh(new THREE.SphereGeometry(r,20,14),m,x,y,z,parent);
- const capsule=(r,l,m,x,y,z,parent)=>mesh(new THREE.CapsuleGeometry(r,l,5,12),m,x,y,z,parent);
+ const sphere=(r,m,x=0,y=0,z=0,parent=scene)=>mesh(new THREE.SphereGeometry(r,low?12:20,low?8:14),m,x,y,z,parent);
+ const capsule=(r,l,m,x,y,z,parent)=>mesh(new THREE.CapsuleGeometry(r,l,low?3:5,low?8:12),m,x,y,z,parent);
  function batch(geometry,material,items,cast=true){const o=new THREE.InstancedMesh(geometry,material,items.length),dummy=new THREE.Object3D();items.forEach((v,i)=>{dummy.position.set(...v.position);dummy.scale.set(...(v.scale||[1,1,1]));dummy.rotation.set(...(v.rotation||[0,0,0]));dummy.updateMatrix();o.setMatrixAt(i,dummy.matrix)});o.castShadow=cast;o.receiveShadow=true;scene.add(o);return o}
  const sandMap=sandTexture();sandMap.wrapS=sandMap.wrapT=THREE.RepeatWrapping;sandMap.repeat.set(8,12);sandMap.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());
  const sand=mat(0xffffff,{map:sandMap,bumpMap:sandMap,bumpScale:low?0:.025,roughness:1});
@@ -66,7 +70,7 @@ export function createWorld(canvas,settings,logo){
   trunks.push({position:[x,1.15,z],scale:[.24,2.3,.24]});foliage.push({position:[x,3.2,z],scale:[1.2,1.7,1.2]},{position:[x+.5,4,z],scale:[1,1.1,1]});
   planters.push({position:[x,.2,z],scale:[2.1,.4,2.1]});
  }
- batch(new THREE.BoxGeometry(1,1,1),mat(0x7e6b51),trunks);batch(new THREE.IcosahedronGeometry(1,2),green,foliage);batch(new THREE.BoxGeometry(1,1,1),mat(0xbaa98e),planters);
+ batch(new THREE.BoxGeometry(1,1,1),mat(0x7e6b51),trunks);batch(new THREE.IcosahedronGeometry(1,low?1:2),green,foliage);batch(new THREE.BoxGeometry(1,1,1),mat(0xbaa98e),planters);
  for(let i=0;i<10;i++){const x=(i-5)*7,z=-34-(i%3)*6,h=5+(i%4)*1.5;buildings.push({position:[x,h/2,z],scale:[6,h,5]});for(let y=1.5;y<h;y+=1.65)windows.push({position:[x,y,z+2.52],scale:[4.8,.85,.025]})}
  batch(new THREE.BoxGeometry(1,1,1),mat(0xd9d9ca),buildings);batch(new THREE.BoxGeometry(1,1,1),mat(0x7a9ea6,{roughness:.3,metalness:.25}),windows);
  const fencePosts=[],fenceBars=[];for(let x=-10;x<=10;x+=2){fencePosts.push({position:[x,.8,-13],scale:[.065,1.6,.065]})}for(let y of [.35,.85,1.35])fenceBars.push({position:[0,y,-13],scale:[20,.025,.025]});batch(new THREE.BoxGeometry(1,1,1),metal,fencePosts);batch(new THREE.BoxGeometry(1,1,1),metal,fenceBars);
@@ -94,17 +98,17 @@ export function createWorld(canvas,settings,logo){
   capsule(.085,.11,teal,0,-.095,0,shoulder);capsule(.065,.18,skin,0,-.245,0,shoulder);
   const forearm=new THREE.Group();forearm.position.set(0,-.37,0);shoulder.add(forearm);capsule(.054,.15,skin,0,-.095,0,forearm);sphere(.061,skin,0,-.23,0,forearm);
  }
- const hands=createHands(camera,skin,teal);
+ const hands=createHands(camera,skin,teal,low);
  let displayedPose=handPose();
- const ballMaterial=mat(0xffffff,{map:ballTexture(logo),roughness:.55});const ball=mesh(new THREE.SphereGeometry(.105,28,20),ballMaterial);
+ const ballMaterial=mat(0xffffff,{map:ballTexture(logo),roughness:.55});const ball=mesh(new THREE.SphereGeometry(.105,low?16:28,low?10:20),ballMaterial);
  const shadowMap=paintedTexture(64,64,(ctx,w,h)=>{const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);g.addColorStop(0,'rgba(55,47,34,.45)');g.addColorStop(.4,'rgba(55,47,34,.22)');g.addColorStop(1,'rgba(55,47,34,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h)});
  const shadow=mesh(new THREE.PlaneGeometry(.65,.65),new THREE.MeshBasicMaterial({map:shadowMap,transparent:true,depthWrite:false}),0,.026,0);shadow.rotation.x=-Math.PI/2;shadow.castShadow=false;shadow.receiveShadow=false;
  const landing=mesh(new THREE.RingGeometry(.30,.35,40),new THREE.MeshBasicMaterial({color:0xf5fdc4,side:THREE.DoubleSide,transparent:true,opacity:.7}),0,.03,0);landing.rotation.x=-Math.PI/2;landing.castShadow=false;
  const target=mesh(new THREE.RingGeometry(.14,.17,24),new THREE.MeshBasicMaterial({color:0xd5ef67,side:THREE.DoubleSide}),0,.035,-5.5);target.rotation.x=-Math.PI/2;target.castShadow=false;
- let previousAI={x:0,z:-5.5},previousClock=0,walkPhase=0;
- function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}resize();
+ let previousAI={x:0,z:-5.5},previousClock=0,walkPhase=0,lastHands=-1;
+ function resize(){if(low)renderer.setPixelRatio(Math.min(renderer.getPixelRatio(),devicePixelRatio,1,Math.sqrt(650000/(innerWidth*innerHeight))));renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}resize();
  return {scene,camera,renderer,resize,
-  lowerQuality(){renderer.setPixelRatio(Math.max(.75,renderer.getPixelRatio()*.8));renderer.shadowMap.enabled=false;resize()},
+  lowerQuality(){renderer.setPixelRatio(Math.max(.5,renderer.getPixelRatio()*.8));renderer.shadowMap.enabled=false;resize()},
   render(m,yaw,pitch,alpha=1){
    const p=m.player,b=m.ball,old=m.previousBall;
    camera.position.set(p.x,p.y+1.7,p.z);camera.rotation.set(pitch,yaw,0);
@@ -130,7 +134,7 @@ export function createWorld(canvas,settings,logo){
    const weight=confirmed?animationWeight(age):near?.65:0;
    const targetPose=handPose(pose,weight),blendPose=1-Math.exp(-18*Math.min(.05,delta||1/60));
    displayedPose=displayedPose.map((v,i)=>({position:v.position.map((x,j)=>THREE.MathUtils.lerp(x,targetPose[i].position[j],blendPose)),rotation:v.rotation.map((x,j)=>THREE.MathUtils.lerp(x,targetPose[i].rotation[j],blendPose)),curl:THREE.MathUtils.lerp(v.curl,targetPose[i].curl,blendPose),spread:THREE.MathUtils.lerp(v.spread,targetPose[i].spread,blendPose)}));
-   hands.update(displayedPose);
+   if(!low||m.clock-lastHands>=1/30||lastHands<0){hands.update(displayedPose);lastHands=m.clock}
    shadow.position.set(ball.position.x,.026,ball.position.z);shadow.visible=Math.abs(b.x)<6&&Math.abs(b.z)<10;shadow.scale.setScalar(1+Math.max(0,b.y)*.08);shadow.material.opacity=Math.max(.25,1-b.y*.1);
    landing.visible=settings.assist&&(settings.difficulty==='easy'||m.config.practice)&&m.phase==='rally';const t=(b.vy+Math.sqrt(Math.max(0,b.vy*b.vy+19.62*(b.y-.105))))/9.81;landing.position.set(b.x+b.vx*t,.03,b.z+b.vz*t);
    target.visible=settings.assist&&m.phase==='rally';target.position.x=Math.max(-3.6,Math.min(3.6,Math.sin(-yaw)*7));
