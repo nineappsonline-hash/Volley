@@ -6,7 +6,8 @@ import {
   useState,
   type ComponentType,
 } from "react";
-import { Maximize2, Minimize2, Play, Trophy, Users, Zap } from "lucide-react";
+import Image from "next/image";
+import { Maximize2, Minimize2, Play, Gamepad2, Timer, Zap } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { gameText } from "@/lib/game/i18n";
@@ -18,6 +19,21 @@ type GameComponent = ComponentType<BeachVolleyballGameProps>;
 export function BeachVolleyballGameCard() {
   const { lang, dir } = useI18n();
   const t = gameText(lang);
+  const copy = lang === "ar" ? {
+    kicker: "ملعب بلايزا الافتراضي · لعبة ثلاثية الأبعاد",
+    title: "انزل الرمل من شاشتك.", accent: "والعب بتقنية 3D.",
+    description: "جرّب حماس الطائرة الشاطئية في تجربة افتراضية من منظور اللاعب. استقبل الكرة، انط واضرب، وتحدى الكمبيوتر في ماتش مدته ٩٠ ثانية.",
+    highlights: ["منظور اللاعب بتقنية 3D", "ماتشات ٩٠ ثانية", "ببلاش ومن غير حساب"],
+    action: "جرّب التجربة ثلاثية الأبعاد", note: "العب دلوقتي على الموبايل أو الكمبيوتر.",
+    preview: "لقطة من اللعبة", previewAlt: "اللعبة ثلاثية الأبعاد من منظور اللاعب: كرة بلايزا فوق ملعب الطائرة الشاطئية",
+  } : {
+    kicker: "PLAYZA VIRTUAL COURT · 3D GAME",
+    title: "Step onto the sand.", accent: "Play in 3D.",
+    description: "Get a taste of beach volleyball from the player’s point of view. Receive, jump and spike your way through a 90-second match against the computer.",
+    highlights: ["First-person 3D", "90-second matches", "Free · No sign-up"],
+    action: "Try the 3D experience", note: "Jump in on your phone or computer. Your virtual court is ready.",
+    preview: "ACTUAL GAMEPLAY", previewAlt: "First-person 3D gameplay showing a Playza volleyball on the beach court",
+  };
   const [opened, setOpened] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -99,24 +115,24 @@ export function BeachVolleyballGameCard() {
           <div className="grid gap-6 p-6 sm:p-10 md:grid-cols-[1.1fr_1fr] md:items-center">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-[#C7F23D]">
-                {t.cardKicker}
+                {copy.kicker}
               </p>
               <h2
                 id="beach-challenge-title"
                 className="mt-3 text-3xl font-black leading-tight text-white sm:text-4xl"
               >
-                {t.cardTitle}
+                {copy.title}<br /><span className="text-[#C7F23D]">{copy.accent}</span>
               </h2>
-              <p className="mt-3 max-w-md text-sm text-white/75">{t.cardDesc}</p>
+              <p className="mt-4 max-w-lg text-base leading-relaxed text-white/80">{copy.description}</p>
               <ul className="mt-5 flex flex-wrap gap-3 text-xs font-semibold text-white/80">
                 <li className="inline-flex items-center gap-1.5">
-                  <Zap size={14} className="text-[#C7F23D]" /> {t.cardHighlights[0]}
+                  <Gamepad2 size={14} className="text-[#C7F23D]" /> {copy.highlights[0]}
                 </li>
                 <li className="inline-flex items-center gap-1.5">
-                  <Users size={14} className="text-[#C7F23D]" /> {t.cardHighlights[1]}
+                  <Timer size={14} className="text-[#C7F23D]" /> {copy.highlights[1]}
                 </li>
                 <li className="inline-flex items-center gap-1.5">
-                  <Trophy size={14} className="text-[#C7F23D]" /> {t.cardHighlights[2]}
+                  <Zap size={14} className="text-[#C7F23D]" /> {copy.highlights[2]}
                 </li>
               </ul>
               <button
@@ -127,11 +143,16 @@ export function BeachVolleyballGameCard() {
                   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C7F23D]",
                 )}
               >
-                <Play size={18} /> {t.playFree}
+                <Play size={18} aria-hidden="true" /> {copy.action}
               </button>
+              <p className="mt-3 text-xs leading-relaxed text-white/65">{copy.note}</p>
             </div>
-            <div aria-hidden="true" className="relative hidden aspect-video md:block">
-              <MiniCourt />
+            <div className="relative min-w-0 overflow-hidden rounded-2xl border border-white/20 bg-[#0E182D] shadow-2xl">
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
+                <span className="text-xs font-bold tracking-wider text-white/80">{copy.preview}</span>
+                <span className="rounded-md bg-[#C7F23D] px-2.5 py-1 text-sm font-black text-[#14213D]">3D</span>
+              </div>
+              <Image src="/beach-challenge/assets/gameplay-preview.png" alt={copy.previewAlt} width={800} height={370} sizes="(min-width: 768px) 50vw, 100vw" className="h-auto w-full" />
             </div>
           </div>
         ) : (
@@ -194,32 +215,5 @@ export function BeachVolleyballGameCard() {
         )}
       </div>
     </section>
-  );
-}
-
-function MiniCourt() {
-  return (
-    <svg viewBox="0 0 640 360" className="h-full w-full" fill="none">
-      <rect width="640" height="360" rx="20" fill="#0E182D" />
-      <circle cx="520" cy="70" r="42" fill="#C7F23D" opacity="0.9" />
-      <path d="M40 250L320 150L610 250L330 350Z" fill="#E4D3AD" />
-      <path d="M40 240L320 140L610 240L330 340Z" fill="#F5EAD3" stroke="#14213D" strokeWidth="3" />
-      <path d="M150 210V120L470 208V300" stroke="#14213D" strokeWidth="6" strokeLinecap="round" />
-      <path d="M154 128L466 216V262L154 174Z" fill="#fff" fillOpacity="0.35" stroke="#14213D" strokeWidth="2" />
-      {Array.from({ length: 11 }, (_, i) => (
-        <path key={i} d={`M${160 + i * 30} ${132 + i * 12}v42`} stroke="#14213D" strokeWidth="1.2" />
-      ))}
-      <circle cx="220" cy="120" r="18" fill="#F6F8FA" stroke="#14213D" strokeWidth="2" />
-      <path
-        d="M204 114Q220 126 236 108M220 120Q216 132 210 136M220 120Q234 118 240 124"
-        stroke="#14213D"
-        strokeWidth="2"
-      />
-      <g stroke="#14213D" strokeWidth="8" strokeLinecap="round">
-        <path d="M170 230L158 268M182 232L198 268" />
-        <path d="M176 196L176 226" />
-      </g>
-      <circle cx="176" cy="184" r="12" fill="#E2B79C" stroke="#14213D" strokeWidth="2" />
-    </svg>
   );
 }
