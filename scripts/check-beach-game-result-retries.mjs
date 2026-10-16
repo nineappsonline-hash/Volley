@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+globalThis.window=globalThis;globalThis.parent=globalThis;globalThis.location={search:'',origin:'https://example.test'};
+const storage=new Map();globalThis.localStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v)};
+let offline=false,starts=0,completions=0;const seen=new Set();
+globalThis.fetch=async(_url,options)=>{if(offline)throw Error('offline');const body=JSON.parse(options.body);if(body.action==='start'){starts++;return Response.json({id:`00000000-0000-4000-8000-${String(starts).padStart(12,'0')}`,token:'a'.repeat(43)},{status:201})}if(!seen.has(body.id)){completions++;seen.add(body.id)}return Response.json({totalGames:completions})};
+const {beginCountedMatch,completeCountedMatch,flushMatchResults}=await import('../public/beach-challenge/game/match-stats.js');
+const registration=beginCountedMatch();await registration;offline=true;await completeCountedMatch(registration,7,3);assert.equal(completions,0);assert.equal(JSON.parse([...storage.values()][0]).length,1);
+offline=false;await Promise.all([flushMatchResults(),flushMatchResults()]);assert.equal(completions,1);assert.equal(JSON.parse([...storage.values()][0]).length,0);
+await completeCountedMatch(registration,7,3);assert.equal(completions,1);
+await completeCountedMatch(Promise.resolve(null),1,2);assert.equal(completions,1);
+localStorage.setItem('playza-completed-matches-v1',JSON.stringify([null,{},'bad']));await flushMatchResults();assert.equal(completions,1);
+globalThis.localStorage={getItem:()=>{throw Error('disabled')},setItem:()=>{throw Error('disabled')}};await completeCountedMatch(beginCountedMatch(),2,6);assert.equal(completions,2);
+console.log('Result retry tests passed: offline queue, successful retry, concurrent flush, duplicate completion, missing registration, corrupted/disabled storage.');

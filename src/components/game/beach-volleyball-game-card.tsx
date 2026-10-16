@@ -1,4 +1,5 @@
 "use client";
+import { BeachGameStats } from "./beach-game-stats";
 
 import Image from "next/image";
 import { Play, Gamepad2, Timer, Zap } from "lucide-react";
@@ -62,6 +63,7 @@ export function BeachVolleyballGameCard() {
                   <Zap size={14} className="text-[#C7F23D]" /> {copy.highlights[2]}
                 </li>
               </ul>
+              <BeachGameStats className="mt-5" />
               <button
                 type="button"
                 onClick={open}
