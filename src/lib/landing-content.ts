@@ -20,6 +20,7 @@ export function landingPageJsonLd(siteUrl: string): Record<string, unknown> {
       { "@type": "Thing", name: "Volleyball" },
       { "@type": "Thing", name: "Beach Volleyball", alternateName: "الكرة الطائرة الشاطئية" },
       { "@type": "Thing", name: "Tennis" },
+      { "@type": "Thing", name: "Archery", alternateName: "الرماية بالقوس" },
     ],
     hasPart: {
       "@type": "WebPageElement",
@@ -45,4 +46,9 @@ export const SportsHeroSceneCopy = {
     note: "٣ رياضات. مجتمع واحد. ولعبتك الجاية.",
     artLabel: "رسم للاعبي كرة طائرة عند الشبكة، ومضرب وكرة تنس، ورامي بالقوس يصوّب نحو هدف",
   },
+} as const;
+
+export const ARCHERY_DESCRIPTION = {
+  en: "Find your focus with archery. Discover a sport built around patience, precision and the satisfaction of a well-placed shot. Ask organizers about introductory coaching, equipment and the right session for your experience.",
+  ar: "لاقي تركيزك مع الرماية بالقوس. رياضة بتجمع الصبر والدقة ومتعة إصابة الهدف. اسأل المنظم عن التدريب التعريفي والأدوات والحصة المناسبة لخبرتك.",
 } as const;
