@@ -1,3 +1,5 @@
+import { publicGamePath } from "@/lib/game-discovery";
+import { LOCAL_GAME_GUIDES, localGamePath } from "@/lib/local-games";
 import { PlayerJoiningGuide } from "@/components/games/player-joining-guide";
 import { gameSharePrice } from "@/lib/game-share";
 import { SignedInGameParticipantNames } from "@/components/games/game-participant-names";
@@ -72,8 +74,8 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
       return {
         title: meta.title,
         description: meta.description,
-        alternates: { canonical: joinUrl },
-        robots: { index: true, follow: true },
+        alternates: { canonical: game.is_public ? publicGamePath(game.id) : joinUrl },
+        robots: { index: game.is_public, follow: game.is_public },
         openGraph: {
           title: meta.title,
           description: meta.description,
@@ -182,7 +184,7 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
       itemListElement: games.slice(0, 20).map((g, i) => ({
         "@type": "ListItem",
         position: i + 1,
-        url: `${SITE_URL}/games`,
+        url: `${SITE_URL}${publicGamePath(g.id)}`,
         name: g.title,
       })),
     },
@@ -234,7 +236,7 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h2 className="text-lg font-bold">{g.title}</h2>
+                      <h2 className="text-lg font-bold"><Link href={publicGamePath(g.id)} className="hover:underline underline-offset-4">{g.title}</Link></h2>
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         {g.sport}
                         {g.skill_level ? ` · ${SKILL_EN[g.skill_level] ?? g.skill_level}` : ""}
@@ -286,14 +288,17 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
 
                   <div className="mt-4"><SignedInGameParticipantNames gameId={g.id} /></div>
                   <div className="mt-auto pt-4">
+                    <Link href={publicGamePath(g.id)} className="mb-3 inline-block text-sm font-semibold underline underline-offset-4">View full game details</Link>
                     <PlayerJoiningGuide skillLevel={g.skill_level} />
-                    <PublicGameJoin game={g} returnTo={`/games?sport=${encodeURIComponent(sportToSlug(g.sport))}&focus=${encodeURIComponent(g.id)}`} />
+                    <PublicGameJoin game={g} returnTo={publicGamePath(g.id)} />
                   </div>
                 </article>
               );
             })}
           </div>
         )}
+
+        <nav aria-label="Games in New Cairo" className="mt-10 flex flex-wrap gap-4">{LOCAL_GAME_GUIDES.map(guide => <Link key={guide.slug} href={localGamePath("en", guide.slug)} className="font-semibold underline underline-offset-4">{guide.en.title}</Link>)}</nav>
 
         <section aria-labelledby="joining-questions" className="mt-12 rounded-xl border bg-card p-6">
           <h2 id="joining-questions" className="text-xl font-bold">Joining a game: common questions</h2>

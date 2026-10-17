@@ -1,3 +1,5 @@
+import { publicGamePath } from "@/lib/game-discovery";
+import { LOCAL_GAME_GUIDES, localGamePath } from "@/lib/local-games";
 import { VOLLEYBALL_GUIDES, guidePath } from "@/lib/volleyball-guides";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -76,6 +78,7 @@ export async function SportDiscoveryPage({ slug, lang }: { slug: string; lang: D
   const title = ar ? `${name} في القاهرة` : `Play ${name} in Cairo`;
   return <main lang={lang} dir={ar ? "rtl" : "ltr"} className="min-h-screen bg-background pb-16">
     <Header lang={lang} slug={slug} />
+    {volleyball && <nav aria-label={ar ? "ماتشات في التجمع" : "Games in New Cairo"} className="mx-auto flex max-w-6xl flex-wrap gap-4 px-5 pb-5">{LOCAL_GAME_GUIDES.map(g => <Link key={g.slug} className="underline underline-offset-4" href={localGamePath(lang, g.slug)}>{g[lang].title}</Link>)}</nav>}
     {volleyball && <nav className="mx-auto flex max-w-6xl flex-wrap gap-4 px-5 pb-5" aria-label={ar ? "إرشادات اللعب" : "Playing guides"}>{VOLLEYBALL_GUIDES.map(g => <Link key={g.slug} className="text-brand underline underline-offset-4" href={guidePath(lang, g.slug)}>{g[lang].title}</Link>)}</nav>}
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@context": "https://schema.org", "@graph": [
       { "@type": "WebPage", name: title, url: `${SITE_URL}${discoveryPath(lang, slug)}`, inLanguage: ar ? "ar-EG" : "en", description: sport.advice[lang], about: { "@type": "Thing", name: sport.name } },
@@ -122,11 +125,11 @@ export async function SportDiscoveryPage({ slug, lang }: { slug: string; lang: D
         <h2 className="text-2xl font-bold">{ar ? `أنشطة ${name} القادمة في القاهرة` : `Upcoming ${name} activities in Cairo`}</h2>
         <p className="text-sm text-muted-foreground">{ar ? "أنشطة منشورة بملاعب في القاهرة. افتح صفحة المباريات لمراجعة كل الخيارات والتفاصيل." : "Published activities at Cairo venues. Open the games page to see all options and participation details."}</p>
         {cairoGames.length ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{cairoGames.slice(0, 6).map(game => <article key={game.id} className="space-y-2 rounded-2xl border bg-card p-5">
-          <h3 className="font-bold">{game.title}</h3>
+          <h3 className="font-bold"><Link href={publicGamePath(game.id)} className="underline underline-offset-4">{game.title}</Link></h3>
           <p className="text-sm text-muted-foreground">{[game.playground?.name, game.playground?.area || game.area, game.playground?.governorate].filter(Boolean).join(" · ") || game.location || (ar ? "راجع المكان مع المنظم" : "Confirm the location with the organizer")}</p>
           <p className="text-sm"><time dateTime={game.game_date}>{new Intl.DateTimeFormat(ar ? "ar-EG" : "en", { dateStyle: "medium", timeZone: "Africa/Cairo" }).format(new Date(`${game.game_date}T12:00:00Z`))}</time> · {formatTime12h(game.start_time, lang)}</p>
           <p className="text-sm font-semibold">{game.host_pays ? (ar ? "المنظم بيتكفل بالتكلفة" : "Host covers the cost") : game.share_price == null ? (ar ? "راجع التكلفة مع المنظم" : "Confirm the cost") : formatMoney(game.share_price, lang)}</p>
-          <Link href={gamesUrl} className="inline-block text-sm font-semibold text-primary underline underline-offset-4">{ar ? "تفاصيل المشاركة" : "View participation details"}</Link>
+          <Link href={publicGamePath(game.id)} className="inline-block text-sm font-semibold text-primary underline underline-offset-4">{ar ? "تفاصيل المشاركة" : "View participation details"}</Link>
         </article>)}</div> : <p className="rounded-2xl border p-5 text-muted-foreground">{ar ? "لا توجد أنشطة قادمة متاحة للعرض هنا حاليًا. تقدر تراجع صفحة المباريات أو تنظم نشاط وتشارك رابطه مع أصحابك." : "No upcoming activities are available to display here right now. Check the games page or organize an activity and share it with friends."}</p>}
       </section>
       <section className="space-y-4"><h2 className="text-2xl font-bold">{ar ? "قبل ما تشارك" : "Before you join"}</h2>{questions.map(([q, a]) => <article key={q} className="rounded-2xl border p-5"><h3 className="font-bold">{q}</h3><p className="mt-2 leading-relaxed text-muted-foreground">{a}</p></article>)}</section>

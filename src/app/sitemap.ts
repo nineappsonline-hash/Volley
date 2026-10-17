@@ -1,8 +1,10 @@
+import { LOCAL_GAME_GUIDES, localGamePath } from "@/lib/local-games";
+import { publicGamePath } from "@/lib/game-discovery";
 import { VOLLEYBALL_GUIDES, guidePath } from "@/lib/volleyball-guides";
 import type { MetadataRoute } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SITE_URL } from "@/lib/seo";
-import { getPublicGameSports, getPublicTournamentSports } from "@/lib/public-games";
+import { getPublicGameIds, getPublicGameSports, getPublicTournamentSports } from "@/lib/public-games";
 import { DISCOVERY_SPORTS, discoveryPath } from "@/lib/sport-discovery";
 import { sportToSlug } from "@/lib/sport-slugs";
 
@@ -107,24 +109,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const slug of [undefined, ...VOLLEYBALL_GUIDES.map(g => g.slug)]) {
     for (const lang of ["en", "ar"] as const) staticPages.push({ url: `${SITE_URL}${guidePath(lang, slug)}`, changeFrequency: "monthly", priority: 0.8, alternates: { languages: { en: `${SITE_URL}${guidePath("en", slug)}`, "ar-EG": `${SITE_URL}${guidePath("ar", slug)}` } } });
   }
+  for (const guide of LOCAL_GAME_GUIDES) {
+    for (const lang of ["en", "ar"] as const) staticPages.push({
+      url: `${SITE_URL}${localGamePath(lang, guide.slug)}`, changeFrequency: "daily", priority: 0.8,
+      alternates: { languages: { en: `${SITE_URL}${localGamePath("en", guide.slug)}`, "ar-EG": `${SITE_URL}${localGamePath("ar", guide.slug)}`, "x-default": `${SITE_URL}${localGamePath("en", guide.slug)}` } },
+    });
+  }
   // Query independently so a failed source does not remove other public pages.
   const results = await Promise.allSettled([
     academyEntries(),
     playgroundEntries(),
     getPublicGameSports(),
     getPublicTournamentSports(),
+    getPublicGameIds(),
   ]);
   const academyPages = results[0].status === "fulfilled" ? results[0].value : [];
   const playgroundPages = results[1].status === "fulfilled" ? results[1].value : [];
   const gameSports = results[2].status === "fulfilled" ? results[2].value : [];
   const tournamentSports = results[3].status === "fulfilled" ? results[3].value : [];
+  const gamePages: MetadataRoute.Sitemap = (results[4].status === "fulfilled" ? results[4].value : []).map(id => ({ url: `${SITE_URL}${publicGamePath(id)}`, changeFrequency: "daily", priority: 0.8 }));
   const sportPages: MetadataRoute.Sitemap = [
     ...gameSports.map(sport => `/games?sport=${encodeURIComponent(sportToSlug(sport))}`),
     ...tournamentSports.map(sport => `/tournaments?sport=${encodeURIComponent(sportToSlug(sport))}`),
   ].map(path => ({ url: `${SITE_URL}${path}`, changeFrequency: "daily", priority: 0.7 }));
 
   // Avoid duplicate URLs when sports use equivalent spellings or slugs.
-  return [...new Map([...staticPages, ...academyPages, ...playgroundPages, ...sportPages].map(page => [page.url, page])).values()];
+  return [...new Map([...staticPages, ...academyPages, ...playgroundPages, ...sportPages, ...gamePages].map(page => [page.url, page])).values()];
 }
 async function academyEntries(): Promise<MetadataRoute.Sitemap> {
   const admin = createAdminClient();

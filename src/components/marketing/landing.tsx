@@ -1,5 +1,8 @@
 "use client";
 
+import { publicGamePath } from "@/lib/game-discovery";
+import { LOCAL_GAME_GUIDES, localGamePath } from "@/lib/local-games";
+
 import type { PublicGame } from "@/lib/public-games";
 import { formatTime12h } from "@/lib/constants";
 import { gameSharePrice } from "@/lib/game-share";
@@ -90,7 +93,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
         </div>
         {upcomingGames.length > 0 ? <div className={styles.gameGrid}>
           {upcomingGames.map(game => {
-            const href = `/games?focus=${encodeURIComponent(game.id)}#game-${encodeURIComponent(game.id)}`;
+            const href = publicGamePath(game.id);
             const place = [game.playground?.name, game.playground?.area ?? game.area, game.playground?.governorate].filter(Boolean).join(", ");
             const price = ar
               ? game.host_pays || game.share_price === 0 ? "مجاني" : game.share_price == null ? "التكلفة لم تتحدد بعد" : `${game.share_price} جنيه لكل لاعب`
@@ -105,6 +108,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
             </article>;
           })}
         </div> : <p className={styles.gamesEmpty}>{copy("Check the games page for the latest availability. You can also create an account and organize a game with your friends.", "راجع صفحة الماتشات لمعرفة المواعيد المتاحة. وتقدر تعمل حساب وتنظّم ماتش مع أصحابك.")}</p>}
+        <nav aria-label={copy("Games in New Cairo", "ماتشات في التجمع")} className="mt-6 flex flex-wrap gap-4">{LOCAL_GAME_GUIDES.map(guide => <Link key={guide.slug} className={styles.textLink} href={localGamePath(lang, guide.slug)}>{guide[lang].title}</Link>)}</nav>
         <div className={styles.actions}><Link href="/games" className={styles.primary}>{copy("Browse all upcoming games", "شوف كل الماتشات الجاية")}<ArrowUpRight size={20} aria-hidden="true" /></Link></div>
       </section>
 

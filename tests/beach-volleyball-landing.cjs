@@ -59,7 +59,7 @@ for (lang of ['en', 'ar']) {
   assert.ok(section.includes('Friday beach game'));
   assert.ok(section.includes('Sand court, New Cairo, Cairo'));
   assert.match(section, /datetime="2026-11-01"/i);
-  assert.ok(section.includes('href="/games?focus=paid#game-paid"'));
+  assert.ok(section.includes('href="/games/paid"'));
   assert.ok(section.includes(lang === 'ar' ? '145 جنيه لكل لاعب' : 'EGP 145 per player'));
   assert.ok(section.includes(lang === 'ar' ? 'مجاني' : 'Free — host covers the court'));
   assert.ok(section.includes(lang === 'ar' ? 'التكلفة لم تتحدد بعد' : 'Price to be confirmed'));

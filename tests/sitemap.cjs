@@ -15,7 +15,9 @@ const mocks={
  '@/lib/seo':{SITE_URL:siteUrl(undefined)},
  '@/lib/sport-slugs':{sportToSlug:s=>s.toLowerCase()},
  '@/lib/sport-discovery':{DISCOVERY_SPORTS:[{slug:'football'},{slug:'padel'}],discoveryPath:(lang,slug)=>`${lang==='ar'?'/ar':''}/sports${slug?'/'+slug:''}`},
- '@/lib/public-games':{getPublicGameSports:async()=>{if(failGames)throw Error('offline');return ['Football','football'];},getPublicTournamentSports:async()=>['Padel']},
+ '@/lib/local-games':{LOCAL_GAME_GUIDES:[{slug:'volleyball-new-cairo'},{slug:'beach-volleyball-new-cairo'}],localGamePath:(lang,slug)=>`${lang==='ar'?'/ar':''}/play/${slug}`},
+ '@/lib/game-discovery':{publicGamePath:id=>`/games/${id}`},
+ '@/lib/public-games':{getPublicGameIds:async()=>{if(failGames)throw Error('offline');return ['public-game'];},getPublicGameSports:async()=>{if(failGames)throw Error('offline');return ['Football','football'];},getPublicTournamentSports:async()=>['Padel']},
  '@/lib/supabase/admin':{createAdminClient:()=>{if(failAcademies)throw Error('unavailable');return {from:()=>({select(){return this;},eq(k,v){assert.equal(k,'is_public');assert.equal(v,true);return this;},not(){return this;},order(){return this;},range:async(a,b)=>({data:rows.slice(a,b+1),error:null})})};}},
 };
 new Function('exports','require',ts.transpileModule(fs.readFileSync(path.join(__dirname,'../src/app/sitemap.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText)(api,n=>mocks[n]);
@@ -26,6 +28,8 @@ new Function('exports','require',ts.transpileModule(fs.readFileSync(path.join(__
  const discoveryPages=pages.filter(p=>p.url.includes('/sports'));
  assert.equal(discoveryPages.length,6);
  assert.equal(pages.filter(p=>p.url.includes('/guides')).length,8);
+ assert.equal(pages.filter(p=>p.url.includes('/play/')).length,4);
+ assert.ok(pages.some(p=>p.url.endsWith('/games/public-game')));
  for(const page of discoveryPages){
    assert.ok(pages.some(p=>p.url===page.alternates.languages.en));
    assert.ok(pages.some(p=>p.url===page.alternates.languages['ar-EG']));

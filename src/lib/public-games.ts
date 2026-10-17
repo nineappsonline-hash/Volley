@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { unstable_noStore as noStore } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -39,6 +40,51 @@ export type PublicGame = {
   playground: { name: string | null; area: string | null; governorate: string | null; location_link?: string | null } | null;
   joined: number;
 };
+
+export type PublicGameDetail = PublicGame & {
+  duration_hours: number;
+  min_age: number | null;
+  max_age: number | null;
+  playground: (NonNullable<PublicGame["playground"]> & {
+    id: string; address: string | null; country: string | null; cover_url: string | null;
+  }) | null;
+};
+
+/** Public IDs never resolve private games or expose invite codes or player identities. */
+export const getPublicGame = cache(async (id: string): Promise<PublicGameDetail | null> => {
+  noStore();
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
+  const admin = getAdmin();
+  if (!admin) return null;
+  const { data, error } = await admin.from("friendly_games").select(
+    `id, title, description, sport, area, location, game_date, start_time,
+     max_players, min_players, status, skill_level, gender, share_price, host_pays, host_total,
+     creator_name, duration_hours, min_age, max_age,
+     playground:venues(id, name, area, governorate, address, country, location_link, cover_url),
+     participants:friendly_game_participants(is_waitlisted)`
+  ).eq("id", id).eq("is_public", true).maybeSingle();
+  if (error || !data) return null;
+  const { participants, playground, ...game } = data;
+  return { ...game, playground: Array.isArray(playground) ? playground[0] ?? null : playground,
+    joined: (participants ?? []).filter((p: { is_waitlisted: boolean }) => !p.is_waitlisted).length,
+  } as PublicGameDetail;
+});
+
+/** Paginated sitemap IDs: upcoming public games only, never invitation URLs. */
+export async function getPublicGameIds(): Promise<string[]> {
+  const admin = getAdmin();
+  if (!admin) return [];
+  const ids: string[] = [];
+  for (let offset = 0; ; offset += 1000) {
+    const { data, error } = await admin.from("friendly_games").select("id")
+      .eq("is_public", true).in("status", ["open", "full"]).gte("game_date", todayISO())
+      .order("id").range(offset, offset + 999);
+    if (error) break;
+    ids.push(...(data ?? []).map(g => g.id));
+    if (!data || data.length < 1000) break;
+  }
+  return ids;
+}
 
 export type PublicTournament = {
   id: string;

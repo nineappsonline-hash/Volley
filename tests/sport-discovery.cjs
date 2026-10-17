@@ -11,6 +11,9 @@ function load(file, mocks = {}) {
   return exports;
 }
 modules['@/lib/seo'] = load('src/lib/seo.ts');
+modules['@/lib/game-share'] = load('src/lib/game-share.ts');
+modules['@/lib/game-discovery'] = load('src/lib/game-discovery.ts');
+modules['@/lib/local-games'] = load('src/lib/local-games.ts');
 modules['@/lib/sport-slugs'] = load('src/lib/sport-slugs.ts');
 modules['@/lib/volleyball-guides'] = load('src/lib/volleyball-guides.ts');
 const discovery = modules['@/lib/sport-discovery'] = load('src/lib/sport-discovery.ts');
@@ -59,6 +62,10 @@ const page = load('src/components/public/sport-discovery-page.tsx', {
   const populated = renderToStaticMarkup(await page.SportDiscoveryPage({ slug: 'padel', lang: 'en' }));
   assert.ok(populated.includes('href="/a/public-academy"'));
   assert.ok(populated.includes('Confirm the cost'));
+  assert.ok(populated.includes('href="/games/g"'));
+  const localLinks = renderToStaticMarkup(await page.SportDiscoveryPage({ slug: 'volleyball', lang: 'ar' }));
+  assert.ok(localLinks.includes('href="/ar/play/volleyball-new-cairo"'));
+  assert.ok(localLinks.includes('href="/ar/play/beach-volleyball-new-cairo"'));
   assert.ok(!populated.includes('Elsewhere'));
   assert.ok(!populated.includes('<script>untrusted</script>'));
   const robots = load('src/app/robots.ts').default();
