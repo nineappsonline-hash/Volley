@@ -1,5 +1,8 @@
 "use client";
 
+import type { PublicGame } from "@/lib/public-games";
+import { formatTime12h } from "@/lib/constants";
+import { gameSharePrice } from "@/lib/game-share";
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, ArrowDown, Volleyball, Pause, Play, MapPin, MoveUpRight } from "lucide-react";
@@ -41,7 +44,7 @@ function CourtScene({ small = false }: { small?: boolean }) {
   </div>;
 }
 
-export function LandingPage() {
+export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame[] }) {
   const { lang, dir } = useI18n();
   const ar = lang === "ar";
   const [paused, setPaused] = useState(false);
@@ -52,7 +55,7 @@ export function LandingPage() {
   return <div className={styles.page} dir={dir} data-paused={paused}>
     <header className={styles.header}>
       <Link href="/" aria-label="Playza"><AppLogo className="w-24 sm:w-28" /></Link>
-      <nav className={styles.nav} aria-label={copy("Main navigation", "القائمة الرئيسية")}><a href="#find-your-court">{copy("Find your court", "لاقي ملعبك")}</a><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><a href="#beach-volleyball">{copy("Beach volleyball", "الطائرة الشاطئية")}</a><a href="#beach-challenge">{copy("Play now", "العب دلوقتي")}</a><a href="#sports">{copy("The sports", "الرياضات")}</a></nav>
+      <nav className={styles.nav} aria-label={copy("Main navigation", "القائمة الرئيسية")}><Link href="/games">{copy("Join a game", "انضم لماتش")}</Link><a href="#find-your-court">{copy("Find your court", "لاقي ملعبك")}</a><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><a href="#beach-volleyball">{copy("Beach volleyball", "الطائرة الشاطئية")}</a><a href="#beach-challenge">{copy("Play now", "العب دلوقتي")}</a><a href="#sports">{copy("The sports", "الرياضات")}</a></nav>
       <div className={styles.headerActions}><LanguageToggle /><Link href="/login" className={styles.login}>{copy("Log in", "تسجيل الدخول")} <ArrowUpRight size={16} /></Link></div>
     </header>
 
@@ -61,8 +64,8 @@ export function LandingPage() {
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}><span />{copy("LESS SCROLLING. MORE VOLLEYBALL.", "سيب الموبايل شوية. وانزل العب طايرة.")}</p>
           <h1>{copy("Your people.", "ناس شبهك.")}<br />{copy("Your court.", "ملعبك.")}<br /><span>{copy("Your game.", "لعبتك.")}<svg viewBox="0 0 400 25" aria-hidden="true"><path d="M5 18Q190-7 395 12M30 23Q210 6 365 18" /></svg></span></h1>
-          <p className={styles.intro}>{copy("Find a volleyball court. Discover an academy. Turn “we should play” into your next plan.", "لاقي ملعب كرة طائرة أو أكاديمية تناسبك، واجمع أصحابك وانزلوا العبوا.")}</p>
-          <div className={styles.actions}><Link className={styles.primary} href={courtsPath(lang)}>{copy("Find a playground", "لاقي ملعب")}<ArrowUpRight size={20} /></Link><Link className={styles.textLink} href="/academies">{copy("Explore academies", "اكتشف الأكاديميات")}<ArrowUpRight size={18} /></Link></div>
+          <p className={styles.intro}>{copy("Join volleyball and beach volleyball games in Egypt. Check the date, court and price, find your level, and meet people who love to play.", "انضم لماتشات كرة طائرة وطائرة شاطئية في مصر. شوف الميعاد والملعب والتكلفة والمستوى المناسب ليك، واتعرّف على ناس بتحب اللعب.")}</p>
+          <div className={styles.actions}><Link className={styles.primary} href="/games">{copy("Find a game to join", "لاقي ماتش وانضم")}<ArrowUpRight size={20} /></Link><Link className={styles.textLink} href={courtsPath(lang)}>{copy("Find a playground", "لاقي ملعب")}<ArrowUpRight size={18} /></Link></div>
           <p className={styles.heroNote}><Volleyball size={17} />{copy("Volleyball at heart. Everyone in.", "بنحب الطايرة. وبنرحّب بكل اللي حابب يلعب.")}</p>
         </div>
         <div className={styles.heroArt}>
@@ -78,6 +81,32 @@ export function LandingPage() {
       </section>
 
       <div className={styles.ribbon} aria-hidden="true"><div>{Array.from({ length: 4 }, (_, i) => <span key={i}> {copy("SERVE. SET. CONNECT.", "إرسال. إعداد. ضربة ساحقة.")} <span>✳</span> {copy("SEE YOU ON COURT", "نشوفك في الملعب")} <span>✳</span></span>)}</div></div>
+
+      <section id="upcoming-games" aria-labelledby="upcoming-games-title" className={styles.upcomingGames}>
+        <div className={styles.sectionHeading}>
+          <p className={styles.eyebrow}>{copy("MEET YOUR NEXT TEAMMATES", "اتعرّف على زمايلك في الماتش الجاي")}</p>
+          <h2 id="upcoming-games-title">{copy("Find a game. Join the people.", "لاقي ماتش. واتعرّف على ناس جديدة.")}</h2>
+          <p>{copy("Browse volleyball, beach volleyball and other sports. Check each game's location, price and joining requirements before you book.", "اكتشف ماتشات الكرة الطائرة والطائرة الشاطئية ورياضات تانية. راجع مكان وتكلفة وشروط كل ماتش قبل الحجز.")}</p>
+        </div>
+        {upcomingGames.length > 0 ? <div className={styles.gameGrid}>
+          {upcomingGames.map(game => {
+            const href = `/games?focus=${encodeURIComponent(game.id)}#game-${encodeURIComponent(game.id)}`;
+            const place = [game.playground?.name, game.playground?.area ?? game.area, game.playground?.governorate].filter(Boolean).join(", ");
+            const price = ar
+              ? game.host_pays || game.share_price === 0 ? "مجاني" : game.share_price == null ? "التكلفة لم تتحدد بعد" : `${game.share_price} جنيه لكل لاعب`
+              : gameSharePrice(game);
+            return <article key={game.id} className={styles.gameCard}>
+              <p>{game.sport}</p>
+              <h3><Link href={href}>{game.title}</Link></h3>
+              <p><time dateTime={game.game_date}>{new Intl.DateTimeFormat(ar ? "ar-EG" : "en-GB", { dateStyle: "medium", timeZone: "Africa/Cairo" }).format(new Date(`${game.game_date}T12:00:00Z`))}</time> · {formatTime12h(game.start_time, lang)}</p>
+              {place && <p>{place}</p>}
+              <p><strong>{price}</strong></p>
+              <Link href={href} className={styles.textLink}>{copy("View game & joining details", "شوف تفاصيل الماتش والانضمام")}<ArrowUpRight size={18} aria-hidden="true" /></Link>
+            </article>;
+          })}
+        </div> : <p className={styles.gamesEmpty}>{copy("Check the games page for the latest availability. You can also create an account and organize a game with your friends.", "راجع صفحة الماتشات لمعرفة المواعيد المتاحة. وتقدر تعمل حساب وتنظّم ماتش مع أصحابك.")}</p>}
+        <div className={styles.actions}><Link href="/games" className={styles.primary}>{copy("Browse all upcoming games", "شوف كل الماتشات الجاية")}<ArrowUpRight size={20} aria-hidden="true" /></Link></div>
+      </section>
 
       <section id="find-your-court" className={styles.discover}>
         <div className={styles.sectionHeading}><p className={styles.eyebrow}>{copy("01 / FIND YOUR PLACE", "01 / لاقي مكانك")}</p><h2>{copy("Two ways in.", "ملعب تلعب فيه.")}<br /><span>{copy("A whole lot of play.", "وأكاديمية تتدرّب فيها.")}</span></h2></div>
@@ -131,6 +160,6 @@ export function LandingPage() {
       <section className={styles.finalCta}><svg className={styles.ctaStar} viewBox="0 0 100 100" aria-hidden="true" focusable="false"><path d="M50 8V92M8 50H92M20 20L80 80M20 80L80 20" fill="none" stroke="currentColor" strokeWidth="12" /></svg><p className={styles.eyebrow}>{copy("LESS PLANNING. MORE PLAYING.", "كلام أقل. لعب أكتر.")}</p><h2>{copy("The court is calling.", "الملعب بيناديك.")}</h2><Link className={styles.primary} href="/games?sport=volleyball">{copy("Find your next volleyball game", "لاقي ماتش كرة طائرة")}<ArrowUpRight size={20} /></Link><p>{copy("Come for the game. Stay for the people.", "تعالى العب، واتعرّف على ناس بتحب نفس لعبتك.")}</p></section>
     </main>
 
-    <footer className={styles.footer}><div><AppLogo className="w-24" /><p>{copy("A little less online. A lot more on court.", "وقت أقل على الموبايل. ووقت أكتر في الملعب.")}</p></div><nav aria-label={copy("Footer", "روابط إضافية")}><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><Link href="/signup/owner">{copy("List your playground", "أضف ملعبك")}</Link><Link href={academyManagementPath(lang)}>{copy("For academy owners", "لأصحاب الأكاديميات")}</Link><Link href={discoveryPath(lang, "beach-volleyball")}>{copy("Beach volleyball", "الطائرة الشاطئية")}</Link><Link href={lang === "ar" ? "/ar/guides" : "/guides"}>{copy("Playing guides", "إرشادات اللعب")}</Link><Link href="/faq">{copy("FAQs", "أسئلة شائعة")}</Link></nav><span>© {new Date().getFullYear()} Playza</span></footer>
+    <footer className={styles.footer}><div><AppLogo className="w-24" /><p>{copy("A little less online. A lot more on court.", "وقت أقل على الموبايل. ووقت أكتر في الملعب.")}</p></div><nav aria-label={copy("Footer", "روابط إضافية")}><Link href="/games">{copy("Upcoming games", "الماتشات الجاية")}</Link><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><Link href="/signup/owner">{copy("List your playground", "أضف ملعبك")}</Link><Link href={academyManagementPath(lang)}>{copy("For academy owners", "لأصحاب الأكاديميات")}</Link><Link href={discoveryPath(lang, "beach-volleyball")}>{copy("Beach volleyball", "الطائرة الشاطئية")}</Link><Link href={lang === "ar" ? "/ar/guides" : "/guides"}>{copy("Playing guides", "إرشادات اللعب")}</Link><Link href="/faq">{copy("FAQs", "أسئلة شائعة")}</Link></nav><span>© {new Date().getFullYear()} Playza</span></footer>
   </div>;
 }

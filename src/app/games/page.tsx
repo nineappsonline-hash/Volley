@@ -31,6 +31,12 @@ import {
   landingFaqItems,
 } from "@/lib/seo";
 
+const GAME_FAQ: [string, string][] = [
+  ["How do I find a friendly game near me?", "Browse upcoming games on Playza and filter by sport. Check each game's date, venue, price and joining requirements, then create an account or sign in to join."],
+  ["Can I join without a team or academy?", "You do not need an academy membership to join a public friendly game. Check the organizer's age, gender and skill requirements on the game before joining."],
+  ["How much does it cost to play?", "The cost depends on the game. Review the per-player price and payment details before confirming. Some hosts cover the court cost; a free account does not mean every game is free."],
+];
+
 export const revalidate = 300; // refresh listing every 5 minutes
 
 type SP = Promise<{ sport?: string; join?: string; focus?: string }>;
@@ -166,20 +172,7 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
       { name: "Friendly Games", url: `${SITE_URL}/games` },
     ]),
     faqPageJsonLd(
-      landingFaqItems([
-        [
-          "How do I find a friendly game near me?",
-          "Open the games page on Playza, choose your sport and area, and browse upcoming games with dates, location and share price. Sign up free and join the game that suits you.",
-        ],
-        [
-          "Do I need to be in an academy to play?",
-          "No. Games on Playza are open to everyone — create a free account, pick a game near you and book your spot. Some games have age or skill requirements, which are stated on the game page.",
-        ],
-        [
-          "How much is the share per player?",
-          "Each game shows the players' share of the court rental based on the hourly rate, duration and minimum players. The price is shown before you join and won't change after you sign up.",
-        ],
-      ])
+      landingFaqItems(GAME_FAQ)
     ),
     {
       "@context": "https://schema.org",
@@ -301,6 +294,16 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
             })}
           </div>
         )}
+
+        <section aria-labelledby="joining-questions" className="mt-12 rounded-xl border bg-card p-6">
+          <h2 id="joining-questions" className="text-xl font-bold">Joining a game: common questions</h2>
+          <dl className="mt-6 space-y-6">
+            {GAME_FAQ.map(([question, answer]) => <div key={question}>
+              <dt className="font-semibold">{question}</dt>
+              <dd className="mt-2 text-sm leading-relaxed text-muted-foreground">{answer}</dd>
+            </div>)}
+          </dl>
+        </section>
 
         {/* Cross-links keep crawlers (and users) moving between listings. */}
         <nav className="mt-12 border-t pt-6 text-center text-sm">

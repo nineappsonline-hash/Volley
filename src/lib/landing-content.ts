@@ -1,6 +1,6 @@
 /** Public copy shared by visible content and homepage search metadata. */
-export const LANDING_TITLE = "Volleyball & Beach Volleyball in Egypt | Playza";
-export const LANDING_DESCRIPTION = "Discover volleyball and beach volleyball in Egypt. Explore sand-court games, courts and academies with Playza, plus padel and tennis.";
+export const LANDING_TITLE = "Join Volleyball & Beach Volleyball Games in Egypt | Playza";
+export const LANDING_DESCRIPTION = "Find volleyball and beach volleyball games in Egypt. Check upcoming dates, courts and prices, meet other players and join a game with Playza.";
 export const BEACH_DESCRIPTION = {
   en: "Discover beach volleyball in Egypt with Playza. Explore sand-court games, find people to play with, and discover academies that match your next move.",
   ar: "اكتشف الكرة الطائرة الشاطئية في مصر مع بلايزا. دور على مباريات على الملاعب الرملية، واتعرّف على لاعبين، واكتشف أكاديميات تناسب خطوتك الجاية.",

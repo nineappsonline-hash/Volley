@@ -47,6 +47,28 @@ for (lang of ['en', 'ar']) {
   assert.ok(html.includes(`dir="${viewportDir}"`));
 }
 assert.ok(renderToStaticMarkup(React.createElement(LandingPage)).includes('href="/ar/courts"'));
+// Public game previews must preserve prices, dates and the destination game.
+const games = [
+  { id: 'paid', title: 'Friday beach game', sport: 'Beach Volleyball', game_date: '2026-11-01', start_time: '20:00', share_price: 145, area: 'New Cairo', playground: { name: 'Sand court', area: 'New Cairo', governorate: 'Cairo' } },
+  { id: 'host', title: 'Hosted game', sport: 'Volleyball', game_date: '2026-11-02', start_time: '18:00', share_price: 200, host_pays: true },
+  { id: 'unknown', title: '<script>unsafe</script>', sport: 'Volleyball', game_date: '2026-11-03', start_time: '18:00', share_price: null },
+];
+for (lang of ['en', 'ar']) {
+  const html = renderToStaticMarkup(React.createElement(LandingPage, { upcomingGames: games }));
+  const section = html.match(/<section id="upcoming-games"[\s\S]*?<\/section>/)?.[0];
+  assert.ok(section.includes('Friday beach game'));
+  assert.ok(section.includes('Sand court, New Cairo, Cairo'));
+  assert.match(section, /datetime="2026-11-01"/i);
+  assert.ok(section.includes('href="/games?focus=paid#game-paid"'));
+  assert.ok(section.includes(lang === 'ar' ? '145 جنيه لكل لاعب' : 'EGP 145 per player'));
+  assert.ok(section.includes(lang === 'ar' ? 'مجاني' : 'Free — host covers the court'));
+  assert.ok(section.includes(lang === 'ar' ? 'التكلفة لم تتحدد بعد' : 'Price to be confirmed'));
+  assert.ok(!section.includes('<script>unsafe</script>'));
+  assert.ok(html.indexOf('id="upcoming-games"') < html.indexOf('id="find-your-court"'));
+  const empty = renderToStaticMarkup(React.createElement(LandingPage));
+  assert.ok(empty.includes(lang === 'ar' ? 'راجع صفحة الماتشات' : 'Check the games page'));
+  assert.ok(!empty.includes('Friday beach game'));
+}
 const metadata = content.landingPageJsonLd(seo.SITE_URL);
 assert.equal(metadata.hasPart.description, content.BEACH_DESCRIPTION.en);
 assert.equal(metadata.hasPart.url, `${seo.SITE_URL}/#beach-volleyball`);

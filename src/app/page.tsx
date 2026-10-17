@@ -1,4 +1,5 @@
 import { LANDING_TITLE, LANDING_DESCRIPTION, landingPageJsonLd } from "@/lib/landing-content";
+import { getPublicGames } from "@/lib/public-games";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LandingPage } from "@/components/marketing/landing";
@@ -57,6 +58,8 @@ export default async function HomePage() {
 
   if (user) redirect("/dashboard");
 
+  const upcomingGames = (await getPublicGames()).slice(0, 3);
+
   const jsonLd = [
     organizationJsonLd(),
     websiteJsonLd(),
@@ -71,7 +74,7 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@graph": jsonLd }) }}
       />
-      <LandingPage />
+      <LandingPage upcomingGames={upcomingGames} />
     </>
   );
 }
