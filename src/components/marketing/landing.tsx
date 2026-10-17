@@ -8,7 +8,7 @@ import { formatTime12h } from "@/lib/constants";
 import { gameSharePrice } from "@/lib/game-share";
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, ArrowDown, Volleyball, Pause, Play, MapPin, MoveUpRight } from "lucide-react";
+import { ArrowUpRight, ArrowDown, Volleyball, Pause, Play, MapPin } from "lucide-react";
 import { AppLogo } from "@/components/shared/app-logo";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { useI18n } from "@/lib/i18n";
@@ -58,7 +58,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
   return <div className={styles.page} dir={dir} data-paused={paused}>
     <header className={styles.header}>
       <Link href="/" aria-label="Playza"><AppLogo className="w-24 sm:w-28" /></Link>
-      <nav className={styles.nav} aria-label={copy("Main navigation", "القائمة الرئيسية")}><Link href="/games">{copy("Join a game", "انضم لماتش")}</Link><a href="#find-your-court">{copy("Find your court", "لاقي ملعبك")}</a><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><a href="#tennis">{copy("Tennis", "التنس")}</a><a href="#beach-volleyball">{copy("Beach volleyball", "الطائرة الشاطئية")}</a><a href="#beach-challenge">{copy("Play now", "العب دلوقتي")}</a><a href="#sports">{copy("The sports", "الرياضات")}</a></nav>
+      <nav className={styles.nav} aria-label={copy("Main navigation", "القائمة الرئيسية")}><Link href="/games">{copy("Join a game", "انضم لماتش")}</Link><Link href={courtsPath(lang)}>{copy("Find your court", "لاقي ملعبك")}</Link><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><a href="#tennis">{copy("Tennis", "التنس")}</a><a href="#beach-volleyball">{copy("Beach volleyball", "الطائرة الشاطئية")}</a><a href="#beach-challenge">{copy("Play now", "العب دلوقتي")}</a><a href="#sports">{copy("The sports", "الرياضات")}</a></nav>
       <div className={styles.headerActions}><LanguageToggle /><Link href="/login" className={styles.login}>{copy("Log in", "تسجيل الدخول")} <ArrowUpRight size={16} /></Link></div>
     </header>
 
@@ -80,7 +80,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
           <div className={styles.locationTag}><MapPin size={16} />{copy("Your next favourite place", "هنا تبدأ أحلى ماتشاتك")}</div>
           <button type="button" className={styles.motionButton} onClick={() => setPaused(!paused)} aria-pressed={paused} aria-label={paused ? copy("Play animations", "تشغيل الرسوم المتحركة") : copy("Pause animations", "إيقاف الرسوم المتحركة")}>{paused ? <Play size={15} /> : <Pause size={15} />}</button>
         </div>
-        <a className={styles.scrollHint} href="#find-your-court"><ArrowDown size={16} />{copy("LET’S GET YOU OUT THERE", "يلا ننزل الملعب")}</a>
+        <a className={styles.scrollHint} href="#upcoming-games"><ArrowDown size={16} />{copy("LET’S GET YOU OUT THERE", "يلا ننزل الملعب")}</a>
       </section>
 
       <div className={styles.ribbon} aria-hidden="true"><div>{Array.from({ length: 4 }, (_, i) => <span key={i}> {copy("SERVE. SET. CONNECT.", "إرسال. إعداد. ضربة ساحقة.")} <span>✳</span> {copy("SEE YOU ON COURT", "نشوفك في الملعب")} <span>✳</span></span>)}</div></div>
@@ -112,16 +112,8 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
         <div className={styles.actions}><Link href="/games" className={styles.primary}>{copy("Browse all upcoming games", "شوف كل الماتشات الجاية")}<ArrowUpRight size={20} aria-hidden="true" /></Link></div>
       </section>
 
-      <section id="find-your-court" className={styles.discover}>
-        <div className={styles.sectionHeading}><p className={styles.eyebrow}>{copy("01 / FIND YOUR PLACE", "01 / لاقي مكانك")}</p><h2>{copy("Two ways in.", "ملعب تلعب فيه.")}<br /><span>{copy("A whole lot of play.", "وأكاديمية تتدرّب فيها.")}</span></h2></div>
-        <div className={styles.discoveryGrid}>
-          <Link href={courtsPath(lang)} className={`${styles.discoveryCard} ${styles.courtCard}`}><div className={styles.cardTop}><span>{copy("THE PLAYGROUNDS", "الملاعب")}</span><span className={styles.circleArrow}><ArrowUpRight /></span></div><div className={styles.cardGraphic}><CourtScene small /></div><div className={styles.cardCopy}><h3>{copy("Find your home court.", "لاقي الملعب اللي يناسبك.")}</h3><p>{copy("Explore places to play. Pick your spot and bring your people.", "اكتشف الملاعب، اختار مكانك، واجمع أصحابك.")}</p></div></Link>
-          <Link href="/academies" className={`${styles.discoveryCard} ${styles.academyCard}`}><div className={styles.cardTop}><span>{copy("THE ACADEMIES", "الأكاديميات")}</span><span className={styles.circleArrow}><ArrowUpRight /></span></div><div className={styles.academyGraphic} aria-hidden="true"><span className={styles.stepOne}>01</span><span className={styles.stepTwo}>02</span><span className={styles.stepThree}>03<MoveUpRight /></span><Ball className={styles.academyBall} /><span className={styles.spark}>✳</span></div><div className={styles.cardCopy}><h3>{copy("Your next level starts here.", "طوّر مستواك من هنا.")}</h3><p>{copy("First serve or a stronger spike. Find an academy to grow with.", "سواء لسه بتبدأ أو عايز تطوّر مستواك، لاقي أكاديمية تتدرّب معاها.")}</p></div></Link>
-        </div>
-      </section>
-
       <section id="sports" className={styles.sportsSection}>
-        <div className={styles.sportsCopy}><p className={styles.eyebrow}>{copy("02 / PICK YOUR PLAY", "02 / اختار لعبتك")}</p><h2>{copy("Big on volleyball.", "الطايرة في قلب لعبتنا.")}<br /><span>{copy("Room for more.", "والتنس والطائرة الشاطئية كمان.")}</span></h2><p>{copy("We live for the rally. Whether it’s over a volleyball net or with a racket in hand.", "تنس أو كرة طائرة أو طائرة شاطئية، المهم نلعب وننبسط مع بعض.")}</p><div className={styles.sportButtons} role="group" aria-label={copy("Choose a sport", "اختار رياضة")}>{(["tennis", "volleyball", "beach-volleyball"] as const).map(item => <button key={item} type="button" aria-pressed={sport === item} onClick={() => setSport(item)}>{names[item]}{item === "volleyball" && <Volleyball size={17} />}</button>)}</div><Link className={styles.textLink} href={discoveryPath(lang, sport)}>{copy("Explore", "اكتشف")} {names[sport]}<ArrowUpRight size={20} /></Link></div>
+        <div className={styles.sportsCopy}><p className={styles.eyebrow}>{copy("01 / PICK YOUR PLAY", "01 / اختار لعبتك")}</p><h2>{copy("Big on volleyball.", "الطايرة في قلب لعبتنا.")}<br /><span>{copy("Room for more.", "والتنس والطائرة الشاطئية كمان.")}</span></h2><p>{copy("We live for the rally. Whether it’s over a volleyball net or with a racket in hand.", "تنس أو كرة طائرة أو طائرة شاطئية، المهم نلعب وننبسط مع بعض.")}</p><div className={styles.sportButtons} role="group" aria-label={copy("Choose a sport", "اختار رياضة")}>{(["tennis", "volleyball", "beach-volleyball"] as const).map(item => <button key={item} type="button" aria-pressed={sport === item} onClick={() => setSport(item)}>{names[item]}{item === "volleyball" && <Volleyball size={17} />}</button>)}</div><Link className={styles.textLink} href={discoveryPath(lang, sport)}>{copy("Explore", "اكتشف")} {names[sport]}<ArrowUpRight size={20} /></Link></div>
         <div className={styles.sportPoster} data-sport={sport}><span className={styles.posterLabel}>{copy("THE PLAYZA SPORTS CLUB", "نادي بلايزا الرياضي")}</span><div key={sport} className={styles.posterGraphic} aria-hidden="true">{sport !== "tennis" ? <Ball /> : <svg viewBox="0 0 240 280" fill="none"><g transform="rotate(30 120 140)"><ellipse cx="120" cy="100" rx="63" ry="82" fill="none" stroke="#182d29" strokeWidth="10" />{<path d="M77 44V156M98 25V176M120 20V180M142 25V176M163 44V156M62 60H178M58 86H182M58 112H182M65 138H175" stroke="#182d29" strokeWidth="2" />}<path d="M102 180L114 216H126L138 180M120 215V263" stroke="#182d29" strokeWidth="12" strokeLinecap="round" /></g><circle cx="202" cy="209" r="21" fill="#cced48" stroke="#182d29" strokeWidth="3" /></svg>}</div><strong>{names[sport]}</strong><span className={styles.posterFooter}>{sport === "volleyball" ? copy("OUR FIRST LOVE. YOUR NEXT GAME.", "بنحب الطايرة. ومستنيينك في الملعب.") : copy("NEW RALLIES. SAME GOOD ENERGY.", "لعبة جديدة. ونفس الحماس.")}</span></div>
       </section>
 
@@ -139,7 +131,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
 
       <section id="beach-volleyball" aria-labelledby="beach-volleyball-title" className={styles.beachSection}>
         <div className={styles.beachCopy}>
-          <p className={styles.eyebrow}><span />{copy("03 / TAKE IT TO THE SAND", "03 / اللعب على الرمل")}</p>
+          <p className={styles.eyebrow}><span />{copy("02 / TAKE IT TO THE SAND", "02 / اللعب على الرمل")}</p>
           <h2 id="beach-volleyball-title">{copy("Beach volleyball.", "الكرة الطائرة الشاطئية.")}<br /><span>{copy("Same rally. New rhythm.", "نفس الحماس. على الرمل.")}</span></h2>
           <p>{BEACH_DESCRIPTION[lang]}</p>
           <ul className={styles.beachHighlights}>

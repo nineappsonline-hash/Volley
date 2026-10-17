@@ -68,7 +68,8 @@ for (lang of ['en', 'ar']) {
   assert.ok(section.includes(lang === 'ar' ? 'مجاني' : 'Free — host covers the court'));
   assert.ok(section.includes(lang === 'ar' ? 'التكلفة لم تتحدد بعد' : 'Price to be confirmed'));
   assert.ok(!section.includes('<script>unsafe</script>'));
-  assert.ok(html.indexOf('id="upcoming-games"') < html.indexOf('id="find-your-court"'));
+  assert.ok(!html.includes('id="find-your-court"'), 'discovery section was removed from the homepage');
+  assert.ok(html.indexOf('id="upcoming-games"') < html.indexOf('id="sports"'));
   const empty = renderToStaticMarkup(React.createElement(LandingPage));
   assert.ok(empty.includes(lang === 'ar' ? 'راجع صفحة الماتشات' : 'Check the games page'));
   assert.ok(!empty.includes('Friday beach game'));
