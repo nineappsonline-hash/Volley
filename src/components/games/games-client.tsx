@@ -1,5 +1,8 @@
 "use client";
 
+import { GameShareActions } from "./game-share-actions";
+import { GameAlertPreferencesPanel } from "./game-alert-follow";
+
 import { GoogleMapsDirectionsButton } from "@/components/shared/google-maps-directions-button";
 import { useRequestGamePlayers } from "@/lib/queries";
 import { GameCardShell } from "@/components/games/game-card-shell";
@@ -177,7 +180,7 @@ function GameCard({
   const inviteLink = game.invite_code
     ? `${window.location.origin}/games?join=${game.invite_code}`
     : null;
-  const shareLink = inviteLink ?? `${window.location.origin}/games`;
+
 
   // A paid member (committed share) can only leave more than 24h before kickoff.
   const gameStart = new Date(`${game.game_date}T${game.start_time}`).getTime();
@@ -215,22 +218,6 @@ function GameCard({
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
     }
-  };
-
-  const handleShare = async () => {
-    const link = inviteLink ?? `${window.location.origin}/games`;
-    const when = `${format(new Date(game.game_date + "T00:00:00"), "EEE, MMM d", { locale })} ${formatTime12h(game.start_time, lang)}`;
-    const text = `${game.title} · ${game.sport} · ${when} · ${count}/${game.max_players}`;
-    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-      try {
-        await navigator.share({ title: game.title, text, url: link });
-        return;
-      } catch {
-        // User dismissed the share sheet — fall back to WhatsApp.
-      }
-    }
-    const wa = `https://wa.me/?text=${encodeURIComponent(`${text}\n${link}`)}`;
-    window.open(wa, "_blank", "noopener,noreferrer");
   };
 
   const handleLeave = async () => {
@@ -334,26 +321,7 @@ function GameCard({
           </Badge>
         </div>
 
-        <div className="flex items-center gap-2 rounded-lg border bg-muted/30 px-2.5 py-2">
-          <LinkIcon className="h-3.5 w-3.5 shrink-0 text-primary" />
-          <span dir="ltr" className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{shareLink}</span>
-          <Button
-            variant="outline"
-            size="sm"
-            className="shrink-0"
-            onClick={() => {
-              onCopy(`share:${game.id}`, shareLink);
-              toast.success(t("games_invite_copied"));
-            }}
-          >
-            {copiedKey === `share:${game.id}` ? (
-              <Check className="me-1 h-3.5 w-3.5" />
-            ) : (
-              <Share2 className="me-1 h-3.5 w-3.5" />
-            )}
-            {t("games_copy_invite")}
-          </Button>
-        </div>
+        <GameShareActions game={{ ...game, joined: count, place: [game.playground?.name, game.playground?.area ?? game.area, game.playground?.governorate].filter(Boolean).join(", ") || game.location || "" }} />
 
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
           <span className="flex items-center gap-1.5">
@@ -469,12 +437,6 @@ function GameCard({
               </Button>
             ))}
 
-          {!isOrganizer && (
-            <Button variant="outline" size="sm" onClick={() => void handleShare()}>
-              <Share2 className="me-1 h-3.5 w-3.5" />
-              {t("games_share_btn")}
-            </Button>
-          )}
 
           {isOrganizer && mine?.pay_status === "unpaid" && (
             <Button size="sm" onClick={() => setPayOpen("pay")}>
@@ -999,6 +961,8 @@ export function GamesClient({ profile }: { profile: Profile }) {
           </Button>
         </div>
       </header>
+
+      <GameAlertPreferencesPanel returnTo="/dashboard/games" />
 
       <div className="space-y-3 rounded-2xl border bg-gradient-to-br from-brand-50/70 to-blue-50/70 p-4 dark:from-brand-950/30 dark:to-blue-950/30 sm:p-5">
         <h2 className="text-base font-bold">{lang === "ar" ? "اختار رياضتك" : "Pick your sport"}</h2>

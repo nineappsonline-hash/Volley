@@ -28,6 +28,8 @@ const db = { from(table) {
 }};
 let listing = [game];
 const overrides = {
+  '@/components/games/game-alert-follow': { GameAlertFollow: () => null },
+  '@/components/games/game-share-actions': { GameShareActions: () => null },
   'next/cache': { unstable_noStore() {} },
   'next/navigation': { notFound() { throw Error('NOT_FOUND'); } },
   'next/link': { __esModule: true, default: ({ children, ...props }) => React.createElement('a', props, children) },

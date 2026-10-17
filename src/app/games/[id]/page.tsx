@@ -1,3 +1,5 @@
+import { GameShareActions } from "@/components/games/game-share-actions";
+import { GameAlertFollow } from "@/components/games/game-alert-follow";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicGame } from "@/lib/public-games";
@@ -52,6 +54,8 @@ export default async function PublicGamePage({ params }: Props) {
       <DirectionsLinks query={gamePlace(game)} locationLink={game.playground?.location_link} />
       <PlayerJoiningGuide skillLevel={game.skill_level} />
       {joinable ? <section aria-label="Join this game"><PublicGameJoin game={game} returnTo={path} /><p className="mt-3 text-sm text-muted-foreground">Sign in or create an account, then complete joining and review your payment or waitlist status. Creating an account alone does not reserve a place.</p></section> : <p role="status" className="rounded-xl bg-muted p-4">{status}. <Link href="/games" className="underline">Find another upcoming game</Link>.</p>}
+      <GameShareActions game={{ ...game, is_public: true, place: gamePlace(game) }} />
+      <GameAlertFollow sport={game.sport} returnTo={path} />
       {localGuides.length > 0 && <nav aria-label="Local playing guides" className="space-y-2 border-t pt-5">{localGuides.map(guide => <Link key={guide.slug} href={localGamePath("en", guide.slug)} className="block underline underline-offset-4">{guide.en.title}</Link>)}</nav>}
     </article>
   </main>;

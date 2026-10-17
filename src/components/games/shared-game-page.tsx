@@ -1,5 +1,8 @@
 "use client";
 
+import { GameShareActions } from "./game-share-actions";
+import { GameAlertFollow } from "./game-alert-follow";
+import { publicGamePath } from "@/lib/game-discovery";
 import { PlayerJoiningGuide } from "./player-joining-guide";
 import Link from "next/link";
 import { DirectionsLinks } from "@/components/shared/directions-links";
@@ -28,6 +31,8 @@ export function SharedGamePage({ game, inviteCode }: { game: SharedGameMeta | nu
           <GameParticipantNames participants={game.participants} />
           {game.description && <p className="whitespace-pre-wrap break-words">{game.description}</p>}
           <p>{formatMoney(game.host_pays ? 0 : (game.share_price ?? 0), lang)}</p>
+          <GameShareActions game={{ ...game, invite_code: inviteCode, place: game.map_label }} />
+          <GameAlertFollow sport={game.sport} returnTo={game.is_public ? publicGamePath(game.id) : `/games?join=${encodeURIComponent(inviteCode)}`} />
           {game.status !== "completed" && game.game_date >= new Date().toISOString().slice(0, 10) && <PublicGameJoin game={game} inviteCode={inviteCode} />}
         </>}
         <Link className="block text-sm text-foreground hover:underline underline-offset-4" href="/dashboard">{t("nav_dashboard")}</Link>
