@@ -157,8 +157,8 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
 
       <section id="academy-management" aria-labelledby="academy-management-title" className="mx-auto max-w-6xl px-6 py-12">
         <div className="rounded-2xl border bg-card p-6 sm:p-10">
-          <p className="text-sm font-semibold text-brand">{copy("FOR ACADEMY OWNERS", "لأصحاب الأكاديميات")}</p>
-          <h2 id="academy-management-title" className="mt-3 text-2xl font-bold text-brand sm:text-3xl">{copy("Run your sports academy with Playza.", "أدر أكاديميتك الرياضية مع بلايزا.")}</h2>
+          <p className="text-sm font-semibold text-white">{copy("FOR ACADEMY OWNERS", "لأصحاب الأكاديميات")}</p>
+          <h2 id="academy-management-title" className="mt-3 text-2xl font-bold text-primary sm:text-3xl">{copy("Run your sports academy with Playza.", "أدر أكاديميتك الرياضية مع بلايزا.")}</h2>
           <p className="mt-4 max-w-3xl leading-relaxed text-muted-foreground">{copy("Manage players, subscriptions, training schedules, QR attendance and session finances in one Arabic and English application built for sports academies in Egypt.", "نظّم اللاعبين والاشتراكات وجداول التدريب والحضور عبر QR ومالية الجلسات في تطبيق واحد بالعربية والإنجليزية للأكاديميات الرياضية في مصر.")}</p>
           <Link className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 font-semibold text-primary-foreground hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" href={academyManagementPath(lang)}>{copy("Explore academy management", "اكتشف إدارة الأكاديميات")}<ArrowUpRight size={18} aria-hidden="true" /></Link>
         </div>
