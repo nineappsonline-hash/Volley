@@ -1,6 +1,7 @@
 import { PLAYZA } from "@/lib/brand";
 import { OG_IMAGE, SITE_URL } from "@/lib/seo";
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Providers } from "@/providers/providers";
 import { ScrollToTop } from "@/components/shared/scroll-to-top";
 import { AppBackground } from "@/components/shared/app-background";
@@ -253,6 +254,18 @@ export default function RootLayout({
         <link rel="describedby" type="text/markdown" href="/llms.txt" />
       </head>
       <body className="font-sans">
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-XJPEX3WY2B"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-XJPEX3WY2B');
+          `}
+        </Script>
         <ScrollToTop />
         <Providers>
           <AppBackground />
