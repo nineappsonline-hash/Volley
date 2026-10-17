@@ -30,3 +30,19 @@ export function landingPageJsonLd(siteUrl: string): Record<string, unknown> {
     },
   };
 }
+
+/** Copy for the homepage hero illustration and its three featured sports. */
+export const SportsHeroSceneCopy = {
+  en: {
+    eyebrow: "VOLLEYBALL. TENNIS. ARCHERY.",
+    intro: "Serve a volleyball, rally on the tennis court, or take aim with archery. Find your people, explore sessions in Egypt, and make your next move with Playza.",
+    note: "Three sports. One community. Your next game.",
+    artLabel: "Illustration of volleyball players at a net, a tennis racket and ball, and an archer aiming at a target",
+  },
+  ar: {
+    eyebrow: "كرة طائرة. تنس. رماية بالقوس.",
+    intro: "العب كرة طائرة، واتبادل الكرات على ملعب التنس، أو صوّب على الهدف في الرماية بالقوس. اتعرّف على ناس بتحب لعبتك، واكتشف المواعيد في مصر، وخُد خطوتك الجاية مع بلايزا.",
+    note: "٣ رياضات. مجتمع واحد. ولعبتك الجاية.",
+    artLabel: "رسم للاعبي كرة طائرة عند الشبكة، ومضرب وكرة تنس، ورامي بالقوس يصوّب نحو هدف",
+  },
+} as const;

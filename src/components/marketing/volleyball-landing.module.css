@@ -71,3 +71,13 @@
 .academyMgmt h2{color:var(--color-primary)}
 .academyMgmt p{color:#C9D2E3}
 .academyMgmt p:first-of-type{color:#FFFFFF}
+
+/* Three-sport hero: keep the vector scene within the existing responsive frame. */
+.multiSportHero{position:absolute;inset-inline-start:-3%;top:5%;width:106%;height:auto}
+.heroArt .artLabel{top:0;inset-inline-start:6%;transform:rotate(-5deg)}
+.heroArt .sticker{width:76px;height:76px;font-size:15px;bottom:4%;inset-inline-end:0}
+.heroArt .sticker>span{font-size:20px}
+.multiSportHero :global(.sports-hero-volleyball){animation:multi-sport-ball 5s ease-in-out infinite;transform-origin:207px 119px}
+@keyframes multi-sport-ball{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-9px) rotate(14deg)}}
+@media(max-width:640px){.multiSportHero{top:3%;width:104%;inset-inline-start:-2%}.heroArt .artLabel{top:0;font-size:8px}.heroArt .sticker{width:60px;height:60px;font-size:12px;bottom:2%}.heroArt .sticker>span{font-size:16px}.heroArt .locationTag{bottom:0;inset-inline-start:4%}}
+@media(prefers-reduced-motion:reduce){.multiSportHero :global(.sports-hero-volleyball){animation:none}}

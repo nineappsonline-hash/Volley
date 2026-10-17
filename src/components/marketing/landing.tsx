@@ -15,7 +15,8 @@ import { useI18n } from "@/lib/i18n";
 import { academyManagementPath } from "@/lib/academy-management";
 import { courtsPath } from "@/lib/court-discovery";
 import { discoveryPath } from "@/lib/sport-discovery";
-import { BEACH_DESCRIPTION } from "@/lib/landing-content";
+import { BEACH_DESCRIPTION, SportsHeroSceneCopy } from "@/lib/landing-content";
+import { SportsHeroScene } from "./sports-hero-scene";
 import { BeachVolleyballScene } from "./beach-volleyball-scene";
 import { BeachVolleyballGameCard } from "@/components/game/beach-volleyball-game-card";
 import styles from "./volleyball-landing.module.css";
@@ -65,17 +66,16 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
     <main>
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}><span />{copy("LESS SCROLLING. MORE VOLLEYBALL.", "سيب الموبايل شوية. وانزل العب طايرة.")}</p>
-          <h1>{copy("Your people.", "ناس شبهك.")}<br />{copy("Your court.", "ملعبك.")}<br /><span>{copy("Your game.", "لعبتك.")}<svg viewBox="0 0 400 25" aria-hidden="true"><path d="M5 18Q190-7 395 12M30 23Q210 6 365 18" /></svg></span></h1>
-          <p className={styles.intro}>{copy("Join tennis, volleyball and beach volleyball games in Egypt. Check the date, court and price, find your level, and meet people who love to play.", "انضم لماتشات تنس وكرة طائرة وطائرة شاطئية في مصر. شوف الميعاد والملعب والتكلفة والمستوى المناسب ليك، واتعرّف على ناس بتحب اللعب.")}</p>
+          <p className={styles.eyebrow}><span />{SportsHeroSceneCopy[lang].eyebrow}</p>
+          <h1>{copy("Serve.", "إرسال.")}<br />{copy("Rally.", "تبادل.")}<br /><span>{copy("Aim.", "تصويب.")}<svg viewBox="0 0 400 25" aria-hidden="true"><path d="M5 18Q190-7 395 12M30 23Q210 6 365 18" /></svg></span></h1>
+          <p className={styles.intro}>{SportsHeroSceneCopy[lang].intro}</p>
           <div className={styles.actions}><Link className={styles.primary} href="/games">{copy("Find a game to join", "لاقي ماتش وانضم")}<ArrowUpRight size={20} /></Link><Link className={styles.textLink} href={courtsPath(lang)}>{copy("Find a playground", "لاقي ملعب")}<ArrowUpRight size={18} /></Link></div>
-          <p className={styles.heroNote}><Volleyball size={17} />{copy("Volleyball at heart. Everyone in.", "بنحب الطايرة. وبنرحّب بكل اللي حابب يلعب.")}</p>
+          <p className={styles.heroNote}><Volleyball size={17} />{SportsHeroSceneCopy[lang].note}</p>
         </div>
         <div className={styles.heroArt}>
           <div className={styles.orbit} aria-hidden="true" />
-          <span className={styles.artLabel}>{copy("MEET YOU AT THE NET", "نتقابل عند الشبكة")}</span>
-          <CourtScene />
-          <Ball className={styles.heroBall} />
+          <span className={styles.artLabel}>{copy("FIND YOUR NEXT MOVE", "اختار لعبتك الجاية")}</span>
+          <SportsHeroScene className={styles.multiSportHero} label={SportsHeroSceneCopy[lang].artLabel} />
           <span className={styles.sticker}>{copy("GOOD", "أحلى")}<br />{copy("GAME!", "لعبة!")}<span>✳</span></span>
           <div className={styles.locationTag}><MapPin size={16} />{copy("Your next favourite place", "هنا تبدأ أحلى ماتشاتك")}</div>
           <button type="button" className={styles.motionButton} onClick={() => setPaused(!paused)} aria-pressed={paused} aria-label={paused ? copy("Play animations", "تشغيل الرسوم المتحركة") : copy("Pause animations", "إيقاف الرسوم المتحركة")}>{paused ? <Play size={15} /> : <Pause size={15} />}</button>
