@@ -4,7 +4,7 @@ import {createHands} from './hands.js';
 import {handPose,contactPose,animationWeight} from './hand-pose.js';
 import * as THREE from '../vendor/three.module.js';
 export {THREE};
-export function loadBrandLogo(){return new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(new Error('Playza logo could not load'));image.src=new URL('../assets/playza-logo.webp',import.meta.url).href})}
+export function loadBrandLogo(){return new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(new Error('Playza logo could not load'));image.src=new URL('/logo.png',import.meta.url).href})}
 
 // All textures are purpose-created here; no model or texture network downloads.
 function paintedTexture(width,height,paint){

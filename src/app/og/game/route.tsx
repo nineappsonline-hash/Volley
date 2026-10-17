@@ -24,7 +24,7 @@ const truncate = (value: string, max: number) => {
 /** Bundled PNG avoids a second network request while a sharing crawler waits. */
 async function loadLogo(): Promise<string | null> {
   try {
-    const buffer = await readFile(path.join(process.cwd(), "public/images/playza-email-logo.png"));
+    const buffer = await readFile(path.join(process.cwd(), "public/logo.png"));
     return `data:image/png;base64,${buffer.toString("base64")}`;
   } catch {
     return null;

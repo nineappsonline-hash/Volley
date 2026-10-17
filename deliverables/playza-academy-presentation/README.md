@@ -20,7 +20,7 @@ Reviewed areas:
 - Public academy discovery, trials and family workflows: `src/app/a/`, `src/components/dashboard/trials-card.tsx`, `src/components/parent/`
 - Tournaments: `src/components/tournaments/`
 - Plan-dependent availability: `src/components/upgrade/plan-comparison.tsx`
-- Brand palette: `src/lib/brand.ts`, `src/app/playza-palette.css`; logo: `public/logo.webp`.
+- Brand palette: `src/lib/brand.ts`, `src/app/playza-palette.css`; logo: `public/logo.png`.
 
 The workflow illustrations are labelled as illustrations, not product screenshots. Payroll and support/satisfaction database migrations were not promoted as finished owner-facing features because corresponding interfaces were not found in this review. The deck notes that feature availability and limits depend on plan and configuration.
 

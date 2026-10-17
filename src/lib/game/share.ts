@@ -34,7 +34,7 @@ async function loadLogo(): Promise<HTMLImageElement | null> {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = () => resolve(null);
-    img.src = "/logo.webp";
+    img.src = "/logo.png";
   });
 }
 

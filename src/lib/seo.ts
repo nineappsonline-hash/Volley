@@ -34,7 +34,7 @@ export function organizationJsonLd(): JsonLd {
     name: "Playza",
     alternateName: ["بلايزا", "Playza Egypt"],
     url: SITE_URL,
-    logo: `${SITE_URL}/icons/icon-512.png`,
+    logo: `${SITE_URL}/logo.png`,
     image: `${SITE_URL}${OG_IMAGE}`,
     description:
       "Playza helps people find sports activities, public academies and tournaments, with guides for volleyball, tennis, archery and beach volleyball in Cairo, Egypt. Academy owners manage members, subscriptions, training schedules, QR attendance and session finances in Arabic and English.",
