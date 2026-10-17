@@ -37,7 +37,8 @@ const guides: Record<string, [string, string, string]> = {
   parkour: ["الباركور", "Look for coached sessions with a stated experience level and meeting point. Ask whether training takes place in a gym or outdoors, which obstacles are used and what newcomers should bring.", "دور على حصص مع مدرب بمستوى محدد ونقطة تجمع واضحة. اسأل إذا كان التدريب في صالة أو بره، وعن العوائق المستخدمة والمطلوب للمبتدئين."],
 };
 
-export const DISCOVERY_SPORTS = ACTIVE_SPORTS.map(name => {
+// Featured editorial guides can exist before bookable sessions are published.
+export const DISCOVERY_SPORTS = [...new Set<string>([...ACTIVE_SPORTS, "Archery"])].map(name => {
   const slug = sportToSlug(name);
   return { slug, name, arabic: guides[slug][0], advice: { en: guides[slug][1], ar: guides[slug][2] } };
 });
@@ -52,14 +53,36 @@ export function discoveryMetadata(lang: DiscoveryLanguage, sport?: DiscoverySpor
     : ar ? "العب رياضتك في القاهرة — مباريات وأكاديميات" : "Find Sports to Play in Cairo — Games & Academies";
   const description = sport
     ? ar ? `عاوز تلعب ${sport.arabic} في القاهرة؟ اعرف إزاي تختار النشاط المناسب، وراجع المباريات والأكاديميات المنشورة والمواعيد والتكلفة على Playza.` : `Want to play ${sport.name.toLowerCase()} in Cairo? Find out what to check before joining, explore published games and academies, and compare locations, dates and costs on Playza.`
-    : ar ? "اختار رياضتك على Playza. اكتشف إرشادات للعب والتدريب في القاهرة وروابط المباريات والأكاديميات والبطولات، مع التسجيل المجاني." : "Explore tennis, volleyball and beach volleyball on Playza, with practical guidance for playing in Cairo and links to public games, academies and tournaments. Free account registration.";
+    : ar ? "اختار رياضتك على Playza. اكتشف إرشادات للعب والتدريب في القاهرة وروابط المباريات والأكاديميات والبطولات، مع التسجيل المجاني." : "Explore volleyball, tennis, archery and beach volleyball on Playza, with practical guidance for playing in Cairo and links to public games, academies and tournaments. Free account registration.";
+  const searchCopy = sport && SPORT_SEARCH_COPY[sport.slug]?.[lang];
+  const searchTitle = searchCopy?.title || title;
+  const searchDescription = searchCopy?.description || description;
   return {
-    title, description,
+    title: searchTitle, description: searchDescription,
+    keywords: sport ? [...(SPORT_SEARCH_COPY[sport.slug]?.keywords || []), sport.name, sport.arabic, `${sport.name} Egypt`, `${sport.arabic} في مصر`] : undefined,
     alternates: {
       canonical: discoveryPath(lang, sport?.slug),
       languages: { en: discoveryPath("en", sport?.slug), "ar-EG": discoveryPath("ar", sport?.slug), "x-default": discoveryPath("en", sport?.slug) },
     },
-    openGraph: { title, description, url: `${SITE_URL}${discoveryPath(lang, sport?.slug)}`, type: "website", siteName: "Playza", locale: ar ? "ar_EG" : "en_US", alternateLocale: [ar ? "en_US" : "ar_EG"], images: [OG_IMAGE] },
-    twitter: { card: "summary_large_image", title, description, images: [OG_IMAGE] },
+    openGraph: { title: searchTitle, description: searchDescription, url: `${SITE_URL}${discoveryPath(lang, sport?.slug)}`, type: "website", siteName: "Playza", locale: ar ? "ar_EG" : "en_US", alternateLocale: [ar ? "en_US" : "ar_EG"], images: [OG_IMAGE] },
+    twitter: { card: "summary_large_image", title: searchTitle, description: searchDescription, images: [OG_IMAGE] },
   };
 }
+
+const SPORT_SEARCH_COPY: Record<string, { en: { title: string; description: string }; ar: { title: string; description: string }; keywords: string[] }> = {
+  tennis: {
+    en: { title: "Tennis in Cairo, Egypt — Courts, Games & Lessons", description: "Find tennis in Cairo: explore court profiles and published games, compare playing levels and prices, and learn what to check before choosing tennis lessons." },
+    ar: { title: "التنس في القاهرة — ملاعب ومباريات ودروس تنس", description: "اكتشف التنس في القاهرة: راجع صفحات الملاعب والمباريات المنشورة ومستوى اللعب والتكلفة، واعرف إيه اللي تسأل عنه قبل اختيار دروس التنس." },
+    keywords: ["tennis courts Cairo", "tennis lessons Cairo", "tennis partner Egypt", "ملاعب تنس في القاهرة", "دروس تنس في مصر"],
+  },
+  volleyball: {
+    en: { title: "Volleyball in Cairo, Egypt — Courts & Friendly Games", description: "Discover volleyball in Cairo: explore published friendly games, court profiles and academies. Check the venue, playing level, schedule and cost before joining." },
+    ar: { title: "الكرة الطائرة في القاهرة — ملاعب وماتشات ودية", description: "اكتشف الكرة الطائرة في القاهرة: راجع الماتشات الودية المنشورة والملاعب والأكاديميات، واتأكد من المكان والمستوى والميعاد والتكلفة قبل الانضمام." },
+    keywords: ["volleyball games Cairo", "volleyball courts Egypt", "join volleyball without a team", "ماتشات كرة طائرة", "ملاعب كرة طائرة في القاهرة"],
+  },
+  archery: {
+    en: { title: "Archery in Cairo, Egypt — Beginner & Training Guide", description: "Looking for archery in Cairo? Learn how to choose introductory coaching, check bow rental and range access, and explore published academy profiles on Playza." },
+    ar: { title: "الرماية بالقوس في القاهرة — دليل التدريب والمبتدئين", description: "بتدور على الرماية بالقوس في القاهرة؟ اعرف إزاي تختار تدريب مناسب، وتسأل عن تأجير القوس وتجهيزات الميدان، وتراجع صفحات الأكاديميات المنشورة على بلايزا." },
+    keywords: ["archery Cairo", "archery Egypt", "archery training Egypt", "archery for beginners", "الرماية بالقوس في القاهرة", "تدريب الرماية بالقوس", "تعلم الرماية بالقوس"],
+  },
+};

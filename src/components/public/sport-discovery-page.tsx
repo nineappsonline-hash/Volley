@@ -1,3 +1,4 @@
+import { isActiveSport } from "@/lib/active-sports";
 import { publicGamePath } from "@/lib/game-discovery";
 import { LOCAL_GAME_GUIDES, localGamePath } from "@/lib/local-games";
 import { VOLLEYBALL_GUIDES, guidePath } from "@/lib/volleyball-guides";
@@ -59,9 +60,11 @@ export async function SportDiscoveryPage({ slug, lang }: { slug: string; lang: D
   if (!sport) notFound();
   const ar = lang === "ar";
   const name = ar ? sport.arabic : sport.name;
-  const gamesUrl = `/games?sport=${sport.slug}`;
+  const bookableSport = isActiveSport(sport.name);
+  const gamesUrl = bookableSport ? `/games?sport=${sport.slug}` : "/games";
   const volleyball = slug === "volleyball" || slug === "beach-volleyball";
-  const [games, academies, publicCourts] = await Promise.all([getPublicGames(sport.name), getCairoSportAcademies(sport.name), volleyball ? getPublicCourtDirectory(sport.name) : Promise.resolve([])]);
+  const showCourts = volleyball || slug === "tennis";
+  const [games, academies, publicCourts] = await Promise.all([getPublicGames(sport.name), getCairoSportAcademies(sport.name), showCourts ? getPublicCourtDirectory(sport.name) : Promise.resolve([])]);
   const courts = publicCourts.filter(c => ["cairo", "القاهرة"].includes(c.governorate?.trim().toLowerCase() ?? ""));
   const cairoGames = games.filter(game => ["cairo", "القاهرة"].includes(game.playground?.governorate?.trim().toLowerCase() ?? ""));
   const questions: [string, string][] = ar ? [
@@ -90,13 +93,18 @@ export async function SportDiscoveryPage({ slug, lang }: { slug: string; lang: D
         <SportIcon id={slug === "beach-volleyball" ? "volleyball" : slug} size={48} className="mb-4 text-[#C7F23D]" />
         <h1 className="text-white text-3xl font-bold sm:text-5xl">{title}</h1>
         <p className="mt-5 max-w-3xl text-lg leading-relaxed">{sport.advice[lang]}</p>
-        <div className="mt-6 flex flex-wrap gap-3"><Link href={gamesUrl} className="rounded-xl bg-white px-5 py-3 font-bold text-brand">{ar ? "شوف الأنشطة المنشورة" : "Browse published activities"}</Link><Link href="/academies" className="rounded-xl border border-white/40 px-5 py-3 font-semibold">{ar ? "اكتشف الأكاديميات" : "Explore academies"}</Link></div>
+        <div className="mt-6 flex flex-wrap gap-3"><Link href={gamesUrl} className="rounded-xl bg-white px-5 py-3 font-bold text-brand">{bookableSport ? ar ? "شوف الأنشطة المنشورة" : "Browse published activities" : ar ? "شوف كل الماتشات المنشورة" : "Browse all published games"}</Link><Link href="/academies" className="rounded-xl border border-white/40 px-5 py-3 font-semibold">{ar ? "اكتشف الأكاديميات" : "Explore academies"}</Link></div>
       </section>
+      {slug === "archery" && <>
+        <section className="space-y-4"><h2 className="text-2xl font-bold">{ar ? "اختيار تدريب الرماية بالقوس للمبتدئين" : "Choosing archery training for beginners"}</h2><p className="max-w-4xl leading-relaxed text-muted-foreground">{ar ? "لو دي أول تجربة ليك، اسأل عن حصة تعريفية مع مدرب بدل افتراض إن دخول الميدان يشمل تعليم الأساسيات. اتأكد من نوع القوس المستخدم، وطريقة تقسيم المجموعات حسب السن والخبرة، وهل الأدوات وتأجير القوس داخل سعر الحصة. صفحة المكان لوحدها مش تأكيد لوجود تدريب للمبتدئين." : "For your first archery session, ask for a coached introduction rather than assuming range access includes instruction. Confirm the bow type, how groups are divided by age and experience, and whether equipment and bow rental are included in the session price. A venue profile alone does not confirm that beginner archery lessons are available."}</p></section>
+        <section className="space-y-4"><h2 className="text-2xl font-bold">{ar ? "ميدان الرماية والمواعيد والتكلفة" : "Archery ranges, session times and prices"}</h2><p className="max-w-4xl leading-relaxed text-muted-foreground">{ar ? "لما تقارن أماكن الرماية بالقوس في القاهرة، راجع عنوان الميدان الفعلي وتعليمات الدخول مع المنظم. اسأل عن مدة الحصة وعدد المشاركين وطريقة الحجز وما يشمله السعر: التدريب أو الأدوات أو دخول الميدان. توفر التدريب والأسعار بيعتمد على الإعلانات الحالية؛ الدليل هنا مش إعلان عن ميعاد أو سعر ثابت." : "When comparing archery options in Cairo, check the range's actual address and entrance arrangements with the organizer. Ask about session length, group size, booking requirements and what the fee covers: coaching, equipment or range access. Training availability and prices depend on current published listings; this guide does not announce a fixed session schedule or price."}</p></section>
+      </>}
+      {slug === "tennis" && <section className="space-y-4"><h2 className="text-2xl font-bold">{ar ? "ملعب تنس ولا شريك لعب ولا دروس؟" : "Tennis courts, playing partners or lessons?"}</h2><p className="max-w-4xl leading-relaxed text-muted-foreground">{ar ? "حجز ملعب تنس مناسب لو عندك شريك أو مجموعة جاهزة. المباراة المنشورة ممكن تتيح طلب مكان فردي حسب شروط المنظم، أما دروس التنس فهي تدريب منفصل مع مدرب. راجع نظام الفردي أو الزوجي ومستوى اللعب، واسأل عن تأجير المضرب وتوفير الكرات والإضاءة ونوع أرضية الملعب. قارن مدة الحجز وما يشمله السعر قبل ما تختار ميعادك في القاهرة." : "A tennis court booking suits players who already have a partner or group. A published game may let you request an individual place, depending on the organizer, while tennis lessons are a separate coached activity. Check singles or doubles format and playing level, then ask about racket rental, balls, lighting and court surface. Compare booking duration and what the price includes before choosing a session in Cairo."}</p></section>}
       <section className="space-y-4">
         <h2 className="text-2xl font-bold">{ar ? "اختار مكان وميعاد مناسبين ليك" : "Choose a location and time that work for you"}</h2>
         <p className="max-w-4xl leading-relaxed text-muted-foreground">{ar ? "في القاهرة، ابدأ بمكان تقدر تروح له بانتظام. راجع العنوان الفعلي والمنطقة، مثل مدينة نصر أو المعادي أو مصر الجديدة أو القاهرة الجديدة، بدل الاعتماد على اسم الرياضة فقط. راجع عنوان الإعلان وخطة المواصلات قبل اختيار الميعاد." : "In Cairo, start with a location you can reach regularly. Check the actual address and district, such as Nasr City, Maadi, Heliopolis or New Cairo, rather than choosing by sport alone. Check the listing’s address and your travel plans before choosing a session time."}</p>
       </section>
-      {volleyball && <>
+      {showCourts && <>
         <section className="space-y-4">
           <h2 className="text-2xl font-bold">{ar ? `ملاعب ${name} المنشورة في القاهرة` : `Published ${name} courts in Cairo`}</h2>
           {courts.length ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{courts.map(c => <article key={c.id} className="space-y-3 rounded-2xl border bg-card p-4">

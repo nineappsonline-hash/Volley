@@ -1,4 +1,4 @@
-import { LANDING_TITLE, LANDING_DESCRIPTION, landingPageJsonLd } from "@/lib/landing-content";
+import { LANDING_TITLE, LANDING_DESCRIPTION, LANDING_KEYWORDS, landingPageJsonLd } from "@/lib/landing-content";
 import { getPublicGames } from "@/lib/public-games";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -17,23 +17,13 @@ import {
 export const metadata: Metadata = {
   title: { absolute: LANDING_TITLE },
   description: LANDING_DESCRIPTION,
-  keywords: [
-    "volleyball courts Egypt", "volleyball playgrounds Cairo", "volleyball academy",
-    "beach volleyball Egypt", "beach volleyball Cairo", "beach volleyball courts",
-    "beach volleyball games", "beach volleyball training", "sand volleyball courts Egypt",
-    "الكرة الطائرة الشاطئية", "كرة طائرة شاطئية في مصر", "الطائرة الشاطئية في القاهرة",
-    "ملاعب كرة طائرة شاطئية",
-    "volleyball games Egypt", "tennis games Egypt", "tennis academies Egypt",
-    "ملاعب كرة طائرة", "أكاديميات كرة طائرة في مصر", "مباريات كرة طائرة",
-    "مباريات تنس", "أكاديميات تنس", "ملاعب في القاهرة",
-  ],
+  keywords: LANDING_KEYWORDS,
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Playza — تنس وكرة طائرة وطائرة شاطئية في مصر",
-    description:
-      "اكتشف الكرة الطائرة والطائرة الشاطئية في مصر، ومباريات الملاعب الرملية والأكاديميات، وكمان مباريات وتدريب التنس.",
+    title: LANDING_TITLE,
+    description: LANDING_DESCRIPTION,
     url: SITE_URL,
     siteName: "Playza",
     images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
@@ -43,9 +33,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Playza — تنس وكرة طائرة وطائرة شاطئية في مصر",
-    description:
-      "اكتشف مباريات الكرة الطائرة والطائرة الشاطئية والملاعب والأكاديميات في مصر مع Playza.",
+    title: LANDING_TITLE,
+    description: LANDING_DESCRIPTION,
     images: [OG_IMAGE],
   },
 };

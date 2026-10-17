@@ -1,3 +1,4 @@
+import { LANDING_TITLE, LANDING_DESCRIPTION, LANDING_KEYWORDS } from "@/lib/landing-content";
 import { PLAYZA } from "@/lib/brand";
 import { OG_IMAGE, SITE_URL } from "@/lib/seo";
 import type { Metadata, Viewport } from "next";
@@ -17,25 +18,18 @@ export const metadata: Metadata = {
       : undefined,
   },
   title: {
-    default: "Playza — مكانك تلعب رياضة في مصر",
+    default: LANDING_TITLE,
     template: "%s | Playza",
   },
-  description:
-    "عاوز تلعب رياضة في مصر؟ اكتشف مباريات وملاعب تنس وكرة طائرة وطائرة شاطئية على Playza، شوف المواعيد والتكلفة، وانضم للاعبين زيّك.",
-  keywords: [
-    "tennis games Egypt", "tennis courts Cairo", "tennis coaching Egypt",
-    "volleyball games Egypt", "beach volleyball Egypt", "volleyball courts Cairo",
-    "ماتشات تنس", "ملاعب تنس في القاهرة", "كرة طائرة", "كرة طائرة شاطئية",
-    "sports academy management", "إدارة أكاديميات رياضية",
-  ],
+  description: LANDING_DESCRIPTION,
+  keywords: LANDING_KEYWORDS,
   openGraph: {
     type: "website",
     locale: "en_US",
     alternateLocale: ["ar_EG"],
     siteName: "Playza",
-    title: "Playza — مكانك تلعب رياضة في مصر",
-    description:
-      "اكتشف مباريات وملاعب في مصر، اختار تنس أو كرة طائرة أو طائرة شاطئية، وراجع المواعيد والتكلفة وانضم للعبة المناسبة ليك.",
+    title: LANDING_TITLE,
+    description: LANDING_DESCRIPTION,
     url: SITE_URL,
     images: [
       {
@@ -48,9 +42,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Playza — مكانك تلعب رياضة في مصر",
-    description:
-      "اكتشف مباريات وملاعب في مصر، اختار تنس أو كرة طائرة أو طائرة شاطئية، وراجع المواعيد والتكلفة وانضم للعبة المناسبة ليك.",
+    title: LANDING_TITLE,
+    description: LANDING_DESCRIPTION,
     images: [OG_IMAGE],
   },
   robots: {

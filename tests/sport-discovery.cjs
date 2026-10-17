@@ -19,9 +19,9 @@ modules['@/lib/sport-slugs'] = load('src/lib/sport-slugs.ts');
 modules['@/lib/volleyball-guides'] = load('src/lib/volleyball-guides.ts');
 const discovery = modules['@/lib/sport-discovery'] = load('src/lib/sport-discovery.ts');
 const { DISCOVERY_SPORTS, discoveryMetadata, discoveryPath } = discovery;
-assert.equal(DISCOVERY_SPORTS.length, 3);
-assert.equal(new Set(DISCOVERY_SPORTS.map(s => s.advice.en)).size, 3);
-assert.equal(new Set(DISCOVERY_SPORTS.map(s => s.advice.ar)).size, 3);
+assert.equal(DISCOVERY_SPORTS.length, 4);
+assert.equal(new Set(DISCOVERY_SPORTS.map(s => s.advice.en)).size, 4);
+assert.equal(new Set(DISCOVERY_SPORTS.map(s => s.advice.ar)).size, 4);
 for (const sport of DISCOVERY_SPORTS) {
   for (const lang of ['en', 'ar']) {
     const meta = discoveryMetadata(lang, sport);
@@ -40,7 +40,7 @@ const page = load('src/components/public/sport-discovery-page.tsx', {
   '@/components/shared/app-logo': { AppLogo: () => 'Playza' },
   '@/lib/public-playgrounds': { getPublicCourtDirectory: async () => [] },
   '@/lib/court-discovery': { courtsPath: (lang, slug) => `${lang === 'ar' ? '/ar' : ''}/courts${slug ? `?sport=${slug}` : ''}` },
-  '@/lib/public-games': { getPublicGames: async sport => { assert.ok(Object.values(modules['@/lib/sport-slugs'].SPORT_SLUGS).includes(sport)); return listed ? [game, { ...game, id: 'other', title: 'Elsewhere', playground: { governorate: 'Alexandria' } }] : []; } },
+  '@/lib/public-games': { getPublicGames: async sport => { assert.ok(Object.values(modules['@/lib/sport-slugs'].SPORT_SLUGS).includes(sport)); return listed && sport !== 'Archery' ? [game, { ...game, id: 'other', title: 'Elsewhere', playground: { governorate: 'Alexandria' } }] : []; } },
   '@/lib/public-sport-academies': { getCairoSportAcademies: async () => listed ? [{ name: 'Public Academy', slug: 'public-academy', area: 'Maadi', governorate: 'Cairo' }] : [] },
   '@/lib/constants': { formatTime12h: value => value, formatMoney: value => String(value) },
 });
@@ -58,6 +58,10 @@ const page = load('src/components/public/sport-discovery-page.tsx', {
       assert.ok(html.includes(`href="${discoveryPath(lang === 'en' ? 'ar' : 'en', sport.slug)}"`));
     }
   }
+  const archery = renderToStaticMarkup(await page.SportDiscoveryPage({ slug: 'archery', lang: 'en' }));
+  assert.ok(archery.includes('Choosing archery training for beginners'));
+  assert.ok(!archery.includes('/games?sport=archery'));
+  assert.equal(discoveryMetadata('en', DISCOVERY_SPORTS.find(s=>s.slug==='archery')).alternates.languages['ar-EG'], '/ar/sports/archery');
   await assert.rejects(page.SportDiscoveryPage({ slug: 'unknown', lang: 'en' }), /NOT_FOUND/);
   listed = true;
   const populated = renderToStaticMarkup(await page.SportDiscoveryPage({ slug: 'tennis', lang: 'en' }));
@@ -78,5 +82,5 @@ const page = load('src/components/public/sport-discovery-page.tsx', {
   }
   const llms = await load('src/app/llms.txt/route.ts').GET().text();
   for (const sport of DISCOVERY_SPORTS) assert.ok(llms.includes(`/sports/${sport.slug}`));
-  console.log('PASS: the three active sports in both languages, SSR content, canonicals, language links, FAQ data, unknown slugs, real listings, escaped content and crawler access');
+  console.log('PASS: featured sports including archery in both languages, SSR content, canonicals, language links, FAQ data, unknown slugs, real listings, escaped content and crawler access');
 })().catch(error => { console.error(error); process.exitCode = 1; });

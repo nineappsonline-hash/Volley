@@ -37,7 +37,7 @@ export function organizationJsonLd(): JsonLd {
     logo: `${SITE_URL}/icons/icon-512.png`,
     image: `${SITE_URL}${OG_IMAGE}`,
     description:
-      "Playza helps people find sports activities, public academies and tournaments, with guides for playing tennis, volleyball and beach volleyball in Cairo, Egypt. Academy owners manage members, subscriptions, training schedules, QR attendance and session finances in Arabic and English.",
+      "Playza helps people find sports activities, public academies and tournaments, with guides for volleyball, tennis, archery and beach volleyball in Cairo, Egypt. Academy owners manage members, subscriptions, training schedules, QR attendance and session finances in Arabic and English.",
     areaServed: [
       { "@type": "Country", name: "Egypt" },
       { "@type": "Country", name: "Saudi Arabia" },
@@ -71,7 +71,7 @@ export function softwareAppJsonLd(): JsonLd {
     url: SITE_URL,
     image: `${SITE_URL}${OG_IMAGE}`,
     description:
-      "Find your next game in Egypt with Playza. Explore tennis, volleyball and beach volleyball games, check venues and participation costs, and play with others.",
+      "Find your next game in Egypt with Playza. Explore volleyball, tennis and archery guides, browse published games and academies, and check venue and participation details.",
     inLanguage: ["en", "ar-EG"],
     featureList: [
       "Member and subscription management",

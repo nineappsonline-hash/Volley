@@ -36,7 +36,7 @@ for (lang of ['en', 'ar']) {
   assert.ok(html.includes('id="tennis"'));
   assert.ok(html.includes('href="/games?sport=tennis"'));
   assert.ok(!html.includes('Padel') && !html.includes('البادل'));
-  assert.ok(html.includes(lang === 'ar' ? 'التنس. ماتشك الجاي يبدأ هنا.' : 'Tennis. Find your next rally.'));
+  assert.ok(html.includes(lang === 'ar' ? 'التنس في مصر. ماتشك الجاي يبدأ هنا.' : 'Tennis in Egypt. Find your next rally.'));
   assert.ok(section, 'beach section must be present in server-rendered HTML');
   assert.ok(section.includes(content.BEACH_DESCRIPTION[lang]));
   assert.ok(section.includes(lang === 'ar' ? 'الكرة الطائرة الشاطئية.' : 'Beach volleyball.'));
@@ -75,8 +75,8 @@ for (lang of ['en', 'ar']) {
   assert.ok(!empty.includes('Friday beach game'));
 }
 const metadata = content.landingPageJsonLd(seo.SITE_URL);
-assert.equal(metadata.hasPart.description, content.BEACH_DESCRIPTION.en);
-assert.equal(metadata.hasPart.url, `${seo.SITE_URL}/#beach-volleyball`);
+assert.equal(metadata.hasPart.find(part => part.url.endsWith("/#beach-volleyball")).description, content.BEACH_DESCRIPTION.en);
+assert.equal(metadata.hasPart.find(part => part.url.endsWith("/#beach-volleyball")).url, `${seo.SITE_URL}/#beach-volleyball`);
 assert.ok(metadata.about.some(topic => topic.name === 'Beach Volleyball'));
 assert.equal(JSON.parse(seo.jsonLdStringify(metadata)).name, content.LANDING_TITLE);
 const sitemap = fs.readFileSync(path.join(root, 'src/app/sitemap.ts'), 'utf8');
