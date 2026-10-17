@@ -65,3 +65,9 @@
 .page[dir="rtl"] .gameCard>p:first-of-type{letter-spacing:0}
 .gamesEmpty{margin-top:24px;max-width:720px;line-height:1.8}
 @media(max-width:900px){.gameGrid{grid-template-columns:1fr}.upcomingGames{padding:45px 5%}}
+
+/* Academy management reads as a dark navy panel on the light landing page. */
+.academyMgmt>div{background:var(--color-navy);border-color:#2E4063}
+.academyMgmt h2{color:var(--color-primary)}
+.academyMgmt p{color:#C9D2E3}
+.academyMgmt p:first-of-type{color:#FFFFFF}

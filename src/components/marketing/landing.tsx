@@ -155,7 +155,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
 
       {process.env.NEXT_PUBLIC_BEACH_GAME_ENABLED !== "false" && <BeachVolleyballGameCard />}
 
-      <section id="academy-management" aria-labelledby="academy-management-title" className="mx-auto max-w-6xl px-6 py-12">
+      <section id="academy-management" aria-labelledby="academy-management-title" className={`mx-auto max-w-6xl px-6 py-12 ${styles.academyMgmt}`}>
         <div className="rounded-2xl border bg-card p-6 sm:p-10">
           <p className="text-sm font-semibold text-white">{copy("FOR ACADEMY OWNERS", "لأصحاب الأكاديميات")}</p>
           <h2 id="academy-management-title" className="mt-3 text-2xl font-bold text-primary sm:text-3xl">{copy("Run your sports academy with Playza.", "أدر أكاديميتك الرياضية مع بلايزا.")}</h2>
