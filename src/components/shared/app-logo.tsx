@@ -6,5 +6,5 @@ export function AppLogo({ className }: { className?: string }) {
   return <Image src="/logo.png" alt="Playza" width={1774} height={887}
     unoptimized
     loading="eager"
-    className={cn("h-auto w-32 shrink-0 object-contain", className)} />;
+    className={cn("playza-logo h-auto w-32 shrink-0 object-contain", className)} />;
 }

@@ -420,3 +420,8 @@ input[type="checkbox"], input[type="radio"] { accent-color: hsl(var(--playza-nav
     padding-top: calc(7rem + env(safe-area-inset-top, 0px));
   }
 }
+
+/* Strengthen the transparent wordmark outline without changing its artwork. */
+.playza-logo {
+  filter: drop-shadow(1px 0 0 white) drop-shadow(-1px 0 0 white) drop-shadow(0 1px 0 white) drop-shadow(0 -1px 0 white);
+}
