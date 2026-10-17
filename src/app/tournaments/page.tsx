@@ -1,3 +1,5 @@
+import { ACTIVE_SPORTS, isActiveSport } from "@/lib/active-sports";
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarDays, MapPin, Trophy } from "lucide-react";
@@ -25,13 +27,14 @@ type SP = Promise<{ sport?: string }>;
 export async function generateMetadata({ searchParams }: { searchParams: SP }): Promise<Metadata> {
   const { sport: sportParam } = await searchParams;
   const sport = sportParam ? slugToSport(sportParam) : undefined;
+  if (sportParam && (!sport || !isActiveSport(sport))) notFound();
 
   const title = sport
     ? `${sport} Tournaments in Egypt — Dates & Registration`
-    : "Sports Tournaments in Egypt — Football, Padel, Volleyball & Basketball";
+    : "Sports Tournaments in Egypt — Tennis, Volleyball & Beach Volleyball";
   const description = sport
     ? `Upcoming ${sport} tournaments in Egypt from verified academies: dates, locations and registration links.`
-    : "All upcoming tournaments in Egypt from Playza academies: football, padel, volleyball, basketball. Dates, locations and details — enter with your team or join an academy and start competing.";
+    : "All upcoming tournaments in Egypt from Playza academies: tennis, volleyball, beach volleyball. Dates, locations and details — enter with your team or join an academy and start competing.";
 
   return {
     title,
@@ -39,15 +42,15 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
     keywords: sport
       ? [`${sport} tournaments`, `${sport} tournament Egypt`, "tournament registration"]
       : [
-          "football tournaments",
-          "football tournaments Egypt",
+          "tennis tournaments",
+          "tennis tournaments Egypt",
           "corporate tournaments",
           "7x7 tournaments",
           "5x5 tournaments",
-          "padel tournaments Egypt",
+          "beach volleyball tournaments Egypt",
           "volleyball tournaments",
-          "basketball tournaments",
-          "organize a football tournament",
+          "volleyball tournaments",
+          "organize a tennis tournament",
           "tournament registration",
           "tournaments Egypt",
           "بطولات كرة قدم",
@@ -82,6 +85,7 @@ function fmtDate(iso: string): string {
 export default async function TournamentsPage({ searchParams }: { searchParams: SP }) {
   const { sport: sportParam } = await searchParams;
   const sport = sportParam ? slugToSport(sportParam) : undefined;
+  if (sportParam && (!sport || !isActiveSport(sport))) notFound();
 
   const [tournaments, sports] = await Promise.all([
     getPublicTournaments(sport),
@@ -101,7 +105,7 @@ export default async function TournamentsPage({ searchParams }: { searchParams: 
         ],
         [
           "Are these tournaments for teams or individual players?",
-          "Both. There are team tournaments (5x5, 7x7 and 11-a-side) and individual ones like padel and tennis. Each tournament's details are listed on its page along with the entry rules.",
+          "Both. There are team volleyball tournaments and singles or doubles tennis events. Each tournament's details are listed on its page along with the entry rules.",
         ],
         [
           "Are you organizing your own tournament?",
@@ -141,7 +145,7 @@ export default async function TournamentsPage({ searchParams }: { searchParams: 
       <div className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-6 flex flex-col items-center gap-4">
           <SportFilterLinks
-            sports={sports}
+            sports={[...new Set([...ACTIVE_SPORTS, ...sports])]}
             to={(s) => (s ? `/tournaments?sport=${sportToSlug(s)}` : "/tournaments")}
             current={sport}
             allLabel="All sports"

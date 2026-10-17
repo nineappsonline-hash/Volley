@@ -1,3 +1,4 @@
+import { ACTIVE_SPORTS, isActiveSport } from "@/lib/active-sports";
 import { cache } from "react";
 import { unstable_noStore as noStore } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -62,7 +63,7 @@ export const getPublicGame = cache(async (id: string): Promise<PublicGameDetail 
      creator_name, duration_hours, min_age, max_age,
      playground:venues(id, name, area, governorate, address, country, location_link, cover_url),
      participants:friendly_game_participants(is_waitlisted)`
-  ).eq("id", id).eq("is_public", true).maybeSingle();
+  ).eq("id", id).eq("is_public", true).in("sport", [...ACTIVE_SPORTS]).maybeSingle();
   if (error || !data) return null;
   const { participants, playground, ...game } = data;
   return { ...game, playground: Array.isArray(playground) ? playground[0] ?? null : playground,
@@ -77,7 +78,7 @@ export async function getPublicGameIds(): Promise<string[]> {
   const ids: string[] = [];
   for (let offset = 0; ; offset += 1000) {
     const { data, error } = await admin.from("friendly_games").select("id")
-      .eq("is_public", true).in("status", ["open", "full"]).gte("game_date", todayISO())
+      .eq("is_public", true).in("sport", [...ACTIVE_SPORTS]).in("status", ["open", "full"]).gte("game_date", todayISO())
       .order("id").range(offset, offset + 999);
     if (error) break;
     ids.push(...(data ?? []).map(g => g.id));
@@ -118,6 +119,7 @@ function getAdmin() {
 
 /** Upcoming public friendly games, optionally filtered by sport. */
 export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
+  if (sport && !isActiveSport(sport)) return [];
   const admin = getAdmin();
   if (!admin) return [];
   let query = admin
@@ -129,6 +131,7 @@ export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
        participants:friendly_game_participants(count)`
     )
     .eq("is_public", true)
+    .in("sport", [...ACTIVE_SPORTS])
     .neq("status", "cancelled")
     .neq("status", "completed")
     .gte("game_date", todayISO())
@@ -254,6 +257,7 @@ export async function getPublicGameSports(): Promise<string[]> {
       .from("friendly_games")
       .select("sport")
       .eq("is_public", true)
+      .in("sport", [...ACTIVE_SPORTS])
       .neq("status", "cancelled")
       .neq("status", "completed")
       .gte("game_date", todayISO())
@@ -267,6 +271,7 @@ export async function getPublicGameSports(): Promise<string[]> {
 
 /** Tournaments hosted by public academies, optionally filtered by sport name. */
 export async function getPublicTournaments(sport?: string): Promise<PublicTournament[]> {
+  if (sport && !isActiveSport(sport)) return [];
   const admin = getAdmin();
   if (!admin) return [];
   let query = admin
@@ -312,7 +317,7 @@ export async function getPublicTournaments(sport?: string): Promise<PublicTourna
         sport: row.sport?.name ?? null,
         academy: row.academy,
       };
-    });
+    }).filter(t => isActiveSport(t.sport));
   } catch {
     return [];
   }
@@ -332,7 +337,7 @@ export async function getPublicTournamentSports(): Promise<string[]> {
     const set = new Set<string>();
     for (const row of data ?? []) {
       const r = row as unknown as { sport: { name: string } | null };
-      if (r.sport?.name) set.add(r.sport.name);
+      if (isActiveSport(r.sport?.name)) set.add(r.sport!.name);
     }
     return [...set].sort();
   } catch {

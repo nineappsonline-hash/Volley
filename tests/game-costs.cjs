@@ -23,8 +23,9 @@ console.log('PASS: migration rerun, limits, duration validation, price snapshot,
 // Compile the pure TypeScript helper in memory for calculation edge cases.
 const ts=require('typescript'); const moduleValue={exports:{}};
 const code=ts.transpileModule(readFileSync(join(__dirname,'../src/lib/game-costs.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;
-const constants = {};
-new Function('exports', ts.transpileModule(readFileSync(join(__dirname,'../src/lib/constants.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(constants);
+const constants = {}, active = {};
+new Function('exports', ts.transpileModule(readFileSync(join(__dirname,'../src/lib/active-sports.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(active);
+new Function('exports', 'require', ts.transpileModule(readFileSync(join(__dirname,'../src/lib/constants.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(constants, () => active);
 new Function('exports','require',code)(moduleValue.exports, name => { assert.equal(name, '@/lib/constants'); return constants; });const { estimateSharePrice, estimateHostTotal, gameRentRemaining } = moduleValue.exports;
 assert.deepEqual(estimateSharePrice(300,2,6,'Football'),{rent:60,fee:20,total:80});
 assert.deepEqual(estimateSharePrice(300,1,2,'Padel'),{rent:75,fee:40,total:115});

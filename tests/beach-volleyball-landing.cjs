@@ -33,6 +33,10 @@ const seo = load(path.join(root, 'src/lib/seo.ts'));
 for (lang of ['en', 'ar']) {
   const html = renderToStaticMarkup(React.createElement(LandingPage));
   const section = html.match(/<section id="beach-volleyball"[\s\S]*?<\/section>/)?.[0];
+  assert.ok(html.includes('id="tennis"'));
+  assert.ok(html.includes('href="/games?sport=tennis"'));
+  assert.ok(!html.includes('Padel') && !html.includes('البادل'));
+  assert.ok(html.includes(lang === 'ar' ? 'التنس. ماتشك الجاي يبدأ هنا.' : 'Tennis. Find your next rally.'));
   assert.ok(section, 'beach section must be present in server-rendered HTML');
   assert.ok(section.includes(content.BEACH_DESCRIPTION[lang]));
   assert.ok(section.includes(lang === 'ar' ? 'الكرة الطائرة الشاطئية.' : 'Beach volleyball.'));

@@ -12,6 +12,7 @@ function load(file, mocks = {}) {
   new Function('exports', 'require', code)(exports, id => mocks[id] ?? modules[id] ?? require(id));
   return exports;
 }
+modules['@/lib/active-sports'] = load('src/lib/active-sports.ts');
 modules['@/lib/seo'] = load('src/lib/seo.ts');
 modules['@/lib/sport-slugs'] = load('src/lib/sport-slugs.ts');
 modules['@/lib/game-share'] = load('src/lib/game-share.ts');
@@ -73,6 +74,7 @@ const share = load('src/components/games/game-share-actions.tsx', {
   updated = updateGameAlertPreferences(updated, 'Volleyball', false);
   assert.deepEqual(updated, { interested_sports: ['Padel'], notify_game_alerts: true });
   assert.deepEqual(updateGameAlertPreferences(updated, 'Padel', false), { interested_sports: [], notify_game_alerts: false });
+  assert.throws(() => updateGameAlertPreferences(original, 'Padel', true), /Unknown sport/);
   assert.throws(() => updateGameAlertPreferences(original, 'invalid sport', true), /Unknown sport/);
   let signedIn = true, updateFailure = false, writes = 0;
   let stored = { ...original };

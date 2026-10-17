@@ -233,10 +233,8 @@ export function SolutionPage({
               { label: "إدارة الأكاديميات الرياضية", href: "/ar/academy-management" },
               { label: "حجز ملاعب بادل وVolley", href: "/book-courts" },
               { label: "🏐 Volleyball", href: "/solutions/volleyball" },
-              { label: "⚽ Football", href: "/solutions/football" },
-              { label: "🏀 Basketball", href: "/solutions/basketball" },
-              { label: "🏓 Padel", href: "/solutions/padel" },
-              { label: "🏊 Swimming", href: "/solutions/swimming" },
+              { label: "🎾 Tennis", href: "/sports/tennis" },
+              { label: "🏐 Beach Volleyball", href: "/sports/beach-volleyball" },
             ].map((link) => (
               <Link
                 key={link.href}

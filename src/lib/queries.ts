@@ -1,5 +1,6 @@
 "use client";
 
+import { ACTIVE_SPORTS } from "@/lib/active-sports";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { COMMUNITY_SPORTS } from "@/lib/constants";
@@ -980,7 +981,8 @@ export function usePublicSports() {
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("sports")
-        .select("academy_id, name");
+        .select("academy_id, name")
+        .in("name", [...ACTIVE_SPORTS]);
       if (error) throw error;
       return (data ?? []) as { academy_id: string; name: string }[];
     },

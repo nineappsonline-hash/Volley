@@ -14,9 +14,10 @@ export function GET() {
 ## Find a place to play
 
 - [Home](${SITE_URL})
-- [Sports in Cairo](${SITE_URL}/sports): Guides for all 27 supported sports, with public activity and academy links.
+- [Sports in Cairo](${SITE_URL}/sports): Guides for tennis, volleyball and beach volleyball, with public activity and academy links.
 - [الرياضة في القاهرة](${SITE_URL}/ar/sports): Arabic versions of the sport guides.
 - [Public courts](${SITE_URL}/courts): Approved Egypt courts with addresses, sports, listed rental prices and public venue profiles. [العربية](${SITE_URL}/ar/courts)
+- [Tennis courts](${SITE_URL}/courts?sport=tennis)
 - [Volleyball courts](${SITE_URL}/courts?sport=volleyball)
 - [Beach volleyball courts](${SITE_URL}/courts?sport=beach-volleyball)
 - [Games](${SITE_URL}/games): Upcoming public activities with dates, places and participation costs.

@@ -1,3 +1,5 @@
+import { ACTIVE_SPORTS, isActiveSport } from "@/lib/active-sports";
+import { notFound } from "next/navigation";
 import { publicGamePath } from "@/lib/game-discovery";
 import { LOCAL_GAME_GUIDES, localGamePath } from "@/lib/local-games";
 import { PlayerJoiningGuide } from "@/components/games/player-joining-guide";
@@ -96,13 +98,14 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
   }
 
   const sport = sportParam ? slugToSport(sportParam) : undefined;
+  if (sportParam && (!sport || !isActiveSport(sport))) notFound();
 
   const title = sport
     ? `Upcoming ${sport} Friendly Games in Egypt`
-    : "Friendly & Casual Games in Egypt — Football, Volleyball, Basketball, Padel";
+    : "Tennis, Volleyball & Beach Volleyball Games in Egypt";
   const description = sport
     ? `Browse upcoming ${sport} friendly games in Egypt: dates, location, player count and share price. Jump into a game near you with Playza.`
-    : "Find a friendly game near you: football, volleyball, basketball, padel and swimming. Dates, location, player count and share price are clear from the start. Sign up free and join the nearest game.";
+    : "Find a friendly game near you: tennis, volleyball and beach volleyball. Dates, location, player count and share price are clear from the start. Sign up free and join the nearest game.";
 
   return {
     title,
@@ -111,18 +114,18 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
       ? [`${sport} friendly games`, "friendly matches", "casual games"]
       : [
           "friendly games Egypt",
-          "friendly football matches",
+          "friendly tennis matches",
           "casual games",
-          "football games near me",
+          "tennis games near me",
           "volleyball games",
-          "padel matches Egypt",
-          "basketball games",
+          "beach volleyball matches Egypt",
+          "tennis games",
           "playground near me",
           "ماتشات ودية",
-          "حجز ماتش كرة قدم",
+          "ماتشات تنس",
           "جيمز ودية",
-          "لعب كرة قدم",
-          "ماتشات بادل مصر",
+          "لعب تنس",
+          "طائرة شاطئية مصر",
         ],
     alternates: { canonical: sport ? `/games?sport=${sportToSlug(sport)}` : "/games" },
     openGraph: {
@@ -162,6 +165,7 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
   const { sport: sportParam, join, focus } = await searchParams;
   if (join) return <SharedGamePage game={await getGameByInviteCode(join)} inviteCode={join} />;
   const sport = sportParam ? slugToSport(sportParam) : undefined;
+  if (sportParam && (!sport || !isActiveSport(sport))) notFound();
 
   const [games, sports] = await Promise.all([
     getPublicGames(sport),
@@ -199,7 +203,7 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
 
       <PublicListHero
         emoji="🎮"
-        title={sport ? `Upcoming ${sport} Friendly Games` : "Friendly & Casual Games in Egypt"}
+        title={sport ? `Upcoming ${sport} Friendly Games` : "Tennis, Volleyball & Beach Volleyball Games in Egypt"}
         subtitle="The players are out there — you just need to gather. Pick a game near you, with dates, location and price clear from the start."
         note="Sign up free and join any open game. Some games have age or skill requirements — shown before you join."
         ctaHref={`/signup?redirectedFrom=${encodeURIComponent(sport ? `/games?sport=${sportToSlug(sport)}` : "/games")}`}
@@ -209,7 +213,7 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
       <div className="mx-auto max-w-5xl px-6 py-10">
         {focus && !games.some(g => g.id === focus) && <p role="status" className="mx-auto max-w-6xl rounded-lg border bg-card p-4 text-muted-foreground">The selected game is no longer in the upcoming public list. Review available games below; your account has not reserved a place.</p>}
       <SportFilterLinks
-          sports={sports}
+          sports={[...new Set([...ACTIVE_SPORTS, ...sports])]}
           to={(s) => (s ? `/games?sport=${sportToSlug(s)}` : "/games")}
           current={sport}
           allLabel="All sports"

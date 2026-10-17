@@ -11,6 +11,7 @@ assert.equal(siteUrl(' https://playza.nineapps.online/// '),'https://playza.nine
 let failAcademies=false,failGames=false;
 const rows=Array.from({length:1001},(_,i)=>({id:String(i),slug:'academy-'+i}));
 const mocks={
+ '@/lib/active-sports':{ACTIVE_SPORTS:['Tennis','Volleyball','Beach Volleyball'],isActiveSport:name=>['Tennis','Volleyball','Beach Volleyball'].includes(name)},
  '@/lib/volleyball-guides':{VOLLEYBALL_GUIDES:[{slug:'volleyball-cairo'},{slug:'join-volleyball-without-team'},{slug:'beach-volleyball-beginners'}],guidePath:(lang,slug)=>`${lang==='ar'?'/ar':''}/guides${slug?'/'+slug:''}`},
  '@/lib/seo':{SITE_URL:siteUrl(undefined)},
  '@/lib/sport-slugs':{sportToSlug:s=>s.toLowerCase()},
@@ -18,7 +19,7 @@ const mocks={
  '@/lib/local-games':{LOCAL_GAME_GUIDES:[{slug:'volleyball-new-cairo'},{slug:'beach-volleyball-new-cairo'}],localGamePath:(lang,slug)=>`${lang==='ar'?'/ar':''}/play/${slug}`},
  '@/lib/game-discovery':{publicGamePath:id=>`/games/${id}`},
  '@/lib/public-games':{getPublicGameIds:async()=>{if(failGames)throw Error('offline');return ['public-game'];},getPublicGameSports:async()=>{if(failGames)throw Error('offline');return ['Football','football'];},getPublicTournamentSports:async()=>['Padel']},
- '@/lib/supabase/admin':{createAdminClient:()=>{if(failAcademies)throw Error('unavailable');return {from:()=>({select(){return this;},eq(k,v){assert.equal(k,'is_public');assert.equal(v,true);return this;},not(){return this;},order(){return this;},range:async(a,b)=>({data:rows.slice(a,b+1),error:null})})};}},
+ '@/lib/supabase/admin':{createAdminClient:()=>{if(failAcademies)throw Error('unavailable');return {from:()=>({select(){return this;},in(){return this;},eq(k,v){assert.equal(k,'is_public');assert.equal(v,true);return this;},not(){return this;},order(){return this;},range:async(a,b)=>({data:rows.slice(a,b+1),error:null})})};}},
 };
 new Function('exports','require',ts.transpileModule(fs.readFileSync(path.join(__dirname,'../src/app/sitemap.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText)(api,n=>mocks[n]);
 (async()=>{

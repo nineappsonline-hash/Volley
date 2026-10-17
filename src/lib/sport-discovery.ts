@@ -1,4 +1,5 @@
-import { SPORT_SLUGS } from "@/lib/sport-slugs";
+import { sportToSlug } from "@/lib/sport-slugs";
+import { ACTIVE_SPORTS } from "@/lib/active-sports";
 import { OG_IMAGE, SITE_URL } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -36,9 +37,10 @@ const guides: Record<string, [string, string, string]> = {
   parkour: ["الباركور", "Look for coached sessions with a stated experience level and meeting point. Ask whether training takes place in a gym or outdoors, which obstacles are used and what newcomers should bring.", "دور على حصص مع مدرب بمستوى محدد ونقطة تجمع واضحة. اسأل إذا كان التدريب في صالة أو بره، وعن العوائق المستخدمة والمطلوب للمبتدئين."],
 };
 
-export const DISCOVERY_SPORTS = Object.entries(SPORT_SLUGS).map(([slug, name]) => ({
-  slug, name, arabic: guides[slug][0], advice: { en: guides[slug][1], ar: guides[slug][2] },
-}));
+export const DISCOVERY_SPORTS = ACTIVE_SPORTS.map(name => {
+  const slug = sportToSlug(name);
+  return { slug, name, arabic: guides[slug][0], advice: { en: guides[slug][1], ar: guides[slug][2] } };
+});
 export type DiscoverySport = (typeof DISCOVERY_SPORTS)[number];
 export const findDiscoverySport = (slug: string) => DISCOVERY_SPORTS.find(sport => sport.slug === slug);
 export const discoveryPath = (lang: DiscoveryLanguage, slug?: string) => `${lang === "ar" ? "/ar" : ""}/sports${slug ? `/${slug}` : ""}`;
@@ -50,7 +52,7 @@ export function discoveryMetadata(lang: DiscoveryLanguage, sport?: DiscoverySpor
     : ar ? "العب رياضتك في القاهرة — مباريات وأكاديميات" : "Find Sports to Play in Cairo — Games & Academies";
   const description = sport
     ? ar ? `عاوز تلعب ${sport.arabic} في القاهرة؟ اعرف إزاي تختار النشاط المناسب، وراجع المباريات والأكاديميات المنشورة والمواعيد والتكلفة على Playza.` : `Want to play ${sport.name.toLowerCase()} in Cairo? Find out what to check before joining, explore published games and academies, and compare locations, dates and costs on Playza.`
-    : ar ? "اختار رياضتك على Playza. اكتشف إرشادات للعب والتدريب في القاهرة وروابط المباريات والأكاديميات والبطولات، مع التسجيل المجاني." : "Explore all 27 sports on Playza, with practical guidance for playing in Cairo and links to public games, academies and tournaments. Free account registration.";
+    : ar ? "اختار رياضتك على Playza. اكتشف إرشادات للعب والتدريب في القاهرة وروابط المباريات والأكاديميات والبطولات، مع التسجيل المجاني." : "Explore tennis, volleyball and beach volleyball on Playza, with practical guidance for playing in Cairo and links to public games, academies and tournaments. Free account registration.";
   return {
     title, description,
     alternates: {

@@ -1,3 +1,4 @@
+import { ACTIVE_SPORTS, isActiveSport } from "@/lib/active-sports";
 import { LOCAL_GAME_GUIDES, localGamePath } from "@/lib/local-games";
 import { publicGamePath } from "@/lib/game-discovery";
 import { VOLLEYBALL_GUIDES, guidePath } from "@/lib/volleyball-guides";
@@ -30,27 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
-      url: `${SITE_URL}/solutions/football`,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
       url: `${SITE_URL}/solutions/volleyball`,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/solutions/basketball`,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/solutions/padel`,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/solutions/swimming`,
       changeFrequency: "monthly",
       priority: 0.8,
     },
@@ -91,7 +72,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  for (const sport of [undefined, "volleyball", "beach-volleyball"]) {
+  for (const sport of [undefined, "tennis", "volleyball", "beach-volleyball"]) {
     const suffix = sport ? `?sport=${sport}` : "";
     for (const lang of ["en", "ar"]) staticPages.push({
       url: `${SITE_URL}${lang === "ar" ? "/ar" : ""}/courts${suffix}`,
@@ -142,7 +123,8 @@ async function academyEntries(): Promise<MetadataRoute.Sitemap> {
   const batchSize = 1000;
   for (let offset = 0; ; offset += batchSize) {
     const { data, error } = await admin.from("academies")
-      .select("id, slug")
+      .select("id, slug, sports!inner(name)")
+      .in("sports.name", [...ACTIVE_SPORTS])
       .eq("is_public", true)
       .not("slug", "is", null)
       .order("id")
@@ -167,14 +149,15 @@ async function playgroundEntries(): Promise<MetadataRoute.Sitemap> {
   const batchSize = 1000;
   for (let offset = 0; ; offset += batchSize) {
     const { data, error } = await admin.from("venues")
-      .select("id")
+      .select("id, sport:sports(name)")
       .eq("approval_status", "approved")
       .order("id")
       .range(offset, offset + batchSize - 1);
     // Keep completed batches if a later request fails.
     if (error) break;
     for (const venue of data ?? []) {
-      if (venue.id) pages.push({
+      const sport = Array.isArray(venue.sport) ? venue.sport[0] : venue.sport;
+      if (venue.id && isActiveSport(sport?.name)) pages.push({
         url: `${SITE_URL}/p/${encodeURIComponent(venue.id)}`,
         changeFrequency: "weekly",
         priority: 0.7,

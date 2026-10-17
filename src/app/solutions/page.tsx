@@ -5,33 +5,14 @@ import { Button } from "@/components/ui/button";
 import { OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Sports Academy Management Solutions — Football, Volleyball, Basketball, Padel, Swimming",
+  title: "Sports Academy Management Solutions — Tennis, Volleyball, Beach Volleyball",
   description:
-    "Discover how Playza helps you manage football, volleyball, basketball, padel and swimming academies: members, subscriptions, attendance, payments and automatic profit tracking in Egypt & the Gulf.",
-  keywords: [
-    "sports academy management",
-    "academy management software",
-    "volleyball academy",
-    "football academy",
-    "basketball academy",
-    "padel academy",
-    "swimming academy",
-    "نظام إدارة أكاديمية",
-    "إدارة أكاديمية رياضية",
-    "كرة طائرة",
-    "كرة قدم",
-    "كرة سلة",
-    "بادل",
-    "سباحة",
-    "أكاديمية رياضية مصر",
-    "أكاديمية رياضية الخليج",
-    "برنامج إدارة أكاديمية",
-    "حلول إدارة الأندية",
-  ],
+    "Discover how Playza helps you manage tennis, volleyball and beach volleyball academies: members, subscriptions, attendance, payments and automatic profit tracking in Egypt & the Gulf.",
+  keywords: ["tennis academy management", "volleyball academy management", "beach volleyball academy", "إدارة أكاديمية تنس", "إدارة أكاديمية كرة طائرة"],
   openGraph: {
     title: "Playza — Sports Academy Management Solutions",
     description:
-      "The platform for managing football, volleyball, basketball, padel and swimming academies: members, attendance, payments and automatic profits.",
+      "The platform for managing tennis, volleyball and beach volleyball academies: members, attendance, payments and automatic profits.",
     url: `${SITE_URL}/solutions`,
     siteName: "Playza",
     images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
@@ -42,7 +23,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Playza — Sports Academy Management Solutions",
-    description: "The platform for managing football, volleyball, basketball, padel and swimming academies.",
+    description: "The platform for managing tennis, volleyball and beach volleyball academies.",
     images: [OG_IMAGE],
   },
   alternates: {
@@ -51,46 +32,9 @@ export const metadata: Metadata = {
 };
 
 const solutions = [
-  {
-    sport: "Volleyball",
-    emoji: "🏐",
-    href: "/solutions/volleyball",
-    gradient: "from-brand to-interactive-700",
-    description:
-      "Management software for volleyball academies — players, sessions, payments and profit tracking.",
-  },
-  {
-    sport: "Football",
-    emoji: "⚽",
-    href: "/solutions/football",
-    gradient: "from-brand to-interactive-700",
-    description:
-      "The complete management platform for football academies — training, attendance and finances.",
-  },
-  {
-    sport: "Basketball",
-    emoji: "🏀",
-    href: "/solutions/basketball",
-    gradient: "from-brand to-interactive-700",
-    description:
-      "Run your basketball academy with confidence — scheduling, check-in and automatic profit/loss.",
-  },
-  {
-    sport: "Padel",
-    emoji: "🏓",
-    href: "/solutions/padel",
-    gradient: "from-brand to-interactive-700",
-    description:
-      "The complete management platform for padel clubs — members, courts, bookings and tournaments.",
-  },
-  {
-    sport: "Swimming",
-    emoji: "🏊",
-    href: "/solutions/swimming",
-    gradient: "from-brand to-interactive-700",
-    description:
-      "The complete management platform for swimming academies — students, lessons, payments and profit tracking.",
-  },
+  { sport: "Tennis", emoji: "🎾", href: "/academy-management", description: "Manage tennis players, coaching sessions, attendance and payments in one place." },
+  { sport: "Volleyball", emoji: "🏐", href: "/solutions/volleyball", description: "Management software for volleyball academies — players, sessions, payments and profit tracking." },
+  { sport: "Beach Volleyball", emoji: "🏐", href: "/academy-management", description: "Organize sand-court training, players, schedules and academy payments." },
 ];
 
 export default function SolutionsPage() {
@@ -104,8 +48,7 @@ export default function SolutionsPage() {
             Sports Academy Management Solutions
           </h1>
           <p className="max-w-2xl text-base text-white/85 sm:text-lg">
-            One platform. Every sport. Manage volleyball, football, basketball,
-            padel and swimming academies — members, attendance, payments and
+            Manage tennis, volleyball and beach volleyball academies — members, attendance, payments and
             automatic profit tracking.
           </p>
         </div>

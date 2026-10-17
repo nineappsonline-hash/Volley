@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'), fs=require('fs'), ts=require('typescript');
 const compile=p=>ts.transpileModule(fs.readFileSync(p,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;
-const constants={},api={};new Function('exports',compile('src/lib/constants.ts'))(constants);
+const constants={},api={},active={};new Function('exports',compile('src/lib/active-sports.ts'))(active);new Function('exports','require',compile('src/lib/constants.ts'))(constants,()=>active);
 new Function('exports','require',compile('src/lib/game-costs.ts'))(api,()=>constants);
 const check=api.gameBookingPayment, game={sport:'Football',min_players:10,duration_hours:1,playground_hourly_rate:1000,status:'open'};
 const pay=(amount,status='approved')=>({amount,pay_status:status});

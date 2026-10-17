@@ -15,6 +15,7 @@ const db = { from(table) {
   let rows = [
     { ...game, is_public: true, participants: [{ is_waitlisted: false }, { is_waitlisted: true }] },
     { ...game, id: privateId, is_public: false },
+    { ...game, id: '00000000-0000-0000-0000-000000000003', sport: 'Football', is_public: true },
   ];
   return {
     select(columns) { requestedColumns = columns; assert.ok(!/invite_code|player_name|member_id|pay_receipt/.test(columns)); return this; },
@@ -65,6 +66,8 @@ function load(file) {
   assert.equal(detail.joined, 1, 'waitlisted players are not confirmed players');
   assert.ok(!('participants' in detail), 'player records stay on the server');
   assert.equal(await api.getPublicGame(privateId), null, 'private IDs must not resolve');
+  assert.equal(await api.getPublicGame('00000000-0000-0000-0000-000000000003'), null, 'paused sports are absent from public discovery');
+  assert.deepEqual(await api.getPublicGames('Football'), []);
   const before = queryCount;
   assert.equal(await api.getPublicGame('invalid'), null);
   assert.equal(queryCount, before, 'invalid IDs skip the admin query');

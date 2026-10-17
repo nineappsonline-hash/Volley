@@ -15,15 +15,17 @@ const admin = {
     };
   },
 };
-const directory=load('src/lib/public-playgrounds.ts',{'@/lib/supabase/admin':{createAdminClient:()=>admin}});
-const seo=load('src/lib/seo.ts');const slugs=load('src/lib/sport-slugs.ts');const discovery=load('src/lib/sport-discovery.ts',{'@/lib/seo':seo,'@/lib/sport-slugs':slugs});const courtMeta=load('src/lib/court-discovery.ts',{'./seo':seo,'./sport-discovery':discovery});
+const active=load('src/lib/active-sports.ts');
+const directory=load('src/lib/public-playgrounds.ts',{'@/lib/active-sports':active,'@/lib/supabase/admin':{createAdminClient:()=>admin}});
+const seo=load('src/lib/seo.ts');const slugs=load('src/lib/sport-slugs.ts');const discovery=load('src/lib/sport-discovery.ts',{'@/lib/seo':seo,'@/lib/sport-slugs':slugs,'@/lib/active-sports':active});const courtMeta=load('src/lib/court-discovery.ts',{'./seo':seo,'./sport-discovery':discovery});
 const component=load('src/components/public/court-directory.tsx',{
  'next/link':{__esModule:true,default:({children,...props})=>React.createElement('a',props,children)},'next/navigation':{notFound:()=>{throw Error('NOT_FOUND')}},
  '@/components/shared/app-logo':{AppLogo:()=>null},'@/lib/public-playgrounds':directory,'@/lib/court-discovery':courtMeta,'@/lib/sport-discovery':discovery,'@/lib/sport-slugs':slugs,'@/lib/seo':seo,'@/lib/constants':{formatMoney:n=>`EGP ${n}`},
 });
 (async()=>{
  const publicRows=await directory.getPublicCourtDirectory();assert.equal(publicRows.length,1001);assert.ok(!selected.includes('owner'));assert.ok(publicRows.every(r=>!('owner_id'in r)&&!('owner_email'in r)));assert.equal((await directory.getPublicCourtDirectory('Beach Volleyball')).length,0);
- rows=[fixture('public'),{...fixture('beach'),sport:[{name:'Beach Volleyball'}]}, {...fixture('unpriced'),rental_cost:null,rental_hours:null},fixture('private','pending')];
+ rows=[fixture('public'),{...fixture('beach'),sport:[{name:'Beach Volleyball'}]}, {...fixture('unpriced'),rental_cost:null,rental_hours:null},fixture('private','pending'),{...fixture('paused'),sport:{name:'Padel'}}];
+ assert.ok(!(await directory.getPublicCourtDirectory()).some(c=>c.id==='paused'));
  for(const lang of ['en','ar']){const html=renderToStaticMarkup(await component.CourtDirectory({lang,slug:'volleyball'}));assert.ok(html.includes('/p/public'));assert.ok(html.includes('/p/unpriced'));assert.ok(!html.includes('/p/beach'));assert.ok(!html.includes('/p/private'));assert.ok(!html.includes('PRIVATE'));assert.ok(html.includes('EGP 1200 / 2'));assert.ok(html.includes(lang==='ar'?'راجع صفحة الملعب للأسعار':'Check the venue page for pricing'));const graph=JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1])['@graph'];assert.equal(graph.find(x=>x['@type']==='ItemList').numberOfItems,2);const meta=courtMeta.courtDirectoryMetadata(lang,'volleyball');assert.equal(meta.alternates.canonical,`${lang==='ar'?'/ar':''}/courts?sport=volleyball`);}
  await assert.rejects(()=>component.CourtDirectory({lang:'en',slug:'invented'}),/NOT_FOUND/);fail=true;assert.deepEqual(await directory.getPublicCourtDirectory(),[]);
  console.log('PASS: approved Egypt-only public courts, pagination, sport relations/filtering, no owner fields, bilingual SSR, real/missing prices, canonicals, unknown sports and database failure');

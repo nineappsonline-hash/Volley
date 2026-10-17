@@ -23,17 +23,17 @@ export const metadata: Metadata = {
     "beach volleyball games", "beach volleyball training", "sand volleyball courts Egypt",
     "الكرة الطائرة الشاطئية", "كرة طائرة شاطئية في مصر", "الطائرة الشاطئية في القاهرة",
     "ملاعب كرة طائرة شاطئية",
-    "volleyball games Egypt", "padel courts", "tennis academies Egypt",
+    "volleyball games Egypt", "tennis games Egypt", "tennis academies Egypt",
     "ملاعب كرة طائرة", "أكاديميات كرة طائرة في مصر", "مباريات كرة طائرة",
-    "ملاعب بادل", "أكاديميات تنس", "ملاعب في القاهرة",
+    "مباريات تنس", "أكاديميات تنس", "ملاعب في القاهرة",
   ],
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Playza — كرة طائرة وطائرة شاطئية في مصر",
+    title: "Playza — تنس وكرة طائرة وطائرة شاطئية في مصر",
     description:
-      "اكتشف الكرة الطائرة والطائرة الشاطئية في مصر، ومباريات الملاعب الرملية والأكاديميات، وكمان البادل والتنس.",
+      "اكتشف الكرة الطائرة والطائرة الشاطئية في مصر، ومباريات الملاعب الرملية والأكاديميات، وكمان مباريات وتدريب التنس.",
     url: SITE_URL,
     siteName: "Playza",
     images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Playza — كرة طائرة وطائرة شاطئية في مصر",
+    title: "Playza — تنس وكرة طائرة وطائرة شاطئية في مصر",
     description:
       "اكتشف مباريات الكرة الطائرة والطائرة الشاطئية والملاعب والأكاديميات في مصر مع Playza.",
     images: [OG_IMAGE],

@@ -1,5 +1,6 @@
 "use client";
 
+import { isActiveSport } from "@/lib/active-sports";
 import { GameShareActions } from "./game-share-actions";
 import { GameAlertPreferencesPanel } from "./game-alert-follow";
 
@@ -711,114 +712,6 @@ function InviteBanner({
   );
 }
 
-type DemoFinishedGame = {
-  id: string;
-  title: string;
-  sport: string;
-  area: string | null;
-  game_date: string;
-  start_time: string;
-  max_players: number;
-  joined: number;
-  skill_level: "beginner" | "intermediate" | "advanced";
-  gender: "male" | "female" | "mixed";
-  creator_name: string;
-  result_a: number;
-  result_b: number;
-};
-
-// Demo "recently finished" games so the games page doesn't look empty before the
-// community has real completed games. Dates are generated relative to today.
-function demoFinishedGames(): DemoFinishedGame[] {
-  const day = (d: number) => new Date(Date.now() - d * 86400000).toISOString().slice(0, 10);
-  const seeds: Omit<DemoFinishedGame, "id" | "game_date">[] = [
-    { title: "Friday Slam Volleyball", sport: "Volleyball", area: "Heliopolis", start_time: "20:30", max_players: 12, joined: 12, skill_level: "intermediate", gender: "mixed", creator_name: "Ahmed Nabil", result_a: 3, result_b: 1 },
-    { title: "Gezira Beach Volleyball", sport: "Volleyball", area: "Zamalek", start_time: "18:00", max_players: 12, joined: 12, skill_level: "beginner", gender: "mixed", creator_name: "Youssef Hany", result_a: 2, result_b: 3 },
-    { title: "Nasr City Spike Night", sport: "Volleyball", area: "Nasr City", start_time: "21:00", max_players: 12, joined: 11, skill_level: "advanced", gender: "mixed", creator_name: "Omar Farouk", result_a: 3, result_b: 0 },
-    { title: "Heliopolis Volleyball Run", sport: "Volleyball", area: "Heliopolis", start_time: "19:30", max_players: 12, joined: 12, skill_level: "intermediate", gender: "mixed", creator_name: "Karim El-Sayed", result_a: 3, result_b: 2 },
-    { title: "Dokki Volleyball Open", sport: "Volleyball", area: "Dokki", start_time: "20:00", max_players: 12, joined: 10, skill_level: "beginner", gender: "mixed", creator_name: "Mostafa Magdy", result_a: 1, result_b: 3 },
-    { title: "Agouza Beach Volleyball", sport: "Volleyball", area: "Agouza", start_time: "18:30", max_players: 12, joined: 12, skill_level: "intermediate", gender: "mixed", creator_name: "Ali Hassan", result_a: 3, result_b: 1 },
-    { title: "Madinaty Volleyball Cup", sport: "Volleyball", area: "Madinaty", start_time: "21:30", max_players: 12, joined: 12, skill_level: "advanced", gender: "mixed", creator_name: "Mohamed Adel", result_a: 2, result_b: 3 },
-    { title: "Weekend Football Clásico", sport: "Football", area: "New Cairo", start_time: "21:00", max_players: 14, joined: 14, skill_level: "intermediate", gender: "male", creator_name: "Omar Farouk", result_a: 5, result_b: 2 },
-    { title: "Nasr City 5v5 Football", sport: "Football", area: "Nasr City", start_time: "22:00", max_players: 10, joined: 10, skill_level: "beginner", gender: "male", creator_name: "Ahmed Nabil", result_a: 4, result_b: 4 },
-    { title: "Tagamo3 Football Night", sport: "Football", area: "New Cairo", start_time: "20:00", max_players: 14, joined: 14, skill_level: "advanced", gender: "male", creator_name: "Karim El-Sayed", result_a: 3, result_b: 1 },
-    { title: "Dokki Sunday Kickabout", sport: "Football", area: "Dokki", start_time: "19:00", max_players: 10, joined: 9, skill_level: "beginner", gender: "male", creator_name: "Youssef Hany", result_a: 2, result_b: 1 },
-    { title: "Sheraton Football Rumble", sport: "Football", area: "Mokattam", start_time: "21:30", max_players: 14, joined: 14, skill_level: "intermediate", gender: "male", creator_name: "Mostafa Magdy", result_a: 6, result_b: 3 },
-    { title: "Obour Football Derby", sport: "Football", area: "Obour", start_time: "20:30", max_players: 10, joined: 10, skill_level: "intermediate", gender: "male", creator_name: "Ali Hassan", result_a: 1, result_b: 2 },
-    { title: "6th October Football Bash", sport: "Football", area: "6th of October", start_time: "21:00", max_players: 14, joined: 13, skill_level: "advanced", gender: "mixed", creator_name: "Mohamed Adel", result_a: 4, result_b: 1 },
-    { title: "Zayed Doubles Padel Night", sport: "Padel", area: "Sheikh Zayed", start_time: "22:00", max_players: 4, joined: 4, skill_level: "beginner", gender: "mixed", creator_name: "Youssef Hany", result_a: 2, result_b: 0 },
-    { title: "New Cairo Padel Mixer", sport: "Padel", area: "New Cairo", start_time: "20:00", max_players: 4, joined: 4, skill_level: "intermediate", gender: "mixed", creator_name: "Ahmed Nabil", result_a: 2, result_b: 1 },
-    { title: "October Padel Doubles", sport: "Padel", area: "6th of October", start_time: "21:00", max_players: 4, joined: 4, skill_level: "advanced", gender: "mixed", creator_name: "Omar Farouk", result_a: 1, result_b: 2 },
-    { title: "Maadi Padel Round", sport: "Padel", area: "Maadi", start_time: "19:30", max_players: 4, joined: 4, skill_level: "beginner", gender: "mixed", creator_name: "Karim El-Sayed", result_a: 2, result_b: 2 },
-    { title: "Katameya Padel Faceoff", sport: "Padel", area: "Katameya", start_time: "21:30", max_players: 4, joined: 4, skill_level: "intermediate", gender: "mixed", creator_name: "Mostafa Magdy", result_a: 2, result_b: 0 },
-    { title: "Citystars Padel Night", sport: "Padel", area: "Nasr City", start_time: "22:30", max_players: 4, joined: 4, skill_level: "advanced", gender: "mixed", creator_name: "Ali Hassan", result_a: 0, result_b: 2 },
-  ];
-  return seeds.map((s, i) => ({ ...s, id: `demo-finished-${i + 1}`, game_date: day(i + 1) }));
-}
-
-function DemoFinishedGameCard({ game }: { game: DemoFinishedGame }) {
-  const { t, locale, lang } = useI18n();
-  return (
-    <Card className="flex flex-col opacity-90 transition-all hover:-translate-y-0.5 hover:opacity-100">
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-2">
-          <CardTitle className="truncate text-sm">{game.title}</CardTitle>
-          <Badge className={`gap-1 text-[10px] ${STATUS_STYLES.completed}`}>
-            <CheckCircle2 className="h-3 w-3" />
-            {t("community_status_completed")}
-          </Badge>
-        </div>
-        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Star className="h-3 w-3 text-warning-ink" />
-          {game.sport}
-          <span>· {t(`games_gender_${game.gender}`)}</span>
-        </p>
-      </CardHeader>
-      <CardContent className="flex flex-1 flex-col gap-3">
-        <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-4 py-2.5">
-          <span className="truncate px-1 text-sm font-semibold">{game.creator_name}</span>
-          <span className="rounded-md bg-background px-3 py-1 text-base font-black tabular-nums" dir="ltr">
-            {game.result_a} – {game.result_b}
-          </span>
-          <span className="truncate px-1 text-sm text-muted-foreground">
-            {game.sport === "Volleyball" || game.sport === "Padel" ? "Team B" : "Opponents"}
-          </span>
-        </div>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <CalendarDays className="h-4 w-4 shrink-0" />
-            {format(new Date(game.game_date + "T00:00:00"), "EEE, MMM d", { locale })}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Clock className="h-4 w-4 shrink-0" />
-            {formatTime12h(game.start_time, lang)}
-          </span>
-          {game.area && (
-            <span className="flex items-center gap-1.5">
-              <MapPin className="h-4 w-4 shrink-0" />
-              <span className="truncate">{game.area}</span>
-            </span>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {game.skill_level ? (
-            <Badge variant="outline">{t(`skill_${game.skill_level}`)}</Badge>
-          ) : (
-            <Badge variant="outline">{t("community_any_level")}</Badge>
-          )}
-          <Badge variant="outline" className="gap-1 text-primary">
-            {t(`games_gender_${game.gender}`)}
-          </Badge>
-        </div>
-        <p className="mt-auto flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Users className="h-3.5 w-3.5" />
-          <span dir="ltr">{game.joined}/{game.max_players}</span>
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
-
 export function GamesClient({ profile }: { profile: Profile }) {
   const { t, lang } = useI18n();
   const searchParams = useSearchParams();
@@ -891,6 +784,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
   const filtered = useMemo(() => {
     const mineIds = new Set((myParticipants ?? []).map((p) => p.game_id));
     const list = (games ?? []).filter((g) => {
+      if (!isActiveSport(g.sport) && g.creator_id !== profile.id && !mineIds.has(g.id)) return false;
       if (countryFilter && normalizeCountry(g.playground?.country ?? "") !== normalizeCountry(countryFilter)) return false;
       if (sportFilter !== "all" && g.sport !== sportFilter) return false;
       if (skillFilter !== "all" && g.skill_level !== skillFilter) return false;
@@ -948,7 +842,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
     <div className="space-y-6">
       <header className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-brand to-brand-900 px-5 py-7 text-white sm:px-8 sm:py-10">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-          <GameCardBackground sport="basketball" />
+          <GameCardBackground sport="tennis" />
           <div className="absolute -bottom-20 -end-16 h-72 w-72 rounded-full border-[32px] border-white/10" />
           <div className="absolute end-8 top-8 hidden -rotate-12 text-amber-300/40 sm:block">{SportIcon({ id: "volleyball", size: 110 })}</div>
         </div>
@@ -1141,18 +1035,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
 
       <CreateGameDialog open={dialogOpen} onOpenChange={setDialogOpen} memberPlan={profile.member_plan} />
 
-      <section className="pt-2">
-        <div className="mb-3 flex items-center gap-2">
-          <CheckCircle2 className="h-5 w-5 text-success-ink" />
-          <h2 className="text-lg font-bold">{t("games_recent_finished_title")}</h2>
-        </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {demoFinishedGames().map((g) => (
-            <DemoFinishedGameCard key={g.id} game={g} />
-          ))}
-        </div>
-        <p className="mt-3 text-xs text-muted-foreground">{t("games_recent_finished_note")}</p>
-      </section>
+
     </div>
   );
 }

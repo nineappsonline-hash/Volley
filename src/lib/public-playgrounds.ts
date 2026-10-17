@@ -1,3 +1,4 @@
+import { isActiveSport } from "@/lib/active-sports";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { VenueBlockedDate, VenueUnavailableSlot } from "@/lib/types";
 
@@ -216,6 +217,7 @@ export async function getPublicCourtDirectory(sport?: string): Promise<PublicCou
       for (const row of data ?? []) {
         const joined = row.sport as { name: string } | { name: string }[] | null;
         const resolved = Array.isArray(joined) ? joined[0] ?? null : joined;
+        if (!isActiveSport(resolved?.name)) continue;
         if (sport && resolved?.name.toLowerCase() !== sport.toLowerCase()) continue;
         courts.push({ id: row.id, name: row.name, address: row.address, country: row.country,
           governorate: row.governorate, area: row.area, rental_cost: row.rental_cost,
