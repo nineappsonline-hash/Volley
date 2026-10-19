@@ -18,7 +18,6 @@ import {
   LandPlot,
   type LucideIcon,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { QueryState } from "@/components/shared/query-state";
 import type { Dict } from "@/lib/i18n/dictionary";
 import { useI18n } from "@/lib/i18n";
@@ -31,7 +30,6 @@ import {
 import { formatMoney, formatTime12h } from "@/lib/constants";
 import { venueCardPhoto } from "@/lib/venue-media";
 import { sportToSlug, SPORT_SLUGS } from "@/lib/sport-slugs";
-import { cn } from "@/lib/utils";
 import { useRealtime } from "@/lib/useRealtime";
 
 type DiscoveryItem = {
@@ -80,116 +78,41 @@ function DiscoveryCard({
   const { t } = useI18n();
   const id = useId();
 
-  return (
-    <section aria-labelledby={`${id}-title`} className="min-w-0">
-      <div className="group relative overflow-hidden rounded-2xl border bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg">
-        <div className="relative isolate overflow-hidden bg-brand px-4 py-4 text-white">
-          <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-            <div className="absolute -end-10 -top-16 h-56 w-56 rounded-full border-[24px] border-white/10" />
-            <div className="absolute bottom-4 end-5 h-24 w-24 rotate-12 rounded-3xl bg-white/10" />
-            <Icon className="absolute bottom-5 end-6 h-16 w-16 -rotate-12 text-white/20" strokeWidth={1.25} />
-            {tone === "games" && <GameCardBackground sport="volleyball" />}
-            <svg viewBox="0 0 160 80" className="absolute end-0 top-0 h-20 w-40 text-amber-300/80" fill="currentColor">
-              <path d="m30 12 3 8 8 3-8 3-3 8-3-8-8-3 8-3Zm90 30 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z" />
-              <circle cx="75" cy="15" r="3" /><circle cx="145" cy="20" r="2" />
-            </svg>
-          </div>
-          <div className="relative flex flex-wrap items-center gap-x-4 gap-y-2 pe-12">
-            <h2 id={`${id}-title`} className={cn("flex items-center gap-2 text-base font-bold", "text-white")}>
-              <Icon className="h-5 w-5 shrink-0 text-white" aria-hidden="true" />
-              {title}
-            </h2>
-            <p className="order-3 basis-full text-xs leading-relaxed text-white/80">{description}</p>
-            <Button asChild size="sm" className="ms-auto h-auto min-h-9 max-w-full whitespace-normal bg-white text-slate-900 shadow-sm hover:bg-white/90">
-              <Link href={href} className="gap-2">
-                {action}
-                <ArrowRight className="h-4 w-4 shrink-0 rtl:rotate-180" aria-hidden="true" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-
-        {/* Card body with horizontal scrollable items */}
-        <div className="min-w-0">
-          <QueryState queries={[query]}>
-            {items.length === 0 ? (
-              <div className="border-y border-border/40 p-4">
-                <p className="text-sm text-muted-foreground">{empty}</p>
+  return <section aria-labelledby={`${id}-title`} className="min-w-0 space-y-4">
+    <header className="flex flex-wrap items-end justify-between gap-3">
+      <div><p className="mb-1 text-[10px] font-bold uppercase tracking-[.16em] text-muted-foreground">{tone === "games" ? (t("games_page_title")) : description}</p><h2 id={`${id}-title`} className="text-2xl font-extrabold tracking-tight">{title}</h2></div>
+      <Link href={href} className="inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{action}<ArrowRight size={14} className="rtl:rotate-180" aria-hidden="true" /></Link>
+    </header>
+    <QueryState queries={[query]}>
+      {items.length === 0 ? <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">{empty}</p> : <ul id={id} aria-label={title} className="flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-3">
+        {items.map(item => <li key={item.id} className="w-[48%] min-w-0 max-w-80 shrink-0 snap-start sm:w-[44%] lg:w-[31%]">
+          <article className="h-full overflow-hidden rounded-xl border bg-card">
+            <Link href={item.href ?? href} className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+              <div className="relative isolate aspect-[4/3] overflow-hidden bg-[#14213D]">
+                <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 text-[#C7F23D]/30">{item.sport && Object.hasOwn(SPORT_SLUGS, sportToSlug(item.sport)) ? <GameCardBackground sport={item.sport} /> : <Icon className="absolute start-1/3 top-1/3 h-16 w-16" />}</div>
+                {/* Venue image hosts are supplied by academy and court owners. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {item.image && <img src={item.image} alt="" loading="lazy" className={`absolute inset-0 h-full w-full ${item.academyLogo !== undefined ? "bg-white object-contain p-5" : "object-cover"}`} onError={event => { event.currentTarget.style.display = "none"; }} />}
+                {item.badge && <span className="absolute start-3 top-3 rounded-full bg-[#14213D]/90 px-2.5 py-1 text-[10px] font-bold text-[#C7F23D]">{item.badge}</span>}
+                {item.status && <span className="absolute end-3 top-3 rounded-full bg-background/95 px-2 py-1 text-[10px] font-semibold text-foreground">{t(`community_status_${item.status}` as keyof Dict)}</span>}
               </div>
-            ) : (
-              <ul
-                id={id}
-                role="list"
-                aria-label={title}
-                className="flex gap-3 overflow-x-auto overscroll-x-contain px-4 pb-4 pt-3"
-              >
-                {items.map((item, index) => (
-                  <li
-                    key={item.id}
-                    className="flex min-w-0 shrink-0 basis-[72%] sm:basis-[36%] lg:basis-[24%]"
-                  >
-                    <article
-                      style={{ "--i": index } as React.CSSProperties}
-                      className="animate-suggest-stagger group flex h-full w-full flex-col overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:hover:translate-y-0"
-                    >
-                      <Link href={item.href ?? href} aria-label={item.title}>
-                      {/* Graphic area: venue photo, else sport court graphics */}
-                      <div className="relative flex aspect-[5/2] items-center justify-center overflow-hidden bg-[#14213D]">
-                        {/* Court-marking / sport-illustration decorations */}
-                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-[#C7F23D]/25 transition-transform duration-500 group-hover:scale-110 motion-reduce:group-hover:scale-100">
-                          {item.sport && Object.hasOwn(SPORT_SLUGS, sportToSlug(item.sport)) ? (
-                            <GameCardBackground sport={item.sport} />
-                          ) : (
-                            <Icon className="h-14 w-14" aria-hidden="true" />
-                          )}
-                        </div>
-                        {item.image && (
-                          // User-provided venue images may be hosted outside the Next image allowlist.
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={item.image}
-                            alt=""
-                            loading="lazy"
-                            className={`absolute inset-0 h-full w-full transition-transform duration-500 group-hover:scale-105 motion-reduce:group-hover:scale-100 ${item.academyLogo !== undefined ? "bg-white object-contain p-5" : "object-cover"}`}
-                            onError={(event) => {
-                              event.currentTarget.style.display = "none";
-                            }}
-                          />
-                        )}
-                        {item.status && <span className={`absolute end-3 top-3 rounded-full border px-2.5 py-1 text-xs font-semibold text-white shadow-sm ${item.status === "open" ? "border-blue-200/40 bg-blue-600" : item.status === "completed" ? "border-emerald-200/40 bg-emerald-700" : "border-amber-200/40 bg-amber-700"}`}>{t(`community_status_${item.status}` as keyof Dict)}</span>}
-                        {item.badge && (
-                          <span className="absolute start-3 top-3 max-w-[calc(100%-1.5rem)] truncate rounded-full bg-background/95 px-2.5 py-1 text-xs font-medium text-foreground shadow-sm">
-                            {item.badge}
-                          </span>
-                        )}
-                      </div>
-
-                      </Link>
-                      {/* Content */}
-                      <div className="space-y-2 p-3">
-                        {item.reason && <p className="text-xs font-semibold text-primary">{item.reason}</p>}
-                        <h3 className="line-clamp-2 text-sm font-semibold transition-colors group-hover:text-primary">
-                          <Link href={item.href ?? href} className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{item.title}</Link>
-                        </h3>
-                        {item.details ? <div className="space-y-1.5 border-t border-border/60 pt-2 text-xs">
-                          <p className="flex items-start gap-2 font-medium"><CalendarDays className="h-3.5 w-3.5 shrink-0 text-primary" />{item.details.date}</p>
-                          <p className="flex items-center gap-2 text-muted-foreground"><Clock className="h-3.5 w-3.5 shrink-0" />{item.details.time}</p>
-                          {item.details.location && <p className="flex items-start gap-2 text-muted-foreground"><MapPin className="h-3.5 w-3.5 shrink-0" />{item.details.location}</p>}
-                          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-2"><span className="font-semibold text-primary">{item.details.price}</span><span className="flex items-center gap-1 text-muted-foreground"><Users className="h-3.5 w-3.5" />{item.details.places}</span></div>
-                        </div> : <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">{item.subtitle}</p>}
-                        {item.directionsHref && <div className="border-t border-border/60 pt-2"><GoogleMapsDirectionsButton href={item.directionsHref} className="w-full" /></div>}
-                      </div>
-                    </article>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </QueryState>
-
-        </div>
-      </div>
-    </section>
-  );
+              <div className="bg-[#14213D] px-3 py-2.5 text-white"><h3 className="line-clamp-2 text-sm font-bold leading-5 text-white">{item.title}</h3></div>
+            </Link>
+            <div className="space-y-2.5 p-3">
+              {item.reason && <p className="text-[11px] font-semibold text-muted-foreground">{item.reason}</p>}
+              {item.details ? <div className="space-y-2 text-xs">
+                <p className="flex items-start gap-2 font-medium"><CalendarDays size={13} className="shrink-0" aria-hidden="true" />{item.details.date}</p>
+                <p className="flex items-center gap-2 text-muted-foreground"><Clock size={13} aria-hidden="true" />{item.details.time}</p>
+                {item.details.location && <p className="flex items-start gap-2 text-muted-foreground"><MapPin size={13} className="shrink-0" aria-hidden="true" />{item.details.location}</p>}
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-2"><strong>{item.details.price}</strong><span className="text-muted-foreground">{item.details.places}</span></div>
+              </div> : <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">{item.subtitle}</p>}
+              {item.directionsHref && <div className="border-t pt-2"><GoogleMapsDirectionsButton href={item.directionsHref} className="w-full" /></div>}
+            </div>
+          </article>
+        </li>)}
+      </ul>}
+    </QueryState>
+  </section>;
 }
 
 export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, mode = "all" }: { memberId: string; hasAcademy: boolean; preferences?: DiscoveryPreferences; mode?: "all" | "games" | "academies" }) {
@@ -302,7 +225,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
         empty={ar ? "مفيش أكاديميات متاحة حالياً." : "No academies available yet."}
       />}
       {mode !== "academies" && <DiscoveryCard
-        title={ar ? "المباريات" : "Games"}
+        title={ar ? "مقترح ليك" : "Recommended for you"}
         tone="games"
         description={ar ? "انزل الملعب وقابل لاعبين وشارك في المباراة الجاية." : "Hit the court, meet new players, and make your next move."}
         action={gameJoined ? (ar ? "اكتشف المزيد من المباريات" : "Discover more games") : (ar ? "ابحث عن مباراة" : "Find games")}

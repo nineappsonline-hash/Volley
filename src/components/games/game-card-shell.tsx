@@ -13,7 +13,7 @@ import { gameBookingPayment } from "@/lib/game-costs";
 import type { FriendlyGameWithDetails } from "@/lib/types";
 
 /** Compact overview shared by the games directory and community feed. */
-export function GameCardShell({ game, joined, waitlisted, children }: { game: FriendlyGameWithDetails; joined: boolean; waitlisted?: boolean; children: ReactNode }) {
+export function GameCardShell({ game, joined, waitlisted, children, layout = "card" }: { layout?: "card" | "list"; game: FriendlyGameWithDetails; joined: boolean; waitlisted?: boolean; children: ReactNode }) {
   const { lang, locale, t } = useI18n();
   const ar = lang === "ar";
   const [expanded, setExpanded] = useState(false);
@@ -29,6 +29,26 @@ export function GameCardShell({ game, joined, waitlisted, children }: { game: Fr
   const photo = venueCardPhoto(game.playground?.photos, game.playground?.cover_url);
   const booking = gameBookingPayment(game);
   const statusStyle = game.status === "completed" ? "border-emerald-200/40 bg-emerald-700" : game.status === "open" ? "border-blue-200/40 bg-blue-600" : game.status === "full" ? "border-amber-200/40 bg-amber-700" : "border-red-200/40 bg-red-700";
+  if (layout === "list") return <article className="overflow-hidden rounded-xl border border-border bg-card text-card-foreground transition-shadow hover:shadow-sm">
+    <button type="button" aria-expanded={expanded} aria-controls={detailsId} onClick={() => setExpanded(!expanded)} className="flex w-full items-start gap-3 p-3 text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:gap-4 sm:p-4">
+      <span className="relative isolate block h-24 w-20 shrink-0 overflow-hidden rounded-xl bg-[#14213D] sm:h-28 sm:w-28">
+        {!photo && <span className="absolute inset-0 flex items-center justify-center text-white/30" aria-hidden="true">{SportIcon({ id: sport, size: 48 })}</span>}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {photo && <img src={photo} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} />}
+        <span className="absolute inset-x-0 bottom-0 bg-[#14213D]/95 px-1 py-1.5 text-center text-[9px] font-bold leading-tight text-[#C7F23D] sm:text-[10px]">{game.sport}</span>
+      </span>
+      <span className="block min-w-0 flex-1 space-y-2">
+        <span className="flex items-start justify-between gap-2"><span className="line-clamp-2 text-sm font-extrabold leading-5 sm:text-base">{game.title}</span><ChevronDown size={16} className={`mt-0.5 shrink-0 transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden="true" /></span>
+        <span className="flex items-start gap-1 text-xs text-muted-foreground"><MapPin size={12} className="mt-0.5 shrink-0" aria-hidden="true" /><span className="line-clamp-1">{game.playground?.name || game.location || game.area || t("games_no_playground")}</span></span>
+        <span className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1 text-xs"><span className="block space-y-1"><span className="block">{format(new Date(`${game.game_date}T00:00:00`), "EEE, d MMM", { locale })}</span><span className="block text-muted-foreground">{formatTime12h(game.start_time, lang)}</span></span><span className="text-end"><strong className="block text-sm">{game.host_pays ? (ar ? "مجاني" : "Free") : game.share_price == null ? "—" : formatMoney(game.share_price, lang)}</strong><span className="text-[10px] text-muted-foreground">{ar ? "لكل لاعب" : "per player"}</span></span></span>
+        <span className="flex flex-wrap items-center justify-between gap-1 text-[10px] text-muted-foreground"><span>{game.participants_count}/{game.max_players} {ar ? "لاعب" : "players"}</span><span>{slots ? (ar ? `${slots} أماكن متاحة` : `${slots} spots left`) : (ar ? "مكتمل" : "Full")}</span></span>
+        <span className="block h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: "rgba(199, 242, 61, 0.2)" }} aria-hidden="true"><span className="block h-full rounded-full" style={{ width: `${percent}%`, backgroundColor: "#C7F23D" }} /></span>
+        <span className="flex flex-wrap gap-1.5 text-[10px]"><span className="rounded bg-muted px-2 py-1 font-medium">{t(`community_status_${game.status}`)}</span>{joined && <span className="rounded bg-[#C7F23D]/15 px-2 py-1 font-semibold">{waitlisted ? (ar ? "قائمة الانتظار" : "On the waitlist") : (ar ? "أنت مشارك" : "You're participating")}</span>}{!game.is_public && <span className="rounded bg-muted px-2 py-1">{ar ? "خاص" : "Private"}</span>}{booking?.confirmed && <span className="rounded bg-muted px-2 py-1">{ar ? "الحجز مؤكد" : "Booking confirmed"}</span>}</span>
+        <span className="sr-only">{ar ? "التفاصيل والمشاركة" : "Details & participation"}</span>
+      </span>
+    </button>
+    <div id={detailsId} hidden={!expanded} className="border-t border-border bg-muted/10 pt-2">{children}</div>
+  </article>;
   return <article className={`group/card self-start overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-lg hover:shadow-primary/10 ${game.status === "completed" ? "border-emerald-500/50" : game.status === "open" ? "border-blue-400/60 ring-1 ring-blue-400/15" : "border-border"}`}>
     <div className={`relative isolate min-h-48 overflow-hidden bg-gradient-to-br ${theme} px-5 pb-5 pt-4 text-white`}>
       {/* User venue photos can be hosted outside the configured image domains. */}

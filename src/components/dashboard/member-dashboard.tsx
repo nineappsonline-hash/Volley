@@ -72,14 +72,15 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
         memberName={p.name}
         hasAcademy={!!p.academy_id}
       />
-      <DashboardNavigation hasQr={!!p.checkin_code} sections={sections} />
-      {p.checkin_code && <section id="checkin" className="scroll-mt-24"><CheckinQrCard code={p.checkin_code} memberName={p.name} profile={p} compact appearance="dashboard" /></section>}
+      <DashboardNavigation name={p.name} hasQr={!!p.checkin_code} sections={sections} />
 
       <ActionStrip actions={actions} />
 
       <section id="activity" className="scroll-mt-24">
         <MemberDiscoveryCards memberId={p.id} hasAcademy={!!p.academy_id} preferences={p} mode="games" />
       </section>
+
+      {p.checkin_code && <section id="checkin" className="scroll-mt-24"><CheckinQrCard code={p.checkin_code} memberName={p.name} profile={p} compact appearance="dashboard" /></section>}
 
       {showVirtualCourt && (
         <section id="play" className="scroll-mt-24">

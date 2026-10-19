@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { isActiveSport } from "@/lib/active-sports";
 import { GameShareActions } from "./game-share-actions";
 import { GameAlertPreferencesPanel } from "./game-alert-follow";
@@ -243,7 +244,7 @@ function GameCard({
   ].filter(Boolean);
 
   return (
-    <GameCardShell game={game} joined={joined} waitlisted={!!mine?.is_waitlisted}>
+    <GameCardShell layout="list" game={game} joined={joined} waitlisted={!!mine?.is_waitlisted}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="truncate text-base">{game.title}</CardTitle>
@@ -726,7 +727,9 @@ export function GamesClient({ profile }: { profile: Profile }) {
 
   const [countryFilter, setCountryFilter] = useState("");
   const [governorateFilter, setGovernorateFilter] = useState("");
-  const [sportFilter, setSportFilter] = useState("all");
+  const requestedSport = searchParams.get("sport");
+  const [sportFilter, setSportFilter] = useState(() => COMMUNITY_SPORTS.find(sport => sport.toLowerCase() === requestedSport?.toLowerCase()) ?? "all");
+  useEffect(() => { setSportFilter(COMMUNITY_SPORTS.find(sport => sport.toLowerCase() === requestedSport?.toLowerCase()) ?? "all"); }, [requestedSport]);
   const [areaFilter, setAreaFilter] = useState("");
   const [skillFilter, setSkillFilter] = useState<SkillFilter>("all");
   const [availability, setAvailability] = useState<Availability>("any");
@@ -840,7 +843,12 @@ export function GamesClient({ profile }: { profile: Profile }) {
 
   return (
     <div className="space-y-6">
-      <header className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-brand to-brand-900 px-5 py-7 text-white sm:px-8 sm:py-10">
+      <nav aria-label={lang === "ar" ? "اكتشف الأنشطة" : "Discover activities"} className="grid grid-cols-3 gap-1 rounded-full bg-muted p-1 text-center text-sm font-semibold">
+        <Link href="/dashboard/games" aria-current="page" className="rounded-full bg-[#C7F23D] px-3 py-2.5 text-[#14213D]">{lang === "ar" ? "المباريات" : "Games"}</Link>
+        <Link href="/dashboard/tournaments" className="rounded-full px-3 py-2.5 hover:bg-card">{lang === "ar" ? "البطولات" : "Tournaments"}</Link>
+        <Link href="/academies" className="rounded-full px-3 py-2.5 hover:bg-card">{lang === "ar" ? "التدريب" : "Training"}</Link>
+      </nav>
+      <header className="relative isolate overflow-hidden rounded-2xl bg-[#14213D] px-5 py-5 text-white sm:px-6 sm:py-6">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
           <GameCardBackground sport="tennis" />
           <div className="absolute -bottom-20 -end-16 h-72 w-72 rounded-full border-[32px] border-white/10" />
@@ -848,7 +856,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
         </div>
         <div className="relative space-y-4">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold"><UsersRound className="h-4 w-4" />{lang === "ar" ? "رياضتك. فريقك. مباراتك الجاية." : "Your sport. Your people. Your next game."}</span>
-          <h1 className="text-white text-3xl font-extrabold tracking-tight sm:text-4xl">{t("games_page_title")}</h1>
+          <h1 className="text-white text-2xl font-extrabold tracking-tight sm:text-3xl">{t("games_page_title")}</h1>
           <p className="max-w-lg text-sm leading-relaxed text-brand-100 sm:text-base">{t("games_page_subtitle")}</p>
           <div className="flex flex-wrap items-center gap-3">
           <Button onClick={() => setDialogOpen(true)} className="min-h-11 bg-white text-brand-900 shadow-lg hover:bg-brand-50">
@@ -859,12 +867,12 @@ export function GamesClient({ profile }: { profile: Profile }) {
         </div>
       </header>
 
-      <div className="space-y-3 rounded-2xl border bg-gradient-to-br from-brand-50/70 to-blue-50/70 p-4 dark:from-brand-950/30 dark:to-blue-950/30 sm:p-5">
+      <div className="space-y-3 rounded-2xl border bg-card p-4 sm:p-5">
         <h2 className="text-base font-bold">{lang === "ar" ? "اختار رياضتك" : "Pick your sport"}</h2>
         <div className="flex gap-2 overflow-x-auto pb-2" aria-label={t("community_sport")}>
-          {["all", ...COMMUNITY_SPORTS].map(sport => <button key={sport} type="button" aria-pressed={sportFilter === sport} onClick={() => setSportFilter(sport)} className={`flex min-h-11 shrink-0 items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${sportFilter === sport ? "border-brand bg-accent text-accent-foreground shadow-sm" : "border-border bg-background text-foreground hover:border-brand-400 hover:bg-brand-100 dark:hover:bg-brand-950"}`}>
-            {sport !== "all" && <span aria-hidden="true">{SportIcon({ id: sportToSlug(sport), size: 22 })}</span>}
-            {sport === "all" ? t("community_filter_all_sports") : sport}
+          {["all", ...COMMUNITY_SPORTS].map(sport => <button key={sport} type="button" aria-pressed={sportFilter === sport} onClick={() => setSportFilter(sport)} className="group flex min-h-24 w-24 shrink-0 flex-col items-center justify-start gap-2 rounded-xl px-1 py-1 text-center text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <span className={`flex h-14 w-14 items-center justify-center rounded-full border transition-colors ${sportFilter === sport ? "border-[#a8ce2d] bg-[#C7F23D] text-[#14213D]" : "border-border bg-background text-foreground group-hover:border-[#a8ce2d]"}`}>{sport === "all" ? <UsersRound size={26} aria-hidden="true" /> : SportIcon({ id: sportToSlug(sport), size: 30 })}</span>
+            <span>{sport === "all" ? t("community_filter_all_sports") : sport}</span>
           </button>)}
         </div>
       </div>
@@ -967,9 +975,9 @@ export function GamesClient({ profile }: { profile: Profile }) {
       )}
 
       {isLoading ? (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="h-60 w-full" />
+            <Skeleton key={i} className="h-44 w-full" />
           ))}
         </div>
       ) : gamesError ? null : (
@@ -988,7 +996,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
                 {t("games_my_upcoming_empty")}
               </p>
             ) : (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                 {myGamesList.map((g) => (
                   <GameCard
                     key={g.id}
@@ -1017,7 +1025,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
                 {t("games_no_games")}
               </p>
             ) : (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                 {discoverGamesList.map((g) => (
                   <GameCard
                     key={g.id}
