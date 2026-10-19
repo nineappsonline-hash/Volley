@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 
 const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>
->(({ className, value, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> & { indicatorColor?: string }
+>(({ className, value, indicatorColor, ...props }, ref) => (
   <ProgressPrimitive.Root
     ref={ref}
     className={cn(
@@ -20,7 +20,7 @@ const Progress = React.forwardRef<
       className="h-full w-full flex-1 bg-success transition-all"
       // Logical margin keeps the fill anchored to the inline-start
       // (left in LTR, right in RTL) without physical transforms.
-      style={{ marginInlineStart: `-${100 - (value || 0)}%` }}
+      style={{ backgroundColor: indicatorColor, marginInlineStart: `-${100 - (value || 0)}%` }}
     />
   </ProgressPrimitive.Root>
 ));
