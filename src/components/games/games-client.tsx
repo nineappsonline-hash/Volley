@@ -373,7 +373,7 @@ function GameCard({
               </span>
             </span>
           </div>
-          <Progress value={game.max_players > 0 ? (count / game.max_players) * 100 : 0} />
+          <Progress className="bg-[hsl(var(--playza-lime)/0.2)] [&>div]:bg-[hsl(var(--playza-lime))]" value={game.max_players > 0 ? (count / game.max_players) * 100 : 0} />
           {game.status === "open" && (
             <div className="flex items-center justify-between gap-2">
               <Badge
