@@ -515,3 +515,16 @@ assert.ok(freeBox.includes('0.00'), 'a zero-price override stays free');
 const estimateBox = renderToStaticMarkup(h(GameCostEstimate, { rate: 600, hours: 14, min: 8, sport: 'Football' }));
 assert.ok(!estimateBox.includes('145.00'), 'creation forms retain calculated estimates when no saved price exists');
 console.log('PASS: existing-game price boxes use the saved admin price, including zero, while creation forms retain estimates');
+
+// The home sport selector filters its live list in place, including archery.
+lang='en';
+let liveRows=Array.from({length:15},(_,i)=>({id:'tennis-'+i,title:'Live tennis '+i,sport:'Tennis',game_date:addDaysISO(TODAY,1),start_time:'18:00',status:'open',max_players:4,participants_count:1,share_price:100}));
+liveRows.push({id:'archery-1',title:'Live archery',sport:'Archery',game_date:addDaysISO(TODAY,1),start_time:'18:00',status:'open',max_players:8,participants_count:2,share_price:100});
+liveRows.push({id:'ended',title:'Ended tennis',sport:'Tennis',game_date:addDaysISO(TODAY,1),start_time:'18:00',status:'completed',max_players:4,participants_count:4});
+mocks['@/lib/queries'].useFriendlyGames=()=>discoveryQuery(liveRows);
+const renderLive=sport=>renderToStaticMarkup(h(MemberDiscoveryCards,{memberId:'member-1',hasAcademy:false,mode:'games',interactive:true,sportFilter:sport}));
+let live=renderLive('Tennis');assert.ok(live.includes('Live tennis 14'),'live results are not capped at twelve');assert.ok(!live.includes('Live archery'));assert.ok(!live.includes('Ended tennis'));assert.match(live,/<details[^>]*>/);assert.ok(!/<details[^>]*\sopen(?:[\s=>])/.test(live),'filters start collapsed');assert.ok(live.includes('Updates automatically'));
+live=renderLive('Archery');assert.ok(live.includes('Live archery'));assert.ok(!live.includes('Live tennis'));
+liveRows=[...liveRows,{id:'archery-2',title:'Newly published archery',sport:'Archery',game_date:addDaysISO(TODAY,1),start_time:'19:00',status:'open',max_players:8,participants_count:1,share_price:100}];assert.ok(renderLive('Archery').includes('Newly published archery'),'refreshed query data appears under the selected sport');
+assert.ok(renderLive('Volleyball').includes('No current games match this selection'));
+console.log('PASS: selected sport, archery, all matching games, updated query data, empty states and collapsed filters');

@@ -884,7 +884,9 @@ export function GamesClient({ profile }: { profile: Profile }) {
         error={inviteError}
       />
 
-      <div className="grid grid-cols-1 gap-3 rounded-2xl border bg-card p-4 shadow-sm sm:grid-cols-2 sm:p-5 lg:grid-cols-4">
+      <details className="rounded-2xl border bg-card">
+        <summary className="cursor-pointer px-4 py-3 text-sm font-semibold">{lang === "ar" ? "فلاتر المباريات" : "Game filters"}</summary>
+      <div className="grid grid-cols-1 gap-3 border-t p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-4">
         <div className="sm:col-span-2 lg:col-span-4">
           <LocationFields
             filterMode
@@ -964,6 +966,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
           {t("games_only_mine")}
         </Button>
       </div>
+      </details>
 
       {gamesError && (
         <div role="alert" className="rounded-lg border border-destructive/30 p-4">

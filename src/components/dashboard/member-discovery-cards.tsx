@@ -5,7 +5,7 @@ import { googleDirectionsUrl } from "@/lib/google-directions";
 import { cairoNow } from "@/lib/member-training";
 import { discoveryMatch, type DiscoveryPreferences } from "@/lib/member-discovery";
 import { GameCardBackground } from "@/components/games/game-card-background";
-import { useId } from "react";
+import { useId, useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import {
@@ -64,7 +64,9 @@ function DiscoveryCard({
   tone,
   description,
   action,
+  live = false,
 }: {
+  live?: boolean;
   title: string;
   href: string;
   icon: LucideIcon;
@@ -84,8 +86,8 @@ function DiscoveryCard({
       <Link href={href} className="inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{action}<ArrowRight size={14} className="rtl:rotate-180" aria-hidden="true" /></Link>
     </header>
     <QueryState queries={[query]}>
-      {items.length === 0 ? <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">{empty}</p> : <ul id={id} aria-label={title} className="flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-3">
-        {items.map(item => <li key={item.id} className="w-[48%] min-w-0 max-w-80 shrink-0 snap-start sm:w-[44%] lg:w-[31%]">
+      {items.length === 0 ? <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">{empty}</p> : <ul id={id} aria-label={title} className={live ? "grid grid-cols-2 gap-3 lg:grid-cols-3" : "flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-3"}>
+        {items.map(item => <li key={item.id} className={live ? "min-w-0" : "w-[48%] min-w-0 max-w-80 shrink-0 snap-start sm:w-[44%] lg:w-[31%]"}>
           <article className="h-full overflow-hidden rounded-xl border bg-card">
             <Link href={item.href ?? href} className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
               <div className="relative isolate aspect-[4/3] overflow-hidden bg-[#14213D]">
@@ -115,14 +117,18 @@ function DiscoveryCard({
   </section>;
 }
 
-export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, mode = "all" }: { memberId: string; hasAcademy: boolean; preferences?: DiscoveryPreferences; mode?: "all" | "games" | "academies" }) {
+export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, mode = "all", interactive = false, sportFilter = "all" }: { interactive?: boolean; sportFilter?: string; memberId: string; hasAcademy: boolean; preferences?: DiscoveryPreferences; mode?: "all" | "games" | "academies" }) {
   const { t, lang, locale } = useI18n();
+  const [area, setArea] = useState("");
+  const [level, setLevel] = useState("all");
+  const [date, setDate] = useState("");
   useRealtime(["friendly_games", "friendly_game_participants"]);
   const games = useFriendlyGames();
   const academies = usePublicAcademies();
   const myGames = useMyUpcomingGames(memberId);
   const follows = useMyAcademyFollows();
   const ar = lang === "ar";
+  const selectedSportLabel = ar ? ({ Tennis: "تنس", Volleyball: "كرة طائرة", "Beach Volleyball": "طائرة شاطئية", Archery: "رماية بالقوس" } as Record<string, string>)[sportFilter] ?? sportFilter : sportFilter;
   const academyJoined = hasAcademy || !!follows.data?.length;
   const gameJoined = !!myGames.data?.length;
   const today = cairoNow().slice(0, 10);
@@ -150,7 +156,10 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
     .filter(
       (game) =>
         (game.status === "open" || game.status === "full") &&
-        game.game_date >= today
+        game.game_date >= today &&
+        (!interactive || ((sportFilter === "all" || game.sport?.trim().toLowerCase() === sportFilter.toLowerCase()) &&
+          (level === "all" || game.skill_level === level) && (!date || game.game_date === date) &&
+          (!area.trim() || [game.area, game.location, game.playground?.name, game.playground?.area, game.playground?.governorate].some(value => value?.toLowerCase().includes(area.trim().toLowerCase())))))
     )
     .sort(
       (a, b) =>
@@ -159,7 +168,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
           `${b.game_date} ${b.start_time}`
         )
     )
-    .slice(0, 12)
+    .slice(0, interactive ? Infinity : 12)
     .map((game) => ({
       id: game.id,
       title: game.title,
@@ -208,7 +217,18 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
     }));
 
   return (
-    <div className="min-w-0 space-y-4">
+    <div id={interactive ? "member-live-games" : undefined} className="min-w-0 space-y-4">
+      {interactive && <details className="rounded-xl border bg-card">
+        <summary className="cursor-pointer px-4 py-3 text-sm font-semibold">{ar ? "فلاتر المباريات" : "Game filters"}{(area || date || level !== "all") && <span className="ms-2 text-xs text-muted-foreground">{ar ? "مفعّلة" : "Active"}</span>}</summary>
+        <div className="grid gap-3 border-t p-4 sm:grid-cols-3">
+          <label className="text-sm">{ar ? "المنطقة أو الملعب" : "Area or court"}<input className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" value={area} onChange={e => setArea(e.target.value)} /></label>
+          <label className="text-sm">{ar ? "المستوى" : "Skill level"}<select className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" value={level} onChange={e => setLevel(e.target.value)}><option value="all">{ar ? "كل المستويات" : "All levels"}</option>{["beginner", "intermediate", "advanced"].map(value => <option key={value} value={value}>{t(`skill_${value}` as keyof Dict)}</option>)}</select></label>
+          <label className="text-sm">{ar ? "التاريخ" : "Date"}<input className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" type="date" min={today} value={date} onChange={e => setDate(e.target.value)} /></label>
+          <button type="button" className="w-fit rounded-lg border px-3 py-2 text-sm" onClick={() => { setArea(""); setDate(""); setLevel("all"); }}>{ar ? "مسح الفلاتر" : "Clear filters"}</button>
+        </div>
+      </details>}
+      {interactive && !games.isPending && !games.isError && <p role="status" aria-live="polite" className="flex items-center gap-2 text-xs text-muted-foreground"><span aria-hidden="true" className="h-2 w-2 rounded-full bg-[#C7F23D]" />{gameItems.length} {ar ? "مباراة · بتتحدث تلقائياً" : "games · Updates automatically"}</p>}
+
       {mode !== "games" && <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/50 px-4 py-3 text-sm">
         <p>{ar ? "خصّص اقتراحاتك بالرياضات والمستوى وأيامك المتاحة." : "Make these suggestions yours with your sports, skill level, and available days."}</p>
         <Link href="/profile" className="font-semibold text-primary underline underline-offset-4">{ar ? "تعديل تفضيلاتي" : "Edit my preferences"}</Link>
@@ -225,7 +245,8 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
         empty={ar ? "مفيش أكاديميات متاحة حالياً." : "No academies available yet."}
       />}
       {mode !== "academies" && <DiscoveryCard
-        title={ar ? "مقترح ليك" : "Recommended for you"}
+        live={interactive}
+        title={interactive ? (sportFilter === "all" ? (ar ? "المباريات الحالية" : "Current games") : `${selectedSportLabel} · ${ar ? "المباريات الحالية" : "Current games"}`) : (ar ? "مقترح ليك" : "Recommended for you")}
         tone="games"
         description={ar ? "انزل الملعب وقابل لاعبين وشارك في المباراة الجاية." : "Hit the court, meet new players, and make your next move."}
         action={gameJoined ? (ar ? "اكتشف المزيد من المباريات" : "Discover more games") : (ar ? "ابحث عن مباراة" : "Find games")}
@@ -233,7 +254,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
         icon={LandPlot}
         items={gameItems}
         query={games}
-        empty={ar ? "مفيش مباريات متاحة حالياً. تابعنا قريب." : "No active games right now. Check back soon."}
+        empty={interactive ? (ar ? "مفيش مباريات مطابقة للاختيار ده حالياً. القائمة بتتحدث تلقائياً." : "No current games match this selection. This list updates automatically.") : (ar ? "مفيش مباريات متاحة حالياً. تابعنا قريب." : "No active games right now. Check back soon.")}
 
       />}
 

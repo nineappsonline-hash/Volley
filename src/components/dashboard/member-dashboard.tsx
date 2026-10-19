@@ -48,6 +48,7 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
   // Fed upward by the children that already own these queries, so the action
   // strip never triggers a second copy of the same request.
   const { data: games = [] } = useMyUpcomingGames(p.id);
+  const [selectedSport, setSelectedSport] = useState("all");
   const [remaining, setRemaining] = useState<number | null>(null);
 
   const actions = useMemo(
@@ -72,12 +73,12 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
         memberName={p.name}
         hasAcademy={!!p.academy_id}
       />
-      <DashboardNavigation name={p.name} hasQr={!!p.checkin_code} sections={sections} />
-
       <ActionStrip actions={actions} />
 
+      <DashboardNavigation selectedSport={selectedSport} onSportChange={setSelectedSport} name={p.name} hasQr={!!p.checkin_code} sections={sections} />
+
       <section id="activity" className="scroll-mt-24">
-        <MemberDiscoveryCards memberId={p.id} hasAcademy={!!p.academy_id} preferences={p} mode="games" />
+        <MemberDiscoveryCards memberId={p.id} hasAcademy={!!p.academy_id} preferences={p} mode="games" interactive sportFilter={selectedSport} />
       </section>
 
       {p.checkin_code && <section id="checkin" className="scroll-mt-24"><CheckinQrCard code={p.checkin_code} memberName={p.name} profile={p} compact appearance="dashboard" /></section>}

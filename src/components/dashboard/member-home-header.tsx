@@ -18,13 +18,13 @@ const categories = [
   { href: "/profile#evaluations", en: "My progress", ar: "تطوري وتقييمي", photo: "0% 0%" },
 ];
 const sports = [
-  { name: "Tennis", ar: "تنس", slug: "tennis", href: "/dashboard/games?sport=Tennis" },
-  { name: "Volleyball", ar: "كرة طائرة", slug: "volleyball", href: "/dashboard/games?sport=Volleyball" },
-  { name: "Beach volleyball", ar: "طائرة شاطئية", slug: "beach-volleyball", href: "/dashboard/games?sport=Beach%20Volleyball" },
-  { name: "Archery", ar: "رماية بالقوس", slug: "archery", href: "/sports/archery" },
+  { name: "Tennis", ar: "تنس", slug: "tennis" },
+  { name: "Volleyball", ar: "كرة طائرة", slug: "volleyball" },
+  { name: "Beach Volleyball", ar: "طائرة شاطئية", slug: "beach-volleyball" },
+  { name: "Archery", ar: "رماية بالقوس", slug: "archery" },
 ];
 
-export function MemberHomeHeader({ name, hasQr, sections }: { name?: string; hasQr: boolean; sections: { id: string; label: string }[] }) {
+export function MemberHomeHeader({ name, hasQr, sections, selectedSport = "all", onSportChange }: { selectedSport?: string; onSportChange?: (sport: string) => void; name?: string; hasQr: boolean; sections: { id: string; label: string }[] }) {
   const { lang } = useI18n();
   const ar = lang === "ar";
   async function share() {
@@ -42,8 +42,8 @@ export function MemberHomeHeader({ name, hasQr, sections }: { name?: string; has
     <nav className={styles.categories} aria-label={ar ? "اختار نشاطك" : "Explore activities"}>
       {categories.map(category => <Link key={category.href} href={category.href} className={`${styles.category} ${category.wide ? styles.wide : ""}`}><span aria-hidden="true" className={styles.categoryPhoto} style={{ backgroundPosition: category.photo }} /><span className={styles.shade} aria-hidden="true" /><strong>{ar ? category.ar : category.en}</strong><ArrowUpRight className={styles.tileArrow} size={18} aria-hidden="true" /></Link>)}
     </nav>
-    <div className={styles.sportsHeader}><h2>{ar ? "العب رياضتك" : "Play your sport"}</h2><Link href="/dashboard/games">{ar ? "اكتشف الكل" : "Discover all"}<ArrowUpRight size={14} aria-hidden="true" /></Link></div>
-    <nav className={styles.sports} aria-label={ar ? "الرياضات" : "Browse by sport"}>{sports.map(sport => <Link href={sport.href} key={sport.slug}><span className={styles.sportIcon}>{SportIcon({ id: sport.slug, size: 32 })}</span><span>{ar ? sport.ar : sport.name}</span></Link>)}</nav>
+    <div className={styles.sportsHeader}><h2>{ar ? "العب رياضتك" : "Play your sport"}</h2><button type="button" aria-pressed={selectedSport === "all"} aria-controls="member-live-games" onClick={() => onSportChange?.("all")}>{ar ? "كل الرياضات" : "All sports"}</button></div>
+    <nav className={styles.sports} aria-label={ar ? "الرياضات" : "Browse by sport"}>{sports.map(sport => <button type="button" key={sport.slug} aria-pressed={selectedSport === sport.name} aria-controls="member-live-games" onClick={() => onSportChange?.(sport.name)}><span className={styles.sportIcon}>{SportIcon({ id: sport.slug, size: 32 })}</span><span>{ar ? sport.ar : sport.name}</span></button>)}</nav>
     <nav className={styles.sections} aria-label={ar ? "أقسام لوحة التحكم" : "Dashboard sections"}>{hasQr && <a href="#checkin">{ar ? "كود الحضور" : "Attendance QR"}</a>}{sections.map(section => <a key={section.id} href={`#${section.id}`}>{section.label}</a>)}</nav>
   </div>;
 }
