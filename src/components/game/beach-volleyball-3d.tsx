@@ -41,8 +41,11 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
     } catch { setExpanded(true);setScreenNotice(lang === "ar" ? "عرض موسّع — ملء الشاشة مش متاح في المتصفح ده." : "Expanded view — browser fullscreen is unavailable."); }
   }, [expanded, lang]);
 
+  const [ability, setAbility] = useState("power");
+  const [teamSize, setTeamSize] = useState("6");
+  const [camera, setCamera] = useState("third");
   const [difficulty, setDifficulty] = useState("easy");
-  const [session, setSession] = useState<{ mode: "match" | "practice"; lang: string; difficulty: string } | null>(null);
+  const [session, setSession] = useState<{ mode: "match" | "practice"; lang: string; difficulty: string; ability: string; teamSize: string; camera: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
   const playButton = useRef<HTMLButtonElement>(null);
@@ -80,7 +83,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
   }, [session, loading]);
 
   function start(mode: "match" | "practice") {
-    setFailed(false);setLoading(true);setSession({ mode, lang, difficulty });
+    setFailed(false);setLoading(true);setSession({ mode, lang, difficulty, ability, teamSize: mode === "practice" ? "1" : teamSize, camera });
     trackGameEvent("game_open", { source: variant === "inline" ? "homepage-3d" : "page-3d", mode });
   }
 
@@ -94,7 +97,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
     </div>
     {session ? <>
       <iframe ref={frame} title={copy("Playza Beach Challenge — 3D volleyball", "تحدي بلايزا — كرة طائرة ثلاثية الأبعاد")}
-        src={`/beach-challenge/index.html?embed=1&mode=${session.mode}&lang=${session.lang}&difficulty=${session.difficulty}`}
+        src={`/beach-challenge/index.html?embed=1&mode=${session.mode}&lang=${session.lang}&difficulty=${session.difficulty}&ability=${session.ability}&teamSize=${session.teamSize}&camera=${session.camera}`}
         allow="fullscreen; clipboard-write; web-share" allowFullScreen
         className={cn("block w-full border-0", (fullscreen || expanded) ? "min-h-0 flex-1" : variant === "page" ? "h-[min(75vh,800px)] min-h-[500px]" : "h-[500px] sm:h-[600px]")}
       />
@@ -104,7 +107,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
         <AppLogo className="mb-5 w-36" />
         <p className="text-xs font-bold uppercase tracking-widest text-[#C7F23D]">{copy("PLAYZA BEACH CHALLENGE · 3D", "تحدي بلايزا · ثلاثي الأبعاد")}</p>
         <h2 className="mt-3 text-3xl font-black text-white">{copy("Your court. Your next point.", "ملعبك. ونقطتك الجاية.")}</h2>
-        <p className="mt-3 text-sm leading-7 text-white/75">{copy("90 seconds. You versus the computer. Free first-person volleyball, with no account needed.", "٩٠ ثانية. إنت ضد الكمبيوتر. كرة طائرة بمنظور الشخص الأول، ببلاش ومن غير حساب.")}</p>
+        <p className="mt-3 text-sm leading-7 text-white/75">{copy("90 seconds. You versus the computer. Free third-person volleyball with local teams, with no account needed.", "٩٠ ثانية. إنت ضد الكمبيوتر. كرة طائرة بمنظور الشخص الثالث وفرق محلية، ببلاش ومن غير حساب.")}</p>
         <BeachGameStats className="mt-5" />
         {failed && <p className="mt-3 text-sm text-[#C7F23D]" role="alert">{copy("The game couldn’t load. Try again in a WebGL2-capable browser.", "اللعبة مقدرتش تشتغل. جرّب تاني بمتصفح بيدعم WebGL2.")}</p>}
         <label className="mt-5 block text-sm text-white">{copy("Opponent", "المنافس")}
@@ -112,12 +115,17 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
             <option value="easy">{copy("Easy", "سهل")}</option><option value="medium">{copy("Medium", "متوسط")}</option><option value="hard">{copy("Hard", "صعب")}</option>
           </select>
         </label>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <label className="text-sm">{copy("Match", "الماتش")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-[#0E182D] p-3" value={teamSize} onChange={e=>setTeamSize(e.target.value)}><option value="6">{copy("6v6 local teams", "٦ ضد ٦ محلي")}</option><option value="1">{copy("1v1 duel", "واحد ضد واحد")}</option></select></label>
+          <label className="text-sm">{copy("Camera", "الكاميرا")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-[#0E182D] p-3" value={camera} onChange={e=>setCamera(e.target.value)}><option value="third">{copy("Third person", "الشخص الثالث")}</option><option value="first">{copy("First person", "الشخص الأول")}</option></select></label>
+          <label className="text-sm">{copy("Ability", "القدرة")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-[#0E182D] p-3" value={ability} onChange={e=>setAbility(e.target.value)}><option value="power">{copy("Power Strike", "ضربة قوية")}</option><option value="dash">{copy("Quick Step", "خطوة سريعة")}</option><option value="shield">{copy("Sky Wall", "حائط السما")}</option></select></label>
+        </div>
         <div className="mt-5 flex flex-wrap gap-3"><button ref={playButton} type="button" onClick={() => start("match")} className="rounded-full bg-[#C7F23D] px-6 py-3 font-bold text-[#14213D]">{copy("Play free →", "العب ببلاش ←")}</button>
           <button type="button" onClick={() => start("practice")} className="rounded-full border border-white/30 px-6 py-3 font-bold">{copy("Learn to play", "اتعلم تلعب")}</button></div>
         <Link href={bookingHref} className="mt-5 inline-block text-sm text-[#C7F23D] underline" onClick={() => trackGameEvent("game_booking_click", { origin: "3d-ready" })}>{copy("Book a real beach volleyball game", "احجز ماتش طائرة شاطئية حقيقي")}</Link>
       </div>
       <div><Image src="/beach-challenge/preview.svg" alt={copy("Playza sand volleyball court", "ملعب بلايزا لكرة الطائرة الشاطئية")} width={640} height={650} className="aspect-square w-full rounded-2xl object-cover" />
-        <p className="mt-3 text-xs leading-6 text-white/70">{copy("WASD move · Mouse look · Click / F hit · Space jump · E tip. Touch controls available on mobile.", "WASD للحركة · الماوس للنظر · اضغط / F للضرب · Space للنط · E للإسقاط. تحكم باللمس على الموبايل.")}</p></div>
+        <p className="mt-3 text-xs leading-6 text-white/70">{copy("WASD move · Click bump / spike · Q set / block · Ctrl dive · Space jump · R ability. Touch controls available on mobile.", "WASD للحركة · اضغط للاستقبال والسحق · Q للإعداد والصد · Ctrl للدفاع · Space للنط · R للقدرة. تحكم باللمس على الموبايل.")}</p></div>
     </div>}
   </div>;
 }

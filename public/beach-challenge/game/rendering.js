@@ -1,3 +1,4 @@
+import {thirdPersonPose} from './camera.js';
 import {createAthlete,createAthleteHands} from './athlete.js';
 import {shotTarget} from './simulation.js';
 import {createHands} from './hands.js';
@@ -123,7 +124,12 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
   const forearm=new THREE.Group();forearm.position.set(0,-.37,0);shoulder.add(forearm);capsule(.054,.15,skin,0,-.095,0,forearm);sphere(.061,skin,0,-.23,0,forearm);
  }
  const athlete=athleteAsset?createAthlete(scene,athleteAsset,logo,low):null;if(athlete)opponent.visible=false;
+ const localAthlete=athleteAsset?createAthlete(scene,athleteAsset,logo,low):null;
+ const localFallback=localAthlete?null:opponent.clone(true);if(localFallback)scene.add(localFallback);
+ const teamVisuals=Array.from({length:settings.teamSize===6?10:0},(_,i)=>{const actor=athleteAsset?createAthlete(scene,athleteAsset,logo,low):null;const fallback=actor?null:opponent.clone(true);if(fallback)scene.add(fallback);const marker=mesh(new THREE.RingGeometry(.30,.36,20),new THREE.MeshBasicMaterial({color:i<5?0xc7f23d:0xff795b,side:THREE.DoubleSide}),0,.04,0);marker.rotation.x=-Math.PI/2;marker.castShadow=false;return {actor,fallback,marker}});
+ const thirdPerson=settings.camera!=='first';
  const hands=athleteAsset?createAthleteHands(camera,athleteAsset,low):createHands(camera,skin,teal,low);
+ hands.root ? hands.root.visible=!thirdPerson : null;
  let displayedPose=handPose();
  const ballMaterial=mat(0xffffff,{map:ballTexture(logo),roughness:.55});const ball=mesh(new THREE.SphereGeometry(.105,low?16:28,low?10:20),ballMaterial);
  const shadowMap=paintedTexture(64,64,(ctx,w,h)=>{const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);g.addColorStop(0,'rgba(55,47,34,.45)');g.addColorStop(.4,'rgba(55,47,34,.22)');g.addColorStop(1,'rgba(55,47,34,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h)});
@@ -141,7 +147,9 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
   lowerQuality(){renderer.setPixelRatio(Math.max(.5,renderer.getPixelRatio()*.8));renderer.shadowMap.enabled=false;resize()},
   render(m,yaw,pitch,alpha=1){
    const p=m.player,b=m.ball,old=m.previousBall;
-   camera.position.set(p.x,p.y+1.7,p.z);camera.rotation.set(pitch,yaw,0);
+   if(thirdPerson){const c=thirdPersonPose(p,yaw,pitch);const follow=m.previousBall?1-Math.exp(-14*Math.max(1/120,Math.min(.05,m.clock-previousClock))):1;camera.position.lerp(new THREE.Vector3(c.x,c.y,c.z),follow);camera.lookAt(c.lookX,c.lookY,c.lookZ)}else{camera.position.set(p.x,p.y+1.7,p.z);camera.rotation.set(pitch,yaw,0)}
+   if(localAthlete){localAthlete.root.visible=thirdPerson;localAthlete.update({...m,ai:p,player:m.ai,last:1-m.last,hitEvent:m.hitEvent?{...m.hitEvent,side:1-m.hitEvent.side}:null});localAthlete.root.rotation.x=m.diveTime>0?-1.1:0}
+   if(localFallback){localFallback.visible=thirdPerson;localFallback.position.set(p.x,p.y,p.z);localFallback.rotation.set(m.diveTime>0?-.7:0,yaw+Math.PI,0)}
    // Never interpolate across a scored rally/reset or a confirmed contact impulse.
    const blend=old&&old.phase===m.phase&&old.hitAt===(m.hitEvent?.at??-1);
    ball.position.set(blend?THREE.MathUtils.lerp(old.x,b.x,alpha):b.x,blend?THREE.MathUtils.lerp(old.y,b.y,alpha):b.y,blend?THREE.MathUtils.lerp(old.z,b.z,alpha):b.z);
@@ -152,6 +160,7 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
    trail.visible=settings.assist&&m.phase==='rally'&&Math.hypot(b.vx,b.vy,b.vz)>2;
 
    athlete?.update(m);
+   [...(m.teammates||[]),...(m.opponents||[])].forEach((a,i)=>{const visual=teamVisuals[i];if(!visual)return;const side=i<5?0:1;visual.marker.position.set(a.x,.04,a.z);if(visual.actor)visual.actor.update({...m,ai:a,player:side?m.player:m.ai,last:side?m.last:1-m.last,hitEvent:m.hitEvent?.actor===a.id?{...m.hitEvent,side:1}:null});if(visual.fallback){visual.fallback.position.set(a.x,a.y,a.z);visual.fallback.rotation.y=side?0:Math.PI}});
    cpuShadow.position.set(m.ai.x,.027,m.ai.z);cpuShadow.material.opacity=Math.max(.25,.75-m.ai.y*.25);
    opponent.position.set(m.ai.x,m.ai.y,m.ai.z);opponent.rotation.y=Math.atan2(p.x-m.ai.x,p.z-m.ai.z)*.5;
    const delta=Math.max(0,m.clock-previousClock),distance=Math.hypot(m.ai.x-previousAI.x,m.ai.z-previousAI.z);
@@ -171,7 +180,7 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
    const weight=confirmed?animationWeight(age):near?.65:0;
    const targetPose=handPose(pose,weight),blendPose=1-Math.exp(-18*Math.min(.05,delta||1/60));
    displayedPose=displayedPose.map((v,i)=>({position:v.position.map((x,j)=>THREE.MathUtils.lerp(x,targetPose[i].position[j],blendPose)),rotation:v.rotation.map((x,j)=>THREE.MathUtils.lerp(x,targetPose[i].rotation[j],blendPose)),curl:THREE.MathUtils.lerp(v.curl,targetPose[i].curl,blendPose),spread:THREE.MathUtils.lerp(v.spread,targetPose[i].spread,blendPose)}));
-   if(!low||m.clock-lastHands>=1/30||lastHands<0){hands.update(displayedPose);lastHands=m.clock}
+   if(!thirdPerson&&(!low||m.clock-lastHands>=1/30||lastHands<0)){hands.update(displayedPose);lastHands=m.clock}
    shadow.position.set(ball.position.x,.026,ball.position.z);shadow.visible=Math.abs(b.x)<6&&Math.abs(b.z)<10;shadow.scale.setScalar(1+Math.max(0,b.y)*.08);shadow.material.opacity=Math.max(.25,1-b.y*.1);
    landing.visible=settings.assist&&(settings.difficulty==='easy'||m.config.practice)&&m.phase==='rally';const t=(b.vy+Math.sqrt(Math.max(0,b.vy*b.vy+19.62*(b.y-.105))))/9.81;landing.position.set(b.x+b.vx*t,.03,b.z+b.vz*t);
    target.visible=settings.assist&&m.phase==='rally';const aim=shotTarget(yaw,pitch,m.window>0&&m.tip);target.position.set(aim.x,.035,aim.z);

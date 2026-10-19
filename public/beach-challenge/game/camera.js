@@ -8,3 +8,9 @@ export function assistedPitch(pitch,yaw,player,ball,dt){
  const change=(goal-pitch)*(1-Math.exp(-1.1*dt));
  return clamp(pitch+clamp(change,-.45*dt,.45*dt),-1.396,1.396);
 }
+
+// Shoulder camera follows the athlete, while aim remains independent of zoom.
+export function thirdPersonPose(player,yaw=0,pitch=0,distance=4.2){
+ const elevation=clamp(.32-pitch*.55,-.1,1.05),horizontal=Math.cos(elevation)*distance;
+ return {x:player.x+Math.sin(yaw)*horizontal,y:Math.max(.6,player.y+1.65+Math.sin(elevation)*distance),z:player.z+Math.cos(yaw)*horizontal,lookX:player.x-Math.sin(yaw)*5,lookY:player.y+1.65+Math.sin(pitch)*5,lookZ:player.z-Math.cos(yaw)*5};
+}
