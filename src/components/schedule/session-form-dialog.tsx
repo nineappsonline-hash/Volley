@@ -47,6 +47,8 @@ const schema = (t: (k: any) => string) =>
   z.object({
     date: z.string().min(1, t("field_required")),
     time: z.string().min(1, t("field_required")),
+    duration_minutes: z.coerce.number().int().min(1).max(1440),
+    court_number: z.string().optional(),
     location: z.string().optional(),
     notes: z.string().optional(),
     sport_id: z.string().optional(),
@@ -69,7 +71,7 @@ export function SessionFormDialog({
   onOpenChange,
   session,
 }: SessionFormDialogProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const isEdit = !!session;
   const saveSession = useSaveSession();
   const { data: sports } = useSports();
@@ -83,6 +85,8 @@ export function SessionFormDialog({
     defaultValues: {
       date: todayInput(),
       time: "18:00",
+      duration_minutes: 60,
+      court_number: "auto",
       location: "",
       notes: "",
       sport_id: "none",
@@ -98,6 +102,8 @@ export function SessionFormDialog({
       form.reset({
         date: session?.date ?? todayInput(),
         time: session?.time.slice(0, 5) ?? "18:00",
+        duration_minutes: session?.duration_minutes ?? 60,
+        court_number: session?.court_number ? String(session.court_number) : "auto",
         location: session?.location ?? "",
         notes: session?.notes ?? "",
         sport_id: session?.sport_id ?? "none",
@@ -125,26 +131,32 @@ export function SessionFormDialog({
   const watchedDate = form.watch("date");
   const watchedTime = form.watch("time");
 
-  // Venue conflict: another session at the same venue, date & time.
+  const watchedDuration = form.watch("duration_minutes");
+  const watchedCourt = form.watch("court_number");
+  const watchedCoach = form.watch("coach_id");
   const conflict = useMemo(() => {
-    if (!watchedVenue || watchedVenue === "none" || !watchedDate || !watchedTime) return false;
-    return (sessions ?? []).some(
-      (s) =>
-        s.id !== session?.id &&
-        s.status !== "canceled" &&
-        s.venue_id === watchedVenue &&
-        s.date === watchedDate &&
-        s.time.slice(0, 5) === watchedTime
-    );
-  }, [watchedVenue, watchedDate, watchedTime, sessions, session]);
+    if (!watchedDate || !watchedTime) return false;
+    const minutes = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
+    const start = minutes(watchedTime), end = start + Number(watchedDuration);
+    if (end > 1440) return true;
+    const overlapping = (sessions ?? []).filter(s => s.id !== session?.id && s.status !== "canceled" && s.date === watchedDate && minutes(s.time) < end && start < minutes(s.time) + (s.duration_minutes ?? 60));
+    if (watchedCoach && watchedCoach !== "none" && overlapping.some(s => s.coach_id === watchedCoach)) return true;
+    if (!watchedVenue || watchedVenue === "none") return false;
+    const venue = (venues ?? []).find(v => v.id === watchedVenue);
+    const occupied = new Set(overlapping.filter(s => s.venue_id === watchedVenue).map(s => s.court_number ?? 1));
+    return watchedCourt && watchedCourt !== "auto" ? occupied.has(Number(watchedCourt)) : occupied.size >= (venue?.court_count ?? 1);
+  }, [watchedVenue, watchedDate, watchedTime, watchedDuration, watchedCourt, watchedCoach, sessions, session, venues]);
 
   const onSubmit = async (values: FormValues) => {
+    if (conflict) return;
     setSubmitting(true);
     try {
       await saveSession.mutateAsync({
         id: session?.id,
         date: values.date,
         time: values.time,
+        duration_minutes: values.duration_minutes,
+        court_number: values.court_number === "auto" || !values.court_number ? null : Number(values.court_number),
         location: values.location || null,
         notes: values.notes || null,
         sport_id: values.sport_id === "none" ? null : values.sport_id,
@@ -204,6 +216,10 @@ export function SessionFormDialog({
                 </FormItem>
               )}
             />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField control={form.control} name="duration_minutes" render={({ field }) => <FormItem><FormLabel>{lang === "ar" ? "المدة بالدقائق" : "Duration (minutes)"}</FormLabel><FormControl><Input type="number" min="1" max="1440" {...field} /></FormControl><FormMessage /></FormItem>} />
+            <FormField control={form.control} name="court_number" render={({ field }) => <FormItem><FormLabel>{lang === "ar" ? "رقم الملعب" : "Court number"}</FormLabel><Select value={field.value} onValueChange={field.onChange}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="auto">{lang === "ar" ? "اختيار تلقائي" : "Automatic"}</SelectItem>{Array.from({ length: (venues ?? []).find(v => v.id === watchedVenue)?.court_count ?? 1 }, (_, i) => <SelectItem key={i + 1} value={String(i + 1)}>{i + 1}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>} />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <FormField
@@ -342,7 +358,7 @@ export function SessionFormDialog({
           {conflict && (
             <p className="flex items-start gap-2 rounded-md border border-attention-300/60 bg-attention-50 p-3 text-xs text-warning-ink dark:bg-attention-500/10 dark:text-attention-300">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              {t("schedule_venue_conflict")}
+              {lang === "ar" ? "المدرب أو الملعب مش متاح في الوقت ده، أو الحصة بتنتهي بعد منتصف الليل. غيّر الميعاد أو المدة." : "The coach or court is unavailable during this interval, or the session ends after midnight. Change the time or duration."}
             </p>
           )}
           <FormField
@@ -366,7 +382,7 @@ export function SessionFormDialog({
             >
               {t("common_cancel")}
             </Button>
-            <Button type="submit" disabled={submitting}>
+            <Button type="submit" disabled={submitting || conflict}>
               {submitting ? t("common_saving") : t("common_save")}
             </Button>
           </DialogFooter>

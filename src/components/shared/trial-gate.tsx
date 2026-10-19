@@ -1,5 +1,6 @@
 "use client";
 
+import { QueryState } from "@/components/shared/query-state";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
@@ -17,7 +18,8 @@ interface TrialGateProps {
 export function TrialGate({ children, isAdmin = false }: TrialGateProps) {
   const pathname = usePathname();
   const { t, lang } = useI18n();
-  const { data: academy } = useAcademy();
+  const academyQuery = useAcademy();
+  const { data: academy } = academyQuery;
 
   const trialStatus = useMemo(() => {
     if (!academy) return { expired: false, daysLeft: 0, isTrial: false };
@@ -40,6 +42,8 @@ export function TrialGate({ children, isAdmin = false }: TrialGateProps) {
   }, [academy]);
 
   if (isAdmin && ["/upgrade", "/checkout"].includes(pathname)) return <>{children}</>;
+
+  if (academyQuery.isPending || academyQuery.isError) return <QueryState queries={[academyQuery]}>{null}</QueryState>;
 
   if (!academy) return <>{children}</>;
 

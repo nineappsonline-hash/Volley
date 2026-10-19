@@ -14,7 +14,7 @@ export async function establishPasswordRecovery(auth: SupabaseClient["auth"], hr
   if (accessToken || refreshToken) {
     // SSR clients use PKCE, so automatic initialization rejects implicit
     // recovery links. Adopt the complete session explicitly after it settles.
-    if (!accessToken || !refreshToken || hash.get("type") !== "recovery") {
+    if (!accessToken || !refreshToken || !["recovery", "invite"].includes(hash.get("type") ?? "")) {
       throw new Error("invalid-recovery-session");
     }
     const { error: sessionError } = await auth.setSession({
@@ -31,8 +31,8 @@ export async function establishPasswordRecovery(auth: SupabaseClient["auth"], hr
   const tokenHash = url.searchParams.get("token_hash") || hash.get("token_hash");
   if (tokenHash) {
     const type = url.searchParams.get("type") || hash.get("type");
-    if (type !== "recovery") throw new Error("invalid-recovery-type");
-    const { error: verifyError } = await auth.verifyOtp({ type: "recovery", token_hash: tokenHash });
+    if (type !== "recovery" && type !== "invite") throw new Error("invalid-recovery-type");
+    const { error: verifyError } = await auth.verifyOtp({ type, token_hash: tokenHash });
     if (verifyError) throw verifyError;
   }
   const { data: { user }, error: userError } = await auth.getUser();

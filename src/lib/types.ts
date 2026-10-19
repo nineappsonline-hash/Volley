@@ -592,6 +592,10 @@ export interface Payment {
 }
 
 export interface TrainingSession {
+  duration_minutes?: number;
+  court_number?: number | null;
+  recurring_schedule_id?: string | null;
+  recurring_occurrence_date?: string | null;
   id: string;
   academy_id: string | null;
   date: string;
@@ -965,6 +969,7 @@ export interface ActivityFeedItem {
 }
 
 export interface RecurringSchedule {
+  duration_minutes?: number;
   id: string;
   academy_id: string;
   name: string;

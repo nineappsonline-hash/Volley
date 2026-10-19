@@ -1,5 +1,7 @@
 "use client";
 
+import { QueryState } from "@/components/shared/query-state";
+
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Pencil, Tags, Trash2, Trophy, UserPlus, Users } from "lucide-react";
@@ -33,8 +35,10 @@ import type { TeamWithDetails } from "@/lib/types";
 
 export function TeamsClient() {
   const { t } = useI18n();
-  const { data: teams, isLoading } = useTeams();
-  const { data: sports } = useSports();
+  const teamsQuery = useTeams();
+  const { data: teams, isLoading } = teamsQuery;
+  const sportsQuery = useSports();
+  const { data: sports } = sportsQuery;
   const deleteTeam = useDeleteTeam();
 
   const [formOpen, setFormOpen] = useState(false);
@@ -63,6 +67,8 @@ export function TeamsClient() {
       setDeleting(null);
     }
   };
+
+  if ([teamsQuery, sportsQuery].some(query => query.isError || query.isPending)) return <QueryState queries={[teamsQuery, sportsQuery]}>{null}</QueryState>;
 
   return (
     <div className="space-y-6">

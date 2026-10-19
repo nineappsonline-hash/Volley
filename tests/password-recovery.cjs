@@ -20,7 +20,9 @@ new Function('exports', ts.transpileModule(fs.readFileSync('src/lib/password-rec
   await assert.rejects(api.establishPasswordRecovery({...auth, setSession: async () => ({error: Error('invalid token')})}, 'https://example.com/#access_token=test&refresh_token=refresh&type=recovery'));
   assert.equal(verified, 1);
   await assert.rejects(api.establishPasswordRecovery(auth, 'https://example.com/?error_code=otp_expired'));
-  await assert.rejects(api.establishPasswordRecovery(auth, 'https://example.com/?token_hash=test&type=invite'));
+  await api.establishPasswordRecovery({ ...auth, verifyOtp: async ({ type }) => { assert.equal(type, 'invite'); return { error: null }; } }, 'https://example.com/?token_hash=test&type=invite');
+  await api.establishPasswordRecovery(auth, 'https://example.com/#access_token=test&refresh_token=refresh&type=invite');
+  await assert.rejects(api.establishPasswordRecovery(auth, 'https://example.com/?token_hash=test&type=signup'));
   await assert.rejects(api.establishPasswordRecovery({ ...auth, initialize: async () => ({ error: Error('expired') }) }, 'https://example.com/?code=used'));
   await assert.rejects(api.establishPasswordRecovery({ ...auth, getUser: async () => ({ data: { user: null }, error: null }) }, 'https://example.com/'));
   console.log('PASS: recovery initialization, no duplicate exchanges, direct tokens, expired links and missing sessions');

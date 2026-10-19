@@ -1,5 +1,7 @@
 "use client";
 
+import { QueryState } from "@/components/shared/query-state";
+
 import { useEffect, useMemo, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { format } from "date-fns";
@@ -26,9 +28,12 @@ import type { TrainingSession } from "@/lib/types";
 function AttendanceContent({ canScan }: { canScan: boolean }) {
   const { t, lang, locale } = useI18n();
   const searchParams = useSearchParams();
-  const { data: sessions, isLoading } = useSessions();
-  const { data: attendance } = useAttendance();
-  const { data: profiles } = useProfiles();
+  const sessionsQuery = useSessions();
+  const { data: sessions, isLoading } = sessionsQuery;
+  const attendanceQuery = useAttendance();
+  const { data: attendance } = attendanceQuery;
+  const profilesQuery = useProfiles();
+  const { data: profiles } = profilesQuery;
 
   const upcoming = useMemo(
     () =>
@@ -52,6 +57,8 @@ function AttendanceContent({ canScan }: { canScan: boolean }) {
   const selected: TrainingSession | undefined = upcoming.find(
     (s) => s.id === sessionId
   );
+
+  if ([sessionsQuery, attendanceQuery, profilesQuery].some(query => query.isError || query.isPending)) return <QueryState queries={[sessionsQuery, attendanceQuery, profilesQuery]}>{null}</QueryState>;
 
   return (
     <div className="space-y-6">

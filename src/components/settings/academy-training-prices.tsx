@@ -1,5 +1,6 @@
 "use client";
 
+import { parseAcademyPrices } from "@/lib/academy-pricing";
 import { useEffect, useId, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -39,14 +40,11 @@ export function AcademyTrainingPrices({ academy }: { academy: Offering & { id: s
   }, [academy.id, academy.monthly_sessions, academy.monthly_price, academy.tryout_price]);
   const save = useMutation({
     mutationFn: async () => {
-      const count = sessions.trim() === "" ? null : Number(sessions);
-      const price = monthly.trim() === "" ? null : Number(monthly);
-      const trial = tryout.trim() === "" ? null : Number(tryout);
-      if ((count == null) !== (price == null) || (count != null && (!Number.isInteger(count) || count < 1 || count > 100))
-        || [price, trial].some(n => n != null && (!Number.isFinite(n) || n < 0 || n >= 100000000)))
-        throw new Error(ar ? "اكتب عدد حصص صحيح وسعر شهري معاه. الأسعار لازم تكون صفر أو أكتر." : "Enter a valid session count with a monthly price. Prices must be zero or greater.");
+      let prices;
+      try { prices = parseAcademyPrices(sessions, monthly, tryout); }
+      catch { throw new Error(ar ? "اكتب عدد حصص صحيح وسعر شهري معاه. الأسعار لازم تكون صفر أو أكتر." : "Enter a valid session count with a monthly price. Prices must be zero or greater."); }
       const { error } = await createClient().rpc("set_academy_training_prices", {
-        p_academy_id: academy.id, p_monthly_sessions: count, p_monthly_price: price, p_tryout_price: trial,
+        p_academy_id: academy.id, p_monthly_sessions: prices.monthly_sessions, p_monthly_price: prices.monthly_price, p_tryout_price: prices.tryout_price,
       });
       if (error) throw error;
     },

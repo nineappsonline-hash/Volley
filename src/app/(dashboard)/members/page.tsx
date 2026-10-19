@@ -1,5 +1,7 @@
 "use client";
 
+import { QueryState } from "@/components/shared/query-state";
+
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { UserPlus, Wallet } from "lucide-react";
@@ -35,10 +37,14 @@ import {
 
 export default function MembersPage() {
   const { t } = useI18n();
-  const { data: profiles, isLoading } = useProfiles();
-  const { data: payments } = useAllPayments();
-  const { data: attendance } = useAttendance();
-  const { data: sessions } = useSessions();
+  const profilesQuery = useProfiles();
+  const { data: profiles, isLoading } = profilesQuery;
+  const allPaymentsQuery = useAllPayments();
+  const { data: payments } = allPaymentsQuery;
+  const attendanceQuery = useAttendance();
+  const { data: attendance } = attendanceQuery;
+  const sessionsQuery = useSessions();
+  const { data: sessions } = sessionsQuery;
   const deleteMember = useDeleteMember();
 
   const [formOpen, setFormOpen] = useState(false);
@@ -76,6 +82,8 @@ export default function MembersPage() {
       setDeleting(null);
     }
   };
+
+  if ([profilesQuery, allPaymentsQuery, attendanceQuery, sessionsQuery].some(query => query.isError || query.isPending)) return <QueryState queries={[profilesQuery, allPaymentsQuery, attendanceQuery, sessionsQuery]}>{null}</QueryState>;
 
   return (
     <div className="space-y-6">

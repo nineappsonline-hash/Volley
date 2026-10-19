@@ -1,5 +1,7 @@
 "use client";
 
+import { QueryState } from "@/components/shared/query-state";
+
 import { useMemo, useState } from "react";
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,7 +34,8 @@ const MONTH_AR = [
 
 export default function CostsPage() {
   const { t, lang } = useI18n();
-  const { data: costs, isLoading } = useMonthlyCosts();
+  const monthlyCostsQuery = useMonthlyCosts();
+  const { data: costs, isLoading } = monthlyCostsQuery;
   const [selected, setSelected] = useState<MonthlyCost | null>(null);
 
   const sorted = useMemo(
@@ -42,6 +45,8 @@ export default function CostsPage() {
       ),
     [costs]
   );
+
+  if ([monthlyCostsQuery].some(query => query.isError || query.isPending)) return <QueryState queries={[monthlyCostsQuery]}>{null}</QueryState>;
 
   return (
     <div className="space-y-6">

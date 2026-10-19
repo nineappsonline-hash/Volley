@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict');const fs=require('fs');const ts=require('typescript');const React=require('react');const {renderToStaticMarkup}=require('react-dom/server');
-function load(file,mocks={}){const exports={};const code=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText;new Function('require','exports',code)(id=>mocks[id]??require(id),exports);return exports;}
+function load(file,mocks={}){const exports={};const code=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText;new Function('require','exports',code)(id=>mocks[id]??require(id),exports);return exports;}
 const fixture=(id,status='approved',country='Egypt')=>({id,name:`Court ${id}`,approval_status:status,country,address:'Real address',area:'New Cairo',governorate:'Cairo',rental_cost:1200,rental_hours:2,capacity:12,court_count:1,photos:[],cover_url:null,sport:{name:'Volleyball'},owner_id:'PRIVATE',owner_email:'PRIVATE'});
 let rows=Array.from({length:1001},(_,i)=>fixture(String(i)));rows.push(fixture('pending','pending'),fixture('rejected','rejected'),fixture('elsewhere','approved','Saudi Arabia'));let fail=false;let selected;
 const admin = {

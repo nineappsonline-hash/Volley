@@ -45,8 +45,9 @@ export function SettingsClient({
   isAdmin: boolean;
   canDelete?: boolean;
 }) {
-  const { t } = useI18n();
-  const { data: academy, isLoading } = useAcademy();
+  const { t, lang } = useI18n();
+  const academyQuery = useAcademy();
+  const { data: academy, isLoading, isError } = academyQuery;
   const update = useUpdateAcademy();
 
   const [name, setName] = useState("");
@@ -84,7 +85,7 @@ export function SettingsClient({
     }
   }, [academy]);
 
-  if (isLoading || !academy) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <PageHeader title={t("settings_title")} subtitle={t("settings_subtitle")} />
@@ -92,6 +93,9 @@ export function SettingsClient({
       </div>
     );
   }
+
+  if (isError) return <div role="alert" className="space-y-3"><p>{t("common_error")}</p><Button onClick={() => void academyQuery.refetch()}>{t("common_retry")}</Button></div>;
+  if (!academy) return <div role="status" className="rounded-xl border p-6">{lang === "ar" ? "حسابك مش مرتبط بأكاديمية. تواصل مع الدعم لتصحيح بيانات الحساب." : "Your account is not linked to an academy. Contact support to correct your account."}</div>;
 
   const publicUrl =
     typeof window !== "undefined" && slug
@@ -105,6 +109,8 @@ export function SettingsClient({
   const handleSave = async () => {
     if (!name.trim()) return;
     try {
+      const fee = platformFee.trim() === "" ? 5 : Number(platformFee);
+      if (!Number.isFinite(fee) || fee < 0 || fee > 100) throw new Error(lang === "ar" ? "النسبة لازم تكون من ٠ إلى ١٠٠" : "Fee must be between 0 and 100 percent");
       await update.mutateAsync({
         id: academy.id,
         name: name.trim(),
@@ -119,7 +125,7 @@ export function SettingsClient({
         is_public: isPublic,
         slug: slug.trim() || null,
         session_booking_enabled: sessionBooking,
-        platform_fee_percent: Number(platformFee) || 5,
+        platform_fee_percent: fee,
       });
       toast.success(t("settings_saved"));
     } catch (err) {

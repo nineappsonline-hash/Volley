@@ -18,13 +18,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useI18n } from "@/lib/i18n";
-import { TRIAL_STATUSES, sessionsForMembership } from "@/lib/constants";
+import { TRIAL_STATUSES } from "@/lib/constants";
 import { errorMessage } from "@/lib/utils";
 import { useSports, useTrialRequests, useUpdateTrialRequest } from "@/lib/queries";
 import type { TrialStatus } from "@/lib/types";
 
 export function TrialsCard() {
-  const { t, locale } = useI18n();
+  const { t, locale, lang } = useI18n();
   const cache = useQueryClient();
   const trialsQuery = useTrialRequests();
   const { data: trials } = trialsQuery;
@@ -56,17 +56,15 @@ export function TrialsCard() {
     }
     setApprovingId(trial.id);
     try {
-      const tempPassword = `Volley-${Math.random().toString(36).slice(2, 10)}`;
       const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: trial.email,
-          password: tempPassword,
+          invite: true,
           name: trial.name,
           phone: trial.phone ?? "",
           membership_type: "full",
-          subscription_sessions: sessionsForMembership("full"),
         }),
       });
       if (!res.ok) {
@@ -75,7 +73,7 @@ export function TrialsCard() {
       }
       await update.mutateAsync({ id: trial.id, status: "converted" });
       await cache.invalidateQueries({ queryKey: ["profiles"] });
-      toast.success(`${trial.name}: ${t("trials_approve_done")}`);
+      toast.success(`${trial.name}: ${lang === "ar" ? "تمت الإضافة. الحسابات الجديدة بتستلم رابط تعيين كلمة المرور بالإيميل." : "Member added. New accounts receive a password setup invitation by email."}`);
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
     } finally {

@@ -1,5 +1,5 @@
 // Local owner-flow probes. Never reads environment credentials or contacts Supabase.
-// Findings are observations, not passing acceptance tests. Exit 1 means defects remain.
+// Regression checks for the audited owner flows. SQL generation is also exercised in tests/academy-owner-scheduling.cjs.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const ts = require('typescript');
@@ -43,13 +43,16 @@ async function check(name, fn) {
     const visible = (await db.query('SELECT * FROM academies')).rows;
     await db.exec('RESET ROLE');
     const inserted = [];
+    let academyContext = own;
+    const rpcCalls = [];
     const queries = load('src/lib/queries.ts', {
       '@tanstack/react-query': { useQuery: x => x, useMutation: x => x, useQueryClient: () => ({ invalidateQueries() {} }) },
-      '@/lib/supabase/client': { createClient: () => ({ from: table => {
+      '@/lib/supabase/client': { createClient: () => ({ auth: { getUser: async () => ({ data: { user: { id: 'owner' } } }) }, rpc: async (name, args) => { rpcCalls.push({name,args}); return {data:2,error:null}; }, from: table => {
         let filters = [];
         return {
           select() { return this; }, eq(k,v) { filters.push([k,v]); return this; },
           maybeSingle: async () => {
+            if (table === 'profiles') return {data:{academy_id:academyContext},error:null};
             assert.equal(table, 'academies');
             const rows = visible.filter(r => filters.every(([k,v]) => r[k] === v));
             return rows.length > 1 ? { data: null, error: new Error('PGRST116: multiple visible academies') } : { data: rows[0], error: null };
@@ -63,33 +66,34 @@ async function check(name, fn) {
       assert.equal(academy.id, own);
     });
     await db.exec(`CREATE TABLE recurring_schedules(academy_id uuid NOT NULL DEFAULT current_academy_id(),name text)`);
-    await check('Recurring form academy ID is a valid insert', async () => {
-      const source = fs.readFileSync('src/components/shared/recurring-schedules.tsx', 'utf8');
-      const value = source.match(/academy_id:\s*"([^"]*)"/);
-      assert.ok(value, 'Review this probe if the form switches to a resolved academy ID');
-      await db.query('INSERT INTO recurring_schedules(academy_id,name) VALUES($1,$2)', [value[1], 'Weekly training']);
+    await check('Account without an academy never falls back to a public academy', async () => {
+      academyContext = null;
+      assert.equal(await queries.useAcademy().queryFn(), null);
+      academyContext = own;
     });
-    const schedule = { academy_id: own, weekday: 1, start_date: '2026-10-19', end_date: '2026-10-26', time: '18:00', name: 'Mondays', sport_id: null, venue_id: null, coach_id: null, age_group: null, skill_level: null };
-    await check('Generating the same recurring schedule twice is idempotent', async () => {
+    await check('Recurring creation uses the trusted database default', async () => {
       inserted.length = 0;
-      await queries.useGenerateSessions().mutationFn(schedule);
-      await queries.useGenerateSessions().mutationFn(schedule);
-      assert.equal(new Set(inserted.map(s => s.date + s.time)).size, inserted.length, 'duplicate dated sessions inserted');
+      await queries.useCreateRecurringSchedule().mutationFn({name:'Weekly training',weekday:1,time:'18:00',start_date:'2026-10-19',end_date:'2026-10-26'});
+      assert.ok(!('academy_id' in inserted[0]));
+      await db.query('INSERT INTO recurring_schedules(name) VALUES($1)',[inserted[0].name]);
+      assert.equal((await db.query('SELECT academy_id FROM recurring_schedules')).rows[0].academy_id,own);
     });
-    await check('Recurring generation returns its created-session count', async () => {
-      assert.equal(await queries.useGenerateSessions().mutationFn(schedule), 2);
+    await check('Recurring generation delegates a verified schedule ID and returns the count', async () => {
+      assert.equal(await queries.useGenerateSessions().mutationFn({id:own}),2);
+      assert.deepEqual(rpcCalls.at(-1),{name:'generate_recurring_training_sessions',args:{p_schedule_id:own}});
     });
     let user = { id: 'owner', app_metadata: { role: 'admin' } };
-    let profile;
+    let profile, existing = null, profileError = null, deleted = null, invitation = null;
+    let ownerProfile = {id:'owner',role:'admin',is_active:true,academy_id:own};
     const api = load('src/app/api/admin/users/route.ts', {
-      '@/lib/supabase/server': { createClient: () => ({ auth: { getUser: async () => ({ data: { user } }) } }) },
+      '@/lib/supabase/server': { createClient: () => ({ auth: { getUser: async () => ({ data: { user } }) }, from: () => ({select(){return this;},eq(){return this;},maybeSingle:async()=>({data:ownerProfile,error:null})}) }) },
       '@/lib/supabase/admin': { createAdminClient: () => ({
-        auth: { admin: { createUser: async data => { return { data: { user: { id: 'new-member' } }, error: null }; } } },
-        from: () => ({ upsert: async data => { profile = data; return { error: null }; } }),
+        auth: { admin: { createUser: async () => ({ data: { user: { id: 'new-member' } }, error: null }), inviteUserByEmail: async (...args) => { invitation=args; return {data:{user:{id:'new-member'}},error:null}; }, deleteUser: async id => { deleted=id; return {error:null}; } } },
+        from: () => ({ select(){return this;},eq(){return this;},maybeSingle:async()=>({data:existing,error:null}),update:()=>({eq(){return this;},then:resolve=>Promise.resolve({error:null}).then(resolve)}),upsert: async data => { profile = data; return { error: profileError }; } }),
       }) },
-      '@/lib/constants': { sessionsForMembership: () => 8 },
+      '@/lib/seo': { SITE_URL: 'https://playza.example' },
     });
-    const request = () => new Request('http://localhost/api/admin/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'owner-audit@example.invalid', password: 'local-only-test', name: 'Audit member' }) });
+    const request = (overrides={}) => new Request('http://localhost/api/admin/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'owner-audit@example.invalid', password: 'local-only-test', name: 'Audit member', ...overrides }) });
     await check('New member is explicitly assigned to the verified owner academy', async () => {
       const response = await api.POST(request());
       assert.equal(response.status, 200);
@@ -98,6 +102,26 @@ async function check(name, fn) {
     await check('Creating an unpaid member does not grant paid sessions', async () => {
       assert.equal(profile.subscription_sessions, 0, '8 sessions granted without recording payment');
     });
+    await check('Inactive owner cannot create accounts', async () => {
+      ownerProfile.is_active=false;
+      assert.equal((await api.POST(request())).status,403);
+      ownerProfile.is_active=true;
+    });
+    await check('Profile failure rolls back only the newly created account', async () => {
+      profileError=new Error('profile unavailable');
+      assert.equal((await api.POST(request())).status,400);
+      assert.equal(deleted,'new-member'); profileError=null;
+    });
+    await check('Trial conversion sends a password setup invitation', async () => {
+      assert.equal((await api.POST(request({invite:true,password:undefined}))).status,200);
+      assert.equal(invitation[0],'owner-audit@example.invalid');
+      assert.equal(invitation[1].redirectTo,'https://playza.example/auth/update-password');
+      assert.equal(profile.academy_id,own); assert.equal(profile.subscription_sessions,0);
+    });
+    await check('Existing account in another academy is never reassigned', async () => {
+      existing={id:'elsewhere',role:'member',academy_id:other};
+      assert.equal((await api.POST(request())).status,409); existing=null;
+    });
     await check('Member role cannot create other accounts', async () => {
       user = { id: 'member', app_metadata: { role: 'member' } };
       assert.equal((await api.POST(request())).status, 403);
@@ -105,6 +129,12 @@ async function check(name, fn) {
     await check('Anonymous visitor cannot create owner-managed accounts', async () => {
       user = null;
       assert.equal((await api.POST(request())).status, 401);
+    });
+    const pricing = load('src/lib/academy-pricing.ts', {});
+    await check('Free training prices and unset prices remain distinct', async () => {
+      assert.deepEqual(pricing.parseAcademyPrices('8','0','0'),{monthly_sessions:8,monthly_price:0,tryout_price:0});
+      assert.deepEqual(pricing.parseAcademyPrices('','',''),{monthly_sessions:null,monthly_price:null,tryout_price:null});
+      for (const values of [['','800','0'],['8','','0'],['0','0','0'],['1.5','800','0'],['8','-1','0'],['8','800','-1'],['8','Infinity','0']]) assert.throws(() => pricing.parseAcademyPrices(...values));
     });
     let pathname = '/upgrade';
     const gate = load('src/components/shared/trial-gate.tsx', {

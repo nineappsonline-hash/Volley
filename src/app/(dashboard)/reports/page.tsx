@@ -1,5 +1,7 @@
 "use client";
 
+import { QueryState } from "@/components/shared/query-state";
+
 import { useMemo } from "react";
 import { format, subDays } from "date-fns";
 import { toast } from "sonner";
@@ -41,17 +43,28 @@ import {
 
 export default function ReportsPage() {
   const { t, lang } = useI18n();
-  const { data: payments, isLoading: loadingPayments } = useAllPayments();
-  const { data: costs, isLoading: loadingCosts } = useMonthlyCosts();
-  const { data: calculations, isLoading: loadingCalc } = useSessionCalculations();
-  const { data: sessions, isLoading: loadingSessions } = useSessions();
-  const { data: sports } = useSports();
-  const { data: profiles } = useProfiles();
-  const { data: attendance } = useAttendance();
-  const { data: expenses } = useExpenses();
-  const {data: rentals} = useVenueRentals();
-  const {data: guests} = useSessionGuests();
-  const { data: venues } = useVenues();
+  const allPaymentsQuery = useAllPayments();
+  const { data: payments, isLoading: loadingPayments } = allPaymentsQuery;
+  const monthlyCostsQuery = useMonthlyCosts();
+  const { data: costs, isLoading: loadingCosts } = monthlyCostsQuery;
+  const sessionCalculationsQuery = useSessionCalculations();
+  const { data: calculations, isLoading: loadingCalc } = sessionCalculationsQuery;
+  const sessionsQuery = useSessions();
+  const { data: sessions, isLoading: loadingSessions } = sessionsQuery;
+  const sportsQuery = useSports();
+  const { data: sports } = sportsQuery;
+  const profilesQuery = useProfiles();
+  const { data: profiles } = profilesQuery;
+  const attendanceQuery = useAttendance();
+  const { data: attendance } = attendanceQuery;
+  const expensesQuery = useExpenses();
+  const { data: expenses } = expensesQuery;
+  const venueRentalsQuery = useVenueRentals();
+  const {data: rentals} = venueRentalsQuery;
+  const sessionGuestsQuery = useSessionGuests();
+  const {data: guests} = sessionGuestsQuery;
+  const venuesQuery = useVenues();
+  const { data: venues } = venuesQuery;
 
   const loading =
     loadingPayments || loadingCosts || loadingCalc || loadingSessions;
@@ -159,6 +172,8 @@ export default function ReportsPage() {
       .map(([id, count]) => ({ name: venueById.get(id) ?? "—", count }));
     return { peakHours, busiestVenues };
   }, [attendance, sessions, venues]);
+
+  if ([allPaymentsQuery, monthlyCostsQuery, sessionCalculationsQuery, sessionsQuery, sportsQuery, profilesQuery, attendanceQuery, expensesQuery, venueRentalsQuery, sessionGuestsQuery, venuesQuery].some(query => query.isError || query.isPending)) return <QueryState queries={[allPaymentsQuery, monthlyCostsQuery, sessionCalculationsQuery, sessionsQuery, sportsQuery, profilesQuery, attendanceQuery, expensesQuery, venueRentalsQuery, sessionGuestsQuery, venuesQuery]}>{null}</QueryState>;
 
   return (
     <div className="space-y-6">

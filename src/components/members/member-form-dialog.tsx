@@ -186,7 +186,7 @@ export function MemberFormDialog({
         is_active: true,
         join_date: joinDate || null,
         membership_type: membershipType,
-        subscription_sessions: sessionsForMembership(membershipType),
+        subscription_sessions: 0,
       });
       toast.success(t("members_save_success"));
       onOpenChange(false);

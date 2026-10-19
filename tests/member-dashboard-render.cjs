@@ -437,9 +437,11 @@ assert.ok(html.includes('Full training package'));
 assert.ok(html.includes('Request renewal'));
 console.log('PASS: personal goal creation/ownership controls and current/legacy renewal package options');
 
+delete mocks['@/components/shared/directions-links'];
 const { LocationMap } = loadFile(path.join(root, 'src/components/shared/location-map.tsx'), mocks);
 html = renderToStaticMarkup(h(LocationMap, { name: 'Aspire', address: 'New Cairo', lat: 1, lng: 2, locationLink: 'https://www.google.com/maps?q=30.1,31.4' }));
-assert.ok(html.includes('Google Maps directions'));
+assert.ok(html.includes('Google Maps'));
+assert.ok(html.includes(dictionary[lang].directions));
 assert.ok(!html.includes('<iframe'), 'location links require no embedded API or billing account');
 assert.ok(html.includes('destination=30.1%2C31.4'), 'coordinates take priority over address text');
 assert.equal(renderToStaticMarkup(h(LocationMap, { name: 'Unknown location' })), '', 'do not guess a location when address and coordinates are missing');

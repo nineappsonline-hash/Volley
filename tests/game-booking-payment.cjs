@@ -5,10 +5,10 @@ new Function('exports','require',compile('src/lib/game-costs.ts'))(api,()=>const
 const check=api.gameBookingPayment, game={sport:'Football',min_players:10,duration_hours:1,playground_hourly_rate:1000,status:'open'};
 const pay=(amount,status='approved')=>({amount,pay_status:status});
 assert.equal(check({...game,rent_payments:[pay(499.99)]}).confirmed,false);
-assert.equal(check({...game,rent_payments:[pay(500)]}).confirmed,true);
-assert.equal(check({...game,rent_payments:[pay(500)]}).remaining,500);
-assert.equal(check({...game,rent_payments:[pay(500,'pending')]}).confirmed,false);
-assert.equal(check({...game,rent_payments:[pay(500,'rejected')]}).paid,0);
+assert.equal(check({...game,rent_payments:[pay(600)]}).confirmed,true);
+assert.equal(check({...game,rent_payments:[pay(600)]}).remaining,600);
+assert.equal(check({...game,rent_payments:[pay(600,'pending')]}).confirmed,false);
+assert.equal(check({...game,rent_payments:[pay(600,'rejected')]}).paid,0);
 assert.equal(check({...game,rent_payments:[pay(1500)]}).remaining,0);
 assert.equal(check({...game,rent_payments:[pay(-50),pay(NaN)]}).paid,0);
 assert.equal(check({...game,participants:Array(5).fill({pay_status:'approved',share_amount:120})}).confirmed,true);
@@ -17,4 +17,4 @@ assert.equal(check({...game,host_pays:true,participants:[{role:'player',pay_stat
 assert.equal(check({...game,host_pays:true,participants:[{role:'organizer',pay_status:'approved',share_amount:1020}]}).remaining,0);
 assert.equal(check({...game,status:'cancelled',rent_payments:[pay(1000)]}).confirmed,false);
 assert.equal(check({...game,playground_hourly_rate:null}),null);
-console.log('PASS: 50% boundary, pending/rejected payments, fee exclusion, waitlist, host payment, overpayment and cancellation');
+console.log('PASS: 50% player-total boundary, pending/rejected payments, included fees, waitlist, host payment, overpayment and cancellation');

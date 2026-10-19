@@ -855,9 +855,18 @@ export function useAcademy() {
   return useQuery({
     queryKey: queryKeys.academy,
     queryFn: async () => {
-      const { data, error } = await supabase()
+      const client = supabase();
+      const { data: { user }, error: authError } = await client.auth.getUser();
+      if (authError) throw authError;
+      if (!user) return null;
+      const { data: profile, error: profileError } = await client.from("profiles")
+        .select("academy_id").eq("id", user.id).maybeSingle();
+      if (profileError) throw profileError;
+      if (!profile?.academy_id) return null;
+      const { data, error } = await client
         .from("academies")
         .select("*")
+        .eq("id", profile.academy_id)
         .maybeSingle();
       if (error) throw error;
       return data as Academy | null;
@@ -3207,7 +3216,8 @@ export function useRecurringSchedules() {
 export function useCreateRecurringSchedule() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (schedule: Omit<RecurringSchedule, "id" | "created_at">) => {
+    mutationFn: async (schedule: Omit<RecurringSchedule, "id" | "created_at" | "academy_id">) => {
+      if (!schedule.name.trim() || schedule.end_date < schedule.start_date) throw new Error("Enter a name and a valid date range");
       const { error } = await supabase().from("recurring_schedules").insert(schedule);
       if (error) throw error;
     },
@@ -3238,39 +3248,9 @@ export function useGenerateSessions() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (schedule: RecurringSchedule) => {
-      const sessions: Omit<TrainingSession, "id" | "created_at">[] = [];
-      const start = new Date(schedule.start_date);
-      const end = new Date(schedule.end_date);
-
-      for (
-        let d = new Date(start);
-        d <= end;
-        d.setDate(d.getDate() + 1)
-      ) {
-        if (d.getDay() === schedule.weekday) {
-          sessions.push({
-            academy_id: schedule.academy_id,
-            date: d.toISOString().slice(0, 10),
-            time: schedule.time,
-            location: null,
-            notes: `Generated from: ${schedule.name}`,
-            is_completed: false,
-            status: "scheduled",
-            sport_id: schedule.sport_id,
-            venue_id: schedule.venue_id,
-            coach_id: schedule.coach_id,
-            age_group: schedule.age_group,
-            skill_level: schedule.skill_level,
-            session_price: null,
-          });
-        }
-      }
-
-      // Skip if no dates fall on the weekday
-      if (sessions.length === 0) return;
-
-      const { error } = await supabase().from("training_sessions").insert(sessions);
+      const { data, error } = await supabase().rpc("generate_recurring_training_sessions", { p_schedule_id: schedule.id });
       if (error) throw error;
+      return Number(data ?? 0);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.sessions });

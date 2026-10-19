@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { parseAcademyPrices } from "@/lib/academy-pricing";
+import { QueryState } from "@/components/shared/query-state";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Check,
@@ -58,7 +60,8 @@ const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
 export function OnboardingWizard() {
   const { t } = useI18n();
   const router = useRouter();
-  const { data: academy } = useAcademy();
+  const academyQuery = useAcademy();
+  const { data: academy } = academyQuery;
   const updateAcademy = useUpdateAcademy();
   const saveCoach = useSaveCoach();
   const saveTemplate = useSaveTemplate();
@@ -85,11 +88,14 @@ export function OnboardingWizard() {
   /* ── Schedule state ── */
   const [slots, setSlots] = useState<SlotDraft[]>([]);
 
-  const toNumOrNull = (v: string): number | null => {
-    if (v.trim() === "") return null;
-    const n = Number(v);
-    return Number.isFinite(n) && n > 0 ? n : null;
-  };
+  const hydrated = useRef<string | null>(null);
+  useEffect(() => {
+    if (!academy || hydrated.current === academy.id) return;
+    hydrated.current = academy.id;
+    setMonthlySessions(academy.monthly_sessions == null ? "" : String(academy.monthly_sessions));
+    setMonthlyPrice(academy.monthly_price == null ? "" : String(academy.monthly_price));
+    setTryoutPrice(academy.tryout_price == null ? "" : String(academy.tryout_price));
+  }, [academy]);
 
   /* ── Coach helpers ── */
   const addCoach = () =>
@@ -115,14 +121,11 @@ export function OnboardingWizard() {
   const finish = async () => {
     setSaving(true);
     try {
-      if (academy) {
-        await updateAcademy.mutateAsync({
-          id: academy.id,
-          monthly_sessions: toNumOrNull(monthlySessions),
-          monthly_price: toNumOrNull(monthlyPrice),
-          tryout_price: toNumOrNull(tryoutPrice),
-        });
-      }
+      if (!academy) throw new Error(t("common_error"));
+      let prices;
+      try { prices = parseAcademyPrices(monthlySessions, monthlyPrice, tryoutPrice); }
+      catch { throw new Error(t("field_required")); }
+      await updateAcademy.mutateAsync({ id: academy.id, ...prices });
 
       for (const c of coaches) {
         if (!c.name.trim()) continue;
@@ -131,6 +134,7 @@ export function OnboardingWizard() {
           phone: c.phone.trim() || undefined,
           specialty: c.specialty.trim() || undefined,
         });
+        setCoaches(prev => prev.filter(item => item !== c));
       }
 
       for (const s of slots) {
@@ -140,6 +144,7 @@ export function OnboardingWizard() {
           weekday: s.weekday,
           time: s.time,
         });
+        setSlots(prev => prev.filter(item => item !== s));
       }
 
       setDone(true);
@@ -151,6 +156,9 @@ export function OnboardingWizard() {
       setSaving(false);
     }
   };
+
+  if (academyQuery.isPending || academyQuery.isError) return <QueryState queries={[academyQuery]}>{null}</QueryState>;
+  if (!academy) return <p role="status">{t("common_error")}</p>;
 
   if (done) {
     return (

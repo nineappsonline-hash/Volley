@@ -1,5 +1,7 @@
 # Academy owner audit — 19 October 2026
 
+**Resolution update:** the reproducible defects below have been fixed and regression-tested. See [the fix and validation record](academy-owner-fixes-2026-10-19.md). The findings and original results below are retained as the pre-fix audit; proposed feature additions remain deferred.
+
 The academy has a broad operations dashboard, but I would fix academy selection, member creation and recurring scheduling before onboarding more owners. Public bookable training is also not yet self-service for owners.
 
 ## Scope and limits

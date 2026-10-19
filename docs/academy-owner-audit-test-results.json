@@ -1,15 +1,20 @@
 {
   "date": "2026-10-19",
   "timezone": "Africa/Cairo",
+  "phase": "After academy owner defect fixes",
   "command": "node tests/<file>.cjs (each file, separate process)",
-  "scope": "Local tests; no live owner browser session",
-  "total_files": 50,
-  "passed_files": 45,
+  "scope": "Local tests plus live migration metadata/permissions verification; authenticated browser acceptance remains outstanding",
+  "total_files": 51,
+  "passed_files": 51,
+  "owner_probes": {
+    "total": 17,
+    "passed": 17
+  },
   "results": [
     {
       "test": "tests/academy-booking-roles.cjs",
       "status": "passed",
-      "seconds": 0.05
+      "seconds": 0.04
     },
     {
       "test": "tests/academy-management-seo.cjs",
@@ -17,59 +22,64 @@
       "seconds": 0.51
     },
     {
+      "test": "tests/academy-owner-scheduling.cjs",
+      "status": "passed",
+      "seconds": 3.3
+    },
+    {
       "test": "tests/academy-share.cjs",
       "status": "passed",
-      "seconds": 0.87
+      "seconds": 0.83
     },
     {
       "test": "tests/academy-training-prices.cjs",
       "status": "passed",
-      "seconds": 2.79
+      "seconds": 3.24
     },
     {
       "test": "tests/admin-game-cancellation.cjs",
       "status": "passed",
-      "seconds": 2.71
+      "seconds": 2.78
     },
     {
       "test": "tests/admin-game-edit.cjs",
       "status": "passed",
-      "seconds": 2.78
+      "seconds": 2.74
     },
     {
       "test": "tests/admin-record-search.cjs",
       "status": "passed",
-      "seconds": 0.35
+      "seconds": 0.34
     },
     {
       "test": "tests/ai-insights.cjs",
       "status": "passed",
-      "seconds": 3.1
+      "seconds": 3.06
     },
     {
       "test": "tests/auth-redirect.cjs",
       "status": "passed",
-      "seconds": 0.35
+      "seconds": 0.33
     },
     {
       "test": "tests/auth-session-cache.cjs",
       "status": "passed",
-      "seconds": 0.42
+      "seconds": 0.38
     },
     {
       "test": "tests/beach-volleyball-landing.cjs",
       "status": "passed",
-      "seconds": 0.86
+      "seconds": 0.87
     },
     {
       "test": "tests/evaluation-visibility.cjs",
       "status": "passed",
-      "seconds": 2.74
+      "seconds": 2.71
     },
     {
       "test": "tests/game-alert-delivery.cjs",
       "status": "passed",
-      "seconds": 2.81
+      "seconds": 2.64
     },
     {
       "test": "tests/game-alert-follow-ui.cjs",
@@ -79,67 +89,67 @@
     {
       "test": "tests/game-beach-challenge.cjs",
       "status": "passed",
-      "seconds": 0.67
+      "seconds": 0.5
     },
     {
       "test": "tests/game-beach-render.cjs",
       "status": "passed",
-      "seconds": 0.59
+      "seconds": 0.57
     },
     {
       "test": "tests/game-booking-payment.cjs",
-      "status": "failed",
-      "seconds": 0.47
+      "status": "passed",
+      "seconds": 0.41
     },
     {
       "test": "tests/game-chat.cjs",
       "status": "passed",
-      "seconds": 2.89
+      "seconds": 2.72
     },
     {
       "test": "tests/game-controls-arms.cjs",
       "status": "passed",
-      "seconds": 0.37
+      "seconds": 0.36
     },
     {
       "test": "tests/game-costs.cjs",
-      "status": "failed",
-      "seconds": 3.03
+      "status": "passed",
+      "seconds": 3.18
     },
     {
       "test": "tests/game-filters.cjs",
       "status": "passed",
-      "seconds": 0.33
+      "seconds": 0.34
     },
     {
       "test": "tests/game-invite-codes.cjs",
       "status": "passed",
-      "seconds": 2.82
+      "seconds": 2.73
     },
     {
       "test": "tests/game-payment-email.cjs",
-      "status": "failed",
-      "seconds": 0.43
+      "status": "passed",
+      "seconds": 0.44
     },
     {
       "test": "tests/game-share-image.cjs",
       "status": "passed",
-      "seconds": 14.32
+      "seconds": 13.54
     },
     {
       "test": "tests/game-sharing-alerts.cjs",
       "status": "passed",
-      "seconds": 0.54
+      "seconds": 0.56
     },
     {
       "test": "tests/game-visibility.cjs",
       "status": "passed",
-      "seconds": 2.88
+      "seconds": 2.64
     },
     {
       "test": "tests/i18n-keys.cjs",
       "status": "passed",
-      "seconds": 0.46
+      "seconds": 0.47
     },
     {
       "test": "tests/kashier-webhook.cjs",
@@ -148,63 +158,63 @@
     },
     {
       "test": "tests/member-dashboard-render.cjs",
-      "status": "failed",
-      "seconds": 1.49
+      "status": "passed",
+      "seconds": 1.56
     },
     {
       "test": "tests/member-dashboard.cjs",
       "status": "passed",
-      "seconds": 0.38
+      "seconds": 0.39
     },
     {
       "test": "tests/member-details-inline-edit.cjs",
       "status": "passed",
-      "seconds": 0.33
+      "seconds": 0.37
     },
     {
       "test": "tests/member-training.cjs",
       "status": "passed",
-      "seconds": 0.41
+      "seconds": 0.42
     },
     {
       "test": "tests/member-virtual-court.cjs",
       "status": "passed",
-      "seconds": 0.59
+      "seconds": 0.74
     },
     {
       "test": "tests/need-players-alerts.cjs",
       "status": "passed",
-      "seconds": 2.77
+      "seconds": 2.98
     },
     {
       "test": "tests/password-recovery.cjs",
       "status": "passed",
-      "seconds": 0.34
+      "seconds": 0.44
     },
     {
       "test": "tests/platform-admin.cjs",
       "status": "passed",
-      "seconds": 0.49
+      "seconds": 0.57
     },
     {
       "test": "tests/playground-approvals.cjs",
       "status": "passed",
-      "seconds": 2.81
+      "seconds": 4.5
     },
     {
       "test": "tests/public-court-directory.cjs",
-      "status": "failed",
-      "seconds": 0.58
+      "status": "passed",
+      "seconds": 0.82
     },
     {
       "test": "tests/public-game-discovery.cjs",
       "status": "passed",
-      "seconds": 0.6
+      "seconds": 0.82
     },
     {
       "test": "tests/qr-attendance.cjs",
       "status": "passed",
-      "seconds": 2.87
+      "seconds": 3.22
     },
     {
       "test": "tests/shared-game-participants.cjs",
@@ -219,42 +229,42 @@
     {
       "test": "tests/sitemap.cjs",
       "status": "passed",
-      "seconds": 0.43
+      "seconds": 0.46
     },
     {
       "test": "tests/sorted-options.cjs",
       "status": "passed",
-      "seconds": 0.71
+      "seconds": 0.79
     },
     {
       "test": "tests/sport-discovery.cjs",
       "status": "passed",
-      "seconds": 0.62
+      "seconds": 0.72
     },
     {
       "test": "tests/tournament-access.cjs",
       "status": "passed",
-      "seconds": 2.83
+      "seconds": 3.99
     },
     {
       "test": "tests/tournament-leagues.cjs",
       "status": "passed",
-      "seconds": 3.4
+      "seconds": 3.61
     },
     {
       "test": "tests/upcoming-game-query.cjs",
       "status": "passed",
-      "seconds": 0.54
+      "seconds": 0.52
     },
     {
       "test": "tests/volleyball-player-guides.cjs",
       "status": "passed",
-      "seconds": 0.62
+      "seconds": 0.55
     },
     {
       "test": "tests/welcome-email.cjs",
       "status": "passed",
-      "seconds": 0.4
+      "seconds": 0.38
     }
   ]
 }

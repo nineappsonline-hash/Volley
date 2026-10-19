@@ -1,5 +1,7 @@
 "use client";
 
+import { QueryState } from "@/components/shared/query-state";
+
 import { useState } from "react";
 import { CalendarDays, Pencil, Plus, Trash2, UserRound, UserRoundPlus } from "lucide-react";
 import { CoachAvailabilityDialog } from "@/components/coaches/coach-availability-dialog";
@@ -45,7 +47,8 @@ import type { Coach } from "@/lib/types";
 
 export function CoachesClient({ isAdmin }: { isAdmin: boolean }) {
   const { t, lang } = useI18n();
-  const { data: coaches, isLoading, isError, refetch } = useCoaches();
+  const coachesQuery = useCoaches();
+  const { data: coaches, isLoading, isError, refetch } = coachesQuery;
   const save = useSaveCoach();
   const remove = useDeleteCoach();
 
@@ -108,6 +111,8 @@ export function CoachesClient({ isAdmin }: { isAdmin: boolean }) {
       toast.error(errorMessage(err, t("common_error")));
     }
   };
+
+  if ([coachesQuery].some(query => query.isError || query.isPending)) return <QueryState queries={[coachesQuery]}>{null}</QueryState>;
 
   return (
     <div className="space-y-6">

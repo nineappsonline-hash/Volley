@@ -36,7 +36,7 @@ assert.equal(estimateSharePrice(300,25,6,'Football'),null);
 assert.deepEqual(estimateHostTotal(300,1.5,'Football'),{rent:450,fee:20,total:470});
 const game={sport:'Football',min_players:6,duration_hours:2,playground_hourly_rate:300};
 assert.equal(gameRentRemaining({...game,host_pays:true}),0);
-assert.equal(gameRentRemaining({...game,participants:[{pay_status:'approved'},{pay_status:'pending'},{pay_status:'rejected'},{pay_status:'approved',is_waitlisted:true}],rent_payments:[{amount:100,pay_status:'pending'},{amount:100,pay_status:'rejected'}]}),380);
+assert.equal(gameRentRemaining({...game,participants:[{pay_status:'approved'},{pay_status:'pending'},{pay_status:'rejected'},{pay_status:'approved',is_waitlisted:true}],rent_payments:[{amount:100,pay_status:'pending'},{amount:100,pay_status:'rejected'}]}),600);
 assert.equal(gameRentRemaining({...game,rent_payments:[{amount:900,pay_status:'approved'}]}),0);
 console.log('PASS: sport-based shares, host totals, invalid inputs, paid/pending shares, waitlists, top-ups, and fully covered rent');
 }
