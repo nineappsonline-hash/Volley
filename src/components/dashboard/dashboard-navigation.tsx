@@ -10,6 +10,7 @@ export function DashboardNavigation({ admin = false, hasQr = false, sections }: 
   const { lang } = useI18n();
   const ar = lang === "ar";
   const actions = admin ? [
+    { href: "/academy", icon: Building2, title: ar ? "إدارة الأكاديمية" : "Academy workspace", hint: ar ? "مجموعات وحجوزات وأعضاء وماليات" : "Groups, bookings, members and finance" },
     { href: "/attendance", icon: ClipboardCheck, title: ar ? "سجّل الحضور" : "Take attendance", hint: ar ? "الماسح وقائمة اللاعبين" : "Scanner and player roster" },
     { href: "/members", icon: Users, title: ar ? "إدارة الأعضاء" : "Manage members", hint: ar ? "بيانات، اشتراكات ومدفوعات" : "Profiles, plans and payments" },
     { href: "/schedule", icon: CalendarDays, title: ar ? "جدول التدريب" : "Training schedule", hint: ar ? "نظّم المواعيد والحصص" : "Organize sessions and times" },

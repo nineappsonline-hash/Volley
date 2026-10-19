@@ -1,0 +1,30 @@
+# Academy owner additions — 19 October 2026
+
+The new `/academy` workspace is available from academy-owner navigation and from member navigation for staff explicitly delegated by the owner. Server RPCs check active academy membership and capability on every operation; hiding a section is not the authorization boundary.
+
+## Delivered
+
+1. **Training operations:** the existing validated group editor is available to owners/managers, with group media, prices and schedules. Finance staff can review receipts; receptionists can manage bookings without approving payments. Confirmed purchased sessions have a separate roster and attendance records, embedded in the owner schedule and attendance screens. Unused sessions can move to available slots in the same program within the original booking term.
+2. **Setup and sharing:** a persistent checklist derives progress from actual academy configuration, venues, coaches, prices, programs and available slots. Published academies can preview and copy their public booking URL.
+3. **Roster import:** CSV template, quoted-field parser, preview, server validation, duplicate detection, partial valid-row import, retry protection and downloadable results. Imports create offline member records with zero paid credits. Contact emails remain private contact information; import does not create login credentials or send invitations.
+4. **Membership and finance:** immutable ledger records for verified purchased payments, cash refunds, academy credit, credit redemption, legacy package freeze/resume/make-up/cancellation and booking cancellation/rescheduling. Refunds cannot exceed collected cash and record money already returned; they do not initiate transfers. Full credit redemption approves an unpaid booking without counting the credit as new cash. Dashboard/report monthly cash totals include purchased payments and refunds once, using Cairo transaction dates. Existing per-session profit calculations retain their legacy-session basis.
+5. **Delegation and audit:** manager, receptionist, finance and coach roles, owner-only grants/revocation, scoped receipt access and latest 200 audit events. Staff permissions cover the academy, rather than restricting staff to a branch. Audit details exclude raw emergency contacts and receipt data.
+6. **Inquiry and renewal follow-up:** inquiry stages, trial dates, follow-up dates and overdue indicators; existing trial requests synchronize into the pipeline. Linked-member validation is required for manually marking an inquiry joined. Renewal candidates show remaining legacy credits, pending requests and last in-app reminder. Reminders require an active login account, support retry protection and a 24-hour limit, and respect notification preferences. Finance staff can confirm actual collection against pending renewal requests through the existing payment/credit synchronization flow.
+7. **Families, emergencies and branches:** private contact/emergency/consent records, owner-managed guardian links to eligible existing academy accounts, member/group/session branch assignment, branch-filtered operational lists and cash ledger. Attendance staff can access minimal emergency details. Historical legacy payments remain unassigned unless already attributed; new payments capture the member branch at collection time. Credit balances remain academy-wide and are labeled accordingly.
+
+Legacy package freezes block legacy attendance during the recorded freeze interval. Purchased sessions keep their booked dates and use rescheduling separately. Recording consent documents consent already collected, with a source/date note; it does not request consent from the person.
+
+## Validation
+
+- All 53 `tests/*.cjs` files passed, including isolated PostgreSQL tests for scoped staff roles, revocation, private receipts, refunds, imports, guardian details, freeze/resume/make-up, credit redemption, rescheduling, renewal collection, audit and cross-academy/anonymous denial.
+- Role-specific server rendering passed for owner, finance, receptionist and coach views, including Arabic, emergency contact visibility and login-only reminders.
+- Added a regression for suppressed notifications: no reminder is recorded as sent when the member's preferences prevent insertion.
+- All 17 academy-owner probes and `scripts/check-academy-training.mjs` passed.
+- Lint with zero warnings, TypeScript and production build passed.
+- Migration `20261019134133_academy_owner_workspace.sql` is applied to the connected Volley Supabase project; deployment metadata and function permissions are checked after application.
+
+An authenticated browser walkthrough is still needed for phone layouts, real uploads, camera scanning and external payment checkout. Automated fixture/render tests and a production build do not certify these interactions. No live test members, bookings, reminders or payments were created. Migration backfills existing confirmed receipts and trial inquiry records from existing data.
+
+Live metadata confirms RLS on all eight new tables and denies anonymous execution of the workspace, roster import, membership adjustments, staff grants, reminders and renewal resolution. A read-only live owner snapshot could not be exercised because the connected project currently has no active academy-owner profile with an academy assignment; no fixture accounts were created to bypass that limit.
+
+The security advisor reports the six new RPC-only operational tables as [RLS enabled with no policies](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy). This is intentional: direct authenticated/anonymous table privileges are revoked, and scoped definer functions provide access. It also inventories [authenticated definer functions](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable); the new functions have fixed search paths, explicit grants and capability checks. Existing project findings about other views/functions, public extensions and password protection remain outside this change.

@@ -1,5 +1,6 @@
 "use client";
 
+import { useAcademyCashLedger } from "@/lib/academy-workspace";
 import { QueryState } from "@/components/shared/query-state";
 
 import { useMemo } from "react";
@@ -43,6 +44,7 @@ import {
 
 export default function ReportsPage() {
   const { t, lang } = useI18n();
+  const cashLedger = useAcademyCashLedger();
   const allPaymentsQuery = useAllPayments();
   const { data: payments, isLoading: loadingPayments } = allPaymentsQuery;
   const monthlyCostsQuery = useMonthlyCosts();
@@ -70,8 +72,8 @@ export default function ReportsPage() {
     loadingPayments || loadingCosts || loadingCalc || loadingSessions;
 
   const points = useMemo(
-    () => buildMonthlyPoints(payments ?? [], costs ?? [], calculations ?? [], sessions ?? [], expenses ?? [], rentals ?? [], guests ?? []),
-    [payments, costs, calculations, sessions, expenses, rentals, guests]
+    () => buildMonthlyPoints(payments ?? [], costs ?? [], calculations ?? [], sessions ?? [], expenses ?? [], rentals ?? [], guests ?? [], cashLedger.data ?? []),
+    [payments, costs, calculations, sessions, expenses, rentals, guests, cashLedger.data]
   );
 
   const avgProfitPerSession = useMemo(() => {
@@ -173,7 +175,7 @@ export default function ReportsPage() {
     return { peakHours, busiestVenues };
   }, [attendance, sessions, venues]);
 
-  if ([allPaymentsQuery, monthlyCostsQuery, sessionCalculationsQuery, sessionsQuery, sportsQuery, profilesQuery, attendanceQuery, expensesQuery, venueRentalsQuery, sessionGuestsQuery, venuesQuery].some(query => query.isError || query.isPending)) return <QueryState queries={[allPaymentsQuery, monthlyCostsQuery, sessionCalculationsQuery, sessionsQuery, sportsQuery, profilesQuery, attendanceQuery, expensesQuery, venueRentalsQuery, sessionGuestsQuery, venuesQuery]}>{null}</QueryState>;
+  if ([cashLedger,allPaymentsQuery, monthlyCostsQuery, sessionCalculationsQuery, sessionsQuery, sportsQuery, profilesQuery, attendanceQuery, expensesQuery, venueRentalsQuery, sessionGuestsQuery, venuesQuery].some(query => query.isError || query.isPending)) return <QueryState queries={[cashLedger,allPaymentsQuery, monthlyCostsQuery, sessionCalculationsQuery, sessionsQuery, sportsQuery, profilesQuery, attendanceQuery, expensesQuery, venueRentalsQuery, sessionGuestsQuery, venuesQuery]}>{null}</QueryState>;
 
   return (
     <div className="space-y-6">

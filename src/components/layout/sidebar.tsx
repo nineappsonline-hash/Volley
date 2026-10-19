@@ -38,6 +38,7 @@ import { MessagesUnreadBadge } from "@/components/contact/messages-unread-badge"
 import { ContactFormDialog } from "@/components/contact/contact-form-dialog";
 
 const adminItems = [
+  { href: "/academy", key: "nav_academy_profile", icon: Building2 },
   { href: "/dashboard", key: "nav_dashboard", icon: LayoutDashboard },
   { href: "/members", key: "nav_members", icon: Users },
   { href: "/teams", key: "nav_teams", icon: Trophy },
@@ -101,10 +102,11 @@ interface SidebarProps {
   name: string;
   memberPlan?: "free" | "premium";
   isCoach?: boolean;
+  hasAcademyWorkspace?: boolean;
   onNavigate?: () => void;
 }
 
-export function Sidebar({ role, name, memberPlan, isCoach, onNavigate }: SidebarProps) {
+export function Sidebar({ role, name, memberPlan, isCoach, hasAcademyWorkspace, onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { t, lang } = useI18n();
@@ -125,12 +127,13 @@ export function Sidebar({ role, name, memberPlan, isCoach, onNavigate }: Sidebar
       group("My playgrounds", "الملاعب بتاعتي", ["/playgrounds"]),
     ]
     : role === "admin" ? [
-      group("Daily operations", "الإدارة اليومية", ["/dashboard", "/schedule", "/attendance", "/members"]),
+      group("Daily operations", "الإدارة اليومية", ["/dashboard", "/academy", "/schedule", "/attendance", "/members"]),
       group("Academy & training", "الأكاديمية والتدريب", ["/teams", "/coaches", "/dashboard/tournaments", "/playgrounds", "/rentals"]),
       group("Finance & insights", "الماليات والإحصائيات", ["/costs", "/reports", "/analytics"]),
       group("AI coach & predictions", "الذكاء الاصطناعي والتنبؤات", ["/coach-ai", "/insights"]),
       group("Academy settings", "إعدادات الأكاديمية", ["/profile", "/settings", "/upgrade"]),
     ] : [
+      ...(hasAcademyWorkspace ? [group("Academy staff", "فريق الأكاديمية", ["/academy"])] : []),
       group("My Playza", "بلايزا بتاعتي", ["/dashboard", "/schedule", "/academy-bookings", "/profile"]),
       ...(isCoach ? [group("Coaching tools", "أدوات التدريب", ["/coaches", "/coach-ai", "/insights"])] : []),
       group("Find a place to play", "اكتشف مكان تلعب فيه", ["/academies", "/following", "/marketplace", "/dashboard/games", "/events"]),
@@ -178,7 +181,7 @@ export function Sidebar({ role, name, memberPlan, isCoach, onNavigate }: Sidebar
                 )}
               />
               <span className="min-w-0 flex-1 truncate">
-                {href === "/academy-bookings" ? (lang === "ar" ? "حجوزات الأكاديميات" : "Academy bookings") : href === "/profile" && role === "member" ? (lang === "ar" ? "ملفي وعيلتي" : "My profile & family") : t(key)}
+                {href === "/academy" ? (lang === "ar" ? "إدارة الأكاديمية" : "Academy workspace") : href === "/academy-bookings" ? (lang === "ar" ? "حجوزات الأكاديميات" : "Academy bookings") : href === "/profile" && role === "member" ? (lang === "ar" ? "ملفي وعيلتي" : "My profile & family") : t(key)}
               </span>
               {href === "/admin?tab=Messages" && role === "super_admin" && <MessagesUnreadBadge />}
             </Link>

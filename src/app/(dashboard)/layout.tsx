@@ -48,11 +48,14 @@ export default async function DashboardLayout({
     ? await supabase.from("coaches").select("id").eq("profile_id", profile.id).maybeSingle()
     : { data: null };
   const isCoach = Boolean(coachRow);
+  const { data: workspaceAccess } = profile.academy_id
+    ? await supabase.rpc("academy_can", { p_academy: profile.academy_id, p_capability: "read" })
+    : { data: false };
 
   return (
     <div className="min-h-screen bg-background pb-[env(safe-area-inset-bottom)]">
       {profile.role !== "member" && <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 border-e bg-brand lg:block">
-        <Sidebar role={profile.role} name={profile.name} memberPlan={profile.member_plan} isCoach={isCoach} />
+        <Sidebar role={profile.role} name={profile.name} memberPlan={profile.member_plan} isCoach={isCoach} hasAcademyWorkspace={!!workspaceAccess} />
       </aside>}
       <div className={profile.role === "member" ? "pb-[calc(6rem+env(safe-area-inset-bottom))]" : "lg:ps-64"}>
         <Topbar
@@ -63,6 +66,7 @@ export default async function DashboardLayout({
           avatarId={profile.avatar_id}
           memberPlan={profile.member_plan}
           isCoach={isCoach}
+          hasAcademyWorkspace={!!workspaceAccess}
           academy={academy}
         />
         <main className="mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-8">

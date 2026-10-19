@@ -33,6 +33,7 @@ interface TopbarProps {
   avatarId?: string | null;
   memberPlan?: "free" | "premium";
   isCoach?: boolean;
+  hasAcademyWorkspace?: boolean;
   academy?: {
     plan: string;
     isTrial: boolean;
@@ -40,7 +41,7 @@ interface TopbarProps {
   } | null;
 }
 
-export function Topbar({ role, navigationRole = role, name, username, avatarUrl, avatarId, memberPlan, isCoach, academy }: TopbarProps) {
+export function Topbar({ role, navigationRole = role, name, username, avatarUrl, avatarId, memberPlan, isCoach, hasAcademyWorkspace, academy }: TopbarProps) {
   const { t, lang } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
@@ -72,7 +73,7 @@ export function Topbar({ role, navigationRole = role, name, username, avatarUrl,
         </SheetTrigger>
         <SheetContent side={lang === "ar" ? "right" : "left"} className="w-72 p-0" aria-describedby={undefined}>
           <SheetTitle className="sr-only">{lang === "ar" ? "القائمة الرئيسية" : "Main navigation"}</SheetTitle>
-          <Sidebar onNavigate={() => setMenuOpen(false)} role={navigationRole} name={name} memberPlan={memberPlan} isCoach={isCoach} />
+          <Sidebar onNavigate={() => setMenuOpen(false)} role={navigationRole} name={name} memberPlan={memberPlan} isCoach={isCoach} hasAcademyWorkspace={hasAcademyWorkspace} />
         </SheetContent>
       </Sheet>
 

@@ -1,4 +1,6 @@
 "use client";
+
+import { BookedTrainingAgenda } from "@/components/academy-workspace/booked-training-agenda";
 import { useMemberTraining } from "@/lib/use-member-training";
 import type { Profile } from "@/lib/types";
 import Link from "next/link";
@@ -51,11 +53,13 @@ import type { TrainingSession } from "@/lib/types";
 
 export function ScheduleClient({
   isAdmin,
+  showAcademyBookings = false,
   memberId,
   memberPlan,
   memberProfile,
 }: {
   isAdmin: boolean;
+  showAcademyBookings?: boolean;
   memberId?: string;
   memberProfile?: Profile;
   memberPlan?: "free" | "premium";
@@ -193,6 +197,8 @@ export function ScheduleClient({
           </div>
         )}
       </PageHeader>
+
+      {showAcademyBookings && <BookedTrainingAgenda />}
 
       {isError || games.isError || (!isAdmin && training.isError) ? <div role="alert" className="space-y-3 rounded-lg border p-6"><p>{t("common_error")}</p><Button variant="outline" onClick={() => void Promise.all([refetch(), ...(!isAdmin ? [training.refetch()] : []), ...(memberId ? [games.refetch()] : [])])}>{t("common_retry")}</Button></div> : isLoading || (!!memberId && games.isLoading) || (!isAdmin && training.isLoading) ? (
         <Skeleton className="h-96 w-full" />

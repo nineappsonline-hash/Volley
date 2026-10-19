@@ -336,6 +336,8 @@ mocks['@/components/dashboard/announcements-card'] = { AnnouncementsCard: stub('
 mocks['@/components/dashboard/trials-card'] = { TrialsCard: stub('trials') };
 mocks['@/components/upgrade/plan-benefit-banner'] = { AdminPlanBanner: stub('plan') };
 mocks['@/components/schedule/upcoming-sessions'] = { UpcomingSessions: stub('upcoming') };
+mocks['@/components/academy-workspace/workspace'] = { AcademySetupCard: stub('academy-setup') };
+mocks['@/lib/academy-workspace'] = { useAcademyCashLedger: () => discoveryQuery([]) };
 const { AdminDashboard } = loadFile(path.join(root, 'src/components/dashboard/admin-dashboard.tsx'), mocks);
 html = renderToStaticMarkup(h(AdminDashboard));
 assert.ok(html.includes('7 / 10'));

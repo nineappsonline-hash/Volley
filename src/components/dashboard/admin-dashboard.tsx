@@ -1,5 +1,7 @@
 "use client";
 
+import { AcademySetupCard } from "@/components/academy-workspace/workspace";
+import { useAcademyCashLedger } from "@/lib/academy-workspace";
 import { QueryState } from "@/components/shared/query-state";
 import { buildMonthlyPoints } from "@/lib/financial-summary";
 import { useExpenses, useVenueRentals, useSessionGuests } from "@/lib/queries";
@@ -42,6 +44,7 @@ import {
 
 export function AdminDashboard() {
   const { t, lang, locale } = useI18n();
+  const cashLedger = useAcademyCashLedger();
   const profilesQuery = useProfiles();
   const { data: profiles, isLoading: loadingProfiles } = profilesQuery;
   const paymentsQuery = useAllPayments();
@@ -69,7 +72,7 @@ export function AdminDashboard() {
     return d.getMonth() + 1 === month && d.getFullYear() === year;
   });
   const point = buildMonthlyPoints(
-    payments ?? [], costs ?? [], calculations ?? [], sessions ?? [], expensesQuery.data ?? [], rentalsQuery.data ?? [], guestsQuery.data ?? []
+    payments ?? [], costs ?? [], calculations ?? [], sessions ?? [], expensesQuery.data ?? [], rentalsQuery.data ?? [], guestsQuery.data ?? [], cashLedger.data ?? []
   ).find(p => p.label === `${now.toLocaleString("en-US", {month:"short"})} ${year}`);
   const monthlyRevenue = point?.revenue ?? 0;
   const monthlyCosts = point?.costs ?? 0;
@@ -87,8 +90,9 @@ export function AdminDashboard() {
   const incomplete = academy != null && !academy.logo_url;
 
   return (
-    <QueryState queries={[profilesQuery,paymentsQuery,costsQuery,sessionsQuery,calculationsQuery,expensesQuery,rentalsQuery,guestsQuery,academyQuery,attendanceQuery]}><div className="space-y-8">
+    <QueryState queries={[cashLedger,profilesQuery,paymentsQuery,costsQuery,sessionsQuery,calculationsQuery,expensesQuery,rentalsQuery,guestsQuery,academyQuery,attendanceQuery]}><div className="space-y-8">
       <DashboardNavigation admin />
+      <AcademySetupCard />
       {incomplete && (
         <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
           <div className="flex items-center gap-3">
@@ -230,7 +234,7 @@ export function AdminDashboard() {
       </DashboardSection>
       <DashboardSection id="updates" title={lang === "ar" ? "الأخبار والتنبيهات" : "Updates"}>
         <Reveal index={2}>
-        <div className="space-y-5"><TrainingRenewal admin /><AnnouncementsCard isAdmin /><TrialsCard /></div>
+        <div id="renewals" className="scroll-mt-24 space-y-5"><TrainingRenewal admin /><AnnouncementsCard isAdmin /><TrialsCard /></div>
         </Reveal>
       </DashboardSection>
     </div></QueryState>

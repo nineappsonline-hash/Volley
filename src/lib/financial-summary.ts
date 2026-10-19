@@ -10,7 +10,8 @@ export function buildMonthlyPoints(
   sessions: TrainingSession[],
   expenses: Expense[] = [],
   rentals: VenueRental[] = [],
-  guests: SessionGuest[] = []
+  guests: SessionGuest[] = [],
+  trainingLedger: {kind:string;amount:number;created_at:string}[] = []
 ): MonthlyPoint[] {
   const months = new Map<string, MonthlyPoint>();
   const key = (m: number, y: number) => `${y}-${String(m).padStart(2, "0")}`;
@@ -29,6 +30,7 @@ export function buildMonthlyPoints(
       return key(d.getMonth() + 1, d.getFullYear());
     }),
     ...monthsOfSessions,
+    ...trainingLedger.filter(l => ["payment", "refund"].includes(l.kind)).map(l => new Date(l.created_at).toLocaleDateString("en-CA", {timeZone:"Africa/Cairo"}).slice(0,7)),
     ...rentals.filter(r => r.is_paid).map(r => r.rental_date.slice(0,7)),
     ...expenses.map((e) => {
       const d = new Date(e.expense_date + "T00:00:00");
@@ -52,6 +54,11 @@ export function buildMonthlyPoints(
     if (point) point.revenue += Number(p.amount);
   }
 
+  for (const entry of trainingLedger) {
+    if (!["payment", "refund"].includes(entry.kind)) continue;
+    const point = months.get(new Date(entry.created_at).toLocaleDateString("en-CA", {timeZone:"Africa/Cairo"}).slice(0,7));
+    if (point) point.revenue += Number(entry.amount);
+  }
   // Cash receipts use transaction dates; session allocations are not counted twice.
   for (const rental of rentals.filter(r => r.is_paid)) {
     const point = months.get(rental.rental_date.slice(0,7));

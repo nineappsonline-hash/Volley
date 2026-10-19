@@ -6,6 +6,7 @@ export type TrainingSlot = { session_date: string; starts_at: string; ends_at: s
 export type TrainingProgram = {
  min_age: number | null; max_age: number | null; gender: "mixed" | "male" | "female"; media: TrainingMedia[];
  venue_lat: number | null; venue_lng: number | null; venue_area: string | null; venue_governorate: string | null; rating: number | null; rating_count: number;
+ branch_id?: string | null;
  id: string; academy_id: string; academy_name: string; academy_slug: string; name: string;
  sport: string; venue_id: string; venue_name: string; venue_address: string | null;
  monthly_sessions: number; monthly_price: number; trial_price: number; capacity: number; active: boolean;
@@ -36,5 +37,5 @@ export function useTrainingBookings(admin = false) {
 }
 export function useRefreshTraining() {
  const cache=useQueryClient();
- return async()=>{await Promise.all([cache.invalidateQueries({queryKey:["academy-training-programs"]}),cache.invalidateQueries({queryKey:["academy-training-bookings"]}),cache.invalidateQueries({queryKey:["platform-records"]}),cache.invalidateQueries({queryKey:["all-academies"]}),cache.invalidateQueries({queryKey:["public-academies"]})]);};
+ return async()=>{await Promise.all([cache.invalidateQueries({queryKey:["academy-training-programs"]}),cache.invalidateQueries({queryKey:["academy-training-bookings"]}),cache.invalidateQueries({queryKey:["platform-records"]}),cache.invalidateQueries({queryKey:["all-academies"]}),cache.invalidateQueries({queryKey:["public-academies"]}),cache.invalidateQueries({queryKey:["academy-workspace"]}),cache.invalidateQueries({queryKey:["academy-ledger"]})]);};
 }

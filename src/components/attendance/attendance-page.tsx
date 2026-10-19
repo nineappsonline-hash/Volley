@@ -1,5 +1,7 @@
 "use client";
 
+import { BookedTrainingAgenda } from "@/components/academy-workspace/booked-training-agenda";
+
 import { QueryState } from "@/components/shared/query-state";
 
 import { useEffect, useMemo, useState, Suspense } from "react";
@@ -63,6 +65,7 @@ function AttendanceContent({ canScan }: { canScan: boolean }) {
   return (
     <div className="space-y-6">
       <PageHeader title={t("attendance_title")} subtitle={t("attendance_subtitle")} />
+      {canScan && <BookedTrainingAgenda attendance />}
 
       {isLoading ? (
         <Skeleton className="h-96 w-full" />

@@ -700,7 +700,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
         {/* Middle column: subscription + payments */}
         <div className="space-y-6 lg:col-span-2">
 <section id="family" className="scroll-mt-24"><FamilyCard /></section>
-<TrainingRenewal memberId={p.id} academyId={p.academy_id}/><TrainingGoals memberId={p.id} canEdit ownGoals/><section id="evaluations" className="scroll-mt-24"><EvaluationsCard memberId={p.id} isAdmin={false} /></section>
+<section id="training-renewal" className="scroll-mt-24"><TrainingRenewal memberId={p.id} academyId={p.academy_id}/></section><TrainingGoals memberId={p.id} canEdit ownGoals/><section id="evaluations" className="scroll-mt-24"><EvaluationsCard memberId={p.id} isAdmin={false} /></section>
 {p.checkin_code && (
             <section id="checkin" className="scroll-mt-24"><CheckinQrCard code={p.checkin_code} memberName={p.name} profile={p} /></section>
           )}
