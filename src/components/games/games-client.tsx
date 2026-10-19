@@ -846,17 +846,18 @@ export function GamesClient({ profile }: { profile: Profile }) {
           <div className="absolute -bottom-20 -end-16 h-72 w-72 rounded-full border-[32px] border-white/10" />
           <div className="absolute end-8 top-8 hidden -rotate-12 text-amber-300/40 sm:block">{SportIcon({ id: "volleyball", size: 110 })}</div>
         </div>
-        <div className="relative max-w-2xl space-y-4">
+        <div className="relative space-y-4">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold"><UsersRound className="h-4 w-4" />{lang === "ar" ? "رياضتك. فريقك. مباراتك الجاية." : "Your sport. Your people. Your next game."}</span>
           <h1 className="text-white text-3xl font-extrabold tracking-tight sm:text-4xl">{t("games_page_title")}</h1>
           <p className="max-w-lg text-sm leading-relaxed text-brand-100 sm:text-base">{t("games_page_subtitle")}</p>
+          <div className="flex flex-wrap items-center gap-3">
           <Button onClick={() => setDialogOpen(true)} className="min-h-11 bg-white text-brand-900 shadow-lg hover:bg-brand-50">
             <Plus className="me-2 h-4 w-4" />{t("games_create")}
           </Button>
+          <GameAlertPreferencesPanel returnTo="/dashboard/games" />
+          </div>
         </div>
       </header>
-
-      <GameAlertPreferencesPanel returnTo="/dashboard/games" />
 
       <div className="space-y-3 rounded-2xl border bg-gradient-to-br from-brand-50/70 to-blue-50/70 p-4 dark:from-brand-950/30 dark:to-blue-950/30 sm:p-5">
         <h2 className="text-base font-bold">{lang === "ar" ? "اختار رياضتك" : "Pick your sport"}</h2>
