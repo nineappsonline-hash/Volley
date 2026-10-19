@@ -276,7 +276,7 @@ export function MyUpcomingGames({
               </Badge>
             </div>
 
-            <Progress value={game.max_players > 0 ? (activeCount / game.max_players) * 100 : 0} />
+            <Progress indicatorColor="#C7F23D" style={{ backgroundColor: "rgba(199, 242, 61, 0.2)" }} value={game.max_players > 0 ? (activeCount / game.max_players) * 100 : 0} />
 
             {game.description && <p className="whitespace-pre-wrap text-sm text-foreground/90">{game.description}</p>}
 

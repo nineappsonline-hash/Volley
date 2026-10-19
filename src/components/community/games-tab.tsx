@@ -349,6 +349,7 @@ function GameCard({
             </span>
           </div>
           <Progress
+            indicatorColor="#C7F23D" style={{ backgroundColor: "rgba(199, 242, 61, 0.2)" }}
             value={game.max_players > 0 ? (count / game.max_players) * 100 : 0}
           />
         </div>

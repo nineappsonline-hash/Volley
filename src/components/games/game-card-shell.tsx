@@ -56,7 +56,7 @@ export function GameCardShell({ game, joined, waitlisted, children }: { game: Fr
       </div>
       <div>
         <div className="mb-2 flex items-center justify-between gap-2 text-xs"><span className="inline-flex items-center gap-1.5 font-medium"><Users className="h-3.5 w-3.5"/>{game.participants_count}/{game.max_players} {ar ? "لاعب" : "players"}</span><span className="text-muted-foreground">{slots ? (ar ? `${slots} أماكن متاحة` : `${slots} spots left`) : (ar ? "مكتمل" : "Full")}</span></div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true"><div className={`h-full rounded-full bg-gradient-to-r ${theme}`} style={{ width: `${percent}%` }}/></div>
+        <div className="h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: "rgba(199, 242, 61, 0.2)" }} aria-hidden="true"><div className="h-full rounded-full" style={{ width: `${percent}%`, backgroundColor: "#C7F23D" }}/></div>
         {players.length > 0 && <p className="mt-2 truncate text-xs text-muted-foreground">{players.slice(0,3).map(p=>p.player_name).join(" · ")}{players.length > 3 ? ` +${players.length - 3}` : ""}</p>}
       </div>
       <div className="flex flex-wrap gap-1.5 text-[11px]">
