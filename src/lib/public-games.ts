@@ -21,6 +21,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
  */
 
 export type PublicGame = {
+  duration_hours?: number;
+  min_age?: number | null;
+  max_age?: number | null;
   host_pays?: boolean;
   host_total?: number | null;
   id: string;
@@ -38,7 +41,7 @@ export type PublicGame = {
   gender: string;
   share_price: number | null;
   creator_name: string;
-  playground: { name: string | null; area: string | null; governorate: string | null; location_link?: string | null } | null;
+  playground: { name: string | null; area: string | null; governorate: string | null; location_link?: string | null; cover_url?: string | null; country?: string | null } | null;
   joined: number;
 };
 
@@ -119,6 +122,7 @@ function getAdmin() {
 
 /** Upcoming public friendly games, optionally filtered by sport. */
 export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
+  noStore();
   if (sport && !isActiveSport(sport)) return [];
   const admin = getAdmin();
   if (!admin) return [];
@@ -127,8 +131,8 @@ export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
     .select(
       `id, title, description, sport, area, location, game_date, start_time,
        max_players, min_players, status, skill_level, gender, share_price, host_pays, host_total,
-       creator_name, playground:venues(name, area, governorate),
-       participants:friendly_game_participants(count)`
+       creator_name, duration_hours, min_age, max_age, playground:venues(name, area, governorate, country, location_link, cover_url),
+       participants:friendly_game_participants(is_waitlisted)`
     )
     .eq("is_public", true)
     .in("sport", [...ACTIVE_SPORTS])
@@ -145,12 +149,13 @@ export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
     const { data, error } = await query;
     if (error) return [];
     return (data ?? []).map((g: Record<string, unknown>) => {
-      const parts = g.participants as { count?: number }[] | null;
+      const parts = g.participants as { is_waitlisted?: boolean; count?: number }[] | null;
+      const { participants: _participants, ...publicRow } = g as unknown as PublicGame & { participants?: unknown };
       const row = g as unknown as PublicGame & { playground: PublicGame["playground"] };
       return {
-        ...row,
+        ...publicRow,
         playground: Array.isArray(g.playground) ? (g.playground[0] ?? null) : row.playground,
-        joined: Number(parts?.[0]?.count ?? 0),
+        joined: parts?.[0]?.count != null ? Number(parts[0].count) : (parts ?? []).filter(p => !p.is_waitlisted).length,
       };
     });
   } catch {
@@ -271,6 +276,7 @@ export async function getPublicGameSports(): Promise<string[]> {
 
 /** Tournaments hosted by public academies, optionally filtered by sport name. */
 export async function getPublicTournaments(sport?: string): Promise<PublicTournament[]> {
+  noStore();
   if (sport && !isActiveSport(sport)) return [];
   const admin = getAdmin();
   if (!admin) return [];
@@ -284,7 +290,7 @@ export async function getPublicTournaments(sport?: string): Promise<PublicTourna
        participants:tournament_participants(count),
        academy:academies!inner(id, name, slug, area, governorate, is_public)`
     )
-    .eq("academies.is_public", true)
+    .eq("academy.is_public", true)
     .order("start_date", { ascending: false, nullsFirst: false })
     .limit(100);
 

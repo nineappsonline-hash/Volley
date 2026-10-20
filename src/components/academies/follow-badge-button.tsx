@@ -1,5 +1,8 @@
 "use client";
 
+import { authLink } from "@/lib/auth-redirect";
+import { usePathname, useSearchParams } from "next/navigation";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Heart, Loader2 } from "lucide-react";
@@ -25,6 +28,9 @@ export function FollowAcademyButton({
   showCount?: boolean;
 }) {
   const router = useRouter();
+  const path = usePathname();
+  const params = useSearchParams();
+  const login = authLink("/login", `${path}${params.size ? `?${params}` : ""}`);
   const { t } = useI18n();
   const { data: follows, isLoading: loadingFollows } = useMyAcademyFollows();
   const { data: followerCount } = useAcademyFollowerCount(
@@ -45,11 +51,11 @@ export function FollowAcademyButton({
       } = await createClient().auth.getUser();
       setAuthChecked(!!user);
       if (!user) {
-        router.push("/login");
+        router.push(login);
         return;
       }
     } else if (!authChecked) {
-      router.push("/login");
+      router.push(login);
       return;
     }
     if (following) await unfollow.mutateAsync(academyId);

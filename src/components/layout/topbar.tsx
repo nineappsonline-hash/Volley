@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { authLink } from "@/lib/auth-redirect";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { LogOut, Menu, UserRound } from "lucide-react";
@@ -25,6 +26,7 @@ import { ProfileAvatar } from "@/components/shared/profile-avatar";
 import { AppLogo } from "@/components/shared/app-logo";
 
 interface TopbarProps {
+  guest?: boolean;
   role: Role;
   navigationRole?: Role;
   name: string;
@@ -41,10 +43,13 @@ interface TopbarProps {
   } | null;
 }
 
-export function Topbar({ role, navigationRole = role, name, username, avatarUrl, avatarId, memberPlan, isCoach, hasAcademyWorkspace, academy }: TopbarProps) {
+export function Topbar({ guest = false, role, navigationRole = role, name, username, avatarUrl, avatarId, memberPlan, isCoach, hasAcademyWorkspace, academy }: TopbarProps) {
   const { t, lang } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const loginHref = authLink("/login", `${pathname}${searchParams.size ? `?${searchParams}` : ""}`);
   const { signOut } = useAuth();
 
   const trialDaysLeft = useMemo(() => {
@@ -73,7 +78,7 @@ export function Topbar({ role, navigationRole = role, name, username, avatarUrl,
         </SheetTrigger>
         <SheetContent side={lang === "ar" ? "right" : "left"} className="w-72 p-0" aria-describedby={undefined}>
           <SheetTitle className="sr-only">{lang === "ar" ? "القائمة الرئيسية" : "Main navigation"}</SheetTitle>
-          <Sidebar onNavigate={() => setMenuOpen(false)} role={navigationRole} name={name} memberPlan={memberPlan} isCoach={isCoach} hasAcademyWorkspace={hasAcademyWorkspace} />
+          <Sidebar guest={guest} onNavigate={() => setMenuOpen(false)} role={navigationRole} name={name} memberPlan={memberPlan} isCoach={isCoach} hasAcademyWorkspace={hasAcademyWorkspace} />
         </SheetContent>
       </Sheet>
 
@@ -98,10 +103,10 @@ export function Topbar({ role, navigationRole = role, name, username, avatarUrl,
               : planLabel}
           </span>
         )}
-        {role !== "super_admin" && <Notifications />}
+        {!guest && role !== "super_admin" && <Notifications />}
         <ThemeToggle />
         <LanguageToggle />
-        <DropdownMenu>
+        {guest ? <Button asChild size="sm"><Link href={loginHref}>{lang === "ar" ? "دخول / حساب جديد" : "Sign in / Sign up"}</Link></Button> : <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
@@ -141,7 +146,7 @@ export function Topbar({ role, navigationRole = role, name, username, avatarUrl,
               {t("common_logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu>}
       </div>
       </div>
     </header>

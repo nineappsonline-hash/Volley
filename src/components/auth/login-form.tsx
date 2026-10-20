@@ -58,7 +58,7 @@ export function LoginForm() {
     setLoading(true);
     try {
       await signIn(values.email, values.password);
-      router.push(authDestination(searchParams.get("redirectedFrom")));
+      router.push(`/auth/continue?next=${encodeURIComponent(authDestination(searchParams.get("redirectedFrom")))}`);
       router.refresh();
     } catch {
       toast.error(t("login_error"));

@@ -1,5 +1,8 @@
 "use client";
 
+import { authLink } from "@/lib/auth-redirect";
+import { isGuestBrowsePath } from "@/lib/guest-access";
+
 import { AppLogo } from "@/components/shared/app-logo";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -106,6 +109,7 @@ const staffItems = [
 ] as const;
 
 interface SidebarProps {
+  guest?: boolean;
   role: Role;
   name: string;
   memberPlan?: "free" | "premium";
@@ -114,7 +118,7 @@ interface SidebarProps {
   onNavigate?: () => void;
 }
 
-export function Sidebar({ role, name, memberPlan, isCoach, hasAcademyWorkspace, onNavigate }: SidebarProps) {
+export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAcademyWorkspace, onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { t, lang } = useI18n();
@@ -183,7 +187,7 @@ export function Sidebar({ role, name, memberPlan, isCoach, hasAcademyWorkspace, 
           return (
             <Link
               key={href}
-              href={href}
+              href={guest && href === "/academies" ? "/dashboard/academies" : guest && !isGuestBrowsePath(href) && href !== "/academies" ? authLink("/login", href) : href}
               onClick={onNavigate}
               aria-current={active ? "page" : undefined}
               className={cn(

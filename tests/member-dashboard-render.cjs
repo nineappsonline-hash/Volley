@@ -571,3 +571,14 @@ const homeGames=renderToStaticMarkup(h(HomeDiscovery,{memberId:'member-1',profil
 assert.equal(passed.length,3);assert.equal(passed[0].profile.id,'member-1');assert.equal(passed[0].myParticipants[0].pay_status,'approved');assert.ok(homeGames.includes('data-shared-game="match"'));assert.ok(!homeGames.includes('href="/dashboard/games'));
 assert.ok(fs.readFileSync(path.join(root,'src/components/dashboard/member-dashboard.tsx'),'utf8').includes('profile={p}'));
 console.log('PASS: dashboard filtered games reuse the upcoming-games participation card with member profile and roster state, without preview navigation');
+
+let memberFeedEnabled=true,memberFollowsEnabled=true,realtimeEnabled=true;
+mocks['@/lib/queries'].useFriendlyGames=enabled=>{memberFeedEnabled=enabled;return discoveryQuery([])};
+mocks['@/lib/queries'].useMyAcademyFollows=enabled=>{memberFollowsEnabled=enabled;return discoveryQuery([])};
+mocks['@/lib/useRealtime']={useRealtime:(_tables,enabled)=>{realtimeEnabled=enabled}};
+mocks['./guest-game-list']={GuestGameList:({games})=>h('div',{'data-guest-cards':true},games.map(g=>h('span',{key:g.id},g.title)))};
+cache.delete(discoveryFile);
+const GuestDiscovery=loadFile(discoveryFile,mocks).MemberDiscoveryCards;
+const guestHtml=renderToStaticMarkup(h(GuestDiscovery,{memberId:'',hasAcademy:false,mode:'games',interactive:true,sportFilter:'all',guestQuery:discoveryQuery([{...base,id:'guest',title:'Public guest game'}])}));
+assert.equal(memberFeedEnabled,false);assert.equal(memberFollowsEnabled,false);assert.equal(realtimeEnabled,false);assert.ok(guestHtml.includes('Public guest game'));assert.ok(guestHtml.includes('data-guest-cards'));assert.ok(!guestHtml.includes('href="/dashboard/games"'));
+console.log('PASS: guest discovery uses public cards and disables member game fetching, follows and private realtime channels');

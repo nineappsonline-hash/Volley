@@ -1,5 +1,7 @@
 "use client";
 
+import { GuestGameList } from "./guest-game-list";
+import type { FriendlyGameWithDetails } from "@/lib/types";
 import { DashboardGameList } from "./dashboard-game-list";
 import type { Profile } from "@/lib/types";
 import { GoogleMapsDirectionsButton } from "@/components/shared/google-maps-directions-button";
@@ -128,7 +130,7 @@ function DiscoveryCard({
   </section>;
 }
 
-export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, profile, mode = "all", interactive = false, sportFilter = "all" }: { profile?: Profile; interactive?: boolean; sportFilter?: string; memberId: string; hasAcademy: boolean; preferences?: DiscoveryPreferences; mode?: "all" | "games" | "academies" }) {
+export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, profile, guestQuery, focusGameId, mode = "all", interactive = false, sportFilter = "all" }: { focusGameId?: string; guestQuery?: DiscoveryQuery & { data: FriendlyGameWithDetails[] }; profile?: Profile; interactive?: boolean; sportFilter?: string; memberId: string; hasAcademy: boolean; preferences?: DiscoveryPreferences; mode?: "all" | "games" | "academies" }) {
   const { t, lang, locale } = useI18n();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [governorate, setGovernorate] = useState("");
@@ -139,11 +141,12 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, p
   const [court, setCourt] = useState("");
   const [level, setLevel] = useState("all");
   const [date, setDate] = useState("");
-  useRealtime(["friendly_games", "friendly_game_participants"]);
-  const games = useFriendlyGames();
+  useRealtime(["friendly_games", "friendly_game_participants"], !guestQuery);
+  const memberGames = useFriendlyGames(!guestQuery);
+  const games = guestQuery ?? memberGames;
   const academies = usePublicAcademies();
   const myGames = useMyUpcomingGames(memberId);
-  const follows = useMyAcademyFollows();
+  const follows = useMyAcademyFollows(!guestQuery);
   const ar = lang === "ar";
   const selectedSportLabel = ar ? ({ Tennis: "تنس", Volleyball: "كرة طائرة", "Beach Volleyball": "طائرة شاطئية", Archery: "رماية بالقوس" } as Record<string, string>)[sportFilter] ?? sportFilter : sportFilter;
   const academyJoined = hasAcademy || !!follows.data?.length;
@@ -175,7 +178,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, p
   const gameItems = (games.data ?? [])
     .filter(
       (game) =>
-        (interactive ? game.status === "open" : (game.status === "open" || game.status === "full")) &&
+        (interactive ? (game.status === "open" || (game.status === "full" && game.id === focusGameId)) : (game.status === "open" || game.status === "full")) &&
         game.game_date >= today &&
         (!interactive || ((sportFilter === "all" || game.sport?.trim().toLowerCase() === sportFilter.toLowerCase()) &&
           (level === "all" || game.skill_level === level) && (!date || game.game_date === date) &&
@@ -274,7 +277,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, p
           <label className="text-sm">{ar ? "اسم الملعب أو المباراة" : "Court or game name"}<input className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" type="search"  value={court} onChange={e => setCourt(e.target.value)} /></label>
           <button type="button" className="w-fit self-end rounded-lg border px-3 py-2 text-sm" onClick={() => { setGovernorate(""); setCity(""); setAge(""); setGender("all"); setMaxPrice(""); setCourt(""); setDate(""); setLevel("all"); }}>{ar ? "مسح الفلاتر" : "Clear filters"}</button>
         </div>}
-        content={interactive && profile ? <DashboardGameList games={gameItems.map(item => item.game)} profile={profile} /> : undefined}
+        content={interactive && guestQuery ? <GuestGameList games={gameItems.map(item => item.game)} /> : interactive && profile ? <DashboardGameList games={gameItems.map(item => item.game)} profile={profile} /> : undefined}
         live={interactive}
         title={interactive ? (sportFilter === "all" ? (ar ? "المباريات الحالية" : "Current games") : `${selectedSportLabel} · ${ar ? "المباريات الحالية" : "Current games"}`) : (ar ? "مقترح ليك" : "Recommended for you")}
         tone="games"

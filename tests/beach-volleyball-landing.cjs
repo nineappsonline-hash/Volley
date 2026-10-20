@@ -34,23 +34,23 @@ for (lang of ['en', 'ar']) {
   const html = renderToStaticMarkup(React.createElement(LandingPage));
   const section = html.match(/<section id="beach-volleyball"[\s\S]*?<\/section>/)?.[0];
   assert.ok(html.includes('id="tennis"'));
-  assert.ok(html.includes('href="/games?sport=tennis"'));
+  assert.ok(html.includes('href="/dashboard?sport=tennis"'));
   assert.ok(!html.includes('Padel') && !html.includes('البادل'));
   assert.ok(html.includes(lang === 'ar' ? 'التنس في مصر. ماتشك الجاي يبدأ هنا.' : 'Tennis in Egypt. Find your next rally.'));
   assert.ok(section, 'beach section must be present in server-rendered HTML');
   assert.ok(section.includes(content.BEACH_DESCRIPTION[lang]));
   assert.ok(section.includes(lang === 'ar' ? 'الكرة الطائرة الشاطئية.' : 'Beach volleyball.'));
-  assert.ok(section.includes(`href="${lang === 'ar' ? '/ar' : ''}/sports/beach-volleyball"`));
-  assert.ok(section.includes('href="/academies"'));
+  assert.ok(section.includes('href="/dashboard?sport=beach-volleyball"'));
+  assert.ok(section.includes('href="/dashboard/academies"'));
   assert.ok(section.includes('aria-pressed="false"'), 'motion control exposes its initial state');
   assert.ok(section.includes('aria-hidden="true"'), 'decorative art is excluded from the reading order');
   assert.ok(!html.includes('/beach-volleyball/cairo'), 'do not link to a nonexistent nested route');
   assert.ok(html.includes('id="academy-management"'), 'owners have a visible homepage entry point');
-  assert.ok(html.includes(`href="${lang === 'ar' ? '/ar' : ''}/academy-management"`), 'management link follows homepage language');
+  assert.ok(html.includes('href="/dashboard/academies"'), 'management exploration opens the dashboard academy directory');
   const viewportDir = lang === 'ar' ? 'rtl' : 'ltr';
   assert.ok(html.includes(`dir="${viewportDir}"`));
 }
-assert.ok(renderToStaticMarkup(React.createElement(LandingPage)).includes('href="/ar/courts"'));
+assert.ok(renderToStaticMarkup(React.createElement(LandingPage)).includes('href="/playgrounds"'));
 // Public game previews must preserve prices, dates and the destination game.
 const games = [
   { id: 'paid', title: 'Friday beach game', sport: 'Beach Volleyball', game_date: '2026-11-01', start_time: '20:00', share_price: 145, area: 'New Cairo', playground: { name: 'Sand court', area: 'New Cairo', governorate: 'Cairo' } },
@@ -63,7 +63,7 @@ for (lang of ['en', 'ar']) {
   assert.ok(section.includes('Friday beach game'));
   assert.ok(section.includes('Sand court, New Cairo, Cairo'));
   assert.match(section, /datetime="2026-11-01"/i);
-  assert.ok(section.includes('href="/games/paid"'));
+  assert.ok(section.includes('href="/dashboard?focus=paid"'));
   assert.ok(section.includes(lang === 'ar' ? '145 جنيه لكل لاعب' : 'EGP 145 per player'));
   assert.ok(section.includes(lang === 'ar' ? 'مجاني' : 'Free — host covers the court'));
   assert.ok(section.includes(lang === 'ar' ? 'التكلفة لم تتحدد بعد' : 'Price to be confirmed'));

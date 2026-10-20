@@ -7,7 +7,10 @@ import type { PublicGame } from "@/lib/public-games";
 import { formatTime12h } from "@/lib/constants";
 import { gameSharePrice } from "@/lib/game-share";
 import { useState } from "react";
-import Link from "next/link";
+import NextLink from "next/link";
+import type { ComponentProps } from "react";
+import { landingBrowsePath } from "@/lib/guest-access";
+
 import { ArrowUpRight, ArrowDown, Volleyball, Pause, Play, MapPin } from "lucide-react";
 import { AppLogo } from "@/components/shared/app-logo";
 import { LanguageToggle } from "@/components/layout/language-toggle";
@@ -21,6 +24,10 @@ import { SportsHeroScene } from "./sports-hero-scene";
 import { BeachVolleyballScene } from "./beach-volleyball-scene";
 import { BeachVolleyballGameCard } from "@/components/game/beach-volleyball-game-card";
 import styles from "./volleyball-landing.module.css";
+
+function Link({ href, ...props }: ComponentProps<typeof NextLink>) {
+  return <NextLink {...props} href={typeof href === "string" ? landingBrowsePath(href) : href} />;
+}
 
 type Sport = "volleyball" | "beach-volleyball" | "tennis";
 
@@ -60,7 +67,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
   return <div className={styles.page} dir={dir} data-paused={paused}>
     <header className={styles.header}>
       <Link href="/" aria-label="Playza"><AppLogo className="w-24 sm:w-28" /></Link>
-      <nav className={styles.nav} aria-label={copy("Main navigation", "القائمة الرئيسية")}><Link href="/games">{copy("Join a game", "انضم لماتش")}</Link><Link href={courtsPath(lang)}>{copy("Find your court", "لاقي ملعبك")}</Link><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><a href="#tennis">{copy("Tennis", "التنس")}</a><a href="#archery">{copy("Archery", "الرماية بالقوس")}</a><a href="#beach-volleyball">{copy("Beach volleyball", "الطائرة الشاطئية")}</a><a href="#beach-challenge">{copy("Play now", "العب دلوقتي")}</a><a href="#sports">{copy("The sports", "الرياضات")}</a></nav>
+      <nav className={styles.nav} aria-label={copy("Main navigation", "القائمة الرئيسية")}><Link href="/games">{copy("Join a game", "انضم لماتش")}</Link><Link href={courtsPath(lang)}>{copy("Find your court", "لاقي ملعبك")}</Link><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><Link href="/dashboard?sport=tennis">{copy("Tennis", "التنس")}</Link><Link href="/dashboard?sport=archery">{copy("Archery", "الرماية بالقوس")}</Link><Link href="/dashboard?sport=beach-volleyball">{copy("Beach volleyball", "الطائرة الشاطئية")}</Link><Link href="/dashboard">{copy("Play now", "العب دلوقتي")}</Link><Link href="/dashboard">{copy("The sports", "الرياضات")}</Link></nav>
       <div className={styles.headerActions}><LanguageToggle /><Link href="/login" className={styles.login}>{copy("Log in", "تسجيل الدخول")} <ArrowUpRight size={16} /></Link></div>
     </header>
 

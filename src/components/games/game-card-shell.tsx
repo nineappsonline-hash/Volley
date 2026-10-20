@@ -13,10 +13,10 @@ import { gameBookingPayment } from "@/lib/game-costs";
 import type { FriendlyGameWithDetails } from "@/lib/types";
 
 /** Compact overview shared by the games directory and community feed. */
-export function GameCardShell({ game, joined, waitlisted, children, layout = "card" }: { layout?: "card" | "list"; game: FriendlyGameWithDetails; joined: boolean; waitlisted?: boolean; children: ReactNode }) {
+export function GameCardShell({ game, joined, waitlisted, children, initialExpanded = false, layout = "card" }: { initialExpanded?: boolean; layout?: "card" | "list"; game: FriendlyGameWithDetails; joined: boolean; waitlisted?: boolean; children: ReactNode }) {
   const { lang, locale, t } = useI18n();
   const ar = lang === "ar";
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(initialExpanded);
   const detailsId = useId();
   const players = (game.participants ?? []).filter(p => !p.is_waitlisted);
   const slots = Math.max(0, game.max_players - game.participants_count);

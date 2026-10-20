@@ -1,4 +1,6 @@
 import { isPlatformAdmin } from "@/lib/platform-admin";
+import { headers } from "next/headers";
+import { authLink } from "./auth-redirect";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile, Role } from "@/lib/types";
@@ -16,16 +18,14 @@ export interface SessionData {
 /**
  * Server-side guard. Redirects to /login when unauthenticated.
  */
-export async function requireSession(): Promise<SessionData> {
+export async function getSession(): Promise<SessionData | null> {
   const supabase = createClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
-  }
+  if (!user) return null;
 
   const metadataRole = user.app_metadata?.role as Role | undefined;
   const role: Role = isPlatformAdmin(user)
@@ -92,4 +92,11 @@ export async function requireSession(): Promise<SessionData> {
     },
     profile: profile ? { ...profile, role } as Profile : fallback,
   };
+}
+
+
+export async function requireSession(): Promise<SessionData> {
+  const session = await getSession();
+  if (!session) redirect(authLink("/login", headers().get("x-playza-path") ?? "/dashboard"));
+  return session;
 }

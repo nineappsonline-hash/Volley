@@ -1,5 +1,8 @@
 "use client";
 
+import { authLink } from "@/lib/auth-redirect";
+import { isGuestBrowsePath } from "@/lib/guest-access";
+
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowUpRight, MapPin, Share2 } from "lucide-react";
@@ -21,7 +24,7 @@ const sports = [
   { name: "Archery", ar: "رماية بالقوس", slug: "archery" },
 ];
 
-export function MemberHomeHeader({ name, children, selectedSport = "all", onSportChange }: { selectedSport?: string; onSportChange?: (sport: string) => void; name?: string; children?: ReactNode }) {
+export function MemberHomeHeader({ guest = false, name, children, selectedSport = "all", onSportChange }: { guest?: boolean; selectedSport?: string; onSportChange?: (sport: string) => void; name?: string; children?: ReactNode }) {
   const { lang } = useI18n();
   const ar = lang === "ar";
   async function share() {
@@ -40,7 +43,7 @@ export function MemberHomeHeader({ name, children, selectedSport = "all", onSpor
     <nav className={styles.sports} aria-label={ar ? "الرياضات" : "Browse by sport"}>{sports.map(sport => <button type="button" key={sport.slug} aria-pressed={selectedSport === sport.name} aria-controls="member-live-games" onClick={() => onSportChange?.(sport.name)}><span className={styles.sportIcon}>{SportIcon({ id: sport.slug, size: 32 })}</span><span>{ar ? sport.ar : sport.name}</span></button>)}</nav>
     {children}
     <nav className={styles.categories} aria-label={ar ? "اختار نشاطك" : "Explore activities"}>
-      {categories.map(category => <Link key={category.href} href={category.href} className={`${styles.category} ${category.wide ? styles.wide : ""}`}><span aria-hidden="true" className={styles.categoryPhoto} style={{ backgroundPosition: category.photo }} /><span className={styles.shade} aria-hidden="true" /><strong>{ar ? category.ar : category.en}</strong><ArrowUpRight className={styles.tileArrow} size={18} aria-hidden="true" /></Link>)}
+      {categories.map(category => <Link key={category.href} href={guest ? category.href === "/academies" ? "/dashboard/academies" : isGuestBrowsePath(category.href) ? category.href : authLink("/login", category.href) : category.href} className={`${styles.category} ${category.wide ? styles.wide : ""}`}><span aria-hidden="true" className={styles.categoryPhoto} style={{ backgroundPosition: category.photo }} /><span className={styles.shade} aria-hidden="true" /><strong>{ar ? category.ar : category.en}</strong><ArrowUpRight className={styles.tileArrow} size={18} aria-hidden="true" /></Link>)}
     </nav>
   </div>;
 }

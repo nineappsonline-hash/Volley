@@ -2,6 +2,8 @@
 import { Building2, Sparkles } from "lucide-react";
 import { AcademyLogo } from "@/components/academies/academy-logo";
 
+import { authLink } from "@/lib/auth-redirect";
+import { usePathname } from "next/navigation";
 import { AppLogo } from "@/components/shared/app-logo";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -66,6 +68,7 @@ function Stars({
 }
 
 export default function AcademiesDirectoryPage() {
+  const pathname = usePathname();
   const { t, lang } = useI18n();
   const router = useRouter();
 
@@ -301,7 +304,7 @@ export default function AcademiesDirectoryPage() {
     if (!myId) {
       // Carry the chosen academy into signup so the member is not dropped on
       // the dashboard and left to hunt for the academy they just picked.
-      router.push(`/signup?academy=${academyId}`);
+      router.push(authLink("/login", `${pathname}?academy=${encodeURIComponent(academyId)}`));
       return;
     }
     setJoining(academyId);
@@ -369,7 +372,7 @@ export default function AcademiesDirectoryPage() {
           </p>
           {!myId && (
             <Button asChild variant="secondary" className="mt-2">
-              <Link href="/signup">{t("directory_login_to_join")}</Link>
+              <Link href={authLink("/login", pathname)}>{t("directory_login_to_join")}</Link>
             </Button>
           )}
         </div>
@@ -698,7 +701,7 @@ export default function AcademiesDirectoryPage() {
 
         <p className="mt-10 text-center text-sm text-muted-foreground">
           {t("signup_have_account")}{" "}
-          <Link href="/login" className="font-medium text-primary hover:underline">
+          <Link href={authLink("/login", pathname)} className="font-medium text-primary hover:underline">
             {t("signup_login_link")}
           </Link>
         </p>

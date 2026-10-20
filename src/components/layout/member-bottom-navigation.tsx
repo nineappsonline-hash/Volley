@@ -17,7 +17,7 @@ const destinations = [
   { href: "/academies", key: "nav_academies", icon: Building2 },
 ] as const;
 
-export function MemberBottomNavigation() {
+export function MemberBottomNavigation({ guest = false }: { guest?: boolean }) {
   const pathname = usePathname();
   const { t, lang } = useI18n();
 
@@ -33,11 +33,11 @@ export function MemberBottomNavigation() {
           // match exactly or it would stay highlighted while browsing games.
           const active = "exact" in rest && rest.exact
             ? pathname === href
-            : pathname === href || pathname.startsWith(`${href}/`) || (href === "/academies" && pathname.startsWith("/a/"));
+            : pathname === href || pathname.startsWith(`${href}/`) || (href === "/academies" && (pathname.startsWith("/a/") || pathname === "/dashboard/academies"));
           return (
             <Link
               key={href}
-              href={href}
+              href={guest && href === "/academies" ? "/dashboard/academies" : href}
               aria-current={active ? "page" : undefined}
               className={cn(
                 "flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-[22px] px-1 py-2 text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-xs",

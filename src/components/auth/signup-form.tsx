@@ -255,7 +255,7 @@ export function SignupForm() {
       if (session) {
         toast.success(t("signup_success"));
         const navigate = () => {
-          router.push(destination);
+          router.push(`/auth/continue?next=${encodeURIComponent(destination)}`);
           router.refresh();
         };
         if (destination !== "/dashboard" && !academy?.newName) {

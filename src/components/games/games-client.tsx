@@ -144,6 +144,7 @@ export function GameCard({
   onCopy: (key: string, value: string) => void;
 }) {
   const router = useRouter();
+  const focus = useSearchParams().get("focus");
   const { t, locale, lang } = useI18n();
   const recruit = useRequestGamePlayers();
   const [recruited, setRecruited] = useState(false);
@@ -244,7 +245,7 @@ export function GameCard({
   ].filter(Boolean);
 
   return (
-    <GameCardShell layout="list" game={game} joined={joined} waitlisted={!!mine?.is_waitlisted}>
+    <GameCardShell initialExpanded={focus === game.id} layout="list" game={game} joined={joined} waitlisted={!!mine?.is_waitlisted}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="truncate text-base">{game.title}</CardTitle>
@@ -735,7 +736,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
   const [availability, setAvailability] = useState<Availability>("any");
   const [sortBy, setSortBy] = useState<SortBy>("date");
   const [onlyMine, setOnlyMine] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(searchParams.get("create") === "1");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const [inviteGame, setInviteGame] = useState<FriendlyGame | null>(null);

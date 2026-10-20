@@ -23,7 +23,7 @@ export function DashboardGameList({ games, profile }: { games: FriendlyGameWithD
   };
   return <QueryState queries={[participants]}>
     <div className="flex flex-col gap-3">
-      {games.map(game => <GameCard key={game.id} game={game} profile={profile} myParticipants={participants.data ?? []} copiedKey={copiedKey} onCopy={copy} />)}
+      {games.map(game => <div key={game.id} id={`game-${game.id}`} className="scroll-mt-20"><GameCard game={game} profile={profile} myParticipants={participants.data ?? []} copiedKey={copiedKey} onCopy={copy} /></div>)}
     </div>
   </QueryState>;
 }

@@ -1,4 +1,6 @@
-import { requireSession } from "@/lib/session";
+import { getSession } from "@/lib/session";
+import { headers } from "next/headers";
+import { authDestination } from "@/lib/auth-redirect";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { MemberBottomNavigation } from "@/components/layout/member-bottom-navigation";
@@ -15,14 +17,20 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { profile } = await requireSession();
+  const session = await getSession();
+  if (!session) return <div className="min-h-screen bg-background pb-[calc(6rem+env(safe-area-inset-bottom))]">
+    <Topbar role="member" name="" username="" guest />
+    <main className="mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-8">{children}</main>
+    <MemberBottomNavigation guest />
+  </div>;
+  const { profile } = session;
 
   // Google signups don't carry gender, birth date, or phone — ask for them
   // before letting the member into the rest of the app.
   const needsProfileCompletion =
     profile.role === "member" &&
     (!profile.phone || !profile.gender || !profile.birth_date);
-  if (needsProfileCompletion) redirect("/complete-profile");
+  if (needsProfileCompletion) redirect(`/complete-profile?next=${encodeURIComponent(authDestination(headers().get("x-playza-path")))}`);
 
   const supabase = createClient();
   const { data: academyRow } = profile.academy_id

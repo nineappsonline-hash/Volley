@@ -1233,9 +1233,10 @@ type FollowedAcademy = AcademyFollow & {
 };
 
 /** All public academies followed by the signed-in member (joined details). */
-export function useMyAcademyFollows() {
+export function useMyAcademyFollows(enabled = true) {
   return useQuery({
     queryKey: queryKeys.academyFollows,
+    enabled,
     queryFn: async () => {
       const { data: session } = await supabase().auth.getSession();
       const uid = session.session?.user.id;
@@ -3277,9 +3278,10 @@ export function useCommunityMembers() {
   });
 }
 
-export function useFriendlyGames() {
+export function useFriendlyGames(enabled = true) {
   return useQuery({
     queryKey: queryKeys.friendlyGames,
+    enabled,
     refetchInterval: 15_000,
     refetchOnWindowFocus: "always",
     queryFn: async () => {

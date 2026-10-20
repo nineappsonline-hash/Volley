@@ -1,3 +1,4 @@
+import { isGuestBrowsePath } from "@/lib/guest-access";
 import { authDestination } from "@/lib/auth-redirect";
 import { isPlatformAdmin } from "@/lib/platform-admin";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
@@ -6,9 +7,10 @@ import { NextResponse, type NextRequest } from "next/server";
 type SetCookie = { name: string; value: string; options?: CookieOptions };
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-playza-path", request.nextUrl.pathname + request.nextUrl.search);
+  const nextResponse = () => NextResponse.next({ request: { headers: requestHeaders } });
+  let supabaseResponse = nextResponse();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,9 +24,8 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
+          requestHeaders.set("cookie", request.cookies.toString());
+          supabaseResponse = nextResponse();
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
@@ -48,11 +49,19 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
+  const redirectWithCookies = (url: URL) => {
+    const response = NextResponse.redirect(url);
+    supabaseResponse.cookies.getAll().forEach(cookie => response.cookies.set(cookie));
+    response.headers.set("cache-control", "private, no-store");
+    return response;
+  };
   const pathname = request.nextUrl.pathname;
   const isAuthPage =
     pathname.startsWith("/login") || pathname.startsWith("/signup");
   const protectedPages = [
     "/dashboard",
+    "/parent", "/academy-bookings", "/following", "/insights", "/coach-ai",
+    "/leaderboard", "/scouting", "/onboarding", "/checkout", "/analytics", "/academy", "/complete-profile",
     "/members",
     "/schedule",
     "/attendance",
@@ -81,22 +90,23 @@ export async function updateSession(request: NextRequest) {
     (p) => pathname === p || pathname.startsWith(p + "/")
   );
 
-  if (!user && isProtected) {
+  if (!user && isProtected && !isGuestBrowsePath(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = "";
     url.searchParams.set("redirectedFrom", pathname + request.nextUrl.search);
-    return NextResponse.redirect(url);
+    return redirectWithCookies(url);
   }
 
   if (user && isAuthPage) {
     const url = request.nextUrl.clone();
     const gameInvite = request.nextUrl.searchParams.get("gameInvite");
     const destination = gameInvite ? `/games?join=${encodeURIComponent(gameInvite)}` : authDestination(request.nextUrl.searchParams.get("redirectedFrom"));
-    const target = new URL(destination, url.origin);
+    const target = new URL(`/auth/continue?next=${encodeURIComponent(destination)}`, url.origin);
     url.pathname = target.pathname;
     url.search = target.search;
-    return NextResponse.redirect(url);
+    url.hash = target.hash;
+    return redirectWithCookies(url);
   }
 
   // Platform access uses a verified Auth email, never a profile role.
@@ -104,7 +114,7 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     url.search = "";
-    return NextResponse.redirect(url);
+    return redirectWithCookies(url);
   }
 
   return supabaseResponse;

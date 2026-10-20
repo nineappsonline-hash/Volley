@@ -41,12 +41,12 @@ const queryKeyForTable: Record<TableName, string[]> = {
  * deduplicated by topic — reusing the same topic from two components would
  * call `.on()` on an already-subscribed channel and throw.
  */
-export function useRealtime(tables: TableName[]) {
+export function useRealtime(tables: TableName[], enabled = true) {
   const queryClient = useQueryClient();
   const uid = useId().replace(/[:]/g, "");
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!enabled || typeof window === "undefined") return;
     const client = createClient();
 
     const channels = tables.map((table) =>
@@ -67,5 +67,5 @@ export function useRealtime(tables: TableName[]) {
     return () => {
       channels.forEach((c) => client.removeChannel(c));
     };
-  }, [queryClient, uid, tables.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [queryClient, uid, enabled, tables.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
 }
