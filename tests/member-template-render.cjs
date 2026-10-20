@@ -76,3 +76,19 @@ for(lang of ['en','ar']){
 assert.ok(fs.readFileSync('src/components/profile/profile-client.tsx','utf8').includes('id="upcoming-training"'));
 assert.ok(fs.readFileSync('src/app/(dashboard)/dashboard/tournaments/page.tsx','utf8').includes('<MyTournamentsCard memberId={profile.id}'));
 console.log('PASS: focused member dashboard omits personal sections; menu retains QR, training, renewal, family, virtual court and tournament destinations in both languages');
+
+// Clicking the shared list card expands its details in place without navigation.
+let expanded=false;
+mocks.react={...React,useState:()=>[expanded,value=>{expanded=value;}],useId:()=> 'inline-game-details'};
+cache.delete(path.resolve('src/components/games/game-card-shell.tsx'));
+const InlineShell=load('src/components/games/game-card-shell.tsx').GameCardShell;
+const inlineProps={layout:'list',joined:false,game:{id:'inline',title:'Inline game',sport:'Tennis',game_date:'2026-10-23',start_time:'18:00',status:'open',max_players:4,participants_count:1,share_price:100,is_public:true,participants:[]},children:React.createElement('button',null,'Join game here')};
+let inlineTree=InlineShell(inlineProps);
+let toggle=findElements(inlineTree,node=>node.type==='button'&&node.props['aria-controls']==='inline-game-details')[0];
+assert.equal(toggle.props['aria-expanded'],false);assert.equal(toggle.props.href,undefined);toggle.props.onClick();
+inlineTree=InlineShell(inlineProps);
+assert.equal(findElements(inlineTree,node=>node.props.id==='inline-game-details')[0].props.hidden,false);
+assert.ok(renderToStaticMarkup(inlineTree).includes('Join game here'));
+findElements(inlineTree,node=>node.type==='button'&&node.props['aria-controls']==='inline-game-details')[0].props.onClick();
+assert.equal(expanded,false);
+console.log('PASS: shared list card opens and closes inline participation details through its accessible toggle');

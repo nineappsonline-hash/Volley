@@ -14,7 +14,7 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
   return <div className="mx-auto min-w-0 max-w-6xl pb-2">
     <DashboardNavigation selectedSport={selectedSport} onSportChange={setSelectedSport} name={p.name}>
       <section id="activity" className="scroll-mt-24">
-        <MemberDiscoveryCards memberId={p.id} hasAcademy={!!p.academy_id} preferences={p} mode="games" interactive sportFilter={selectedSport} />
+        <MemberDiscoveryCards memberId={p.id} hasAcademy={!!p.academy_id} preferences={p} profile={p} mode="games" interactive sportFilter={selectedSport} />
       </section>
     </DashboardNavigation>
   </div>;

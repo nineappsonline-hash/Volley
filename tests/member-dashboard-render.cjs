@@ -556,3 +556,18 @@ assert.ok(filtered({date:addDaysISO(TODAY,2)}).includes('No open games match thi
 const expanded=filtered();for(const label of ['Governorate','City / area','Player level','Player age','Gender','Maximum price (EGP)','Court or game name'])assert.ok(expanded.includes(label));
 assert.ok(expanded.includes('aria-expanded="true"'));
 console.log('PASS: location, age boundaries, gender, level, price, date and court filters combine and allow unrestricted/free games correctly');
+
+// Home must render the directory's full participation card rather than a link preview.
+delete mocks.react;
+const passed=[];
+mocks['@/components/games/games-client']={GameCard:props=>{passed.push(props);return h('article',{'data-shared-game':props.game.id},props.game.title);}};
+mocks['@/lib/queries'].useMyGameParticipants=()=>discoveryQuery([{game_id:'match',member_id:'member-1',pay_status:'approved'}]);
+cache.delete(path.join(root,'src/components/dashboard/dashboard-game-list.tsx'));
+const {DashboardGameList}=loadFile(path.join(root,'src/components/dashboard/dashboard-game-list.tsx'),mocks);
+mocks['./dashboard-game-list']={DashboardGameList};
+cache.delete(discoveryFile);
+const HomeDiscovery=loadFile(discoveryFile,mocks).MemberDiscoveryCards;
+const homeGames=renderToStaticMarkup(h(HomeDiscovery,{memberId:'member-1',profile:{id:'member-1',role:'member'},hasAcademy:false,mode:'games',interactive:true,sportFilter:'Tennis'}));
+assert.equal(passed.length,3);assert.equal(passed[0].profile.id,'member-1');assert.equal(passed[0].myParticipants[0].pay_status,'approved');assert.ok(homeGames.includes('data-shared-game="match"'));assert.ok(!homeGames.includes('href="/dashboard/games'));
+assert.ok(fs.readFileSync(path.join(root,'src/components/dashboard/member-dashboard.tsx'),'utf8').includes('profile={p}'));
+console.log('PASS: dashboard filtered games reuse the upcoming-games participation card with member profile and roster state, without preview navigation');

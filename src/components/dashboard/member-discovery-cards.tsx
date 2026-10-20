@@ -1,5 +1,7 @@
 "use client";
 
+import { DashboardGameList } from "./dashboard-game-list";
+import type { Profile } from "@/lib/types";
 import { GoogleMapsDirectionsButton } from "@/components/shared/google-maps-directions-button";
 import { googleDirectionsUrl } from "@/lib/google-directions";
 import { cairoNow } from "@/lib/member-training";
@@ -68,7 +70,9 @@ function DiscoveryCard({
   live = false,
   controls,
   filters,
+  content,
 }: {
+  content?: ReactNode;
   controls?: ReactNode;
   filters?: ReactNode;
   live?: boolean;
@@ -93,7 +97,7 @@ function DiscoveryCard({
     </header>
     {filters}
     <QueryState queries={[query]}>
-      {items.length === 0 ? <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">{empty}</p> : <ul id={id} aria-label={title} className={live ? "flex flex-col gap-3" : "flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-3"}>
+      {items.length === 0 ? <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">{empty}</p> : content ?? <ul id={id} aria-label={title} className={live ? "flex flex-col gap-3" : "flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-3"}>
         {items.map(item => <li key={item.id} className={live ? "min-w-0" : "w-[48%] min-w-0 max-w-80 shrink-0 snap-start sm:w-[44%] lg:w-[31%]"}>
           <article className={live ? "flex overflow-hidden rounded-xl border bg-card" : "h-full overflow-hidden rounded-xl border bg-card"}>
             <Link href={item.href ?? href} className={`${live ? "w-28 shrink-0 sm:w-44" : ""} group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring`}>
@@ -124,7 +128,7 @@ function DiscoveryCard({
   </section>;
 }
 
-export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, mode = "all", interactive = false, sportFilter = "all" }: { interactive?: boolean; sportFilter?: string; memberId: string; hasAcademy: boolean; preferences?: DiscoveryPreferences; mode?: "all" | "games" | "academies" }) {
+export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, profile, mode = "all", interactive = false, sportFilter = "all" }: { profile?: Profile; interactive?: boolean; sportFilter?: string; memberId: string; hasAcademy: boolean; preferences?: DiscoveryPreferences; mode?: "all" | "games" | "academies" }) {
   const { t, lang, locale } = useI18n();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [governorate, setGovernorate] = useState("");
@@ -191,6 +195,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
     )
     .slice(0, interactive ? Infinity : 12)
     .map((game) => ({
+      game,
       id: game.id,
       title: game.title,
       reason: reasonLabel(gameMatch(game)),
@@ -269,6 +274,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
           <label className="text-sm">{ar ? "اسم الملعب أو المباراة" : "Court or game name"}<input className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" type="search"  value={court} onChange={e => setCourt(e.target.value)} /></label>
           <button type="button" className="w-fit self-end rounded-lg border px-3 py-2 text-sm" onClick={() => { setGovernorate(""); setCity(""); setAge(""); setGender("all"); setMaxPrice(""); setCourt(""); setDate(""); setLevel("all"); }}>{ar ? "مسح الفلاتر" : "Clear filters"}</button>
         </div>}
+        content={interactive && profile ? <DashboardGameList games={gameItems.map(item => item.game)} profile={profile} /> : undefined}
         live={interactive}
         title={interactive ? (sportFilter === "all" ? (ar ? "المباريات الحالية" : "Current games") : `${selectedSportLabel} · ${ar ? "المباريات الحالية" : "Current games"}`) : (ar ? "مقترح ليك" : "Recommended for you")}
         tone="games"

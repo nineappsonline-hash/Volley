@@ -130,7 +130,7 @@ function playgroundLabel(playground: NonNullable<FriendlyGame["playground"]>) {
     .join(" · ");
 }
 
-function GameCard({
+export function GameCard({
   game,
   profile,
   myParticipants,
@@ -180,7 +180,7 @@ function GameCard({
 
   const isPrivate = !game.is_public;
   const inviteLink = game.invite_code
-    ? `${window.location.origin}/games?join=${game.invite_code}`
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/games?join=${game.invite_code}`
     : null;
 
 
