@@ -86,7 +86,7 @@ export function TrialForm({ academyId, sports, anchorId = "trial" }: TrialFormPr
     return (
       <Card id={anchorId}>
         <CardContent className="flex flex-col items-center gap-3 p-8 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-positive-100 text-success-ink dark:bg-positive-500/15">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-positive-100 text-success-ink ">
             <CalendarCheck className="h-6 w-6" />
           </div>
           <p className="font-medium">{t("trial_success")}</p>

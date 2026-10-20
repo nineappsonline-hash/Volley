@@ -46,7 +46,7 @@ export async function GET(request: Request): Promise<Response> {
 
   return new ImageResponse(
     <div style={{ display: "flex", width: "100%", height: "100%", background: PLAYZA.navy, color: "white", fontFamily: "Noto Sans, Arabic", padding: 44, position: "relative", overflow: "hidden" }}>
-      <div style={{ display: "flex", position: "absolute", right: 0, top: 0, width: 420, height: 630, background: "linear-gradient(150deg, #14213D, #0E182D)" }} />
+      <div style={{ display: "flex", position: "absolute", right: 0, top: 0, width: 420, height: 630, background: PLAYZA.purple }} />
       <div style={{ display: "flex", flexDirection: "column", width: 675, position: "relative" }}>
         {logo ? (
           // eslint-disable-next-line @next/next/no-img-element

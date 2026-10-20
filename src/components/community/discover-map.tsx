@@ -162,8 +162,8 @@ export default function DiscoverMap({ profile }: { profile: Profile }) {
                       variant={g.status === "full" ? "secondary" : "outline"}
                       className={`shrink-0 text-[10px] ${
                         g.status === "full"
-                          ? "bg-attention-100 text-warning-ink dark:bg-attention-500/15 dark:text-attention-400"
-                          : "bg-positive-100 text-success-ink dark:bg-positive-500/15 dark:text-positive-400"
+                          ? "bg-attention-100 text-warning-ink "
+                          : "bg-positive-100 text-success-ink "
                       }`}
                     >
                       {t(`community_status_${g.status}`)}

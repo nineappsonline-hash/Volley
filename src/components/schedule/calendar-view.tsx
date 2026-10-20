@@ -143,20 +143,20 @@ export function CalendarView({ sessions, onSelectSession, sportNameById, venueNa
             <div
               key={key}
               className={cn(
-                "flex min-h-16 flex-col items-stretch gap-1 rounded-lg border p-1.5 text-start transition-all hover:border-info/40 hover:bg-accent/50",
+                "flex min-h-16 flex-col items-stretch gap-1 rounded-lg border p-1.5 text-start transition-all hover:border-secondary/40 hover:bg-accent/50",
                 !inMonth && "opacity-40",
-                isToday && "border-info/60 bg-info/5 ring-1 ring-info/30"
+                isToday && "border-secondary/60 bg-accent/50 ring-1 ring-secondary/30"
               )}
             >
               <span
                 className={cn(
                   "text-xs font-semibold",
-                  isToday ? "text-info-ink" : "text-muted-foreground"
+                  isToday ? "text-secondary" : "text-muted-foreground"
                 )}
               >
                 {format(day, "d")}
               </span>
-              {training.filter(item => item.date === key).map(item => <Link key={item.id} href={item.href} className="rounded bg-emerald-100 px-2 py-1.5 text-xs text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-200"><span className="block font-bold">{item.name || (lang === "ar" ? "تدريب" : "Training")}</span><span className="block">{formatTime12h(item.time, lang)}</span><span className="block">{item.location}</span></Link>)}
+              {training.filter(item => item.date === key).map(item => <Link key={item.id} href={item.href} className="rounded bg-emerald-100 px-2 py-1.5 text-xs text-emerald-900 "><span className="block font-bold">{item.name || (lang === "ar" ? "تدريب" : "Training")}</span><span className="block">{formatTime12h(item.time, lang)}</span><span className="block">{item.location}</span></Link>)}
               {daySessions.map((s) => (
                 <button
                   type="button"
@@ -165,10 +165,10 @@ export function CalendarView({ sessions, onSelectSession, sportNameById, venueNa
                   className={cn(
                     "rounded px-2 py-1.5 text-start text-xs font-medium break-words focus-visible:ring-2 focus-visible:ring-ring",
                     s.status === "canceled"
-                      ? "bg-negative-100 text-error-ink line-through dark:bg-negative-500/20 dark:text-negative-300"
+                      ? "bg-negative-100 text-error-ink line-through "
                       : s.status === "completed"
                         ? "bg-muted text-muted-foreground line-through"
-                        : "bg-interactive-100 text-info-ink dark:bg-interactive-500/20 dark:text-interactive-300"
+                        : "bg-interactive-100 text-secondary "
                   )}
                 >
                   <span className="block font-bold">{sportNameById?.get(s.sport_id ?? "") ?? (lang === "ar" ? "تدريب" : "Training")}</span>

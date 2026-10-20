@@ -51,14 +51,14 @@ export function UpgradeClient({
       />
 
       {isPremium && role !== "super_admin" && (
-        <div className="flex items-center gap-3 rounded-lg border border-interactive-300/60 bg-interactive-50 p-4 text-sm dark:bg-interactive-500/10">
+        <div className="flex items-center gap-3 rounded-lg border border-interactive-300/60 bg-interactive-50 p-4 text-sm ">
           <Crown className="h-5 w-5 shrink-0 text-info-ink" />
           <div>
-            <p className="font-medium text-info-ink dark:text-interactive-300">
+            <p className="font-medium text-info-ink ">
               {t("premium_active_message")}
             </p>
             {expiresAt && (
-              <p className="text-xs text-info-ink/80 dark:text-interactive-400/70">
+              <p className="text-xs text-info-ink/80 ">
                 {t("premium_expires")}: {expiresAt}
               </p>
             )}

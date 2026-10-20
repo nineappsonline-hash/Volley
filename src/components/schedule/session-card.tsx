@@ -88,7 +88,7 @@ export function SessionCard({
         "group overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md",
         onOpenDetails && "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         completed && "opacity-70",
-        canceled && "border-negative-300/60 opacity-70 dark:border-negative-500/30"
+        canceled && "border-negative-300/60 opacity-70 "
       )}
     >
       <CardContent className="p-0">
@@ -206,7 +206,7 @@ export function SessionCard({
                     onCancel();
                   }}
                   title={t("schedule_cancel")}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-warning-ink hover:underline dark:text-attention-400"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-warning-ink hover:underline "
                 >
                   <Ban className="h-3 w-3" />
                   {t("common_cancel")}

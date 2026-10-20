@@ -1,3 +1,4 @@
+import { PLAYZA } from "@/lib/brand";
 import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
@@ -9,8 +10,8 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: "#F6F8FA",
-    theme_color: "#14213D",
+    background_color: PLAYZA.background,
+    theme_color: PLAYZA.navy,
     orientation: "any",
     categories: ["sports", "productivity", "business"],
     lang: "en",

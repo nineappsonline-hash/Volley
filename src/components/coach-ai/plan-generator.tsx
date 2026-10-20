@@ -184,7 +184,7 @@ export function PlanGenerator({ open, onOpenChange, onSaved }: PlanGeneratorProp
           </DialogHeader>
 
           {meta?.fallback && (
-            <div className="rounded-lg border border-attention-300 bg-attention-50 p-3 text-xs text-warning-ink dark:bg-attention-500/10">
+            <div className="rounded-lg border border-attention-300 bg-attention-50 p-3 text-xs text-warning-ink ">
               {t("coachai_fallback")}
             </div>
           )}

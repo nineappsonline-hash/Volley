@@ -588,7 +588,7 @@ export function BeachVolleyballGame({
       onKeyDown={onKeyDown}
       onKeyUp={onKeyUp}
       className={cn(
-        "relative w-full overflow-hidden rounded-2xl border bg-[#14213D] text-white outline-none",
+        "relative w-full overflow-hidden rounded-2xl border bg-brand text-white outline-none",
         focusStyles,
         className,
       )}
@@ -619,7 +619,7 @@ export function BeachVolleyballGame({
         {isPlaying && (
           <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-2 sm:p-3">
             <div className="flex items-center gap-2 rounded-full bg-black/45 px-3 py-1.5 text-xs font-bold backdrop-blur">
-              <span className="inline-block h-2 w-2 rounded-full bg-[#C7F23D]" />
+              <span className="inline-block h-2 w-2 rounded-full bg-primary" />
               {t.you} {hud.humanPoints}
               <span className="text-white/50">·</span>
               {hud.aiPoints} {t.opponent}
@@ -672,7 +672,7 @@ export function BeachVolleyballGame({
         {/* Serve prompt */}
         {isPlaying && phase === "serve" && hud.servePrompt && (
           <div className="absolute inset-x-0 bottom-2 flex justify-center">
-            <span className="rounded-full bg-[#C7F23D] px-4 py-1.5 text-sm font-bold text-[#14213D]">
+            <span className="rounded-full bg-primary px-4 py-1.5 text-sm font-bold text-foreground">
               {t.serve}
             </span>
           </div>
@@ -709,7 +709,7 @@ export function BeachVolleyballGame({
                     key={label as string}
                     className={cn(
                       "rounded-full px-3 py-1 text-xs font-bold",
-                      done ? "bg-[#C7F23D] text-[#14213D]" : "bg-black/50 text-white/80",
+                      done ? "bg-primary text-foreground" : "bg-black/50 text-white/80",
                     )}
                   >
                     {done ? "✓ " : ""}
@@ -722,7 +722,7 @@ export function BeachVolleyballGame({
                   type="button"
                   onClick={startMatch}
                   className={cn(
-                    "pointer-events-auto rounded-full bg-[#C7F23D] px-5 py-2 text-sm font-bold text-[#14213D]",
+                    "pointer-events-auto rounded-full bg-primary px-5 py-2 text-sm font-bold text-foreground",
                     focusStyles,
                   )}
                 >
@@ -734,7 +734,7 @@ export function BeachVolleyballGame({
 
         {/* Start screen */}
         {ui === "ready" && (
-          <div className="relative z-20 flex min-h-96 flex-col items-center justify-center gap-4 bg-[#14213D]/85 px-4 py-8 text-center backdrop-blur-sm">
+          <div className="relative z-20 flex min-h-96 flex-col items-center justify-center gap-4 bg-brand/85 px-4 py-8 text-center backdrop-blur-sm">
             <h2 className="text-2xl font-black text-white sm:text-3xl">{t.title}</h2>
             <p className="max-w-md text-sm text-white/80">{t.cardDesc}</p>
             <div>
@@ -751,7 +751,7 @@ export function BeachVolleyballGame({
                     className={cn(
                       "rounded-full px-4 py-2 text-sm font-bold",
                       difficulty === level
-                        ? "bg-[#C7F23D] text-[#14213D]"
+                        ? "bg-primary text-foreground"
                         : "bg-white/10 text-white hover:bg-white/20",
                       focusStyles,
                     )}
@@ -772,7 +772,7 @@ export function BeachVolleyballGame({
                   onClick={() => setLook(index)}
                   className={cn(
                     "h-8 w-8 rounded-full border-2",
-                    look === index ? "border-[#C7F23D]" : "border-white/30",
+                    look === index ? "border-primary" : "border-white/30",
                     focusStyles,
                   )}
                   style={{ background: HUMAN_LOOKS[index].shirt }}
@@ -784,7 +784,7 @@ export function BeachVolleyballGame({
                 type="button"
                 onClick={startMatch}
                 className={cn(
-                  "inline-flex items-center gap-2 rounded-full bg-[#C7F23D] px-6 py-3 font-bold text-[#14213D] hover:bg-[#B4DF2D]",
+                  "inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-bold text-foreground hover:bg-primary-hover",
                   focusStyles,
                 )}
               >
@@ -808,7 +808,7 @@ export function BeachVolleyballGame({
                 trackGameEvent("game_booking_click", { origin: "start", mode: "match" })
               }
               className={cn(
-                "text-xs font-bold text-[#C7F23D] underline underline-offset-2 hover:text-[#B4DF2D]",
+                "text-xs font-bold text-highlight underline underline-offset-2 hover:text-primary-hover",
                 focusStyles,
               )}
             >
@@ -831,7 +831,7 @@ export function BeachVolleyballGame({
                     type="button"
                     onClick={resume}
                     className={cn(
-                      "inline-flex items-center gap-2 rounded-full bg-[#C7F23D] px-5 py-2.5 font-bold text-[#14213D]",
+                      "inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 font-bold text-foreground",
                       focusStyles,
                     )}
                   >
@@ -867,8 +867,8 @@ export function BeachVolleyballGame({
 
         {/* Result overlay */}
         {ui === "result" && result && (
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 overflow-y-auto bg-[#14213D]/90 p-4 text-center">
-            <Trophy className="text-[#C7F23D]" size={34} />
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 overflow-y-auto bg-brand/90 p-4 text-center">
+            <Trophy className="text-highlight" size={34} />
             <h3 className="text-2xl font-black">
               {wins(stateRef.current?.winner ?? null, "human")
                 ? t.youWon
@@ -881,7 +881,7 @@ export function BeachVolleyballGame({
             </p>
             <div className="flex flex-wrap justify-center gap-3 text-sm">
               <span className="rounded-lg bg-white/10 px-3 py-1.5">
-                {t.yourScore}: <strong className="text-[#C7F23D]">{result.stats.score}</strong>
+                {t.yourScore}: <strong className="text-highlight">{result.stats.score}</strong>
               </span>
               <span className="rounded-lg bg-white/10 px-3 py-1.5">
                 {t.perfectHits}: <strong>{result.stats.perfectHits}</strong>
@@ -891,7 +891,7 @@ export function BeachVolleyballGame({
               </span>
             </div>
             {result.isNewBest ? (
-              <p className="text-sm font-bold text-[#C7F23D]">{t.newBest}</p>
+              <p className="text-sm font-bold text-highlight">{t.newBest}</p>
             ) : (
               <p className="text-xs text-white/60">
                 {t.bestLocal}: {getBest(stateRef.current?.difficulty ?? "medium")?.score ?? 0}
@@ -907,7 +907,7 @@ export function BeachVolleyballGame({
                   startMatch();
                 }}
                 className={cn(
-                  "inline-flex items-center justify-center gap-2 rounded-full bg-[#C7F23D] px-4 py-2.5 font-bold text-[#14213D]",
+                  "inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 font-bold text-foreground",
                   focusStyles,
                 )}
               >
@@ -925,8 +925,8 @@ export function BeachVolleyballGame({
               </button>
             </div>
 
-            <div className="mt-1 w-full max-w-md rounded-xl border border-[#C7F23D]/40 bg-[#C7F23D]/10 p-3">
-              <p className="flex items-center justify-center gap-2 text-sm font-bold text-[#C7F23D]">
+            <div className="mt-1 w-full max-w-md rounded-xl border border-primary/40 bg-primary/10 p-3">
+              <p className="flex items-center justify-center gap-2 text-sm font-bold text-highlight">
                 <Gift size={16} /> {t.ctaTitle}
               </p>
               <p className="mt-1 text-xs text-white/80">{t.ctaDesc}</p>
@@ -936,7 +936,7 @@ export function BeachVolleyballGame({
                   trackGameEvent("game_booking_click", { origin: "result", mode: "match" })
                 }
                 className={cn(
-                  "mt-2 inline-flex items-center gap-2 rounded-full bg-[#C7F23D] px-4 py-2 text-sm font-bold text-[#14213D]",
+                  "mt-2 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-bold text-foreground",
                   focusStyles,
                 )}
               >

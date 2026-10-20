@@ -356,7 +356,7 @@ export function SessionFormDialog({
             />
           </div>
           {conflict && (
-            <p className="flex items-start gap-2 rounded-md border border-attention-300/60 bg-attention-50 p-3 text-xs text-warning-ink dark:bg-attention-500/10 dark:text-attention-300">
+            <p className="flex items-start gap-2 rounded-md border border-attention-300/60 bg-attention-50 p-3 text-xs text-warning-ink ">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
               {lang === "ar" ? "المدرب أو الملعب مش متاح في الوقت ده، أو الحصة بتنتهي بعد منتصف الليل. غيّر الميعاد أو المدة." : "The coach or court is unavailable during this interval, or the session ends after midnight. Change the time or duration."}
             </p>

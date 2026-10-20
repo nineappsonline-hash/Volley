@@ -17,15 +17,15 @@ interface StatCardProps {
 
 const toneClasses: Record<string, string> = {
   default:
-    "bg-interactive-50 text-info-ink dark:bg-interactive-500/10 dark:text-interactive-400",
-  info: "bg-interactive-50 text-info-ink dark:bg-interactive-500/10 dark:text-interactive-400",
+    "bg-interactive-50 text-secondary",
+  info: "bg-interactive-50 text-info-ink ",
   success:
-    "bg-positive-50 text-success-ink dark:bg-positive-500/10 dark:text-positive-400",
+    "bg-positive-50 text-success-ink ",
   destructive:
-    "bg-negative-50 text-error-ink dark:bg-negative-500/10 dark:text-negative-400",
+    "bg-negative-50 text-error-ink ",
   warning:
-    "bg-attention-50 text-warning-ink dark:bg-attention-500/10 dark:text-attention-400",
-  brand: "bg-brand-100/80 text-brand-800 dark:bg-brand-400/10 dark:text-brand-200",
+    "bg-attention-50 text-warning-ink ",
+  brand: "bg-brand-100/80 text-brand-800 ",
 };
 
 const accentClasses: Record<string, string> = {

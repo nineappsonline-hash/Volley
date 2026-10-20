@@ -25,7 +25,7 @@ export function PremiumGate({ profile, children, description }: PremiumGateProps
 
   return (
     <Card className="relative overflow-hidden">
-      <div className="absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.06]">
+      <div className="absolute inset-0 z-0 opacity-[0.03] ">
         <div className="h-full w-full bg-[radial-gradient(circle_at_30%_40%,hsl(var(--primary)),transparent_60%)]" />
       </div>
       <CardHeader className="relative z-10 text-center">

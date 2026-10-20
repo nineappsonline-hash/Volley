@@ -39,7 +39,7 @@ for(lang of ['en','ar']){
  assert.ok(html.indexOf('Live game results') < html.indexOf('href="/academies"'));
  assert.ok(html.indexOf('aria-controls="member-live-games"') < html.indexOf('Live game results'));
  html=renderToStaticMarkup(React.createElement(GameCardShell,{layout:'list',game:{id:'game',title:'Gateway game',sport:'Volleyball',game_date:'2026-10-23',start_time:'20:00',status:'open',max_players:18,participants_count:12,share_price:100,is_public:true,playground:{name:'Gateway',photos:['https://example.invalid/court.jpg']},participants:[]},joined:true},React.createElement('button',null,'Join existing game')));
- for(const text of ['Gateway game','Gateway','12/18','EGP 100.00','Join existing game','aria-expanded="false"','hidden=""','background-color:#C7F23D'])assert.ok(html.includes(text),text);
+ for(const text of ['Gateway game','Gateway','12/18','EGP 100.00','Join existing game','aria-expanded="false"','hidden=""','background-color:var(--color-primary)'])assert.ok(html.includes(text),text);
  assert.match(html,/src="https:\/\/example.invalid\/court.jpg"/);
  assert.ok(html.includes(lang==='en'?"You&#x27;re participating":'أنت مشارك'));
  assert.ok(html.includes(lang==='en'?'Booking confirmed':'الحجز مؤكد'));

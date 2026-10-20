@@ -40,7 +40,7 @@ export function BeachVolleyballGamePanel({
     <div
       className={cn(
         fullscreen
-          ? "fixed inset-0 z-[120] flex flex-col overflow-y-auto bg-[#0E182D] p-2 sm:p-6"
+          ? "fixed inset-0 z-[120] flex flex-col overflow-y-auto bg-brand-950 p-2 sm:p-6"
           : "p-3 sm:p-4",
       )}
     >
@@ -58,10 +58,10 @@ export function BeachVolleyballGamePanel({
 
         {loading && (
           <div
-            className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-[#14213D] text-white"
+            className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-brand text-white"
             role="status"
           >
-            <span className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-[#C7F23D]" />
+            <span className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-[var(--color-primary)]" />
             <p className="text-sm font-semibold text-white/80">{t.loading}</p>
             <button
               type="button"
@@ -74,12 +74,12 @@ export function BeachVolleyballGamePanel({
         )}
 
         {failed && !loading && (
-          <div className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-[#14213D] text-white">
+          <div className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-brand text-white">
             <p className="text-sm font-semibold text-white/80">{t.loadError}</p>
             <button
               type="button"
               onClick={onRetry}
-              className="rounded-full bg-[#C7F23D] px-5 py-2 text-sm font-bold text-[#14213D]"
+              className="rounded-full bg-primary px-5 py-2 text-sm font-bold text-foreground"
             >
               {t.retry}
             </button>

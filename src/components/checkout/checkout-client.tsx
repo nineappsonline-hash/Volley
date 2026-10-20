@@ -204,7 +204,7 @@ export function CheckoutClient({ profile }: { profile: Profile }) {
         )}
       >
         {tier === "plus" && (
-          <Badge className="absolute -top-2.5 end-2 bg-warning text-warning-foreground dark:bg-attention-500">
+          <Badge className="absolute -top-2.5 end-2 bg-warning text-warning-foreground ">
             <Sparkles className="me-1 h-3 w-3" />
             {t("plans_popular")}
           </Badge>
@@ -239,9 +239,9 @@ export function CheckoutClient({ profile }: { profile: Profile }) {
   };
 
   const statusStyles: Record<PlanSubscription["receipt_status"], string> = {
-    pending: "bg-attention-500/15 text-warning-ink dark:text-attention-400",
-    verified: "bg-positive-500/15 text-success-ink dark:text-positive-400",
-    rejected: "bg-negative-500/15 text-error-ink dark:text-negative-400",
+    pending: "bg-attention-500/15 text-warning-ink ",
+    verified: "bg-positive-500/15 text-success-ink ",
+    rejected: "bg-negative-500/15 text-error-ink ",
   };
 
   const statusIcon: Record<PlanSubscription["receipt_status"], typeof Check> = {
@@ -302,7 +302,7 @@ export function CheckoutClient({ profile }: { profile: Profile }) {
                   type="button"
                   className="relative flex flex-col items-start gap-1 rounded-xl border border-attention-400/60 p-4 text-start"
                 >
-                  <Badge className="absolute -top-2.5 end-2 bg-warning text-warning-foreground dark:bg-attention-500">
+                  <Badge className="absolute -top-2.5 end-2 bg-warning text-warning-foreground ">
                     <Sparkles className="me-1 h-3 w-3" />
                     {t("plans_popular")}
                   </Badge>
@@ -442,9 +442,9 @@ export function CheckoutClient({ profile }: { profile: Profile }) {
                 >
                   {purchase.isPending ? "…" : t("checkout_pay_now")}
                 </Button>) }
-                <div className="flex items-start gap-2 rounded-lg border border-attention-300/60 bg-attention-50 p-3 text-xs dark:bg-attention-500/10">
+                <div className="flex items-start gap-2 rounded-lg border border-attention-300/60 bg-attention-50 p-3 text-xs ">
                   <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning-ink" />
-                  <p className="text-warning-ink dark:text-attention-300">
+                  <p className="text-warning-ink ">
                     <span className="font-semibold">{method === "kashier" ? (lang === "ar" ? "تأكيد الدفع" : "Payment confirmation") : t("checkout_warning_title")}: </span>
                     {method === "kashier" ? (lang === "ar" ? "يتم تفعيل الاشتراك بعد تأكيد نجاح الدفع من كاشير." : "Your plan activates only after Kashier confirms successful payment.") : t("checkout_warning_body")}
                   </p>

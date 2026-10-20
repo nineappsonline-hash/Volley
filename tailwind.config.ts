@@ -5,7 +5,6 @@ const scale = (name: string) => Object.fromEntries(
     [step, `hsl(var(--playza-${name}-${step}) / <alpha-value>)`])
 );
 const config: Config = {
-  darkMode: ["class"],
   content: [
     "./src/pages/**/*.{ts,tsx}",
     "./src/components/**/*.{ts,tsx}",
@@ -47,6 +46,7 @@ const config: Config = {
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
+          hover: "hsl(var(--secondary-hover))",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -75,7 +75,9 @@ const config: Config = {
         },
         surface: "hsl(var(--surface) / <alpha-value>)",
         brand: { DEFAULT: "hsl(var(--playza-navy) / <alpha-value>)", ...scale("navy") },
-        interactive: scale("blue"),
+        interactive: scale("purple"),
+        purple: { DEFAULT: "hsl(var(--playza-purple) / <alpha-value>)", ...scale("purple") },
+        highlight: "hsl(var(--playza-lime) / <alpha-value>)",
         positive: scale("green"),
         attention: scale("orange"),
         negative: scale("red"),

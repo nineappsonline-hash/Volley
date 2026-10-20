@@ -48,10 +48,10 @@ import {
 } from "@/lib/member-dashboard";
 
 const STATUS_STYLES: Record<string, string> = {
-  open: "bg-positive-100 text-success-ink dark:bg-positive-500/15 dark:text-positive-400",
-  full: "bg-attention-100 text-warning-ink dark:bg-attention-500/15 dark:text-attention-400",
+  open: "bg-positive-100 text-success-ink ",
+  full: "bg-attention-100 text-warning-ink ",
   completed: "bg-success/15 text-success-ink",
-  cancelled: "bg-negative-100 text-error-ink dark:bg-negative-500/15 dark:text-negative-400",
+  cancelled: "bg-negative-100 text-error-ink ",
 };
 
 export function MyUpcomingGames({
@@ -111,7 +111,7 @@ export function MyUpcomingGames({
     <Card id="my-upcoming-games" className="overflow-hidden rounded-2xl shadow-none">
       <CardHeader className="mb-3 p-4 flex-row flex-wrap items-center justify-between gap-3 space-y-0 bg-gradient-to-br from-brand to-brand-900 text-white">
         <CardTitle className="flex items-center gap-2 text-base">
-          <CalendarDays className="h-6 w-6 text-blue-200" />{t("games_my_upcoming")}
+          <CalendarDays className="h-6 w-6 text-purple-200" />{t("games_my_upcoming")}
         </CardTitle>
         {query.data?.length ? <Badge variant="secondary">{t("dash_games_count").replace("{n}", String(query.data.length)).replace("{s}", query.data.length === 1 ? "" : "s")}</Badge> : null}
         {!!groups.length && <Button asChild size="sm" className="bg-white text-brand-900 hover:bg-white/90"><Link href="/dashboard/games">{ar ? "اكتشف المزيد من المباريات" : "Discover more games"}<ArrowUpRight className="ms-2 h-4 w-4" /></Link></Button>}
@@ -138,9 +138,9 @@ export function MyUpcomingGames({
                 const daysLeft = Math.max(0, Math.round((Date.parse(`${row.game.game_date}T00:00:00Z`) - Date.parse(`${cairoNow().slice(0, 10)}T00:00:00Z`)) / 86400000));
                 const daysLabel = daysLeft === 0 ? (ar ? "اليوم" : "Today") : daysLeft === 1 ? (ar ? "غداً · باقي يوم" : "Tomorrow · 1 day to go") : (ar ? `باقي ${daysLeft} أيام` : `${daysLeft} days to go`);
                 return <li key={row.id}>
-                  <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-card text-start shadow-md shadow-black/5 transition-shadow hover:shadow-lg dark:border-slate-600/60 dark:shadow-black/20">
+                  <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-card text-start shadow-md shadow-black/5 transition-shadow hover:shadow-lg ">
                     <div className="relative flex h-24 items-center sm:h-28 justify-center overflow-hidden bg-gradient-to-br from-blue-950 to-slate-800">
-                    {!photo && <LandPlot className="h-16 w-16 text-blue-200/30" aria-hidden="true" />}
+                    {!photo && <LandPlot className="h-16 w-16 text-purple-200/30" aria-hidden="true" />}
                     {photo && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={photo!} alt={row.game.playground?.name ?? row.game.title} loading="lazy" className="absolute inset-0 h-full w-full object-cover" onError={e => { e.currentTarget.style.display = "none"; }} />
@@ -150,11 +150,11 @@ export function MyUpcomingGames({
                     <div className="flex flex-1 flex-col p-3">
                     <div className="flex flex-wrap items-center gap-2">
                       {row.is_waitlisted && <Badge variant="secondary">{ar ? "قائمة الانتظار" : "Waitlisted"}</Badge>}
-                      {tone === "due" && <Badge className="gap-1 bg-attention-100 text-warning-ink dark:bg-attention-500/15 dark:text-attention-400">
+                      {tone === "due" && <Badge className="gap-1 bg-attention-100 text-warning-ink ">
                         <Wallet className="h-3 w-3" />{t("dash_share_due_badge")}
                       </Badge>}
                       {tone === "pending" && <Badge className="bg-info/10 text-info-ink">{t("games_share_pending")}</Badge>}
-                      {tone === "paid" && <Badge className="gap-1 bg-positive-100 text-success-ink dark:bg-positive-500/15 dark:text-positive-400">
+                      {tone === "paid" && <Badge className="gap-1 bg-positive-100 text-success-ink ">
                         <CheckCircle2 className="h-3 w-3" />{t("dash_share_paid_badge")}
                       </Badge>}
                       {cue && <Badge variant="outline" className="ms-auto">
@@ -276,7 +276,7 @@ export function MyUpcomingGames({
               </Badge>
             </div>
 
-            <Progress indicatorColor="#C7F23D" style={{ backgroundColor: "rgba(199, 242, 61, 0.2)" }} value={game.max_players > 0 ? (activeCount / game.max_players) * 100 : 0} />
+            <Progress indicatorColor="var(--color-primary)" style={{ backgroundColor: "hsl(var(--playza-lime) / 0.2)" }} value={game.max_players > 0 ? (activeCount / game.max_players) * 100 : 0} />
 
             {game.description && <p className="whitespace-pre-wrap text-sm text-foreground/90">{game.description}</p>}
 

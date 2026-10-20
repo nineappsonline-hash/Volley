@@ -87,7 +87,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
     trackGameEvent("game_open", { source: variant === "inline" ? "homepage-3d" : "page-3d", mode });
   }
 
-  return <div ref={container} className={cn("relative select-none overflow-hidden rounded-2xl bg-[#14213D] text-white", (fullscreen || expanded) && "fixed inset-0 z-[150] flex h-[100dvh] w-full flex-col rounded-none", className)} dir={dir}>
+  return <div ref={container} className={cn("relative select-none overflow-hidden rounded-2xl bg-brand text-white", (fullscreen || expanded) && "fixed inset-0 z-[150] flex h-[100dvh] w-full flex-col rounded-none", className)} dir={dir}>
     <div className={cn("flex shrink-0 flex-wrap items-center justify-end gap-3 border-b border-white/10 p-3", session && (fullscreen || expanded) && "hidden")}>
       {screenNotice && <span className="mr-auto text-xs text-white/80" role="status">{screenNotice}</span>}
       <button type="button" onClick={() => void toggleFullscreen()} aria-pressed={fullscreen || expanded} className="min-h-12 rounded-full border border-white/30 px-5 py-2 text-sm font-bold text-white">
@@ -101,28 +101,28 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
         allow="fullscreen; clipboard-write; web-share" allowFullScreen
         className={cn("block w-full border-0", (fullscreen || expanded) ? "min-h-0 flex-1" : variant === "page" ? "h-[min(75vh,800px)] min-h-[500px]" : "h-[500px] sm:h-[600px]")}
       />
-      {loading && <div className="absolute inset-0 flex items-center justify-center bg-[#14213D]" role="status">{copy("Loading the 3D court…", "بنجهز الملعب…")}</div>}
+      {loading && <div className="absolute inset-0 flex items-center justify-center bg-brand" role="status">{copy("Loading the 3D court…", "بنجهز الملعب…")}</div>}
     </> : <div className="grid gap-8 overflow-auto p-6 sm:p-10 md:grid-cols-2 md:items-center">
       <div>
         <AppLogo className="mb-5 w-36" />
-        <p className="text-xs font-bold uppercase tracking-widest text-[#C7F23D]">{copy("PLAYZA BEACH CHALLENGE · 3D", "تحدي بلايزا · ثلاثي الأبعاد")}</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-highlight">{copy("PLAYZA BEACH CHALLENGE · 3D", "تحدي بلايزا · ثلاثي الأبعاد")}</p>
         <h2 className="mt-3 text-3xl font-black text-white">{copy("Your court. Your next point.", "ملعبك. ونقطتك الجاية.")}</h2>
         <p className="mt-3 text-sm leading-7 text-white/75">{copy("90 seconds. You versus the computer. Free third-person volleyball with local teams, with no account needed.", "٩٠ ثانية. إنت ضد الكمبيوتر. كرة طائرة بمنظور الشخص الثالث وفرق محلية، ببلاش ومن غير حساب.")}</p>
         <BeachGameStats className="mt-5" />
-        {failed && <p className="mt-3 text-sm text-[#C7F23D]" role="alert">{copy("The game couldn’t load. Try again in a WebGL2-capable browser.", "اللعبة مقدرتش تشتغل. جرّب تاني بمتصفح بيدعم WebGL2.")}</p>}
+        {failed && <p className="mt-3 text-sm text-highlight" role="alert">{copy("The game couldn’t load. Try again in a WebGL2-capable browser.", "اللعبة مقدرتش تشتغل. جرّب تاني بمتصفح بيدعم WebGL2.")}</p>}
         <label className="mt-5 block text-sm text-white">{copy("Opponent", "المنافس")}
-          <select className="mt-2 block w-full rounded-lg border border-white/25 bg-[#0E182D] p-3 text-white" value={difficulty} onChange={event => setDifficulty(event.target.value)}>
+          <select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3 text-white" value={difficulty} onChange={event => setDifficulty(event.target.value)}>
             <option value="easy">{copy("Easy", "سهل")}</option><option value="medium">{copy("Medium", "متوسط")}</option><option value="hard">{copy("Hard", "صعب")}</option>
           </select>
         </label>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <label className="text-sm">{copy("Match", "الماتش")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-[#0E182D] p-3" value={teamSize} onChange={e=>setTeamSize(e.target.value)}><option value="6">{copy("6v6 local teams", "٦ ضد ٦ محلي")}</option><option value="1">{copy("1v1 duel", "واحد ضد واحد")}</option></select></label>
-          <label className="text-sm">{copy("Camera", "الكاميرا")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-[#0E182D] p-3" value={camera} onChange={e=>setCamera(e.target.value)}><option value="third">{copy("Third person", "الشخص الثالث")}</option><option value="first">{copy("First person", "الشخص الأول")}</option></select></label>
-          <label className="text-sm">{copy("Ability", "القدرة")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-[#0E182D] p-3" value={ability} onChange={e=>setAbility(e.target.value)}><option value="power">{copy("Power Strike", "ضربة قوية")}</option><option value="dash">{copy("Quick Step", "خطوة سريعة")}</option><option value="shield">{copy("Sky Wall", "حائط السما")}</option></select></label>
+          <label className="text-sm">{copy("Match", "الماتش")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3" value={teamSize} onChange={e=>setTeamSize(e.target.value)}><option value="6">{copy("6v6 local teams", "٦ ضد ٦ محلي")}</option><option value="1">{copy("1v1 duel", "واحد ضد واحد")}</option></select></label>
+          <label className="text-sm">{copy("Camera", "الكاميرا")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3" value={camera} onChange={e=>setCamera(e.target.value)}><option value="third">{copy("Third person", "الشخص الثالث")}</option><option value="first">{copy("First person", "الشخص الأول")}</option></select></label>
+          <label className="text-sm">{copy("Ability", "القدرة")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3" value={ability} onChange={e=>setAbility(e.target.value)}><option value="power">{copy("Power Strike", "ضربة قوية")}</option><option value="dash">{copy("Quick Step", "خطوة سريعة")}</option><option value="shield">{copy("Sky Wall", "حائط السما")}</option></select></label>
         </div>
-        <div className="mt-5 flex flex-wrap gap-3"><button ref={playButton} type="button" onClick={() => start("match")} className="rounded-full bg-[#C7F23D] px-6 py-3 font-bold text-[#14213D]">{copy("Play free →", "العب ببلاش ←")}</button>
+        <div className="mt-5 flex flex-wrap gap-3"><button ref={playButton} type="button" onClick={() => start("match")} className="rounded-full bg-primary px-6 py-3 font-bold text-foreground">{copy("Play free →", "العب ببلاش ←")}</button>
           <button type="button" onClick={() => start("practice")} className="rounded-full border border-white/30 px-6 py-3 font-bold">{copy("Learn to play", "اتعلم تلعب")}</button></div>
-        <Link href={bookingHref} className="mt-5 inline-block text-sm text-[#C7F23D] underline" onClick={() => trackGameEvent("game_booking_click", { origin: "3d-ready" })}>{copy("Book a real beach volleyball game", "احجز ماتش طائرة شاطئية حقيقي")}</Link>
+        <Link href={bookingHref} className="mt-5 inline-block text-sm text-highlight underline" onClick={() => trackGameEvent("game_booking_click", { origin: "3d-ready" })}>{copy("Book a real beach volleyball game", "احجز ماتش طائرة شاطئية حقيقي")}</Link>
       </div>
       <div><Image src="/beach-challenge/preview.svg" alt={copy("Playza sand volleyball court", "ملعب بلايزا لكرة الطائرة الشاطئية")} width={640} height={650} className="aspect-square w-full rounded-2xl object-cover" />
         <p className="mt-3 text-xs leading-6 text-white/70">{copy("WASD move · Click bump / spike · Q set / block · Ctrl dive · Space jump · R ability. Touch controls available on mobile.", "WASD للحركة · اضغط للاستقبال والسحق · Q للإعداد والصد · Ctrl للدفاع · Space للنط · R للقدرة. تحكم باللمس على الموبايل.")}</p></div>

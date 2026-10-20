@@ -180,7 +180,7 @@ export function SessionDetailsDialog({
           {attendees.map((m) => (
             <div
               key={m.id}
-              className="flex items-center gap-3 rounded-lg border border-positive-200/70 bg-positive-50/60 px-3 py-2 text-sm dark:border-positive-500/20 dark:bg-positive-500/5"
+              className="flex items-center gap-3 rounded-lg border border-positive-200/70 bg-positive-50/60 px-3 py-2 text-sm "
             >
               <Avatar className="h-7 w-7">
                 <AvatarFallback>{initials(m.name)}</AvatarFallback>
@@ -381,7 +381,7 @@ export function SessionDetailsDialog({
                     {t("session_details_cost")}
                   </h4>
                   {!monthCost ? (
-                    <div className="rounded-lg border border-attention-300/60 bg-attention-50 p-3 text-sm text-warning-ink dark:bg-attention-500/10 dark:text-attention-300">
+                    <div className="rounded-lg border border-attention-300/60 bg-attention-50 p-3 text-sm text-warning-ink ">
                       {t("session_details_no_costs")} — {t("session_details_no_costs_hint")}
                     </div>
                   ) : (
@@ -450,12 +450,12 @@ export function SessionDetailsDialog({
                     {t("session_details_not_marked_you")}
                   </p>
                 ) : myAttendance ? (
-                  <p className="flex items-center gap-2 rounded-lg border border-positive-200/70 bg-positive-50/60 p-3 text-sm text-success-ink dark:bg-positive-500/5 dark:text-positive-300">
+                  <p className="flex items-center gap-2 rounded-lg border border-positive-200/70 bg-positive-50/60 p-3 text-sm text-success-ink ">
                     <CheckCircle2 className="h-4 w-4" />
                     {t("session_details_attended_you")}
                   </p>
                 ) : (
-                  <p className="flex items-center gap-2 rounded-lg border border-negative-200/70 bg-negative-50/60 p-3 text-sm text-error-ink dark:bg-negative-500/5 dark:text-negative-300">
+                  <p className="flex items-center gap-2 rounded-lg border border-negative-200/70 bg-negative-50/60 p-3 text-sm text-error-ink ">
                     <XCircle className="h-4 w-4" />
                     {t("session_details_absent_you")}
                   </p>

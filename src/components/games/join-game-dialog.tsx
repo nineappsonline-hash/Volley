@@ -437,13 +437,13 @@ export function JoinGameDialog({
           )}
 
           {isPay && game.host_pays && (
-            <p className="rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 text-[11px] text-warning-ink dark:bg-attention-500/10 dark:text-attention-300">
+            <p className="rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 text-[11px] text-warning-ink ">
               {t("games_host_cover_note")}
             </p>
           )}
 
           {!game.host_pays && !isRent && (
-            <p className="rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 text-[11px] text-warning-ink dark:bg-attention-500/10 dark:text-attention-300">
+            <p className="rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 text-[11px] text-warning-ink ">
               {t("games_share_refund_note")}
             </p>
           )}

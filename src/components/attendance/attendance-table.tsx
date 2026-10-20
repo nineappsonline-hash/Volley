@@ -232,7 +232,7 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
           </div>
           <div className="rounded-lg bg-muted/50 p-3">
             <p className="text-xs text-muted-foreground">{t("attendance_revenue")}</p>
-            <p className="mt-1 text-xl font-extrabold font-mono text-success-ink dark:text-positive-400">
+            <p className="mt-1 text-xl font-extrabold font-mono text-success-ink ">
               {calc ? formatMoney(calc.total_revenue, lang) : "—"}
             </p>
           </div>
@@ -242,7 +242,7 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
               {calc && monthCost ? formatMoney(calc.cost_per_session, lang) : "—"}
             </p>
             {!monthCost && (
-              <p className="mt-1 text-[11px] leading-tight text-warning-ink dark:text-attention-400">
+              <p className="mt-1 text-[11px] leading-tight text-warning-ink ">
                 {t("attendance_no_costs_hint")}
               </p>
             )}
@@ -301,11 +301,11 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
       <div className="overflow-x-auto rounded-xl border">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b bg-muted/50">
+            <tr className="border-b bg-accent/60">
               <th className="px-4 py-3 text-start font-medium text-muted-foreground">
                 <button onClick={toggleSelectAll} className="flex items-center gap-2">
-                  <span className={`inline-flex h-4 w-4 items-center justify-center rounded border ${selected.size === members.length && members.length > 0 ? 'bg-primary border-primary' : 'border-muted-foreground/50'}`}> 
-                    {selected.size === members.length && members.length > 0 && <span className="text-[10px] text-primary-foreground">✓</span>}
+                  <span className={`inline-flex h-4 w-4 items-center justify-center rounded border ${selected.size === members.length && members.length > 0 ? 'bg-secondary border-secondary' : 'border-muted-foreground/50'}`}>
+                    {selected.size === members.length && members.length > 0 && <span className="text-[10px] text-secondary-foreground">✓</span>}
                   </span>
                   {t("batch_select")}
                 </button>
@@ -327,13 +327,13 @@ export function AttendanceTable({ session }: AttendanceTableProps) {
                 <tr
                   key={m.id}
                   className={`border-b last:border-0 transition-colors ${
-                    present ? "bg-positive-50/60 dark:bg-positive-500/5" : "hover:bg-accent/40"
+                    present ? "bg-positive-50/60 " : "hover:bg-accent/40"
                   }`}
                 >
                   <td className="px-4 py-2.5">
                     <button onClick={() => toggleSelect(m.id)}>
-                      <span className={`inline-flex h-4 w-4 items-center justify-center rounded border ${selected.has(m.id) ? 'bg-primary border-primary' : 'border-muted-foreground/50'}`}> 
-                        {selected.has(m.id) && <span className="text-[10px] text-primary-foreground">✓</span>}
+                      <span className={`inline-flex h-4 w-4 items-center justify-center rounded border ${selected.has(m.id) ? 'bg-secondary border-secondary' : 'border-muted-foreground/50'}`}>
+                        {selected.has(m.id) && <span className="text-[10px] text-secondary-foreground">✓</span>}
                       </span>
                     </button>
                   </td>

@@ -193,14 +193,14 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
               className={cn(
                 "group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-brand flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-all",
                 active
-                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
+                  ? "border-s-4 border-highlight bg-secondary text-white shadow-sm"
                   : "text-muted-foreground hover:bg-accent hover:text-foreground"
               )}
             >
               <Icon
                 className={cn(
                   "h-4 w-4 transition-transform group-hover:scale-110",
-                  active && "text-primary-foreground"
+                  active && "text-white"
                 )}
               />
               <span className="min-w-0 flex-1 truncate">
@@ -238,7 +238,7 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
                   : t("role_member")}
           </span>
           {role === "member" && memberPlan === "premium" && (
-            <span className="inline-flex items-center gap-0.5 rounded-full bg-attention-100 px-1.5 py-0.5 text-[10px] font-semibold text-warning-ink dark:bg-attention-500/15 dark:text-attention-400">
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-attention-100 px-1.5 py-0.5 text-[10px] font-semibold text-warning-ink ">
               <Crown className="h-2.5 w-2.5" />
               PRO
             </span>

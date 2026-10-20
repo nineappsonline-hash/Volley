@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ThemeProvider } from "next-themes";
 import { I18nProvider } from "@/lib/i18n";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -20,17 +19,17 @@ export function Providers({ children }: { children: ReactNode }) {
       })
   );
 
+  useEffect(() => {
+    document.documentElement.classList.remove("dark");
+    document.documentElement.classList.add("light");
+    document.documentElement.style.colorScheme = "light";
+    try { localStorage.removeItem("theme"); } catch { /* Storage may be disabled. */ }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
-        <I18nProvider>{children}</I18nProvider>
-        <Toaster richColors position="top-center" />
-      </ThemeProvider>
+      <I18nProvider>{children}</I18nProvider>
+      <Toaster richColors position="top-center" />
     </QueryClientProvider>
   );
 }

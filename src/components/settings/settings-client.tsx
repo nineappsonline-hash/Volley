@@ -281,7 +281,7 @@ export function SettingsClient({
             </Label>
           </div>
           {isPublic && (
-            <p className="rounded-md bg-interactive-50 p-3 text-xs text-info-ink dark:bg-interactive-500/10 dark:text-interactive-300">
+            <p className="rounded-md bg-interactive-50 p-3 text-xs text-info-ink ">
               {t("settings_public_hint")}
             </p>
           )}
@@ -398,7 +398,7 @@ export function SettingsClient({
               </Label>
             </div>
             {academy.plan !== "elite" && (
-              <div className="rounded-lg border border-attention-300/60 bg-attention-50 p-3 text-xs text-warning-ink dark:bg-attention-500/10 dark:text-attention-300">
+              <div className="rounded-lg border border-attention-300/60 bg-attention-50 p-3 text-xs text-warning-ink ">
                 <p className="flex items-center gap-1.5 font-medium">
                   <Crown className="h-3.5 w-3.5 shrink-0" />
                   {t("settings_booking_elite_only")}
@@ -408,7 +408,7 @@ export function SettingsClient({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="mt-2 gap-1 border-attention-400/60 text-warning-ink hover:bg-attention-100 dark:text-attention-300 dark:hover:bg-attention-500/10"
+                  className="mt-2 gap-1 border-attention-400/60 text-warning-ink hover:bg-attention-100 "
                   onClick={() => {
                     if (typeof window !== "undefined") {
                       window.location.href = "/upgrade";

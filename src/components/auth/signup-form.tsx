@@ -1083,10 +1083,10 @@ export function SignupForm() {
                 </form>
               </Form>
                 <div className="mt-10 border-t border-border/60 pt-6">
-                  <Button type="button" onClick={() => setMode("tenant")} variant="outline" className="group h-auto min-h-14 w-full justify-start gap-3 whitespace-normal rounded-xl border-border bg-gradient-to-br from-card to-background px-4 py-3 text-start text-brand-950 shadow-sm transition-colors hover:border-brand-600/40 hover:bg-accent hover:text-brand-950 dark:border-brand-400/20 dark:from-brand-400/5 dark:to-transparent dark:text-brand-100 dark:hover:border-brand-400/40 dark:hover:bg-brand-400/10 dark:hover:text-brand-50">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-700/10 text-brand-700 dark:bg-brand-300/10 dark:text-brand-300"><Building2 className="h-[18px] w-[18px]" aria-hidden="true" /></span>
+                  <Button type="button" onClick={() => setMode("tenant")} variant="outline" className="group h-auto min-h-14 w-full justify-start gap-3 whitespace-normal rounded-xl border-border bg-gradient-to-br from-card to-background px-4 py-3 text-start text-brand-950 shadow-sm transition-colors hover:border-brand-600/40 hover:bg-accent hover:text-brand-950 ">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-700/10 text-brand-700 "><Building2 className="h-[18px] w-[18px]" aria-hidden="true" /></span>
                     <span className="flex-1 text-sm font-semibold">{t("signup_register_academy")}</span>
-                    <ArrowRight className="h-4 w-4 shrink-0 text-brand-700/70 dark:text-brand-300/70 rtl:rotate-180" aria-hidden="true" />
+                    <ArrowRight className="h-4 w-4 shrink-0 text-brand-700/70 rtl:rotate-180" aria-hidden="true" />
                   </Button>
                   <p className="mx-auto mt-3 max-w-xs text-center text-xs leading-relaxed text-muted-foreground">{t("signup_register_academy_hint")}</p>
                 </div>
@@ -1094,7 +1094,7 @@ export function SignupForm() {
             )}
 
             {confirming && (
-              <p className="mt-4 rounded-md bg-interactive-50 p-3 text-center text-sm text-info-ink dark:bg-interactive-500/10 dark:text-interactive-300">
+              <p className="mt-4 rounded-md bg-interactive-50 p-3 text-center text-sm text-info-ink ">
                 {t("signup_check_email")}
               </p>
             )}

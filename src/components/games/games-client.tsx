@@ -104,10 +104,10 @@ import { CreateGameDialog } from "./create-game-dialog";
 import { EditGameDialog } from "./edit-game-dialog";
 
 const STATUS_STYLES: Record<string, string> = {
-  open: "bg-positive-100 text-success-ink dark:bg-positive-500/15 dark:text-positive-400",
-  full: "bg-attention-100 text-warning-ink dark:bg-attention-500/15 dark:text-attention-400",
+  open: "bg-positive-100 text-success-ink ",
+  full: "bg-attention-100 text-warning-ink ",
   completed: "bg-success/15 text-success-ink",
-  cancelled: "bg-negative-100 text-error-ink dark:bg-negative-500/15 dark:text-negative-400",
+  cancelled: "bg-negative-100 text-error-ink ",
 };
 
 const AVAILABILITY_OPTIONS = ["any", "today", "weekend", "week", "free_spots"] as const;
@@ -263,7 +263,7 @@ export function GameCard({
               </Badge>
             )}
             {mine && mine.pay_status === "pending" && (
-              <Badge className="gap-1 bg-attention-100 text-[10px] text-warning-ink dark:bg-attention-500/15 dark:text-attention-400">
+              <Badge className="gap-1 bg-attention-100 text-[10px] text-warning-ink ">
                 {t("games_share_pending")}
               </Badge>
             )}
@@ -375,7 +375,7 @@ export function GameCard({
               </span>
             </span>
           </div>
-          <Progress indicatorColor="#C7F23D" style={{ backgroundColor: "rgba(199, 242, 61, 0.2)" }} value={game.max_players > 0 ? (count / game.max_players) * 100 : 0} />
+          <Progress indicatorColor="var(--color-primary)" style={{ backgroundColor: "hsl(var(--playza-lime) / 0.2)" }} value={game.max_players > 0 ? (count / game.max_players) * 100 : 0} />
           {game.status === "open" && (
             <div className="flex items-center justify-between gap-2">
               <Badge
@@ -401,7 +401,7 @@ export function GameCard({
         </div>
 
         <div className="flex flex-wrap gap-2 pt-1">
-          {isOrganizer && !isPrivate && game.status === "open" && slotsLeft > 0 && gameStart > Date.now() && <Button variant="outline" disabled={recruit.isPending || recruited} className="gap-2 border-brand-300 bg-brand-50 text-brand-900 hover:bg-brand-100 dark:border-brand-700 dark:bg-brand-950 dark:text-brand-100" onClick={async () => {
+          {isOrganizer && !isPrivate && game.status === "open" && slotsLeft > 0 && gameStart > Date.now() && <Button variant="outline" disabled={recruit.isPending || recruited} className="gap-2 border-brand-300 bg-brand-50 text-brand-900 hover:bg-brand-100 " onClick={async () => {
             try {
               const sent = await recruit.mutateAsync(game.id);
               if (sent > 0) setRecruited(true);
@@ -520,7 +520,7 @@ export function GameCard({
       <GameBookingStatus game={game} />
       <GameCostEstimate pricePerPlayer={game.share_price} rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} hostPays={game.host_pays} sport={game.sport} />
       {rentRemaining > 0 && (game.status === "open" || game.status === "full") && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 dark:bg-attention-500/10">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 ">
           <div className="min-w-0">
             <p className="text-xs font-semibold text-warning-ink">
               {t("games_rent_button")}
@@ -845,11 +845,11 @@ export function GamesClient({ profile }: { profile: Profile }) {
   return (
     <div className="space-y-6">
       <nav aria-label={lang === "ar" ? "اكتشف الأنشطة" : "Discover activities"} className="grid grid-cols-3 gap-1 rounded-full bg-muted p-1 text-center text-sm font-semibold">
-        <Link href="/dashboard/games" aria-current="page" className="rounded-full bg-[#C7F23D] px-3 py-2.5 text-[#14213D]">{lang === "ar" ? "المباريات" : "Games"}</Link>
+        <Link href="/dashboard/games" aria-current="page" className="rounded-full bg-primary px-3 py-2.5 text-foreground">{lang === "ar" ? "المباريات" : "Games"}</Link>
         <Link href="/dashboard/tournaments" className="rounded-full px-3 py-2.5 hover:bg-card">{lang === "ar" ? "البطولات" : "Tournaments"}</Link>
         <Link href="/academies" className="rounded-full px-3 py-2.5 hover:bg-card">{lang === "ar" ? "التدريب" : "Training"}</Link>
       </nav>
-      <header className="relative isolate overflow-hidden rounded-2xl bg-[#14213D] px-5 py-5 text-white sm:px-6 sm:py-6">
+      <header className="relative isolate overflow-hidden rounded-2xl bg-brand px-5 py-5 text-white sm:px-6 sm:py-6">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
           <GameCardBackground sport="tennis" />
           <div className="absolute -bottom-20 -end-16 h-72 w-72 rounded-full border-[32px] border-white/10" />
@@ -872,7 +872,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
         <h2 className="text-base font-bold">{lang === "ar" ? "اختار رياضتك" : "Pick your sport"}</h2>
         <div className="flex gap-2 overflow-x-auto pb-2" aria-label={t("community_sport")}>
           {["all", ...COMMUNITY_SPORTS].map(sport => <button key={sport} type="button" aria-pressed={sportFilter === sport} onClick={() => setSportFilter(sport)} className="group flex min-h-24 w-24 shrink-0 flex-col items-center justify-start gap-2 rounded-xl px-1 py-1 text-center text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <span className={`flex h-14 w-14 items-center justify-center rounded-full border transition-colors ${sportFilter === sport ? "border-[#a8ce2d] bg-[#C7F23D] text-[#14213D]" : "border-border bg-background text-foreground group-hover:border-[#a8ce2d]"}`}>{sport === "all" ? <UsersRound size={26} aria-hidden="true" /> : SportIcon({ id: sportToSlug(sport), size: 30 })}</span>
+            <span className={`flex h-14 w-14 items-center justify-center rounded-full border transition-colors ${sportFilter === sport ? "border-secondary bg-primary text-foreground" : "border-border bg-background text-foreground group-hover:border-secondary"}`}>{sport === "all" ? <UsersRound size={26} aria-hidden="true" /> : SportIcon({ id: sportToSlug(sport), size: 30 })}</span>
             <span>{sport === "all" ? t("community_filter_all_sports") : sport}</span>
           </button>)}
         </div>

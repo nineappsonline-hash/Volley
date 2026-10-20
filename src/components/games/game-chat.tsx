@@ -424,9 +424,9 @@ function ChatContent({
           )}
 
           {pinned && (
-            <div className="mb-2 rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 dark:bg-attention-500/10">
+            <div className="mb-2 rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 ">
               <div className="mb-1 flex items-center justify-between gap-2">
-                <p className="flex items-center gap-1 text-[11px] font-semibold text-warning-ink dark:text-attention-300">
+                <p className="flex items-center gap-1 text-[11px] font-semibold text-warning-ink ">
                   <Pin className="h-3 w-3" />
                   {ar ? "مثبّت" : "Pinned"}
                 </p>
@@ -598,7 +598,7 @@ function MessageRow({
           }}
           className={`max-w-full rounded-2xl px-3 py-2 text-start text-sm shadow-sm ${
             mine
-              ? "bg-[hsl(var(--accent))] text-emerald-950 dark:bg-[hsl(var(--playza-navy))] dark:text-white"
+              ? "bg-accent text-accent-foreground "
               : "border bg-card text-card-foreground"
           }`}
         >
@@ -613,7 +613,7 @@ function MessageRow({
           {m.body && <p dir="auto" className="whitespace-pre-wrap break-words">{m.body}</p>}
           <span
             className={`mt-0.5 flex items-center justify-end gap-1 text-[10px] ${
-              mine ? "text-emerald-800/70 dark:text-white/60" : "text-muted-foreground"
+              mine ? "text-emerald-800/70 " : "text-muted-foreground"
             }`}
             dir="ltr"
           >

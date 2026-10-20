@@ -103,15 +103,15 @@ function DiscoveryCard({
         {items.map(item => <li key={item.id} className={live ? "min-w-0" : "w-[48%] min-w-0 max-w-80 shrink-0 snap-start sm:w-[44%] lg:w-[31%]"}>
           <article className={live ? "flex overflow-hidden rounded-xl border bg-card" : "h-full overflow-hidden rounded-xl border bg-card"}>
             <Link href={item.href ?? href} className={`${live ? "w-28 shrink-0 sm:w-44" : ""} group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring`}>
-              <div className="relative isolate aspect-[4/3] overflow-hidden bg-[#14213D]">
-                <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 text-[#C7F23D]/30">{item.sport && Object.hasOwn(SPORT_SLUGS, sportToSlug(item.sport)) ? <GameCardBackground sport={item.sport} /> : <Icon className="absolute start-1/3 top-1/3 h-16 w-16" />}</div>
+              <div className="relative isolate aspect-[4/3] overflow-hidden bg-brand">
+                <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 text-highlight/30">{item.sport && Object.hasOwn(SPORT_SLUGS, sportToSlug(item.sport)) ? <GameCardBackground sport={item.sport} /> : <Icon className="absolute start-1/3 top-1/3 h-16 w-16" />}</div>
                 {/* Venue image hosts are supplied by academy and court owners. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {item.image && <img src={item.image} alt="" loading="lazy" className={`absolute inset-0 h-full w-full ${item.academyLogo !== undefined ? "bg-white object-contain p-5" : "object-cover"}`} onError={event => { event.currentTarget.style.display = "none"; }} />}
-                {item.badge && <span className="absolute start-3 top-3 rounded-full bg-[#14213D]/90 px-2.5 py-1 text-[10px] font-bold text-[#C7F23D]">{item.badge}</span>}
+                {item.badge && <span className="absolute start-3 top-3 rounded-full bg-brand/90 px-2.5 py-1 text-[10px] font-bold text-highlight">{item.badge}</span>}
                 {item.status && <span className={`absolute end-3 ${live ? "bottom-2" : "top-3"} rounded-full bg-background/95 px-2 py-1 text-[10px] font-semibold text-foreground`}>{t(`community_status_${item.status}` as keyof Dict)}</span>}
               </div>
-              <div className="bg-[#14213D] px-3 py-2.5 text-white"><h3 className="line-clamp-2 text-sm font-bold leading-5 text-white">{item.title}</h3></div>
+              <div className="bg-brand px-3 py-2.5 text-white"><h3 className="line-clamp-2 text-sm font-bold leading-5 text-white">{item.title}</h3></div>
             </Link>
             <div className="min-w-0 flex-1 space-y-2.5 p-3">
               {item.reason && <p className="text-[11px] font-semibold text-muted-foreground">{item.reason}</p>}
@@ -265,7 +265,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, p
         empty={ar ? "مفيش أكاديميات متاحة حالياً." : "No academies available yet."}
       />}
       {mode !== "academies" && <DiscoveryCard
-        controls={interactive && <button type="button" aria-label={ar ? "فلاتر المباريات" : "Game filters"} title={ar ? "فلاتر المباريات" : "Game filters"} aria-expanded={filtersOpen} aria-controls="member-game-filters" onClick={() => setFiltersOpen(!filtersOpen)} className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"><SlidersHorizontal size={19} aria-hidden="true" />{activeFilters > 0 && <span className="absolute -end-1 -top-1 rounded-full bg-[#C7F23D] px-1.5 text-[10px] font-bold text-[#14213D]">{activeFilters}</span>}</button>}
+        controls={interactive && <button type="button" aria-label={ar ? "فلاتر المباريات" : "Game filters"} title={ar ? "فلاتر المباريات" : "Game filters"} aria-expanded={filtersOpen} aria-controls="member-game-filters" onClick={() => setFiltersOpen(!filtersOpen)} className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"><SlidersHorizontal size={19} aria-hidden="true" />{activeFilters > 0 && <span className="absolute -end-1 -top-1 rounded-full bg-primary px-1.5 text-[10px] font-bold text-foreground">{activeFilters}</span>}</button>}
         filters={interactive && filtersOpen && <div id="member-game-filters" className="grid gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
           <label className="text-sm">{ar ? "المحافظة" : "Governorate"}<select className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" value={governorate} onChange={e => { setGovernorate(e.target.value); setCity(""); }}><option value="">{ar ? "الكل" : "All"}</option>{governorates.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
           <label className="text-sm">{ar ? "المدينة / المنطقة" : "City / area"}<select className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" value={city} onChange={e => { setCity(e.target.value); }}><option value="">{ar ? "الكل" : "All"}</option>{cities.map(value => <option key={value} value={value}>{value}</option>)}</select></label>

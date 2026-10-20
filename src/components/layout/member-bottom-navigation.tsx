@@ -25,7 +25,7 @@ export function MemberBottomNavigation({ guest = false }: { guest?: boolean }) {
     <nav
       data-member-navigation
       aria-label={lang === "ar" ? "التنقل الرئيسي" : "Main destinations"}
-      className="fixed inset-x-3 bottom-3 z-40 rounded-[28px] border bg-card/95 pb-[env(safe-area-inset-bottom)] shadow-[0_8px_35px_#14213d20] backdrop-blur-lg sm:inset-x-auto sm:start-1/2 sm:w-[min(560px,calc(100%_-_24px))] sm:-translate-x-1/2 sm:rtl:translate-x-1/2"
+      className="fixed inset-x-3 bottom-3 z-40 rounded-[28px] border bg-card/95 pb-[env(safe-area-inset-bottom)] shadow-[0_8px_35px_hsl(var(--playza-purple-dark)/0.1255)] backdrop-blur-lg sm:inset-x-auto sm:start-1/2 sm:w-[min(560px,calc(100%_-_24px))] sm:-translate-x-1/2 sm:rtl:translate-x-1/2"
     >
       <div className="mx-auto grid max-w-xl grid-cols-5 gap-1 px-2 py-2">
         {destinations.map(({ href, key, icon: Icon, ...rest }) => {
@@ -41,11 +41,11 @@ export function MemberBottomNavigation({ guest = false }: { guest?: boolean }) {
               aria-current={active ? "page" : undefined}
               className={cn(
                 "flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-[22px] px-1 py-2 text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-xs",
-                active ? "bg-[#C7F23D] text-[#14213D]" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                active ? "bg-primary text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
               <Icon className="h-5 w-5" aria-hidden="true" />
-              <span className="truncate">{href === "/dashboard" ? (lang === "ar" ? "الرئيسية" : "Home") : href === "/dashboard/games" ? (lang === "ar" ? "اكتشف" : "Discover") : href === "/playgrounds" ? (lang === "ar" ? "الملاعب" : "Courts") : t(key)}</span>
+              <span className="max-w-full truncate">{href === "/dashboard" ? (lang === "ar" ? "الرئيسية" : "Home") : href === "/dashboard/games" ? (lang === "ar" ? "اكتشف" : "Discover") : href === "/playgrounds" ? (lang === "ar" ? "الملاعب" : "Courts") : t(key)}</span>
             </Link>
           );
         })}

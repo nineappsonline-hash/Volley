@@ -53,7 +53,7 @@ export function TrialGate({ children, isAdmin = false }: TrialGateProps) {
       <div className="flex min-h-[60vh] items-center justify-center p-6">
         <Card className="w-full max-w-lg">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-attention-100 dark:bg-attention-500/10">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-attention-100 ">
               <AlertTriangle className="h-6 w-6 text-warning-ink" />
             </div>
             <CardTitle className="text-lg">{t("trial_expired_title")}</CardTitle>
@@ -76,10 +76,10 @@ export function TrialGate({ children, isAdmin = false }: TrialGateProps) {
   if (trialStatus.isTrial && trialStatus.daysLeft <= 3 && trialStatus.daysLeft > 0) {
     return (
       <div className="space-y-4">
-        <div className="flex items-center gap-3 rounded-lg border border-attention-300/60 bg-attention-50 p-4 text-sm dark:bg-attention-500/10">
+        <div className="flex items-center gap-3 rounded-lg border border-attention-300/60 bg-attention-50 p-4 text-sm ">
           <Clock className="h-5 w-5 shrink-0 text-warning-ink" />
           <div className="flex-1">
-            <p className="font-medium text-warning-ink dark:text-attention-300">
+            <p className="font-medium text-warning-ink ">
               {t("trial_expiring_soon").replace("{n}", String(trialStatus.daysLeft)).replace("{s}", lang === "ar" ? (trialStatus.daysLeft === 1 ? "" : "ًا") : (trialStatus.daysLeft === 1 ? "" : "s"))}
             </p>
           </div>

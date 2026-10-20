@@ -450,7 +450,7 @@ export default function AcademiesDirectoryPage() {
           </div>
         </div>
         {geoError && (
-          <p className="mb-4 rounded-md bg-attention-50 p-3 text-xs text-warning-ink dark:bg-attention-500/10 dark:text-attention-300">
+          <p className="mb-4 rounded-md bg-attention-50 p-3 text-xs text-warning-ink ">
             {t("geo_location_error")}
           </p>
         )}

@@ -108,10 +108,10 @@ const STATUS_LABELS: Record<string, keyof Dict> = {
 };
 
 const GAME_STATUS_STYLES: Record<string, string> = {
-  open: "bg-positive-100 text-success-ink dark:bg-positive-500/15 dark:text-positive-400",
-  full: "bg-attention-100 text-warning-ink dark:bg-attention-500/15 dark:text-attention-400",
+  open: "bg-positive-100 text-success-ink ",
+  full: "bg-attention-100 text-warning-ink ",
   completed: "bg-success/15 text-success-ink",
-  cancelled: "bg-negative-100 text-error-ink dark:bg-negative-500/15 dark:text-negative-400",
+  cancelled: "bg-negative-100 text-error-ink ",
 };
 
 /** Deletion confirmation phrase: account email, else member email, else the
@@ -461,9 +461,9 @@ function GameParticipantRow({ participant, data }: { participant: Row; data: Rec
   const pay = participant.is_waitlisted
     ? <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("sa_waitlisted")}</span>
     : participant.pay_status === "approved"
-      ? <span className="rounded-full bg-positive-100 px-2 py-0.5 text-xs font-medium text-success-ink dark:bg-positive-500/15 dark:text-positive-400">{t("sa_records_paid")}</span>
+      ? <span className="rounded-full bg-positive-100 px-2 py-0.5 text-xs font-medium text-success-ink ">{t("sa_records_paid")}</span>
       : participant.pay_status === "pending"
-        ? <span className="rounded-full bg-attention-100 px-2 py-0.5 text-xs font-medium text-warning-ink dark:bg-attention-500/15 dark:text-attention-400">{t("games_share_pending")}</span>
+        ? <span className="rounded-full bg-attention-100 px-2 py-0.5 text-xs font-medium text-warning-ink ">{t("games_share_pending")}</span>
         : <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("sa_records_unpaid")}</span>;
   const name = participant.name ?? participant.player_name ?? t("sa_unnamed_member");
   return <div className="flex flex-wrap items-center gap-2.5 rounded-lg border px-3 py-2">
@@ -525,9 +525,9 @@ function ManageGamePlayers({ game, data }: { game: Row; data: Records }) {
     const pay = participant.is_waitlisted
       ? <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("sa_waitlisted")}</span>
       : participant.pay_status === "approved"
-        ? <span className="rounded-full bg-positive-100 px-2 py-0.5 text-xs font-medium text-success-ink dark:bg-positive-500/15 dark:text-positive-400">{t("sa_records_paid")}</span>
+        ? <span className="rounded-full bg-positive-100 px-2 py-0.5 text-xs font-medium text-success-ink ">{t("sa_records_paid")}</span>
         : participant.pay_status === "pending"
-          ? <span className="rounded-full bg-attention-100 px-2 py-0.5 text-xs font-medium text-warning-ink dark:bg-attention-500/15 dark:text-attention-400">{t("games_share_pending")}</span>
+          ? <span className="rounded-full bg-attention-100 px-2 py-0.5 text-xs font-medium text-warning-ink ">{t("games_share_pending")}</span>
           : <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{t("sa_records_unpaid")}</span>;
     const removing = removeMember.isPending && removeMember.variables?.memberId === participant.member_id;
     return <div key={participant.id} className="flex flex-wrap items-center gap-2.5 rounded-lg border px-3 py-2">
@@ -903,7 +903,7 @@ export function PlatformRecords() {
     </div>}
     <CardHeader><CardTitle>{t("sa_records_title")}</CardTitle><p className="text-sm text-muted-foreground">{t("sa_records_counts").replace("{accounts}", String(data.profiles.length)).replace("{academies}", String(data.academies.length)).replace("{games}", String(data.friendly_games.length)).replace("{playgrounds}", String(data.venues.length))}</p></CardHeader>
     <CardContent className="space-y-4">
-      <div className="flex flex-wrap gap-2" role="tablist" aria-label={t("sa_records_title")}>{tabs.map(item => <Button key={item.value} role="tab" aria-selected={tab === item.value} variant={tab === item.value ? "default" : "outline"} onClick={() => { router.push(`/admin?tab=${encodeURIComponent(item.value)}`, { scroll: false }); }}>{item.label}</Button>)}</div>
+      <div className="flex flex-wrap gap-2" role="tablist" aria-label={t("sa_records_title")}>{tabs.map(item => <Button key={item.value} role="tab" aria-selected={tab === item.value} variant={tab === item.value ? "secondary" : "outline"} onClick={() => { router.push(`/admin?tab=${encodeURIComponent(item.value)}`, { scroll: false }); }}>{item.label}</Button>)}</div>
       <div className="flex flex-wrap gap-2"><Input className="max-w-sm" type="search" aria-label={searchLabel} placeholder={`${searchLabel}…`} value={search} onChange={e => setSearch(e.target.value)} />{tab === "Playgrounds" && <Input className="w-auto" type="date" aria-label={t("sa_records_schedule_date")} value={date} onChange={e => setDate(e.target.value)} />}{tab === "Playgrounds" && <Button disabled={busy} onClick={() => setEditingVenue({ name: "", capacity: "", sport_id: null, school_name: "", rental_cost: "", rental_hours: "1", location_link: "", country: "", governorate: "", area: "", contact_person: "", contact_phone: "", lat: "", lng: "", photos: [], cover_url: null, academy_id: null, court_count: "1", unavailable_slots: [], working_hours: [] })}><Plus className="mr-1 h-4 w-4 rtl:ml-1 rtl:mr-0" />{t("sa_records_add_playground")}</Button>}{tab === "Tournaments" && <Button onClick={() => setTournamentFormOpen(true)}><Plus className="mr-1 h-4 w-4 rtl:ml-1 rtl:mr-0" />{t("sa_records_add_tournament")}</Button>}<Button variant="outline" onClick={() => refetch()}>{t("sa_records_refresh")}</Button></div>
       {tab === "Academies" && <CreateAcademyButton />}
       {tab === "Playgrounds" && <p className="text-sm text-muted-foreground">{t("sa_records_schedule_note")}</p>}
@@ -1042,7 +1042,7 @@ export function PlatformRecords() {
             </div>
           </div>
           <div className={tab === "Friendly games" ? "grid grid-cols-3 gap-2 border-t border-border/60 pt-3" : "flex flex-wrap gap-2"}><Button size="sm" variant="outline" onClick={() => { setMemberInitialTab("overview"); setSelected(row); }}>{t("sa_records_details")}</Button>{tab === "Friendly games" && <Button size="sm" variant="outline" onClick={() => setEditingGame(row)}>{t("sa_records_edit")}</Button>}{tab === "Friendly games" && (row.status === "open" || row.status === "full") && <Button size="sm" variant="destructive" disabled={cancelGame.isPending} onClick={() => setCancellingGame(row)}><Ban className="me-1 h-4 w-4" />{lang === "ar" ? "إلغاء" : "Cancel"}</Button>}{tab === "Members" && <><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => { setMemberInitialTab("academies"); setSelected(row); }}>{lang === "ar" ? "الأكاديمية والاشتراك" : "Academy & subscription"}</Button><Button size="sm" variant="outline" disabled={busy || protectedAccount} onClick={() => act({ action: "block", id: row.id, blocked: !blocked })}>{blocked ? t("sa_records_unblock") : t("sa_records_block")}</Button><Button size="sm" variant="destructive" disabled={busy || protectedAccount} onClick={() => { setDeleting(row); setConfirmation(""); }}>{t("sa_records_delete")}</Button></>}{tab === "Academies" && <><Button size="sm" className="min-h-11 h-auto whitespace-normal" onClick={() => setTrainingAcademy(row)}>{lang === "ar" ? "مجموعات التدريب" : "Training groups"}</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setLogoAcademy(row as Academy)}>{t("sa_academy_logo")}</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setEditingAcademy(row as Academy)}>{t("sa_records_edit")}</Button><Button size="sm" variant="destructive" disabled={busy} onClick={() => { setDeletingAcademy(row as Academy); setConfirmation(""); }}>{t("sa_records_delete")}</Button></>}          {tab === "Playgrounds" && <><Button size="sm" variant="outline" disabled={busy} onClick={() => duplicateVenue(row)}><Copy className="me-1 h-3.5 w-3.5 rtl:me-0 rtl:ms-1" />{t("sa_records_duplicate")}</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setEditingVenue({ ...row, lat: row.lat ? String(row.lat) : "", lng: row.lng ? String(row.lng) : "" })}>{t("sa_records_edit")}</Button><Button size="sm" variant="destructive" disabled={busy} onClick={() => { setDeletingVenue(row); setConfirmation(""); }}>{t("sa_records_delete")}</Button></>}</div></div>
-          {tab === "Members" && <dl className="grid grid-cols-1 gap-3 rounded-xl border border-blue-200/50 bg-gradient-to-br from-blue-50 to-brand-50 p-4 text-sm dark:border-blue-800/40 dark:from-blue-950/40 dark:to-brand-950/30 sm:grid-cols-2 lg:grid-cols-4">
+          {tab === "Members" && <dl className="grid grid-cols-1 gap-3 rounded-xl border border-blue-200/50 bg-gradient-to-br from-blue-50 to-brand-50 p-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
             <div className="min-w-0"><dt className="text-xs text-muted-foreground">{t("sa_academy")}</dt><dd className="mt-1 break-words font-medium">{academy(row.academy_id)}</dd><dd className="text-xs text-muted-foreground">{row.academy_id ? row.is_active ? t("sa_active_membership") : t("sa_pending_membership") : t("sa_not_joined")}</dd></div>
             <div><dt className="text-xs text-muted-foreground">{t("sa_platform_plan")}</dt><dd className="mt-1 font-medium">{row.member_plan === "premium" ? t("sa_premium") : t("sa_free")}</dd></div>
             <div><dt className="text-xs text-muted-foreground">{t("sa_academy_subscription")}</dt><dd className="mt-1 font-medium">{row.academy_id && row.subscription_sessions > 0 ? `${row.subscription_sessions} ${t("sa_records_sessions")}` : t("sa_no_subscription")}</dd></div>

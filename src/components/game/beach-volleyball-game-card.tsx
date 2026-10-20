@@ -37,30 +37,30 @@ export function BeachVolleyballGameCard() {
     >
       <div
         ref={cardRef}
-        className="overflow-hidden rounded-3xl border border-white/10 bg-[#14213D] text-white shadow-xl"
+        className="overflow-hidden rounded-3xl border border-white/10 bg-brand text-white shadow-xl"
       >
         {!opened ? (
           <div className="grid gap-6 p-6 sm:p-10 md:grid-cols-[1.1fr_1fr] md:items-center">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#C7F23D]">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-highlight">
                 {copy.kicker}
               </p>
               <h2
                 id="beach-challenge-title"
                 className="mt-3 text-3xl font-black leading-tight text-white sm:text-4xl"
               >
-                {copy.title}<br /><span className="text-[#C7F23D]">{copy.accent}</span>
+                {copy.title}<br /><span className="text-highlight">{copy.accent}</span>
               </h2>
               <p className="mt-4 max-w-lg text-base leading-relaxed text-white/80">{copy.description}</p>
               <ul className="mt-5 flex flex-wrap gap-3 text-xs font-semibold text-white/80">
                 <li className="inline-flex items-center gap-1.5">
-                  <Gamepad2 size={14} className="text-[#C7F23D]" /> {copy.highlights[0]}
+                  <Gamepad2 size={14} className="text-highlight" /> {copy.highlights[0]}
                 </li>
                 <li className="inline-flex items-center gap-1.5">
-                  <Timer size={14} className="text-[#C7F23D]" /> {copy.highlights[1]}
+                  <Timer size={14} className="text-highlight" /> {copy.highlights[1]}
                 </li>
                 <li className="inline-flex items-center gap-1.5">
-                  <Zap size={14} className="text-[#C7F23D]" /> {copy.highlights[2]}
+                  <Zap size={14} className="text-highlight" /> {copy.highlights[2]}
                 </li>
               </ul>
               <BeachGameStats className="mt-5" />
@@ -68,18 +68,18 @@ export function BeachVolleyballGameCard() {
                 type="button"
                 onClick={open}
                 className={cn(
-                  "mt-6 inline-flex items-center gap-2 rounded-full bg-[#C7F23D] px-6 py-3 font-bold text-[#14213D] transition hover:bg-[#B4DF2D]",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C7F23D]",
+                  "mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-bold text-foreground transition hover:bg-primary-hover",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]",
                 )}
               >
                 <Play size={18} aria-hidden="true" /> {copy.action}
               </button>
               <p className="mt-3 text-xs leading-relaxed text-white/65">{copy.note}</p>
             </div>
-            <div className="relative min-w-0 overflow-hidden rounded-2xl border border-white/20 bg-[#0E182D] shadow-2xl">
+            <div className="relative min-w-0 overflow-hidden rounded-2xl border border-white/20 bg-brand-950 shadow-2xl">
               <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
                 <span className="text-xs font-bold tracking-wider text-white/80">{copy.preview}</span>
-                <span className="rounded-md bg-[#C7F23D] px-2.5 py-1 text-sm font-black text-[#14213D]">3D</span>
+                <span className="rounded-md bg-primary px-2.5 py-1 text-sm font-black text-foreground">3D</span>
               </div>
               <Image src="/beach-challenge/assets/gameplay-preview.png" alt={copy.previewAlt} width={800} height={370} sizes="(min-width: 768px) 50vw, 100vw" className="h-auto w-full" />
             </div>

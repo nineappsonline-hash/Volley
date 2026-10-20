@@ -52,14 +52,14 @@ export function BeachVolleyballPage() {
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t.cardDesc}</p>
         </header>
 
-        <div className="mt-6 overflow-hidden rounded-3xl border border-[#14213D]/10 bg-[#14213D] p-2 shadow-lg sm:p-3">
+        <div className="mt-6 overflow-hidden rounded-3xl border border-brand/10 bg-brand p-2 shadow-lg sm:p-3">
           {failed ? (
             <div className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-2xl text-white">
               <p className="text-sm font-semibold text-white/80">{t.loadError}</p>
               <button
                 type="button"
                 onClick={() => window.location.reload()}
-                className="rounded-full bg-[#C7F23D] px-5 py-2 text-sm font-bold text-[#14213D]"
+                className="rounded-full bg-primary px-5 py-2 text-sm font-bold text-foreground"
               >
                 {t.retry}
               </button>
@@ -71,7 +71,7 @@ export function BeachVolleyballPage() {
               className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-2xl text-white"
               role="status"
             >
-              <span className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-[#C7F23D]" />
+              <span className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-[var(--color-primary)]" />
               <p className="text-sm font-semibold text-white/80">{t.loading}</p>
             </div>
           )}
@@ -91,7 +91,7 @@ export function BeachVolleyballPage() {
             <p className="mt-3 text-xs text-muted-foreground">{t.rulesNotice}</p>
           </div>
 
-          <div className="rounded-2xl border border-[#C7F23D]/50 bg-[#C7F23D]/10 p-5">
+          <div className="rounded-2xl border border-primary/50 bg-primary/10 p-5">
             <h2 className="text-lg font-bold text-foreground">{t.ctaTitle}</h2>
             <p className="mt-2 text-sm text-muted-foreground">{t.ctaDesc}</p>
             <Link
@@ -100,8 +100,8 @@ export function BeachVolleyballPage() {
                 trackGameEvent("game_booking_click", { origin: "page", mode: "match" })
               }
               className={cn(
-                "mt-4 inline-flex items-center gap-2 rounded-full bg-[#14213D] text-white px-5 py-2.5 text-sm font-bold hover:bg-[#0E182D]",
-                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14213D]",
+                "mt-4 inline-flex items-center gap-2 rounded-full bg-brand text-white px-5 py-2.5 text-sm font-bold hover:bg-brand-950",
+                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-purple-dark)]",
               )}
             >
               <CalendarDays size={16} /> {t.viewBeachGames}

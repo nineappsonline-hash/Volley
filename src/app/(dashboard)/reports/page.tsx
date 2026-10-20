@@ -322,27 +322,27 @@ export default function ReportsPage() {
                 <p className="text-xs text-muted-foreground">{t("dash_total_members")}</p>
                 <p className="mt-1 font-mono text-xl font-extrabold">{retention.total}</p>
               </div>
-              <div className="rounded-lg border border-positive-300/50 bg-positive-50 p-3 text-center dark:bg-positive-500/10">
+              <div className="rounded-lg border border-positive-300/50 bg-positive-50 p-3 text-center ">
                 <p className="text-xs text-muted-foreground">{t("reports_active_30")}</p>
-                <p className="mt-1 font-mono text-xl font-extrabold text-success-ink dark:text-positive-400">
+                <p className="mt-1 font-mono text-xl font-extrabold text-success-ink ">
                   {retention.active30}
                 </p>
               </div>
-              <div className="rounded-lg border border-attention-300/50 bg-attention-50 p-3 text-center dark:bg-attention-500/10">
+              <div className="rounded-lg border border-attention-300/50 bg-attention-50 p-3 text-center ">
                 <p className="text-xs text-muted-foreground">{t("reports_inactive_30")}</p>
-                <p className="mt-1 font-mono text-xl font-extrabold text-warning-ink dark:text-attention-400">
+                <p className="mt-1 font-mono text-xl font-extrabold text-warning-ink ">
                   {retention.inactive30}
                 </p>
               </div>
-              <div className="rounded-lg border border-negative-300/50 bg-negative-50 p-3 text-center dark:bg-negative-500/10">
+              <div className="rounded-lg border border-negative-300/50 bg-negative-50 p-3 text-center ">
                 <p className="text-xs text-muted-foreground">{t("reports_inactive_60")}</p>
-                <p className="mt-1 font-mono text-xl font-extrabold text-error-ink dark:text-negative-400">
+                <p className="mt-1 font-mono text-xl font-extrabold text-error-ink ">
                   {retention.inactive60}
                 </p>
               </div>
-              <div className="rounded-lg border border-interactive-300/50 bg-interactive-50 p-3 text-center dark:bg-interactive-500/10">
+              <div className="rounded-lg border border-interactive-300/50 bg-interactive-50 p-3 text-center ">
                 <p className="text-xs text-muted-foreground">{t("reports_new_members")}</p>
-                <p className="mt-1 font-mono text-xl font-extrabold text-info-ink dark:text-interactive-400">
+                <p className="mt-1 font-mono text-xl font-extrabold text-info-ink ">
                   {retention.newMembers}
                 </p>
               </div>

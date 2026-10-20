@@ -7,69 +7,45 @@
 @layer base {
   :root {
     color-scheme: light;
-    --background: 210.0000 28.5714% 97.2549%;
+    --background: var(--playza-slate-50);
     --surface: 0 0% 100%;
     --on-brand: 0 0% 100%;
-    --foreground: var(--playza-navy);
+    --foreground: var(--playza-slate-900);
     --text-primary: var(--foreground);
-    --text-secondary: 215.3846 16.3180% 46.8627%;
-    --body-text: 216.0000 32.7103% 20.9804%;
+    --text-secondary: var(--playza-slate-500);
+    --body-text: var(--foreground);
     --card: var(--surface);
-    --card-foreground: var(--body-text);
+    --card-foreground: var(--foreground);
     --popover: var(--surface);
     --popover-foreground: var(--foreground);
-    --chart-brand: var(--playza-navy);
+    --chart-brand: var(--playza-purple);
     --primary: var(--playza-lime);
     --primary-hover: var(--playza-lime-hover);
-    --primary-foreground: var(--playza-navy);
-    --secondary: var(--surface);
-    --secondary-foreground: var(--playza-navy);
-    --muted: 210.0000 28.5714% 97.2549%;
-    /* Slightly deeper ink passes AA on the off-white page (the supplied secondary is 4.47:1). */
-    --muted-foreground: 215.3846 16.5957% 46.0784%;
-    --accent: var(--playza-soft-lime);
-    --accent-foreground: var(--playza-navy);
-    --destructive: var(--playza-red);
-    --destructive-foreground: 0 0% 100%;
+    --primary-foreground: var(--foreground);
+    --secondary: var(--playza-purple);
+    --secondary-hover: var(--playza-purple-700);
+    --secondary-foreground: var(--on-brand);
+    --muted: var(--playza-slate-100);
+    --muted-foreground: var(--playza-slate-500);
+    --accent: var(--playza-purple-100);
+    --accent-foreground: var(--playza-purple-dark);
+    --destructive: var(--playza-red-600);
+    --destructive-foreground: var(--on-brand);
     --success: var(--playza-green);
-    --success-foreground: 0 0% 100%;
-    --success-ink: var(--playza-green);
+    --success-foreground: var(--foreground);
+    --success-ink: var(--playza-green-700);
     --warning: var(--playza-orange);
-    --warning-foreground: 0 0% 100%;
-    --warning-ink: var(--playza-orange);
+    --warning-foreground: var(--foreground);
+    --warning-ink: var(--playza-orange-800);
     --info: var(--playza-blue);
-    --info-foreground: 0 0% 100%;
-    --info-ink: var(--playza-blue);
+    --info-foreground: var(--foreground);
+    --info-ink: var(--playza-blue-700);
     --error: var(--playza-red);
-    --error-ink: var(--playza-red);
-    --border: 214.2857 31.8182% 91.3725%;
+    --error-ink: var(--playza-red-700);
+    --border: var(--playza-slate-200);
     --input: var(--border);
-    --ring: var(--playza-navy);
+    --ring: var(--playza-purple);
     --radius: 0.625rem;
-  }
-  .dark {
-    color-scheme: dark;
-    --chart-brand: var(--playza-blue-200);
-    --background: var(--playza-navy-950);
-    --surface: var(--playza-navy);
-    --foreground: 204 45.455% 97.843%;
-    --text-secondary: var(--playza-slate-300);
-    --muted-foreground: var(--text-secondary);
-    --body-text: var(--playza-slate-100);
-    --primary: var(--playza-lime);
-    --ring: var(--playza-lime);
-    --primary-foreground: var(--playza-navy);
-    --secondary: var(--playza-navy-800);
-    --secondary-foreground: var(--playza-slate-100);
-    --muted: var(--playza-slate-900);
-    --accent: 218 35% 25%;
-    --accent-foreground: var(--playza-lime);
-    --success-ink: var(--playza-green-300);
-    --warning-ink: var(--playza-orange-200);
-    --info-ink: var(--playza-blue-200);
-    --error-ink: var(--playza-red-200);
-    --border: var(--playza-slate-800);
-    --input: var(--playza-slate-700);
   }
 }
 
@@ -86,7 +62,7 @@
     font-weight: 400;
     line-height: 1.7;
   }
-  h1, h2, h3, h4, h5, h6, nav, label, strong { color: hsl(var(--foreground)); }
+  h1, h2, h3, h4, h5, h6, nav, label, strong { color: inherit; }
   h1 { font-weight: 800; }
   h2, h3, h4 { font-weight: 700; }
   button, nav, label { font-weight: 600; }
@@ -318,19 +294,19 @@
   }
 }
 
-/* Navy navigation remains consistent in both themes, including mobile sheets. */
+/* Deep-purple navigation is shared by every dashboard and mobile sheet. */
 .playza-navigation {
-  background: hsl(var(--playza-navy));
+  background: hsl(var(--playza-purple-dark));
   color: white;
   --foreground: 0 0% 100%;
   --body-text: var(--playza-slate-100);
   --muted-foreground: var(--playza-slate-200);
   --primary: var(--playza-lime);
-  --primary-foreground: var(--playza-navy);
-  --accent: 218 35% 25%;
+  --primary-foreground: var(--playza-slate-900);
+  --accent: var(--playza-purple-600);
   --accent-foreground: 0 0% 100%;
-  --border: var(--playza-slate-800);
-  --muted: var(--playza-slate-900);
+  --border: var(--playza-purple-700);
+  --muted: var(--playza-purple-900);
 }
 /* Keep rich notifications on surfaces with accessible semantic text. */
 [data-sonner-toaster] {
@@ -352,7 +328,7 @@
 }
 
 /* Accent text uses readable foreground ink rather than the lime fill. */
-.text-primary { color: hsl(var(--foreground)); }
+.text-primary { color: hsl(var(--playza-purple)); }
 
 /* Owner availability calendar: highlight blocked days with the error color. */
 .rd-blocked {
@@ -399,12 +375,10 @@ body:has([data-member-navigation]) .contact-widget {
 
 /* Visible focus for native controls and custom links on either surface. */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
-.playza-navigation { --ring: var(--playza-lime); --accent: 218 35% 25%; }
-input[type="checkbox"], input[type="radio"] { accent-color: hsl(var(--playza-navy)); }
+.playza-navigation { --ring: var(--playza-lime); --accent: var(--playza-purple-600); }
 
-.dark [data-sonner-toaster] { --success-bg: hsl(var(--card)); --warning-bg: hsl(var(--card)); --error-bg: hsl(var(--card)); --info-bg: hsl(var(--card)); }
 
-/* A two-color focus edge stays visible within navy heroes and light controls. */
+/* A two-color focus edge stays visible within purple heroes and light controls. */
 :is(.bg-brand, .from-brand) :focus-visible {
   outline: 2px solid hsl(var(--playza-lime));
   outline-offset: 3px;
@@ -425,3 +399,14 @@ input[type="checkbox"], input[type="radio"] { accent-color: hsl(var(--playza-nav
 .playza-logo {
   filter: drop-shadow(1px 0 0 white) drop-shadow(-1px 0 0 white) drop-shadow(0 1px 0 white) drop-shadow(0 -1px 0 white);
 }
+
+/* Shared form and calendar presentation, independent of the device theme. */
+input[type="checkbox"], input[type="radio"] { accent-color: hsl(var(--playza-purple)); }
+:where(input, select, textarea):focus-visible { border-color: hsl(var(--playza-purple)); }
+:where(input, select, textarea) { color-scheme: light; }
+:where([role="radio"])[aria-checked="true"] { border-color: hsl(var(--playza-purple)); color: hsl(var(--playza-purple)); }
+::selection { background: hsl(var(--playza-purple-200)); color: hsl(var(--playza-purple-dark)); }
+
+/* Third-party date picker follows the same booking control colors. */
+.rdp{--rdp-accent-color:hsl(var(--playza-purple));--rdp-background-color:hsl(var(--playza-purple-100));--rdp-outline:2px solid hsl(var(--playza-purple));--rdp-outline-selected:2px solid hsl(var(--playza-purple))}
+.rdp .rdp-day_selected{background:hsl(var(--playza-purple));color:white}

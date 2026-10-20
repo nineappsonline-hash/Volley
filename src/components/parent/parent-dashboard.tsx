@@ -272,7 +272,7 @@ export function ParentDashboard() {
                     </div>
 
                     <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-3 sm:grid-cols-3 text-center">
-                      <div className="rounded-lg border border-attention-300/40 bg-attention-50/70 p-2 dark:bg-attention-500/10">
+                      <div className="rounded-lg border border-attention-300/40 bg-attention-50/70 p-2 ">
                         <p className="flex items-center justify-center gap-1 text-lg font-bold">
                           <Flame className="h-4 w-4 text-warning-ink" />
                           {streaks.current}
@@ -281,7 +281,7 @@ export function ParentDashboard() {
                           {t("streak_current")}
                         </p>
                       </div>
-                      <div className="rounded-lg border border-interactive-300/40 bg-interactive-50/70 p-2 dark:bg-interactive-500/10">
+                      <div className="rounded-lg border border-interactive-300/40 bg-interactive-50/70 p-2 ">
                         <p className="flex items-center justify-center gap-1 text-lg font-bold">
                           <Zap className="h-4 w-4 text-info-ink" />
                           {streaks.best}
@@ -290,7 +290,7 @@ export function ParentDashboard() {
                           {t("streak_best")}
                         </p>
                       </div>
-                      <div className="rounded-lg border border-positive-300/40 bg-success/10 p-2 dark:bg-positive-500/10">
+                      <div className="rounded-lg border border-positive-300/40 bg-success/10 p-2 ">
                         <p className="flex items-center justify-center gap-1 text-lg font-bold text-success-ink">
                           {attended30d}
                         </p>

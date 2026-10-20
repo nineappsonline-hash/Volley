@@ -478,7 +478,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
           className={`flex items-center gap-3 rounded-lg border p-3 text-sm ${
             premiumWarning === "expired"
               ? "border-destructive/30 bg-destructive/5 text-destructive"
-              : "border-attention-300 bg-attention-50 text-warning-ink dark:bg-attention-500/10 dark:text-attention-300"
+              : "border-attention-300 bg-attention-50 text-warning-ink "
           }`}
         >
           <Crown className="h-4 w-4 shrink-0" />
@@ -804,7 +804,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                         title={t(b.key as keyof Dict)}
                         className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border text-center ${
                           unlocked
-                            ? "border-attention-300 bg-attention-50 dark:bg-attention-500/10"
+                            ? "border-attention-300 bg-attention-50 "
                             : "border-dashed opacity-50"
                         }`}
                       >

@@ -130,7 +130,7 @@ export function MemberPlanComparison({
     if (cell.kind === "yes") {
       return (
         <Check
-          className="mx-auto h-4 w-4 text-success-ink dark:text-positive-400"
+          className="mx-auto h-4 w-4 text-success-ink "
           aria-label={t("common_yes")}
         />
       );
@@ -189,7 +189,7 @@ export function MemberPlanComparison({
 
         {/* Pro tier */}
         <Card className="relative border-interactive-400/60">
-          <Badge className="absolute -top-2.5 start-1/2 -translate-x-1/2 bg-info text-info-foreground dark:bg-interactive-500">
+          <Badge className="absolute -top-2.5 start-1/2 -translate-x-1/2 bg-info text-info-foreground ">
             <Sparkles className="me-1 h-3 w-3" />
             {t("plans_popular")}
           </Badge>

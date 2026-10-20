@@ -74,10 +74,10 @@ import { CreateGameDialog } from "./create-game-dialog";
 import { EditGameDialog } from "@/components/games/edit-game-dialog";
 
 const STATUS_STYLES: Record<string, string> = {
-  open: "bg-positive-100 text-success-ink dark:bg-positive-500/15 dark:text-positive-400",
-  full: "bg-attention-100 text-warning-ink dark:bg-attention-500/15 dark:text-attention-400",
+  open: "bg-positive-100 text-success-ink ",
+  full: "bg-attention-100 text-warning-ink ",
   completed: "bg-success/15 text-success-ink",
-  cancelled: "bg-negative-100 text-error-ink dark:bg-negative-500/15 dark:text-negative-400",
+  cancelled: "bg-negative-100 text-error-ink ",
 };
 
 function gameMatchesProfile(game: FriendlyGameWithDetails, profile: Profile) {
@@ -349,7 +349,7 @@ function GameCard({
             </span>
           </div>
           <Progress
-            indicatorColor="#C7F23D" style={{ backgroundColor: "rgba(199, 242, 61, 0.2)" }}
+            indicatorColor="var(--color-primary)" style={{ backgroundColor: "hsl(var(--playza-lime) / 0.2)" }}
             value={game.max_players > 0 ? (count / game.max_players) * 100 : 0}
           />
         </div>
@@ -461,7 +461,7 @@ function GameCard({
       <GameBookingStatus game={game} />
       <GameCostEstimate pricePerPlayer={game.share_price} rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} sport={game.sport} />
       {rentRemaining > 0 && (game.status === "open" || game.status === "full") && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 dark:bg-attention-500/10">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 ">
           <div className="min-w-0">
             <p className="text-xs font-semibold text-warning-ink">
               {t("games_rent_button")}

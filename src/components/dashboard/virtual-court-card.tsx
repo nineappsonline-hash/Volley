@@ -66,7 +66,7 @@ export function VirtualCourtCard() {
 
       {opened ? (
         <CardContent className="p-3 sm:p-4">
-          <div className="rounded-xl bg-[#14213D] p-2 sm:p-3">
+          <div className="rounded-xl bg-brand p-2 sm:p-3">
             <BeachVolleyballGamePanel
               fullscreen={fullscreen}
               onToggleFullscreen={() => setFullscreen(!fullscreen)}

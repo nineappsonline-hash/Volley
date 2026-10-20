@@ -533,7 +533,7 @@ export function OwnerSignupForm() {
             </div>
 
             {confirming && (
-              <p className="rounded-md bg-interactive-50 p-3 text-center text-sm text-info-ink dark:bg-interactive-500/10 dark:text-interactive-300">
+              <p className="rounded-md bg-interactive-50 p-3 text-center text-sm text-info-ink ">
                 {t("signup_check_email")}
               </p>
             )}

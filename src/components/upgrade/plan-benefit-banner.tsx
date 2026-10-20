@@ -17,14 +17,14 @@ export function AdminPlanBanner({ plan, isTrial }: AdminPlanBannerProps) {
 
   if (plan === "elite") {
     return (
-      <div className="flex flex-col gap-3 rounded-xl border border-positive-300/60 bg-positive-50 p-4 dark:bg-positive-500/10 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
+      <div className="flex flex-col gap-3 rounded-xl border border-positive-300/60 bg-positive-50 p-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
         <div className="flex items-start gap-3">
           <Crown className="mt-0.5 h-5 w-5 shrink-0 text-success-ink" />
           <div>
-            <p className="text-sm font-semibold text-success-ink dark:text-positive-300">
+            <p className="text-sm font-semibold text-success-ink ">
               {t(isTrial ? "plan_banner_elite_trial" : "plan_banner_elite_title")}
             </p>
-            <p className="text-xs text-success-ink dark:text-positive-400">
+            <p className="text-xs text-success-ink ">
               {t("plan_banner_elite_desc")}
             </p>
           </div>
@@ -46,19 +46,19 @@ export function AdminPlanBanner({ plan, isTrial }: AdminPlanBannerProps) {
       : ["plan_feat_evaluations", "plan_feat_forecast", "plan_feat_marketplace", "plan_feat_teams"];
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-interactive-300/60 bg-gradient-to-br from-interactive-50 to-attention-50 p-4 dark:bg-interactive-500/10 animate-fade-in-up sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 rounded-xl border border-interactive-300/60 bg-gradient-to-br from-interactive-50 to-attention-50 p-4 animate-fade-in-up sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
         <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-info-ink" />
         <div>
-          <p className="text-sm font-semibold text-info-ink dark:text-interactive-300">
+          <p className="text-sm font-semibold text-info-ink ">
             {t(titleKey)}
           </p>
-          <p className="text-xs text-info-ink/80 dark:text-interactive-400">{t(descKey)}</p>
+          <p className="text-xs text-info-ink/80 ">{t(descKey)}</p>
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
             {highlights.map((h) => (
               <span
                 key={h}
-                className="flex items-center gap-1.5 text-xs font-medium text-info-ink dark:text-interactive-300"
+                className="flex items-center gap-1.5 text-xs font-medium text-info-ink "
               >
                 <Check className="h-3.5 w-3.5 text-info-ink" />
                 {t(h)}

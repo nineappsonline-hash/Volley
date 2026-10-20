@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Sidebar } from "@/components/layout/sidebar";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { Notifications } from "@/components/layout/notifications";
 import { useI18n } from "@/lib/i18n";
@@ -104,7 +103,6 @@ export function Topbar({ guest = false, role, navigationRole = role, name, usern
           </span>
         )}
         {!guest && role !== "super_admin" && <Notifications />}
-        <ThemeToggle />
         <LanguageToggle />
         {guest ? <Button asChild size="sm"><Link href={loginHref}>{lang === "ar" ? "دخول / حساب جديد" : "Sign in / Sign up"}</Link></Button> : <DropdownMenu>
           <DropdownMenuTrigger asChild>

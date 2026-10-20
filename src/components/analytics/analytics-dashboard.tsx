@@ -444,7 +444,7 @@ export function AnalyticsDashboard() {
           <span className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-interactive-500 to-positive-400" aria-hidden />
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-interactive-100 p-2 transition-transform group-hover:scale-110 dark:bg-interactive-900/30">
+              <div className="rounded-lg bg-interactive-100 p-2 transition-transform group-hover:scale-110 ">
                 <Users className="h-5 w-5 text-info-ink" />
               </div>
               <div className="min-w-0">
@@ -459,7 +459,7 @@ export function AnalyticsDashboard() {
           <span className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-positive-400 to-positive-600" aria-hidden />
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-positive-100 p-2 transition-transform group-hover:scale-110 dark:bg-positive-900/30">
+              <div className="rounded-lg bg-positive-100 p-2 transition-transform group-hover:scale-110 ">
                 <CalendarCheck className="h-5 w-5 text-success-ink" />
               </div>
               <div className="min-w-0">
@@ -474,7 +474,7 @@ export function AnalyticsDashboard() {
           <span className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-attention-400 to-attention-600" aria-hidden />
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-attention-100 p-2 transition-transform group-hover:scale-110 dark:bg-attention-900/30">
+              <div className="rounded-lg bg-attention-100 p-2 transition-transform group-hover:scale-110 ">
                 <Target className="h-5 w-5 text-warning-ink" />
               </div>
               <div className="min-w-0">
@@ -489,7 +489,7 @@ export function AnalyticsDashboard() {
           <span className={cn("pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r", stats.profit >= 0 ? "from-positive-400 to-interactive-400" : "from-negative-400 to-negative-600")} aria-hidden />
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className={cn("rounded-lg p-2 transition-transform group-hover:scale-110", stats.profit >= 0 ? "bg-positive-100 dark:bg-positive-900/30" : "bg-negative-100 dark:bg-negative-900/30")}>
+              <div className={cn("rounded-lg p-2 transition-transform group-hover:scale-110", stats.profit >= 0 ? "bg-positive-100 " : "bg-negative-100 ")}>
                 {stats.profit >= 0
                   ? <TrendingUp className="h-5 w-5 text-success-ink" />
                   : <TrendingDown className="h-5 w-5 text-error-ink" />

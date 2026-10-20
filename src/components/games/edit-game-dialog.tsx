@@ -247,7 +247,7 @@ export function EditGameDialog({ game, profile, open, onOpenChange }: Props) {
                     </Button>
                   </>
                 ) : (
-                  <p className="flex items-start gap-2 rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 text-xs text-warning-ink dark:bg-attention-500/10">
+                  <p className="flex items-start gap-2 rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 text-xs text-warning-ink ">
                     <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
                     {t("games_edit_cancel_blocked")}
                   </p>

@@ -144,7 +144,7 @@ export function PlaygroundAvailabilityCalendar({
               onClick={() => onSelectDate?.(iso)}
               className={cn(
                 "flex flex-col items-center gap-0.5 rounded-md border p-1.5 text-xs transition-colors",
-                isSelected ? "border-brand bg-accent text-accent-foreground" : "hover:bg-muted",
+                isSelected ? "border-secondary bg-secondary text-white [&>span]:text-inherit" : "hover:bg-muted",
                 disabled ? "cursor-not-allowed opacity-40" : status !== "open" && !isSelected && "opacity-70"
               )}
             >
