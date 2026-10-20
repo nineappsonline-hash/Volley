@@ -34,6 +34,9 @@ for (lang of ['en', 'ar']) {
   const html = renderToStaticMarkup(React.createElement(LandingPage));
   const section = html.match(/<section id="beach-volleyball"[\s\S]*?<\/section>/)?.[0];
   assert.ok(html.includes('id="tennis"'));
+  assert.ok(!html.includes(lang === 'ar' ? '>لاقي ملعب<' : 'Find a playground'));
+  assert.ok(html.includes('heroJoin'));
+  assert.ok(html.includes(lang === 'ar' ? 'لاقي ماتش وانضم' : 'Find a game to join'));
   assert.ok(html.includes('href="/dashboard?sport=tennis"'));
   assert.ok(!html.includes('Padel') && !html.includes('البادل'));
   assert.ok(html.includes(lang === 'ar' ? 'التنس في مصر. ماتشك الجاي يبدأ هنا.' : 'Tennis in Egypt. Find your next rally.'));

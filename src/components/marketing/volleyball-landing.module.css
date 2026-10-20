@@ -81,3 +81,7 @@
 @keyframes multi-sport-ball{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-9px) rotate(14deg)}}
 @media(max-width:640px){.multiSportHero{top:3%;width:104%;inset-inline-start:-2%}.heroArt .artLabel{top:0;font-size:8px}.heroArt .sticker{width:60px;height:60px;font-size:12px;bottom:2%}.heroArt .sticker>span{font-size:16px}.heroArt .locationTag{bottom:0;inset-inline-start:4%}}
 @media(prefers-reduced-motion:reduce){.multiSportHero :global(.sports-hero-volleyball){animation:none}}
+
+.heroCopy .heroJoin{min-height:64px;max-width:100%;padding:20px 34px;font-size:clamp(17px,1.5vw,20px);font-weight:900;line-height:1.4;gap:16px;text-align:center;justify-content:center}
+.heroCopy .heroJoin svg{flex-shrink:0}
+@media(max-width:640px){.heroCopy .heroJoin{width:100%;max-width:360px;padding:20px 24px}}
