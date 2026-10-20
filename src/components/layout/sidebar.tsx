@@ -77,6 +77,7 @@ const academyItems = [
 ] as const;
 
 const memberItems = [
+  { href: "/dashboard/my-games", key: "nav_games", icon: Users },
   { href: "/profile#checkin", key: "nav_profile", icon: QrCode },
   { href: "/profile#upcoming-training", key: "nav_schedule", icon: CalendarDays },
   { href: "/profile#training-renewal", key: "nav_profile", icon: CreditCard },
@@ -125,6 +126,7 @@ export function Sidebar({ role, name, memberPlan, isCoach, hasAcademyWorkspace, 
         ? [...memberItems, ...staffItems, ...adminItems]
         : [...adminItems, ...academyItems, ...memberItems, ...staffItems];
   const memberLabels: Record<string, [string, string]> = {
+    "/dashboard/my-games": ["My games", "مبارياتي"],
     "/profile#checkin": ["My check-in code", "كود الحضور"],
     "/profile#upcoming-training": ["Upcoming training", "التدريب القادم"],
     "/profile#training-renewal": ["Training membership & renewal", "اشتراك التدريب وتجديده"],
@@ -147,9 +149,11 @@ export function Sidebar({ role, name, memberPlan, isCoach, hasAcademyWorkspace, 
       group("AI coach & predictions", "الذكاء الاصطناعي والتنبؤات", ["/coach-ai", "/insights"]),
       group("Academy settings", "إعدادات الأكاديمية", ["/profile", "/settings", "/upgrade"]),
     ] : [
+      group("Member pass", "كود الحضور", ["/profile#checkin"]),
+      group("My games", "مبارياتي", ["/dashboard/my-games"]),
       ...(hasAcademyWorkspace ? [group("Academy staff", "فريق الأكاديمية", ["/academy"])] : []),
       group("My Playza", "بلايزا بتاعتي", ["/dashboard", "/profile", "/parent", "/games/beach-volleyball"]),
-      group("My training & member pass", "تدريبي وكود الحضور", ["/profile#checkin", "/profile#upcoming-training", "/profile#training-renewal", "/schedule", "/academy-bookings"]),
+      group("My training & member pass", "تدريبي وكود الحضور", ["/profile#upcoming-training", "/profile#training-renewal", "/schedule", "/academy-bookings"]),
       ...(isCoach ? [group("Coaching tools", "أدوات التدريب", ["/coaches", "/coach-ai", "/insights"])] : []),
       group("Find a place to play", "اكتشف مكان تلعب فيه", ["/academies", "/playgrounds", "/following", "/marketplace", "/dashboard/games", "/events"]),
       group("Community", "المجتمع", ["/community", "/leaderboard", "/scouting", "/dashboard/tournaments"]),

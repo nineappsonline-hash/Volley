@@ -74,7 +74,8 @@ for(lang of ['en','ar']){
  assert.ok(home.includes('Open game listings'));assert.ok(home.includes('data-interactive="true"'));
  assert.ok(!home.includes('SECRET-QR'));assert.ok(!home.includes('id="checkin"'));assert.ok(!home.includes('id="play"'));assert.ok(!home.includes('id="training"'));assert.ok(!home.includes('id="tournaments"'));assert.ok(!home.includes('href="/parent"'));
  const menu=renderToStaticMarkup(React.createElement(Sidebar,{role:'member',name:'Player'}));
- for(const href of ['/profile#checkin','/profile#upcoming-training','/profile#training-renewal','/parent','/games/beach-volleyball','/schedule','/academy-bookings','/dashboard/tournaments','/playgrounds'])assert.ok(menu.includes(`href="${href}"`),href);
+ const menuNav=menu.slice(menu.indexOf('<nav'));assert.ok(menuNav.indexOf('href="/profile#checkin"') < menuNav.indexOf('href="/dashboard/my-games"'));assert.ok(menuNav.indexOf('href="/dashboard/my-games"') < menuNav.indexOf('href="/dashboard"'));
+ for(const href of ['/dashboard/my-games','/profile#checkin','/profile#upcoming-training','/profile#training-renewal','/parent','/games/beach-volleyball','/schedule','/academy-bookings','/dashboard/tournaments','/playgrounds'])assert.ok(menu.includes(`href="${href}"`),href);
 }
 assert.ok(fs.readFileSync('src/components/profile/profile-client.tsx','utf8').includes('id="upcoming-training"'));
 assert.ok(fs.readFileSync('src/app/(dashboard)/dashboard/tournaments/page.tsx','utf8').includes('<MyTournamentsCard memberId={profile.id}'));
@@ -95,3 +96,19 @@ assert.ok(renderToStaticMarkup(inlineTree).includes('Join game here'));
 findElements(inlineTree,node=>node.type==='button'&&node.props['aria-controls']==='inline-game-details')[0].props.onClick();
 assert.equal(expanded,false);
 console.log('PASS: shared list card opens and closes inline participation details through its accessible toggle');
+
+
+let personalGames=[];
+mocks['@/lib/queries'].useMyGames=()=>({data:personalGames,isPending:false,isError:false,refetch(){}});
+mocks['@/lib/useRealtime']={useRealtime(){}};
+mocks['@/components/dashboard/dashboard-game-list']={DashboardGameList:({games})=>React.createElement('div',null,games.map(game=>React.createElement('article',{key:game.id},game.title)))};
+const {MyGamesClient}=load('src/components/games/my-games-client.tsx');
+for(lang of ['en','ar']){
+ personalGames=[];
+ let personal=renderToStaticMarkup(React.createElement(MyGamesClient,{profile:{id:'member'}}));
+ assert.ok(personal.includes(lang==='en'?'You haven’t created':'لسه ما أنشأتش'));
+ personalGames=[{id:'past',title:'Past completed',status:'completed',game_date:'2020-01-01',start_time:'18:00'},{id:'future',title:'Future joined',status:'full',game_date:'2099-01-01',start_time:'18:00'},{id:'cancelled',title:'Cancelled created',status:'cancelled',game_date:'2099-01-01',start_time:'18:00'}];
+ personal=renderToStaticMarkup(React.createElement(MyGamesClient,{profile:{id:'member'}}));
+ assert.ok(personal.includes('Past completed'));assert.ok(personal.includes('Cancelled created'));assert.ok(personal.indexOf('Future joined') < personal.indexOf('Past completed'));
+}
+console.log('PASS: check-in and My games lead the bilingual menu; personal games show empty, upcoming, past and cancelled states with shared cards');

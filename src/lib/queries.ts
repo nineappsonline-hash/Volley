@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchMyGames } from "./my-games";
+
 import { ACTIVE_SPORTS } from "@/lib/active-sports";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
@@ -4666,5 +4668,16 @@ export function useRequestGamePlayers() {
       if (error) throw error;
       return Number(data ?? 0);
     },
+  });
+}
+
+
+export function useMyGames(memberId: string) {
+  return useQuery({
+    queryKey: [...queryKeys.friendlyGames, "mine", memberId],
+    enabled: !!memberId,
+    refetchInterval: 15_000,
+    refetchOnWindowFocus: "always",
+    queryFn: () => fetchMyGames(supabase(), memberId),
   });
 }
