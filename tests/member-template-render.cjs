@@ -51,7 +51,7 @@ function findElements(node,predicate,found=[]){if(!node||typeof node!=='object')
 let selected='all';lang='en';
 let selector=MemberHomeHeader({hasQr:false,sections:[],selectedSport:selected,onSportChange:sport=>{selected=sport;}});
 const buttons=findElements(selector,node=>node.type==='button'&&node.props['aria-controls']==='member-live-games');
-assert.equal(buttons.length,5);
+assert.equal(buttons.length,7);
 buttons.find(button=>renderToStaticMarkup(button).includes('Archery')).props.onClick();
 assert.equal(selected,'Archery');
 selector=MemberHomeHeader({hasQr:false,sections:[],selectedSport:selected,onSportChange:sport=>{selected=sport;}});

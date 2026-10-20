@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { ImagePlus, X } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,6 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CourtAvailabilityEditor } from "./court-availability-editor";
+import { LocationFields } from "@/components/shared/location-fields";
 import { MapPicker } from "@/components/shared/map-picker";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
@@ -33,6 +35,7 @@ interface PlaygroundFormDialogProps {
   onOpenChange: (open: boolean) => void;
   venue: Venue | null;
   ownerProfileId?: string | null;
+  ownerPhone?: string | null;
 }
 
 export function PlaygroundFormDialog({
@@ -40,10 +43,16 @@ export function PlaygroundFormDialog({
   onOpenChange,
   venue,
   ownerProfileId,
+  ownerPhone,
 }: PlaygroundFormDialogProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const ar = lang === "ar";
   const save = useSaveVenue();
   const { data: sports } = useSports();
+  const { data: courtSports } = useQuery({queryKey:["court-sports"],queryFn:async()=>{const {data,error}=await createClient().rpc("court_sports");if(error)throw error;return data as {id:string;name:string}[];}});
+  const [location,setLocation]=useState({country:venue?.country??"",governorate:venue?.governorate??"",city:venue?.area??""});
+  const [phone,setPhone]=useState(venue?.contact_phone??ownerPhone??"");
+  const [courtAvailability,setCourtAvailability]=useState(venue?.court_availability??[]);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
@@ -65,6 +74,9 @@ export function PlaygroundFormDialog({
 
   const handleSave = async () => {
     if (!name.trim()) return;
+    if (ownerProfileId && (!address.trim() || !phone.trim() || sportId==="none" || rentalCost==="" || !Number.isFinite(Number(rentalCost)) || Number(rentalCost)<0 || !Number.isInteger(Number(courtCount)) || Number(courtCount)<1)) {
+      toast.error(ar?"أدخل العنوان ورقم التواصل والرياضة وسعرًا صحيحًا وعدد الملاعب":"Enter an address, contact phone, sport, valid rental price and court count");return;
+    }
     try {
       await save.mutateAsync({
         id: venue?.id,
@@ -72,7 +84,10 @@ export function PlaygroundFormDialog({
         name: name.trim(),
         address: address.trim() || null,
         capacity: capacity ? Number(capacity) : null,
-        sport_id: ownerProfileId ? null : sportId === "none" ? null : sportId,
+        sport_id: sportId === "none" ? null : sportId,
+        contact_phone: phone.trim() || null,
+        ...(location.country ? {country:location.country,governorate:location.governorate,area:location.city} : {}),
+        court_availability: courtAvailability,
         school_name: schoolName.trim() || null,
         rental_cost: rentalCost ? Number(rentalCost) : null,
         rental_hours: rentalHours ? Number(rentalHours) : null,
@@ -142,7 +157,7 @@ export function PlaygroundFormDialog({
             <Input value={name} onChange={(e) => setName(e.target.value)} />
           </div>
 
-          {!ownerProfileId && (
+          { (
             <div className="space-y-2">
               <Label>{t("venues_sport")}</Label>
               <Select value={sportId} onValueChange={setSportId}>
@@ -151,7 +166,7 @@ export function PlaygroundFormDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">{t("venues_no_sport")}</SelectItem>
-                  {(sports ?? []).map((s) => (
+                  {(ownerProfileId ? courtSports ?? [] : sports ?? []).map((s) => (
                     <SelectItem key={s.id} value={s.id}>
                       {s.name}
                     </SelectItem>
@@ -248,6 +263,9 @@ export function PlaygroundFormDialog({
             />
           </div>
 
+          <div className="space-y-2"><Label>{ar ? "رقم التواصل للملعب" : "Court contact phone"}</Label><Input type="tel" dir="ltr" value={phone} onChange={e=>setPhone(e.target.value)} /></div>
+          <LocationFields country={location.country} governorate={location.governorate} city={location.city} onCountryChange={v=>setLocation(l=>({...l,country:v}))} onGovernorateChange={v=>setLocation(l=>({...l,governorate:v}))} onCityChange={v=>setLocation(l=>({...l,city:v}))}/>
+          <CourtAvailabilityEditor value={courtAvailability} onChange={setCourtAvailability} courtCount={Math.max(1,Number(courtCount)||1)} />
           <div className="space-y-2">
             <Label>{t("venues_photos")}</Label>
             <div className="flex flex-wrap gap-2">

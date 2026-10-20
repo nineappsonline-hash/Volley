@@ -1,6 +1,6 @@
 /** Public copy shared by visible content and homepage search metadata. */
-export const LANDING_TITLE = "Volleyball, Tennis & Archery in Egypt | Playza";
-export const LANDING_DESCRIPTION = "Discover volleyball, tennis and archery in Egypt. Explore playing guides, published games, courts and academies, and plan your next activity with Playza.";
+export const LANDING_TITLE = "Volleyball, Tennis, Padel, Basketball & Archery in Egypt | Playza";
+export const LANDING_DESCRIPTION = "Discover volleyball, tennis, padel, basketball and archery in Egypt. Explore playing guides, published games, courts and academies, and plan your next activity with Playza.";
 export const BEACH_DESCRIPTION = {
   en: "Discover beach volleyball in Egypt with Playza. Explore sand-court games, find people to play with, and discover academies that match your next move.",
   ar: "اكتشف الكرة الطائرة الشاطئية في مصر مع بلايزا. دور على مباريات على الملاعب الرملية، واتعرّف على لاعبين، واكتشف أكاديميات تناسب خطوتك الجاية.",
@@ -34,7 +34,7 @@ export function landingPageJsonLd(siteUrl: string): Record<string, unknown> {
 export const SportsHeroSceneCopy = {
   en: {
     eyebrow: "VOLLEYBALL. TENNIS. ARCHERY.",
-    intro: "Serve a volleyball, rally on the tennis court, or take aim with archery. Find your people, explore sessions in Egypt, and make your next move with Playza.",
+    intro: "Serve a volleyball, rally in tennis or padel, shoot hoops in basketball, or take aim with archery. Find your people, explore sessions in Egypt, and make your next move with Playza.",
     note: "Three sports. One community. Your next game.",
     artLabel: "Illustration of volleyball players at a net, a tennis racket and ball, and an archer aiming at a target",
   },
@@ -59,7 +59,7 @@ export const TENNIS_DESCRIPTION = {
 /** Supporting topic tags; visible content, titles and links carry the search intent. */
 export const LANDING_KEYWORDS = [
   "volleyball Egypt", "volleyball games Cairo", "volleyball courts Cairo",
-  "tennis Egypt", "tennis courts Cairo", "tennis lessons Egypt", "tennis partners Cairo",
+  "basketball games Egypt", "basketball courts Cairo", "كرة سلة مصر", "ملاعب كرة السلة", "padel Egypt", "padel courts Cairo", "padel games Egypt", "بادل مصر", "ملاعب بادل", "tennis Egypt", "tennis courts Cairo", "tennis lessons Egypt", "tennis partners Cairo",
   "archery Egypt", "archery Cairo", "archery training Egypt", "archery for beginners",
   "beach volleyball Egypt", "sports activities Egypt",
   "كرة طائرة في مصر", "ماتشات كرة طائرة في القاهرة", "ملاعب تنس في القاهرة", "دروس تنس",

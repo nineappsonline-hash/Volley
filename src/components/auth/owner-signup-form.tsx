@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { CourtOwnerBenefits } from "./court-owner-benefits";
 import { AppLogo } from "@/components/shared/app-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -145,7 +146,7 @@ export function OwnerSignupForm() {
       try {
         const { data } = await createClient()
           .from("venues")
-          .select("id, name, address, country, governorate, area, rental_cost, rental_hours")
+          .select("id, name, address, country, governorate, area, rental_hours")
           .is("academy_id", null)
           .is("owner_profile_id", null)
           .order("name");
@@ -302,7 +303,8 @@ export function OwnerSignupForm() {
           </p>
         </div>
 
-        <Card>
+        <CourtOwnerBenefits registrationLink={false} />
+      <Card>
           <CardContent className="space-y-4 p-6">
             <div className="space-y-2">
               <label className="text-sm font-medium">{t("owner_business_name")}</label>
@@ -336,7 +338,7 @@ export function OwnerSignupForm() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">{t("signup_phone")}</label>
-                <Input dir="ltr" value={account.phone} onChange={(e) => setAccountField("phone", e.target.value)} />
+                <Input type="tel" autoComplete="tel" dir="ltr" value={account.phone} onChange={(e) => setAccountField("phone", e.target.value)} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">{t("login_email")}</label>

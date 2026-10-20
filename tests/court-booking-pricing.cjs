@@ -1,0 +1,77 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),{PGlite}=require('@electric-sql/pglite');
+const migration=fs.readFileSync('supabase/migrations/20261020181745_court_owner_padel_pricing.sql','utf8');
+const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
+(async()=>{const db=new PGlite();try{
+ await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role BYPASSRLS; CREATE SCHEMA auth;
+ CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$SELECT nullif(current_setting('test.uid',true),'')::uuid$$;
+ CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql AS $$SELECT coalesce(nullif(current_setting('test.role',true),''),'authenticated')$$;
+ CREATE FUNCTION is_super_admin() RETURNS boolean LANGUAGE sql AS $$SELECT coalesce(current_setting('test.super',true),'')='yes'$$;
+ CREATE FUNCTION is_account_blocked() RETURNS boolean LANGUAGE sql AS $$SELECT coalesce(current_setting('test.blocked',true),'')='yes'$$;
+ CREATE TABLE profiles(id uuid PRIMARY KEY,name text,phone text,role text,academy_id uuid,username text,nickname text,notify_game_alerts boolean DEFAULT false,interested_sports text[]);
+ CREATE FUNCTION academy_can(a uuid,permission text) RETURNS boolean LANGUAGE sql AS $$SELECT false$$;
+ CREATE TABLE sports(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),academy_id uuid NOT NULL,name text);
+ CREATE TABLE sport_settings(sport text PRIMARY KEY,min_players integer);
+ CREATE TABLE venues(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),name text,academy_id uuid,owner_profile_id uuid,approval_status text DEFAULT 'approved',rental_cost numeric,rental_hours numeric DEFAULT 1,sport_id uuid,court_count integer DEFAULT 1,area text,lat float8,lng float8,working_hours jsonb DEFAULT '[]',unavailable_slots jsonb DEFAULT '[]',blocked_dates jsonb DEFAULT '[]');
+ CREATE TABLE friendly_games(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),creator_id uuid,creator_name text,creator_username text,creator_nickname text,sport text,title text,description text,area text,location text,lat float8,lng float8,playground_id uuid,game_date date,start_time time,max_players integer DEFAULT 12,min_players integer DEFAULT 2,duration_hours numeric DEFAULT 1,playground_hourly_rate numeric,share_price numeric,host_pays boolean DEFAULT false,host_total numeric,skill_level text,is_public boolean DEFAULT true,status text DEFAULT 'open',recurrence text,invite_code text,gender text,min_age integer,max_age integer,court_number integer);
+ CREATE TABLE friendly_game_participants(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),game_id uuid,member_id uuid,role text DEFAULT 'player',player_name text,is_waitlisted boolean DEFAULT false,share_amount numeric,pay_status text DEFAULT 'unpaid',pay_method text,pay_receipt_url text,sponsor_participant_id uuid);
+ CREATE TABLE friendly_game_rent_payments(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),game_id uuid,member_id uuid,amount numeric,pay_method text,pay_receipt_url text,pay_status text,created_at timestamptz DEFAULT now());
+ CREATE TABLE venue_rentals(id uuid PRIMARY KEY,academy_id uuid,venue_id uuid,rental_date date,start_time time,hours numeric,court_number integer);
+ CREATE TABLE academy_training_programs(id uuid PRIMARY KEY,venue_id uuid);
+ CREATE TABLE academy_training_bookings(id uuid PRIMARY KEY,status text,hold_until timestamptz);
+ CREATE TABLE academy_training_booking_sessions(booking_id uuid,program_id uuid,session_date date,court_number integer,starts_at time,ends_at time);
+ CREATE TABLE training_sessions(id uuid,venue_id uuid,date date,time time,status text,court_number integer,duration_minutes integer);
+ CREATE TABLE kashier_orders(id uuid,user_id uuid,request_key text,mode text,status text,expires_at timestamptz,created_at timestamptz,session_url text);
+ CREATE TABLE notifications(recipient_id uuid,type text,title text,body text,link text);CREATE TABLE blocks(blocker_id uuid,blocked_id uuid);
+ CREATE FUNCTION minutes_of_day(t time) RETURNS integer LANGUAGE sql IMMUTABLE AS $$SELECT (extract(hour from t)*60+extract(minute from t))::integer$$;
+ CREATE FUNCTION player_display_name(p profiles) RETURNS text LANGUAGE sql AS $$SELECT p.name$$;
+ CREATE FUNCTION new_friendly_game_invite_code() RETURNS text LANGUAGE sql AS $$SELECT upper(substr(replace(gen_random_uuid()::text,'-',''),1,8))$$;
+ GRANT USAGE ON SCHEMA auth TO anon,authenticated,service_role;
+ GRANT SELECT ON venues,friendly_games TO anon,authenticated;
+ ALTER TABLE venues ENABLE ROW LEVEL SECURITY; CREATE POLICY all_venues ON venues FOR SELECT USING(true);
+ ALTER TABLE friendly_games ENABLE ROW LEVEL SECURITY; CREATE POLICY all_games ON friendly_games FOR SELECT USING(true);
+ `);
+ await db.exec(migration);
+ await db.exec(fs.readFileSync('supabase/migrations/20261020230531_court_price_visibility.sql','utf8'));
+ const source=fs.readFileSync('supabase/migrations/20261128000000_unique_invite_links_for_all_games.sql','utf8');const fn=source.slice(source.indexOf('CREATE OR REPLACE FUNCTION public.create_friendly_game('));await db.exec(fn.slice(0,fn.indexOf('$$;',fn.indexOf('AS $$'))+3));
+ await db.query("INSERT INTO profiles(id,name,phone,role) VALUES($1,'Owner','01000000000','playground_owner'),($2,'Member','01100000000','member'),($3,'Other owner','01200000000','playground_owner')",[id(1),id(2),id(3)]);
+ await db.query("SELECT set_config('test.uid',$1,false)",[id(2)]);
+ const cases=[['Tennis',400,2,225,450],['Padel',600,2,325,650],['Volleyball',500,10,75,750],['Beach Volleyball',800,8,125,1000],['Basketball',500,8,87.5,700]];
+ let volleyball;
+ for(let i=0;i<cases.length;i++){
+  const [sport,rate,n,share,full]=cases[i];const venue=id(100+i);
+  await db.query("INSERT INTO venues(id,name,owner_profile_id,rental_cost,sport_id,court_count) SELECT $1,$2,$3,$4,id,2 FROM sports WHERE name=$2 AND academy_id IS NULL",[venue,sport,id(1),rate]);
+  const q=(await db.query('SELECT court_booking_quote($1,1) q',[venue])).rows[0].q;assert.equal(Number(q.per_player),share);assert.equal(Number(q.full_court),full);assert.equal(q.minimum_players,n);assert.ok(!JSON.stringify(q).includes('rental'));
+  const q2=(await db.query('SELECT court_booking_quote($1,2) q',[venue])).rows[0].q;assert.equal(Number(q2.per_player),rate*2/n+25);assert.equal(Number(q2.full_court),rate*2+25*n);
+  const make=async(host,time)=> (await db.query("SELECT create_friendly_game(p_title=>'Booking',p_sport=>$1,p_game_date=>CURRENT_DATE+1,p_start_time=>$2,p_playground_id=>$3,p_min_players=>$4,p_max_players=>12,p_duration_hours=>2,p_host_pays=>$5) id",[sport,time,venue,n,host])).rows[0].id;
+  const game=await make(false,'10:00');const g=(await db.query('SELECT * FROM friendly_games WHERE id=$1',[game])).rows[0];assert.equal(Number(g.share_price),rate*2/n+25);assert.equal(Number(g.owner_rental_total),rate*2);assert.equal(Number((await db.query('SELECT share_amount FROM friendly_game_participants WHERE game_id=$1',[game])).rows[0].share_amount),rate*2/n+25);
+  const host=await make(true,'15:00');assert.equal(Number((await db.query('SELECT host_total FROM friendly_games WHERE id=$1',[host])).rows[0].host_total),rate*2+25*n);
+  if(sport==='Volleyball')volleyball={venue,game,n,rate};
+ }
+ await assert.rejects(db.query('SELECT court_booking_quote($1,0)',[id(100)]),/Invalid duration/);await assert.rejects(db.query('SELECT court_booking_quote($1,\'NaN\')',[id(100)]),/Invalid duration/);
+ // Verify privacy through actual SQL privileges, not UI labels.
+ await db.exec('SET ROLE authenticated');await assert.rejects(db.query('SELECT rental_cost FROM venues'),/permission denied/);await assert.rejects(db.query('SELECT playground_hourly_rate FROM friendly_games'),/permission denied/);assert.ok((await db.query('SELECT id,name FROM venues')).rows.length>0);
+ const code=(await db.query('SELECT invite_code FROM friendly_games WHERE id=$1',[volleyball.game])).rows[0].invite_code;
+ const invite=(await db.query('SELECT * FROM get_game_by_invite($1)',[code])).rows[0];assert.equal(invite.playground_hourly_rate,null);assert.equal(invite.owner_rental_total,null);
+ const publicCatalog=(await db.query('SELECT court_catalog(false) v')).rows.map(r=>r.v);assert.ok(publicCatalog.every(v=>!('rental_cost' in v)));assert.equal((await db.query('SELECT court_catalog(true) v')).rows.length,0);
+ await db.query("SELECT set_config('test.uid',$1,false)",[id(1)]);assert.ok((await db.query('SELECT court_catalog(true) v')).rows.every(r=>r.v.rental_cost!=null));
+ await assert.rejects(db.query("SELECT record_court_payout(gen_random_uuid(),'fake')"),/Super admin/);await db.exec('RESET ROLE');
+ // Configure distinct hours per court and enforce them in database allocation.
+ await db.query("UPDATE venues SET court_availability=jsonb_build_array(jsonb_build_object('court_number',1,'weekday',extract(dow from CURRENT_DATE+2)::int,'start','09:00','end','12:00'),jsonb_build_object('court_number',2,'weekday',extract(dow from CURRENT_DATE+2)::int,'start','14:00','end','18:00')) WHERE id=$1",[volleyball.venue]);
+ assert.equal((await db.query("SELECT pick_free_court($1,CURRENT_DATE+2,'10:00',60) n",[volleyball.venue])).rows[0].n,1);
+ assert.equal((await db.query("SELECT pick_free_court($1,CURRENT_DATE+2,'15:00',60) n",[volleyball.venue])).rows[0].n,2);
+ assert.equal((await db.query("SELECT pick_free_court($1,CURRENT_DATE+2,'12:00',60) n",[volleyball.venue])).rows[0].n,null);
+ await assert.rejects(db.query("UPDATE venues SET court_availability='[{\"court_number\":3,\"weekday\":1,\"start\":\"10:00\",\"end\":\"11:00\"}]' WHERE id=$1",[volleyball.venue]),/Invalid court/);
+ await db.query("UPDATE venues SET court_availability='[]',rental_cost=900 WHERE id=$1",[volleyball.venue]);
+ // Pending receipts do not confirm or create payable owner earnings.
+ await db.query("UPDATE friendly_game_participants SET pay_status='pending' WHERE game_id=$1",[volleyball.game]);assert.equal((await db.query('SELECT * FROM court_owner_payouts')).rows.length,0);
+ await db.query("UPDATE friendly_game_participants SET pay_status='approved' WHERE game_id=$1",[volleyball.game]);assert.equal((await db.query('SELECT * FROM court_owner_payouts')).rows.length,0);
+ await db.query("INSERT INTO friendly_game_rent_payments(game_id,member_id,amount,pay_status) VALUES($1,$2,1125,'approved')",[volleyball.game,id(2)]);
+ const payout=(await db.query('SELECT * FROM court_owner_payouts WHERE game_id=$1',[volleyball.game])).rows[0];assert.equal(Number(payout.rental_amount),1000,'owner receives the booked rental snapshot, not the subsequently edited rate');
+ await db.query("SELECT set_config('test.uid',$1,false)",[id(3)]);assert.equal((await db.query('SELECT court_payout_ledger()')).rows.length,0);
+ await db.query("SELECT set_config('test.uid',$1,false)",[id(1)]);assert.equal((await db.query('SELECT court_payout_ledger()')).rows.length,1);
+ await db.query("SELECT set_config('test.super','yes',false)");await assert.rejects(db.query("SELECT record_court_payout($1,'BANK-001')",[payout.id]),/booking date/);
+ await db.query('UPDATE friendly_games SET game_date=CURRENT_DATE WHERE id=$1',[volleyball.game]);
+ await db.query("SELECT record_court_payout($1,'BANK-001')",[payout.id]);await assert.rejects(db.query("SELECT record_court_payout($1,'BANK-001')",[payout.id]),/already paid/);
+ assert.equal((await db.query('SELECT payment_reference FROM court_owner_payouts WHERE id=$1',[payout.id])).rows[0].payment_reference,'BANK-001');
+ console.log('PASS: five sport prices, 1h/2h once-only fees, server creation/host pricing, database-level rate privacy, owner isolation, per-court availability, full-prepayment payout eligibility, unchanged rental snapshots and audited same-day manual payouts');
+}finally{await db.close();}})().catch(e=>{console.error(e.message, e.position ? e.query?.slice(Number(e.position)-100,Number(e.position)+100) : "", e.detail??"");process.exit(1)});

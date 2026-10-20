@@ -27,6 +27,7 @@ import {
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PlaygroundFormDialog } from "@/components/playgrounds/playground-form-dialog";
+import { CourtPayouts } from "./court-payouts";
 import { AvailabilityDialog } from "@/components/playgrounds/availability-dialog";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
@@ -147,6 +148,7 @@ export function OwnerDashboard() {
 
   return (
     <div className="space-y-6">
+      <CourtPayouts />
       <PageHeader title={t("playgrounds_title")} subtitle={t("owner_dashboard_subtitle")}>
         <Button onClick={openNew} disabled={!approved}>
           <Plus className="h-4 w-4" />
@@ -371,10 +373,11 @@ export function OwnerDashboard() {
       )}
 
       <PlaygroundFormDialog
+        key={`${editing?.id ?? "new"}-${dialogOpen ? "open" : "closed"}`}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         venue={editing}
-        ownerProfileId={ownerProfileId}
+        ownerProfileId={ownerProfileId} ownerPhone={application?.phone}
       />
 
       <AvailabilityDialog

@@ -518,7 +518,7 @@ export function GameCard({
         </div>
       <GameTeamsButton gameId={game.id} date={game.game_date} time={game.start_time} status={game.status} canManage={canEdit} />
       <GameBookingStatus game={game} />
-      <GameCostEstimate pricePerPlayer={game.share_price} rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} hostPays={game.host_pays} sport={game.sport} />
+      <GameCostEstimate pricePerPlayer={game.host_pays ? game.host_total : game.share_price} rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} hostPays={game.host_pays} sport={game.sport} />
       {rentRemaining > 0 && (game.status === "open" || game.status === "full") && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 ">
           <div className="min-w-0">

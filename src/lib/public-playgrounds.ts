@@ -1,3 +1,5 @@
+import { estimateHostTotal, estimateSharePrice } from "@/lib/game-costs";
+import { getBillablePlayers } from "@/lib/constants";
 import { isActiveSport } from "@/lib/active-sports";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { VenueBlockedDate, VenueUnavailableSlot } from "@/lib/types";
@@ -28,7 +30,8 @@ export type PublicPlayground = {
   capacity: number | null;
   sport_id: string | null;
   school_name: string | null;
-  rental_cost: number | null;
+  rental_cost: null;
+  booking_price?: {per_player:number;full_court:number;minimum_players:number;hours:number}|null;
   rental_hours: number | null;
   location_link: string | null;
   photos: string[];
@@ -40,6 +43,7 @@ export type PublicPlayground = {
   working_hours: VenueUnavailableSlot[] | null;
   blocked_dates: VenueBlockedDate[] | null;
   court_count: number | null;
+  court_availability?: (VenueUnavailableSlot & {court_number:number})[];
   /** Matches the `Venue` shape so it can be passed straight into the shared
    * booking dialog / availability helpers. */
   created_at: string;
@@ -99,7 +103,7 @@ export async function getPublicPlayground(
         `id, name, address, lat, lng, capacity, sport_id, school_name,
          rental_cost, rental_hours, location_link, photos, cover_url,
          country, governorate, area, unavailable_slots, working_hours,
-         blocked_dates, court_count, created_at, sport:sports(id, name)`
+         blocked_dates, court_count, court_availability, created_at, sport:sports(id, name)`
       )
       .eq("id", id)
       .eq("approval_status", "approved")
@@ -108,8 +112,12 @@ export async function getPublicPlayground(
     const row = data as unknown as PublicPlayground & {
       sport?: { id: string; name: string } | { id: string; name: string }[] | null;
     };
+    const resolvedSport = Array.isArray(row.sport) ? row.sport[0] ?? null : row.sport;
+    const share = estimateSharePrice(data.rental_cost, 1, 2, resolvedSport?.name ?? "");
+    const full = estimateHostTotal(data.rental_cost, 1, resolvedSport?.name ?? "");
     return {
-      ...data,
+      ...data, rental_cost: null,
+      booking_price: share && full ? {per_player:share.total,full_court:full.total,minimum_players:getBillablePlayers(resolvedSport?.name??"",2),hours:1} : null,
       sport: Array.isArray(row.sport) ? (row.sport[0] ?? null) : (row.sport ?? null),
     } as PublicPlayground;
   } catch {
@@ -199,7 +207,7 @@ export async function resolvePublicPlayground(
   return { venue, games, rating: reviews.rating, reviews: reviews.reviews };
 }
 /** Small allowlisted projection for crawlable court discovery; never owner/member data. */
-export type PublicCourt = Pick<PublicPlayground, "id" | "name" | "address" | "country" | "governorate" | "area" | "rental_cost" | "rental_hours" | "capacity" | "court_count" | "cover_url" | "photos"> & { sport: { name: string } | null };
+export type PublicCourt = Pick<PublicPlayground, "id" | "name" | "address" | "country" | "governorate" | "area" | "booking_price" | "rental_hours" | "capacity" | "court_count" | "cover_url" | "photos"> & { sport: { name: string } | null };
 
 export async function getPublicCourtDirectory(sport?: string): Promise<PublicCourt[]> {
   const admin = getAdmin();
@@ -220,7 +228,9 @@ export async function getPublicCourtDirectory(sport?: string): Promise<PublicCou
         if (!isActiveSport(resolved?.name)) continue;
         if (sport && resolved?.name.toLowerCase() !== sport.toLowerCase()) continue;
         courts.push({ id: row.id, name: row.name, address: row.address, country: row.country,
-          governorate: row.governorate, area: row.area, rental_cost: row.rental_cost,
+          governorate: row.governorate, area: row.area,
+          booking_price: row.rental_cost == null || !Number.isFinite(row.rental_cost) || row.rental_cost < 0 ? null : {per_player:estimateSharePrice(row.rental_cost,1,2,resolved?.name??"")!.total,
+            full_court:estimateHostTotal(row.rental_cost,1,resolved?.name??"")!.total,minimum_players:getBillablePlayers(resolved?.name??"",2),hours:1},
           rental_hours: row.rental_hours, capacity: row.capacity, court_count: row.court_count,
           cover_url: row.cover_url, photos: row.photos ?? [], sport: resolved });
       }

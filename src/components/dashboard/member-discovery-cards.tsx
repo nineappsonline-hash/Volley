@@ -148,7 +148,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, p
   const myGames = useMyUpcomingGames(memberId);
   const follows = useMyAcademyFollows(!guestQuery);
   const ar = lang === "ar";
-  const selectedSportLabel = ar ? ({ Tennis: "تنس", Volleyball: "كرة طائرة", "Beach Volleyball": "طائرة شاطئية", Archery: "رماية بالقوس" } as Record<string, string>)[sportFilter] ?? sportFilter : sportFilter;
+  const selectedSportLabel = ar ? ({ Tennis: "تنس", Padel: "بادل", Basketball: "كرة سلة", Volleyball: "كرة طائرة", "Beach Volleyball": "طائرة شاطئية", Archery: "رماية بالقوس" } as Record<string, string>)[sportFilter] ?? sportFilter : sportFilter;
   const academyJoined = hasAcademy || !!follows.data?.length;
   const gameJoined = !!myGames.data?.length;
   const today = cairoNow().slice(0, 10);

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { useI18n } from "@/lib/i18n";
 
-/** Explains the 50% court-rent deposit and shares the game invitation. */
+/** Explains full court-booking prepayment and shares the game invitation. */
 export function CourtRentInfoDialog({
   open,
   onOpenChange,
@@ -27,8 +27,8 @@ export function CourtRentInfoDialog({
   const ar = lang === "ar";
   const [copied, setCopied] = useState(false);
   const message = ar
-    ? "يتم تأكيد الحجز بعد اعتماد دفع ٥٠٪ من إيجار الملعب. المبلغ المتبقي يمكن دفعه في الملعب."
-    : "The booking is confirmed once approved payments cover 50% of the court rent. The remaining balance can be paid at the premises.";
+    ? "يتأكد الحجز فقط بعد سداد السعر النهائي بالكامل واعتماد الدفع. الإيصالات قيد المراجعة لا تؤكد الحجز."
+    : "The booking is confirmed only after the full booking price has been paid and approved. Pending receipts do not confirm a booking.";
 
   const copyLink = async () => {
     if (!shareLink) return;

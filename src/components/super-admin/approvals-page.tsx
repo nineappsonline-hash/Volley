@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { CourtPayouts } from "@/components/playgrounds/court-payouts";
+import type { Venue } from "@/lib/types";
 import { PaymentApprovals } from "./payment-approvals";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,20 +20,16 @@ import { OwnerApprovals } from "./owner-approvals";
 export function ApprovalsPage() {
   const { t, lang } = useI18n();
   const cache = useQueryClient();
-  const [section, setSection] = useState<"payments" | "playgrounds" | "owners">("payments");
+  const [section, setSection] = useState<"payments" | "playgrounds" | "owners" | "payouts">("payments");
   const [photo, setPhoto] = useState<string | null>(null);
   const { data: academies } = useAllAcademies();
   const { data: ownerApplications } = usePlaygroundOwnerApprovals();
   const { data: venues, isLoading, error, refetch } = useQuery({
     queryKey: ["venue-approvals"],
     queryFn: async () => {
-      const { data, error } = await createClient().from("venues")
-        .select("id, name, academy_id, address, country, governorate, area, rental_cost, rental_hours, capacity, court_count, photos, cover_url, location_link, sport_id, created_at")
-        .eq("approval_status", "pending").order("created_at");
+      const { data, error } = await createClient().rpc("court_catalog", {p_manage:true});
       if (error) throw error;
-      const { data: labels, error: sportError } = await createClient().rpc("playground_sport_labels");
-      if (sportError) throw sportError;
-      return (data ?? []).map(v => ({ ...v, sport: (labels ?? []).find((s: { venue_id: string; sport_name: string }) => s.venue_id === v.id)?.sport_name as string | undefined }));
+      return ((data??[]) as Venue[]).filter(v=>v.approval_status==="pending").map(v=>({...v,sport:v.sport?.name}));
     },
   });
   const review = useMutation({
@@ -53,8 +51,9 @@ export function ApprovalsPage() {
       <Button variant={section === "payments" ? "default" : "outline"} onClick={() => setSection("payments")}>{t("approvals_payments")}</Button>
       <Button variant={section === "playgrounds" ? "default" : "outline"} onClick={() => setSection("playgrounds")}>{t("nav_playgrounds")} {venues && <Badge variant="secondary" className="ms-2">{venues.length}</Badge>}</Button>
       <Button variant={section === "owners" ? "default" : "outline"} onClick={() => setSection("owners")}>{t("approvals_owners")} {ownerApplications && <Badge variant="secondary" className="ms-2">{ownerApplications.length}</Badge>}</Button>
+      <Button variant={section === "payouts" ? "secondary" : "outline"} onClick={()=>setSection("payouts")}>{lang === "ar" ? "مستحقات الملاعب" : "Court payouts"}</Button>
     </div>
-    {section === "owners" ? (
+    {section === "payouts" ? <CourtPayouts admin /> : section === "owners" ? (
       <OwnerApprovals />
     ) : section === "payments" ? <PaymentApprovals /> : <div className="space-y-4">
       <Button variant="outline" onClick={() => refetch()}>{t("sa_records_refresh")}</Button>
@@ -71,7 +70,7 @@ export function ApprovalsPage() {
             <div><dt className="text-muted-foreground">{t("rentals_courts_short")}</dt><dd>{venue.court_count ?? 1}</dd></div>
           </dl>
           {venue.location_link && /^https?:\/\//i.test(venue.location_link) && <a className="text-sm text-primary underline" target="_blank" rel="noopener noreferrer" href={venue.location_link}>{lang === "ar" ? "افتح الموقع على الخريطة" : "View location"}</a>}
-          <div className="flex flex-wrap gap-2">{Array.from(new Set<string>([venue.cover_url, ...(Array.isArray(venue.photos) ? venue.photos : [])].filter(Boolean))).map(url => <button key={url} type="button" onClick={() => setPhoto(url)} aria-label={lang === "ar" ? "تكبير الصورة" : "Expand photo"}>
+          <div className="flex flex-wrap gap-2">{Array.from(new Set<string>([venue.cover_url, ...(Array.isArray(venue.photos) ? venue.photos : [])].filter((url): url is string => !!url))).map(url => <button key={url} type="button" onClick={() => setPhoto(url)} aria-label={lang === "ar" ? "تكبير الصورة" : "Expand photo"}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={url} alt={venue.name} className="h-24 w-32 rounded-lg object-cover" />
           </button>)}</div>

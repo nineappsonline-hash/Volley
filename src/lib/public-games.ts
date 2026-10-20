@@ -26,6 +26,7 @@ export type PublicGame = {
   max_age?: number | null;
   host_pays?: boolean;
   host_total?: number | null;
+  booking_total?: number | null;
   id: string;
   title: string;
   description: string | null;
@@ -62,7 +63,7 @@ export const getPublicGame = cache(async (id: string): Promise<PublicGameDetail 
   if (!admin) return null;
   const { data, error } = await admin.from("friendly_games").select(
     `id, title, description, sport, area, location, game_date, start_time,
-     max_players, min_players, status, skill_level, gender, share_price, host_pays, host_total,
+     max_players, min_players, status, skill_level, gender, share_price, host_pays, host_total, booking_total,
      creator_name, duration_hours, min_age, max_age,
      playground:venues(id, name, area, governorate, address, country, location_link, cover_url),
      participants:friendly_game_participants(is_waitlisted)`
@@ -130,7 +131,7 @@ export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
     .from("friendly_games")
     .select(
       `id, title, description, sport, area, location, game_date, start_time,
-       max_players, min_players, status, skill_level, gender, share_price, host_pays, host_total,
+       max_players, min_players, status, skill_level, gender, share_price, host_pays, host_total, booking_total,
        creator_name, duration_hours, min_age, max_age, playground:venues(name, area, governorate, country, location_link, cover_url, photos),
        participants:friendly_game_participants(is_waitlisted)`
     )
@@ -202,7 +203,7 @@ export async function getGameByInviteCode(code: string): Promise<SharedGameMeta 
       .from("friendly_games")
       .select(
         `id, title, description, sport, gender, area, location, lat, lng, game_date, start_time,
-         max_players, status, share_price, host_pays, host_total, is_public, creator_name,
+         max_players, status, share_price, host_pays, host_total, booking_total, is_public, creator_name,
          playground:venues(name, area, governorate, location_link),
          participants:friendly_game_participants(id, player_name, is_waitlisted)`
       )

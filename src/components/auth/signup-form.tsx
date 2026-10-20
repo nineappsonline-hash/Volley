@@ -193,7 +193,7 @@ export function SignupForm() {
         const { data } = await createClient()
           .from("venues")
           .select(
-            "id, name, address, capacity, country, governorate, area, school_name, rental_cost, rental_hours"
+            "id, name, address, capacity, country, governorate, area, school_name, rental_hours"
           )
           .is("academy_id", null)
           .is("owner_profile_id", null)

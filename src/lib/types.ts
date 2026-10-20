@@ -482,6 +482,9 @@ export interface Venue {
   sport_id: string | null;
   school_name: string | null;
   rental_cost: number | null;
+  booking_price?: { per_player: number; full_court: number; minimum_players: number; hours: number } | null;
+  contact_phone?: string | null;
+  court_availability?: (VenueUnavailableSlot & { court_number: number })[];
   // Number of time units (hours) the academy rents this venue from the owner.
   rental_hours: number | null;
   /** Map/navigation link (e.g. Google Maps share URL) shown to members as a
@@ -1053,6 +1056,8 @@ export interface FriendlyGame {
   min_players: number;
   duration_hours: number;
   playground_hourly_rate: number | null;
+  booking_total?: number | null;
+  pricing_version?: number;
   skill_level: SkillLevel | null;
   is_public: boolean;
   status: CommunityGameStatus;

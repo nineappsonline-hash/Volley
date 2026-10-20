@@ -40,7 +40,8 @@ for (lang of ['en', 'ar']) {
   assert.ok(html.includes('heroJoin'));
   assert.ok(html.includes(lang === 'ar' ? 'لاقي ماتش وانضم' : 'Find a game to join'));
   assert.ok(html.includes('href="/dashboard?sport=tennis"'));
-  assert.ok(!html.includes('Padel') && !html.includes('البادل'));
+  assert.ok(html.includes('id="padel"'));
+  assert.ok(html.includes('id="basketball"'));
   assert.ok(html.includes(lang === 'ar' ? 'التنس في مصر. ماتشك الجاي يبدأ هنا.' : 'Tennis in Egypt. Find your next rally.'));
   assert.ok(section, 'beach section must be present in server-rendered HTML');
   assert.ok(section.includes(content.BEACH_DESCRIPTION[lang]));

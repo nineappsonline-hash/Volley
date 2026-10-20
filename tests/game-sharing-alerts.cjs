@@ -74,7 +74,7 @@ const share = load('src/components/games/game-share-actions.tsx', {
   updated = updateGameAlertPreferences(updated, 'Volleyball', false);
   assert.deepEqual(updated, { interested_sports: ['Padel'], notify_game_alerts: true });
   assert.deepEqual(updateGameAlertPreferences(updated, 'Padel', false), { interested_sports: [], notify_game_alerts: false });
-  assert.throws(() => updateGameAlertPreferences(original, 'Padel', true), /Unknown sport/);
+  assert.ok(updateGameAlertPreferences(original, 'Padel', true).interested_sports.includes('Padel'));
   assert.throws(() => updateGameAlertPreferences(original, 'invalid sport', true), /Unknown sport/);
   let signedIn = true, updateFailure = false, writes = 0;
   let stored = { ...original };

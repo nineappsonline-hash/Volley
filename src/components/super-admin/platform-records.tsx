@@ -634,7 +634,7 @@ function GameDetails({ game, data }: { game: Row; data: Records }) {
   return <div className="space-y-5">
     <GameTeamsButton gameId={game.id} date={game.game_date} time={game.start_time} status={game.status} canManage />
     <GameBookingStatus game={{ sport: game.sport, min_players: game.min_players, duration_hours: game.duration_hours,
-      playground_hourly_rate: game.playground_hourly_rate, host_pays: game.host_pays, status: game.status,
+      playground_hourly_rate: game.playground_hourly_rate, share_price: game.share_price, host_total: game.host_total, booking_total: game.booking_total, host_pays: game.host_pays, status: game.status,
       participants, rent_payments: (data.friendly_game_rent_payments ?? []).filter(p => p.game_id === game.id).map(p => ({ amount: p.amount, pay_status: p.pay_status })) }} />
     <div className="flex flex-wrap gap-2 text-xs">
       <span className="rounded-full bg-muted px-3 py-1 font-medium">{game.sport}</span>

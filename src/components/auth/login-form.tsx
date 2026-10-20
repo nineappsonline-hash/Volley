@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Building2, Loader2 } from "lucide-react";
+import { CourtOwnerBenefits } from "./court-owner-benefits";
 import { AppLogo } from "@/components/shared/app-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -149,6 +150,7 @@ export function LoginForm() {
                 {t("login_signup_link")}
               </Link>
             </p>
+            <div className="mt-6"><CourtOwnerBenefits /></div>
             <div className="mt-10 border-t border-border/60 pt-6">
               <Button asChild variant="outline" className="group h-auto min-h-14 w-full justify-start gap-3 whitespace-normal rounded-xl border-border bg-gradient-to-br from-card to-background px-4 py-3 text-start text-brand-950 shadow-sm transition-colors hover:border-brand-600/40 hover:bg-accent hover:text-brand-950 ">
                 <Link href="/signup?mode=tenant">

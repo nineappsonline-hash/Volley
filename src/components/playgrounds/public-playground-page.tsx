@@ -74,7 +74,8 @@ export function PublicPlaygroundPage({
       gameBookings,
       day,
       venue.court_count ?? 1,
-    ), [venue.unavailable_slots, gameBookings, venue.court_count]);
+      venue.court_availability,
+    ), [venue.unavailable_slots, gameBookings, venue.court_count, venue.court_availability]);
 
   const free = useMemo(() => {
     let result = allowedIntervalsForDate(venue.working_hours ?? undefined, date);

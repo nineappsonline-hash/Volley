@@ -238,17 +238,31 @@ function mergeIntervals(intervals: Array<[number, number]>): Array<[number, numb
   return out;
 }
 
+/** Represent each court's closed hours as busy intervals, preserving per-court capacity. */
+export function courtClosedBookings(windows: (VenueUnavailableSlot & {court_number:number})[] | undefined, date: string, courtCount: number): GameBooking[] {
+  if (!windows?.length) return [];
+  const result: GameBooking[] = [];
+  const time = (m:number) => `${String(Math.floor(m/60)).padStart(2,"0")}:${String(m%60).padStart(2,"0")}`;
+  for(let court=1;court<=courtCount;court++) {
+    const open = mergeIntervals(windows.filter(w=>w.court_number===court && w.weekday===weekdayOf(date)).map(w=>[minutesOf(w.start),minutesOf(w.end)]));
+    let previous=0;
+    for(const [start,end] of [...open,[1440,1440]]) { if(start>previous)result.push({game_date:date,start_time:time(previous),duration_hours:(start-previous)/60,court_number:court}); previous=Math.max(previous,end); }
+  }
+  return result;
+}
+
 /** Unavailable intervals (minutes-of-day) on a date: venue blocks plus times
  * where every court is already booked. */
 export function unavailableIntervalsForDate(
   unavailableSlots: VenueUnavailableSlot[] | undefined,
   games: GameBooking[] | undefined,
   date: string,
-  courtCount = 1
+  courtCount = 1,
+  courtAvailability?: (VenueUnavailableSlot & {court_number:number})[]
 ): Array<[number, number]> {
   return mergeIntervals([
     ...blockedIntervalsForDate(unavailableSlots ?? [], date),
-    ...fullyBookedIntervals(games, date, courtCount),
+    ...fullyBookedIntervals([...(games??[]),...courtClosedBookings(courtAvailability,date,courtCount)], date, courtCount),
   ]);
 }
 

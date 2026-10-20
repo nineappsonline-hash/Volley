@@ -1818,47 +1818,21 @@ export function useRespondCoachInvitation() {
 // ── Venues ──────────────────────────────────────────────────
 
 export function useVenues(includePending = false) {
-  return useQuery({
-    queryKey: [...queryKeys.venues, includePending],
-    queryFn: async () => {
-      const { data, error } = await supabase()
-        .from("venues")
-        .select("id, academy_id, owner_profile_id, approval_status, name, address, lat, lng, location_link, photos, cover_url, capacity, sport_id, school_name, rental_cost, rental_hours, country, governorate, area, unavailable_slots, working_hours, court_count, created_at")
-        .order("name");
-      if (error) throw error;
-      const { data: labels, error: labelError } = await supabase().rpc("playground_sport_labels");
-      if (labelError) console.warn("playground_sport_labels unavailable, sport labels disabled", labelError);
-      const sportsByVenue = new Map<string, { id: string; name: string }>(
-        (labels ?? []).map((row: { venue_id: string; sport_id: string; sport_name: string }) =>
-          [row.venue_id, { id: row.sport_id, name: row.sport_name }]
-        )
-      );
-      return (data ?? []).filter((venue) => includePending || venue.approval_status === "approved").map((venue) => ({ ...venue, sport: sportsByVenue.get(venue.id) ?? null })) as Venue[];
-    },
-  });
+  return useQuery({ queryKey: [...queryKeys.venues, includePending], queryFn: async () => {
+    const [visible, managed] = await Promise.all([supabase().rpc("court_catalog", {p_manage:false}),supabase().rpc("court_catalog", {p_manage:true})]);
+    if (visible.error) throw visible.error; if (managed.error) throw managed.error;
+    const merged = new Map<string,Venue>();
+    for (const venue of [...(visible.data??[]),...(managed.data??[])] as Venue[]) merged.set(venue.id,venue);
+    return [...merged.values()].filter(v => includePending || v.approval_status === "approved").sort((a,b)=>a.name.localeCompare(b.name));
+  }});
 }
 
 export function useSaveVenue() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...venue }: Partial<Venue> & { name: string }) => {
-      const payload = {
-        name: venue.name,
-        address: venue.address ?? null,
-        lat: venue.lat ?? null,
-        lng: venue.lng ?? null,
-        capacity: venue.capacity ?? null,
-        sport_id: venue.sport_id ?? null,
-        school_name: venue.school_name ?? null,
-        rental_cost: venue.rental_cost ?? null,
-        rental_hours: venue.rental_hours ?? null,
-        location_link: venue.location_link ?? null,
-        court_count: venue.court_count ?? 1,
-        owner_profile_id: venue.owner_profile_id ?? null,
-        ...(venue.photos ? { photos: venue.photos } : {}),
-        ...(venue.cover_url !== undefined ? { cover_url: venue.cover_url } : {}),
-        ...(venue.blocked_dates ? { blocked_dates: venue.blocked_dates } : {}),
-      };
+      const fields = ["name","address","lat","lng","capacity","sport_id","school_name","rental_cost","rental_hours","location_link","court_count","owner_profile_id","photos","cover_url","blocked_dates","working_hours","unavailable_slots","court_availability","contact_phone","country","governorate","area"] as const;
+      const payload = Object.fromEntries(fields.filter(k => venue[k] !== undefined).map(k => [k, venue[k]]));
       const { error } = id
         ? await supabase().from("venues").update(payload).eq("id", id)
         : await supabase().from("venues").insert(payload);
@@ -1890,26 +1864,12 @@ export function useDeleteVenue() {
 // ── Playground owners ───────────────────────────────────────
 
 export function useOwnerVenues() {
-  return useQuery({
-    queryKey: queryKeys.ownerVenues,
-    queryFn: async () => {
-      const user = await supabase().auth.getUser();
-      const { data, error } = await supabase()
-        .from("venues")
-        .select("id, academy_id, owner_profile_id, approval_status, name, address, lat, lng, location_link, photos, cover_url, capacity, sport_id, school_name, rental_cost, rental_hours, country, governorate, area, unavailable_slots, working_hours, blocked_dates, court_count, created_at")
-        .eq("owner_profile_id", user.data.user?.id ?? "")
-        .order("name");
-      if (error) throw error;
-      const { data: labels, error: labelError } = await supabase().rpc("playground_sport_labels");
-      if (labelError) console.warn("playground_sport_labels unavailable, sport labels disabled", labelError);
-      const sportsByVenue = new Map<string, { id: string; name: string }>(
-        (labels ?? []).map((row: { venue_id: string; sport_id: string; sport_name: string }) =>
-          [row.venue_id, { id: row.sport_id, name: row.sport_name }]
-        )
-      );
-      return (data ?? []).map((venue) => ({ ...venue, sport: sportsByVenue.get(venue.id) ?? null })) as Venue[];
-    },
-  });
+  return useQuery({ queryKey: queryKeys.ownerVenues, queryFn: async () => {
+    const {data:{user}} = await supabase().auth.getUser();
+    const { data, error } = await supabase().rpc("court_catalog", { p_manage: true });
+    if (error) throw error;
+    return ((data ?? []) as Venue[]).filter(v => v.owner_profile_id === user?.id);
+  }});
 }
 
 export function useOwnerApplication() {
@@ -3125,11 +3085,13 @@ export function useVenueRentals() {
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("venue_rentals")
-        .select("*, venues(name, rental_cost)")
+        .select("*, venues(name)")
         .order("rental_date", { ascending: false })
         .order("start_time", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as VenueRental[];
+      const { data: managed } = await supabase().rpc("court_catalog", {p_manage:true});
+      const rates = new Map(((managed??[]) as Venue[]).map(v=>[v.id,v.rental_cost]));
+      return (data ?? []).map(r=>({...r,venues:r.venues?{...r.venues,rental_cost:rates.get(r.venue_id)}:null})) as VenueRental[];
     },
   });
 }
@@ -3311,7 +3273,7 @@ export function useFriendlyGames(enabled = true) {
       const { data, error } = await supabase()
         .from("friendly_games")
         .select(
-          "*, participants:friendly_game_participants(id, sponsor_participant_id, member_id, role, player_name, is_waitlisted, share_amount, pay_status, joined_at, kickoff_remind_opt_in), rent_payments:friendly_game_rent_payments(amount, member_id, pay_status, created_at), playground:venues(name, country, area, governorate, address, lat, lng, location_link, photos, cover_url)"
+          "id,creator_id,creator_name,creator_username,creator_nickname,sport,title,description,area,location,game_date,start_time,max_players,min_players,duration_hours,share_price,host_pays,host_total,booking_total,pricing_version,skill_level,is_public,status,created_at,lat,lng,recurrence,source_game_id,result_a,result_b,completed_by,completed_at,playground_id,court_number,invite_code,gender,min_age,max_age, participants:friendly_game_participants(id, sponsor_participant_id, member_id, role, player_name, is_waitlisted, share_amount, pay_status, joined_at, kickoff_remind_opt_in), rent_payments:friendly_game_rent_payments(amount, member_id, pay_status, created_at), playground:venues(name, country, area, governorate, address, lat, lng, location_link, photos, cover_url)"
         )
         .neq("status", "cancelled")
         .gte("game_date", today)
@@ -3340,25 +3302,10 @@ export function useFriendlyGames(enabled = true) {
 
 /** All playgrounds (unassigned pool + academy venues) that members can pick for community games. */
 export function usePlaygrounds() {
-  return useQuery({
-    queryKey: queryKeys.poolPlaygrounds,
-    queryFn: async () => {
-      const { data, error } = await supabase()
-        .from("venues")
-        .select("id, academy_id, name, address, country, governorate, area, lat, lng, location_link, photos, cover_url, capacity, sport_id, school_name, rental_cost, rental_hours, unavailable_slots, working_hours, court_count, created_at")
-        .eq("approval_status", "approved")
-        .order("name");
-      if (error) throw error;
-      const { data: labels, error: labelError } = await supabase().rpc("playground_sport_labels");
-      if (labelError) console.warn("playground_sport_labels unavailable, sport filter disabled", labelError);
-      const sportsByVenue = new Map<string, { id: string; name: string }>(
-        (labels ?? []).map((row: { venue_id: string; sport_id: string; sport_name: string }) =>
-          [row.venue_id, { id: row.sport_id, name: row.sport_name }]
-        )
-      );
-      return (data ?? []).map((venue) => ({ ...venue, sport: sportsByVenue.get(venue.id) ?? null })) as Venue[];
-    },
-  });
+  return useQuery({queryKey:queryKeys.poolPlaygrounds,queryFn:async()=>{
+    const {data,error}=await supabase().rpc("court_catalog",{p_manage:false});
+    if(error)throw error; return (data??[]) as Venue[];
+  }});
 }
 
 export function useUpcomingGameParticipants(gameId: string | null, memberId: string) {

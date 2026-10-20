@@ -8,18 +8,20 @@ export const E_WALLET_NUMBER = "01023862436";
 
 // Per-player margin folded into each friendly-game share price. It is hidden
 // from members: the standalone per-player price already includes it.
-export const GAME_PLATFORM_FEE = 20;
+export const GAME_PLATFORM_FEE = 25;
 
-// Sport-specific per-player fee shown in the cost estimate (EGP).
-// Football/Volleyball share rental; Padel has its own fixed rate.
+// One charge per player per booking, included in the final customer price.
 export const SPORT_PLAYER_FEE: Record<string, number> = {
   Football: 20,
-  Volleyball: 20,
-  Padel: 40,
+  Tennis: 25,
+  Basketball: 25,
+  "Beach Volleyball": 25,
+  Volleyball: 25,
+  Padel: 25,
 };
 
 export function getPlayerFee(sport: string): number {
-  return SPORT_PLAYER_FEE[sport] ?? 20;
+  return SPORT_PLAYER_FEE[sport] ?? 25;
 }
 
 // Default minimum players per sport when creating a game. The super admin can
@@ -27,9 +29,10 @@ export function getPlayerFee(sport: string): number {
 // values are the built-in fallbacks.
 export const SPORT_DEFAULT_MIN: Record<string, number> = {
   Football: 10,
+  Basketball: 8,
   Volleyball: 10,
   "Beach Volleyball": 8,
-  Padel: 4,
+  Padel: 2,
 };
 
 export function getDefaultMinPlayers(sport: string): number {
@@ -49,11 +52,14 @@ export function getSportMinPlayers(
 }
 
 // The fixed headcount a sport's share is always split across, regardless of the
-// minimum players the user picks at creation (Football/Volleyball 10, Padel 4).
+// minimum players the user picks at creation (Tennis/Padel 2, Volleyball 10, Beach Volleyball 8).
 export const SPORT_BILLABLE_PLAYERS: Record<string, number> = {
+  Tennis: 2,
+  "Beach Volleyball": 8,
   Football: 10,
+  Basketball: 8,
   Volleyball: 10,
-  Padel: 4,
+  Padel: 2,
 };
 
 export function getBillablePlayers(sport: string, fallback: number): number {

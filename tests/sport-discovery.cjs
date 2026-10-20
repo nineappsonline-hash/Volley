@@ -19,9 +19,9 @@ modules['@/lib/sport-slugs'] = load('src/lib/sport-slugs.ts');
 modules['@/lib/volleyball-guides'] = load('src/lib/volleyball-guides.ts');
 const discovery = modules['@/lib/sport-discovery'] = load('src/lib/sport-discovery.ts');
 const { DISCOVERY_SPORTS, discoveryMetadata, discoveryPath } = discovery;
-assert.equal(DISCOVERY_SPORTS.length, 4);
-assert.equal(new Set(DISCOVERY_SPORTS.map(s => s.advice.en)).size, 4);
-assert.equal(new Set(DISCOVERY_SPORTS.map(s => s.advice.ar)).size, 4);
+assert.equal(DISCOVERY_SPORTS.length, 6);
+assert.equal(new Set(DISCOVERY_SPORTS.map(s => s.advice.en)).size, 6);
+assert.equal(new Set(DISCOVERY_SPORTS.map(s => s.advice.ar)).size, 6);
 for (const sport of DISCOVERY_SPORTS) {
   for (const lang of ['en', 'ar']) {
     const meta = discoveryMetadata(lang, sport);

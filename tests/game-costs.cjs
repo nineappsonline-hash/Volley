@@ -28,14 +28,14 @@ new Function('exports', ts.transpileModule(readFileSync(join(__dirname,'../src/l
 new Function('exports', 'require', ts.transpileModule(readFileSync(join(__dirname,'../src/lib/constants.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(constants, () => active);
 new Function('exports','require',code)(moduleValue.exports, name => { assert.equal(name, '@/lib/constants'); return constants; });const { estimateSharePrice, estimateHostTotal, gameRentRemaining } = moduleValue.exports;
 assert.deepEqual(estimateSharePrice(300,2,6,'Football'),{rent:60,fee:20,total:80});
-assert.deepEqual(estimateSharePrice(300,1,2,'Padel'),{rent:75,fee:40,total:115});
+assert.deepEqual(estimateSharePrice(300,1,2,'Padel'),{rent:150,fee:25,total:175});
 assert.equal(estimateSharePrice(null,2,6,'Football'),null);
 assert.deepEqual(estimateSharePrice(0,1,2,'Football'),{rent:0,fee:20,total:20});
 assert.equal(estimateSharePrice(300,1,1,'Football'),null);
 assert.equal(estimateSharePrice(300,25,6,'Football'),null);
 assert.deepEqual(estimateHostTotal(300,1.5,'Football'),{rent:450,fee:20,total:470});
-const game={sport:'Football',min_players:6,duration_hours:2,playground_hourly_rate:300};
-assert.equal(gameRentRemaining({...game,host_pays:true}),0);
+const game={sport:'Football',min_players:6,duration_hours:2,playground_hourly_rate:300,share_price:120,booking_total:720};
+assert.equal(gameRentRemaining({...game,host_pays:true,host_total:620,booking_total:620}),620);
 assert.equal(gameRentRemaining({...game,participants:[{pay_status:'approved'},{pay_status:'pending'},{pay_status:'rejected'},{pay_status:'approved',is_waitlisted:true}],rent_payments:[{amount:100,pay_status:'pending'},{amount:100,pay_status:'rejected'}]}),600);
 assert.equal(gameRentRemaining({...game,rent_payments:[{amount:900,pay_status:'approved'}]}),0);
 console.log('PASS: sport-based shares, host totals, invalid inputs, paid/pending shares, waitlists, top-ups, and fully covered rent');

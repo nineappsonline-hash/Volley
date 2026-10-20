@@ -1,4 +1,6 @@
 "use client";
+import { useQuery } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { estimateHostTotal, estimateSharePrice } from "@/lib/game-costs";
 import { formatMoney } from "@/lib/constants";
@@ -10,8 +12,10 @@ export function GameCostEstimate({
   hostPays = false,
   sport = "",
   pricePerPlayer,
+  venueId,
 }: {
-  rate: number | null | undefined;
+  rate?: number | null;
+  venueId?: string | null;
   hours: number;
   min: number;
   hostPays?: boolean;
@@ -22,8 +26,10 @@ export function GameCostEstimate({
   const { lang } = useI18n();
   const ar = lang === "ar";
   const savedPrice = pricePerPlayer != null && Number.isFinite(pricePerPlayer) && pricePerPlayer >= 0 ? pricePerPlayer : null;
-  const estimate = !hostPays && savedPrice != null
+  if (venueId && savedPrice == null) return <CourtQuote venueId={venueId} hours={hours} min={min} hostPays={hostPays} sport={sport} />;
+  const estimate = savedPrice != null
     ? { total: savedPrice }
+
     : hostPays
     ? estimateHostTotal(rate, hours, sport)
     : estimateSharePrice(rate, hours, min, sport);
@@ -65,4 +71,10 @@ export function GameCostEstimate({
       )}
     </div>
   );
+}
+function CourtQuote({venueId,hours,min,hostPays,sport}:{venueId:string;hours:number;min:number;hostPays:boolean;sport:string}) {
+  const {data:quote}=useQuery({queryKey:["court-quote",venueId,hours],enabled:hours>0&&hours<=24,queryFn:async()=>{
+    const {data,error}=await createClient().rpc("court_booking_quote",{p_venue:venueId,p_hours:hours});if(error)throw error;return data as {per_player:number;full_court:number}|null;
+  }});
+  return <GameCostEstimate hours={hours} min={min} hostPays={hostPays} sport={sport} pricePerPlayer={quote?(hostPays?quote.full_court:quote.per_player):null}/>;
 }

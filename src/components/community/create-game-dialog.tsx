@@ -162,6 +162,7 @@ export function CreateGameDialog({
         allGames ?? [],
         date,
         selectedPlayground?.court_count ?? 1,
+        selectedPlayground?.court_availability,
       ),
     [selectedPlayground, allGames, date],
   );
@@ -173,6 +174,7 @@ export function CreateGameDialog({
         allGames ?? [],
         iso,
         selectedPlayground?.court_count ?? 1,
+        selectedPlayground?.court_availability,
       ),
     [selectedPlayground, allGames],
   );
@@ -213,7 +215,7 @@ export function CreateGameDialog({
         is_public: isPublic,
         recurrence: recurrence === "weekly" ? "weekly" : null,
       });
-      let amount = 20;
+      let amount = 25;
       let remaining = 0;
       try {
         const { data: part } = await createClient()
@@ -227,25 +229,16 @@ export function CreateGameDialog({
         /* keep the fallback amount */
       }
       const pickedPlayground = playgrounds?.find((p) => p.id === playgroundId);
-      if (pickedPlayground?.rental_cost != null) {
-        const rent = pickedPlayground.rental_cost * (durationHours || 1);
-        // Same measure as the game card: min players × per-player price (which
-        // already includes the per-player fee). The creator covers their own
-        // share and the rest of what the minimum players owe is still
-        // outstanding.
-        const min = Math.max(2, Number(minPlayers) || 2);
-        const perPlayerCents = Math.round(Math.round(rent * 100) / min) + Math.round(getPlayerFee(sport) * 100);
-        const remainingCents = min * perPlayerCents - Math.min(perPlayerCents, Math.round(amount * 100));
-        remaining = Math.max(0, remainingCents) / 100;
-      }
+
       let inviteCode: string | null = null;
       try {
         const { data: created } = await createClient()
           .from("friendly_games")
-          .select("invite_code")
+          .select("invite_code, booking_total")
           .eq("id", id)
           .single();
         inviteCode = created?.invite_code ?? null;
+        remaining = Math.max(0, Number(created?.booking_total ?? 0) - amount);
       } catch {
         /* keep the fallback null code */
       }
@@ -470,7 +463,7 @@ export function CreateGameDialog({
               onToChange={setToTime}
             />
           </div>
-          <GameCostEstimate rate={playgrounds?.find(p => p.id === playgroundId)?.rental_cost} hours={durationHours} min={Number(minPlayers)} sport={sport} />
+          <GameCostEstimate venueId={playgroundId} hours={durationHours} min={Number(minPlayers)} sport={sport} />
 
           <div className="space-y-2">
             <Label>{t("community_description")}</Label>

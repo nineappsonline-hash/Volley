@@ -111,7 +111,7 @@ export async function SportDiscoveryPage({ slug, lang }: { slug: string; lang: D
             <h3 className="font-bold"><Link href={`/p/${encodeURIComponent(c.id)}`}>{c.name}</Link></h3>
             <p className="text-sm">{[c.area, c.governorate].filter(Boolean).join(" · ")}</p>
             {c.address && <p className="text-sm text-muted-foreground">{c.address}</p>}
-            <p className="text-sm font-semibold">{c.rental_cost != null && c.rental_cost >= 0 && c.rental_hours != null && c.rental_hours > 0 ? `${formatMoney(c.rental_cost, lang)} / ${c.rental_hours} ${ar ? "ساعة" : "hour(s)"}` : ar ? "راجع صفحة الملعب للأسعار" : "Check the court page for prices"}</p>
+            <p className="text-sm font-semibold">{c.booking_price?.full_court != null && c.booking_price?.full_court >= 0 && c.booking_price?.hours != null && c.booking_price.hours > 0 ? `${ar ? "الملعب بالكامل" : "Full court"} · ${formatMoney(c.booking_price?.full_court, lang)} / ${c.booking_price?.hours} ${ar ? "ساعة" : "hour(s)"}` : ar ? "راجع صفحة الملعب للأسعار" : "Check the court page for prices"}</p>
             <Link href={`/p/${encodeURIComponent(c.id)}`} className="inline-block text-sm font-semibold underline underline-offset-4">{ar ? "المكان والمواعيد وتفاصيل الحجز" : "Location, schedule & booking details"}</Link>
           </article>)}</div> : <p className="rounded-2xl border bg-card p-4 text-muted-foreground">{ar ? "مفيش ملاعب منشورة متاحة للعرض هنا بالاختيار ده حاليًا." : "No published courts are available to display here for this selection right now."}</p>}
           <Link className={linkStyle} href={courtsPath(lang, slug)}>{ar ? `اكتشف ملاعب ${name} في مصر` : `Explore ${sport.name} courts in Egypt`}</Link>

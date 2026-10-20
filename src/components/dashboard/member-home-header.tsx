@@ -19,6 +19,8 @@ const categories = [
 ];
 const sports = [
   { name: "Tennis", ar: "تنس", slug: "tennis" },
+  { name: "Padel", ar: "بادل", slug: "padel" },
+  { name: "Basketball", ar: "كرة سلة", slug: "basketball" },
   { name: "Volleyball", ar: "كرة طائرة", slug: "volleyball" },
   { name: "Beach Volleyball", ar: "طائرة شاطئية", slug: "beach-volleyball" },
   { name: "Archery", ar: "رماية بالقوس", slug: "archery" },
