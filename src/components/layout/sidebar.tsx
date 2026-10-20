@@ -12,6 +12,8 @@ import {
   CreditCard,
   Crown,
   HandCoins,
+  Gamepad2,
+  QrCode,
   Heart,
   LandPlot,
   LayoutDashboard,
@@ -75,6 +77,11 @@ const academyItems = [
 ] as const;
 
 const memberItems = [
+  { href: "/profile#checkin", key: "nav_profile", icon: QrCode },
+  { href: "/profile#upcoming-training", key: "nav_schedule", icon: CalendarDays },
+  { href: "/profile#training-renewal", key: "nav_profile", icon: CreditCard },
+  { href: "/parent", key: "nav_profile", icon: Users },
+  { href: "/games/beach-volleyball", key: "nav_games", icon: Gamepad2 },
   { href: "/dashboard", key: "nav_dashboard", icon: LayoutDashboard },
   { href: "/academies", key: "nav_academies", icon: Search },
   { href: "/academy-bookings", key: "nav_academies", icon: CalendarDays },
@@ -117,6 +124,13 @@ export function Sidebar({ role, name, memberPlan, isCoach, hasAcademyWorkspace, 
       : role === "member"
         ? [...memberItems, ...staffItems, ...adminItems]
         : [...adminItems, ...academyItems, ...memberItems, ...staffItems];
+  const memberLabels: Record<string, [string, string]> = {
+    "/profile#checkin": ["My check-in code", "كود الحضور"],
+    "/profile#upcoming-training": ["Upcoming training", "التدريب القادم"],
+    "/profile#training-renewal": ["Training membership & renewal", "اشتراك التدريب وتجديده"],
+    "/parent": ["My family", "عيلتي"],
+    "/games/beach-volleyball": ["Virtual volleyball court", "الملعب الافتراضي"],
+  };
   const group = (en: string, ar: string, paths: string[]) => ({
     label: lang === "ar" ? ar : en,
     items: paths.map(path => catalog.find(item => item.href === path)!),
@@ -134,9 +148,10 @@ export function Sidebar({ role, name, memberPlan, isCoach, hasAcademyWorkspace, 
       group("Academy settings", "إعدادات الأكاديمية", ["/profile", "/settings", "/upgrade"]),
     ] : [
       ...(hasAcademyWorkspace ? [group("Academy staff", "فريق الأكاديمية", ["/academy"])] : []),
-      group("My Playza", "بلايزا بتاعتي", ["/dashboard", "/schedule", "/academy-bookings", "/profile"]),
+      group("My Playza", "بلايزا بتاعتي", ["/dashboard", "/profile", "/parent", "/games/beach-volleyball"]),
+      group("My training & member pass", "تدريبي وكود الحضور", ["/profile#checkin", "/profile#upcoming-training", "/profile#training-renewal", "/schedule", "/academy-bookings"]),
       ...(isCoach ? [group("Coaching tools", "أدوات التدريب", ["/coaches", "/coach-ai", "/insights"])] : []),
-      group("Find a place to play", "اكتشف مكان تلعب فيه", ["/academies", "/following", "/marketplace", "/dashboard/games", "/events"]),
+      group("Find a place to play", "اكتشف مكان تلعب فيه", ["/academies", "/playgrounds", "/following", "/marketplace", "/dashboard/games", "/events"]),
       group("Community", "المجتمع", ["/community", "/leaderboard", "/scouting", "/dashboard/tournaments"]),
       group("Membership", "الاشتراك", ["/upgrade"]),
     ];
@@ -181,7 +196,7 @@ export function Sidebar({ role, name, memberPlan, isCoach, hasAcademyWorkspace, 
                 )}
               />
               <span className="min-w-0 flex-1 truncate">
-                {href === "/academy" ? (lang === "ar" ? "إدارة الأكاديمية" : "Academy workspace") : href === "/academy-bookings" ? (lang === "ar" ? "حجوزات الأكاديميات" : "Academy bookings") : href === "/profile" && role === "member" ? (lang === "ar" ? "ملفي وعيلتي" : "My profile & family") : t(key)}
+                {role === "member" && memberLabels[href] ? memberLabels[href][lang === "ar" ? 1 : 0] : href === "/academy" ? (lang === "ar" ? "إدارة الأكاديمية" : "Academy workspace") : href === "/academy-bookings" ? (lang === "ar" ? "حجوزات الأكاديميات" : "Academy bookings") : href === "/profile" && role === "member" ? (lang === "ar" ? "ملفي وعيلتي" : "My profile & family") : t(key)}
               </span>
               {href === "/admin?tab=Messages" && role === "super_admin" && <MessagesUnreadBadge />}
             </Link>

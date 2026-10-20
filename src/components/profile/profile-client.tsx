@@ -1,4 +1,6 @@
 "use client";
+
+import { AcademySuggestionOnboarding } from "@/components/academies/academy-suggestion-onboarding";
 import { QueryState } from "@/components/shared/query-state";
 import { useMemberTraining } from "@/lib/use-member-training";
 import { trainingPaymentHistory, bookingBalance } from "@/lib/member-training";
@@ -459,6 +461,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
 
   return (
     <div className="space-y-6">
+      <AcademySuggestionOnboarding memberName={p.name} hasAcademy={!!p.academy_id} />
       <PageHeader title={t("profile_title")} subtitle={t("profile_subtitle")} />
       <nav aria-label={lang === "ar" ? "أقسام الملف" : "Profile sections"} className="flex flex-wrap gap-2">
         {[
@@ -964,7 +967,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
         </CardContent>
       </Card>
 
-      <MemberTrainingPreview profile={p} />
+      <section id="upcoming-training" className="scroll-mt-24"><MemberTrainingPreview profile={p} /></section>
 
       <div className="flex items-center justify-between gap-3 rounded-lg border p-4">
         <div className="text-sm">

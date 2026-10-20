@@ -11,7 +11,7 @@ const profile = read('src/app/a/[slug]/page.tsx');
 const button = read('src/components/academies/join-academy-button.tsx');
 const modal = read('src/components/academies/join-academy-suggestion.tsx');
 const onboarding = read('src/components/academies/academy-suggestion-onboarding.tsx');
-const dashboard = read('src/components/dashboard/member-dashboard.tsx');
+const memberProfile = read('src/components/profile/profile-client.tsx');
 const css = read('src/app/globals.css');
 
 // --- signup never offers an academy --------------------------------------
@@ -93,13 +93,13 @@ assert.match(
 assert.match(
   onboarding,
   /localStorage\.getItem\(SUGGEST_ACADEMY_KEY\)/,
-  'the dashboard picks the offer back up'
+  'the profile page can recover the parked offer'
 );
 assert.match(onboarding, /if \(hasAcademy\) return;/, 'someone who already joined is not prompted again');
 assert.match(
-  dashboard,
+  memberProfile,
   /<AcademySuggestionOnboarding[\s\S]{0,120}hasAcademy=\{!!p\.academy_id\}/,
-  'the dashboard mounts the offer and knows whether it still applies'
+  'the menu-accessible profile preserves the offer without cluttering the dashboard'
 );
 console.log('PASS: the offer survives the email confirmation hop');
 

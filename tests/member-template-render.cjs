@@ -9,7 +9,7 @@ const cache=new Map();
 const styles=new Proxy({}, {get:(_,key)=>String(key)});
 const mocks={
  'next/link':{default:({children,...props})=>React.createElement('a',props,children)},
- 'next/navigation':{usePathname:()=>pathname},
+ 'next/navigation':{usePathname:()=>pathname,useSearchParams:()=>new URLSearchParams()},
  '@/lib/i18n':{useI18n:()=>({lang,t:key=>key})},
  '@/lib/queries':{useCurrentProfile:()=>({data:{role:'member'}})},
  '@/lib/utils':{cn:(...values)=>values.filter(Boolean).join(' ')},
@@ -56,3 +56,23 @@ selector=MemberHomeHeader({hasQr:false,sections:[],selectedSport:selected,onSpor
 const archery=findElements(selector,node=>node.type==='button'&&node.props['aria-controls']==='member-live-games').find(button=>renderToStaticMarkup(button).includes('Archery'));
 assert.equal(archery.props['aria-pressed'],true);assert.equal(archery.props.href,undefined);
 console.log('PASS: selecting Archery changes local controlled state and selected styling without a link or navigation');
+
+// The member home contains only browsing content, while personal tools stay in the menu.
+mocks['./member-discovery-cards']={MemberDiscoveryCards:({interactive,sportFilter})=>React.createElement('div',{'data-home-games':true,'data-interactive':interactive,'data-sport':sportFilter},'Open game listings')};
+mocks['./dashboard-navigation']={DashboardNavigation:({children,...props})=>React.createElement(MemberHomeHeader,props,children)};
+mocks['@/lib/queries'].useProfile=()=>({data:undefined});
+const {MemberDashboard}=load('src/components/dashboard/member-dashboard.tsx');
+mocks['@/components/shared/app-logo']={AppLogo:()=>React.createElement('span',null,'Playza')};
+mocks['@/components/contact/messages-unread-badge']={MessagesUnreadBadge:()=>null};
+mocks['@/components/contact/contact-form-dialog']={ContactFormDialog:()=>null};
+const {Sidebar}=load('src/components/layout/sidebar.tsx');
+for(lang of ['en','ar']){
+ const home=renderToStaticMarkup(React.createElement(MemberDashboard,{profile:{id:'member',name:'Player',academy_id:'academy',checkin_code:'SECRET-QR'}}));
+ assert.ok(home.includes('Open game listings'));assert.ok(home.includes('data-interactive="true"'));
+ assert.ok(!home.includes('SECRET-QR'));assert.ok(!home.includes('id="checkin"'));assert.ok(!home.includes('id="play"'));assert.ok(!home.includes('id="training"'));assert.ok(!home.includes('id="tournaments"'));assert.ok(!home.includes('href="/parent"'));
+ const menu=renderToStaticMarkup(React.createElement(Sidebar,{role:'member',name:'Player'}));
+ for(const href of ['/profile#checkin','/profile#upcoming-training','/profile#training-renewal','/parent','/games/beach-volleyball','/schedule','/academy-bookings','/dashboard/tournaments','/playgrounds'])assert.ok(menu.includes(`href="${href}"`),href);
+}
+assert.ok(fs.readFileSync('src/components/profile/profile-client.tsx','utf8').includes('id="upcoming-training"'));
+assert.ok(fs.readFileSync('src/app/(dashboard)/dashboard/tournaments/page.tsx','utf8').includes('<MyTournamentsCard memberId={profile.id}'));
+console.log('PASS: focused member dashboard omits personal sections; menu retains QR, training, renewal, family, virtual court and tournament destinations in both languages');

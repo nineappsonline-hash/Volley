@@ -7,7 +7,7 @@ import { SUGGEST_ACADEMY_KEY } from "@/components/auth/signup-form";
 /**
  * Signup can only show the academy suggestion itself when the new account
  * already has a session. When the member still has to confirm their email
- * address, signup parks the offer and the dashboard raises it on arrival
+ * address, signup parks the offer and the profile page raises it when opened
  * instead — so the suggestion is never simply lost.
  */
 export function AcademySuggestionOnboarding({

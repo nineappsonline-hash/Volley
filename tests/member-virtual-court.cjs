@@ -53,9 +53,9 @@ assert.ok(html.includes('لقطة من اللعبة'), 'Arabic preview label');
 lang = 'en';
 console.log('PASS: member virtual-court card renders in Arabic');
 
-// --- The dashboard exposes the card and its anchor -------------------------
+// The focused dashboard leaves virtual play accessible from its menu.
 const dashboard = fs.readFileSync(path.join(root, 'src/components/dashboard/member-dashboard.tsx'), 'utf8');
-assert.ok(dashboard.includes('VirtualCourtCard'), 'member dashboard mounts the card');
-assert.ok(dashboard.includes('id="play"'), 'the card has its own dashboard section');
-assert.ok(dashboard.includes('NEXT_PUBLIC_BEACH_GAME_ENABLED'), 'the card honours the game feature flag');
-console.log('PASS: member dashboard wires the virtual-court card behind the existing game feature flag');
+const sidebar = fs.readFileSync(path.join(root, 'src/components/layout/sidebar.tsx'), 'utf8');
+assert.ok(!dashboard.includes('VirtualCourtCard'), 'member dashboard contains browsing content only');
+assert.ok(sidebar.includes('/games/beach-volleyball'), 'virtual court remains reachable through the member menu');
+console.log('PASS: virtual court is available from the menu without an extra dashboard card');
