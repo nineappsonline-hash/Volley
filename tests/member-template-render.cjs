@@ -28,7 +28,10 @@ const {SportIcon}=load('src/components/marketing/sport-icons.tsx');
 assert.match(renderToStaticMarkup(React.createElement(SportIcon,{id:'beach-volleyball'})),/<path/);
 for(lang of ['en','ar']){
  let html=renderToStaticMarkup(React.createElement(MemberHomeHeader,{name:'Player One',children:React.createElement('section',{id:'member-live-games'},'Live game results')}));
- for(const href of ['/dashboard/games','/academies','/playgrounds','/dashboard/tournaments','/academy-bookings','/profile#evaluations'])assert.ok(html.includes(`href="${href}"`),href);
+ for(const href of ['/academies','/playgrounds','/dashboard/tournaments','/academy-bookings','/profile#evaluations'])assert.ok(html.includes(`href="${href}"`),href);
+ assert.ok(!html.includes(lang==='en'?'Friendly games':'مباريات ودية'));
+ assert.ok(!html.includes(lang==='en'?'Court rentals':'حجز ملاعب'));
+ for(const position of ['0% 0%','100% 0%','0% 100%','100% 100%'])assert.equal(html.split(`background-position:${position}`).length-1,1,'each visible activity has a unique photo');
  assert.ok(html.includes('aria-controls="member-live-games"'));
  assert.ok(!html.includes('/dashboard/games?sport='));
  assert.ok(html.includes(lang==='en'?'Invite a friend':'اعزم صاحبك'));

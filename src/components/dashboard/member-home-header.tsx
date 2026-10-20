@@ -9,11 +9,9 @@ import { SportIcon } from "@/components/marketing/sport-icons";
 import styles from "./member-home.module.css";
 
 const categories = [
-  { href: "/dashboard/games", en: "Friendly games", ar: "مباريات ودية", photo: "100% 0%", wide: true },
   { href: "/academies", en: "Academies & training", ar: "أكاديميات وتدريب", photo: "0% 100%", wide: true },
   { href: "/dashboard/tournaments", en: "Tournaments", ar: "بطولات", photo: "100% 0%" },
-  { href: "/playgrounds", en: "Court rentals", ar: "حجز ملاعب", photo: "0% 0%" },
-  { href: "/academy-bookings", en: "My training bookings", ar: "حجوزات تدريبي", photo: "0% 100%" },
+  { href: "/academy-bookings", en: "My training bookings", ar: "حجوزات تدريبي", photo: "100% 100%" },
   { href: "/profile#evaluations", en: "My progress", ar: "تطوري وتقييمي", photo: "0% 0%" },
 ];
 const sports = [
