@@ -524,8 +524,35 @@ liveRows.push({id:'full',title:'Full tennis',sport:'Tennis',game_date:addDaysISO
 liveRows.push({id:'ended',title:'Ended tennis',sport:'Tennis',game_date:addDaysISO(TODAY,1),start_time:'18:00',status:'completed',max_players:4,participants_count:4});
 mocks['@/lib/queries'].useFriendlyGames=()=>discoveryQuery(liveRows);
 const renderLive=sport=>renderToStaticMarkup(h(MemberDiscoveryCards,{memberId:'member-1',hasAcademy:false,mode:'games',interactive:true,sportFilter:sport}));
-let live=renderLive('Tennis');assert.ok(live.includes('Live tennis 14'),'live results are not capped at twelve');assert.ok(!live.includes('Live archery'));assert.ok(!live.includes('Ended tennis'));assert.ok(!live.includes('Full tennis'));assert.match(live,/<details[^>]*>/);assert.ok(!/<details[^>]*\sopen(?:[\s=>])/.test(live),'filters start collapsed');assert.ok(!live.includes('Updates automatically'));assert.ok(!live.includes('Discover more games'));assert.ok(!live.includes('Find games'));
+let live=renderLive('Tennis');assert.ok(live.includes('Live tennis 14'),'live results are not capped at twelve');assert.ok(!live.includes('Live archery'));assert.ok(!live.includes('Ended tennis'));assert.ok(!live.includes('Full tennis'));assert.ok(live.includes('aria-label="Game filters"'));assert.ok(live.includes('aria-expanded="false"'));assert.ok(!live.includes('id="member-game-filters"'),'filters start collapsed');assert.ok(live.includes('flex flex-col gap-3'),'games use a list');assert.ok(!live.includes('Updates automatically'));assert.ok(!live.includes('Discover more games'));assert.ok(!live.includes('Find games'));
 live=renderLive('Archery');assert.ok(live.includes('Live archery'));assert.ok(!live.includes('Live tennis'));
 liveRows=[...liveRows,{id:'archery-2',title:'Newly published archery',sport:'Archery',game_date:addDaysISO(TODAY,1),start_time:'19:00',status:'open',max_players:8,participants_count:1,share_price:100}];assert.ok(renderLive('Archery').includes('Newly published archery'),'refreshed query data appears under the selected sport');
 assert.ok(renderLive('Volleyball').includes('No open games match this selection'));
 console.log('PASS: selected sport, archery, all matching games, updated query data, empty states and collapsed filters');
+
+// Exercise each filter and their intersection against real game fields.
+const discoveryFile=path.join(root,'src/components/dashboard/member-discovery-cards.tsx');
+let filterValues=[];
+mocks.react={...React,useState:initial=>[filterValues.shift() ?? initial,()=>{}]};
+cache.delete(discoveryFile);
+const FilteredDiscovery=loadFile(discoveryFile,mocks).MemberDiscoveryCards;
+const base={sport:'Tennis',game_date:addDaysISO(TODAY,1),start_time:'18:00',status:'open',max_players:8,participants_count:2};
+liveRows=[
+ {...base,id:'match',title:'Cairo court',playground:{governorate:'Cairo',area:'Maadi',name:'Green court'},skill_level:'beginner',gender:'female',min_age:18,max_age:35,share_price:100},
+ {...base,id:'other',title:'Giza court',playground:{governorate:'Giza',area:'Dokki',name:'Blue court'},skill_level:'advanced',gender:'male',min_age:40,max_age:60,share_price:200},
+ {...base,id:'free',title:'Free mixed',skill_level:null,gender:'mixed',min_age:null,max_age:null,host_pays:true,share_price:null},
+];
+function filtered(overrides={}){
+ const state={open:true,governorate:'',city:'',age:'',gender:'all',price:'',court:'',level:'all',date:'',...overrides};
+ filterValues=Object.values(state);
+ return renderToStaticMarkup(h(FilteredDiscovery,{memberId:'member-1',hasAcademy:false,mode:'games',interactive:true,sportFilter:'all'}));
+}
+for(const filter of [{governorate:'Cairo'},{city:'Maadi'},{age:'25'},{gender:'female'},{price:'100'},{court:'Green'},{level:'beginner'},{governorate:'Cairo',city:'Maadi',age:'25',gender:'female',price:'100',level:'beginner'}]){
+ const result=filtered(filter);assert.ok(result.includes('Cairo court'),JSON.stringify(filter));assert.ok(!result.includes('<h3 class="line-clamp-2 text-sm font-bold leading-5 text-white">Giza court'),JSON.stringify(filter));
+}
+assert.ok(filtered({price:'0'}).includes('Free mixed'));assert.ok(!filtered({price:'0'}).includes('>Cairo court</h3>'));
+assert.ok(filtered({age:'36'}).includes('Free mixed'));assert.ok(!filtered({age:'36'}).includes('>Cairo court</h3>'));
+assert.ok(filtered({date:addDaysISO(TODAY,2)}).includes('No open games match this selection'));
+const expanded=filtered();for(const label of ['Governorate','City / area','Player level','Player age','Gender','Maximum price (EGP)','Court or game name'])assert.ok(expanded.includes(label));
+assert.ok(expanded.includes('aria-expanded="true"'));
+console.log('PASS: location, age boundaries, gender, level, price, date and court filters combine and allow unrestricted/free games correctly');

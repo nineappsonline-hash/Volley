@@ -5,7 +5,7 @@ import { googleDirectionsUrl } from "@/lib/google-directions";
 import { cairoNow } from "@/lib/member-training";
 import { discoveryMatch, type DiscoveryPreferences } from "@/lib/member-discovery";
 import { GameCardBackground } from "@/components/games/game-card-background";
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import {
@@ -14,6 +14,7 @@ import {
   Clock,
   MapPin,
   Users,
+  SlidersHorizontal,
   Building2,
   LandPlot,
   type LucideIcon,
@@ -65,7 +66,11 @@ function DiscoveryCard({
   description,
   action,
   live = false,
+  controls,
+  filters,
 }: {
+  controls?: ReactNode;
+  filters?: ReactNode;
   live?: boolean;
   title: string;
   href: string;
@@ -81,26 +86,28 @@ function DiscoveryCard({
   const id = useId();
 
   return <section aria-labelledby={`${id}-title`} className="min-w-0 space-y-4">
-    <header className="flex flex-wrap items-end justify-between gap-3">
-      <div>{!live && <p className="mb-1 text-[10px] font-bold uppercase tracking-[.16em] text-muted-foreground">{tone === "games" ? (t("games_page_title")) : description}</p>}<h2 id={`${id}-title`} className="text-2xl font-extrabold tracking-tight">{title}</h2></div>
+    <header className={live ? "flex items-center justify-between gap-3" : "flex flex-wrap items-end justify-between gap-3"}>
+      <div className="min-w-0">{!live && <p className="mb-1 text-[10px] font-bold uppercase tracking-[.16em] text-muted-foreground">{tone === "games" ? (t("games_page_title")) : description}</p>}<h2 id={`${id}-title`} className="text-2xl font-extrabold tracking-tight">{title}</h2></div>
+      {controls}
       {!live && <Link href={href} className="inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{action}<ArrowRight size={14} className="rtl:rotate-180" aria-hidden="true" /></Link>}
     </header>
+    {filters}
     <QueryState queries={[query]}>
-      {items.length === 0 ? <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">{empty}</p> : <ul id={id} aria-label={title} className={live ? "grid grid-cols-2 gap-3 lg:grid-cols-3" : "flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-3"}>
+      {items.length === 0 ? <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">{empty}</p> : <ul id={id} aria-label={title} className={live ? "flex flex-col gap-3" : "flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-3"}>
         {items.map(item => <li key={item.id} className={live ? "min-w-0" : "w-[48%] min-w-0 max-w-80 shrink-0 snap-start sm:w-[44%] lg:w-[31%]"}>
-          <article className="h-full overflow-hidden rounded-xl border bg-card">
-            <Link href={item.href ?? href} className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+          <article className={live ? "flex overflow-hidden rounded-xl border bg-card" : "h-full overflow-hidden rounded-xl border bg-card"}>
+            <Link href={item.href ?? href} className={`${live ? "w-28 shrink-0 sm:w-44" : ""} group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring`}>
               <div className="relative isolate aspect-[4/3] overflow-hidden bg-[#14213D]">
                 <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 text-[#C7F23D]/30">{item.sport && Object.hasOwn(SPORT_SLUGS, sportToSlug(item.sport)) ? <GameCardBackground sport={item.sport} /> : <Icon className="absolute start-1/3 top-1/3 h-16 w-16" />}</div>
                 {/* Venue image hosts are supplied by academy and court owners. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {item.image && <img src={item.image} alt="" loading="lazy" className={`absolute inset-0 h-full w-full ${item.academyLogo !== undefined ? "bg-white object-contain p-5" : "object-cover"}`} onError={event => { event.currentTarget.style.display = "none"; }} />}
                 {item.badge && <span className="absolute start-3 top-3 rounded-full bg-[#14213D]/90 px-2.5 py-1 text-[10px] font-bold text-[#C7F23D]">{item.badge}</span>}
-                {item.status && <span className="absolute end-3 top-3 rounded-full bg-background/95 px-2 py-1 text-[10px] font-semibold text-foreground">{t(`community_status_${item.status}` as keyof Dict)}</span>}
+                {item.status && <span className={`absolute end-3 ${live ? "bottom-2" : "top-3"} rounded-full bg-background/95 px-2 py-1 text-[10px] font-semibold text-foreground`}>{t(`community_status_${item.status}` as keyof Dict)}</span>}
               </div>
               <div className="bg-[#14213D] px-3 py-2.5 text-white"><h3 className="line-clamp-2 text-sm font-bold leading-5 text-white">{item.title}</h3></div>
             </Link>
-            <div className="space-y-2.5 p-3">
+            <div className="min-w-0 flex-1 space-y-2.5 p-3">
               {item.reason && <p className="text-[11px] font-semibold text-muted-foreground">{item.reason}</p>}
               {item.details ? <div className="space-y-2 text-xs">
                 <p className="flex items-start gap-2 font-medium"><CalendarDays size={13} className="shrink-0" aria-hidden="true" />{item.details.date}</p>
@@ -119,7 +126,13 @@ function DiscoveryCard({
 
 export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, mode = "all", interactive = false, sportFilter = "all" }: { interactive?: boolean; sportFilter?: string; memberId: string; hasAcademy: boolean; preferences?: DiscoveryPreferences; mode?: "all" | "games" | "academies" }) {
   const { t, lang, locale } = useI18n();
-  const [area, setArea] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [governorate, setGovernorate] = useState("");
+  const [city, setCity] = useState("");
+  const [age, setAge] = useState("");
+  const [gender, setGender] = useState("all");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [court, setCourt] = useState("");
   const [level, setLevel] = useState("all");
   const [date, setDate] = useState("");
   useRealtime(["friendly_games", "friendly_game_participants"]);
@@ -152,6 +165,9 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
     sport: game.sport, date: game.game_date, skill_level: game.skill_level,
     lat: game.playground?.lat ?? game.lat, lng: game.playground?.lng ?? game.lng,
   }, preferences);
+  const governorates = [...new Set((games.data ?? []).map(game => game.playground?.governorate).filter((value): value is string => !!value))].sort();
+  const cities = [...new Set((games.data ?? []).filter(game => !governorate || game.playground?.governorate === governorate).map(game => game.playground?.area ?? game.area).filter((value): value is string => !!value))].sort();
+  const activeFilters = [governorate, city, age, gender !== "all", maxPrice, court, level !== "all", date].filter(Boolean).length;
   const gameItems = (games.data ?? [])
     .filter(
       (game) =>
@@ -159,7 +175,12 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
         game.game_date >= today &&
         (!interactive || ((sportFilter === "all" || game.sport?.trim().toLowerCase() === sportFilter.toLowerCase()) &&
           (level === "all" || game.skill_level === level) && (!date || game.game_date === date) &&
-          (!area.trim() || [game.area, game.location, game.playground?.name, game.playground?.area, game.playground?.governorate].some(value => value?.toLowerCase().includes(area.trim().toLowerCase())))))
+          (!governorate || game.playground?.governorate === governorate) &&
+          (!city || (game.playground?.area ?? game.area) === city) &&
+          (!age || ((game.min_age == null || Number(age) >= game.min_age) && (game.max_age == null || Number(age) <= game.max_age))) &&
+          (gender === "all" || game.gender === gender) &&
+          (maxPrice === "" || (game.host_pays ? 0 : game.share_price) != null && (game.host_pays ? 0 : game.share_price!) <= Number(maxPrice)) &&
+          (!court.trim() || [game.title, game.location, game.playground?.name].some(value => value?.toLowerCase().includes(court.trim().toLowerCase())))))
     )
     .sort(
       (a, b) =>
@@ -218,15 +239,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
 
   return (
     <div id={interactive ? "member-live-games" : undefined} className="min-w-0 space-y-4">
-      {interactive && <details className="rounded-xl border bg-card">
-        <summary className="cursor-pointer px-4 py-3 text-sm font-semibold">{ar ? "فلاتر المباريات" : "Game filters"}{(area || date || level !== "all") && <span className="ms-2 text-xs text-muted-foreground">{ar ? "مفعّلة" : "Active"}</span>}</summary>
-        <div className="grid gap-3 border-t p-4 sm:grid-cols-3">
-          <label className="text-sm">{ar ? "المنطقة أو الملعب" : "Area or court"}<input className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" value={area} onChange={e => setArea(e.target.value)} /></label>
-          <label className="text-sm">{ar ? "المستوى" : "Skill level"}<select className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" value={level} onChange={e => setLevel(e.target.value)}><option value="all">{ar ? "كل المستويات" : "All levels"}</option>{["beginner", "intermediate", "advanced"].map(value => <option key={value} value={value}>{t(`skill_${value}` as keyof Dict)}</option>)}</select></label>
-          <label className="text-sm">{ar ? "التاريخ" : "Date"}<input className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" type="date" min={today} value={date} onChange={e => setDate(e.target.value)} /></label>
-          <button type="button" className="w-fit rounded-lg border px-3 py-2 text-sm" onClick={() => { setArea(""); setDate(""); setLevel("all"); }}>{ar ? "مسح الفلاتر" : "Clear filters"}</button>
-        </div>
-      </details>}
+
 
       {mode !== "games" && <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/50 px-4 py-3 text-sm">
         <p>{ar ? "خصّص اقتراحاتك بالرياضات والمستوى وأيامك المتاحة." : "Make these suggestions yours with your sports, skill level, and available days."}</p>
@@ -244,6 +257,18 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
         empty={ar ? "مفيش أكاديميات متاحة حالياً." : "No academies available yet."}
       />}
       {mode !== "academies" && <DiscoveryCard
+        controls={interactive && <button type="button" aria-label={ar ? "فلاتر المباريات" : "Game filters"} title={ar ? "فلاتر المباريات" : "Game filters"} aria-expanded={filtersOpen} aria-controls="member-game-filters" onClick={() => setFiltersOpen(!filtersOpen)} className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"><SlidersHorizontal size={19} aria-hidden="true" />{activeFilters > 0 && <span className="absolute -end-1 -top-1 rounded-full bg-[#C7F23D] px-1.5 text-[10px] font-bold text-[#14213D]">{activeFilters}</span>}</button>}
+        filters={interactive && filtersOpen && <div id="member-game-filters" className="grid gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
+          <label className="text-sm">{ar ? "المحافظة" : "Governorate"}<select className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" value={governorate} onChange={e => { setGovernorate(e.target.value); setCity(""); }}><option value="">{ar ? "الكل" : "All"}</option>{governorates.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+          <label className="text-sm">{ar ? "المدينة / المنطقة" : "City / area"}<select className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" value={city} onChange={e => { setCity(e.target.value); }}><option value="">{ar ? "الكل" : "All"}</option>{cities.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+          <label className="text-sm">{ar ? "مستوى اللاعبين" : "Player level"}<select className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" value={level} onChange={e => setLevel(e.target.value)}><option value="all">{ar ? "كل المستويات" : "All levels"}</option>{["beginner", "intermediate", "advanced"].map(value => <option key={value} value={value}>{t(`skill_${value}` as keyof Dict)}</option>)}</select></label>
+          <label className="text-sm">{ar ? "نوع المباراة" : "Gender"}<select className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" value={gender} onChange={e => setGender(e.target.value)}><option value="all">{ar ? "الكل" : "All"}</option><option value="male">{ar ? "رجال" : "Men"}</option><option value="female">{ar ? "سيدات" : "Women"}</option><option value="mixed">{ar ? "مختلط" : "Mixed"}</option></select></label>
+          <label className="text-sm">{ar ? "عمر اللاعب" : "Player age"}<input className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" type="number" min="0" max="120" step="1" value={age} onChange={e => setAge(e.target.value)} /></label>
+          <label className="text-sm">{ar ? "أقصى سعر (جنيه)" : "Maximum price (EGP)"}<input className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" type="number" min="0" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} /></label>
+          <label className="text-sm">{ar ? "التاريخ" : "Date"}<input className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" type="date" min={today} value={date} onChange={e => setDate(e.target.value)} /></label>
+          <label className="text-sm">{ar ? "اسم الملعب أو المباراة" : "Court or game name"}<input className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" type="search"  value={court} onChange={e => setCourt(e.target.value)} /></label>
+          <button type="button" className="w-fit self-end rounded-lg border px-3 py-2 text-sm" onClick={() => { setGovernorate(""); setCity(""); setAge(""); setGender("all"); setMaxPrice(""); setCourt(""); setDate(""); setLevel("all"); }}>{ar ? "مسح الفلاتر" : "Clear filters"}</button>
+        </div>}
         live={interactive}
         title={interactive ? (sportFilter === "all" ? (ar ? "المباريات الحالية" : "Current games") : `${selectedSportLabel} · ${ar ? "المباريات الحالية" : "Current games"}`) : (ar ? "مقترح ليك" : "Recommended for you")}
         tone="games"
