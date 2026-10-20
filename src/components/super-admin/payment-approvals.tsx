@@ -31,7 +31,8 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
-import { formatMoneyShort } from "@/lib/constants";
+import { QueryState } from "@/components/shared/query-state";
+import { formatTime12h, formatMoneyShort } from "@/lib/constants";
 import {
   useAllGamePayments,
   useAllRentPayments,
@@ -53,6 +54,7 @@ interface PaymentRecord {
   playerName?: string | null;
   label: string;
   detail: string;
+  context: { label: string; value: string }[];
   amount: number;
   method: string | null;
   createdAt: string;
@@ -64,10 +66,14 @@ interface PaymentRecord {
 export function PaymentApprovals() {
   const { t, lang, locale } = useI18n();
   const money = (v: number) => formatMoneyShort(v, lang);
-  const { data: members } = useCommunityMembers();
-  const { data: shares } = useAllGamePayments();
-  const { data: rents } = useAllRentPayments();
-  const { data: subscriptions } = useAllSubscriptions();
+  const membersQuery = useCommunityMembers();
+  const { data: members } = membersQuery;
+  const sharesQuery = useAllGamePayments();
+  const { data: shares } = sharesQuery;
+  const rentsQuery = useAllRentPayments();
+  const { data: rents } = rentsQuery;
+  const subscriptionsQuery = useAllSubscriptions();
+  const { data: subscriptions } = subscriptionsQuery;
   const reviewShare = useReviewParticipantShare();
   const reviewRent = useReviewRentPayment();
   const reviewSub = useReviewSubscription();
@@ -82,6 +88,19 @@ export function PaymentApprovals() {
 
   const records = useMemo<PaymentRecord[]>(() => {
     const out: PaymentRecord[] = [];
+    const copy = (en: string, ar: string) => lang === "ar" ? ar : en;
+    const gameContext = (game: NonNullable<typeof shares>[number]["game"], id: string) => {
+      const rows = [
+        { label: copy("Sport", "الرياضة"), value: game?.sport ?? copy("Not recorded", "غير مسجل") },
+        { label: copy("Game date", "موعد المباراة"), value: [game?.game_date, game?.start_time ? formatTime12h(game.start_time, lang) : null].filter(Boolean).join(" · ") },
+        { label: copy("Court / location", "الملعب / المكان"), value: [game?.playground?.name ?? game?.location, game?.playground?.area ?? game?.area, game?.playground?.governorate].filter(Boolean).join(" · ") },
+        { label: copy("Organizer", "المنظم"), value: game?.creator_name ?? "" },
+        { label: copy("Duration", "المدة"), value: game?.duration_hours != null ? `${game.duration_hours} ${copy("hours", "ساعة")}` : "" },
+        { label: copy("Game status", "حالة المباراة"), value: game?.status ? t(`community_status_${game.status}` as any) : "" },
+        { label: copy("Game reference", "مرجع المباراة"), value: id },
+      ];
+      return rows.filter(row => row.value);
+    };
 
     for (const p of shares ?? []) {
       out.push({
@@ -90,7 +109,8 @@ export function PaymentApprovals() {
         memberId: p.member_id,
         playerName: p.player_name,
         label: t("super_admin_payments_for_share"),
-        detail: [p.game?.title, p.game?.sport].filter(Boolean).join(" · "),
+        detail: p.game?.title ?? copy("Game details unavailable", "تفاصيل المباراة غير متاحة"),
+        context: [...gameContext(p.game, p.game_id), ...(p.player_name ? [{ label: copy("Player / paid place", "اللاعب / المكان المدفوع"), value: p.player_name }] : [])],
         amount: p.share_amount ?? 0,
         method: p.pay_method,
         createdAt: p.joined_at,
@@ -106,7 +126,8 @@ export function PaymentApprovals() {
         kind: "rent",
         memberId: r.member_id,
         label: t("super_admin_payments_for_rent"),
-        detail: r.game?.title ?? "",
+        detail: r.game?.title ?? copy("Game details unavailable", "تفاصيل المباراة غير متاحة"),
+        context: gameContext(r.game, r.game_id),
         amount: r.amount,
         method: r.pay_method,
         createdAt: r.created_at,
@@ -117,6 +138,7 @@ export function PaymentApprovals() {
     }
 
     for (const s of subscriptions ?? []) {
+      const planName = s.plan === "pro" ? t("mplan_tier_pro") : t(`plans_tier_${s.plan}` as any);
       out.push({
         key: `sub:${s.id}`,
         kind: "subscription",
@@ -126,7 +148,14 @@ export function PaymentApprovals() {
             ? "super_admin_payments_for_sub_academy"
             : "super_admin_payments_for_sub_member",
         ),
-        detail: `${t(`plans_tier_${s.plan}` as any)} · ${t(`checkout_cycle_${s.billing_cycle}` as any)}`,
+        detail: `${planName} · ${t(`checkout_cycle_${s.billing_cycle}` as any)}`,
+        context: [
+          { label: copy("Subscription for", "الاشتراك لصالح"), value: s.kind === "academy" ? s.academy?.name ?? copy("Academy details unavailable", "بيانات الأكاديمية غير متاحة") : copy("Player membership", "عضوية لاعب") },
+          { label: copy("Plan", "الباقة"), value: planName },
+          { label: copy("Billing cycle", "دورة الفوترة"), value: t(`checkout_cycle_${s.billing_cycle}` as any) },
+          ...(s.academy_id ? [{ label: copy("Academy reference", "مرجع الأكاديمية"), value: s.academy_id }] : []),
+          ...(s.reviewed_at ? [{ label: copy("Reviewed at", "تاريخ المراجعة"), value: format(new Date(s.reviewed_at), "MMM d, yyyy · h:mm a", { locale }) }] : []),
+        ],
         amount: s.amount,
         method: s.method,
         createdAt: s.created_at,
@@ -137,7 +166,7 @@ export function PaymentApprovals() {
     }
 
     return out;
-  }, [shares, rents, subscriptions, t]);
+  }, [shares, rents, subscriptions, t, lang, locale]);
 
   const pendingCount = records.filter((r) => r.status === "pending" && r.method !== "kashier").length;
 
@@ -251,6 +280,7 @@ export function PaymentApprovals() {
           </Select>
         </div>
 
+        <QueryState queries={[sharesQuery, rentsQuery, subscriptionsQuery]}>
         {filtered.length === 0 ? (
           <EmptyState
             message={t("super_admin_payments_empty")}
@@ -267,7 +297,7 @@ export function PaymentApprovals() {
                     {t(r.status === "pending" ? "super_admin_payments_pending" : r.status === "approved" ? "super_admin_payments_approved" : "super_admin_payments_rejected")}
                   </Badge>
                 </div>
-                {r.detail && <p className="break-words text-sm text-muted-foreground">{r.detail}</p>}
+                <PaymentPurpose record={r} language={lang} />
                 <div className="flex flex-wrap justify-between gap-2 text-sm">
                   <span className="min-w-0 break-words">{(r.memberId ? memberName(r.memberId) : undefined) ?? r.playerName ?? "—"}</span>
                   <strong>{money(r.amount)}</strong>
@@ -289,7 +319,7 @@ export function PaymentApprovals() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead>{t("super_admin_payments_for_title")}</TableHead>
-                  <TableHead className="hidden sm:table-cell">{t("community_organizer")}</TableHead>
+                  <TableHead className="hidden sm:table-cell">{lang === "ar" ? "صاحب الدفع" : "Payer"}</TableHead>
                   <TableHead>{t("checkout_total")}</TableHead>
                   <TableHead className="hidden md:table-cell">{t("super_admin_payments_date")}</TableHead>
                   <TableHead>{t("super_admin_payments_status")}</TableHead>
@@ -302,16 +332,10 @@ export function PaymentApprovals() {
                   const handle = r.memberId ? memberHandle(r.memberId) : undefined;
                   return (
                     <TableRow key={r.key}>
-                      <TableCell>
-                        <p className="truncate font-medium">{r.label}</p>
-                        {r.detail && (
-                          <p className="truncate text-xs text-muted-foreground">{r.detail}</p>
-                        )}
-                        {r.method && (
-                          <p className="text-xs text-muted-foreground lg:hidden">
-                            {t(`game_fee_method_${r.method}` as any)}
-                          </p>
-                        )}
+                      <TableCell className="min-w-64 max-w-md align-top">
+                        <p className="whitespace-normal break-words font-medium">{r.label}</p>
+                        <PaymentPurpose record={r} language={lang} />
+                        {r.method && <p className="mt-2 text-xs text-muted-foreground">{t(`game_fee_method_${r.method}` as any)}</p>}
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
                         <p>{name ?? r.playerName ?? "—"}</p>
@@ -389,7 +413,17 @@ export function PaymentApprovals() {
           </div>
           </>
         )}
+        </QueryState>
       </CardContent>
     </Card>
   );
+}
+
+function PaymentPurpose({ record, language }: { record: PaymentRecord; language: string }) {
+  return <div className="mt-2 min-w-0 space-y-2 text-xs">
+    <p className="whitespace-normal break-words text-sm font-semibold">{record.detail}</p>
+    <dl className="space-y-1">{record.context.map(field => <div key={field.label} className="flex flex-wrap gap-x-2">
+      <dt className="text-muted-foreground">{field.label}:</dt><dd className="min-w-0 whitespace-normal break-words">{field.value}</dd>
+    </div>)}<div className="flex flex-wrap gap-x-2"><dt className="text-muted-foreground">{language === "ar" ? "مرجع الدفع" : "Payment reference"}:</dt><dd className="break-all font-mono text-[10px]">{record.key.slice(record.key.indexOf(":") + 1)}</dd></div></dl>
+  </div>;
 }

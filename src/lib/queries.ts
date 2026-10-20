@@ -4241,6 +4241,13 @@ export function useReviewParticipantShare() {
   });
 }
 
+type PaymentGameContext = {
+  title: string | null; sport: string | null; game_date: string | null; start_time: string | null;
+  duration_hours: number | null; creator_name: string | null; status: string | null;
+  location: string | null; area: string | null;
+  playground: { name: string | null; area: string | null; governorate: string | null } | null;
+};
+
 // All friendly-game share payments (pending + approved) for the unified super
 // admin payment approvals section.
 export function useAllGamePayments() {
@@ -4250,9 +4257,9 @@ export function useAllGamePayments() {
       const { data, error } = await supabase()
         .from("friendly_game_participants")
         .select(
-          "id, game_id, member_id, player_name, share_amount, pay_method, pay_receipt_url, pay_status, joined_at, game:friendly_games(title, sport, game_date, start_time)"
+          "id, game_id, member_id, player_name, share_amount, pay_method, pay_receipt_url, pay_status, joined_at, game:friendly_games(title, sport, game_date, start_time, duration_hours, creator_name, status, location, area, playground:venues(name, area, governorate))"
         )
-        .in("pay_status", ["pending", "approved"])
+        .in("pay_status", ["pending", "approved", "rejected"])
         .order("joined_at", { ascending: false })
         .limit(200);
       if (error) throw error;
@@ -4266,20 +4273,7 @@ export function useAllGamePayments() {
         pay_receipt_url: string | null;
         pay_status: string;
         joined_at: string;
-        game:
-          | {
-              title: string | null;
-              sport: string | null;
-              game_date: string | null;
-              start_time: string | null;
-            }
-          | {
-              title: string | null;
-              sport: string | null;
-              game_date: string | null;
-              start_time: string | null;
-            }[]
-          | null;
+        game: PaymentGameContext | PaymentGameContext[] | null;
       }[];
       return rows.map((r) => ({
         ...r,
@@ -4322,7 +4316,7 @@ export function useAllRentPayments() {
       const { data, error } = await supabase()
         .from("friendly_game_rent_payments")
         .select(
-          "id, game_id, member_id, amount, pay_method, pay_receipt_url, pay_status, created_at, game:friendly_games(title, sport, game_date, start_time)"
+          "id, game_id, member_id, amount, pay_method, pay_receipt_url, pay_status, created_at, game:friendly_games(title, sport, game_date, start_time, duration_hours, creator_name, status, location, area, playground:venues(name, area, governorate))"
         )
         .in("pay_status", ["pending", "approved", "rejected"])
         .order("created_at", { ascending: false })
@@ -4337,20 +4331,7 @@ export function useAllRentPayments() {
         pay_receipt_url: string | null;
         pay_status: string;
         created_at: string;
-        game:
-          | {
-              title: string | null;
-              sport: string | null;
-              game_date: string | null;
-              start_time: string | null;
-            }
-          | {
-              title: string | null;
-              sport: string | null;
-              game_date: string | null;
-              start_time: string | null;
-            }[]
-          | null;
+        game: PaymentGameContext | PaymentGameContext[] | null;
       }[];
       return rows.map((r) => ({
         ...r,
@@ -4561,12 +4542,12 @@ export function useAllSubscriptions() {
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("plan_subscriptions")
-        .select("*")
+        .select("*, academy:academies(name)")
         .in("receipt_status", ["pending", "verified", "rejected"])
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
-      return (data ?? []) as PlanSubscription[];
+      return (data ?? []) as (PlanSubscription & { academy: { name: string } | null })[];
     },
   });
 }
