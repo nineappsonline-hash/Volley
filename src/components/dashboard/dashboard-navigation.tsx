@@ -6,7 +6,7 @@ import { useI18n } from "@/lib/i18n";
 import { MemberHomeHeader } from "./member-home-header";
 import styles from "./dashboard.module.css";
 
-export function DashboardNavigation({ admin = false, hasQr = false, sections, name, selectedSport, onSportChange }: { selectedSport?: string; onSportChange?: (sport: string) => void; name?: string; admin?: boolean; hasQr?: boolean; sections?: { id: string; label: string }[] }) {
+export function DashboardNavigation({ admin = false, hasQr = false, sections, name, selectedSport, onSportChange, children }: { children?: React.ReactNode; selectedSport?: string; onSportChange?: (sport: string) => void; name?: string; admin?: boolean; hasQr?: boolean; sections?: { id: string; label: string }[] }) {
   const { lang } = useI18n();
   const ar = lang === "ar";
   const actions = admin ? [
@@ -35,7 +35,7 @@ export function DashboardNavigation({ admin = false, hasQr = false, sections, na
         { id: "tournaments", label: ar ? "بطولاتي" : "Tournaments" },
         { id: "updates", label: ar ? "الأخبار والتنبيهات" : "Updates" },
       ]);
-  if (!admin) return <MemberHomeHeader selectedSport={selectedSport} onSportChange={onSportChange} name={name} hasQr={hasQr} sections={chips} />;
+  if (!admin) return <MemberHomeHeader selectedSport={selectedSport} onSportChange={onSportChange} name={name}>{children}</MemberHomeHeader>;
   return <div className={styles.intro}>
     <div className={styles.introTop}><div><span className={styles.eyebrow}>{ar ? "خطوتك الجاية" : "Your next step"}</span><h2>{admin ? (ar ? "إدارة أوضح. يوم أسهل." : "Clearer management. A smoother day.") : (ar ? "جاهز لتمرينتك الجاية؟" : "Ready for your next session?")}</h2><p>{admin ? (ar ? "ابدأ بالمهمة اللي محتاجها، وتابع باقي أكاديميتك من الأقسام تحت." : "Start with a task, then explore your academy overview below.") : (ar ? "حضورك، تطورك، وعيلتك… كل حاجة قريبة منك." : "Your attendance, progress and family, all within reach.")}</p></div><CalendarDays className={styles.heroIcon} aria-hidden="true" /></div>
     <nav className={styles.actions} aria-label={ar ? "إجراءات سريعة" : "Quick actions"}>{actions.map(({href, icon: Icon, title, hint}) => <Link key={href} href={href} className={styles.action}><span className={styles.actionIcon}><Icon size={22} /></span><span><strong>{title}</strong><small>{hint}</small></span><ArrowUpRight size={16} className={styles.arrow} aria-hidden="true" /></Link>)}</nav>

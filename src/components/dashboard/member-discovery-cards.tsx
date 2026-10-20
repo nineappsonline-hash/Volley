@@ -82,8 +82,8 @@ function DiscoveryCard({
 
   return <section aria-labelledby={`${id}-title`} className="min-w-0 space-y-4">
     <header className="flex flex-wrap items-end justify-between gap-3">
-      <div><p className="mb-1 text-[10px] font-bold uppercase tracking-[.16em] text-muted-foreground">{tone === "games" ? (t("games_page_title")) : description}</p><h2 id={`${id}-title`} className="text-2xl font-extrabold tracking-tight">{title}</h2></div>
-      <Link href={href} className="inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{action}<ArrowRight size={14} className="rtl:rotate-180" aria-hidden="true" /></Link>
+      <div>{!live && <p className="mb-1 text-[10px] font-bold uppercase tracking-[.16em] text-muted-foreground">{tone === "games" ? (t("games_page_title")) : description}</p>}<h2 id={`${id}-title`} className="text-2xl font-extrabold tracking-tight">{title}</h2></div>
+      {!live && <Link href={href} className="inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{action}<ArrowRight size={14} className="rtl:rotate-180" aria-hidden="true" /></Link>}
     </header>
     <QueryState queries={[query]}>
       {items.length === 0 ? <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">{empty}</p> : <ul id={id} aria-label={title} className={live ? "grid grid-cols-2 gap-3 lg:grid-cols-3" : "flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-3"}>
@@ -155,7 +155,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
   const gameItems = (games.data ?? [])
     .filter(
       (game) =>
-        (game.status === "open" || game.status === "full") &&
+        (interactive ? game.status === "open" : (game.status === "open" || game.status === "full")) &&
         game.game_date >= today &&
         (!interactive || ((sportFilter === "all" || game.sport?.trim().toLowerCase() === sportFilter.toLowerCase()) &&
           (level === "all" || game.skill_level === level) && (!date || game.game_date === date) &&
@@ -227,7 +227,6 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
           <button type="button" className="w-fit rounded-lg border px-3 py-2 text-sm" onClick={() => { setArea(""); setDate(""); setLevel("all"); }}>{ar ? "مسح الفلاتر" : "Clear filters"}</button>
         </div>
       </details>}
-      {interactive && !games.isPending && !games.isError && <p role="status" aria-live="polite" className="flex items-center gap-2 text-xs text-muted-foreground"><span aria-hidden="true" className="h-2 w-2 rounded-full bg-[#C7F23D]" />{gameItems.length} {ar ? "مباراة · بتتحدث تلقائياً" : "games · Updates automatically"}</p>}
 
       {mode !== "games" && <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/50 px-4 py-3 text-sm">
         <p>{ar ? "خصّص اقتراحاتك بالرياضات والمستوى وأيامك المتاحة." : "Make these suggestions yours with your sports, skill level, and available days."}</p>
@@ -254,7 +253,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, m
         icon={LandPlot}
         items={gameItems}
         query={games}
-        empty={interactive ? (ar ? "مفيش مباريات مطابقة للاختيار ده حالياً. القائمة بتتحدث تلقائياً." : "No current games match this selection. This list updates automatically.") : (ar ? "مفيش مباريات متاحة حالياً. تابعنا قريب." : "No active games right now. Check back soon.")}
+        empty={interactive ? (ar ? "مفيش مباريات مفتوحة مطابقة للاختيار ده حالياً." : "No open games match this selection.") : (ar ? "مفيش مباريات متاحة حالياً. تابعنا قريب." : "No active games right now. Check back soon.")}
 
       />}
 

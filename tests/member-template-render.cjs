@@ -27,12 +27,15 @@ const {MemberBottomNavigation}=load('src/components/layout/member-bottom-navigat
 const {SportIcon}=load('src/components/marketing/sport-icons.tsx');
 assert.match(renderToStaticMarkup(React.createElement(SportIcon,{id:'beach-volleyball'})),/<path/);
 for(lang of ['en','ar']){
- let html=renderToStaticMarkup(React.createElement(MemberHomeHeader,{name:'Player One',hasQr:true,sections:[{id:'training',label:'Training'}]}));
- for(const href of ['/dashboard/games','/academies','/playgrounds','/dashboard/tournaments','/parent','/academy-bookings','/sports/archery','/profile#evaluations','#checkin','#training'])assert.ok(html.includes(`href="${href}"`),href);
+ let html=renderToStaticMarkup(React.createElement(MemberHomeHeader,{name:'Player One',children:React.createElement('section',{id:'member-live-games'},'Live game results')}));
+ for(const href of ['/dashboard/games','/academies','/playgrounds','/dashboard/tournaments','/academy-bookings','/profile#evaluations'])assert.ok(html.includes(`href="${href}"`),href);
  assert.ok(html.includes('aria-controls="member-live-games"'));
  assert.ok(!html.includes('/dashboard/games?sport='));
  assert.ok(html.includes(lang==='en'?'Invite a friend':'اعزم صاحبك'));
- assert.ok(html.includes(lang==='en'?'Archery':'الرماية بالقوس'));
+ assert.ok(html.includes(lang==='en'?'Archery':'رماية بالقوس'));
+ assert.ok(!html.includes('href="/parent"'));assert.ok(!html.includes('href="/sports/archery"'));assert.ok(!html.includes('href="#checkin"'));assert.ok(!html.includes('href="#training"'));
+ assert.ok(html.indexOf('Live game results') < html.indexOf('href="/academies"'));
+ assert.ok(html.indexOf('aria-controls="member-live-games"') < html.indexOf('Live game results'));
  html=renderToStaticMarkup(React.createElement(GameCardShell,{layout:'list',game:{id:'game',title:'Gateway game',sport:'Volleyball',game_date:'2026-10-23',start_time:'20:00',status:'open',max_players:18,participants_count:12,share_price:100,is_public:true,playground:{name:'Gateway',photos:['https://example.invalid/court.jpg']},participants:[]},joined:true},React.createElement('button',null,'Join existing game')));
  for(const text of ['Gateway game','Gateway','12/18','EGP 100.00','Join existing game','aria-expanded="false"','hidden=""','background-color:#C7F23D'])assert.ok(html.includes(text),text);
  assert.match(html,/src="https:\/\/example.invalid\/court.jpg"/);
@@ -40,7 +43,7 @@ for(lang of ['en','ar']){
  assert.ok(html.includes(lang==='en'?'Booking confirmed':'الحجز مؤكد'));
  for(pathname of ['/dashboard','/dashboard/games','/playgrounds','/dashboard/tournaments','/academies']){const nav=renderToStaticMarkup(React.createElement(MemberBottomNavigation));assert.equal((nav.match(/aria-current="page"/g)||[]).length,1,pathname);assert.ok(nav.includes('href="/dashboard"'));assert.ok(nav.includes('href="/academies"'));}
 }
-console.log('PASS: bilingual photo dashboard destinations, local sport controls, QR anchors, compact game price/capacity/details/booking state and active bottom navigation');
+console.log('PASS: bilingual photo dashboard destinations, local sport controls, games-first ordering, compact game price/capacity/details/booking state and active bottom navigation');
 
 function findElements(node,predicate,found=[]){if(!node||typeof node!=='object')return found;if(predicate(node))found.push(node);React.Children.forEach(node.props?.children,child=>findElements(child,predicate,found));return found;}
 let selected='all';lang='en';
