@@ -41,7 +41,7 @@ export type PublicGame = {
   gender: string;
   share_price: number | null;
   creator_name: string;
-  playground: { name: string | null; area: string | null; governorate: string | null; location_link?: string | null; cover_url?: string | null; country?: string | null } | null;
+  playground: { name: string | null; area: string | null; governorate: string | null; location_link?: string | null; cover_url?: string | null; photos?: string[] | null; country?: string | null } | null;
   joined: number;
 };
 
@@ -131,7 +131,7 @@ export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
     .select(
       `id, title, description, sport, area, location, game_date, start_time,
        max_players, min_players, status, skill_level, gender, share_price, host_pays, host_total,
-       creator_name, duration_hours, min_age, max_age, playground:venues(name, area, governorate, country, location_link, cover_url),
+       creator_name, duration_hours, min_age, max_age, playground:venues(name, area, governorate, country, location_link, cover_url, photos),
        participants:friendly_game_participants(is_waitlisted)`
     )
     .eq("is_public", true)

@@ -14,7 +14,6 @@ const mocks={
  '@/lib/queries':{useCurrentProfile:()=>({data:{role:'member'}})},
  '@/lib/utils':{cn:(...values)=>values.filter(Boolean).join(' ')},
  '@/lib/constants':{formatMoney:n=>`EGP ${Number(n).toFixed(2)}`,formatTime12h:v=>v},
- '@/lib/venue-media':{venueCardPhoto:(photos,cover)=>photos?.[0]??cover},
  '@/lib/game-costs':{gameBookingPayment:()=>({confirmed:true})},
  './game-card-background':{GameCardBackground:()=>React.createElement('span',{'data-fallback-art':true})},
  sonner:{toast:{success(){},error(){}}},
@@ -112,3 +111,9 @@ for(lang of ['en','ar']){
  assert.ok(personal.includes('Past completed'));assert.ok(personal.includes('Cancelled created'));assert.ok(personal.indexOf('Future joined') < personal.indexOf('Past completed'));
 }
 console.log('PASS: check-in and My games lead the bilingual menu; personal games show empty, upcoming, past and cancelled states with shared cards');
+
+const {guestGameCard}=load('src/lib/guest-games.ts');
+const photoGame={id:'guest-photo',title:'Guest gallery court',sport:'Tennis',gender:'mixed',status:'open',game_date:'2099-01-01',start_time:'18:00',max_players:4,min_players:2,joined:1,share_price:100,playground:{name:'Gallery court',photos:['https://example.invalid/gallery-thumb.jpg'],cover_url:null}};
+let guestPhotoHtml=renderToStaticMarkup(React.createElement(GameCardShell,{layout:'list',game:guestGameCard(photoGame),joined:false}));assert.ok(guestPhotoHtml.includes('src="https://example.invalid/gallery-thumb.jpg"'));
+guestPhotoHtml=renderToStaticMarkup(React.createElement(GameCardShell,{layout:'list',game:guestGameCard({...photoGame,playground:{...photoGame.playground,cover_url:'https://example.invalid/chosen-cover.jpg'}}),joined:false}));assert.ok(guestPhotoHtml.includes('src="https://example.invalid/chosen-cover.jpg"'));assert.ok(!guestPhotoHtml.includes('src="https://example.invalid/gallery-thumb.jpg"'));
+console.log('PASS: guest game cards render playground gallery thumbnails and honor the chosen cover through the shared game shell');

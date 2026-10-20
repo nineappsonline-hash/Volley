@@ -35,6 +35,12 @@ function load(file){file=path.resolve(file);if(cache.has(file))return cache.get(
  session={profile:{role:'member',phone:'123',gender:'male',birth_date:'2000-01-01'}};response=await route.GET(new Request('https://playza.test/auth/continue?next='+encodeURIComponent(hash)));assert.equal(response.headers.get('location'),'https://playza.test'+hash);
  response=await route.GET(new Request('https://playza.test/auth/continue?next=https://evil.test'));assert.equal(response.headers.get('location'),'https://playza.test/dashboard');
  const {guestGameCard}=load('src/lib/guest-games.ts');const safe=guestGameCard({id:'abc',title:'Public tennis',sport:'Tennis',status:'open',gender:'female',game_date:'2099-01-01',start_time:'18:00',max_players:4,min_players:2,joined:2,share_price:100,min_age:18,max_age:40,participants:[{member_id:'SECRET'}],invite_code:'SECRET',host_total:123});assert.deepEqual(safe.participants,[]);assert.equal(safe.invite_code,null);assert.equal(safe.host_total,null);assert.equal(safe.min_age,18);assert.equal(safe.participants_count,2);
+ const {venueCardPhoto}=load('src/lib/venue-media.ts');
+ const gallery={name:'Gallery court',photos:['https://example.invalid/court-gallery.jpg'],cover_url:null};
+ const galleryCard=guestGameCard({...safe,joined:2,playground:gallery});assert.deepEqual(galleryCard.playground.photos,gallery.photos);assert.equal(venueCardPhoto(galleryCard.playground.photos,galleryCard.playground.cover_url),gallery.photos[0]);
+ const coveredCard=guestGameCard({...safe,joined:2,playground:{...gallery,cover_url:'https://example.invalid/cover.jpg'}});assert.equal(venueCardPhoto(coveredCard.playground.photos,coveredCard.playground.cover_url),'https://example.invalid/cover.jpg');
+ const noPhoto=guestGameCard({...safe,joined:2,playground:{name:'No photos'}});assert.equal(venueCardPhoto(noPhoto.playground.photos,noPhoto.playground.cover_url),null);
+ assert.ok(fs.readFileSync('src/lib/public-games.ts','utf8').includes('playground:venues(name, area, governorate, country, location_link, cover_url, photos)'));
  const {GuestGameList}=load('src/components/dashboard/guest-game-list.tsx');for(lang of ['en','ar']){const html=renderToStaticMarkup(React.createElement(GuestGameList,{games:[safe]}));assert.ok(html.includes('Public tennis'));assert.ok(!html.includes('SECRET'));assert.ok(html.includes('/login?redirectedFrom=%2Fdashboard%3Fsport%3Dtennis%26focus%3Dabc%23game-abc'));assert.ok(!html.includes('href="/dashboard/games"'));}
  let pushed=null;
  mocks.react={...React,useState:initial=>[initial,()=>{}]};

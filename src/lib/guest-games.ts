@@ -7,7 +7,7 @@ export function guestGameCard(game: PublicGame): FriendlyGameWithDetails {
     id: game.id, creator_id: "", creator_name: game.creator_name, creator_username: null, creator_nickname: null,
     sport: game.sport, title: game.title, description: game.description, area: game.area, location: game.location,
     lat: null, lng: null, playground_id: null,
-    playground: game.playground ? { name: game.playground.name, area: game.playground.area, governorate: game.playground.governorate, country: game.playground.country, address: null, lat: null, lng: null, location_link: game.playground.location_link ?? null, photos: [], cover_url: game.playground.cover_url ?? null } : null,
+    playground: game.playground ? { name: game.playground.name, area: game.playground.area, governorate: game.playground.governorate, country: game.playground.country, address: null, lat: null, lng: null, location_link: game.playground.location_link ?? null, photos: game.playground.photos ?? [], cover_url: game.playground.cover_url ?? null } : null,
     game_date: game.game_date, start_time: game.start_time, max_players: game.max_players, min_players: game.min_players,
     duration_hours: game.duration_hours ?? 1, playground_hourly_rate: null,
     skill_level: ["beginner", "intermediate", "advanced"].includes(game.skill_level ?? "") ? game.skill_level as FriendlyGameWithDetails["skill_level"] : null,
