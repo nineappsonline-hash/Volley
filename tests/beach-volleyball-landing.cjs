@@ -15,7 +15,7 @@ function load(file) {
   const output = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText;
   new Function('require', 'exports', output)(id => {
     if (id === 'next/link') return { __esModule: true, default: ({ children, ...props }) => React.createElement('a', props, children) };
-    if (id === '@/lib/i18n') return { useI18n: () => ({ lang, dir: lang === 'ar' ? 'rtl' : 'ltr' }) };
+    if (id === '@/lib/i18n') return { useI18n: () => ({ lang, dir: lang === 'ar' ? 'rtl' : 'ltr', t:key=>dictionary[lang][key]??key }) };
     if (id === '@/components/shared/app-logo') return { AppLogo: () => React.createElement('span', null, 'Playza') };
     if (id === '@/components/layout/language-toggle') return { LanguageToggle: () => null };
     if (id.startsWith('@/') || id.startsWith('.')) {
@@ -30,6 +30,8 @@ function load(file) {
 const { LandingPage } = load(path.join(root, 'src/components/marketing/landing.tsx'));
 const content = load(path.join(root, 'src/lib/landing-content.ts'));
 const seo = load(path.join(root, 'src/lib/seo.ts'));
+const {dictionary}=load(path.join(root,'src/lib/i18n/dictionary.ts'));
+const {formatMoney}=load(path.join(root,'src/lib/constants.ts'));
 for (lang of ['en', 'ar']) {
   const html = renderToStaticMarkup(React.createElement(LandingPage));
   const section = html.match(/<section id="beach-volleyball"[\s\S]*?<\/section>/)?.[0];
@@ -56,20 +58,24 @@ for (lang of ['en', 'ar']) {
 assert.ok(renderToStaticMarkup(React.createElement(LandingPage)).includes('href="/playgrounds"'));
 // Public game previews must preserve prices, dates and the destination game.
 const games = [
-  { id: 'paid', title: 'Friday beach game', sport: 'Beach Volleyball', game_date: '2026-11-01', start_time: '20:00', share_price: 145, area: 'New Cairo', playground: { name: 'Sand court', area: 'New Cairo', governorate: 'Cairo' } },
+  { id: 'paid', title: 'Friday beach game', sport: 'Beach Volleyball', game_date: '2026-11-01', start_time: '20:00', share_price: 145, area: 'New Cairo', playground: { name: 'Sand court', area: 'New Cairo', governorate: 'Cairo', photos:['https://example.invalid/landing-court.jpg'] } },
   { id: 'host', title: 'Hosted game', sport: 'Volleyball', game_date: '2026-11-02', start_time: '18:00', share_price: 200, host_pays: true },
   { id: 'unknown', title: '<script>unsafe</script>', sport: 'Volleyball', game_date: '2026-11-03', start_time: '18:00', share_price: null },
-];
+].map(game=>({max_players:12,min_players:6,joined:3,status:'open',gender:'mixed',creator_name:'Host',...game}));
 for (lang of ['en', 'ar']) {
   const html = renderToStaticMarkup(React.createElement(LandingPage, { upcomingGames: games }));
   const section = html.match(/<section id="upcoming-games"[\s\S]*?<\/section>/)?.[0];
   assert.ok(section.includes('Friday beach game'));
-  assert.ok(section.includes('Sand court, New Cairo, Cairo'));
+  assert.ok(section.includes('src="https://example.invalid/landing-court.jpg"'));
+  assert.ok(section.includes('3/12'));
+  assert.ok(!section.includes('aria-expanded="false"'));
+  assert.ok(!section.includes('href="/dashboard?focus=paid"'));
+  assert.ok(section.includes('Sand court'));
   assert.match(section, /datetime="2026-11-01"/i);
-  assert.ok(section.includes('href="/dashboard?focus=paid"'));
-  assert.ok(section.includes(lang === 'ar' ? '145 جنيه لكل لاعب' : 'EGP 145 per player'));
-  assert.ok(section.includes(lang === 'ar' ? 'مجاني' : 'Free — host covers the court'));
-  assert.ok(section.includes(lang === 'ar' ? 'التكلفة لم تتحدد بعد' : 'Price to be confirmed'));
+  assert.ok(section.includes('href="/games/paid"'));
+  assert.ok(section.includes(formatMoney(145,lang)));
+  assert.ok(section.includes(lang === 'ar' ? 'مجاني' : 'Free'));
+  assert.ok(section.includes('—'));
   assert.ok(!section.includes('<script>unsafe</script>'));
   assert.ok(!html.includes('id="find-your-court"'), 'discovery section was removed from the homepage');
   assert.ok(html.indexOf('id="upcoming-games"') < html.indexOf('id="sports"'));

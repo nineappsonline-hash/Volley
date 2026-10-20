@@ -1,11 +1,11 @@
 "use client";
 
+import { GameCardShell } from "@/components/games/game-card-shell";
+import { guestGameCard } from "@/lib/guest-games";
 import { publicGamePath } from "@/lib/game-discovery";
 import { LOCAL_GAME_GUIDES, localGamePath } from "@/lib/local-games";
 
 import type { PublicGame } from "@/lib/public-games";
-import { formatTime12h } from "@/lib/constants";
-import { gameSharePrice } from "@/lib/game-share";
 import { useState } from "react";
 import NextLink from "next/link";
 import type { ComponentProps } from "react";
@@ -99,22 +99,8 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
           <h2 id="upcoming-games-title">{copy("Find a game. Join the people.", "لاقي ماتش. واتعرّف على ناس جديدة.")}</h2>
           <p>{copy("Browse tennis, volleyball and beach volleyball. Check each game's location, price and joining requirements before you book.", "اكتشف ماتشات التنس والكرة الطائرة والطائرة الشاطئية. راجع مكان وتكلفة وشروط كل ماتش قبل الحجز.")}</p>
         </div>
-        {upcomingGames.length > 0 ? <div className={styles.gameGrid}>
-          {upcomingGames.map(game => {
-            const href = publicGamePath(game.id);
-            const place = [game.playground?.name, game.playground?.area ?? game.area, game.playground?.governorate].filter(Boolean).join(", ");
-            const price = ar
-              ? game.host_pays || game.share_price === 0 ? "مجاني" : game.share_price == null ? "التكلفة لم تتحدد بعد" : `${game.share_price} جنيه لكل لاعب`
-              : gameSharePrice(game);
-            return <article key={game.id} className={styles.gameCard}>
-              <p>{game.sport}</p>
-              <h3><Link href={href}>{game.title}</Link></h3>
-              <p><time dateTime={game.game_date}>{new Intl.DateTimeFormat(ar ? "ar-EG" : "en-GB", { dateStyle: "medium", timeZone: "Africa/Cairo" }).format(new Date(`${game.game_date}T12:00:00Z`))}</time> · {formatTime12h(game.start_time, lang)}</p>
-              {place && <p>{place}</p>}
-              <p><strong>{price}</strong></p>
-              <Link href={href} className={styles.textLink}>{copy("View game & joining details", "شوف تفاصيل الماتش والانضمام")}<ArrowUpRight size={18} aria-hidden="true" /></Link>
-            </article>;
-          })}
+        {upcomingGames.length > 0 ? <div className="flex flex-col gap-3 text-start">
+          {upcomingGames.map(game => <GameCardShell key={game.id} layout="list" game={guestGameCard(game)} joined={false} detailsHref={publicGamePath(game.id)} />)}
         </div> : <p className={styles.gamesEmpty}>{copy("Check the games page for the latest availability. You can also create an account and organize a game with your friends.", "راجع صفحة الماتشات لمعرفة المواعيد المتاحة. وتقدر تعمل حساب وتنظّم ماتش مع أصحابك.")}</p>}
         <nav aria-label={copy("Games in New Cairo", "ماتشات في التجمع")} className="mt-6 flex flex-wrap gap-4">{LOCAL_GAME_GUIDES.map(guide => <Link key={guide.slug} className={styles.textLink} href={localGamePath(lang, guide.slug)}>{guide[lang].title}</Link>)}</nav>
         <div className={styles.actions}><Link href="/games" className={styles.primary}>{copy("Browse all upcoming games", "شوف كل الماتشات الجاية")}<ArrowUpRight size={20} aria-hidden="true" /></Link></div>
