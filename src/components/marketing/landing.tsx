@@ -11,7 +11,7 @@ import NextLink from "next/link";
 import type { ComponentProps } from "react";
 import { landingBrowsePath } from "@/lib/guest-access";
 
-import { ArrowUpRight, ArrowDown, Volleyball, Pause, Play, MapPin } from "lucide-react";
+import { ArrowUpRight, ArrowDown, Volleyball, Pause, Play, MapPin, Users, CalendarDays, QrCode, Check, Sparkles } from "lucide-react";
 import { AppLogo } from "@/components/shared/app-logo";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { useI18n } from "@/lib/i18n";
@@ -91,7 +91,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
           <h2 id="upcoming-games-title">{copy("Find a game. Join the people.", "لاقي ماتش. واتعرّف على ناس جديدة.")}</h2>
           <p>{copy("Browse tennis, padel, basketball, volleyball and beach volleyball. Check each game's location, price and joining requirements before you book.", "اكتشف ماتشات التنس والبادل وكرة السلة والكرة الطائرة والطائرة الشاطئية. راجع مكان وتكلفة وشروط كل ماتش قبل الحجز.")}</p>
         </div>
-        {upcomingGames.length > 0 ? <div className="flex flex-col gap-3 text-start">
+        {upcomingGames.length > 0 ? <div className={`flex flex-col gap-3 text-start ${styles.landingGameCards}`}>
           {upcomingGames.map(game => <GameCardShell key={game.id} layout="list" game={guestGameCard(game)} joined={false} detailsHref={publicGamePath(game.id)} />)}
         </div> : <p className={styles.gamesEmpty}>{copy("Check the games page for the latest availability. You can also create an account and organize a game with your friends.", "شوف المواعيد المتاحة في صفحة الماتشات، أو اعمل حساب ونظّم ماتش مع صحابك.")}</p>}
         <div className={styles.actions}><Link href="/games" className={styles.primary}>{copy("Browse all upcoming games", "شوف كل الماتشات الجاية")}<ArrowUpRight size={20} aria-hidden="true" /></Link></div>
@@ -129,11 +129,27 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
       </section>
 
       <section id="academy-management" aria-labelledby="academy-management-title" className={`mx-auto max-w-6xl px-6 py-12 ${styles.academyMgmt}`}>
-        <div className="rounded-2xl border bg-card p-6 sm:p-10">
+        <div className={styles.academyPanel}>
+          <div className={styles.academyCopy}>
           <p className="text-sm font-semibold text-white">{copy("FOR ACADEMY OWNERS", "لأصحاب الأكاديميات")}</p>
           <h2 id="academy-management-title" className="mt-3 text-2xl font-bold text-primary sm:text-3xl">{copy("Run your sports academy with Playza.", "نظّم أكاديميتك مع بلايزا.")}</h2>
           <p className="mt-4 max-w-3xl leading-relaxed text-muted-foreground">{copy("Manage players, subscriptions, training schedules, QR attendance and session finances in one Arabic and English application built for sports academies in Egypt.", "نظّم اللاعبين والاشتراكات وجداول التدريب والحضور عبر QR ومالية الجلسات في تطبيق واحد بالعربية والإنجليزية للأكاديميات الرياضية في مصر.")}</p>
           <Link className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 font-semibold text-primary-foreground hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" href={academyManagementPath(lang)}>{copy("Explore academy management", "اكتشف إدارة الأكاديميات")}<ArrowUpRight size={18} aria-hidden="true" /></Link>
+          </div>
+          <div className={styles.academyVisual} aria-hidden="true">
+            <div className={styles.academyOrbit} />
+            <Sparkles className={styles.academySpark} size={32} />
+            <div className={styles.academyBoard}>
+              <div className={styles.academyBoardHeader}><span className={styles.academyBoardIcon}><CalendarDays size={22} /></span><span>{copy("Your next training", "تمرينك الجاي")}<small>{copy("Everything in one place", "كل حاجة في مكان واحد")}</small></span><span className={styles.academyStatus} /></div>
+              <div className={styles.academyCourt}>
+                <svg viewBox="0 0 280 140" fill="none"><path d="M32 105L135 25L251 65L147 131Z" fill="currentColor" fillOpacity=".12" stroke="currentColor" strokeWidth="2" /><path d="M49 102L138 37L232 68L145 119ZM95 68L190 99M143 39L145 119" stroke="currentColor" strokeWidth="1.5" /><path d="M91 65V38L193 72V105M92 45L192 79M92 53L192 87" stroke="white" strokeOpacity=".65" strokeWidth="2" /><circle className={styles.academyBall} cx="160" cy="35" r="9" fill="currentColor" /><path d="M122 41Q145 5 174 24" stroke="currentColor" strokeDasharray="3 5" /></svg>
+              </div>
+              <div className={styles.academyRoster}><span><Users size={17} />{copy("Players ready", "اللاعبين جاهزين")}</span><div>{[0,1,2,3].map(i => <span key={i}><Check size={12} /></span>)}</div></div>
+              <div className={styles.academyProgress}><span /></div>
+            </div>
+            <div className={styles.academyQr}><QrCode size={32} /><span>{copy("QR check-in", "حضور بالـ QR")}</span><Check size={16} /></div>
+            <div className={styles.academySchedule}><CalendarDays size={18} />{copy("Training, organized", "تمرينك متظبط")}</div>
+          </div>
         </div>
       </section>
 

@@ -137,3 +137,30 @@
 .header,.footer{background-color:hsl(var(--playza-purple-100) / .35)}
 
 @media(max-width:640px){.page>main{background-image:url("/images/sports-doodles-mobile.svg"),radial-gradient(ellipse at 0% 25%,hsl(var(--playza-purple) / .10),transparent 48%),radial-gradient(ellipse at 100% 75%,hsl(var(--playza-lime) / .16),transparent 43%),linear-gradient(90deg,hsl(var(--playza-purple-dark) / .025) 1px,transparent 1px),linear-gradient(hsl(var(--playza-purple-dark) / .025) 1px,transparent 1px);background-size:390px 860px,100% 1200px,100% 1200px,120px 120px,120px 120px}}
+
+/* Academy owners: an illustrated training dashboard, with quiet ambient motion. */
+.academyMgmt>.academyPanel{position:relative;display:grid;grid-template-columns:1.15fr 1fr;align-items:center;gap:32px;padding:40px;border:1px solid #ffffff30;border-radius:28px;overflow:hidden;background:radial-gradient(ellipse at 95% 15%,#a45aee66,transparent 65%),linear-gradient(125deg,var(--color-purple-dark),var(--color-secondary))}
+.academyCopy{position:relative;z-index:1;min-width:0}.academyCopy>a{transition:transform .2s,box-shadow .2s}.academyCopy>a:hover{transform:translateY(-3px);box-shadow:0 8px 28px #c8ff0030}
+.academyVisual{position:relative;min-width:0;height:320px;display:grid;place-items:center;pointer-events:none;color:var(--color-primary)}
+.academyOrbit{position:absolute;width:280px;height:280px;border:1px dashed #ffffff35;border-radius:50%;animation:spin 55s linear infinite}.academyOrbit:before,.academyOrbit:after{content:"";position:absolute;width:9px;height:9px;border-radius:50%;background:var(--color-primary);top:28px;left:45px}.academyOrbit:after{top:auto;left:auto;bottom:28px;right:45px;background:#dfcaff}
+.academySpark{position:absolute;top:4px;inset-inline-end:10px;animation:academyFloat 5s ease-in-out infinite}
+.academyBoard{position:relative;width:min(100%,300px);padding:20px;border:1px solid #ffffff45;border-radius:22px;background:linear-gradient(145deg,#ffffff20,#ffffff0b);box-shadow:0 20px 45px #220b4938;transform:rotate(-4deg);animation:academyBoard 7s ease-in-out infinite}
+.academyBoardHeader{display:flex;align-items:center;gap:10px;color:white;font-size:13px;font-weight:800}.academyBoardHeader small{display:block;font-size:10px;font-weight:400;color:#ede4ff;margin-top:3px}.academyBoardIcon{padding:9px;border-radius:12px;background:#ffffff18;color:var(--color-primary)}.academyStatus{width:7px;height:7px;background:var(--color-primary);border-radius:50%;margin-inline-start:auto;box-shadow:0 0 0 5px #c8ff0015}
+.academyCourt svg{display:block;width:100%;height:126px}.academyBall{animation:academyBall 3.5s ease-in-out infinite}.academyRoster{display:flex;justify-content:space-between;align-items:center;color:white;font-size:11px;gap:8px}.academyRoster>span{display:flex;align-items:center;gap:6px}.academyRoster>div{display:flex;padding-inline-start:5px}.academyRoster>div>span{display:grid;place-items:center;width:23px;height:23px;margin-inline-start:-5px;border-radius:50%;border:2px solid #6225a6;background:var(--color-primary);color:var(--color-purple-dark)}.academyProgress{height:5px;background:#ffffff1f;border-radius:8px;margin-top:15px;overflow:hidden}.academyProgress>span{display:block;width:82%;height:100%;background:var(--color-primary);border-radius:inherit;transform-origin:left;animation:academyProgress 5s ease-in-out infinite}
+.academyQr,.academySchedule{position:absolute;display:flex;align-items:center;gap:9px;border:1px solid #ffffff4a;border-radius:14px;padding:12px 14px;font-size:12px;font-weight:800;box-shadow:0 12px 28px #220b4930;animation:academyFloat 6s ease-in-out infinite}.academyQr{bottom:8px;inset-inline-end:0;background:var(--color-primary);color:var(--color-purple-dark)}.academySchedule{top:7px;inset-inline-start:0;background:#f5eeff;color:var(--color-purple-dark);animation-delay:-3s}
+@keyframes academyFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes academyBoard{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(-2deg) translateY(-6px)}}
+@keyframes academyBall{0%,100%{transform:translate(0,0)}50%{transform:translate(-22px,-12px)}}
+@keyframes academyProgress{0%,100%{transform:scaleX(.8)}50%{transform:scaleX(1)}}
+.page[data-paused=true] .academyVisual *{animation-play-state:paused!important}
+@media(max-width:800px){.academyMgmt>.academyPanel{grid-template-columns:1fr;padding:26px;gap:22px}.academyVisual{width:100%;max-width:360px;justify-self:center;height:310px}}
+@media(max-width:380px){.academyMgmt>.academyPanel{padding:22px 18px}.academyBoard{padding:16px}.academyVisual{height:300px}.academyQr,.academySchedule{font-size:10px;padding:10px}.academyOrbit{width:240px;height:240px}}
+@media(prefers-reduced-motion:reduce){.academyVisual *{animation:none!important}.academyCopy>a:hover{transform:none}}
+
+/* Scope the purple treatment to homepage games; retain the shared card behavior. */
+.landingGameCards{--card-foreground:0 0% 100%;--muted-foreground:270 50% 90%;--muted:270 50% 40%;--foreground:0 0% 100%}
+.landingGameCards>article{color:white;border-color:#ffffff40;background:linear-gradient(115deg,var(--color-purple-dark),var(--color-secondary));box-shadow:0 8px 24px #4b208b18;transition:transform .2s,box-shadow .2s}
+.landingGameCards>article:hover{transform:translateY(-3px);box-shadow:0 14px 30px #4b208b30}
+.landingGameCards>article>a{color:inherit}.landingGameCards>article>a:focus-visible{outline:3px solid var(--color-primary);outline-offset:-5px}
+.landingGameCards :global(.text-muted-foreground){color:#ede4ff}.landingGameCards :global(.bg-muted){background:#ffffff18;color:white}.landingGameCards strong{color:var(--color-primary)}
+@media(prefers-reduced-motion:reduce){.landingGameCards>article{transition:none}.landingGameCards>article:hover{transform:none}}
