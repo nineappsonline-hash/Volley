@@ -25,15 +25,19 @@ export function SharedGamePage({ game, inviteCode }: { game: SharedGameMeta | nu
   return <main className="min-h-screen bg-background px-4 py-8" dir={dir}>
     <header className="mx-auto mb-8 flex max-w-2xl items-center justify-between"><Link href="/" aria-label="Playza"><AppLogo /></Link><LanguageToggle /></header>
     <Card className={`mx-auto max-w-2xl ${styles.invitation}`}>
-      <CardHeader><CardTitle><h1 className="break-words text-2xl font-extrabold">{game?.title ?? t("games_invite_invalid")}</h1></CardTitle></CardHeader>
-      <CardContent className="space-y-5">
-        {game && <>
-          <span className={styles.thumb}>
+      <CardHeader>
+        <div className={styles.headline}>
+          {game && <span className={styles.thumb}>
             {!photo && <span className={styles.thumbFallback} aria-hidden="true">{game.sport}</span>}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {photo && <img src={photo} alt="" loading="lazy" onError={event => { event.currentTarget.style.display = "none"; }} />}
             <span className={styles.thumbLabel}>{game.sport}</span>
-          </span>
+          </span>}
+          <CardTitle><h1 className="break-words text-2xl font-extrabold">{game?.title ?? t("games_invite_invalid")}</h1></CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        {game && <>
           <p><time dateTime={game.game_date}>{new Intl.DateTimeFormat(ar ? AR_NUMERIC_LOCALE : "en-GB", { dateStyle: "full", timeZone: "Africa/Cairo" }).format(new Date(`${game.game_date}T12:00:00Z`))}</time></p>
           <p className={styles.time}><bdi>{formatTime12h(game.start_time, lang)}{endTime && <> – {formatTime12h(endTime, lang)}</>}</bdi>{nextDay && <span className="text-sm">{ar ? "(تاني يوم)" : "(next day)"}</span>}<span className="text-sm">{ar ? "بتوقيت القاهرة" : "Cairo time"}</span></p>
           <p>{t(`games_gender_${game.gender}`)}</p>

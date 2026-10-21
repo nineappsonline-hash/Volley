@@ -61,6 +61,12 @@
     color: hsl(var(--body-text));
     font-weight: 400;
     line-height: 1.7;
+    background-color: hsl(var(--playza-slate-50));
+    background-image: url("/images/sports-doodles.svg"), radial-gradient(ellipse at 0% 25%, hsl(var(--playza-purple) / .10), transparent 48%), radial-gradient(ellipse at 100% 75%, hsl(var(--playza-lime) / .16), transparent 43%), radial-gradient(circle, hsl(var(--playza-purple-dark) / .10) 1px, transparent 1px);
+    background-size: 1400px 1100px, 100% 1200px, 100% 1200px, 24px 24px;
+    background-position: center top;
+    background-repeat: repeat;
+    background-attachment: fixed;
   }
   h1, h2, h3, h4, h5, h6, nav, label, strong { color: inherit; }
   h1 { font-weight: 800; }
