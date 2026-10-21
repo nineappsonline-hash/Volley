@@ -14,7 +14,7 @@ interface LanguageState {
 export const useLanguage = create<LanguageState>()(
   persist(
     (set) => ({
-      lang: "en",
+      lang: "ar",
       setLang: (lang) => set({ lang }),
       toggleLang: () => set((s) => ({ lang: s.lang === "en" ? "ar" : "en" })),
     }),
@@ -24,7 +24,7 @@ export const useLanguage = create<LanguageState>()(
       skipHydration: true,
       merge: (persisted, current) => {
         const saved = (persisted as Partial<LanguageState> | undefined)?.lang;
-        return { ...current, lang: saved === "ar" ? "ar" : "en" };
+        return { ...current, lang: saved === "en" || saved === "ar" ? saved : "ar" };
       },
     }
   )
