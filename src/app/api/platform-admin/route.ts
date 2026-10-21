@@ -41,14 +41,18 @@ export async function GET() {
       return NextResponse.json({ error: "Apply the platform admin database migration before using this page." }, { status: 503 });
     }
     const admin = createAdminClient();
-    // A missing table (e.g. an unapplied migration) must not take down the
-    // whole records page — that table simply loads as empty.
+    // Missing optional tables (e.g. an unapplied migration) load as empty.
+    // Core member records must instead report failures explicitly.
     type AdminRow = Record<string, unknown>;
     const entries = await Promise.all(tables.map(async table => {
       const rows: AdminRow[] = [];
       for (let start = 0; ; start += 1000) {
         const { data, error } = await admin.from(table).select("*").order(orderColumns[table]).range(start, start + 999);
-        if (error) return [table, [] as AdminRow[]] as const;
+        if (error) {
+          // Member-read failures must never masquerade as "no new signups".
+          if (table === "profiles") throw error;
+          return [table, [] as AdminRow[]] as const;
+        }
         rows.push(...data);
         if (data.length < 1000) break;
       }

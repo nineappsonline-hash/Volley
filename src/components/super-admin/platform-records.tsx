@@ -716,7 +716,7 @@ export function PlatformRecords() {
     { value: "Playgrounds", label: t("sa_records_playgrounds") },
     { value: "Sports", label: t("sa_records_sports") },
   ] as const;
-  const { data, isLoading, error, refetch } = useQuery<Records>({ queryKey: ["platform-records"], queryFn: async () => {
+  const { data, isLoading, error, refetch, isFetching, dataUpdatedAt } = useQuery<Records>({ queryKey: ["platform-records"], staleTime: 0, refetchOnMount: "always", refetchOnWindowFocus: "always", refetchInterval: 30_000, queryFn: async () => {
     const response = await fetch("/api/platform-admin", { cache: "no-store" });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error);
@@ -820,7 +820,8 @@ export function PlatformRecords() {
       lng: row.lng ? String(row.lng) : "",
     });
   };
-  if (error || !data) return <Card><CardContent className="p-6"><p role="alert">{error?.message ?? t("sa_could_not_load")}</p><Button onClick={() => refetch()}>{t("sa_retry")}</Button></CardContent></Card>;
+  if (isLoading) return <Card><CardContent className="flex items-center gap-2 p-6" role="status"><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />{t("common_loading")}</CardContent></Card>;
+  if (!data) return <Card><CardContent className="p-6"><p role="alert">{error?.message ?? t("sa_could_not_load")}</p><Button onClick={() => refetch()}>{t("sa_retry")}</Button></CardContent></Card>;
   const sports = data.sports ?? [];
   const sportOptions = Array.from(new Map(sports.map(s => [String(s.name).toLowerCase(), s])).values())
     .sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: "base" }));
@@ -903,8 +904,10 @@ export function PlatformRecords() {
     </div>}
     <CardHeader><CardTitle>{t("sa_records_title")}</CardTitle><p className="text-sm text-muted-foreground">{t("sa_records_counts").replace("{accounts}", String(data.profiles.length)).replace("{academies}", String(data.academies.length)).replace("{games}", String(data.friendly_games.length)).replace("{playgrounds}", String(data.venues.length))}</p></CardHeader>
     <CardContent className="space-y-4">
+      {error && <p role="alert" className="text-sm text-destructive">{lang === "ar" ? "مقدرناش نحدّث البيانات. المعروض دلوقتي آخر بيانات اتحمّلت بنجاح. جرّب زر التحديث." : "Could not refresh. Showing the last successfully loaded records. Try the refresh button."}</p>}
+      {dataUpdatedAt > 0 && <p className="text-xs text-muted-foreground">{lang === "ar" ? "آخر تحديث" : "Last updated"}: <time dateTime={new Date(dataUpdatedAt).toISOString()}>{new Date(dataUpdatedAt).toLocaleTimeString(lang === "ar" ? "ar-EG" : "en-GB")}</time></p>}
       <div className="flex flex-wrap gap-2" role="tablist" aria-label={t("sa_records_title")}>{tabs.map(item => <Button key={item.value} role="tab" aria-selected={tab === item.value} variant={tab === item.value ? "secondary" : "outline"} onClick={() => { router.push(`/admin?tab=${encodeURIComponent(item.value)}`, { scroll: false }); }}>{item.label}</Button>)}</div>
-      <div className="flex flex-wrap gap-2"><Input className="max-w-sm" type="search" aria-label={searchLabel} placeholder={`${searchLabel}…`} value={search} onChange={e => setSearch(e.target.value)} />{tab === "Playgrounds" && <Input className="w-auto" type="date" aria-label={t("sa_records_schedule_date")} value={date} onChange={e => setDate(e.target.value)} />}{tab === "Playgrounds" && <Button disabled={busy} onClick={() => setEditingVenue({ name: "", capacity: "", sport_id: null, school_name: "", rental_cost: "", rental_hours: "1", location_link: "", country: "", governorate: "", area: "", contact_person: "", contact_phone: "", lat: "", lng: "", photos: [], cover_url: null, academy_id: null, court_count: "1", unavailable_slots: [], working_hours: [] })}><Plus className="mr-1 h-4 w-4 rtl:ml-1 rtl:mr-0" />{t("sa_records_add_playground")}</Button>}{tab === "Tournaments" && <Button onClick={() => setTournamentFormOpen(true)}><Plus className="mr-1 h-4 w-4 rtl:ml-1 rtl:mr-0" />{t("sa_records_add_tournament")}</Button>}<Button variant="outline" onClick={() => refetch()}>{t("sa_records_refresh")}</Button></div>
+      <div className="flex flex-wrap gap-2"><Input className="max-w-sm" type="search" aria-label={searchLabel} placeholder={`${searchLabel}…`} value={search} onChange={e => setSearch(e.target.value)} />{tab === "Playgrounds" && <Input className="w-auto" type="date" aria-label={t("sa_records_schedule_date")} value={date} onChange={e => setDate(e.target.value)} />}{tab === "Playgrounds" && <Button disabled={busy} onClick={() => setEditingVenue({ name: "", capacity: "", sport_id: null, school_name: "", rental_cost: "", rental_hours: "1", location_link: "", country: "", governorate: "", area: "", contact_person: "", contact_phone: "", lat: "", lng: "", photos: [], cover_url: null, academy_id: null, court_count: "1", unavailable_slots: [], working_hours: [] })}><Plus className="mr-1 h-4 w-4 rtl:ml-1 rtl:mr-0" />{t("sa_records_add_playground")}</Button>}{tab === "Tournaments" && <Button onClick={() => setTournamentFormOpen(true)}><Plus className="mr-1 h-4 w-4 rtl:ml-1 rtl:mr-0" />{t("sa_records_add_tournament")}</Button>}<Button variant="outline" disabled={isFetching} onClick={() => { setRecordsPage(1); void refetch(); }}>{isFetching && <Loader2 className="me-2 h-4 w-4 animate-spin" aria-hidden="true" />}{t("sa_records_refresh")}</Button></div>
       {tab === "Academies" && <CreateAcademyButton />}
       {tab === "Playgrounds" && <p className="text-sm text-muted-foreground">{t("sa_records_schedule_note")}</p>}
       <p className="text-xs text-muted-foreground">{t("sa_records_results").replace("{shown}", String(rows.length)).replace("{total}", String(source.length))}</p>

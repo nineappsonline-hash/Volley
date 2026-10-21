@@ -47,6 +47,8 @@ async function checkRoutes() {
     { id: '00000000-0000-4000-8000-0000000000a2', slots: [{ seats_left: 0 }] },
   ];
   let deletionError = null;
+  let profileRows = [];
+  let profileReadError = null;
   const source = ts.transpileModule(fs.readFileSync('src/app/api/platform-admin/route.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
   const module = { exports: {} };
   const mockRequire = name => {
@@ -62,7 +64,7 @@ async function checkRoutes() {
         return { upsert: row => { savedSettings.push(row); return Promise.resolve({ error: null }); }, select: () => ({ order: () => ({ range: async () => ({ data: [], error: null }) }) }) };
       }
       return {
-        select: () => ({ order: () => ({ range: async () => ({ data: table === 'academy_training_programs' ? programs : [], error: null }) }) }),
+        select: () => ({ order: () => ({ range: async (start,end) => ({ data: table === 'profiles' ? profileRows.slice(start,end+1) : table === 'academy_training_programs' ? programs : [], error: table === 'profiles' ? profileReadError : null }) }) }),
         update: changes => { assert.equal(table, 'venues'); saved = changes; return { eq: () => ({ select: () => ({ single: async () => ({ error: null }) }) }) }; },
       };
     } }; } };
@@ -125,6 +127,17 @@ async function checkRoutes() {
   assert.equal(enrolled.get('00000000-0000-4000-8000-0000000000a1').filter(s => s.seats_left > 0).length, 2, 'open seats reach the enrollment form');
   assert.equal(enrolled.get('00000000-0000-4000-8000-0000000000a2')[0].seats_left, 0, 'a full group reports a zero seat rather than a missing schedule');
   assert.deepEqual(enrolled.get('00000000-0000-4000-8000-0000000000a3'), [], 'a program absent from the catalog reports no slots instead of crashing');
-  console.log('Admin route authorization, validation, self-protection and training slots checks passed');
+  profileRows = Array.from({length:1001},(_,i)=>({id:`member-${i}`,name:`Member ${i}`,created_at:'2026-10-01T10:00:00Z'}));
+  const allMembers = await GET();
+  assert.equal(allMembers.body.profiles.length,1001,'admin records include members beyond the first page');
+  profileRows.push({id:'new-signup',name:'New member',created_at:'2026-10-22T10:00:00Z'});
+  const refreshedMembers = await GET();
+  assert.equal(refreshedMembers.body.profiles.length,1002);
+  assert.ok(refreshedMembers.body.profiles.some(p=>p.id==='new-signup'),'a new signup appears on the next uncached request');
+  profileReadError = {code:'42501',message:'test profile read failure'};
+  const profileFailure = await GET();
+  assert.equal(profileFailure.status,500,'profile read errors cannot silently hide every member');
+  assert.ok(!profileFailure.body.error.includes('test profile read failure'),'database details stay private');
+  console.log('Admin route authorization, full member pagination, fresh signups, explicit profile errors and training slots checks passed');
 }
 checkRoutes().catch(error => { console.error(error); process.exitCode = 1; });
