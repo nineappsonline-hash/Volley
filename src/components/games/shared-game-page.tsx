@@ -22,7 +22,7 @@ export function SharedGamePage({ game, inviteCode }: { game: SharedGameMeta | nu
   const nextDay = game && endTime && endTime <= game.start_time.slice(0, 5);
   const photo = game ? venueCardPhoto(game.photos, game.cover_url) : null;
   const price = game ? (game.host_pays ? (ar ? "مجاني" : "Free") : game.share_price == null ? "—" : formatMoney(game.share_price, lang)) : "";
-  return <main className="min-h-screen bg-background px-4 py-8" dir={dir}>
+  return <main className="min-h-screen bg-transparent px-4 py-8" dir={dir}>
     <header className="mx-auto mb-8 flex max-w-2xl items-center justify-between"><Link href="/" aria-label="Playza"><AppLogo /></Link><LanguageToggle /></header>
     <Card className={`mx-auto max-w-2xl ${styles.invitation}`}>
       <CardHeader>
@@ -36,12 +36,13 @@ export function SharedGamePage({ game, inviteCode }: { game: SharedGameMeta | nu
           <CardTitle><h1 className="break-words text-2xl font-extrabold">{game?.title ?? t("games_invite_invalid")}</h1></CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent className="space-y-3">
         {game && <>
-          <p><time dateTime={game.game_date}>{new Intl.DateTimeFormat(ar ? AR_NUMERIC_LOCALE : "en-GB", { dateStyle: "full", timeZone: "Africa/Cairo" }).format(new Date(`${game.game_date}T12:00:00Z`))}</time></p>
-          <p className={styles.time}><bdi>{formatTime12h(game.start_time, lang)}{endTime && <> – {formatTime12h(endTime, lang)}</>}</bdi>{nextDay && <span className="text-sm">{ar ? "(تاني يوم)" : "(next day)"}</span>}<span className="text-sm">{ar ? "بتوقيت القاهرة" : "Cairo time"}</span></p>
-          <p>{t(`games_gender_${game.gender}`)}</p>
-          <p className="break-words">{game.map_label}</p>
+          <div className={styles.meta}>
+            <p className={styles.metaLine}><bdi>{formatTime12h(game.start_time, lang)}{endTime && <> – {formatTime12h(endTime, lang)}</>}</bdi>{nextDay && <span className={styles.muted}>{ar ? "(تاني يوم)" : "(next day)"}</span>}<span className={styles.muted}>{ar ? "بتوقيت القاهرة" : "Cairo time"}</span></p>
+            <p className={styles.metaLine}><time dateTime={game.game_date}>{new Intl.DateTimeFormat(ar ? AR_NUMERIC_LOCALE : "en-GB", { dateStyle: "full", timeZone: "Africa/Cairo" }).format(new Date(`${game.game_date}T12:00:00Z`))}</time></p>
+            <p className={styles.metaLine}>{t(`games_gender_${game.gender}`)}<span className={styles.sep} aria-hidden="true">·</span><span className="break-words">{game.map_label}</span></p>
+          </div>
           <p className={styles.price}>{price}{!game.host_pays && game.share_price != null && <span className="text-sm">{ar ? "لكل لاعب" : "per player"}</span>}</p>
           <div className={styles.actions}>
             <DirectionsLinks locationLink={game.location_link} lat={game.lat} lng={game.lng} query={game.map_label} />

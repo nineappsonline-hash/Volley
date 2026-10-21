@@ -4,8 +4,9 @@
 .thumb img{position:absolute;inset:0;height:100%;width:100%;object-fit:cover}
 .thumbFallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:6px;text-align:center;font-size:11px;font-weight:800;color:#ffffff59}
 .thumbLabel{position:absolute;inset-inline:0;bottom:0;background:hsl(var(--playza-purple-950) / .92);padding:3px 6px;text-align:center;font-size:9px;font-weight:800;color:var(--color-primary)}
-.price{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;font-size:24px;font-weight:800;color:white}.price>span{color:#EAE0FF}
-.time,.actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}.time>span{color:#EAE0FF}
-.share button{min-height:54px;border-color:var(--color-primary);background:var(--color-primary);color:var(--color-purple-dark);font-weight:800}.share button:hover{background:var(--color-primary-hover);color:var(--color-purple-dark)}
-.participants>section{border-color:var(--color-primary);background:var(--color-primary);color:var(--color-purple-dark)}.participants>section button{color:var(--color-purple-dark)}.participants :global(.text-muted-foreground),.participants :global(.text-primary){color:var(--color-purple-dark)}.participants li{background:#ffffff26;color:var(--color-purple-dark)}.participants>section>div{border-color:hsl(var(--playza-purple-dark) / .2)}.participants :global(.border-t){border-color:hsl(var(--playza-purple-dark) / .2)}
+.price{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;font-size:22px;font-weight:800;color:white}.price>span{color:#EAE0FF}
+.meta{display:flex;flex-direction:column;gap:2px;font-size:14px;line-height:1.5}.metaLine{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.metaLine .muted,.sep{color:#EAE0FF}.sep{opacity:.7}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.share button{min-height:48px;border-color:var(--color-primary);background:var(--color-primary);color:var(--color-purple-dark);font-weight:800}.share button:hover{background:var(--color-primary-hover);color:var(--color-purple-dark)}
+.participants>section{border-color:#ffffff40;background:#ffffff14;color:white}.participants>section button{color:white}.participants :global(.text-muted-foreground),.participants :global(.text-primary){color:#EAE0FF}.participants li{background:#ffffff26;color:white}.participants :global(.border-t){border-color:#ffffff40}
 .invitation :is(button,a):focus-visible{outline:3px solid var(--color-primary);outline-offset:4px}
