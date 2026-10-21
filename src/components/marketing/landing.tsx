@@ -4,7 +4,6 @@ import { CourtOwnerBenefits } from "@/components/auth/court-owner-benefits";
 import { GameCardShell } from "@/components/games/game-card-shell";
 import { guestGameCard } from "@/lib/guest-games";
 import { publicGamePath } from "@/lib/game-discovery";
-import { LOCAL_GAME_GUIDES, localGamePath } from "@/lib/local-games";
 
 import type { PublicGame } from "@/lib/public-games";
 import { useState } from "react";
@@ -95,15 +94,12 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
         {upcomingGames.length > 0 ? <div className="flex flex-col gap-3 text-start">
           {upcomingGames.map(game => <GameCardShell key={game.id} layout="list" game={guestGameCard(game)} joined={false} detailsHref={publicGamePath(game.id)} />)}
         </div> : <p className={styles.gamesEmpty}>{copy("Check the games page for the latest availability. You can also create an account and organize a game with your friends.", "راجع صفحة الماتشات لمعرفة المواعيد المتاحة. وتقدر تعمل حساب وتنظّم ماتش مع أصحابك.")}</p>}
-        <nav aria-label={copy("Games in New Cairo", "ماتشات في التجمع")} className="mt-6 flex flex-wrap gap-4">{LOCAL_GAME_GUIDES.map(guide => <Link key={guide.slug} className={styles.textLink} href={localGamePath(lang, guide.slug)}>{guide[lang].title}</Link>)}</nav>
         <div className={styles.actions}><Link href="/games" className={styles.primary}>{copy("Browse all upcoming games", "شوف كل الماتشات الجاية")}<ArrowUpRight size={20} aria-hidden="true" /></Link></div>
       </section>
 
-      <nav aria-label={copy("Sports guides for Egypt", "أدلة الرياضة في مصر")} className="mx-auto flex max-w-6xl flex-wrap gap-5 px-6 py-6 text-sm font-semibold">{([['volleyball', copy('Volleyball in Egypt', 'كرة طائرة في مصر')], ['tennis', copy('Tennis in Egypt', 'التنس في مصر')], ['archery', copy('Archery in Egypt', 'الرماية بالقوس في مصر')]] as const).map(([slug, label]) => <Link key={slug} href={discoveryPath(lang, slug)} className="underline underline-offset-4">{label}</Link>)}</nav>
 
       <section id="sports" aria-labelledby="sports-title" className={styles.combinedSports}>
-        <div className={styles.sectionHeading}><p className={styles.eyebrow}>{copy("SIX SPORTS. YOUR NEXT GAME.", "ست رياضات. ماتشك الجاي.")}</p><h2 id="sports-title">{copy("Find your sport. Meet your people.", "اختار رياضتك. واتعرّف على ناس شبهك.")}</h2><p>{copy("Tennis, padel, volleyball, basketball, beach volleyball and archery in one place. Explore games, courts and playing levels before you join.", "تنس وبادل وكرة طائرة وكرة سلة وطائرة شاطئية ورماية بالقوس في مكان واحد. اكتشف الماتشات والملاعب ومستويات اللعب قبل ما تنضم.")}</p></div>
-        <button type="button" className={styles.sportsMotion} onClick={() => setPaused(!paused)} aria-pressed={paused} aria-label={paused ? copy("Play sports animations", "تشغيل حركة الرياضات") : copy("Pause sports animations", "إيقاف حركة الرياضات")}>{paused ? <Play size={16} /> : <Pause size={16} />}{copy(paused ? "Play motion" : "Pause motion", paused ? "تشغيل الحركة" : "إيقاف الحركة")}</button>
+        <div className={styles.sectionHeading}><h2 id="sports-title">{copy("Find your sport. Meet your people.", "اختار رياضتك. واتعرّف على ناس شبهك.")}</h2><p>{copy("Tennis, padel, volleyball, basketball, beach volleyball and archery in one place. Explore games, courts and playing levels before you join.", "تنس وبادل وكرة طائرة وكرة سلة وطائرة شاطئية ورماية بالقوس في مكان واحد. اكتشف الماتشات والملاعب ومستويات اللعب قبل ما تنضم.")}</p></div>
         <div className={styles.sportsCards}>
           {(["padel", "tennis", "volleyball", "basketball", "beach-volleyball", "archery"] as const).map(item => <article id={item} key={item} className={styles.sportTile} aria-labelledby={`${item}-title`}>
             <div className={styles.sportTileArt} aria-hidden="true"><SportCardArt sport={item} /></div>

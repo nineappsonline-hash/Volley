@@ -123,7 +123,6 @@
 .sportTileArt>svg{width:100%;height:100%;filter:drop-shadow(0 10px 12px #240F4430)}
 .tileCourt{animation:tileCourtFloat 7s ease-in-out infinite;transform-origin:center}.tileBall{animation:tileBallFloat 4.5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.tileRacket{animation:tileRacketSwing 6s ease-in-out infinite;transform-box:fill-box;transform-origin:center 90%}.tileSun{animation:spin 30s linear infinite;transform-origin:266px 38px}
 .sportTile:nth-child(even) .tileBall{animation-delay:-2s}.sportTile:nth-child(3n) .tileCourt{animation-delay:-3s}
-.sportsMotion{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--color-border);padding:9px 14px;border-radius:100px;font-size:12px;font-weight:700;margin-bottom:22px;color:var(--color-purple-dark)}.sportsMotion:hover{background:var(--color-soft-lime)}
 @keyframes tileCourtFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 @keyframes tileBallFloat{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-12px) rotate(12deg)}}
 @keyframes tileRacketSwing{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(7deg)}}
