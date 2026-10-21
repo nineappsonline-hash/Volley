@@ -133,5 +133,7 @@
 
 /* Soft court-inspired texture between the solid purple sections. */
 .page{background-color:var(--color-background);background-image:radial-gradient(circle,hsl(var(--playza-purple-dark) / .10) 1px,transparent 1px);background-size:24px 24px}
-.page>main{background-image:radial-gradient(ellipse at 0% 25%,hsl(var(--playza-purple) / .10),transparent 48%),radial-gradient(ellipse at 100% 75%,hsl(var(--playza-lime) / .16),transparent 43%),linear-gradient(90deg,hsl(var(--playza-purple-dark) / .025) 1px,transparent 1px),linear-gradient(hsl(var(--playza-purple-dark) / .025) 1px,transparent 1px);background-size:100% 1200px,100% 1200px,120px 120px,120px 120px;background-repeat:repeat}
+.page>main{background-image:url("/images/sports-doodles.svg"),radial-gradient(ellipse at 0% 25%,hsl(var(--playza-purple) / .10),transparent 48%),radial-gradient(ellipse at 100% 75%,hsl(var(--playza-lime) / .16),transparent 43%),linear-gradient(90deg,hsl(var(--playza-purple-dark) / .025) 1px,transparent 1px),linear-gradient(hsl(var(--playza-purple-dark) / .025) 1px,transparent 1px);background-size:1400px 1100px,100% 1200px,100% 1200px,120px 120px,120px 120px;background-position:center top;background-repeat:repeat}
 .header,.footer{background-color:hsl(var(--playza-purple-100) / .35)}
+
+@media(max-width:640px){.page>main{background-size:100% auto,100% 1200px,100% 1200px,120px 120px,120px 120px}}

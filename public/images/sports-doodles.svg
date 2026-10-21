@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1100" viewBox="0 0 1400 1100" fill="none">
+  <g stroke="#111111" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" opacity=".2">
+    <!-- Loose, hand-drawn volleyball and rally trail. -->
+    <g transform="translate(35 74) rotate(-16 45 45)">
+      <path d="M45 4C68 2 89 20 88 45S69 88 45 87 2 69 3 45 20 5 45 4Z"/>
+      <path d="M43 4Q22 29 44 45Q69 48 78 70M44 45Q34 72 21 80M7 27Q23 47 44 45M65 9Q44 28 60 48M4 48Q21 65 36 62"/>
+    </g>
+    <path d="M41 197Q109 224 133 169Q153 125 185 145" stroke-dasharray="6 10"/>
+    <path d="M174 134L188 145L174 153"/>
+    <!-- Tennis racket and ball. -->
+    <g transform="translate(1220 225) rotate(28 50 80)">
+      <ellipse cx="52" cy="45" rx="29" ry="40"/>
+      <path d="M39 80L45 100H58L65 80M47 101V145Q52 150 57 145V101M39 12V78M52 6V85M65 12V78M26 29H78M23 44H81M26 59H78"/>
+      <circle cx="109" cy="112" r="19"/>
+      <path d="M96 98Q117 109 99 128M122 98Q102 111 121 127"/>
+    </g>
+    <!-- Basketball and little bounce marks. -->
+    <g transform="translate(48 573) rotate(14 40 40)">
+      <circle cx="40" cy="40" r="36"/>
+      <path d="M4 40H76M40 4V76M16 14Q59 40 16 66M64 14Q21 40 64 66M10 92Q40 101 70 91M22 108Q40 113 58 107"/>
+    </g>
+    <!-- Archery target and arrow. -->
+    <g transform="translate(1260 740) rotate(-12 40 45)">
+      <ellipse cx="43" cy="45" rx="32" ry="40"/>
+      <ellipse cx="43" cy="45" rx="21" ry="28"/>
+      <ellipse cx="43" cy="45" rx="10" ry="14"/>
+      <path d="M27 81L15 111M59 81L72 111M-34 14L43 45M32 34L43 45L28 46M-34 14L-38 1L-25 6L-21 19M-34 14L-47 20L-34 25L-21 19"/>
+    </g>
+    <!-- Court corner, stars and motion flourishes. -->
+    <path d="M28 992L125 942L188 978M47 993L126 953L167 978M126 953V981"/>
+    <path d="M1238 55L1251 84L1282 86L1259 106L1265 137L1238 121L1211 137L1217 106L1194 86L1225 84Z"/>
+    <path d="M221 411V443M205 427H237M210 416L232 438M232 416L210 438"/>
+    <path d="M1151 541V567M1138 554H1164M1142 545L1160 563M1160 545L1142 563"/>
+    <path d="M238 826Q254 807 267 825T296 825M1096 1006Q1114 987 1129 1005T1160 1005"/>
+    <path d="M1045 157L1052 143M1064 169L1078 161M1072 192L1088 193"/>
+  </g>
+</svg>
