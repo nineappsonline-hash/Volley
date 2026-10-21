@@ -20,7 +20,7 @@ import { academyManagementPath } from "@/lib/academy-management";
 import { courtsPath } from "@/lib/court-discovery";
 import { discoveryPath } from "@/lib/sport-discovery";
 import { ARCHERY_DESCRIPTION, BEACH_DESCRIPTION, TENNIS_DESCRIPTION, SportsHeroSceneCopy } from "@/lib/landing-content";
-import { SportIcon } from "./sport-icons";
+import { SportCardArt } from "./sport-card-art";
 import { ArcheryScene } from "./archery-scene";
 import { SportsHeroScene } from "./sports-hero-scene";
 import { BeachVolleyballGameCard } from "@/components/game/beach-volleyball-game-card";
@@ -104,9 +104,10 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
 
       <section id="sports" aria-labelledby="sports-title" className={styles.combinedSports}>
         <div className={styles.sectionHeading}><p className={styles.eyebrow}>{copy("FIVE SPORTS. YOUR NEXT GAME.", "خمس رياضات. ماتشك الجاي.")}</p><h2 id="sports-title">{copy("Find your sport. Meet your people.", "اختار رياضتك. واتعرّف على ناس شبهك.")}</h2><p>{copy("Tennis, padel, volleyball, basketball and beach volleyball in one place. Explore games, courts and playing levels before you join.", "تنس وبادل وكرة طائرة وكرة سلة وطائرة شاطئية في مكان واحد. اكتشف الماتشات والملاعب ومستويات اللعب قبل ما تنضم.")}</p></div>
+        <button type="button" className={styles.sportsMotion} onClick={() => setPaused(!paused)} aria-pressed={paused} aria-label={paused ? copy("Play sports animations", "تشغيل حركة الرياضات") : copy("Pause sports animations", "إيقاف حركة الرياضات")}>{paused ? <Play size={16} /> : <Pause size={16} />}{copy(paused ? "Play motion" : "Pause motion", paused ? "تشغيل الحركة" : "إيقاف الحركة")}</button>
         <div className={styles.sportsCards}>
           {(["padel", "tennis", "volleyball", "basketball", "beach-volleyball"] as const).map(item => <article id={item} key={item} className={styles.sportTile} aria-labelledby={`${item}-title`}>
-            <div className={styles.sportTileArt} aria-hidden="true"><SportIcon id={item} /></div>
+            <div className={styles.sportTileArt} aria-hidden="true"><SportCardArt sport={item} /></div>
             <h3 id={`${item}-title`}>{names[item]}</h3>
             <p>{item === "tennis" ? TENNIS_DESCRIPTION[lang] : item === "beach-volleyball" ? BEACH_DESCRIPTION[lang] : item === "padel" ? copy("Find padel courts and games in Egypt. Choose your location, level and time for your next rally.", "اكتشف ملاعب وماتشات البادل في مصر. اختار المكان والمستوى والوقت لماتشك الجاي.") : item === "basketball" ? copy("Find basketball games and courts in Egypt. Meet your next team and check the final price before booking.", "اكتشف ماتشات وملاعب كرة السلة في مصر. انضم لفريقك الجاي وراجع السعر النهائي قبل الحجز.") : copy("Join volleyball games in Egypt. Find your level, meet teammates and get back on court.", "انضم لماتشات الكرة الطائرة في مصر. اختار مستواك واتعرّف على فريقك وارجع للملعب.")}</p>
             <Link className={styles.textLink} href={`/dashboard?sport=${item}`}>{copy("Find games", "شوف الماتشات")}<ArrowUpRight size={18} aria-hidden="true" /></Link>

@@ -114,3 +114,17 @@
 @media(max-width:480px){.sportsCards{grid-template-columns:1fr}.ownerSection{padding:24px 20px}.ownerArt{height:235px}.ownerSection h2{font-size:30px}}
 @media(prefers-reduced-motion:reduce){.ownerArt *{animation:none!important}.sportTile:hover{transform:none}}
 .ownerArt{pointer-events:none}
+
+/* Illustrated purple sports cards. Animation only changes transform. */
+.sportTile{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(145deg,var(--color-purple-dark),var(--color-secondary));border-color:var(--color-purple-dark);color:white;box-shadow:0 7px 20px hsl(var(--playza-purple-dark) / .12)}
+.sportTile::after{content:"";position:absolute;z-index:-1;width:220px;height:220px;inset-inline-end:-130px;bottom:-140px;border:1px solid #ffffff24;border-radius:50%;box-shadow:0 0 0 24px #ffffff08;pointer-events:none}
+.sportTile h3{color:white}.sportTile p{color:#F0E9FF}.sportTile .textLink{color:var(--color-primary);border-top:1px solid #ffffff30;padding-top:18px;width:100%;justify-content:space-between}.sportTile .textLink:focus-visible{outline:2px solid var(--color-primary);outline-offset:5px;border-radius:4px}
+.sportTileArt{width:calc(100% + 52px);height:200px;margin:-26px -26px 0;border-radius:0;background:radial-gradient(ellipse at center,#ffffff0c,transparent 70%);transform:none;pointer-events:none;color:inherit;display:block}
+.sportTileArt>svg{width:100%;height:100%;filter:drop-shadow(0 10px 12px #240F4430)}
+.tileCourt{animation:tileCourtFloat 7s ease-in-out infinite;transform-origin:center}.tileBall{animation:tileBallFloat 4.5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.tileRacket{animation:tileRacketSwing 6s ease-in-out infinite;transform-box:fill-box;transform-origin:center 90%}.tileSun{animation:spin 30s linear infinite;transform-origin:266px 38px}
+.sportTile:nth-child(even) .tileBall{animation-delay:-2s}.sportTile:nth-child(3n) .tileCourt{animation-delay:-3s}
+.sportsMotion{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--color-border);padding:9px 14px;border-radius:100px;font-size:12px;font-weight:700;margin-bottom:22px;color:var(--color-purple-dark)}.sportsMotion:hover{background:var(--color-soft-lime)}
+@keyframes tileCourtFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes tileBallFloat{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-12px) rotate(12deg)}}
+@keyframes tileRacketSwing{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(7deg)}}
+@media(prefers-reduced-motion:reduce){.tileCourt,.tileBall,.tileRacket,.tileSun{animation:none!important}}
