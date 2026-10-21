@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="860" viewBox="0 0 390 860" fill="none">
+  <g stroke="#111111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity=".24">
+    <!-- Phone-sized drawings keep their detail without cropping the desktop sheet. -->
+    <g transform="translate(16 30) rotate(-16 30 30)">
+      <circle cx="30" cy="30" r="27"/>
+      <path d="M30 3Q12 21 29 30Q47 32 53 49M29 30Q23 49 14 53M5 18Q16 32 29 30M44 7Q30 20 40 32M4 33Q15 45 24 42"/>
+    </g>
+    <path d="M30 108Q85 130 107 90" stroke-dasharray="4 7"/>
+    <path d="M97 94L108 88L110 101"/>
+    <g transform="translate(302 158) rotate(22 30 55)">
+      <ellipse cx="30" cy="28" rx="20" ry="26"/>
+      <path d="M21 52L25 65H35L39 52M27 65V94Q30 98 33 94V65M21 7V49M30 2V54M39 7V49M12 17H48M10 28H50M12 39H48"/>
+    </g>
+    <circle cx="276" cy="268" r="13"/>
+    <path d="M267 259Q281 268 268 278M285 259Q272 268 285 278M29 235V255M19 245H39"/>
+    <g transform="translate(16 356) rotate(12 29 29)">
+      <circle cx="29" cy="29" r="26"/>
+      <path d="M3 29H55M29 3V55M12 9Q42 29 12 49M46 9Q16 29 46 49M9 66Q29 73 49 66"/>
+    </g>
+    <path d="M310 390L316 404L332 406L320 416L323 432L310 424L296 432L299 416L287 406L303 404Z"/>
+    <g transform="translate(302 507) rotate(-12 28 35)">
+      <ellipse cx="28" cy="32" rx="23" ry="29"/>
+      <ellipse cx="28" cy="32" rx="15" ry="20"/>
+      <ellipse cx="28" cy="32" rx="7" ry="10"/>
+      <path d="M17 59L8 81M39 59L49 81M-19 11L28 32M21 23L28 32L17 33M-19 11L-22 2L-13 6L-10 15M-19 11L-28 16L-19 20L-10 15"/>
+    </g>
+    <path d="M20 667L74 638L116 661L62 692ZM35 668L75 647L101 662L62 683ZM75 647L62 683M24 757Q36 745 48 757T72 757M292 764Q307 743 323 756"/>
+    <path d="M184 818V838M174 828H194M177 821L191 835M191 821L177 835"/>
+  </g>
+</svg>
