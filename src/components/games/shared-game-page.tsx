@@ -7,7 +7,8 @@ import { AppLogo } from "@/components/shared/app-logo";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { useI18n } from "@/lib/i18n";
-import { addHoursToTime, formatTime12h, AR_NUMERIC_LOCALE } from "@/lib/constants";
+import { addHoursToTime, formatMoney, formatTime12h, AR_NUMERIC_LOCALE } from "@/lib/constants";
+import { venueCardPhoto } from "@/lib/venue-media";
 import type { SharedGameMeta } from "@/lib/public-games";
 import { GameParticipantNames, SignedInGameParticipantNames } from "./game-participant-names";
 import { PublicGameJoin } from "./public-game-join";
@@ -19,17 +20,25 @@ export function SharedGamePage({ game, inviteCode }: { game: SharedGameMeta | nu
   const ar = lang === "ar";
   const endTime = game ? addHoursToTime(game.start_time, game.duration_hours) : "";
   const nextDay = game && endTime && endTime <= game.start_time.slice(0, 5);
+  const photo = game ? venueCardPhoto(game.photos, game.cover_url) : null;
+  const price = game ? (game.host_pays ? (ar ? "مجاني" : "Free") : game.share_price == null ? "—" : formatMoney(game.share_price, lang)) : "";
   return <main className="min-h-screen bg-background px-4 py-8" dir={dir}>
     <header className="mx-auto mb-8 flex max-w-2xl items-center justify-between"><Link href="/" aria-label="Playza"><AppLogo /></Link><LanguageToggle /></header>
     <Card className={`mx-auto max-w-2xl ${styles.invitation}`}>
       <CardHeader><CardTitle><h1 className="break-words text-2xl font-extrabold">{game?.title ?? t("games_invite_invalid")}</h1></CardTitle></CardHeader>
       <CardContent className="space-y-5">
         {game && <>
-          <p className={styles.sport}>{game.sport}</p>
+          <span className={styles.thumb}>
+            {!photo && <span className={styles.thumbFallback} aria-hidden="true">{game.sport}</span>}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {photo && <img src={photo} alt="" loading="lazy" onError={event => { event.currentTarget.style.display = "none"; }} />}
+            <span className={styles.thumbLabel}>{game.sport}</span>
+          </span>
           <p><time dateTime={game.game_date}>{new Intl.DateTimeFormat(ar ? AR_NUMERIC_LOCALE : "en-GB", { dateStyle: "full", timeZone: "Africa/Cairo" }).format(new Date(`${game.game_date}T12:00:00Z`))}</time></p>
           <p className={styles.time}><bdi>{formatTime12h(game.start_time, lang)}{endTime && <> – {formatTime12h(endTime, lang)}</>}</bdi>{nextDay && <span className="text-sm">{ar ? "(تاني يوم)" : "(next day)"}</span>}<span className="text-sm">{ar ? "بتوقيت القاهرة" : "Cairo time"}</span></p>
           <p>{t(`games_gender_${game.gender}`)}</p>
           <p className="break-words">{game.map_label}</p>
+          <p className={styles.price}>{price}{!game.host_pays && game.share_price != null && <span className="text-sm">{ar ? "لكل لاعب" : "per player"}</span>}</p>
           <div className={styles.actions}>
             <DirectionsLinks locationLink={game.location_link} lat={game.lat} lng={game.lng} query={game.map_label} />
             <div className={styles.share}><GameShareActions compact game={{ ...game, invite_code: inviteCode, place: game.map_label }} /></div>

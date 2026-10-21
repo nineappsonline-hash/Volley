@@ -24,6 +24,8 @@ export default async function PublicGamePage({ params }: Props) {
     governorate: game.playground?.governorate ?? null,
     map_label: gamePlace(game),
     location_link: game.playground?.location_link ?? null,
+    cover_url: game.playground?.cover_url ?? null,
+    photos: game.playground?.photos ?? null,
     lat: null, lng: null,
     host_pays: game.host_pays ?? false,
     host_total: game.host_total ?? null,
