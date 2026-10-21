@@ -95,3 +95,22 @@
 .hero :is(a,button):focus-visible{outline-color:var(--color-primary)}
 .finalCta h2{color:white}
 .sticker{color:white;background:var(--color-secondary)}
+
+/* One shared court-sports section, with stable anchors for sport discovery. */
+.combinedSports{max-width:1220px;margin:auto;padding:55px 5% 80px}
+.combinedSports .sectionHeading>p:last-child{max-width:720px;margin-top:20px;line-height:1.8;color:var(--color-text-secondary)}
+.sportsCards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.sportTile{display:flex;flex-direction:column;align-items:flex-start;gap:16px;padding:26px;border:1px solid var(--color-border);border-radius:24px;background:var(--color-surface);scroll-margin-top:30px;transition:transform .25s,box-shadow .25s}
+.sportTile:hover{transform:translateY(-5px);box-shadow:0 12px 30px hsl(var(--playza-purple-dark) / .1)}
+.sportTile h3{font-size:24px;font-weight:800}.sportTile p{font-size:13px;line-height:1.8;color:var(--color-text-secondary)}.sportTile .textLink{margin-top:auto}
+.sportTileArt{display:grid;place-items:center;width:80px;height:80px;border-radius:24px;background:var(--color-soft-lime);color:var(--color-purple-dark);transform:rotate(-6deg)}.sportTileArt svg{width:48px;height:48px}
+/* Owner promotion uses purple, lime and lightweight vector motion. */
+.ownerSection{position:relative;max-width:1150px;margin:30px auto 60px;padding:44px;border-radius:32px;background:linear-gradient(125deg,var(--color-purple-dark),var(--color-secondary));color:white;overflow:hidden}
+.ownerHeading{display:grid;grid-template-columns:1.3fr 1fr;align-items:center;gap:24px}.ownerHeading>div{min-width:0}.ownerSection h2,.ownerSection h3{color:white}.ownerSection p{color:#eee7ff}.ownerSection .eyebrow{color:var(--color-primary)}
+.ownerSection>section,.ownerSection>ul>li{background:#ffffff0d;border-color:#ffffff38}.ownerSection>section li svg{color:var(--color-primary)}.ownerSection>section li p:first-child{color:white}.ownerSection>section li p:last-child{color:#eee7ff}
+.ownerArt{height:260px;position:relative;min-width:0}.ownerArt .miniCourt{width:110%;max-width:430px;left:-8%;top:-30px;animation:ownerCourt 7s ease-in-out infinite}.ownerBadge{position:absolute;inset-inline-end:0;top:20px;display:grid;place-items:center;width:96px;height:96px;border-radius:50%;background:var(--color-primary);color:var(--color-purple-dark);font-size:34px;font-weight:900;transform:rotate(10deg);animation:floatBall 6s ease-in-out infinite}.ownerBadge small{font-size:9px;margin-top:-18px}.ownerSpark{position:absolute;inset-inline-start:4%;top:8px;font-size:44px;color:var(--color-primary);animation:spin 25s linear infinite}.ownerPin{position:absolute;bottom:8px;inset-inline-end:12%;padding:13px;border-radius:18px;background:white;color:var(--color-purple-dark);animation:floatBall 5s ease-in-out infinite}.ownerMotion{display:grid;place-items:center;width:34px;height:34px;margin-block:0 16px;margin-inline-start:auto;border:1px solid #ffffff66;border-radius:50%;color:white}
+@keyframes ownerCourt{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-10px) rotate(-3deg)}}
+@media(max-width:800px){.sportsCards{grid-template-columns:repeat(2,minmax(0,1fr))}.ownerSection{margin-inline:5%;padding:28px}.ownerHeading{grid-template-columns:1fr}.ownerArt{width:100%;max-width:360px;justify-self:center}}
+@media(max-width:480px){.sportsCards{grid-template-columns:1fr}.ownerSection{padding:24px 20px}.ownerArt{height:235px}.ownerSection h2{font-size:30px}}
+@media(prefers-reduced-motion:reduce){.ownerArt *{animation:none!important}.sportTile:hover{transform:none}}
+.ownerArt{pointer-events:none}

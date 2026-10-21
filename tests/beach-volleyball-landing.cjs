@@ -34,7 +34,7 @@ const {dictionary}=load(path.join(root,'src/lib/i18n/dictionary.ts'));
 const {formatMoney}=load(path.join(root,'src/lib/constants.ts'));
 for (lang of ['en', 'ar']) {
   const html = renderToStaticMarkup(React.createElement(LandingPage));
-  const section = html.match(/<section id="beach-volleyball"[\s\S]*?<\/section>/)?.[0];
+  const section = html.match(/<article id="beach-volleyball"[\s\S]*?<\/article>/)?.[0];
   assert.ok(html.includes('id="tennis"'));
   assert.ok(!html.includes(lang === 'ar' ? '>لاقي ملعب<' : 'Find a playground'));
   assert.ok(html.includes('heroJoin'));
@@ -42,13 +42,17 @@ for (lang of ['en', 'ar']) {
   assert.ok(html.includes('href="/dashboard?sport=tennis"'));
   assert.ok(html.includes('id="padel"'));
   assert.ok(html.includes('id="basketball"'));
-  assert.ok(html.includes(lang === 'ar' ? 'التنس في مصر. ماتشك الجاي يبدأ هنا.' : 'Tennis in Egypt. Find your next rally.'));
-  assert.ok(section, 'beach section must be present in server-rendered HTML');
+  assert.ok(html.includes(content.TENNIS_DESCRIPTION[lang]));
+  assert.ok(section, 'beach sport card must be present in server-rendered HTML');
+  const sports = html.match(/<section id="sports"[\s\S]*?<\/section>/)?.[0];
+  for (const id of ['padel','tennis','volleyball','basketball','beach-volleyball']) assert.ok(sports.includes(`id="${id}"`));
+  assert.ok(html.indexOf('id="playground-owners"') < html.indexOf('id="beach-challenge"'));
+  assert.ok(html.indexOf('class="finalCta"') < html.indexOf('id="beach-challenge"'), '3D game follows the final call to action');
   assert.ok(section.includes(content.BEACH_DESCRIPTION[lang]));
-  assert.ok(section.includes(lang === 'ar' ? 'الكرة الطائرة الشاطئية.' : 'Beach volleyball.'));
+
   assert.ok(section.includes('href="/dashboard?sport=beach-volleyball"'));
-  assert.ok(section.includes('href="/dashboard/academies"'));
-  assert.ok(section.includes('aria-pressed="false"'), 'motion control exposes its initial state');
+
+  assert.ok(html.includes('aria-pressed="false"'), 'motion control exposes its initial state');
   assert.ok(section.includes('aria-hidden="true"'), 'decorative art is excluded from the reading order');
   assert.ok(!html.includes('/beach-volleyball/cairo'), 'do not link to a nonexistent nested route');
   assert.ok(html.includes('id="academy-management"'), 'owners have a visible homepage entry point');
