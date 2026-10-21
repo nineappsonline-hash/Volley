@@ -51,7 +51,7 @@ for (lang of ['en', 'ar']) {
   const sports = html.match(/<section id="sports"[\s\S]*?<\/section>/)?.[0];
   for (const id of ['padel','tennis','volleyball','basketball','beach-volleyball','archery']) assert.ok(sports.includes(`id="${id}"`));
   assert.ok(html.indexOf('id="playground-owners"') < html.indexOf('id="beach-challenge"'));
-  assert.ok(html.indexOf('class="finalCta"') < html.indexOf('id="beach-challenge"'), '3D game follows the final call to action');
+  assert.ok(html.indexOf('class="finalCta"') > html.indexOf('id="beach-challenge"'), 'the court is calling follows the 3D game');
   assert.ok(section.includes(content.BEACH_DESCRIPTION[lang]));
 
   assert.ok(section.includes('href="/dashboard?sport=beach-volleyball"'));
