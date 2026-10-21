@@ -21,7 +21,7 @@ export function cairoGameStart(date: string, time: string): Date {
   return new Date(instant);
 }
 
-export function gameIsJoinable(game: PublicGame, now = new Date()): boolean {
+export function gameIsJoinable(game: Pick<PublicGame, "status" | "game_date" | "start_time">, now = new Date()): boolean {
   return ["open", "full"].includes(game.status) && cairoGameStart(game.game_date, game.start_time) > now;
 }
 

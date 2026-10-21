@@ -50,7 +50,7 @@ const GAME_OG_IMAGE = (code: string) => `${SITE_URL}/og/game?code=${encodeURICom
 function gameMeta(game: Awaited<ReturnType<typeof getGameByInviteCode>>) {
   if (!game) return null;
   const shareText = gameSharePrice(game);
-  const where = [game.map_label, game.governorate, game.area].filter(Boolean).join(", ");
+  const where = game.map_label;
   const title = `${game.title} · ${game.sport} game on Playza`;
   const description = [
     `${game.sport} game · ${fmtDate(game.game_date)}, ${fmtTime(game.start_time)}`,

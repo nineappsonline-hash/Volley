@@ -180,6 +180,7 @@ export type SharedGameMeta = {
   governorate: string | null;
   game_date: string;
   start_time: string;
+  duration_hours: number;
   max_players: number;
   joined: number;
   share_price: number | null;
@@ -202,7 +203,7 @@ export async function getGameByInviteCode(code: string): Promise<SharedGameMeta 
     const { data, error } = await admin
       .from("friendly_games")
       .select(
-        `id, title, description, sport, gender, area, location, lat, lng, game_date, start_time,
+        `id, title, description, sport, gender, area, location, lat, lng, game_date, start_time, duration_hours,
          max_players, status, share_price, host_pays, host_total, booking_total, is_public, creator_name,
          playground:venues(name, area, governorate, location_link),
          participants:friendly_game_participants(id, player_name, is_waitlisted)`
@@ -232,6 +233,7 @@ export async function getGameByInviteCode(code: string): Promise<SharedGameMeta 
       governorate: playground?.governorate ?? null,
       game_date: data.game_date,
       start_time: data.start_time,
+      duration_hours: data.duration_hours,
       max_players: data.max_players,
       joined: (row.participants ?? []).filter(p => !p.is_waitlisted).length,
       participants: row.participants ?? [],

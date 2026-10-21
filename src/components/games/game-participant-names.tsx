@@ -63,7 +63,8 @@ export function GameParticipantNames({ participants }: { participants: Player[] 
 }
 
 /** Public pages fetch names only after checking the visitor's session. */
-export function SignedInGameParticipantNames({ gameId }: { gameId: string }) {
+export function SignedInGameParticipantNames({ gameId, publicCount }: { gameId: string; publicCount?: number }) {
+  const { lang } = useI18n();
   const [memberId, setMemberId] = useState("");
   useEffect(() => {
     const client = createClient();
@@ -79,6 +80,6 @@ export function SignedInGameParticipantNames({ gameId }: { gameId: string }) {
     return () => { active = false; subscription.unsubscribe(); };
   }, []);
   const query = useUpcomingGameParticipants(gameId, memberId);
-  if (!memberId) return null;
+  if (!memberId) return publicCount == null ? null : <p className="flex items-center gap-2 rounded-lg border px-3 py-3 text-sm font-semibold"><Users className="h-4 w-4 text-primary" aria-hidden="true" />{lang === "ar" ? "المشاركين" : "Participants"} ({publicCount})</p>;
   return <QueryState queries={[query]}><GameParticipantNames participants={query.data ?? []} /></QueryState>;
 }

@@ -31,6 +31,11 @@ let listing = [game];
 const overrides = {
   '@/components/games/game-alert-follow': { GameAlertFollow: () => null },
   '@/components/games/game-share-actions': { GameShareActions: () => null },
+  '@/lib/i18n': { useI18n: () => ({ lang:'en',dir:'ltr',t:key=>({games_gender_mixed:'Mixed',nav_dashboard:'Dashboard'}[key]??key) }) },
+  '@/components/layout/language-toggle': { LanguageToggle: () => null },
+  './game-share-actions': { GameShareActions: () => React.createElement('button',null,'Share') },
+  './game-participant-names': { GameParticipantNames: () => null, SignedInGameParticipantNames: ({publicCount}) => React.createElement('p',null,'Participants ('+publicCount+')') },
+  './public-game-join': { PublicGameJoin: ({returnTo}) => React.createElement('button',{'data-return-to':returnTo},'Join this game') },
   'next/cache': { unstable_noStore() {} },
   'next/navigation': { notFound() { throw Error('NOT_FOUND'); } },
   'next/link': { __esModule: true, default: ({ children, ...props }) => React.createElement('a', props, children) },
@@ -43,6 +48,7 @@ const overrides = {
 };
 const cache = new Map();
 function load(file) {
+  if (file.endsWith('.css')) return {__esModule:true,default:new Proxy({},{get:(_,key)=>String(key)})};
   if (cache.has(file)) return cache.get(file);
   const exports = {};
   cache.set(file, exports);
@@ -92,10 +98,19 @@ function load(file) {
   assert.ok(seo.publicGameMetadata(game).alternates.canonical.endsWith(`/games/${id}`));
   const page = load(path.join(root, 'src/app/games/[id]/page.tsx'));
   let html = renderToStaticMarkup(await page.default({ params: Promise.resolve({ id }) }));
-  assert.ok(html.includes(`<h1 class="text-3xl font-bold sm:text-4xl">${game.title}</h1>`));
+  assert.ok(html.includes(`<h1 class="break-words text-2xl font-extrabold">${game.title}</h1>`));
   assert.ok(html.includes(`data-return-to="/games/${id}"`));
-  assert.ok(html.includes('EGP 145 per player'));
+  assert.ok(html.includes('"price":145'), 'price remains in structured event metadata');
   assert.ok(html.includes('SportsEvent'));
+  assert.ok(html.includes('8:00 PM') && html.includes('10:00 PM'), 'both start and end times appear');
+  assert.ok(html.includes('invitation'), 'purple shared invitation presentation');
+  assert.ok(!html.includes('Bring a friend') && !html.includes('Playing level') && !html.includes('Before you attend'));
+  assert.ok(html.indexOf('Share</button>') < html.indexOf('Participants (1)'));
+  assert.ok(html.indexOf('Participants (1)') < html.indexOf('data-return-to='));
+  game.start_time = '23:00:00';
+  html = renderToStaticMarkup(await page.default({ params: Promise.resolve({ id }) }));
+  assert.ok(html.includes('11:00 PM') && html.includes('1:00 AM') && html.includes('(next day)'), 'overnight bookings show the correct end time');
+  game.start_time = '20:00:00';
   for (const status of ['completed', 'cancelled']) {
     game.status = status;
     html = renderToStaticMarkup(await page.default({ params: Promise.resolve({ id }) }));

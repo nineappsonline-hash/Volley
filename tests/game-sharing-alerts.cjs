@@ -52,6 +52,10 @@ const share = load('src/components/games/game-share-actions.tsx', {
     assert.ok(html.includes('readonly=""'));
   }
   lang = 'en';
+  const compact = share.GameShareActions({ game, compact: true });
+  assert.equal(buttons(compact).length, 1, 'compact invitation sharing uses one action');
+  const compactHtml = renderToStaticMarkup(compact);
+  assert.ok(!compactHtml.includes('<input') && !compactHtml.includes('Bring a friend'));
   const actions = buttons(share.GameShareActions({ game }));
   let copied, nativeCalls = 0;
   Object.defineProperty(global, 'navigator', { configurable: true, value: { clipboard: { writeText: async value => { copied = value; } }, share: async () => { nativeCalls++; throw { name: 'AbortError' }; } } });

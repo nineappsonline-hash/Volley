@@ -1,0 +1,6 @@
+.invitation{background:linear-gradient(140deg,var(--color-purple-dark),var(--color-secondary));border-color:var(--color-purple-dark);color:white;box-shadow:0 18px 50px hsl(var(--playza-purple-dark) / .18)}
+.invitation h1{color:white}.sport{display:inline-flex;max-width:100%;border:1px solid #ffffff40;border-radius:100px;padding:6px 14px;color:var(--color-primary);font-size:13px;font-weight:800}
+.time,.actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}.time>span{color:#EAE0FF}
+.share button{min-height:54px;border-color:#ffffff70;background:#ffffff10;color:white}.share button:hover{background:var(--color-primary);color:var(--color-purple-dark)}
+.participants>section{border-color:#ffffff40;background:#ffffff0c;color:white}.participants :global(.text-muted-foreground){color:#EAE0FF}.participants li{background:#ffffff16;color:white}.participants :global(.border-t){border-color:#ffffff40}
+.invitation :is(button,a):focus-visible{outline:3px solid var(--color-primary);outline-offset:4px}
