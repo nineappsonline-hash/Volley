@@ -36,6 +36,10 @@ for (lang of ['en', 'ar']) {
   const html = renderToStaticMarkup(React.createElement(LandingPage));
   const section = html.match(/<article id="beach-volleyball"[\s\S]*?<\/article>/)?.[0];
   assert.ok(html.includes('id="tennis"'));
+  assert.ok(!html.includes('<section id="archery"'));
+  assert.ok(html.includes('<article id="archery"'));
+  assert.ok(html.includes(content.ARCHERY_DESCRIPTION[lang]));
+  assert.ok(html.includes('href="/dashboard?sport=archery"'));
   assert.ok(!html.includes(lang === 'ar' ? '>لاقي ملعب<' : 'Find a playground'));
   assert.ok(html.includes('heroJoin'));
   assert.ok(html.includes(lang === 'ar' ? 'لاقي ماتش وانضم' : 'Find a game to join'));
@@ -45,7 +49,7 @@ for (lang of ['en', 'ar']) {
   assert.ok(html.includes(content.TENNIS_DESCRIPTION[lang]));
   assert.ok(section, 'beach sport card must be present in server-rendered HTML');
   const sports = html.match(/<section id="sports"[\s\S]*?<\/section>/)?.[0];
-  for (const id of ['padel','tennis','volleyball','basketball','beach-volleyball']) assert.ok(sports.includes(`id="${id}"`));
+  for (const id of ['padel','tennis','volleyball','basketball','beach-volleyball','archery']) assert.ok(sports.includes(`id="${id}"`));
   assert.ok(html.indexOf('id="playground-owners"') < html.indexOf('id="beach-challenge"'));
   assert.ok(html.indexOf('class="finalCta"') < html.indexOf('id="beach-challenge"'), '3D game follows the final call to action');
   assert.ok(section.includes(content.BEACH_DESCRIPTION[lang]));

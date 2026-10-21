@@ -21,7 +21,6 @@ import { courtsPath } from "@/lib/court-discovery";
 import { discoveryPath } from "@/lib/sport-discovery";
 import { ARCHERY_DESCRIPTION, BEACH_DESCRIPTION, TENNIS_DESCRIPTION, SportsHeroSceneCopy } from "@/lib/landing-content";
 import { SportCardArt } from "./sport-card-art";
-import { ArcheryScene } from "./archery-scene";
 import { SportsHeroScene } from "./sports-hero-scene";
 import { BeachVolleyballGameCard } from "@/components/game/beach-volleyball-game-card";
 import styles from "./volleyball-landing.module.css";
@@ -56,7 +55,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
   const ar = lang === "ar";
   const [paused, setPaused] = useState(false);
   const copy = (en: string, arabic: string) => ar ? arabic : en;
-  const names = { basketball:copy("Basketball","كرة السلة"), padel: copy("Padel", "البادل"), volleyball: copy("Volleyball", "الكرة الطائرة"), "beach-volleyball": copy("Beach volleyball", "الطائرة الشاطئية"), tennis: copy("Tennis", "التنس") };
+  const names = { archery:copy("Archery", "الرماية بالقوس"), basketball:copy("Basketball","كرة السلة"), padel: copy("Padel", "البادل"), volleyball: copy("Volleyball", "الكرة الطائرة"), "beach-volleyball": copy("Beach volleyball", "الطائرة الشاطئية"), tennis: copy("Tennis", "التنس") };
 
   return <div className={styles.page} dir={dir} data-paused={paused}>
     <header className={styles.header}>
@@ -103,38 +102,15 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
       <nav aria-label={copy("Sports guides for Egypt", "أدلة الرياضة في مصر")} className="mx-auto flex max-w-6xl flex-wrap gap-5 px-6 py-6 text-sm font-semibold">{([['volleyball', copy('Volleyball in Egypt', 'كرة طائرة في مصر')], ['tennis', copy('Tennis in Egypt', 'التنس في مصر')], ['archery', copy('Archery in Egypt', 'الرماية بالقوس في مصر')]] as const).map(([slug, label]) => <Link key={slug} href={discoveryPath(lang, slug)} className="underline underline-offset-4">{label}</Link>)}</nav>
 
       <section id="sports" aria-labelledby="sports-title" className={styles.combinedSports}>
-        <div className={styles.sectionHeading}><p className={styles.eyebrow}>{copy("FIVE SPORTS. YOUR NEXT GAME.", "خمس رياضات. ماتشك الجاي.")}</p><h2 id="sports-title">{copy("Find your sport. Meet your people.", "اختار رياضتك. واتعرّف على ناس شبهك.")}</h2><p>{copy("Tennis, padel, volleyball, basketball and beach volleyball in one place. Explore games, courts and playing levels before you join.", "تنس وبادل وكرة طائرة وكرة سلة وطائرة شاطئية في مكان واحد. اكتشف الماتشات والملاعب ومستويات اللعب قبل ما تنضم.")}</p></div>
+        <div className={styles.sectionHeading}><p className={styles.eyebrow}>{copy("SIX SPORTS. YOUR NEXT GAME.", "ست رياضات. ماتشك الجاي.")}</p><h2 id="sports-title">{copy("Find your sport. Meet your people.", "اختار رياضتك. واتعرّف على ناس شبهك.")}</h2><p>{copy("Tennis, padel, volleyball, basketball, beach volleyball and archery in one place. Explore games, courts and playing levels before you join.", "تنس وبادل وكرة طائرة وكرة سلة وطائرة شاطئية ورماية بالقوس في مكان واحد. اكتشف الماتشات والملاعب ومستويات اللعب قبل ما تنضم.")}</p></div>
         <button type="button" className={styles.sportsMotion} onClick={() => setPaused(!paused)} aria-pressed={paused} aria-label={paused ? copy("Play sports animations", "تشغيل حركة الرياضات") : copy("Pause sports animations", "إيقاف حركة الرياضات")}>{paused ? <Play size={16} /> : <Pause size={16} />}{copy(paused ? "Play motion" : "Pause motion", paused ? "تشغيل الحركة" : "إيقاف الحركة")}</button>
         <div className={styles.sportsCards}>
-          {(["padel", "tennis", "volleyball", "basketball", "beach-volleyball"] as const).map(item => <article id={item} key={item} className={styles.sportTile} aria-labelledby={`${item}-title`}>
+          {(["padel", "tennis", "volleyball", "basketball", "beach-volleyball", "archery"] as const).map(item => <article id={item} key={item} className={styles.sportTile} aria-labelledby={`${item}-title`}>
             <div className={styles.sportTileArt} aria-hidden="true"><SportCardArt sport={item} /></div>
             <h3 id={`${item}-title`}>{names[item]}</h3>
-            <p>{item === "tennis" ? TENNIS_DESCRIPTION[lang] : item === "beach-volleyball" ? BEACH_DESCRIPTION[lang] : item === "padel" ? copy("Find padel courts and games in Egypt. Choose your location, level and time for your next rally.", "اكتشف ملاعب وماتشات البادل في مصر. اختار المكان والمستوى والوقت لماتشك الجاي.") : item === "basketball" ? copy("Find basketball games and courts in Egypt. Meet your next team and check the final price before booking.", "اكتشف ماتشات وملاعب كرة السلة في مصر. انضم لفريقك الجاي وراجع السعر النهائي قبل الحجز.") : copy("Join volleyball games in Egypt. Find your level, meet teammates and get back on court.", "انضم لماتشات الكرة الطائرة في مصر. اختار مستواك واتعرّف على فريقك وارجع للملعب.")}</p>
-            <Link className={styles.textLink} href={`/dashboard?sport=${item}`}>{copy("Find games", "شوف الماتشات")}<ArrowUpRight size={18} aria-hidden="true" /></Link>
+            <p>{item === "archery" ? ARCHERY_DESCRIPTION[lang] : item === "tennis" ? TENNIS_DESCRIPTION[lang] : item === "beach-volleyball" ? BEACH_DESCRIPTION[lang] : item === "padel" ? copy("Find padel courts and games in Egypt. Choose your location, level and time for your next rally.", "اكتشف ملاعب وماتشات البادل في مصر. اختار المكان والمستوى والوقت لماتشك الجاي.") : item === "basketball" ? copy("Find basketball games and courts in Egypt. Meet your next team and check the final price before booking.", "اكتشف ماتشات وملاعب كرة السلة في مصر. انضم لفريقك الجاي وراجع السعر النهائي قبل الحجز.") : copy("Join volleyball games in Egypt. Find your level, meet teammates and get back on court.", "انضم لماتشات الكرة الطائرة في مصر. اختار مستواك واتعرّف على فريقك وارجع للملعب.")}</p>
+            <Link className={styles.textLink} href={`/dashboard?sport=${item}`}>{item === "archery" ? copy("Explore archery", "اكتشف الرماية بالقوس") : copy("Find games", "شوف الماتشات")}<ArrowUpRight size={18} aria-hidden="true" /></Link>
           </article>)}
-        </div>
-      </section>
-
-      <section id="archery" aria-labelledby="archery-title" className={styles.beachSection}>
-        <div className={styles.beachCopy}>
-          <p className={styles.eyebrow}>{copy("FOCUS. DRAW. RELEASE.", "تركيز. سحب. إطلاق.")}</p>
-          <h2 id="archery-title">{copy("Archery in Egypt.", "الرماية بالقوس في مصر.")}<br /><span>{copy("Find your focus. Aim for more.", "ركّز على هدفك. وطوّر مهارتك.")}</span></h2>
-          <p>{ARCHERY_DESCRIPTION[lang]}</p>
-          <ul className={styles.beachHighlights}>
-            <li>{copy("Ask about coached introductions and the right playing level", "اسأل عن التدريب مع مدرب والمستوى المناسب ليك")}</li>
-            <li>{copy("Confirm bow rental, equipment and range arrangements", "اتأكد من تأجير القوس والأدوات ونظام ميدان الرماية")}</li>
-            <li>{copy("Review the location, age requirements and session price", "راجع المكان وشروط السن وتكلفة الحصة")}</li>
-          </ul>
-          <div className={styles.actions}>
-            <Link className={styles.primary} href={discoveryPath(lang, "archery")}>{copy("Explore archery in Egypt", "اكتشف الرماية بالقوس في مصر")}<ArrowUpRight size={20} aria-hidden="true" /></Link>
-            <Link className={styles.textLink} href="/signup">{copy("Join the Playza community", "انضم لمجتمع بلايزا")}<ArrowUpRight size={18} aria-hidden="true" /></Link>
-          </div>
-          <p className={styles.beachNote}>{copy("Ask the academy or organizer about current archery availability. Coaching, equipment and fees depend on the provider; check before attending.", "اسأل الأكاديمية أو المنظم عن مواعيد الرماية بالقوس المتاحة حاليًا. التدريب والأدوات والتكلفة حسب مقدم النشاط؛ اتأكد من التفاصيل قبل الحضور.")}</p>
-        </div>
-        <div className={styles.beachArt}>
-          <span className={styles.beachArtLabel}>{copy("YOUR NEXT TARGET", "هدفك الجاي")}</span>
-          <ArcheryScene className={styles.beachScene} />
-          <span className={styles.beachTag}>{copy("A little focus. A new challenge.", "شوية تركيز. وتحدّي جديد.")}</span>
         </div>
       </section>
 

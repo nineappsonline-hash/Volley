@@ -128,3 +128,6 @@
 @keyframes tileBallFloat{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-12px) rotate(12deg)}}
 @keyframes tileRacketSwing{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(7deg)}}
 @media(prefers-reduced-motion:reduce){.tileCourt,.tileBall,.tileRacket,.tileSun{animation:none!important}}
+.tileArrow{animation:tileArrowAim 5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes tileArrowAim{0%,100%{transform:translateX(-5px)}50%{transform:translateX(6px)}}
+@media(prefers-reduced-motion:reduce){.tileArrow{animation:none!important}}

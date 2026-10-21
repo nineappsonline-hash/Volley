@@ -1,9 +1,31 @@
 import styles from "./volleyball-landing.module.css";
 
-type CourtSport = "padel" | "tennis" | "volleyball" | "basketball" | "beach-volleyball";
+type CourtSport = "padel" | "tennis" | "volleyball" | "basketball" | "beach-volleyball" | "archery";
 
 /** Decorative vector artwork: no image downloads or player photographs. */
 export function SportCardArt({ sport }: { sport: CourtSport }) {
+  if (sport === "archery") return <svg viewBox="0 0 320 200" fill="none" aria-hidden="true" focusable="false">
+    <circle cx="166" cy="97" r="84" fill="white" fillOpacity=".05" stroke="white" strokeOpacity=".16" strokeDasharray="3 9" />
+    <ellipse cx="176" cy="172" rx="99" ry="13" fill="#28114F" fillOpacity=".4" />
+    <path d="M220 125L203 176M234 125L253 176" stroke="#D5B9FF" strokeWidth="7" strokeLinecap="round" />
+    <g className={styles.tileCourt}>
+      <ellipse cx="226" cy="89" rx="52" ry="64" fill="#FFFFFF" />
+      <ellipse cx="226" cy="89" rx="42" ry="53" fill="#C8FF00" />
+      <ellipse cx="226" cy="89" rx="31" ry="40" fill="#6932AF" />
+      <ellipse cx="226" cy="89" rx="20" ry="26" fill="#FFFFFF" />
+      <ellipse cx="226" cy="89" rx="9" ry="12" fill="#C8FF00" />
+    </g>
+    <g className={styles.tileRacket}>
+      <path d="M91 27Q168 91 91 160" stroke="#C8FF00" strokeWidth="8" strokeLinecap="round" />
+      <path d="M91 27L116 94L91 160" stroke="#FFFFFF" strokeWidth="2" />
+      <path d="M131 78L132 106" stroke="#D5B9FF" strokeWidth="10" strokeLinecap="round" />
+    </g>
+    <g className={styles.tileArrow}>
+      <path d="M95 90H223M213 82L225 90L213 98" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M97 90L84 80H100L113 90L100 100H84Z" fill="#C8FF00" />
+    </g>
+    <path d="M49 49V65M41 57H57M281 146V158M275 152H287" stroke="#C8FF00" strokeWidth="3" strokeLinecap="round" />
+  </svg>;
   const racket = sport === "padel" || sport === "tennis";
   const beach = sport === "beach-volleyball";
   return <svg viewBox="0 0 320 200" fill="none" aria-hidden="true" focusable="false">
