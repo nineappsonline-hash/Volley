@@ -125,11 +125,11 @@ export function formatMoney(
     return new Intl.NumberFormat(numericLocale(lang), {
       style: "currency",
       currency: CURRENCY,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount);
   } catch {
-    return `${CURRENCY} ${amount.toFixed(2)}`;
+    return `${CURRENCY} ${Number(amount.toFixed?.(0) ?? amount).toFixed(0)}`;
   }
 }
 
@@ -139,7 +139,7 @@ export function formatMoneyShort(amount: number, lang: "en" | "ar" = "en"): stri
       style: "currency",
       currency: CURRENCY,
       minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
+      maximumFractionDigits: 0,
     }).format(amount);
   } catch {
     return `${CURRENCY} ${Number(amount.toFixed?.(0) ?? amount).toFixed(0)}`;

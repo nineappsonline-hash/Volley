@@ -69,7 +69,7 @@ export function paymentConfirmationEmail(opts: {
       <h2 style="margin:0 0 8px;color:${PLAYZA.navy};">Payment Confirmed ✓</h2>
       <p style="color:${PLAYZA.secondaryText};margin:0 0 24px;">Hi ${opts.memberName}, your payment has been recorded.</p>
       <table style="width:100%;border-collapse:collapse;">
-        <tr><td style="padding:8px 0;color:${PLAYZA.secondaryText};">Amount</td><td style="padding:8px 0;text-align:right;font-weight:bold;font-size:18px;">EGP ${opts.amount.toFixed(2)}</td></tr>
+        <tr><td style="padding:8px 0;color:${PLAYZA.secondaryText};">Amount</td><td style="padding:8px 0;text-align:right;font-weight:bold;font-size:18px;">EGP ${opts.amount.toFixed(0)}</td></tr>
         <tr><td style="padding:8px 0;color:${PLAYZA.secondaryText};">Sessions</td><td style="padding:8px 0;text-align:right;font-weight:600;">${opts.sessions}</td></tr>
         <tr><td style="padding:8px 0;color:${PLAYZA.secondaryText};">Date</td><td style="padding:8px 0;text-align:right;">${opts.date}</td></tr>
       </table>

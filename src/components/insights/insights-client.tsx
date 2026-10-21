@@ -258,7 +258,7 @@ export function InsightsClient() {
             <StatCard
               icon={Activity}
               label={t("insights_expected_revenue")}
-              value={typeof metrics?.expected_revenue_next === "number" ? `$${Number(metrics.expected_revenue_next).toFixed(2)}` : "—"}
+              value={typeof metrics?.expected_revenue_next === "number" ? `$${Number(metrics.expected_revenue_next).toFixed(0)}` : "—"}
             />
           </div>
 
@@ -300,7 +300,7 @@ export function InsightsClient() {
                           {typeof m.active_members === "number" ? `${m.active_members} members` : "—"}
                         </span>
                         <span className="text-muted-foreground">
-                          {typeof m.expected_revenue_next === "number" ? `$${Number(m.expected_revenue_next).toFixed(2)}` : "—"}
+                          {typeof m.expected_revenue_next === "number" ? `$${Number(m.expected_revenue_next).toFixed(0)}` : "—"}
                         </span>
                       </div>
                     );

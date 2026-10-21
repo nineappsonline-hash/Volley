@@ -214,9 +214,9 @@ export default function ReportsPage() {
                     ["Month", "Revenue", "Costs", "Net"],
                     [...points].reverse().map((p) => [
                       p.label,
-                      p.revenue.toFixed(2),
-                      p.costs.toFixed(2),
-                      (p.revenue - p.costs).toFixed(2),
+                      p.revenue.toFixed(0),
+                      p.costs.toFixed(0),
+                      (p.revenue - p.costs).toFixed(0),
                     ]),
                     y
                   );
@@ -229,7 +229,7 @@ export default function ReportsPage() {
                     ["Sport", "Revenue", "%"],
                     revenueBySport.rows.map((r) => [
                       r.name,
-                      r.revenue.toFixed(2),
+                      r.revenue.toFixed(0),
                       `${r.share}%`,
                     ]),
                     y
