@@ -66,7 +66,6 @@
     background-size: 1400px 1100px, 100% 1200px, 100% 1200px, 24px 24px;
     background-position: center top;
     background-repeat: repeat;
-    background-attachment: fixed;
   }
   h1, h2, h3, h4, h5, h6, nav, label, strong { color: inherit; }
   h1 { font-weight: 800; }
