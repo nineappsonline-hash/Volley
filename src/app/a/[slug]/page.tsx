@@ -385,7 +385,7 @@ export default async function PublicAcademyPage({
         {/* Trial booking */}
         <details className="rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
           <summary className="cursor-pointer font-medium"><LangLabel en="Ask the academy about another trial time" ar="اسأل الأكاديمية عن موعد تجريبي آخر" /></summary>
-          <p className="my-3 text-sm text-muted-foreground"><LangLabel en="This sends an enquiry; it does not reserve a session or confirm payment." ar="ده استفسار للأكاديمية، وليس حجزًا لحصة أو تأكيدًا للدفع." /></p>
+          <p className="my-3 text-sm text-muted-foreground"><LangLabel en="This sends an enquiry; it does not reserve a session or confirm payment." ar="ده استفسار للأكاديمية بس، مش حجز لحصة أو تأكيد للدفع." /></p>
           <TrialForm anchorId="trial-enquiry" academyId={academy.id} sports={sports ?? []} />
         </details>
       </div>

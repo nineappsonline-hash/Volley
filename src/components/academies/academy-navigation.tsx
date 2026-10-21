@@ -14,7 +14,7 @@ export function AcademyNavigation() {
   const [open, setOpen] = useState(false);
   const links = [
     { href: "/dashboard", label: ar ? "الرئيسية" : "Dashboard" },
-    { href: "/games", label: ar ? "المباريات" : "Games" },
+    { href: "/games", label: ar ? "الماتشات" : "Games" },
     { href: "/playgrounds", label: ar ? "الملاعب" : "Playgrounds" },
     { href: "/tournaments", label: ar ? "البطولات" : "Tournaments" },
     { href: "/academies", label: ar ? "الأكاديميات" : "Academies" },

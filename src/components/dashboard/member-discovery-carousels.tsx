@@ -132,7 +132,7 @@ export function MemberDiscoveryCarousels() {
   }));
 
   return <div className="min-w-0 space-y-7">
-    <DiscoveryCarousel title={ar ? "مباريات حالية وقادمة" : "Active & upcoming games"} href="/dashboard/games" icon={Volleyball} items={gameItems} query={games} empty={ar ? "مفيش مباريات متاحة حالياً. تابعنا قريب." : "No active games right now. Check back soon."} />
+    <DiscoveryCarousel title={ar ? "ماتشات حالية وقادمة" : "Active & upcoming games"} href="/dashboard/games" icon={Volleyball} items={gameItems} query={games} empty={ar ? "مفيش ماتشات متاحة حالياً. تابعنا قريب." : "No active games right now. Check back soon."} />
     <DiscoveryCarousel title={t("nav_tournaments")} href="/dashboard/tournaments" icon={Trophy} items={tournamentItems} query={tournaments} empty={ar ? "مفيش بطولات حالية أو قادمة." : "No active or upcoming tournaments right now."} />
     <DiscoveryCarousel title={t("nav_playgrounds")} href="/playgrounds" icon={LandPlot} items={playgroundItems} query={playgrounds} empty={ar ? "مفيش ملاعب متاحة حالياً." : "No playgrounds available yet."} />
     <DiscoveryCarousel title={t("nav_academies")} href="/academies" icon={Building2} items={academyItems} query={academies} empty={ar ? "مفيش أكاديميات متاحة حالياً." : "No academies available yet."} />

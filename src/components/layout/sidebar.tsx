@@ -130,9 +130,9 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
         ? [...memberItems, ...staffItems, ...adminItems]
         : [...adminItems, ...academyItems, ...memberItems, ...staffItems];
   const memberLabels: Record<string, [string, string]> = {
-    "/dashboard/my-games": ["My games", "مبارياتي"],
+    "/dashboard/my-games": ["My games", "ماتشاتي"],
     "/profile#checkin": ["My check-in code", "كود الحضور"],
-    "/profile#upcoming-training": ["Upcoming training", "التدريب القادم"],
+    "/profile#upcoming-training": ["Upcoming training", "التدريب الجاي"],
     "/profile#training-renewal": ["Training membership & renewal", "اشتراك التدريب وتجديده"],
     "/parent": ["My family", "عيلتي"],
     "/games/beach-volleyball": ["Virtual volleyball court", "الملعب الافتراضي"],
@@ -154,7 +154,7 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
       group("Academy settings", "إعدادات الأكاديمية", ["/profile", "/settings", "/upgrade"]),
     ] : [
       group("Member pass", "كود الحضور", ["/profile#checkin"]),
-      group("My games", "مبارياتي", ["/dashboard/my-games"]),
+      group("My games", "ماتشاتي", ["/dashboard/my-games"]),
       ...(hasAcademyWorkspace ? [group("Academy staff", "فريق الأكاديمية", ["/academy"])] : []),
       group("My Playza", "بلايزا بتاعتي", ["/dashboard", "/profile", "/parent", "/games/beach-volleyball"]),
       group("My training & member pass", "تدريبي وكود الحضور", ["/profile#upcoming-training", "/profile#training-renewal", "/schedule", "/academy-bookings"]),

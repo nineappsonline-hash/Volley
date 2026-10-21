@@ -3,7 +3,7 @@ export const LANDING_TITLE = "Volleyball, Tennis, Padel, Basketball & Archery in
 export const LANDING_DESCRIPTION = "Discover volleyball, tennis, padel, basketball and archery in Egypt. Explore playing guides, published games, courts and academies, and plan your next activity with Playza.";
 export const BEACH_DESCRIPTION = {
   en: "Discover beach volleyball in Egypt with Playza. Explore sand-court games, find people to play with, and discover academies that match your next move.",
-  ar: "اكتشف الكرة الطائرة الشاطئية في مصر مع بلايزا. دور على مباريات على الملاعب الرملية، واتعرّف على لاعبين، واكتشف أكاديميات تناسب خطوتك الجاية.",
+  ar: "العب كرة طائرة شاطئية مع بلايزا. شوف الماتشات على الرمل، واتعرّف على ناس تلعب معاهم، ولاقي أكاديمية تتمرن فيها.",
 } as const;
 
 /** Describes visible landing content without inventing local events or inventory. */
@@ -40,20 +40,20 @@ export const SportsHeroSceneCopy = {
   },
   ar: {
     eyebrow: "كرة طائرة. تنس. رماية بالقوس.",
-    intro: "العب كرة طائرة، واتبادل الكرات على ملعب التنس، أو صوّب على الهدف في الرماية بالقوس. اتعرّف على ناس بتحب لعبتك، واكتشف المواعيد في مصر، وخُد خطوتك الجاية مع بلايزا.",
-    note: "٣ رياضات. مجتمع واحد. ولعبتك الجاية.",
+    intro: "العب كرة طائرة، أو تنس وبادل، أو كرة سلة، أو جرّب الرماية بالقوس. اتعرّف على ناس بتحب نفس رياضتك، وشوف المواعيد اللي تناسبك، ويلا نلعب مع بلايزا.",
+    note: "رياضتك. صحابك. وماتشك الجاي.",
     artLabel: "رسم للاعبي كرة طائرة عند الشبكة، ومضرب وكرة تنس، ورامي بالقوس يصوّب نحو هدف",
   },
 } as const;
 
 export const ARCHERY_DESCRIPTION = {
   en: "Find your focus with archery. Discover a sport built around patience, precision and the satisfaction of a well-placed shot. Ask organizers about introductory coaching, equipment and the right session for your experience.",
-  ar: "لاقي تركيزك مع الرماية بالقوس. رياضة بتجمع الصبر والدقة ومتعة إصابة الهدف. اسأل المنظم عن التدريب التعريفي والأدوات والحصة المناسبة لخبرتك.",
+  ar: "جرّب الرماية بالقوس وركّز على هدفك. اسأل المنظّم عن تدريب للمبتدئين، والأدوات المتاحة، والحصة المناسبة لمستواك.",
 } as const;
 
 export const TENNIS_DESCRIPTION = {
   en: "Looking for a tennis partner, tennis lessons or a court in Egypt? Explore tennis on Playza, compare published sessions and check the playing level, location and cost before joining.",
-  ar: "بتدور على شريك تلعب معاه تنس، أو دروس تنس، أو ملعب في مصر؟ اكتشف التنس على بلايزا، وقارن المواعيد المنشورة وراجع المستوى والمكان والتكلفة قبل المشاركة.",
+  ar: "بتدور على حد تلعب معاه تنس أو مكان تتمرن فيه؟ شوف المواعيد المتاحة على بلايزا، وراجع المستوى والمكان والسعر قبل ما تنضم.",
 } as const;
 
 /** Supporting topic tags; visible content, titles and links carry the search intent. */
@@ -62,6 +62,6 @@ export const LANDING_KEYWORDS = [
   "basketball games Egypt", "basketball courts Cairo", "كرة سلة مصر", "ملاعب كرة السلة", "padel Egypt", "padel courts Cairo", "padel games Egypt", "بادل مصر", "ملاعب بادل", "tennis Egypt", "tennis courts Cairo", "tennis lessons Egypt", "tennis partners Cairo",
   "archery Egypt", "archery Cairo", "archery training Egypt", "archery for beginners",
   "beach volleyball Egypt", "sports activities Egypt",
-  "كرة طائرة في مصر", "ماتشات كرة طائرة في القاهرة", "ملاعب تنس في القاهرة", "دروس تنس",
+  "كرة طائرة في مصر", "ماتشات كرة طائرة في القاهرة", "ملاعب تنس في القاهرة", "تمارين تنس",
   "الرماية بالقوس في مصر", "الرماية بالقوس في القاهرة", "تدريب الرماية بالقوس", "كرة طائرة شاطئية",
 ];

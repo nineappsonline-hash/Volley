@@ -103,7 +103,7 @@ export function MemberPlaygrounds({ memberPlan }: { memberPlan: "free" | "premiu
         <Button variant="ghost" onClick={() => { setLocation({ country: "all", governorate: "all", area: "all" }); setSport("all"); setSearch(""); }}>{ar ? "مسح الفلاتر" : "Clear filters"}</Button>
       </div>
       <p role="status" className="text-sm text-muted-foreground">{filtered.length} {ar ? "ملعب" : "playgrounds"}</p>
-      {!filtered.length && <p className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">{ar ? "لا توجد ملاعب مطابقة. جرّب تغيير الفلاتر." : "No matching playgrounds. Try changing your filters."}</p>}
+      {!filtered.length && <p className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">{ar ? "مفيش ملاعب مطابقة. جرّب تغيير الفلاتر." : "No matching playgrounds. Try changing your filters."}</p>}
       <div className="grid items-start gap-4 lg:grid-cols-2">{filtered.map(venue => <article key={venue.id} className="overflow-hidden rounded-2xl border bg-card">
         <PlaygroundOptionCard playground={venue} selected={expanded === venue.id} onSelect={() => setExpanded(expanded === venue.id ? null : venue.id)} />
         <div className="space-y-3 p-4 pt-0">
@@ -124,7 +124,7 @@ export function MemberPlaygrounds({ memberPlan }: { memberPlan: "free" | "premiu
               label={ar ? "مشاركة الملعب" : "Share playground"}
             />
           </div>
-          <Button variant="outline" className="gap-2" aria-expanded={expanded === venue.id} onClick={() => setExpanded(expanded === venue.id ? null : venue.id)}><CalendarDays className="h-4 w-4" />{ar ? "المواعيد المتاحة وإنشاء مباراة" : "Availability & create game"}</Button>
+          <Button variant="outline" className="gap-2" aria-expanded={expanded === venue.id} onClick={() => setExpanded(expanded === venue.id ? null : venue.id)}><CalendarDays className="h-4 w-4" />{ar ? "المواعيد المتاحة وإنشاء ماتش" : "Availability & create game"}</Button>
           {expanded === venue.id && <VenueAvailability venue={venue} onCreate={date => setCreating({ venue, date })} />}
         </div>
       </article>)}</div>
@@ -190,10 +190,10 @@ function VenueAvailability({ venue, onCreate }: { venue: Venue; onCreate: (date:
     <div className="space-y-2">
       <p className="text-sm font-semibold">{date} · {ar ? "الأوقات المتاحة" : "Available times"}</p>
       <div className="flex flex-wrap gap-2">{free.map(([start, end]) => <span dir="auto" key={`${start}-${end}`} className="rounded-lg bg-muted px-3 py-2 text-sm text-foreground">{time(start)} – {time(end)}</span>)}</div>
-      {!free.length && <p className="text-sm text-muted-foreground">{ar ? "لا توجد أوقات متاحة في هذا اليوم." : "No available times on this day."}</p>}
-      <p className="text-xs text-muted-foreground">{ar ? "المواعيد حسب ساعات العمل والحجوزات الظاهرة. يتم التحقق النهائي عند إنشاء المباراة." : "Based on opening hours and visible bookings. Availability is checked again when creating the game."}</p>
+      {!free.length && <p className="text-sm text-muted-foreground">{ar ? "مفيش أوقات متاحة في هذا اليوم." : "No available times on this day."}</p>}
+      <p className="text-xs text-muted-foreground">{ar ? "المواعيد حسب ساعات العمل والحجوزات الظاهرة. يتم التحقق النهائي عند إنشاء الماتش." : "Based on opening hours and visible bookings. Availability is checked again when creating the game."}</p>
       {!venue.working_hours?.length && <p className="text-xs text-muted-foreground">{ar ? "الملعب لم يحدد ساعات العمل؛ المواعيد المعروضة تستخدم ساعات التطبيق الافتراضية." : "This venue has not published opening hours; the app’s default hours are shown."}</p>}
-      <Button disabled={!free.length} onClick={() => onCreate(date)} className="gap-2"><Plus className="h-4 w-4" />{ar ? "إنشاء مباراة هنا" : "Create game here"}</Button>
+      <Button disabled={!free.length} onClick={() => onCreate(date)} className="gap-2"><Plus className="h-4 w-4" />{ar ? "إنشاء ماتش هنا" : "Create game here"}</Button>
     </div>
   </QueryState>;
 }

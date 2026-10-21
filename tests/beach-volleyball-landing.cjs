@@ -89,7 +89,7 @@ for (lang of ['en', 'ar']) {
   assert.ok(!html.includes('id="find-your-court"'), 'discovery section was removed from the homepage');
   assert.ok(html.indexOf('id="upcoming-games"') < html.indexOf('id="sports"'));
   const empty = renderToStaticMarkup(React.createElement(LandingPage));
-  assert.ok(empty.includes(lang === 'ar' ? 'راجع صفحة الماتشات' : 'Check the games page'));
+  assert.ok(empty.includes(lang === 'ar' ? 'شوف المواعيد المتاحة' : 'Check the games page'));
   assert.ok(!empty.includes('Friday beach game'));
 }
 const metadata = content.landingPageJsonLd(seo.SITE_URL);

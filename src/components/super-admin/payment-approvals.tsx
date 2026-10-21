@@ -92,12 +92,12 @@ export function PaymentApprovals() {
     const gameContext = (game: NonNullable<typeof shares>[number]["game"], id: string) => {
       const rows = [
         { label: copy("Sport", "الرياضة"), value: game?.sport ?? copy("Not recorded", "غير مسجل") },
-        { label: copy("Game date", "موعد المباراة"), value: [game?.game_date, game?.start_time ? formatTime12h(game.start_time, lang) : null].filter(Boolean).join(" · ") },
+        { label: copy("Game date", "موعد الماتش"), value: [game?.game_date, game?.start_time ? formatTime12h(game.start_time, lang) : null].filter(Boolean).join(" · ") },
         { label: copy("Court / location", "الملعب / المكان"), value: [game?.playground?.name ?? game?.location, game?.playground?.area ?? game?.area, game?.playground?.governorate].filter(Boolean).join(" · ") },
         { label: copy("Organizer", "المنظم"), value: game?.creator_name ?? "" },
         { label: copy("Duration", "المدة"), value: game?.duration_hours != null ? `${game.duration_hours} ${copy("hours", "ساعة")}` : "" },
-        { label: copy("Game status", "حالة المباراة"), value: game?.status ? t(`community_status_${game.status}` as any) : "" },
-        { label: copy("Game reference", "مرجع المباراة"), value: id },
+        { label: copy("Game status", "حالة الماتش"), value: game?.status ? t(`community_status_${game.status}` as any) : "" },
+        { label: copy("Game reference", "مرجع الماتش"), value: id },
       ];
       return rows.filter(row => row.value);
     };
@@ -109,7 +109,7 @@ export function PaymentApprovals() {
         memberId: p.member_id,
         playerName: p.player_name,
         label: t("super_admin_payments_for_share"),
-        detail: p.game?.title ?? copy("Game details unavailable", "تفاصيل المباراة غير متاحة"),
+        detail: p.game?.title ?? copy("Game details unavailable", "تفاصيل الماتش غير متاحة"),
         context: [...gameContext(p.game, p.game_id), ...(p.player_name ? [{ label: copy("Player / paid place", "اللاعب / المكان المدفوع"), value: p.player_name }] : [])],
         amount: p.share_amount ?? 0,
         method: p.pay_method,
@@ -126,7 +126,7 @@ export function PaymentApprovals() {
         kind: "rent",
         memberId: r.member_id,
         label: t("super_admin_payments_for_rent"),
-        detail: r.game?.title ?? copy("Game details unavailable", "تفاصيل المباراة غير متاحة"),
+        detail: r.game?.title ?? copy("Game details unavailable", "تفاصيل الماتش غير متاحة"),
         context: gameContext(r.game, r.game_id),
         amount: r.amount,
         method: r.pay_method,

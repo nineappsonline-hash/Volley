@@ -257,7 +257,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, p
         title={ar ? "الأكاديميات" : "Academies"}
         tone="academies"
         description={ar ? "طوّر مهاراتك واكتشف مكانك وسط فريق جديد." : "Build your skills. Find your team. Grow your game."}
-        action={academyJoined ? (ar ? "اكتشف المزيد من الأكاديميات" : "Discover more academies") : (ar ? "ابحث عن أكاديمية" : "Find an academy")}
+        action={academyJoined ? (ar ? "اكتشف المزيد من الأكاديميات" : "Discover more academies") : (ar ? "دور على أكاديمية" : "Find an academy")}
         href="/academies"
         icon={Building2}
         items={academyItems}
@@ -265,29 +265,29 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, p
         empty={ar ? "مفيش أكاديميات متاحة حالياً." : "No academies available yet."}
       />}
       {mode !== "academies" && <DiscoveryCard
-        controls={interactive && <button type="button" aria-label={ar ? "فلاتر المباريات" : "Game filters"} title={ar ? "فلاتر المباريات" : "Game filters"} aria-expanded={filtersOpen} aria-controls="member-game-filters" onClick={() => setFiltersOpen(!filtersOpen)} className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"><SlidersHorizontal size={19} aria-hidden="true" />{activeFilters > 0 && <span className="absolute -end-1 -top-1 rounded-full bg-primary px-1.5 text-[10px] font-bold text-foreground">{activeFilters}</span>}</button>}
+        controls={interactive && <button type="button" aria-label={ar ? "فلاتر الماتشات" : "Game filters"} title={ar ? "فلاتر الماتشات" : "Game filters"} aria-expanded={filtersOpen} aria-controls="member-game-filters" onClick={() => setFiltersOpen(!filtersOpen)} className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"><SlidersHorizontal size={19} aria-hidden="true" />{activeFilters > 0 && <span className="absolute -end-1 -top-1 rounded-full bg-primary px-1.5 text-[10px] font-bold text-foreground">{activeFilters}</span>}</button>}
         filters={interactive && filtersOpen && <div id="member-game-filters" className="grid gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
           <label className="text-sm">{ar ? "المحافظة" : "Governorate"}<select className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" value={governorate} onChange={e => { setGovernorate(e.target.value); setCity(""); }}><option value="">{ar ? "الكل" : "All"}</option>{governorates.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
           <label className="text-sm">{ar ? "المدينة / المنطقة" : "City / area"}<select className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" value={city} onChange={e => { setCity(e.target.value); }}><option value="">{ar ? "الكل" : "All"}</option>{cities.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
           <label className="text-sm">{ar ? "مستوى اللاعبين" : "Player level"}<select className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" value={level} onChange={e => setLevel(e.target.value)}><option value="all">{ar ? "كل المستويات" : "All levels"}</option>{["beginner", "intermediate", "advanced"].map(value => <option key={value} value={value}>{t(`skill_${value}` as keyof Dict)}</option>)}</select></label>
-          <label className="text-sm">{ar ? "نوع المباراة" : "Gender"}<select className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" value={gender} onChange={e => setGender(e.target.value)}><option value="all">{ar ? "الكل" : "All"}</option><option value="male">{ar ? "رجال" : "Men"}</option><option value="female">{ar ? "سيدات" : "Women"}</option><option value="mixed">{ar ? "مختلط" : "Mixed"}</option></select></label>
+          <label className="text-sm">{ar ? "نوع الماتش" : "Gender"}<select className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" value={gender} onChange={e => setGender(e.target.value)}><option value="all">{ar ? "الكل" : "All"}</option><option value="male">{ar ? "رجال" : "Men"}</option><option value="female">{ar ? "سيدات" : "Women"}</option><option value="mixed">{ar ? "مختلط" : "Mixed"}</option></select></label>
           <label className="text-sm">{ar ? "عمر اللاعب" : "Player age"}<input className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" type="number" min="0" max="120" step="1" value={age} onChange={e => setAge(e.target.value)} /></label>
           <label className="text-sm">{ar ? "أقصى سعر (جنيه)" : "Maximum price (EGP)"}<input className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" type="number" min="0" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} /></label>
           <label className="text-sm">{ar ? "التاريخ" : "Date"}<input className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" type="date" min={today} value={date} onChange={e => setDate(e.target.value)} /></label>
-          <label className="text-sm">{ar ? "اسم الملعب أو المباراة" : "Court or game name"}<input className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" type="search"  value={court} onChange={e => setCourt(e.target.value)} /></label>
+          <label className="text-sm">{ar ? "اسم الملعب أو الماتش" : "Court or game name"}<input className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" type="search"  value={court} onChange={e => setCourt(e.target.value)} /></label>
           <button type="button" className="w-fit self-end rounded-lg border px-3 py-2 text-sm" onClick={() => { setGovernorate(""); setCity(""); setAge(""); setGender("all"); setMaxPrice(""); setCourt(""); setDate(""); setLevel("all"); }}>{ar ? "مسح الفلاتر" : "Clear filters"}</button>
         </div>}
         content={interactive && guestQuery ? <GuestGameList games={gameItems.map(item => item.game)} /> : interactive && profile ? <DashboardGameList games={gameItems.map(item => item.game)} profile={profile} /> : undefined}
         live={interactive}
-        title={interactive ? (sportFilter === "all" ? (ar ? "المباريات الحالية" : "Current games") : `${selectedSportLabel} · ${ar ? "المباريات الحالية" : "Current games"}`) : (ar ? "مقترح ليك" : "Recommended for you")}
+        title={interactive ? (sportFilter === "all" ? (ar ? "الماتشات الحالية" : "Current games") : `${selectedSportLabel} · ${ar ? "الماتشات الحالية" : "Current games"}`) : (ar ? "مقترح ليك" : "Recommended for you")}
         tone="games"
-        description={ar ? "انزل الملعب وقابل لاعبين وشارك في المباراة الجاية." : "Hit the court, meet new players, and make your next move."}
-        action={gameJoined ? (ar ? "اكتشف المزيد من المباريات" : "Discover more games") : (ar ? "ابحث عن مباراة" : "Find games")}
+        description={ar ? "انزل الملعب وقابل لاعبين وشارك في الماتش الجاي." : "Hit the court, meet new players, and make your next move."}
+        action={gameJoined ? (ar ? "اكتشف المزيد من الماتشات" : "Discover more games") : (ar ? "دور على ماتش" : "Find games")}
         href="/dashboard/games"
         icon={LandPlot}
         items={gameItems}
         query={games}
-        empty={interactive ? (ar ? "مفيش مباريات مفتوحة مطابقة للاختيار ده حالياً." : "No open games match this selection.") : (ar ? "مفيش مباريات متاحة حالياً. تابعنا قريب." : "No active games right now. Check back soon.")}
+        empty={interactive ? (ar ? "مفيش ماتشات مفتوحة مطابقة للاختيار ده حالياً." : "No open games match this selection.") : (ar ? "مفيش ماتشات متاحة حالياً. تابعنا قريب." : "No active games right now. Check back soon.")}
 
       />}
 

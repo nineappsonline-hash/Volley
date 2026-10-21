@@ -73,7 +73,7 @@ export function TrialsCard() {
       }
       await update.mutateAsync({ id: trial.id, status: "converted" });
       await cache.invalidateQueries({ queryKey: ["profiles"] });
-      toast.success(`${trial.name}: ${lang === "ar" ? "تمت الإضافة. الحسابات الجديدة بتستلم رابط تعيين كلمة المرور بالإيميل." : "Member added. New accounts receive a password setup invitation by email."}`);
+      toast.success(`${trial.name}: ${lang === "ar" ? "تمت الإضافة. الحسابات الجديدة بتستلم رابط تعيين كلمة السر بالإيميل." : "Member added. New accounts receive a password setup invitation by email."}`);
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
     } finally {

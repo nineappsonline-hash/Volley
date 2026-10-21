@@ -236,15 +236,15 @@ for (const section of ['games', 'academies']) {
 }
 lang = 'ar';
 html = renderDiscovery();
-assert.ok(html.includes('اكتشف المزيد من المباريات'));
+assert.ok(html.includes('اكتشف المزيد من الماتشات'));
 assert.ok(!html.includes('اكتشف المزيد من البطولات'));
 assert.ok(html.includes('اكتشف المزيد من الأكاديميات'));
 joined = false;
 html = renderDiscovery();
-assert.ok(html.includes('ابحث عن مباراة'));
-assert.ok(!html.includes('ابحث عن بطولة'));
+assert.ok(html.includes('دور على ماتش'));
+assert.ok(!html.includes('دور على بطولة'));
 assert.ok(!html.includes('href="/playgrounds"'), 'playgrounds discovery card is removed');
-assert.ok(html.includes('ابحث عن أكاديمية'));
+assert.ok(html.includes('دور على أكاديمية'));
 lang = 'en';
 console.log('PASS: discovery CTAs reflect membership in English and Arabic, including empty listings');
 

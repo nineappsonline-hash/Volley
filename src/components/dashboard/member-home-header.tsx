@@ -33,12 +33,12 @@ export function MemberHomeHeader({ guest = false, name, children, selectedSport 
     const url = `${window.location.origin}/games`;
     try {
       if (navigator.share) await navigator.share({ title: "Playza", text: ar ? "تعالى نلعب مع بلايزا" : "Find your next game with Playza", url });
-      else { await navigator.clipboard.writeText(url); toast.success(ar ? "اتنسخ رابط المباريات" : "Game discovery link copied"); }
+      else { await navigator.clipboard.writeText(url); toast.success(ar ? "اتنسخ رابط الماتشات" : "Game discovery link copied"); }
     } catch (error) { if (!(error instanceof Error && error.name === "AbortError")) toast.error(ar ? "تعذر المشاركة، حاول تاني" : "Could not share. Please try again."); }
   }
   return <div className={styles.homeHeader}>
     <div className={styles.welcome}>
-      <div><p className={styles.eyebrow}>{ar ? "يوم جديد. مباراة جديدة." : "A new day. A new game."}</p><h1>{name ? (ar ? `أهلاً، ${name.split(" ")[0]}` : `Hey, ${name.split(" ")[0]}`) : (ar ? "جاهز نلعب؟" : "Ready to play?")}</h1><Link href="/playgrounds" className={styles.location}><MapPin size={14} aria-hidden="true" />{ar ? "اكتشف ملعبك الجاي" : "Find your next court"}</Link></div>
+      <div><p className={styles.eyebrow}>{ar ? "يوم جديد. ماتش جديد." : "A new day. A new game."}</p><h1>{name ? (ar ? `أهلاً، ${name.split(" ")[0]}` : `Hey, ${name.split(" ")[0]}`) : (ar ? "جاهز نلعب؟" : "Ready to play?")}</h1><Link href="/playgrounds" className={styles.location}><MapPin size={14} aria-hidden="true" />{ar ? "اكتشف ملعبك الجاي" : "Find your next court"}</Link></div>
       <button type="button" onClick={() => void share()} className={styles.share}><Share2 size={15} aria-hidden="true" /><span>{ar ? "اعزم صاحبك" : "Invite a friend"}</span></button>
     </div>
     <div className={styles.sportsHeader}><h2>{ar ? "العب رياضتك" : "Play your sport"}</h2><button type="button" aria-pressed={selectedSport === "all"} aria-controls="member-live-games" onClick={() => onSportChange?.("all")}>{ar ? "كل الرياضات" : "All sports"}</button></div>

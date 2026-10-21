@@ -108,7 +108,7 @@ export function AdminGameEditor({ game, onClose }: { game: Game; onClose: () => 
       type={type}
       min={opts.min}
       disabled={opts.disabled}
-      aria-label={key === "share_price" ? (ar ? "تجاوز السعر لكل لاعب لهذه المباراة" : "Override price per player for this game") : undefined}
+      aria-label={key === "share_price" ? (ar ? "تجاوز السعر لكل لاعب للماتش ده" : "Override price per player for this game") : undefined}
       required={opts.required ?? required.has(key)}
       step={opts.step ?? (type === "number" ? (integers.has(key) ? "1" : "any") : undefined)}
       className={opts.className}
@@ -121,7 +121,7 @@ export function AdminGameEditor({ game, onClose }: { game: Game; onClose: () => 
     <Dialog open onOpenChange={open => { if (!open && !busy) onClose(); }}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>{ar ? "تعديل المباراة" : "Edit game"}</DialogTitle>
+          <DialogTitle>{ar ? "تعديل الماتش" : "Edit game"}</DialogTitle>
           <DialogDescription className="truncate">{game.title}</DialogDescription>
         </DialogHeader>
 
@@ -148,7 +148,7 @@ export function AdminGameEditor({ game, onClose }: { game: Game; onClose: () => 
               const { error } = await createClient().rpc("admin_update_friendly_game", { p_game_id: game.id, p_changes: changes });
               if (error) throw error;
               await Promise.all(["platform-records", "friendly-games", "my-game-participants"].map(key => cache.invalidateQueries({ queryKey: [key] })));
-              toast.success(ar ? "تم حفظ المباراة" : "Game saved");
+              toast.success(ar ? "تم حفظ الماتش" : "Game saved");
               onClose();
             } catch (error) {
               toast.error(error && typeof error === "object" && "message" in error ? String(error.message) : t("common_error"));
@@ -158,9 +158,9 @@ export function AdminGameEditor({ game, onClose }: { game: Game; onClose: () => 
           <fieldset disabled={busy} className="space-y-4">
             <Section icon={ListOrdered} title={ar ? "الحالة" : "Status"}>
               <div className="grid gap-4 sm:grid-cols-3">
-                <Field label={ar ? "حالة المباراة" : "Game status"} required>
+                <Field label={ar ? "حالة الماتش" : "Game status"} required>
                   <Select value={String(draft.status ?? "open")} onValueChange={value => set("status", value)}>
-                    <SelectTrigger aria-label={ar ? "حالة المباراة" : "Game status"} className="w-full">
+                    <SelectTrigger aria-label={ar ? "حالة الماتش" : "Game status"} className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -174,7 +174,7 @@ export function AdminGameEditor({ game, onClose }: { game: Game; onClose: () => 
                 <div className="col-span-2 flex flex-wrap items-end gap-6 py-1">
                   <label className="flex items-center gap-2 text-sm font-medium">
                     <Checkbox checked={!!draft.is_public} onCheckedChange={checked => set("is_public", !!checked)} />
-                    {ar ? "مباراة عامة" : "Public game"}
+                    {ar ? "ماتش عام" : "Public game"}
                   </label>
                   <label className="flex items-center gap-2 text-sm font-medium">
                     <Checkbox
@@ -251,12 +251,12 @@ export function AdminGameEditor({ game, onClose }: { game: Game; onClose: () => 
                 </Field>
               </div>
               <div className="space-y-3 rounded-xl border border-primary/25 bg-primary/5 p-4">
-                <Field label={ar ? "السعر لكل لاعب (ج.م) — لهذه المباراة فقط" : "Price per player (EGP) — this game only"}>
+                <Field label={ar ? "السعر لكل لاعب (ج.م) — للماتش ده فقط" : "Price per player (EGP) — this game only"}>
                   {input("share_price", "number", { min: 0, step: "0.01", disabled: !!draft.host_pays })}
                 </Field>
                 <p className="text-xs leading-relaxed text-muted-foreground">{draft.host_pays
                   ? (ar ? "المنظم يغطي التكلفة، لذلك سعر اللاعب صفر. أوقف خيار دفع المنظم لتحديد سعر للاعب." : "The host covers the cost, so the player price is zero. Turn off host-paid mode to set a player price.")
-                  : (ar ? "يطبق هذا السعر على هذه المباراة فقط. لا تتغير أسعار الملعب أو المباريات الأخرى. أدخل صفر لجعل المشاركة مجانية." : "This price applies only to this game. Playground rates and other games stay the same. Enter zero for free participation.")}</p>
+                  : (ar ? "السعر ده للماتش ده بس، ومش بيغيّر سعر الملعب أو أي ماتش تاني. اكتب صفر لو المشاركة ببلاش." : "This price applies only to this game. Playground rates and other games stay the same. Enter zero for free participation.")}</p>
               </div>
               <p className="text-xs text-muted-foreground">
                 {ar
@@ -271,7 +271,7 @@ export function AdminGameEditor({ game, onClose }: { game: Game; onClose: () => 
               {t("common_cancel")}
             </Button>
             <Button type="submit" disabled={busy}>
-              {busy ? (ar ? "جارٍ الحفظ…" : "Saving…") : (ar ? "حفظ التغييرات" : "Save changes")}
+              {busy ? (ar ? "بنحفظ…" : "Saving…") : (ar ? "حفظ التغييرات" : "Save changes")}
             </Button>
           </DialogFooter>
         </form>

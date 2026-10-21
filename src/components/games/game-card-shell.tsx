@@ -46,7 +46,7 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
         <span className="flex flex-wrap items-center justify-between gap-1 text-[10px] text-muted-foreground"><span>{game.participants_count}/{game.max_players} {ar ? "لاعب" : "players"}</span><span>{slots ? (ar ? `${slots} أماكن متاحة` : `${slots} spots left`) : (ar ? "مكتمل" : "Full")}</span></span>
         <span className="block h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: "hsl(var(--playza-lime) / 0.2)" }} aria-hidden="true"><span className="block h-full rounded-full" style={{ width: `${percent}%`, backgroundColor: "var(--color-primary)" }} /></span>
         <span className="flex flex-wrap gap-1.5 text-[10px]"><span className="rounded bg-muted px-2 py-1 font-medium">{t(`community_status_${game.status}`)}</span>{joined && <span className="rounded bg-primary/15 px-2 py-1 font-semibold">{waitlisted ? (ar ? "قائمة الانتظار" : "On the waitlist") : (ar ? "أنت مشارك" : "You're participating")}</span>}{!game.is_public && <span className="rounded bg-muted px-2 py-1">{ar ? "خاص" : "Private"}</span>}{booking?.confirmed && <span className="rounded bg-muted px-2 py-1">{ar ? "الحجز مؤكد" : "Booking confirmed"}</span>}</span>
-        <span className="sr-only">{detailsHref ? (ar ? "عرض تفاصيل المباراة" : "View game details") : (ar ? "التفاصيل والمشاركة" : "Details & participation")}</span>
+        <span className="sr-only">{detailsHref ? (ar ? "عرض تفاصيل الماتش" : "View game details") : (ar ? "التفاصيل والمشاركة" : "Details & participation")}</span>
       </span>
   </>;
   if (layout === "list") return <article className="overflow-hidden rounded-xl border border-border bg-card text-card-foreground transition-shadow hover:shadow-sm">

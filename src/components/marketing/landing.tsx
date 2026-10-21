@@ -83,7 +83,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
         <a className={styles.scrollHint} href="#upcoming-games"><ArrowDown size={16} />{copy("LET’S GET YOU OUT THERE", "يلا ننزل الملعب")}</a>
       </section>
 
-      <div className={styles.ribbon} aria-hidden="true"><div>{Array.from({ length: 4 }, (_, i) => <span key={i}> {copy("SERVE. SET. CONNECT.", "إرسال. إعداد. ضربة ساحقة.")} <span>✳</span> {copy("SEE YOU ON COURT", "نشوفك في الملعب")} <span>✳</span></span>)}</div></div>
+      <div className={styles.ribbon} aria-hidden="true"><div>{Array.from({ length: 4 }, (_, i) => <span key={i}> {copy("SERVE. SET. CONNECT.", "العب. اتعرّف. واتبسط.")} <span>✳</span> {copy("SEE YOU ON COURT", "نشوفك في الملعب")} <span>✳</span></span>)}</div></div>
 
       <section id="upcoming-games" aria-labelledby="upcoming-games-title" className={styles.upcomingGames}>
         <div className={styles.sectionHeading}>
@@ -93,7 +93,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
         </div>
         {upcomingGames.length > 0 ? <div className="flex flex-col gap-3 text-start">
           {upcomingGames.map(game => <GameCardShell key={game.id} layout="list" game={guestGameCard(game)} joined={false} detailsHref={publicGamePath(game.id)} />)}
-        </div> : <p className={styles.gamesEmpty}>{copy("Check the games page for the latest availability. You can also create an account and organize a game with your friends.", "راجع صفحة الماتشات لمعرفة المواعيد المتاحة. وتقدر تعمل حساب وتنظّم ماتش مع أصحابك.")}</p>}
+        </div> : <p className={styles.gamesEmpty}>{copy("Check the games page for the latest availability. You can also create an account and organize a game with your friends.", "شوف المواعيد المتاحة في صفحة الماتشات، أو اعمل حساب ونظّم ماتش مع صحابك.")}</p>}
         <div className={styles.actions}><Link href="/games" className={styles.primary}>{copy("Browse all upcoming games", "شوف كل الماتشات الجاية")}<ArrowUpRight size={20} aria-hidden="true" /></Link></div>
       </section>
 
@@ -113,8 +113,8 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
       <section id="playground-owners" aria-labelledby="playground-owners-title" className={styles.ownerSection}>
         <div className={styles.ownerHeading}>
         <div><p className={styles.eyebrow}>{copy("FOR PLAYGROUND OWNERS", "لأصحاب الملاعب")}</p>
-        <h2 id="playground-owners-title" className="mt-3 text-3xl font-extrabold text-secondary sm:text-4xl">{copy("Your playground. More players. Zero commission.", "ملعبك. لاعبين أكتر. بدون عمولة.")}</h2>
-        <p className="mb-6 mt-4 max-w-3xl leading-relaxed text-muted-foreground">{copy("List your tennis, padel, basketball, volleyball or beach volleyball courts on Playza and help players in Egypt find their next place to play.", "أضف ملاعب التنس والبادل وكرة السلة والكرة الطائرة والطائرة الشاطئية على بلايزا وساعد اللاعبين في مصر يلاقوا ملعبهم الجاي.")}</p>
+        <h2 id="playground-owners-title" className="mt-3 text-3xl font-extrabold text-secondary sm:text-4xl">{copy("Your playground. More players. Zero commission.", "ملعبك. لاعبين أكتر. من غير عمولة.")}</h2>
+        <p className="mb-6 mt-4 max-w-3xl leading-relaxed text-muted-foreground">{copy("List your tennis, padel, basketball, volleyball or beach volleyball courts on Playza and help players in Egypt find their next place to play.", "ضيف ملعبك على بلايزا، سواء تنس أو بادل أو كرة سلة أو كرة طائرة أو طائرة شاطئية، وخلّي اللاعبين يلاقوك بسهولة.")}</p>
         </div><div className={styles.ownerArt} aria-hidden="true"><CourtScene small /><span className={styles.ownerBadge}>0%<small>{copy("COMMISSION", "عمولة")}</small></span><span className={styles.ownerSpark}>✳</span><span className={styles.ownerPin}><MapPin size={22} /></span></div>
         </div>
         <button type="button" className={styles.ownerMotion} onClick={() => setPaused(!paused)} aria-pressed={paused} aria-label={paused ? copy("Play animations", "تشغيل الرسوم المتحركة") : copy("Pause animations", "إيقاف الرسوم المتحركة")}>{paused ? <Play size={16} /> : <Pause size={16} />}</button>
@@ -131,7 +131,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
       <section id="academy-management" aria-labelledby="academy-management-title" className={`mx-auto max-w-6xl px-6 py-12 ${styles.academyMgmt}`}>
         <div className="rounded-2xl border bg-card p-6 sm:p-10">
           <p className="text-sm font-semibold text-white">{copy("FOR ACADEMY OWNERS", "لأصحاب الأكاديميات")}</p>
-          <h2 id="academy-management-title" className="mt-3 text-2xl font-bold text-primary sm:text-3xl">{copy("Run your sports academy with Playza.", "أدر أكاديميتك الرياضية مع بلايزا.")}</h2>
+          <h2 id="academy-management-title" className="mt-3 text-2xl font-bold text-primary sm:text-3xl">{copy("Run your sports academy with Playza.", "نظّم أكاديميتك مع بلايزا.")}</h2>
           <p className="mt-4 max-w-3xl leading-relaxed text-muted-foreground">{copy("Manage players, subscriptions, training schedules, QR attendance and session finances in one Arabic and English application built for sports academies in Egypt.", "نظّم اللاعبين والاشتراكات وجداول التدريب والحضور عبر QR ومالية الجلسات في تطبيق واحد بالعربية والإنجليزية للأكاديميات الرياضية في مصر.")}</p>
           <Link className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 font-semibold text-primary-foreground hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" href={academyManagementPath(lang)}>{copy("Explore academy management", "اكتشف إدارة الأكاديميات")}<ArrowUpRight size={18} aria-hidden="true" /></Link>
         </div>

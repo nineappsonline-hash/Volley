@@ -392,7 +392,7 @@ function MemberDetails({ member: selectedMember, data, initialTab = "overview" }
     <MemberTrainingAssignment member={member} academies={data.academies} programs={data.academy_training_programs ?? []} />
     <section className="space-y-3 rounded-xl border p-4"><h3 className="font-semibold">{ar?"الأكاديميات ومجموعات التدريب":"Academies & training groups"}</h3>
       <p className="text-sm">{ar?"الأكاديمية الأساسية":"Primary academy"}: {data.academies.find(a=>a.id===member.academy_id)?.name??t("sa_independent")}</p>
-      {!bookings.length&&<p className="text-sm text-muted-foreground">{ar?"لا توجد حجوزات تدريب":"No training bookings"}</p>}
+      {!bookings.length&&<p className="text-sm text-muted-foreground">{ar?"مفيش حجوزات تدريب":"No training bookings"}</p>}
       {bookings.map(booking=>{const program=(data.academy_training_programs??[]).find(p=>p.id===booking.program_id);const academy=data.academies.find(a=>a.id===program?.academy_id);return <div key={booking.id} className="space-y-1 rounded-lg bg-muted/40 p-3 text-sm"><p className="font-semibold">{academy?.name??booking.details?.academy} · {program?.name??booking.details?.program}</p><p>{booking.details?.sport} · {booking.details?.playground}</p><p>{booking.kind} · {booking.status.replaceAll('_',' ')} · {formatMoney(Number(booking.amount),lang)}</p><p>{booking.registered_on} — {booking.expires_on}</p><details><summary className="cursor-pointer">{ar?"المواعيد المحجوزة":"Booked sessions"}</summary>{(booking.details?.sessions??[]).map((slot:Row)=><p key={`${slot.session_date}-${slot.starts_at}`}>{slot.session_date} · {slot.starts_at} – {slot.ends_at}</p>)}</details></div>;})}
     </section>
     </TabsContent>
@@ -403,9 +403,9 @@ function MemberDetails({ member: selectedMember, data, initialTab = "overview" }
         {bookings.map(booking => <div key={booking.id} className="space-y-2 rounded-lg border p-3 text-sm"><p className="font-medium">{booking.details?.academy} · {booking.details?.program}</p><p>{booking.details?.session_count ?? booking.details?.sessions?.length} {t("sa_records_sessions")} · {formatMoney(Number(booking.amount),lang)} · {booking.status.replaceAll("_"," ")}</p><ConfirmTrainingPayment booking={booking} /></div>)}
         <Button variant="outline" asChild><a href="/admin?tab=Approvals">{ar ? "مراجعة إيصالات الدفع" : "Review payment receipts"}</a></Button>
       </section>
-    <section className="rounded-xl border p-4"><h3 className="font-semibold">{ar?"مدفوعات المباريات والاشتراكات":"Game payments & subscriptions"}</h3><div className="mt-3 space-y-3">
+    <section className="rounded-xl border p-4"><h3 className="font-semibold">{ar?"مدفوعات الماتشات والاشتراكات":"Game payments & subscriptions"}</h3><div className="mt-3 space-y-3">
       {[
-        {label:ar?"حصص المباريات":"Game shares", rows:games, fields:(r:Row)=>({Game:data.friendly_games.find(g=>g.id===r.game_id)?.title,Amount:r.share_amount,Status:r.pay_status,Method:r.pay_method})},
+        {label:ar?"حصص الماتشات":"Game shares", rows:games, fields:(r:Row)=>({Game:data.friendly_games.find(g=>g.id===r.game_id)?.title,Amount:r.share_amount,Status:r.pay_status,Method:r.pay_method})},
         {label:ar?"إيجار الملاعب":"Court rent", rows:(data.friendly_game_rent_payments??[]).filter(r=>r.member_id===member.id),fields:(r:Row)=>({Game:data.friendly_games.find(g=>g.id===r.game_id)?.title,Amount:r.amount,Status:r.pay_status,Method:r.pay_method,Date:r.created_at})},
         {label:ar?"اشتراكات المنصة":"Platform subscriptions",rows:(data.plan_subscriptions??[]).filter(r=>r.user_id===member.id),fields:(r:Row)=>({Plan:r.plan,Cycle:r.billing_cycle,Amount:r.amount,Status:r.receipt_status,Date:r.created_at})},
       ].map(group=><section key={group.label}><h4 className="text-sm font-semibold">{group.label} ({group.rows.length})</h4>{group.rows.map(row=><div key={row.id} className="mt-2 rounded-lg border p-3"><Details row={group.fields(row)}/></div>)}</section>)}
@@ -420,7 +420,7 @@ function MemberDetails({ member: selectedMember, data, initialTab = "overview" }
     <TabsContent value="activity" forceMount className={panelClass}>
     <section className="space-y-3 rounded-xl border p-4">
       <h3 className="font-semibold">{ar ? "البطولات" : "Tournaments"}</h3>
-      {!(data.tournament_participants ?? []).some(r => r.member_id === member.id) && <p className="text-sm text-muted-foreground">{ar ? "لا توجد مشاركات في البطولات" : "No tournament entries"}</p>}
+      {!(data.tournament_participants ?? []).some(r => r.member_id === member.id) && <p className="text-sm text-muted-foreground">{ar ? "مفيش مشاركات في البطولات" : "No tournament entries"}</p>}
       {(data.tournament_participants ?? []).filter(r => r.member_id === member.id).map(r => <Details key={r.id ?? r.tournament_id} row={{ Tournament: data.tournaments.find(item => item.id === r.tournament_id)?.name ?? r.tournament_id, Joined: r.added_at }} />)}
     </section>
     <section className="rounded-xl border p-4"><h3 className="font-semibold">{t("sa_activity")}</h3>
@@ -449,7 +449,7 @@ function GameParticipantAccount({ participant, data }: { participant: Row; data:
       <DialogContent className="flex h-[90dvh] max-w-4xl flex-col gap-0 overflow-hidden p-0">
         <DialogHeader className="shrink-0 px-4 py-4 text-start sm:px-6">
           <DialogTitle>{name}</DialogTitle>
-          <DialogDescription>{lang === "ar" ? "تفاصيل الحساب — اقفل للرجوع إلى المباراة." : "Account details — close to return to the game."}</DialogDescription>
+          <DialogDescription>{lang === "ar" ? "تفاصيل الحساب — اقفل للرجوع إلى الماتش." : "Account details — close to return to the game."}</DialogDescription>
         </DialogHeader>
         {member ? <MemberDetails key={member.id} member={member} data={data} /> : <p className="p-6 text-sm text-muted-foreground">{lang === "ar" ? "الحساب غير متاح." : "This account is unavailable."}</p>}
       </DialogContent>
@@ -645,7 +645,7 @@ function GameDetails({ game, data }: { game: Row; data: Records }) {
     </div>
     {game.description && <p className="whitespace-pre-wrap break-words text-sm text-muted-foreground">{game.description}</p>}
     <section className="space-y-2">
-      <h3 className="text-sm font-semibold">{lang === "ar" ? "رابط دعوة المباراة" : "Game invite link"}</h3>
+      <h3 className="text-sm font-semibold">{lang === "ar" ? "رابط دعوة الماتش" : "Game invite link"}</h3>
       {inviteLink ? <div className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center">
         <a href={inviteLink} target="_blank" rel="noopener noreferrer" dir="ltr" className="min-w-0 flex-1 break-all text-sm text-primary underline underline-offset-4">{inviteLink}</a>
         <Button type="button" size="sm" variant="outline" className="shrink-0" onClick={copyInviteLink}>
@@ -872,7 +872,7 @@ export function PlatformRecords() {
   const visibleRows = isPaginated
     ? rows.slice((currentRecordsPage - 1) * recordsPageSize, currentRecordsPage * recordsPageSize)
     : rows;
-  const recordsPagination = isPaginated && rows.length > 0 ? <nav aria-label={tab === "Members" ? (lang === "ar" ? "صفحات الأعضاء" : "Member pages") : (lang === "ar" ? "صفحات المباريات" : "Game pages")} className="flex flex-wrap items-center justify-between gap-3">
+  const recordsPagination = isPaginated && rows.length > 0 ? <nav aria-label={tab === "Members" ? (lang === "ar" ? "صفحات الأعضاء" : "Member pages") : (lang === "ar" ? "صفحات الماتشات" : "Game pages")} className="flex flex-wrap items-center justify-between gap-3">
     <p className="text-sm text-muted-foreground" aria-live="polite">{lang === "ar" ? "عرض" : "Showing"} {(currentRecordsPage - 1) * recordsPageSize + 1}–{Math.min(currentRecordsPage * recordsPageSize, rows.length)} {lang === "ar" ? "من" : "of"} {rows.length}</p>
     <div className="flex items-center gap-2">
       <Button variant="outline" size="sm" disabled={currentRecordsPage === 1} onClick={() => setRecordsPage(currentRecordsPage - 1)}>{lang === "ar" ? "السابق" : "Previous"}</Button>
@@ -899,7 +899,7 @@ export function PlatformRecords() {
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10"><RecordIcon className="absolute -bottom-4 end-8 h-36 w-36 -rotate-12 text-white/15" strokeWidth={1} /><Sparkles className="absolute top-4 end-5 h-7 w-7 text-amber-200/50" /><div className="absolute -top-20 -end-12 h-64 w-64 rounded-full border-[24px] border-white/10" /></div>
       <span aria-hidden="true" className="inline-flex rounded-xl border border-white/20 bg-white/10 p-2"><RecordIcon className="h-6 w-6" /></span>
       <h2 className="mt-3 text-2xl font-extrabold">{tab === "Members" ? t("sa_records_members") : t("sa_records_games")}</h2>
-      <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/90">{tab === "Members" ? (lang === "ar" ? "تابع حسابات اللاعبين والأكاديميات والاشتراكات من مكان واحد." : "Manage player accounts, academy connections, and subscriptions in one place.") : (lang === "ar" ? "تابع المباريات واللاعبين والحجوزات والمدفوعات." : "Keep track of games, players, bookings, and payments.")}</p>
+      <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/90">{tab === "Members" ? (lang === "ar" ? "تابع حسابات اللاعبين والأكاديميات والاشتراكات من مكان واحد." : "Manage player accounts, academy connections, and subscriptions in one place.") : (lang === "ar" ? "تابع الماتشات واللاعبين والحجوزات والمدفوعات." : "Keep track of games, players, bookings, and payments.")}</p>
     </div>}
     <CardHeader><CardTitle>{t("sa_records_title")}</CardTitle><p className="text-sm text-muted-foreground">{t("sa_records_counts").replace("{accounts}", String(data.profiles.length)).replace("{academies}", String(data.academies.length)).replace("{games}", String(data.friendly_games.length)).replace("{playgrounds}", String(data.venues.length))}</p></CardHeader>
     <CardContent className="space-y-4">

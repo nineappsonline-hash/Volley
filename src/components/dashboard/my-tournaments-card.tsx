@@ -121,7 +121,7 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
           {entries?.length ?? 0}
         </Badge>
         {!!entries?.length && <Button asChild size="sm" className="bg-white text-brand-900 hover:bg-white/90"><Link href="/dashboard/tournaments">{lang === "ar" ? "اكتشف المزيد من البطولات" : "Discover more tournaments"}</Link></Button>}
-        <p className={`${styles.colorCardHint} basis-full`}>{lang === "ar" ? "بطولاتك والمنافسات القادمة، في مكان واحد." : "Your tournaments and upcoming competitions, all in one place."}</p>
+        <p className={`${styles.colorCardHint} basis-full`}>{lang === "ar" ? "بطولاتك والمنافسات الجاية، في مكان واحد." : "Your tournaments and upcoming competitions, all in one place."}</p>
       </CardHeader>
       <CardContent className="space-y-2 px-4 pb-4">
         {isPending ? (
@@ -141,7 +141,7 @@ export function MyTournamentsCard({ memberId }: { memberId: string }) {
             compact
             message={t("td_empty")}
             icon={Trophy}
-            action={<Button asChild size="sm"><Link href="/dashboard/tournaments">{lang === "ar" ? "ابحث عن بطولة" : "Find tournaments"}</Link></Button>}
+            action={<Button asChild size="sm"><Link href="/dashboard/tournaments">{lang === "ar" ? "دور على بطولة" : "Find tournaments"}</Link></Button>}
           />
         ) : (
           entries.map(({ participant_id, tournament, myTeam }) => {

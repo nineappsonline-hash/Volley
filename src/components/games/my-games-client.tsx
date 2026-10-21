@@ -19,11 +19,11 @@ export function MyGamesClient({ profile }: { profile: Profile }) {
   const upcomingIds = new Set(upcoming.map(game => game.id));
   const history = games.filter(game => !upcomingIds.has(game.id));
   return <div className="mx-auto max-w-6xl space-y-6">
-    <header><h1 className="text-2xl font-extrabold">{ar ? "مبارياتي" : "My games"}</h1><p className="mt-2 text-sm text-muted-foreground">{ar ? "كل المباريات اللي أنشأتها أو انضمّيت ليها، بما فيها قائمة الانتظار والمباريات السابقة." : "All games you created or joined, including waitlisted and past games."}</p></header>
+    <header><h1 className="text-2xl font-extrabold">{ar ? "ماتشاتي" : "My games"}</h1><p className="mt-2 text-sm text-muted-foreground">{ar ? "كل الماتشات اللي أنشأتها أو انضمّيت ليها، بما فيها قائمة الانتظار والماتشات السابقة." : "All games you created or joined, including waitlisted and past games."}</p></header>
     <QueryState queries={[query]}>
-      {!games.length ? <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">{ar ? "لسه ما أنشأتش أو انضمّيت لأي مباراة." : "You haven’t created or joined any games yet."}</p> : <>
-        {upcoming.length > 0 && <section className="space-y-3"><h2 className="text-lg font-bold">{ar ? "المباريات القادمة" : "Upcoming games"}</h2><DashboardGameList games={upcoming} profile={profile} /></section>}
-        {history.length > 0 && <section className="space-y-3"><h2 className="text-lg font-bold">{ar ? "المباريات السابقة والملغاة" : "Past & cancelled games"}</h2><DashboardGameList games={history} profile={profile} /></section>}
+      {!games.length ? <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">{ar ? "لسه ما أنشأتش أو انضمّيت لأي ماتش." : "You haven’t created or joined any games yet."}</p> : <>
+        {upcoming.length > 0 && <section className="space-y-3"><h2 className="text-lg font-bold">{ar ? "الماتشات الجاية" : "Upcoming games"}</h2><DashboardGameList games={upcoming} profile={profile} /></section>}
+        {history.length > 0 && <section className="space-y-3"><h2 className="text-lg font-bold">{ar ? "الماتشات السابقة والملغاة" : "Past & cancelled games"}</h2><DashboardGameList games={history} profile={profile} /></section>}
       </>}
     </QueryState>
   </div>;

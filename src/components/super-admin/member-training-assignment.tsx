@@ -63,9 +63,9 @@ export function MemberTrainingAssignment({ member, academies, programs }: { memb
   }}>
     <h3 className="font-semibold">{ar ? "تسجيل في مجموعة تدريب" : "Training group enrollment"}</h3>
 
-    <label className="block space-y-1 text-sm">{ar ? "الأكاديمية" : "Academy"}<select required disabled={busy} className="block min-h-11 w-full rounded border bg-background p-2" value={academy} onChange={(e) => { setAcademy(e.target.value); setProgram(""); setSessions(null); }}><option value="">{ar ? "اختر الأكاديمية" : "Choose academy"}</option>{academies.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
+    <label className="block space-y-1 text-sm">{ar ? "الأكاديمية" : "Academy"}<select required disabled={busy} className="block min-h-11 w-full rounded border bg-background p-2" value={academy} onChange={(e) => { setAcademy(e.target.value); setProgram(""); setSessions(null); }}><option value="">{ar ? "اختار الأكاديمية" : "Choose academy"}</option>{academies.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
 
-    <label className="block space-y-1 text-sm">{ar ? "المجموعة" : "Training group"}<select required disabled={busy || !academy} className="block min-h-11 w-full rounded border bg-background p-2" value={program} onChange={(e) => { setProgram(e.target.value); setSessions(null); }}><option value="">{ar ? "اختر المجموعة" : "Choose group"}</option>{groups.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+    <label className="block space-y-1 text-sm">{ar ? "المجموعة" : "Training group"}<select required disabled={busy || !academy} className="block min-h-11 w-full rounded border bg-background p-2" value={program} onChange={(e) => { setProgram(e.target.value); setSessions(null); }}><option value="">{ar ? "اختار المجموعة" : "Choose group"}</option>{groups.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
     {academy && !groups.length && <p className="text-sm text-muted-foreground">{ar ? "أضف مجموعة تدريب نشطة لهذه الأكاديمية أولاً." : "Add an active training group to this academy first."}</p>}
 
     <fieldset disabled={busy || !group}>
@@ -81,7 +81,7 @@ export function MemberTrainingAssignment({ member, academies, programs }: { memb
         </label>)}
       </div>
       {group && !options.some((option) => option.available) && <p className="mt-2 text-sm text-destructive">{scheduled === 0
-        ? ar ? "لا توجد مواعيد قادمة في جدول هذه المجموعة خلال الثلاثين يومًا القادمة." : "This group has no upcoming sessions scheduled in the next 30 days."
+        ? ar ? "مفيش مواعيد قادمة في جدول هذه المجموعة خلال الثلاثين يومًا الجاية." : "This group has no upcoming sessions scheduled in the next 30 days."
         : ar ? "كل مواعيد هذه المجموعة محجوزة بالفعل." : "Every session in this group is already full."}</p>}
     </fieldset>
 
@@ -91,14 +91,14 @@ export function MemberTrainingAssignment({ member, academies, programs }: { memb
       <span className="font-medium">{ar ? "المبلغ المستحق" : "Amount due"}:</span>
       <span className="font-semibold">{group && chosen ? formatMoney(amountDue, lang) : "—"}</span>
       <Badge variant={paid ? "success" : "secondary"} className="gap-1">{paid ? (ar ? "مدفوع" : "Paid") : (ar ? "لم يدفع بعد" : "Not yet paid")}</Badge>
-      {group && !paid && <span className="text-xs text-muted-foreground">{ar ? "يمكن تأكيد الدفع لاحقًا من تبويب المدفوعات." : "You can confirm payment later from the Payments tab."}</span>}
+      {group && !paid && <span className="text-xs text-muted-foreground">{ar ? "يمكن تأكيد الدفع بعدين من تبويب المدفوعات." : "You can confirm payment later from the Payments tab."}</span>}
     </div>
 
     <p className="text-xs text-muted-foreground">{ar ? "تُحجز أول حصص متاحة خلال ٣٠ يومًا. الحجز غير المدفوع يُحفظ لمدة ٢٤ ساعة أو حتى بداية أول حصة، أيهما أقرب." : "Reserves the next available sessions within 30 days. Unpaid bookings are held for 24 hours or until the first session, whichever comes first."}</p>
 
     <div className="flex flex-wrap gap-2">
-      <Button disabled={busy || !group || !sessions} type="submit">{busy ? (ar ? "جارٍ الحفظ…" : "Saving…") : (ar ? "تأكيد التسجيل" : "Confirm enrollment")}</Button>
-      {!sessions && group && <span className="self-center text-xs text-muted-foreground">{ar ? "اختر عدد الحصص أولًا" : "Choose how many sessions first"}</span>}
+      <Button disabled={busy || !group || !sessions} type="submit">{busy ? (ar ? "بنحفظ…" : "Saving…") : (ar ? "تأكيد التسجيل" : "Confirm enrollment")}</Button>
+      {!sessions && group && <span className="self-center text-xs text-muted-foreground">{ar ? "اختار عدد الحصص أولًا" : "Choose how many sessions first"}</span>}
     </div>
   </form>;
 }

@@ -32,7 +32,7 @@ export function ParticipantPayment({ participantId, name, receiptPath, status }:
   });
   const label = ar ? "عرض إيصال الدفع" : "View payment receipt";
   return <div className="flex flex-wrap items-center gap-2">
-    {!receiptPath ? <span className="text-xs text-muted-foreground">{ar ? "لا يوجد إيصال" : "No receipt"}</span> :
+    {!receiptPath ? <span className="text-xs text-muted-foreground">{ar ? "مفيش إيصال" : "No receipt"}</span> :
       receipt.isError ? <Button size="sm" variant="outline" onClick={() => void receipt.refetch()}>{ar ? "إعادة تحميل الإيصال" : "Retry receipt"}</Button> :
       !receipt.data ? <span role="status" className="text-xs text-muted-foreground">{ar ? "جارٍ تحميل الإيصال…" : "Loading receipt…"}</span> :
       <Button variant="outline" className="h-auto p-1" aria-label={`${label}: ${name}`} onClick={() => setExpanded(true)}>

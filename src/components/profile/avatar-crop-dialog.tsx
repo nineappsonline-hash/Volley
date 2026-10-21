@@ -41,7 +41,7 @@ export function AvatarCropDialog({ file, onClose, onSave, busy }: {
   return <Dialog open onOpenChange={open => { if (!open && !pending) onClose(); }}>
     <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
       <DialogHeader><DialogTitle>{ar ? "قص صورة الملف الشخصي" : "Crop profile picture"}</DialogTitle><DialogDescription>{ar ? "كبّر الصورة واضبط موضعها قبل الحفظ." : "Zoom and adjust the position before saving."}</DialogDescription></DialogHeader>
-      {error ? <p role="alert" className="text-destructive">{ar ? "تعذر فتح الصورة. اختر صورة JPG أو PNG أو WebP." : "Could not read this image. Choose a JPG, PNG, or WebP photo."}</p> : <>
+      {error ? <p role="alert" className="text-destructive">{ar ? "تعذر فتح الصورة. اختار صورة JPG أو PNG أو WebP." : "Could not read this image. Choose a JPG, PNG, or WebP photo."}</p> : <>
         <div className="relative mx-auto aspect-square w-full max-w-72 overflow-hidden rounded-lg border bg-muted">
           <canvas ref={canvas} width={512} height={512} className="h-full w-full" aria-label={ar ? "معاينة الصورة" : "Cropped picture preview"} />
           <div className="pointer-events-none absolute inset-0 rounded-full border-2 border-white/80" />
@@ -66,7 +66,7 @@ export function AvatarCropDialog({ file, onClose, onSave, busy }: {
             await onSave(blob);
           } catch { setError(true); }
           finally { setEncoding(false); }
-        }}>{pending ? (ar ? "جارٍ الحفظ…" : "Saving…") : (ar ? "حفظ الصورة" : "Save photo")}</Button>
+        }}>{pending ? (ar ? "بنحفظ…" : "Saving…") : (ar ? "حفظ الصورة" : "Save photo")}</Button>
       </div>
     </DialogContent>
   </Dialog>;

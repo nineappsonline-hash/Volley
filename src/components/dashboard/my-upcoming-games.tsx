@@ -114,7 +114,7 @@ export function MyUpcomingGames({
           <CalendarDays className="h-6 w-6 text-purple-200" />{t("games_my_upcoming")}
         </CardTitle>
         {query.data?.length ? <Badge variant="secondary">{t("dash_games_count").replace("{n}", String(query.data.length)).replace("{s}", query.data.length === 1 ? "" : "s")}</Badge> : null}
-        {!!groups.length && <Button asChild size="sm" className="bg-white text-brand-900 hover:bg-white/90"><Link href="/dashboard/games">{ar ? "اكتشف المزيد من المباريات" : "Discover more games"}<ArrowUpRight className="ms-2 h-4 w-4" /></Link></Button>}
+        {!!groups.length && <Button asChild size="sm" className="bg-white text-brand-900 hover:bg-white/90"><Link href="/dashboard/games">{ar ? "اكتشف المزيد من الماتشات" : "Discover more games"}<ArrowUpRight className="ms-2 h-4 w-4" /></Link></Button>}
       </CardHeader>
       <CardContent className="px-4 pb-4"><QueryState queries={[query]}>
         {!groups.length ? <EmptyState
@@ -290,7 +290,7 @@ export function MyUpcomingGames({
                 </span>
               </h3>
               <QueryState queries={[roster]}>
-                {!roster.data?.length ? <p className="text-sm text-muted-foreground">{ar ? "لا يوجد مشاركون بعد" : "No participants yet"}</p> : <ul className="space-y-2">{roster.data.map(player => <li key={player.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
+                {!roster.data?.length ? <p className="text-sm text-muted-foreground">{ar ? "لسه مفيش مشاركون" : "No participants yet"}</p> : <ul className="space-y-2">{roster.data.map(player => <li key={player.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
                   <span className="flex min-w-0 items-center gap-2">
                     <span className="h-2 w-2 shrink-0 rounded-full bg-primary/60" />
                     <span className="truncate">{player.player_name}</span>

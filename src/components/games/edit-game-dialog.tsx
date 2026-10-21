@@ -161,7 +161,7 @@ export function EditGameDialog({ game, profile, open, onOpenChange }: Props) {
           </DialogHeader>
 
           <div className="space-y-5">
-            {isSuperAdmin && <Button onClick={() => setAdminEditorOpen(true)}>{lang === "ar" ? "تعديل كل إعدادات المباراة" : "Edit all game settings"}</Button>}
+            {isSuperAdmin && <Button onClick={() => setAdminEditorOpen(true)}>{lang === "ar" ? "تعديل كل إعدادات الماتش" : "Edit all game settings"}</Button>}
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 {game.is_public ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}

@@ -49,11 +49,11 @@ export function NearbyTraining(){
   </header>
   <div className="flex flex-wrap gap-2">
    <Button variant="outline" disabled={locating} onClick={()=>{
-    if(!navigator.geolocation){setError(ar?"اختر المنطقة لعرض التدريب":"Choose an area to find training");return;}
+    if(!navigator.geolocation){setError(ar?"اختار المنطقة لعرض التدريب":"Choose an area to find training");return;}
     setLocating(true);setError("");
     navigator.geolocation.getCurrentPosition(
      p=>{setPosition({lat:p.coords.latitude,lng:p.coords.longitude});setArea("");setLocating(false);},
-     ()=>{setLocating(false);setError(ar?"تعذر تحديد موقعك. اختر المنطقة أدناه.":"Could not access your location. Choose an area below.");},
+     ()=>{setLocating(false);setError(ar?"تعذر تحديد موقعك. اختار المنطقة أدناه.":"Could not access your location. Choose an area below.");},
      {timeout:10000,maximumAge:300000});
    }}>{locating?(ar?"جارٍ تحديد الموقع…":"Locating…"):(ar?"الأقرب لموقعي":"Nearest to me")}</Button>
    <select aria-label={ar?"المنطقة":"Area"} className="min-w-0 max-w-full rounded border bg-background p-2 text-sm" value={area} onChange={e=>setArea(e.target.value)}>
@@ -66,7 +66,7 @@ export function NearbyTraining(){
   <QueryState queries={[query]}>
    {!items.length
     ? <EmptyState
-       message={ar?"لا توجد مجموعات تدريب متاحة في هذه المنطقة.":"No training groups available in this area."}
+       message={ar?"مفيش مجموعات تدريب متاحة في هذه المنطقة.":"No training groups available in this area."}
        hint={ar?"جرّب منطقة أخرى أو فعّل تحديد الموقع.":"Try another area, or turn on location access."}
        icon={Users}
        action={<Button asChild className="gap-2"><Link href="/academies">{t("dash_training_find")}</Link></Button>}

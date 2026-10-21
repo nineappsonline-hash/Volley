@@ -24,7 +24,7 @@ export function GuestGameList({ games }: { games: FriendlyGameWithDetails[] }) {
         {(game.min_age != null || game.max_age != null) && <p>{ar ? "العمر" : "Age"}: {game.min_age ?? 0}–{game.max_age ?? (ar ? "بدون حد أقصى" : "No maximum")}</p>}
         <p>{ar ? "المدة" : "Duration"}: {game.duration_hours} {ar ? "ساعة" : "hours"}</p>
         <DirectionsLinks locationLink={game.playground?.location_link} query={game.playground?.name ?? game.location ?? ""} />
-        <Button asChild><Link href={authLink("/login", returnTo)}>{ar ? "انضم للمباراة" : "Join game"}</Link></Button>
+        <Button asChild><Link href={authLink("/login", returnTo)}>{ar ? "انضم للماتش" : "Join game"}</Link></Button>
       </div>
     </GameCardShell></div>;
   })}</div>;

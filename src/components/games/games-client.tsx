@@ -405,7 +405,7 @@ export function GameCard({
             try {
               const sent = await recruit.mutateAsync(game.id);
               if (sent > 0) setRecruited(true);
-              toast.success(sent > 0 ? (lang === "ar" ? `تم تنبيه ${sent} لاعب مناسب` : `Alerted ${sent} matching players`) : (lang === "ar" ? "لا يوجد لاعبون مطابقون مشتركين في التنبيهات حاليًا" : "No matching members have game alerts enabled right now"));
+              toast.success(sent > 0 ? (lang === "ar" ? `تم تنبيه ${sent} لاعب مناسب` : `Alerted ${sent} matching players`) : (lang === "ar" ? "مفيش لاعبين مناسبين مشتركين في التنبيهات حاليًا" : "No matching members have game alerts enabled right now"));
             } catch (err) { toast.error(errorMessage(err, t("common_error"))); }
           }}><Bell className="h-4 w-4" />{recruit.isPending ? t("common_saving") : recruited ? (lang === "ar" ? "تم إرسال التنبيه" : "Players alerted") : (lang === "ar" ? `نحتاج ${slotsLeft} لاعب إضافي` : `Need ${slotsLeft} more ${slotsLeft === 1 ? "player" : "players"}`)}</Button>}
 
@@ -845,7 +845,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
   return (
     <div className="space-y-6">
       <nav aria-label={lang === "ar" ? "اكتشف الأنشطة" : "Discover activities"} className="grid grid-cols-3 gap-1 rounded-full bg-muted p-1 text-center text-sm font-semibold">
-        <Link href="/dashboard/games" aria-current="page" className="rounded-full bg-primary px-3 py-2.5 text-foreground">{lang === "ar" ? "المباريات" : "Games"}</Link>
+        <Link href="/dashboard/games" aria-current="page" className="rounded-full bg-primary px-3 py-2.5 text-foreground">{lang === "ar" ? "الماتشات" : "Games"}</Link>
         <Link href="/dashboard/tournaments" className="rounded-full px-3 py-2.5 hover:bg-card">{lang === "ar" ? "البطولات" : "Tournaments"}</Link>
         <Link href="/academies" className="rounded-full px-3 py-2.5 hover:bg-card">{lang === "ar" ? "التدريب" : "Training"}</Link>
       </nav>
@@ -856,7 +856,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
           <div className="absolute end-8 top-8 hidden -rotate-12 text-amber-300/40 sm:block">{SportIcon({ id: "volleyball", size: 110 })}</div>
         </div>
         <div className="relative space-y-4">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold"><UsersRound className="h-4 w-4" />{lang === "ar" ? "رياضتك. فريقك. مباراتك الجاية." : "Your sport. Your people. Your next game."}</span>
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold"><UsersRound className="h-4 w-4" />{lang === "ar" ? "رياضتك. فريقك. ماتشك الجاية." : "Your sport. Your people. Your next game."}</span>
           <h1 className="text-white text-2xl font-extrabold tracking-tight sm:text-3xl">{t("games_page_title")}</h1>
           <p className="max-w-lg text-sm leading-relaxed text-brand-100 sm:text-base">{t("games_page_subtitle")}</p>
           <div className="flex flex-wrap items-center gap-3">
@@ -886,7 +886,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
       />
 
       <details className="rounded-2xl border bg-card">
-        <summary className="cursor-pointer px-4 py-3 text-sm font-semibold">{lang === "ar" ? "فلاتر المباريات" : "Game filters"}</summary>
+        <summary className="cursor-pointer px-4 py-3 text-sm font-semibold">{lang === "ar" ? "فلاتر الماتشات" : "Game filters"}</summary>
       <div className="grid grid-cols-1 gap-3 border-t p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-4">
         <div className="sm:col-span-2 lg:col-span-4">
           <LocationFields

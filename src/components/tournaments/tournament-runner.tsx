@@ -133,7 +133,7 @@ export function TournamentRunner({ tournament }: { tournament: TournamentWithMat
 
   const handleGenerate = async () => {
     if (tournament.tournament_matches.length && !window.confirm(lang === "ar"
-      ? "إعادة إنشاء المباريات هتمسح الجدول الحالي. متأكد؟"
+      ? "إعادة إنشاء الماتشات هتمسح الجدول الحالي. متأكد؟"
       : "Replace the existing fixture schedule?")) return;
     try {
       const created = await generateFixtures.mutateAsync(tournament.id);
@@ -288,7 +288,7 @@ export function TournamentRunner({ tournament }: { tournament: TournamentWithMat
       </Card>
 
       <p className="text-sm text-muted-foreground">{lang === "ar"
-        ? "١. ضيف المشاركين ٢. سمّي الفرق ووزّع اللاعبين ٣. اختار نظام الدوري وأنشئ المباريات ٤. سجّل النتائج. الفوز ٣ نقاط والتعادل نقطة؛ الترتيب بالنقاط ثم فارق الأهداف ثم الأهداف المسجلة."
+        ? "١. ضيف المشاركين ٢. سمّي الفرق ووزّع اللاعبين ٣. اختار نظام الدوري وأنشئ الماتشات ٤. سجّل النتائج. الفوز ٣ نقاط والتعادل نقطة؛ الترتيب بالنقاط ثم فارق الأهداف ثم الأهداف المسجلة."
         : "1. Add participants. 2. Name teams and assign players. 3. Choose League in tournament settings and generate fixtures. 4. Record results. A win earns 3 points; a draw earns 1. Ties use score difference, then scores for."}</p>
       {/* Teams */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">

@@ -22,7 +22,7 @@ for(lang of ['en','ar']){
  assert.ok(html.includes(lang==='en'?'Player membership':'عضوية لاعب'));
  assert.ok(html.includes(lang==='en'?'Payment reference':'مرجع الدفع'));
  assert.equal((html.match(/Sand court/g)||[]).length,4,'share and rent show venue in mobile and desktop layouts');
- missing=true;const unavailable=renderToStaticMarkup(React.createElement(PaymentApprovals));assert.ok(unavailable.includes(lang==='en'?'Game details unavailable':'تفاصيل المباراة غير متاحة'));assert.ok(unavailable.includes(lang==='en'?'Academy details unavailable':'بيانات الأكاديمية غير متاحة'));assert.ok(unavailable.includes('game-123'));missing=false;
+ missing=true;const unavailable=renderToStaticMarkup(React.createElement(PaymentApprovals));assert.ok(unavailable.includes(lang==='en'?'Game details unavailable':'تفاصيل الماتش غير متاحة'));assert.ok(unavailable.includes(lang==='en'?'Academy details unavailable':'بيانات الأكاديمية غير متاحة'));assert.ok(unavailable.includes('game-123'));missing=false;
  error=true;const failed=renderToStaticMarkup(React.createElement(PaymentApprovals));assert.ok(failed.includes('role="alert"'));assert.ok(!failed.includes('share-123'));error=false;
 }
 console.log('PASS: bilingual share/rent game context, subscription plan/cycle/academy, payer and player distinction, references, missing relations and query errors on mobile and desktop');

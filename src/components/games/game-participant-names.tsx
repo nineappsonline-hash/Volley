@@ -41,7 +41,7 @@ export function GameParticipantNames({ participants }: { participants: Player[] 
       {open && (
         <div className="border-t p-3">
           {count === 0 ? (
-            <p className="text-xs text-muted-foreground">{ar ? "لا يوجد مشاركون بعد" : "No participants yet"}</p>
+            <p className="text-xs text-muted-foreground">{ar ? "لسه مفيش مشاركون" : "No participants yet"}</p>
           ) : (
             <ul className="flex flex-wrap gap-2">
               {[...participants].sort((a, b) => a.player_name.localeCompare(b.player_name, lang)).map((player) => (

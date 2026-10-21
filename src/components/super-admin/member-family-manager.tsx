@@ -51,7 +51,7 @@ function ChildRow({ child, academies, busy, onSave }: {
     <label className="space-y-1 text-sm">{ar ? "الهاتف (اختياري)" : "Phone (optional)"}<Input type="tel" maxLength={40} value={draft.phone} disabled={busy} onChange={(e) => set("phone", e.target.value)} /></label>
     <label className="space-y-1 text-sm">{ar ? "الأكاديمية" : "Academy"}<select className="block min-h-10 w-full rounded border bg-background p-2" value={draft.academy_id} disabled={busy} onChange={(e) => set("academy_id", e.target.value)}><option value="">{ar ? "بدون أكاديمية" : "No academy"}</option>{academies.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
     <div className="flex flex-wrap gap-2 sm:col-span-2">
-      <Button type="submit" disabled={busy}>{busy ? (ar ? "جارٍ الحفظ…" : "Saving…") : (ar ? "حفظ" : "Save")}</Button>
+      <Button type="submit" disabled={busy}>{busy ? (ar ? "بنحفظ…" : "Saving…") : (ar ? "حفظ" : "Save")}</Button>
       <Button type="button" variant="outline" disabled={busy} onClick={() => setDraft(toDraft(child))}>{ar ? "تراجع" : "Discard"}</Button>
     </div>
   </form>;
@@ -95,7 +95,7 @@ export function MemberFamilyManager({ memberId, academies }: { memberId: string;
   const children = query.data?.children ?? [];
   const isParent = parent?.is_parent || children.length > 0;
   return <section className="space-y-4 rounded-xl border p-4"><h3 className="font-semibold">{ar ? "حساب ولي الأمر والأبناء" : "Parent account & children"}</h3>
-    <QueryState queries={[query]}>{parent?.guardian_id ? <p className="text-sm">{ar ? "هذا الحساب تابع لولي أمر. افتح حساب ولي الأمر لإدارة بيانات الأبناء." : "This is a child profile. Open the parent’s member details to manage the family."}</p> : parent?.role !== "member" || !parent?.email ? <p className="text-sm">{ar ? "إدارة الأسرة متاحة لحساب عضو لديه تسجيل دخول." : "Family management requires a member with a login account."}</p> : <>
+    <QueryState queries={[query]}>{parent?.guardian_id ? <p className="text-sm">{ar ? "الحساب ده تابع لولي أمر. افتح حساب ولي الأمر لإدارة بيانات الأبناء." : "This is a child profile. Open the parent’s member details to manage the family."}</p> : parent?.role !== "member" || !parent?.email ? <p className="text-sm">{ar ? "إدارة الأسرة متاحة لحساب عضو لديه تسجيل دخول." : "Family management requires a member with a login account."}</p> : <>
       <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm font-medium">{isParent ? (ar ? "نوع الحساب: ولي أمر" : "Account type: Parent") : (ar ? "نوع الحساب: عضو" : "Account type: Member")}</p>
         <Button type="button" variant="outline" disabled={busy || (!!isParent && children.length > 0)} onClick={() => act(() => createClient().rpc("admin_set_parent_account", { p_parent_id: memberId, p_enabled: !isParent }))}>{isParent ? (ar ? "تحويل إلى عضو" : "Change to member") : (ar ? "تحويل إلى ولي أمر" : "Change to parent")}</Button></div>
       <p className="text-xs text-muted-foreground">{ar ? "يحتفظ ولي الأمر بتسجيل دخوله. ملفات الأبناء تُدار من لوحة الأسرة بدون تسجيل دخول مستقل." : "The parent keeps their login. Children are managed through the family dashboard without separate logins."}</p>
@@ -119,7 +119,7 @@ export function MemberFamilyManager({ memberId, academies }: { memberId: string;
         <label className="space-y-1 text-sm">{ar ? "النوع" : "Gender"}<select className="block min-h-10 w-full rounded border bg-background p-2" value={newChild.gender} disabled={busy} onChange={(e) => setNewChild({ ...newChild, gender: e.target.value })}><option value="male">{ar ? "ذكر" : "Male"}</option><option value="female">{ar ? "أنثى" : "Female"}</option></select></label>
         <label className="space-y-1 text-sm">{ar ? "الهاتف (اختياري)" : "Phone (optional)"}<Input type="tel" maxLength={40} value={newChild.phone} disabled={busy} onChange={(e) => setNewChild({ ...newChild, phone: e.target.value })} /></label>
         <label className="space-y-1 text-sm">{ar ? "الأكاديمية" : "Academy"}<select className="block min-h-10 w-full rounded border bg-background p-2" value={newChild.academy_id} disabled={busy} onChange={(e) => setNewChild({ ...newChild, academy_id: e.target.value })}><option value="">{ar ? "بدون أكاديمية" : "No academy"}</option>{academies.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
-        <div className="flex flex-wrap gap-2 sm:col-span-2"><Button type="submit" disabled={busy}>{busy ? (ar ? "جارٍ الحفظ…" : "Saving…") : (ar ? "إضافة الابن" : "Add child")}</Button><Button type="button" variant="outline" disabled={busy} onClick={() => setNewChild({ ...blank })}>{ar ? "مسح" : "Clear"}</Button></div>
+        <div className="flex flex-wrap gap-2 sm:col-span-2"><Button type="submit" disabled={busy}>{busy ? (ar ? "بنحفظ…" : "Saving…") : (ar ? "إضافة الابن" : "Add child")}</Button><Button type="button" variant="outline" disabled={busy} onClick={() => setNewChild({ ...blank })}>{ar ? "مسح" : "Clear"}</Button></div>
       </form>
     </>}</QueryState></section>;
 }

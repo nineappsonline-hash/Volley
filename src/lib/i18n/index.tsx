@@ -30,6 +30,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const { lang, setLang, toggleLang } = useLanguage();
 
   useEffect(() => {
+    void useLanguage.persist.rehydrate();
+  }, []);
+
+  useEffect(() => {
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
   }, [lang]);

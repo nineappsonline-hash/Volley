@@ -50,7 +50,7 @@ export function AcademyLogoEditor({ academyId, name, showHeading = true }: { aca
       <input type="file" accept="image/png,image/jpeg,image/webp" disabled={busy} className="block w-full min-w-0 text-sm" onChange={async e => {
         const file = e.target.files?.[0]; e.target.value = ""; if (!file) return;
         const ext = ({"image/png":"png","image/jpeg":"jpg","image/webp":"webp"} as Record<string,string>)[file.type];
-        if (!ext || file.size > 5*1024*1024) { toast.error(ar ? "اختر صورة PNG أو JPG أو WebP أصغر من ٥ ميجابايت" : "Choose a PNG, JPG or WebP image under 5 MB"); return; }
+        if (!ext || file.size > 5*1024*1024) { toast.error(ar ? "اختار صورة PNG أو JPG أو WebP أصغر من ٥ ميجابايت" : "Choose a PNG, JPG or WebP image under 5 MB"); return; }
         setBusy(true);
         try {
           const db = createClient(); const path = `academies/${academyId}/logo-${crypto.randomUUID()}.${ext}`;

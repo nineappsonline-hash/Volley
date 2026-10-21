@@ -22,7 +22,7 @@ export function GuestDashboard({ games, discovery = false }: { games: FriendlyGa
     return () => { window.clearInterval(timer); window.removeEventListener("focus", refresh); };
   }, [router]);
   return <MemberHomeHeader guest selectedSport={sport} onSportChange={setSport}>
-    {discovery && <Link className="w-fit rounded-full bg-primary px-4 py-2 text-sm font-bold text-foreground" href={authLink("/login", "/dashboard/games?create=1")}>{lang === "ar" ? "إنشاء مباراة" : "Create a game"}</Link>}
+    {discovery && <Link className="w-fit rounded-full bg-primary px-4 py-2 text-sm font-bold text-foreground" href={authLink("/login", "/dashboard/games?create=1")}>{lang === "ar" ? "إنشاء ماتش" : "Create a game"}</Link>}
     <MemberDiscoveryCards memberId="" hasAcademy={false} mode="games" interactive sportFilter={sport} focusGameId={params.get("focus") ?? undefined} guestQuery={{ data: games, isPending: false, isError: false, refetch: () => router.refresh() }} />
   </MemberHomeHeader>;
 }

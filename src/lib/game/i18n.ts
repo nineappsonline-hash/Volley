@@ -222,7 +222,7 @@ const ar: GameText = {
   youLost: "خسرت",
   draw: "تعادل",
   yourScore: "تقييمك",
-  matchPoints: "نقاط المباراة",
+  matchPoints: "نقاط الماتش",
   perfectHits: "ضربات ممتازة",
   longestStreak: "أطول سلسلة",
   bestLocal: "أفضل نتيجة شخصية",
