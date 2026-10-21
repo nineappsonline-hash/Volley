@@ -55,6 +55,7 @@
   }
   html {
     scroll-behavior: smooth;
+    background-color: hsl(var(--playza-slate-50));
   }
   body {
     @apply bg-background antialiased;
@@ -62,16 +63,6 @@
     font-weight: 400;
     line-height: 1.7;
     background-color: hsl(var(--playza-slate-50));
-  }
-  /* Fixed, viewport-sized doodle backdrop. position:fixed on the element itself
-     is unreliable on mobile browsers, so pin it to the viewport with z-index:-1
-     (behind all content, above the body background colour). */
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
     background-image: url("/images/sports-doodles.svg"),
       radial-gradient(ellipse at 0% 25%, hsl(var(--playza-purple) / .10), transparent 48%),
       radial-gradient(ellipse at 100% 75%, hsl(var(--playza-lime) / .16), transparent 43%),
@@ -79,6 +70,7 @@
     background-size: 1400px 1100px, 100% 1200px, 100% 1200px, 24px 24px;
     background-position: center top;
     background-repeat: repeat;
+    background-attachment: scroll;
   }
   h1, h2, h3, h4, h5, h6, nav, label, strong { color: inherit; }
   h1 { font-weight: 800; }
