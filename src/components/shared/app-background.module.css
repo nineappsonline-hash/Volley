@@ -1,4 +1,4 @@
 /* A quiet static backdrop keeps the single light interface readable. */
-.layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background-color:hsl(var(--playza-slate-50));background-image:url("/images/sports-doodles.svg"),radial-gradient(ellipse at 0% 25%,hsl(var(--playza-purple)/.10),transparent 48%),radial-gradient(ellipse at 100% 75%,hsl(var(--playza-lime)/.16),transparent 43%),radial-gradient(circle,hsl(var(--playza-purple-dark)/.10) 1px,transparent 1px);background-size:1400px 1100px,100% 1200px,100% 1200px,24px 24px;background-position:center top;background-repeat:repeat}
+.layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .mesh,.blob,.court{display:none}
 .grid{display:none}
