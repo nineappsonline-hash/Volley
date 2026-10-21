@@ -441,12 +441,6 @@ export function JoinGameDialog({
               {t("games_host_cover_note")}
             </p>
           )}
-
-          {!game.host_pays && !isRent && (
-            <p className="rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 text-[11px] text-warning-ink ">
-              {t("games_share_refund_note")}
-            </p>
-          )}
         </div>
 
         <DialogFooter>
