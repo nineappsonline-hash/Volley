@@ -1,5 +1,6 @@
 "use client";
 
+import { CourtOwnerBenefits } from "@/components/auth/court-owner-benefits";
 import { GameCardShell } from "@/components/games/game-card-shell";
 import { guestGameCard } from "@/lib/guest-games";
 import { publicGamePath } from "@/lib/game-discovery";
@@ -176,6 +177,20 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
       </section>
 
       {process.env.NEXT_PUBLIC_BEACH_GAME_ENABLED !== "false" && <BeachVolleyballGameCard />}
+
+      <section id="playground-owners" aria-labelledby="playground-owners-title" className="mx-auto max-w-6xl px-6 py-12">
+        <p className={styles.eyebrow}>{copy("FOR PLAYGROUND OWNERS", "لأصحاب الملاعب")}</p>
+        <h2 id="playground-owners-title" className="mt-3 text-3xl font-extrabold text-secondary sm:text-4xl">{copy("Your playground. More players. Zero commission.", "ملعبك. لاعبين أكتر. بدون عمولة.")}</h2>
+        <p className="mb-6 mt-4 max-w-3xl leading-relaxed text-muted-foreground">{copy("List your tennis, padel, basketball, volleyball or beach volleyball courts on Playza and help players in Egypt find their next place to play.", "أضف ملاعب التنس والبادل وكرة السلة والكرة الطائرة والطائرة الشاطئية على بلايزا وساعد اللاعبين في مصر يلاقوا ملعبهم الجاي.")}</p>
+        <CourtOwnerBenefits />
+        <ul className="mt-6 grid gap-4 sm:grid-cols-3">
+          {[
+            [copy("Reach more players", "وصّل ملعبك للاعبين أكتر"), copy("Show your court photos, location and sport to players browsing Playza.", "اعرض صور ملعبك وموقعه والرياضة للاعبين اللي بيبحثوا على بلايزا.")],
+            [copy("Stay in control", "إدارة الملعب في إيدك"), copy("Set your rental price, manage multiple courts and choose weekly availability for each court.", "حدد سعر الإيجار، وأدر أكتر من ملعب، واضبط مواعيد الإتاحة الأسبوعية لكل ملعب.")],
+            [copy("Track bookings and payouts", "تابع الحجوزات والمستحقات"), copy("See your booking schedule and follow the payment status of your rental earnings from your owner dashboard.", "راجع جدول الحجوزات وتابع حالة صرف مستحقات الإيجار من لوحة تحكم صاحب الملعب.")],
+          ].map(([title, description]) => <li key={title} className="rounded-2xl border bg-card p-5"><h3 className="font-bold text-secondary">{title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p></li>)}
+        </ul>
+      </section>
 
       <section id="academy-management" aria-labelledby="academy-management-title" className={`mx-auto max-w-6xl px-6 py-12 ${styles.academyMgmt}`}>
         <div className="rounded-2xl border bg-card p-6 sm:p-10">
