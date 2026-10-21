@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
+import { AR_NUMERIC_LOCALE } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 type Totals = { totalGames: number; playerWins: number; cpuWins: number; draws: number };
 export function BeachGameStats({ className }: { className?: string }) {
@@ -17,7 +18,7 @@ export function BeachGameStats({ className }: { className?: string }) {
   void refresh();const timer=window.setInterval(refresh,45000);window.addEventListener('focus',refresh);window.addEventListener('message',message);document.addEventListener('visibilitychange',refresh);
   return ()=>{abort.abort();clearInterval(timer);window.removeEventListener('focus',refresh);window.removeEventListener('message',message);document.removeEventListener('visibilitychange',refresh);};
  }, []);
- const format=(n:number)=>new Intl.NumberFormat(ar?'ar-EG':'en').format(n);
+ const format=(n:number)=>new Intl.NumberFormat(ar?AR_NUMERIC_LOCALE:'en').format(n);
  return <section className={cn("rounded-xl border border-white/15 bg-white/5 p-3 text-white",className)} aria-label={ar?"إحصائيات اللعبة لكل اللاعبين":"Community game totals"}>
   <p className="mb-2 text-xs font-bold text-white/75">{ar?"نتائج لعبة بلايزا للكرة الطائرة ثلاثية الأبعاد":"Playza 3D Volleyball game results"}</p>
   <dl className="grid grid-cols-3 gap-2 text-center" aria-live="polite">

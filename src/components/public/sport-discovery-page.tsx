@@ -12,7 +12,7 @@ import { getPublicGames } from "@/lib/public-games";
 import { getCairoSportAcademies } from "@/lib/public-sport-academies";
 import { DISCOVERY_SPORTS, discoveryPath, findDiscoverySport, type DiscoveryLanguage } from "@/lib/sport-discovery";
 import { SITE_URL, breadcrumbsJsonLd, faqPageJsonLd, jsonLdStringify, landingFaqItems } from "@/lib/seo";
-import { formatMoney, formatTime12h } from "@/lib/constants";
+import { formatMoney, formatTime12h, AR_NUMERIC_LOCALE } from "@/lib/constants";
 
 const linkStyle = "inline-flex rounded-xl border px-4 py-3 font-semibold text-primary transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
@@ -135,7 +135,7 @@ export async function SportDiscoveryPage({ slug, lang }: { slug: string; lang: D
         {cairoGames.length ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{cairoGames.slice(0, 6).map(game => <article key={game.id} className="space-y-2 rounded-2xl border bg-card p-5">
           <h3 className="font-bold"><Link href={publicGamePath(game.id)} className="underline underline-offset-4">{game.title}</Link></h3>
           <p className="text-sm text-muted-foreground">{[game.playground?.name, game.playground?.area || game.area, game.playground?.governorate].filter(Boolean).join(" · ") || game.location || (ar ? "راجع المكان مع المنظم" : "Confirm the location with the organizer")}</p>
-          <p className="text-sm"><time dateTime={game.game_date}>{new Intl.DateTimeFormat(ar ? "ar-EG" : "en", { dateStyle: "medium", timeZone: "Africa/Cairo" }).format(new Date(`${game.game_date}T12:00:00Z`))}</time> · {formatTime12h(game.start_time, lang)}</p>
+          <p className="text-sm"><time dateTime={game.game_date}>{new Intl.DateTimeFormat(ar ? AR_NUMERIC_LOCALE : "en", { dateStyle: "medium", timeZone: "Africa/Cairo" }).format(new Date(`${game.game_date}T12:00:00Z`))}</time> · {formatTime12h(game.start_time, lang)}</p>
           <p className="text-sm font-semibold">{game.host_pays ? (ar ? "المنظم بيتكفل بالتكلفة" : "Host covers the cost") : game.share_price == null ? (ar ? "راجع التكلفة مع المنظم" : "Confirm the cost") : formatMoney(game.share_price, lang)}</p>
           <Link href={publicGamePath(game.id)} className="inline-block text-sm font-semibold text-primary underline underline-offset-4">{ar ? "تفاصيل المشاركة" : "View participation details"}</Link>
         </article>)}</div> : <p className="rounded-2xl border p-5 text-muted-foreground">{ar ? "مفيش أنشطة قادمة متاحة للعرض هنا حاليًا. تقدر تراجع صفحة الماتشات أو تنظم نشاط وتشارك رابطه مع أصحابك." : "No upcoming activities are available to display here right now. Check the games page or organize an activity and share it with friends."}</p>}

@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
-import { formatMoney } from "@/lib/constants";
+import { formatMoney, AR_NUMERIC_LOCALE } from "@/lib/constants";
 import { errorMessage } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +22,7 @@ export function CourtPayouts({ admin = false }: { admin?: boolean }) {
     <QueryState queries={[query]}>{null}</QueryState>
     {query.data?.length===0&&<p className="rounded-xl border border-dashed p-5 text-sm">{ar?"لسه مفيش مستحقات من حجوزات مدفوعة بالكامل.":"No fully prepaid court bookings awaiting payout yet."}</p>}
     <div className="space-y-3">{query.data?.map(p=><article key={p.id} className="space-y-3 rounded-xl border bg-card p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-bold">{p.venue_name} · {p.game_title}</h3><p className="text-sm text-muted-foreground">{p.sport} · {p.due_date} · <bdi>{p.start_time?.slice(0,5)}</bdi> · {ar?"ملعب":"Court"} {p.court_number} · {p.hours} {ar?"ساعة":"hours"}</p>{admin&&<p className="text-sm">{p.owner_name} · <bdi>{p.owner_phone}</bdi></p>}</div><div className="text-end"><p className="font-bold text-secondary">{formatMoney(p.rental_amount,lang)}</p><Badge variant={p.paid_at?"success":!p.payable?"destructive":"secondary"}>{p.paid_at?(ar?"تم الصرف":"Paid"):!p.payable?(ar?"غير مستحق للصرف":"On hold"):p.due_date<=today?(ar?"مستحق دلوقتي":"Due now"):(ar?"مجدول":"Scheduled")}</Badge></div></div>
-      {p.paid_at&&<p className="text-sm">{ar?"مرجع الدفع":"Payment reference"}: <bdi>{p.payment_reference}</bdi> · {new Date(p.paid_at).toLocaleDateString(ar?"ar-EG":"en-GB")}</p>}
+      {p.paid_at&&<p className="text-sm">{ar?"مرجع الدفع":"Payment reference"}: <bdi>{p.payment_reference}</bdi> · {new Date(p.paid_at).toLocaleDateString(ar?AR_NUMERIC_LOCALE:"en-GB")}</p>}
       {admin&&!p.paid_at&&p.payable&&p.due_date<=today&&<div className="flex flex-wrap gap-2"><Input className="min-w-0 flex-1" aria-label={ar?"مرجع التحويل":"Transfer reference"} placeholder={ar?"مرجع التحويل اليدوي":"Manual transfer reference"} maxLength={200} value={references[p.id]??""} onChange={e=>setReferences({...references,[p.id]:e.target.value})}/><Button variant="secondary" disabled={record.isPending||!references[p.id]?.trim()} onClick={()=>record.mutate(p)}>{ar?"تسجيل سداد الإيجار بالكامل":"Record full rental payout"}</Button></div>}
     </article>)}</div></section>;
 }

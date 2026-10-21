@@ -15,7 +15,7 @@ import {
 import { AcademyTrainingOffers } from "@/components/academies/training-booking";
 import { MemberBottomNavigation } from "@/components/layout/member-bottom-navigation";
 import { AcademyNavigation } from "@/components/academies/academy-navigation";
-import { formatTime12h } from "@/lib/constants";
+import { formatTime12h, AR_NUMERIC_LOCALE } from "@/lib/constants";
 import { TrialForm } from "@/components/public/trial-form";
 import { JoinAcademyButton } from "@/components/academies/join-academy-button";
 import { LangLabel } from "@/components/shared/lang-label";
@@ -129,7 +129,7 @@ export default async function PublicAcademyPage({
       : 0;
   const reviews = (ratings ?? []).filter((r) => r.comment?.trim());
   const fmtDate = (iso: string, locale: "en" | "ar") =>
-    new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-US", {
+    new Intl.DateTimeFormat(locale === "ar" ? AR_NUMERIC_LOCALE : "en-US", {
       dateStyle: "medium",
     }).format(new Date(iso));
 

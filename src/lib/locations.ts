@@ -703,7 +703,7 @@ const EGYPT_CITIES: Record<string, string[]> = {
     "Mokattam",
     "المقطم",
     "15th of May City",
-    "مدينة ١٥ مايو",
+    "مدينة 15 مايو",
     "Badr City",
     "مدينة بدر",
     "El Shorouk City",

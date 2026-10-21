@@ -84,7 +84,7 @@ export function NearbyTraining(){
           <ul className="space-y-1 text-xs text-muted-foreground">
            <li className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true"/><span className="truncate">{[p.venue_name,p.venue_area,p.venue_governorate].filter(Boolean).join(" · ")||p.sport}</span></li>
            {km!=null&&<li>{km.toFixed(1)} {ar?"كم":"km"}</li>}
-           <li className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 shrink-0" aria-hidden="true"/>{p.monthly_sessions} {ar?"حصص":"sessions"} / {ar?"٣٠ يومًا":"30 days"}</li>
+           <li className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 shrink-0" aria-hidden="true"/>{p.monthly_sessions} {ar?"حصص":"sessions"} / {ar?"30 يومًا":"30 days"}</li>
           </ul>
           <p className="flex items-center gap-1.5 text-base font-bold"><Wallet className="h-4 w-4 shrink-0 text-primary" aria-hidden="true"/>{formatMoney(Number(p.monthly_price),lang)}</p>
           <p className="text-xs text-muted-foreground">{ar?"الحصة التجريبية":"Trial session"}: {formatMoney(Number(p.trial_price),lang)}</p>

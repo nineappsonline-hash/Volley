@@ -288,7 +288,7 @@ export function TournamentRunner({ tournament }: { tournament: TournamentWithMat
       </Card>
 
       <p className="text-sm text-muted-foreground">{lang === "ar"
-        ? "١. ضيف المشاركين ٢. سمّي الفرق ووزّع اللاعبين ٣. اختار نظام الدوري وأنشئ الماتشات ٤. سجّل النتائج. الفوز ٣ نقاط والتعادل نقطة؛ الترتيب بالنقاط ثم فارق الأهداف ثم الأهداف المسجلة."
+        ? "1. ضيف المشاركين 2. سمّي الفرق ووزّع اللاعبين 3. اختار نظام الدوري وأنشئ الماتشات 4. سجّل النتائج. الفوز 3 نقاط والتعادل نقطة؛ الترتيب بالنقاط ثم فارق الأهداف ثم الأهداف المسجلة."
         : "1. Add participants. 2. Name teams and assign players. 3. Choose League in tournament settings and generate fixtures. 4. Record results. A win earns 3 points; a draw earns 1. Ties use score difference, then scores for."}</p>
       {/* Teams */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">

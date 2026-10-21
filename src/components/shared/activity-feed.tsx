@@ -46,7 +46,7 @@ function timeAgo(dateStr: string): string {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d ago`;
-  return date.toLocaleDateString();
+  return date.toLocaleDateString("en-GB");
 }
 
 export function ActivityFeed({ memberId, limit = 20 }: { memberId?: string; limit?: number }) {

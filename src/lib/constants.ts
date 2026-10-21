@@ -107,12 +107,22 @@ export function sessionsForMembership(type: "full" | "half"): number {
   return MEMBERSHIP_SESSIONS[type] ?? DEFAULT_SUBSCRIPTION_SESSIONS;
 }
 
+/**
+ * Arabic UI text stays Arabic, but amounts, counts and dates always render with
+ * Latin (Western) digits so totals read the same in both languages.
+ */
+export const AR_NUMERIC_LOCALE = "ar-EG-u-nu-latn";
+
+export function numericLocale(lang: "en" | "ar"): string {
+  return lang === "ar" ? AR_NUMERIC_LOCALE : "en-US";
+}
+
 export function formatMoney(
   amount: number,
   lang: "en" | "ar" = "en"
 ): string {
   try {
-    return new Intl.NumberFormat(lang === "ar" ? "ar-EG" : "en-US", {
+    return new Intl.NumberFormat(numericLocale(lang), {
       style: "currency",
       currency: CURRENCY,
       minimumFractionDigits: 2,
@@ -125,7 +135,7 @@ export function formatMoney(
 
 export function formatMoneyShort(amount: number, lang: "en" | "ar" = "en"): string {
   try {
-    return new Intl.NumberFormat(lang === "ar" ? "ar-EG" : "en-US", {
+    return new Intl.NumberFormat(numericLocale(lang), {
       style: "currency",
       currency: CURRENCY,
       minimumFractionDigits: 0,

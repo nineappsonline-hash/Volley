@@ -110,7 +110,7 @@ export function SettingsClient({
     if (!name.trim()) return;
     try {
       const fee = platformFee.trim() === "" ? 5 : Number(platformFee);
-      if (!Number.isFinite(fee) || fee < 0 || fee > 100) throw new Error(lang === "ar" ? "النسبة لازم تكون من ٠ إلى ١٠٠" : "Fee must be between 0 and 100 percent");
+      if (!Number.isFinite(fee) || fee < 0 || fee > 100) throw new Error(lang === "ar" ? "النسبة لازم تكون من 0 إلى 100" : "Fee must be between 0 and 100 percent");
       await update.mutateAsync({
         id: academy.id,
         name: name.trim(),

@@ -180,7 +180,7 @@ export function CoachAiClient() {
                         {report.plan?.title ?? t("coachai_report_no_plan")}
                       </p>
                       <span className="shrink-0 text-xs text-muted-foreground">
-                        {t("coachai_report_updated")} {new Date(report.updated_at).toLocaleDateString()}
+                        {t("coachai_report_updated")} {new Date(report.updated_at).toLocaleDateString("en-GB")}
                       </span>
                     </div>
                     {report.notes && (

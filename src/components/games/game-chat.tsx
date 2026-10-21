@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
+import { AR_NUMERIC_LOCALE } from "@/lib/constants";
 import { errorMessage } from "@/lib/utils";
 
 type Message = {
@@ -318,10 +319,10 @@ function ChatContent({
     if (d >= yesterday) return ar ? "إمبارح" : "Yesterday";
     const opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
     if (d.getFullYear() !== day.getFullYear()) opts.year = "numeric";
-    return d.toLocaleDateString(ar ? "ar-EG" : "en-GB", opts);
+    return d.toLocaleDateString(ar ? AR_NUMERIC_LOCALE : "en-GB", opts);
   };
   const fmtTime = (iso: string) =>
-    new Date(iso).toLocaleTimeString(ar ? "ar-EG" : "en-US", {
+    new Date(iso).toLocaleTimeString(ar ? AR_NUMERIC_LOCALE : "en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,

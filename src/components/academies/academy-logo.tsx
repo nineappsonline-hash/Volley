@@ -46,11 +46,11 @@ export function AcademyLogoEditor({ academyId, name, showHeading = true }: { aca
     {showHeading && <h3 className="font-semibold">{ar ? "شعار الأكاديمية" : "Academy logo"}</h3>}
     <AcademyLogo academyId={academyId} name={name} logoUrl={logo} />
     <label className="block space-y-2 text-sm">
-      <span>{ar ? "رفع أو استبدال الشعار (PNG، JPG، WebP؛ حتى ٥ ميجابايت). يُحفظ فورًا." : "Upload or replace logo (PNG, JPG, WebP; up to 5 MB). Saves immediately."}</span>
+      <span>{ar ? "رفع أو استبدال الشعار (PNG، JPG، WebP؛ حتى 5 ميجابايت). يُحفظ فورًا." : "Upload or replace logo (PNG, JPG, WebP; up to 5 MB). Saves immediately."}</span>
       <input type="file" accept="image/png,image/jpeg,image/webp" disabled={busy} className="block w-full min-w-0 text-sm" onChange={async e => {
         const file = e.target.files?.[0]; e.target.value = ""; if (!file) return;
         const ext = ({"image/png":"png","image/jpeg":"jpg","image/webp":"webp"} as Record<string,string>)[file.type];
-        if (!ext || file.size > 5*1024*1024) { toast.error(ar ? "اختار صورة PNG أو JPG أو WebP أصغر من ٥ ميجابايت" : "Choose a PNG, JPG or WebP image under 5 MB"); return; }
+        if (!ext || file.size > 5*1024*1024) { toast.error(ar ? "اختار صورة PNG أو JPG أو WebP أصغر من 5 ميجابايت" : "Choose a PNG, JPG or WebP image under 5 MB"); return; }
         setBusy(true);
         try {
           const db = createClient(); const path = `academies/${academyId}/logo-${crypto.randomUUID()}.${ext}`;

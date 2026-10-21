@@ -94,7 +94,7 @@ export function MemberTrainingAssignment({ member, academies, programs }: { memb
       {group && !paid && <span className="text-xs text-muted-foreground">{ar ? "يمكن تأكيد الدفع بعدين من تبويب المدفوعات." : "You can confirm payment later from the Payments tab."}</span>}
     </div>
 
-    <p className="text-xs text-muted-foreground">{ar ? "تُحجز أول حصص متاحة خلال ٣٠ يومًا. الحجز غير المدفوع يُحفظ لمدة ٢٤ ساعة أو حتى بداية أول حصة، أيهما أقرب." : "Reserves the next available sessions within 30 days. Unpaid bookings are held for 24 hours or until the first session, whichever comes first."}</p>
+    <p className="text-xs text-muted-foreground">{ar ? "تُحجز أول حصص متاحة خلال 30 يومًا. الحجز غير المدفوع يُحفظ لمدة 24 ساعة أو حتى بداية أول حصة، أيهما أقرب." : "Reserves the next available sessions within 30 days. Unpaid bookings are held for 24 hours or until the first session, whichever comes first."}</p>
 
     <div className="flex flex-wrap gap-2">
       <Button disabled={busy || !group || !sessions} type="submit">{busy ? (ar ? "بنحفظ…" : "Saving…") : (ar ? "تأكيد التسجيل" : "Confirm enrollment")}</Button>

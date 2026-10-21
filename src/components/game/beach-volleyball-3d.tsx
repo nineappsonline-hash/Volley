@@ -107,7 +107,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
         <AppLogo className="mb-5 w-36" />
         <p className="text-xs font-bold uppercase tracking-widest text-highlight">{copy("PLAYZA BEACH CHALLENGE · 3D", "تحدي بلايزا · ثلاثي الأبعاد")}</p>
         <h2 className="mt-3 text-3xl font-black text-white">{copy("Your court. Your next point.", "ملعبك. ونقطتك الجاية.")}</h2>
-        <p className="mt-3 text-sm leading-7 text-white/75">{copy("90 seconds. You versus the computer. Free third-person volleyball with local teams, with no account needed.", "٩٠ ثانية. إنت ضد الكمبيوتر. كرة طائرة بمنظور الشخص الثالث وفرق محلية، ببلاش ومن غير حساب.")}</p>
+        <p className="mt-3 text-sm leading-7 text-white/75">{copy("90 seconds. You versus the computer. Free third-person volleyball with local teams, with no account needed.", "90 ثانية. إنت ضد الكمبيوتر. كرة طائرة بمنظور الشخص الثالث وفرق محلية، ببلاش ومن غير حساب.")}</p>
         <BeachGameStats className="mt-5" />
         {failed && <p className="mt-3 text-sm text-highlight" role="alert">{copy("The game couldn’t load. Try again in a WebGL2-capable browser.", "اللعبة مقدرتش تشتغل. جرّب تاني بمتصفح بيدعم WebGL2.")}</p>}
         <label className="mt-5 block text-sm text-white">{copy("Opponent", "المنافس")}
@@ -116,7 +116,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
           </select>
         </label>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <label className="text-sm">{copy("Match", "الماتش")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3" value={teamSize} onChange={e=>setTeamSize(e.target.value)}><option value="6">{copy("6v6 local teams", "٦ ضد ٦ محلي")}</option><option value="1">{copy("1v1 duel", "واحد ضد واحد")}</option></select></label>
+          <label className="text-sm">{copy("Match", "الماتش")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3" value={teamSize} onChange={e=>setTeamSize(e.target.value)}><option value="6">{copy("6v6 local teams", "6 ضد 6 محلي")}</option><option value="1">{copy("1v1 duel", "واحد ضد واحد")}</option></select></label>
           <label className="text-sm">{copy("Camera", "الكاميرا")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3" value={camera} onChange={e=>setCamera(e.target.value)}><option value="third">{copy("Third person", "الشخص الثالث")}</option><option value="first">{copy("First person", "الشخص الأول")}</option></select></label>
           <label className="text-sm">{copy("Ability", "القدرة")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3" value={ability} onChange={e=>setAbility(e.target.value)}><option value="power">{copy("Power Strike", "ضربة قوية")}</option><option value="dash">{copy("Quick Step", "خطوة سريعة")}</option><option value="shield">{copy("Sky Wall", "حائط السما")}</option></select></label>
         </div>

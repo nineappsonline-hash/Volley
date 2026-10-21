@@ -21,7 +21,7 @@ export async function completeCountedMatch(registration,playerPoints,cpuPoints){
 export async function showCommunityStats(node,shouldShow=()=>true){
  if(!node)return;
  try{const r=await fetch(endpoint,{cache:'no-store'});if(!r.ok)throw Error();const t=await r.json();if(![t.totalGames,t.playerWins,t.cpuWins,t.draws].every(n=>Number.isSafeInteger(n)&&n>=0))throw Error();
-  if(!shouldShow())return;const ar=document.documentElement.lang.startsWith('ar'),format=n=>new Intl.NumberFormat(ar?'ar-EG':'en').format(n);node.replaceChildren();node.hidden=false;
+  if(!shouldShow())return;const ar=document.documentElement.lang.startsWith('ar'),format=n=>new Intl.NumberFormat(ar?'ar-EG-u-nu-latn':'en').format(n);node.replaceChildren();node.hidden=false;
   const title=document.createElement('p');title.className='community-stats-title';title.textContent=ar?'إحصائيات كل اللاعبين':'Community totals';node.append(title);
   const grid=document.createElement('div');grid.className='community-stats-grid';
   for(const [label,value]of [[ar?'مباريات':'Games played',t.totalGames],[ar?'فوز اللاعبين':'Player wins',t.playerWins],[ar?'فوز الكمبيوتر':'CPU wins',t.cpuWins]]){const cell=document.createElement('div'),number=document.createElement('strong'),caption=document.createElement('span');number.textContent=format(value);caption.textContent=label;cell.append(number,caption);grid.append(cell)}node.append(grid);

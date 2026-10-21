@@ -142,7 +142,7 @@ export function EvaluationsCard({ memberId, isAdmin }: EvaluationsCardProps) {
         )}
       </CardHeader>
       <CardContent className="space-y-2">
-        <p className="text-sm text-muted-foreground">{ar ? "تسجل إدارة الأكاديمية تقييم المدرب من ملف العضو: المهارات والتكتيك واللياقة والسلوك، بدرجات من ٥. تظهر المقارنة بعد تقييمين." : "Your academy records coach assessments from your member record: technique, tactics, fitness and attitude, scored out of 5. Progress comparisons appear after two assessments."}</p>
+        <p className="text-sm text-muted-foreground">{ar ? "تسجل إدارة الأكاديمية تقييم المدرب من ملف العضو: المهارات والتكتيك واللياقة والسلوك، بدرجات من 5. تظهر المقارنة بعد تقييمين." : "Your academy records coach assessments from your member record: technique, tactics, fitness and attitude, scored out of 5. Progress comparisons appear after two assessments."}</p>
         {isLoading ? <p role="status" className="text-sm text-muted-foreground">{ar ? "جاري تحميل التقييمات…" : "Loading evaluations…"}</p>
           : isError ? <div role="alert"><p className="text-sm text-error-ink">{ar ? "تعذر تحميل التقييمات" : "Could not load evaluations"}</p><Button variant="outline" onClick={() => void refetch()}>{ar ? "حاول تاني" : "Retry"}</Button></div>
           : !evaluations || evaluations.length === 0 ? (
