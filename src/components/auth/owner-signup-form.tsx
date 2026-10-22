@@ -39,6 +39,7 @@ import {
 import { PushPrompt } from "@/components/shared/push-prompt";
 import { LocationFields } from "@/components/shared/location-fields";
 import { CourtAvailabilityEditor } from "@/components/playgrounds/court-availability-editor";
+import { workingHoursFromCourtAvailability } from "@/lib/venue-slots";
 import { UsernameField } from "@/components/shared/username-field";
 import { COMMUNITY_SPORTS } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n";
@@ -187,7 +188,12 @@ export function OwnerSignupForm() {
         sport: v.sport && v.sport !== "none" ? v.sport.trim() : null,
         location_link: v.location_link.trim() || null,
         ...(v.photos.length ? { photos: v.photos } : {}),
-        ...(v.court_availability.length ? { court_availability: v.court_availability } : {}),
+        ...(v.court_availability.length
+          ? {
+              court_availability: v.court_availability,
+              working_hours: workingHoursFromCourtAvailability(v.court_availability),
+            }
+          : {}),
         rental_cost: v.rental_cost.trim() !== "" ? Number(v.rental_cost) : null,
         court_count: v.court_count.trim() !== "" ? Number(v.court_count) : 1,
       }));

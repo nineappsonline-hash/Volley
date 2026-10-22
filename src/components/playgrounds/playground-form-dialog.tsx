@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CourtAvailabilityEditor } from "./court-availability-editor";
+import { workingHoursFromCourtAvailability } from "@/lib/venue-slots";
 import { LocationFields } from "@/components/shared/location-fields";
 import { MapPicker } from "@/components/shared/map-picker";
 import { createClient } from "@/lib/supabase/client";
@@ -88,6 +89,7 @@ export function PlaygroundFormDialog({
         contact_phone: phone.trim() || null,
         ...(location.country ? {country:location.country,governorate:location.governorate,area:location.city} : {}),
         court_availability: courtAvailability,
+        working_hours: workingHoursFromCourtAvailability(courtAvailability),
         school_name: schoolName.trim() || null,
         rental_cost: rentalCost ? Number(rentalCost) : null,
         rental_hours: rentalHours ? Number(rentalHours) : null,

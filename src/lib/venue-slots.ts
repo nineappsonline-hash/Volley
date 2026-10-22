@@ -251,6 +251,32 @@ export function courtClosedBookings(windows: (VenueUnavailableSlot & {court_numb
   return result;
 }
 
+/**
+ * Venue-wide opening hours derived from per-court availability windows: the
+ * union of every court's open windows, merged per weekday. The super admin
+ * playground form and the public page read `working_hours`, so deriving it
+ * keeps an owner's per-court availability consistent with the rest of the app.
+ * Returns `[]` when there are no windows (meaning "no restriction").
+ */
+export function workingHoursFromCourtAvailability(
+  windows: (VenueUnavailableSlot & { court_number: number })[] | undefined
+): VenueUnavailableSlot[] {
+  if (!windows?.length) return [];
+  const byWeekday = new Map<number, Array<[number, number]>>();
+  for (const w of windows) {
+    const list = byWeekday.get(w.weekday) ?? [];
+    list.push([minutesOf(w.start), minutesOf(w.end)]);
+    byWeekday.set(w.weekday, list);
+  }
+  const out: VenueUnavailableSlot[] = [];
+  for (const weekday of Array.from(byWeekday.keys()).sort((a, b) => a - b)) {
+    for (const [start, end] of mergeIntervals(byWeekday.get(weekday) ?? [])) {
+      out.push({ weekday, start: padMinutes(start), end: padMinutes(end) });
+    }
+  }
+  return out;
+}
+
 /** Unavailable intervals (minutes-of-day) on a date: venue blocks plus times
  * where every court is already booked. */
 export function unavailableIntervalsForDate(
