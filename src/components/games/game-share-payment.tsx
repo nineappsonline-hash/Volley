@@ -103,6 +103,10 @@ export function GameSharePayment({
         {note ?? t("game_fee_desc").replace("{amount}", amountLabel)}
       </p>
 
+      <p className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs font-bold text-foreground">
+        {t("game_fee_refund_note")}
+      </p>
+
       <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 p-3">
         <p className="min-w-0 truncate text-xs text-muted-foreground">{label}</p>
         <span className="shrink-0 text-lg font-extrabold text-primary">
