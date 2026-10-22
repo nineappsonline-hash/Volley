@@ -21,7 +21,9 @@ const db = { from(table) {
     select(columns) { requestedColumns = columns; assert.ok(!/invite_code|player_name|member_id|pay_receipt/.test(columns)); return this; },
     eq(field, value) { rows = rows.filter(row => row[field] === value); return this; },
     in(field, values) { rows = rows.filter(row => values.includes(row[field])); return this; },
+    neq(field, value) { rows = rows.filter(row => row[field] !== value); return this; },
     gte(field, value) { rows = rows.filter(row => row[field] >= value); return this; },
+    limit() { return this; },
     order() { return this; },
     range: async (a,b) => ({ data: rows.slice(a,b+1).map(({ id }) => ({ id })), error: null }),
     maybeSingle: async () => ({ data: rows[0] || null, error: null }),
@@ -117,6 +119,23 @@ function load(file) {
     assert.ok(!html.includes('data-return-to='), 'closed games do not offer joining');
     assert.ok(html.includes(status === 'cancelled' ? 'EventCancelled' : 'Completed'));
   }
+  // Phase 5 lifecycle policy: completed pages stay accessible but are noindex
+  // and present no upcoming-event markup; cancelled future games keep EventCancelled.
+  const completedMeta = await page.generateMetadata({ params: Promise.resolve({ id }) });
+  assert.equal(completedMeta.robots.index, false, 'completed games are noindex');
+  game.status = 'open';
+  assert.ok(renderToStaticMarkup(await page.default({ params: Promise.resolve({ id }) })).includes('SportsEvent'), 'upcoming open games still carry event markup');
+  const elig = load(path.join(root, 'src/lib/seo-eligibility.ts'));
+  assert.equal(elig.gameLifecycle(game), 'upcoming-open');
+  assert.equal(elig.gameLifecycle({ ...game, status: 'full' }), 'upcoming-full');
+  assert.equal(elig.gameLifecycle({ ...game, status: 'cancelled' }), 'upcoming-cancelled');
+  assert.equal(elig.gameLifecycle({ ...game, status: 'completed' }), 'past');
+  assert.equal(elig.gameLifecycle({ ...game, game_date: '2000-01-01' }), 'past');
+  assert.deepEqual(elig.gameRobots(game), { index: true, follow: true });
+  assert.deepEqual(elig.gameRobots({ ...game, status: 'full' }), { index: true, follow: true });
+  assert.deepEqual(elig.gameRobots({ ...game, status: 'completed' }), { index: false, follow: true });
+  assert.equal(elig.gameEventMarkupEligible({ ...game, status: 'cancelled' }), true);
+  assert.equal(elig.gameEventMarkupEligible({ ...game, status: 'completed' }), false);
   game.status = 'open';
   await assert.rejects(page.default({ params: Promise.resolve({ id: privateId }) }), /NOT_FOUND/);
   await assert.rejects(page.generateMetadata({ params: Promise.resolve({ id: privateId }) }), /NOT_FOUND/);

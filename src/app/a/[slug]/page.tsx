@@ -2,6 +2,7 @@ import { AnalyticsView } from "@/components/analytics/business-analytics";
 import { LocationMap } from "@/components/shared/location-map";
 import { AcademyLogo } from "@/components/academies/academy-logo";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDays, Camera, MapPin, MessageSquareText, Star, Trophy } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -17,6 +18,9 @@ import { AcademyTrainingOffers } from "@/components/academies/training-booking";
 import { MemberBottomNavigation } from "@/components/layout/member-bottom-navigation";
 import { AcademyNavigation } from "@/components/academies/academy-navigation";
 import { formatTime12h, AR_NUMERIC_LOCALE } from "@/lib/constants";
+import { sportToSlug } from "@/lib/sport-slugs";
+import { isActiveSport } from "@/lib/active-sports";
+import { discoveryPath } from "@/lib/sport-discovery";
 import { TrialForm } from "@/components/public/trial-form";
 import { JoinAcademyButton } from "@/components/academies/join-academy-button";
 import { LangLabel } from "@/components/shared/lang-label";
@@ -279,14 +283,25 @@ export default async function PublicAcademyPage({
               <LangLabel en={dictionary.en.public_sports} ar={dictionary.ar.public_sports} />
             </h2>
             <div className="flex flex-wrap gap-2">
-              {(sports ?? []).map((s) => (
-                <span
-                  key={s.name}
-                  className="rounded-full border bg-muted/40 px-4 py-1.5 text-sm font-medium"
-                >
-                  {s.name}
-                </span>
-              ))}
+              {(sports ?? []).map((s) =>
+                // Link only sports Playza actually serves discovery pages for.
+                isActiveSport(s.name) ? (
+                  <Link
+                    key={s.name}
+                    href={discoveryPath("en", sportToSlug(s.name))}
+                    className="rounded-full border bg-muted/40 px-4 py-1.5 text-sm font-medium underline-offset-4 hover:underline"
+                  >
+                    {s.name}
+                  </Link>
+                ) : (
+                  <span
+                    key={s.name}
+                    className="rounded-full border bg-muted/40 px-4 py-1.5 text-sm font-medium"
+                  >
+                    {s.name}
+                  </span>
+                ),
+              )}
             </div>
           </section>
         )}
@@ -384,6 +399,25 @@ export default async function PublicAcademyPage({
             </div>
           </section>
         )}
+
+        {/* Discovery links back to public routes for these sports */}
+        <nav
+          aria-label="Playza discovery"
+          className="flex flex-wrap items-center gap-3 text-sm"
+        >
+          <Link
+            href="/academies"
+            className="rounded-xl border bg-card px-4 py-2 font-semibold underline-offset-4 hover:underline"
+          >
+            <LangLabel en="Explore sports academies" ar="اكتشف الأكاديميات الرياضية" />
+          </Link>
+          <Link
+            href="/games"
+            className="rounded-xl border bg-card px-4 py-2 font-semibold underline-offset-4 hover:underline"
+          >
+            <LangLabel en="Find games to join" ar="لاقي ماتشات تنضم لها" />
+          </Link>
+        </nav>
 
         {/* Trial booking */}
         <details className="rounded-2xl border bg-card p-4 shadow-sm sm:p-6">

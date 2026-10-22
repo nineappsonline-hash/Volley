@@ -13,6 +13,7 @@ function load(file, mocks = {}) {
 modules['@/lib/active-sports'] = load('src/lib/active-sports.ts');
 modules['@/lib/seo'] = load('src/lib/seo.ts');
 modules['@/lib/game-share'] = load('src/lib/game-share.ts');
+modules['@/lib/seo-eligibility'] = load('src/lib/seo-eligibility.ts');
 modules['@/lib/game-discovery'] = load('src/lib/game-discovery.ts');
 modules['@/lib/local-games'] = load('src/lib/local-games.ts');
 modules['@/lib/guides'] = load('src/lib/guides.ts');
