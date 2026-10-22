@@ -71,33 +71,33 @@ export function discoveryMetadata(lang: DiscoveryLanguage, sport?: DiscoverySpor
 
 const SPORT_SEARCH_COPY: Record<string, { en: { title: string; description: string }; ar: { title: string; description: string }; keywords: string[] }> = {
   tennis: {
-    en: { title: "Tennis in Cairo, Egypt — Courts, Games & Lessons", description: "Find tennis in Cairo: explore court profiles and published games, compare playing levels and prices, and learn what to check before choosing tennis lessons." },
-    ar: { title: "التنس في القاهرة — ملاعب وماتشات وتمارين تنس", description: "اكتشف التنس في القاهرة: راجع صفحات الملاعب والماتشات المنشورة ومستوى اللعب والتكلفة، واعرف إيه اللي تسأل عنه قبل اختيار دروس التنس." },
-    keywords: ["tennis courts Cairo", "tennis lessons Cairo", "tennis partner Egypt", "ملاعب تنس في القاهرة", "تمارين تنس في مصر"],
+    en: { title: "Find Tennis Players & Games in Cairo, Egypt | Playza", description: "Find tennis partners and games in Cairo. Browse upcoming friendly tennis matches, compare levels and locations, and join other players with Playza." },
+    ar: { title: "ماتشات تنس في القاهرة | لاقى ناس تلعب معاهم", description: "عاوز تلعب تنس في القاهرة؟ لاقى شركاء للعب وماتشات ودية، شوف المستوى والمكان وانضم للاعبين جدد." },
+    keywords: ["find tennis partners cairo", "tennis games cairo", "join tennis games egypt", "tennis players cairo", "tennis near me", "شريك تنس", "ماتشات تنس القاهرة", "ناس تلعب تنس"],
   },
   volleyball: {
-    en: { title: "Volleyball in Cairo, Egypt — Courts & Friendly Games", description: "Discover volleyball in Cairo: explore published friendly games, court profiles and academies. Check the venue, playing level, schedule and cost before joining." },
-    ar: { title: "الكرة الطائرة في القاهرة — ملاعب وماتشات ودية", description: "اكتشف الكرة الطائرة في القاهرة: راجع الماتشات الودية المنشورة والملاعب والأكاديميات، واتأكد من المكان والمستوى والميعاد والتكلفة قبل الانضمام." },
-    keywords: ["volleyball games Cairo", "volleyball courts Egypt", "join volleyball without a team", "ماتشات كرة طائرة", "ملاعب كرة طائرة في القاهرة"],
+    en: { title: "Find Volleyball Players & Games in Cairo, Egypt | Playza", description: "Find volleyball players and games in Cairo. Join friendly volleyball matches without a team — check level, location, price and spots left on Playza." },
+    ar: { title: "ماتشات كرة طائرة في القاهرة | لاقى ناس تلعب معاهم", description: "عاوز تلعب كرة طائرة ومش لاقى فريق؟ لاقى ماتشات ودية، واتعرف على ناس جديدة، وانضم للعبة بدون فريق." },
+    keywords: ["find volleyball players cairo", "volleyball games cairo", "join volleyball games", "volleyball groups cairo", "عاوز ألعب طائرة", "ناس تلعب طائرة", "ماتشات طائرة القاهرة"],
   },
   archery: {
-    en: { title: "Archery in Cairo, Egypt — Beginner & Training Guide", description: "Looking for archery in Cairo? Learn how to choose introductory coaching, check bow rental and range access, and explore published academy profiles on Playza." },
+    en: { title: "Archery in Cairo, Egypt — Beginner & Training Guide | Playza", description: "Looking for archery in Cairo? Learn how to choose introductory coaching, check bow rental and range access, and explore published academy profiles on Playza." },
     ar: { title: "الرماية بالقوس في القاهرة — دليل التدريب والمبتدئين", description: "بتدور على الرماية بالقوس في القاهرة؟ اعرف إزاي تختار تدريب مناسب، وتسأل عن تأجير القوس وتجهيزات الميدان، وتراجع صفحات الأكاديميات المنشورة على بلايزا." },
     keywords: ["archery Cairo", "archery Egypt", "archery training Egypt", "archery for beginners", "الرماية بالقوس في القاهرة", "تدريب الرماية بالقوس", "تعلم الرماية بالقوس"],
   },
   basketball: {
-    en: { title: "Basketball in Cairo, Egypt — Courts & Pickup Games", description: "Find basketball in Cairo: compare half-court and full-court listings, browse published pickup games, and check the player count, level and price before you join." },
-    ar: { title: "الباسكت في القاهرة — ملاعب وماتشات ودية", description: "اكتشف الباسكت في القاهرة: قارن بين ملاعب نصف الملعب والملعب الكامل، وراجع ماتشات الباسكت المنشورة، واتأكد من عدد اللاعبين والمستوى والتكلفة قبل الانضمام." },
-    keywords: ["basketball courts Cairo", "basketball games Cairo", "pickup basketball Cairo", "find basketball players Cairo", "basketball near me", "ملاعب باسكت في القاهرة", "ماتشات باسكت", "ملاعب كرة سلة التجمع الخامس", "عاوز ألعب باسكت"],
+    en: { title: "Find Basketball Players & Pickup Games in Cairo | Playza", description: "Find basketball players and pickup games in Cairo. Join friendly basketball matches, meet new players, and get on the court today with Playza." },
+    ar: { title: "ماتشات كرة سلة في القاهرة | لاقى ناس تلعب باسكت معاهم", description: "عاوز ألعب كرة سلة ومش لاقى ناس؟ لاقى ماتشات باسكت ودية، واتعرف على لاعبين جدد، وانضم للمجموعة." },
+    keywords: ["find basketball players cairo", "basketball pickup games cairo", "basketball games cairo", "join basketball games cairo", "عاوز ألعب باسكت", "ناس تلعب باسكت", "ماتشات باسكت القاهرة"],
   },
   padel: {
-    en: { title: "Padel Courts & Games in Cairo | Book Padel | Playza", description: "Discover padel courts and games in Cairo. Find players, compare available courts, and join your next padel match with Playza." },
-    ar: { title: "احجز ملعب بادل أو انضم لماتش بادل في القاهرة", description: "اكتشف ملاعب وماتشات البادل في القاهرة. لاقي لاعبين، وقارن الملاعب المتاحة، وانضم لأقرب ماتش بادل مع بلايزا." },
-    keywords: ["padel courts Cairo", "padel courts New Cairo", "padel booking Egypt", "padel games Cairo", "find padel players Cairo", "padel near me", "ملاعب بادل", "ملاعب بادل التجمع الخامس", "حجز ملعب بادل", "ناس تلعب بادل"],
+    en: { title: "Find Padel Partners & Games in Cairo | Playza", description: "Find padel partners and games in Cairo. Browse upcoming padel matches, find players at your level, and join your next game with Playza." },
+    ar: { title: "ماتشات بادل في القاهرة | لاقى شريك بادل أو ماتش", description: "عاوز تلعب بادل ومش لاقى شريك؟ لاقى لاعبين بادل في مستواك، وانضم لماتشات ودية في القاهرة والتجمع الخامس." },
+    keywords: ["find padel partners cairo", "padel games cairo", "join padel games egypt", "padel players new cairo", "شريك بادل", "ماتشات بادل القاهرة", "ناس تلعب بادل"],
   },
   "beach-volleyball": {
-    en: { title: "Beach Volleyball in Cairo — Sand Courts & Games", description: "Play beach volleyball in Cairo without leaving the city. Find sand-court games and courts, compare published prices and join individually through Playza." },
-    ar: { title: "الكرة الطائرة الشاطئية في القاهرة — ملاعب رملية وماتشات", description: "العب طائرة شاطئية في القاهرة من غير سفر. دور على الماتشات والملاعب الرملية، وقارن الأسعار المعلنة، وانضم بمفردك من خلال بلايزا." },
-    keywords: ["beach volleyball Cairo", "beach volleyball New Cairo", "beach volleyball courts Egypt", "beach volleyball games Cairo", "ملاعب طائرة شاطئية القاهرة", "كرة طائرة شاطئية التجمع الخامس"],
+    en: { title: "Find Beach Volleyball Games & Players in Cairo | Playza", description: "Find beach volleyball games and players in Cairo. Join friendly sand court matches individually — no team needed. Meet players and play today." },
+    ar: { title: "ماتشات طائرة شاطئية في القاهرة | لاقى ناس تلعب بيتش فولى", description: "عاوز تلعب طائرة شاطئية ومش لاقى ناس؟ لاقى ماتشات ودية على الرمل، وانضم بمفردك واتعرف على لاعبين جدد." },
+    keywords: ["beach volleyball games cairo", "beach volleyball partners cairo", "beach volleyball new cairo", "بيتس فولى", "ماتشات بيتش فولى", "ناس تلعب بيتش فولى"],
   },
 };

@@ -101,31 +101,32 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
   if (sportParam && (!sport || !isActiveSport(sport))) notFound();
 
   const title = sport
-    ? `Upcoming ${sport} Friendly Games in Egypt`
-    : "Tennis, Volleyball & Beach Volleyball Games in Egypt";
+    ? `Find ${sport} Players & Games in Egypt | Playza`
+    : "Find Sports Games & People to Play With in Egypt | Playza";
   const description = sport
-    ? `Browse upcoming ${sport} friendly games in Egypt: dates, location, player count and share price. Jump into a game near you with Playza.`
-    : "Find a friendly game near you: tennis, volleyball and beach volleyball. Dates, location, player count and share price are clear from the start. Sign up free and join the nearest game.";
+    ? `Find ${sport.toLowerCase()} players and games in Egypt. Join friendly ${sport.toLowerCase()} matches — no team needed. Check dates, locations, spots and price on Playza.`
+    : "Looking for people to play sports with in Egypt? Join volleyball, basketball, padel, tennis and beach volleyball games, meet players and find your next match on Playza.";
 
   return {
     title,
     description,
     keywords: sport
-      ? [`${sport} friendly games`, "friendly matches", "casual games"]
+      ? [`find ${sport.toLowerCase()} players`, `${sport.toLowerCase()} games egypt`, "join sports games", "find sports partners"]
       : [
-          "friendly games Egypt",
-          "friendly tennis matches",
-          "casual games",
-          "tennis games near me",
-          "volleyball games",
-          "beach volleyball matches Egypt",
-          "tennis games",
-          "playground near me",
-          "ماتشات ودية",
-          "ماتشات تنس",
-          "جيمز ودية",
-          "لعب تنس",
-          "طائرة شاطئية مصر",
+          "find people to play sports with egypt",
+          "join sports games cairo",
+          "find sports partners cairo",
+          "volleyball games cairo",
+          "basketball games cairo",
+          "padel games cairo",
+          "tennis partners cairo",
+          "beach volleyball games cairo",
+          "ماتشات رياضية مصر",
+          "عاوز ناس ألعب معاهم",
+          "جروبات رياضية القاهرة",
+          "ماتشات طائرة",
+          "ماتشات باسكت",
+          "شريك بادل",
         ],
     alternates: { canonical: sport ? `/games?sport=${sportToSlug(sport)}` : "/games" },
     openGraph: {
@@ -203,11 +204,11 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
 
       <PublicListHero
         emoji="🎮"
-        title={sport ? `Upcoming ${sport} Friendly Games` : "Tennis, Volleyball & Beach Volleyball Games in Egypt"}
-        subtitle="The players are out there — you just need to gather. Pick a game near you, with dates, location and price clear from the start."
-        note="Sign up free and join any open game. Some games have age or skill requirements — shown before you join."
+        title={sport ? `Find ${sport} Players & Games` : "Find People to Play Sports With in Egypt"}
+        subtitle="Looking for people to play with? Join upcoming friendly games — volleyball, basketball, padel, tennis and beach volleyball. See who’s playing and join."
+        note="Sign up free and join any open game. No team needed for most games."
         ctaHref={`/signup?redirectedFrom=${encodeURIComponent(sport ? `/games?sport=${sportToSlug(sport)}` : "/games")}`}
-        ctaLabel="Sign up free and get playing"
+        ctaLabel="Find a Game"
       />
 
       <div className="mx-auto max-w-5xl px-6 py-10">

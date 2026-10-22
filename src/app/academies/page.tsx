@@ -1,9 +1,33 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { dictionary } from "@/lib/i18n/dictionary";
 import { getPublicAcademyIndex } from "@/lib/public-sport-academies";
 import { AcademiesDirectory } from "@/components/academies/academies-directory";
+import { SITE_URL, OG_IMAGE } from "@/lib/seo";
 
 export const revalidate = 3600;
+
+export const metadata: Metadata = {
+  title: "Find Sports Academies & Training in Egypt | Playza",
+  description: "Discover sports academies in Egypt for kids and adults. Find volleyball, basketball, tennis, padel and training near you. Compare and connect through Playza.",
+  keywords: [
+    "sports academies egypt", "sports academies cairo", "sports academies new cairo",
+    "volleyball academy cairo", "basketball academy for kids", "tennis academy cairo",
+    "padel academy cairo", "sports training for adults",
+    "أكاديميات رياضية مصر", "أكاديمية كرة طائرة", "أكاديمية كرة سلة للأطفال", "تدريب رياضي للكبار"
+  ],
+  alternates: { canonical: "/academies" },
+  openGraph: {
+    title: "Find Sports Academies & Training in Egypt | Playza",
+    description: "Discover sports academies in Egypt for kids and adults. Find training near you.",
+    url: `${SITE_URL}/academies`,
+    siteName: "Playza",
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: { card: "summary_large_image", title: "Find Sports Academies & Training in Egypt | Playza", description: "Discover sports academies in Egypt for kids and adults.", images: [OG_IMAGE] },
+};
 
 export default async function AcademiesPage() {
   const academies = await getPublicAcademyIndex();

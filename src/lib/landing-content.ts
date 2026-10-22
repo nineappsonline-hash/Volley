@@ -1,6 +1,6 @@
 /** Public copy shared by visible content and homepage search metadata. */
-export const LANDING_TITLE = "Volleyball, Tennis, Padel, Basketball & Archery in Egypt | Playza";
-export const LANDING_DESCRIPTION = "Discover volleyball, tennis, padel, basketball and archery in Egypt. Explore playing guides, published games, courts and academies, and plan your next activity with Playza.";
+export const LANDING_TITLE = "Playza | Find Sports Players, Join Games & Discover Academies";
+export const LANDING_DESCRIPTION = "Looking for people to play sports with in Egypt? Join volleyball, basketball, padel, tennis and beach volleyball games, meet players and discover sports academies on Playza.";
 export const BEACH_DESCRIPTION = {
   en: "Discover beach volleyball in Egypt with Playza. Explore sand-court games, find people to play with, and discover academies that match your next move.",
   ar: "العب كرة طائرة شاطئية مع بلايزا. شوف الماتشات على الرمل، واتعرّف على ناس تلعب معاهم، ولاقي أكاديمية تتمرن فيها.",
@@ -33,16 +33,16 @@ export function landingPageJsonLd(siteUrl: string): Record<string, unknown> {
 /** Copy for the homepage hero illustration and its three featured sports. */
 export const SportsHeroSceneCopy = {
   en: {
-    eyebrow: "VOLLEYBALL. TENNIS. ARCHERY.",
-    intro: "Serve a volleyball, rally in tennis or padel, shoot hoops in basketball, or take aim with archery. Find your people, explore sessions in Egypt, and make your next move with Playza.",
-    note: "Three sports. One community. Your next game.",
-    artLabel: "Illustration of volleyball players at a net, a tennis racket and ball, and an archer aiming at a target",
+    eyebrow: "FIND PLAYERS. JOIN GAMES.",
+    intro: "Looking for people to play sports with in Egypt? Join volleyball, basketball, padel, tennis or beach volleyball games, meet new players, and discover sports academies near you.",
+    note: "Play with others. Make new friends.",
+    artLabel: "Illustration of people playing sports together",
   },
   ar: {
-    eyebrow: "كرة طائرة. تنس. رماية بالقوس.",
-    intro: "العب كرة طائرة، أو تنس وبادل، أو كرة سلة، أو جرّب الرماية بالقوس. اتعرّف على ناس بتحب نفس رياضتك، وشوف المواعيد اللي تناسبك، ويلا نلعب مع بلايزا.",
-    note: "رياضتك. صحابك. وماتشك الجاي.",
-    artLabel: "رسم للاعبي كرة طائرة عند الشبكة، ومضرب وكرة تنس، ورامي بالقوس يصوّب نحو هدف",
+    eyebrow: "لاقى ناس تلعب معاهم. انضم لماتش.",
+    intro: "عاوز تلعب ومش لاقي ناس؟ انضم لماتشات كرة الطائرة، وكرة السلة، والبادل، والتنس، والطائرة الشاطئية، واتعرف على لاعبين جدد، واكتشف أكاديميات رياضية قريبة منك.",
+    note: "العب مع ناس. اتعرف على صحاب جدد.",
+    artLabel: "رسم لناس بيعبوا رياضة مع بعض",
   },
 } as const;
 
@@ -56,12 +56,22 @@ export const TENNIS_DESCRIPTION = {
   ar: "بتدور على حد تلعب معاه تنس أو مكان تتمرن فيه؟ شوف المواعيد المتاحة على بلايزا، وراجع المستوى والمكان والسعر قبل ما تنضم.",
 } as const;
 
-/** Supporting topic tags; visible content, titles and links carry the search intent. */
 export const LANDING_KEYWORDS = [
-  "volleyball Egypt", "volleyball games Cairo", "volleyball courts Cairo",
-  "basketball games Egypt", "basketball courts Cairo", "كرة سلة مصر", "ملاعب كرة السلة", "padel Egypt", "padel courts Cairo", "padel games Egypt", "بادل مصر", "ملاعب بادل", "tennis Egypt", "tennis courts Cairo", "tennis lessons Egypt", "tennis partners Cairo",
-  "archery Egypt", "archery Cairo", "archery training Egypt", "archery for beginners",
-  "beach volleyball Egypt", "sports activities Egypt",
-  "كرة طائرة في مصر", "ماتشات كرة طائرة في القاهرة", "ملاعب تنس في القاهرة", "تمارين تنس",
-  "الرماية بالقوس في مصر", "الرماية بالقوس في القاهرة", "تدريب الرماية بالقوس", "كرة طائرة شاطئية",
+  "find people to play sports with egypt",
+  "join sports games cairo",
+  "find sports partners cairo",
+  "volleyball games cairo",
+  "basketball games cairo",
+  "padel partners cairo",
+  "tennis partners cairo",
+  "beach volleyball games cairo",
+  "sports academies cairo",
+  "sports activities egypt",
+  "ماتشات رياضية مصر",
+  "ناس تلعب مع بعض",
+  "جروبات رياضية القاهرة",
+  "ماتشات طائرة القاهرة",
+  "ماتشات باسكت القاهرة",
+  "شريك بادل",
+  "أكاديميات رياضية مصر",
 ];

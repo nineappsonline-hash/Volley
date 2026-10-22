@@ -42,7 +42,7 @@ for (lang of ['en', 'ar']) {
   assert.ok(html.includes('href="/sports/archery"'));
   assert.ok(!html.includes(lang === 'ar' ? '>لاقي ملعب<' : 'Find a playground'));
   assert.ok(html.includes('heroJoin'));
-  assert.ok(html.includes(lang === 'ar' ? 'لاقي ماتش وانضم' : 'Find a game to join'));
+  assert.ok(html.includes(lang === 'ar' ? 'الاقي ماتش ألعب فيه' : 'Find a Game'));
   assert.ok(html.includes('href="/sports/tennis"'));
   assert.ok(html.includes('id="padel"'));
   assert.ok(html.includes('id="basketball"'));

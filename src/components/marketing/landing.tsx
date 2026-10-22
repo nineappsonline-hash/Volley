@@ -68,9 +68,9 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}><span />{SportsHeroSceneCopy[lang].eyebrow}</p>
-          <h1>{copy("Serve.", "إرسال.")}<br />{copy("Rally.", "تبادل.")}<br /><span>{copy("Aim.", "تصويب.")}<svg viewBox="0 0 400 25" aria-hidden="true"><path d="M5 18Q190-7 395 12M30 23Q210 6 365 18" /></svg></span></h1>
+          <h1>{copy("Find People", "لاقى ناس")}<br />{copy("to Play With", "تلعب معاهم")}<br /><span>{copy("Join Games", "وانضم لماتش")}<svg viewBox="0 0 400 25" aria-hidden="true"><path d="M5 18Q190-7 395 12M30 23Q210 6 365 18" /></svg></span></h1>
           <p className={styles.intro}>{SportsHeroSceneCopy[lang].intro}</p>
-          <div className={styles.actions}><Link className={`${styles.primary} ${styles.heroJoin}`} href="/games">{copy("Find a game to join", "لاقي ماتش وانضم")}<ArrowUpRight size={24} /></Link></div>
+          <div className={styles.actions}><Link className={`${styles.primary} ${styles.heroJoin}`} href="/games">{copy("Find a Game", "الاقي ماتش ألعب فيه")}<ArrowUpRight size={24} /></Link></div>
           <p className={styles.heroNote}><Volleyball size={17} />{SportsHeroSceneCopy[lang].note}</p>
         </div>
         <div className={styles.heroArt}>
@@ -89,8 +89,8 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
       <section id="upcoming-games" aria-labelledby="upcoming-games-title" className={styles.upcomingGames}>
         <div className={styles.sectionHeading}>
           <p className={styles.eyebrow}>{copy("MEET YOUR NEXT TEAMMATES", "اتعرّف على زمايلك في الماتش الجاي")}</p>
-          <h2 id="upcoming-games-title">{copy("Find a game. Join the people.", "لاقي ماتش. واتعرّف على ناس جديدة.")}</h2>
-          <p>{copy("Browse tennis, padel, basketball, volleyball and beach volleyball. Check each game's location, price and joining requirements before you book.", "اكتشف ماتشات التنس والبادل وكرة السلة والكرة الطائرة والطائرة الشاطئية. راجع مكان وتكلفة وشروط كل ماتش قبل الحجز.")}</p>
+          <h2 id="upcoming-games-title">{copy("Find a game. Join the people.", "لاقي ماتش. وانضم للعبة.")}</h2>
+          <p>{copy("Browse upcoming games for volleyball, basketball, padel, tennis and beach volleyball in Egypt. See location, spots left and price, then join other players.", "شوف الماتشات الجاية لكرة الطائرة، وكرة السلة، والبادل، والتنس، والطائرة الشاطئية في مصر. شوف المكان، والأماكن المتاحة، والسعر، وانضم للاعبين.")}</p>
         </div>
         {upcomingGames.length > 0 ? <div className={`flex flex-col gap-3 text-start ${styles.landingGameCards}`}>
           {upcomingGames.map(game => <GameCardShell key={game.id} layout="list" game={guestGameCard(game)} joined={false} detailsHref={publicGamePath(game.id)} />)}
@@ -100,7 +100,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
 
 
       <section id="sports" aria-labelledby="sports-title" className={styles.combinedSports}>
-        <div className={styles.sectionHeading}><h2 id="sports-title">{copy("Find your sport. Meet your people.", "اختار رياضتك. واتعرّف على ناس شبهك.")}</h2><p>{copy("Tennis, padel, volleyball, basketball, beach volleyball and archery in one place. Explore games, courts and playing levels before you join.", "تنس وبادل وكرة طائرة وكرة سلة وطائرة شاطئية ورماية بالقوس في مكان واحد. اكتشف الماتشات والملاعب ومستويات اللعب قبل ما تنضم.")}</p></div>
+        <div className={styles.sectionHeading}><h2 id="sports-title">{copy("Find players. Play your sport.", "لاقى ناس. العب رياضتك.")}</h2><p>{copy("Join games, find sports partners, and discover academies for volleyball, basketball, padel, tennis and beach volleyball in Egypt.", "انضم لماتشات، لاقى شركاء للعب، واكتشف أكاديميات لرياضات كرة الطائرة، وكرة السلة، والبادل، والتنس، والطائرة الشاطئية في مصر.")}</p></div>
         <div className={styles.sportsCards}>
           {(["padel", "tennis", "volleyball", "basketball", "beach-volleyball", "archery"] as const).map(item => <article id={item} key={item} className={styles.sportTile} aria-labelledby={`${item}-title`}>
             <div className={styles.sportTileArt} aria-hidden="true"><SportCardArt sport={item} /></div>
