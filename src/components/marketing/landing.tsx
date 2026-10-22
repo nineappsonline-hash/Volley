@@ -70,7 +70,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
           <p className={styles.eyebrow}><span />{SportsHeroSceneCopy[lang].eyebrow}</p>
           <h1>{copy("Find People", "لاقى ناس")}<br />{copy("to Play With", "تلعب معاهم")}<br /><span>{copy("Join Games", "وانضم لماتش")}<svg viewBox="0 0 400 25" aria-hidden="true"><path d="M5 18Q190-7 395 12M30 23Q210 6 365 18" /></svg></span></h1>
           <p className={styles.intro}>{SportsHeroSceneCopy[lang].intro}</p>
-          <div className={styles.actions}><Link className={`${styles.primary} ${styles.heroJoin}`} href="/games">{copy("Find a Game", "الاقي ماتش ألعب فيه")}<ArrowUpRight size={24} /></Link></div>
+          <div className={styles.actions}><NextLink className={`${styles.primary} ${styles.heroJoin}`} href="/dashboard">{copy("Find a Game", "الاقي ماتش ألعب فيه")}<ArrowUpRight size={24} /></NextLink></div>
           <p className={styles.heroNote}><Volleyball size={17} />{SportsHeroSceneCopy[lang].note}</p>
         </div>
         <div className={styles.heroArt}>
