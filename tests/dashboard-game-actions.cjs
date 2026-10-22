@@ -35,6 +35,16 @@ for(const layout of ['list','card']){
  assert.equal(nodes(tree,n=>n.type===mocks['./game-share-actions'].GameShareActions).length,1);
  for(const clickable of nodes(tree,n=>n.type==='button'||n.type==='a'))assert.equal(nodes(clickable,n=>n.type===mocks['./game-share-actions'].GameShareActions).length,0,'share is not nested in the expand/navigation button');
 }
+for (const layout of ['list','card']) {
+ const mappedGame={...game,playground:{name:'Court',location_link:'https://www.google.com/maps/search/?api=1&query=30.01,31.02'}};
+ const tree=GameCardShell({game:mappedGame,layout,joined:false});
+ const markup=renderToStaticMarkup(tree);
+ assert.ok(markup.includes('https://www.google.com/maps/dir/'), 'saved venue maps link is available while collapsed');
+ assert.ok(markup.includes('destination=30.01%2C31.02'));
+ for(const clickable of nodes(tree,n=>n.type==='button')) assert.equal(nodes(clickable,n=>n.props?.href?.includes('maps/dir')).length,0,'directions is outside expansion buttons');
+ const unsafe=GameCardShell({game:{...mappedGame,playground:{...mappedGame.playground,location_link:'javascript:alert(1)'}},layout,joined:false});
+ assert.ok(!renderToStaticMarkup(unsafe).includes('javascript:'), 'unsafe directions are not rendered');
+}
 console.log('PASS: collapsed list/card share controls, no nested actions, five sport defaults, all-sports behavior, guest auth return, reopen/resume and unsupported-sport guard in both languages');
 
 // Exercise the real dialog's opening/reset effects, without sending any booking request.

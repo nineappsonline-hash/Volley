@@ -27,7 +27,7 @@ function buttons(node, results = []) {
   React.Children.forEach(node.props?.children, child => buttons(child, results));
   return results;
 }
-modules['@/components/ui/dropdown-menu'] = Object.fromEntries(['DropdownMenu', 'DropdownMenuTrigger', 'DropdownMenuContent', 'DropdownMenuItem'].map(name => [name, ({ children }) => React.createElement('div', null, children)]));
+modules['@/components/ui/dropdown-menu'] = Object.fromEntries(['DropdownMenu', 'DropdownMenuTrigger', 'DropdownMenuContent', 'DropdownMenuItem', 'DropdownMenuGroup', 'DropdownMenuSeparator', 'DropdownMenuLabel'].map(name => [name, ({ children }) => React.createElement('div', null, children)]));
 const share = load('src/components/games/game-share-actions.tsx', {
   react: { ...React, useState: () => ['', value => { if (typeof value === "string") lastMessage = value; }] },
   '@/lib/i18n': { useI18n: () => ({ lang }) },
@@ -55,13 +55,17 @@ const share = load('src/components/games/game-share-actions.tsx', {
     assert.ok(html.includes('readonly=""'));
     for (const domain of ['facebook.com/sharer/sharer.php', 't.me/share/url', 'twitter.com/intent/tweet', 'linkedin.com/sharing/share-offsite']) assert.ok(html.includes(domain));
     assert.ok(html.includes(lang === 'ar' ? 'إنستجرام' : 'Instagram'));
+    for (const brand of ['whatsapp', 'facebook', 'instagram', 'telegram', 'x', 'linkedin']) {
+      assert.ok(html.includes(`/brand/social/${brand}.svg`));
+      assert.ok(fs.readFileSync(path.join(__dirname, '../public/brand/social', `${brand}.svg`), 'utf8').includes('<path'));
+    }
   }
   lang = 'en';
   const compact = share.GameShareActions({ game, compact: true });
   assert.equal(buttons(compact).length, 3, 'compact menu has Instagram, native sharing and copy actions');
   const compactHtml = renderToStaticMarkup(compact);
   assert.ok(!compactHtml.includes('<input') && !compactHtml.includes('Bring a friend'));
-  const actions = buttons(share.GameShareActions({ game })).filter(action => React.Children.toArray(action.props.children).some(child => child === "Copy link" || child === "More apps"));
+  const actions = buttons(share.GameShareActions({ game })).filter(action => React.Children.toArray(action.props.children).some(child => child === "Copy link" || child === "More apps")).reverse();
   let copied, nativeCalls = 0;
   Object.defineProperty(global, 'navigator', { configurable: true, value: { clipboard: { writeText: async value => { copied = value; } }, share: async () => { nativeCalls++; throw { name: 'AbortError' }; } } });
   await actions[1].props.onSelect(); await new Promise(resolve => setImmediate(resolve));
