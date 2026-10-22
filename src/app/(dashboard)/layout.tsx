@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/session";
 import { headers } from "next/headers";
+import type { Metadata } from "next";
 import { authDestination } from "@/lib/auth-redirect";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -11,6 +12,13 @@ import { InstallBanner } from "@/components/marketing/install-banner";
 import { PushPrompt } from "@/components/shared/push-prompt";
 import { InAppNotificationToast } from "@/components/shared/in-app-notification-toast";
 import { RatingPrompt } from "@/components/shared/rating-prompt";
+
+// The whole authenticated app is a private surface. Its public equivalents
+// (/games, /courts, /sports, /academies) carry the indexable SEO content, so
+// nothing under this group should ever appear in search results.
+export const metadata: Metadata = {
+  robots: { index: false, follow: true },
+};
 
 export default async function DashboardLayout({
   children,

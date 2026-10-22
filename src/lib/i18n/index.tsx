@@ -12,6 +12,7 @@ import { dictionary, type Dict, type Lang } from "@/lib/i18n/dictionary";
 
 export type { Dict, Lang };
 import { useLanguage } from "@/store/useLanguage";
+import { htmlLocaleForPath, isUrlLocalizedPublicPath } from "@/lib/html-lang";
 import { enUS, ar } from "date-fns/locale";
 import { Locale } from "date-fns";
 
@@ -34,8 +35,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    document.documentElement.lang = lang;
-    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+    // On URL-localised public pages the server already set the correct
+    // lang/dir from the path; the stored app preference must not override it.
+    if (isUrlLocalizedPublicPath(window.location.pathname)) return;
+    const { lang: htmlLang, dir } = htmlLocaleForPath(lang === "ar" ? "/ar" : "/");
+    document.documentElement.lang = htmlLang;
+    document.documentElement.dir = dir;
   }, [lang]);
 
   const t = useCallback(

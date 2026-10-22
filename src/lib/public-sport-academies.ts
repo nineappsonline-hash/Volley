@@ -7,22 +7,23 @@ export type PublicSportAcademy = { name: string; slug: string; area: string | nu
  * The directory itself is an interactive client component, so this server
  * fetcher supplies real academy names + /a/<slug> links in the initial HTML
  * that search crawlers can follow without running JavaScript.
+ *
+ * A successful query with zero rows returns an empty array (genuinely no
+ * public academies). A failed query throws so the page surfaces an error
+ * instead of silently emitting an empty, indexable SEO page.
  */
 export async function getPublicAcademyIndex(): Promise<PublicSportAcademy[]> {
-  try {
-    const { data, error } = await createAdminClient().from("academies")
-      .select("name, slug, area, governorate, description")
-      .eq("is_public", true)
-      .not("slug", "is", null)
-      .order("name")
-      .limit(200);
-    if (error) return [];
-    return (data ?? [])
-      .filter(a => a.slug?.trim())
-      .map(a => ({ name: a.name, slug: a.slug, area: a.area, governorate: a.governorate, description: a.description ?? null }));
-  } catch {
-    return [];
-  }
+  const { data, error } = await createAdminClient()
+    .from("academies")
+    .select("name, slug, area, governorate, description")
+    .eq("is_public", true)
+    .not("slug", "is", null)
+    .order("name")
+    .limit(200);
+  if (error) throw new Error(`academy index query failed: ${error.message}`);
+  return (data ?? [])
+    .filter(a => a.slug?.trim())
+    .map(a => ({ name: a.name, slug: a.slug, area: a.area, governorate: a.governorate, description: a.description ?? null }));
 }
 
 /** Public academy cards only; no member, contact or subscription data. */

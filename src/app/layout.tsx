@@ -2,11 +2,13 @@ import { LANDING_TITLE, LANDING_DESCRIPTION, LANDING_KEYWORDS } from "@/lib/land
 import { PLAYZA } from "@/lib/brand";
 import { OG_IMAGE, SITE_URL } from "@/lib/seo";
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import Script from "next/script";
 import { Providers } from "@/providers/providers";
 import { ScrollToTop } from "@/components/shared/scroll-to-top";
 import { AppBackground } from "@/components/shared/app-background";
 import { ContactWidget } from "@/components/contact/contact-widget";
+import { htmlLocaleForPath, publicPathMatcherSource } from "@/lib/html-lang";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -85,12 +87,14 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = headers().get("x-playza-path") ?? "/";
+  const { lang, dir } = htmlLocaleForPath(pathname);
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
+    <html lang={lang} dir={dir} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var s=localStorage.getItem('volley-lang');var st=s?JSON.parse(s).state:null;var lang=st&&st.lang==='en'?'en':'ar';document.documentElement.setAttribute('lang',lang);document.documentElement.setAttribute('dir',lang==='ar'?'rtl':'ltr');}catch(e){}`,
+            __html: `try{if(!${publicPathMatcherSource()}){var s=localStorage.getItem('volley-lang');var st=s?JSON.parse(s).state:null;var lang=st&&st.lang==='en'?'en':'ar';document.documentElement.setAttribute('lang',lang==='ar'?'ar-EG':'en-EG');document.documentElement.setAttribute('dir',lang==='ar'?'rtl':'ltr');}}catch(e){}`,
           }}
         />
         <script
