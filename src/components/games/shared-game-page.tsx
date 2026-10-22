@@ -1,5 +1,6 @@
 "use client";
 
+import { AnalyticsView } from "@/components/analytics/business-analytics";
 import { GameShareActions } from "./game-share-actions";
 import Link from "next/link";
 import { DirectionsLinks } from "@/components/shared/directions-links";
@@ -23,6 +24,7 @@ export function SharedGamePage({ game, inviteCode }: { game: SharedGameMeta | nu
   const photo = game ? venueCardPhoto(game.photos, game.cover_url) : null;
   const price = game ? (game.host_pays ? (ar ? "مجاني" : "Free") : game.share_price == null ? "—" : formatMoney(game.share_price, lang)) : "";
   return <main className="min-h-screen bg-transparent px-4 py-8" dir={dir}>
+    {game && <AnalyticsView event="game_view" id={game.id} context={{sport:game.sport,area:game.area,governorate:game.governorate}} />}
     <header className="mx-auto mb-8 flex max-w-2xl items-center justify-between"><Link href="/" aria-label="Playza"><AppLogo /></Link><LanguageToggle /></header>
     <Card className={`mx-auto max-w-2xl ${styles.invitation}`}>
       <CardHeader>

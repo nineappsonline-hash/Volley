@@ -1,3 +1,4 @@
+import { AnalyticsView } from "@/components/analytics/business-analytics";
 import { LocationMap } from "@/components/shared/location-map";
 import { AcademyLogo } from "@/components/academies/academy-logo";
 import type { Metadata } from "next";
@@ -156,6 +157,7 @@ export default async function PublicAcademyPage({
 
   return (
     <main className="min-h-screen bg-muted/20 pb-[calc(6rem+env(safe-area-inset-bottom))]">
+      <AnalyticsView event="academy_view" id={academy.id} context={{country:academy.country,governorate:academy.governorate,area:academy.area,sports:(sports??[]).map(s=>s.name)}} />
       <AcademyNavigation />
       <script
         type="application/ld+json"
@@ -232,6 +234,7 @@ export default async function PublicAcademyPage({
             </a>
             <JoinAcademyButton
               academyId={academy.id}
+              analytics={{country:academy.country,governorate:academy.governorate,area:academy.area,sports:(sports??[]).map(s=>s.name)}}
               className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-transform hover:scale-105"
             />
             <FollowAcademyButton

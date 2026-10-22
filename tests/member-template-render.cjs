@@ -82,7 +82,7 @@ console.log('PASS: focused member dashboard omits personal sections; menu retain
 
 // Clicking the shared list card expands its details in place without navigation.
 let expanded=false;
-mocks.react={...React,useState:()=>[expanded,value=>{expanded=value;}],useId:()=> 'inline-game-details'};
+mocks.react={...React,useEffect:()=>{},useState:()=>[expanded,value=>{expanded=value;}],useId:()=> 'inline-game-details'};
 cache.delete(path.resolve('src/components/games/game-card-shell.tsx'));
 const InlineShell=load('src/components/games/game-card-shell.tsx').GameCardShell;
 const inlineProps={layout:'list',joined:false,game:{id:'inline',title:'Inline game',sport:'Tennis',game_date:'2026-10-23',start_time:'18:00',status:'open',max_players:4,participants_count:1,share_price:100,is_public:true,participants:[]},children:React.createElement('button',null,'Join game here')};

@@ -1,5 +1,7 @@
 "use client";
 
+import { academyRegistrationClick } from "@/lib/analytics/registrations";
+import type { AnalyticsContext } from "@/lib/analytics/events";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -20,9 +22,11 @@ import { errorMessage } from "@/lib/utils";
 export function JoinAcademyButton({
   academyId,
   className,
+  analytics,
 }: {
   academyId: string;
   className?: string;
+  analytics?: AnalyticsContext;
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -63,6 +67,7 @@ export function JoinAcademyButton({
       className={className}
       disabled={busy || joined}
       onClick={async () => {
+        academyRegistrationClick(academyId,analytics);
         if (!userId) {
           router.push(`/signup?academy=${academyId}`);
           return;

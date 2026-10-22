@@ -1,4 +1,5 @@
 "use client";
+import { academyRegistrationClick } from "@/lib/analytics/registrations";
 import { Building2, Sparkles } from "lucide-react";
 import { AcademyLogo } from "@/components/academies/academy-logo";
 
@@ -301,6 +302,8 @@ export function AcademiesDirectory() {
   };
 
   const onJoin = async (academyId: string) => {
+    const selected = sortedAcademies.find(a=>a.id===academyId);
+    academyRegistrationClick(academyId,{...selected,sports:sportsByAcademy.get(academyId)??[]});
     if (!myId) {
       // Carry the chosen academy into signup so the member is not dropped on
       // the dashboard and left to hunt for the academy they just picked.

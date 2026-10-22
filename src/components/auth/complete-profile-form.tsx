@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmPendingSignup } from "@/lib/analytics/registrations";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -49,6 +50,7 @@ export function CompleteProfileForm() {
         })
         .eq("id", user.id);
       if (error) throw error;
+      void confirmPendingSignup();
       const next = authDestination(searchParams.get("next"));
       router.push(next);
       router.refresh();

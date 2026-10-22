@@ -1,7 +1,8 @@
 "use client";
 
+import { trackView } from "@/lib/analytics/events";
 import Link from "next/link";
-import { useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import { format } from "date-fns";
 import { ArrowUpRight, CalendarDays, ChevronDown, Clock, MapPin, Trophy, Users, CheckCircle2 } from "lucide-react";
 import { sportToSlug } from "@/lib/sport-slugs";
@@ -19,6 +20,9 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
   const ar = lang === "ar";
   const [expanded, setExpanded] = useState(initialExpanded);
   const detailsId = useId();
+  useEffect(() => {
+    if (expanded && !detailsHref) trackView("game_view", game.id, {sport:game.sport,area:game.area,country:game.playground?.country,governorate:game.playground?.governorate});
+  }, [expanded,detailsHref,game.id,game.sport,game.area,game.playground?.country,game.playground?.governorate]);
   const players = (game.participants ?? []).filter(p => !p.is_waitlisted);
   const slots = Math.max(0, game.max_players - game.participants_count);
   const percent = Math.min(100, Math.max(0, game.participants_count / Math.max(1, game.max_players) * 100));

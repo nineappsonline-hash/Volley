@@ -2,6 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
+import { startSignup, cancelSignup, rememberSignupUser, confirmPendingSignup } from "@/lib/analytics/registrations";
 import { createClient } from "@/lib/supabase/client";
 
 export type SignupVenue =
@@ -42,6 +43,7 @@ export function useAuth() {
     async (destination = "/dashboard") => {
       const callback = new URL("/auth/callback", window.location.origin);
       callback.searchParams.set("next", destination);
+      startSignup("player", "google");
       const { error } = await createClient().auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -52,7 +54,7 @@ export function useAuth() {
           },
         },
       });
-      if (error) throw error;
+      if (error) { cancelSignup(); throw error; }
     },
     []
   );
@@ -82,6 +84,7 @@ export function useAuth() {
     ) => {
       const callback = new URL("/auth/callback", window.location.origin);
       callback.searchParams.set("next", destination);
+      startSignup(academy?.ownerMode ? "venue" : academy?.newName ? "academy_owner" : "player", "email", {sport:academy?.sports,sports:academy?.ownerVenues?.flatMap(v => "sport" in v && typeof v.sport === "string" ? [v.sport] : []),country:academy?.country,governorate:academy?.governorate,city:academy?.city});
       const { data, error } = await createClient().auth.signUp({
         email,
         password,
@@ -115,7 +118,11 @@ export function useAuth() {
           },
         },
       });
-      if (error) throw error;
+      if (error) { cancelSignup(); throw error; }
+      if (data.user && data.user.identities?.length !== 0) {
+        rememberSignupUser(data.user.id);
+        if (data.session) void confirmPendingSignup();
+      } else { cancelSignup(); }
       // When email confirmation is enabled, no session is returned —
       // the caller should tell the user to check their inbox.
       return { session: data.session };

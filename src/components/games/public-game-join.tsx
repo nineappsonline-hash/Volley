@@ -1,5 +1,7 @@
 "use client";
 
+import { trackBusinessEvent } from "@/lib/analytics/events";
+import { rememberGameJoin } from "@/lib/analytics/registrations";
 import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -10,7 +12,7 @@ import { authLink } from "@/lib/auth-redirect";
 import { useI18n } from "@/lib/i18n";
 
 export function PublicGameJoin({ game, inviteCode, returnTo }: {
-  game: { id: string; title: string; share_price: number | null; host_pays?: boolean; host_total?: number | null; game_date?: string; start_time?: string; location?: string | null; area?: string | null; max_players?: number; participants_count?: number; status?: string };
+  game: { sport?: string; governorate?: string | null; country?: string | null; id: string; title: string; share_price: number | null; host_pays?: boolean; host_total?: number | null; game_date?: string; start_time?: string; location?: string | null; area?: string | null; max_players?: number; participants_count?: number; status?: string };
   inviteCode?: string;
   returnTo?: string;
 }) {
@@ -23,6 +25,8 @@ export function PublicGameJoin({ game, inviteCode, returnTo }: {
   const [busy, setBusy] = useState(false);
   const destination = returnTo ?? (inviteCode ? `/games?join=${encodeURIComponent(inviteCode)}` : `${pathname}${params.size ? `?${params}` : ""}`);
   async function join() {
+    trackBusinessEvent("join_game_click", {sport:game.sport,governorate:game.governorate,area:game.area,country:game.country});
+    rememberGameJoin(game.id);
     setBusy(true);
     try {
       const client = createClient();

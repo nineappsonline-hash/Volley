@@ -1,4 +1,5 @@
 "use client";
+import { academyRegistrationClick } from "@/lib/analytics/registrations";
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -290,6 +291,7 @@ export function JoinAcademySuggestion({
                         size="sm"
                         disabled={isJoining}
                         onClick={async () => {
+                          academyRegistrationClick(academy.id,{...academy,sport:sport??undefined});
                           setJoiningId(academy.id);
                           setFailedId(null);
                           try {

@@ -1,3 +1,4 @@
+import { BusinessAnalytics } from "@/components/analytics/business-analytics";
 import { LANDING_TITLE, LANDING_DESCRIPTION, LANDING_KEYWORDS } from "@/lib/landing-content";
 import { PLAYZA } from "@/lib/brand";
 import { OG_IMAGE, SITE_URL } from "@/lib/seo";
@@ -137,11 +138,19 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-XJPEX3WY2B');
+            gtag('set', {page_location: window.location.origin + '/', page_referrer: '', page_title: 'Playza'});
+            if (navigator.globalPrivacyControl || navigator.doNotTrack === '1' || navigator.doNotTrack === 'yes' || window.playzaAnalyticsConsent === 'denied') window['ga-disable-G-XJPEX3WY2B'] = true;
+            if (!window['ga-disable-G-XJPEX3WY2B']) {
+              gtag('config', 'G-XJPEX3WY2B', {send_page_view: false});
+              window.playzaGaConfigured = true;
+              (window.playzaGaQueue || []).forEach(function(args) { gtag.apply(null, args); });
+              window.playzaGaQueue = [];
+            }
           `}
         </Script>
         <ScrollToTop />
         <Providers>
+          <BusinessAnalytics />
           <AppBackground />
           {children}
           <ContactWidget />

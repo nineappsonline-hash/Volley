@@ -35,6 +35,9 @@ import {
 import { GameCostEstimate } from "@/components/games/game-cost-estimate";
 import { GameParticipantNames } from "./game-participant-names";
 import { GameChat } from "@/components/games/game-chat";
+import { AnalyticsView } from "@/components/analytics/business-analytics";
+import { trackBusinessEvent } from "@/lib/analytics/events";
+import { rememberGameJoin } from "@/lib/analytics/registrations";
 import { JoinGameDialog } from "@/components/games/join-game-dialog";
 import {
   AlertDialog,
@@ -205,10 +208,13 @@ export function GameCard({
   })();
 
   const handleJoin = async () => {
+    trackBusinessEvent("join_game_click",{sport:game.sport,area:game.area,country:game.playground?.country,governorate:game.playground?.governorate});
+    rememberGameJoin(game.id);
     setPayOpen("join");
   };
 
   const handleJoinWaitlist = async () => {
+    trackBusinessEvent("join_game_click",{sport:game.sport,area:game.area,governorate:game.playground?.governorate});
     try {
       const added = await join.mutateAsync({
         gameId: game.id,
@@ -658,6 +664,7 @@ function InviteBanner({
 
   return (
     <>
+    {inviteGame && <AnalyticsView event="game_view" id={inviteGame.id} context={{sport:inviteGame.sport,area:inviteGame.area}} />}
     <Card className="border-primary/30 bg-primary/5">
       <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
         {loading ? (
@@ -691,7 +698,7 @@ function InviteBanner({
         {inviteGame && (
           <div className="flex flex-wrap items-center gap-2">
           {inviteGame.playground?.location_link && <DirectionsLinks locationLink={inviteGame.playground?.location_link} lat={inviteGame.lat} lng={inviteGame.lng} query={inviteGame.location ?? inviteGame.area ?? inviteGame.title} />}
-          <Button onClick={() => setPayOpen(true)} disabled={!inviteGame}>
+          <Button onClick={() => {trackBusinessEvent("join_game_click",{sport:inviteGame.sport,area:inviteGame.area});rememberGameJoin(inviteGame.id);setPayOpen(true);}} disabled={!inviteGame}>
             <Plus className="h-4 w-4" />
             {t("games_join_from_link")}
           </Button>

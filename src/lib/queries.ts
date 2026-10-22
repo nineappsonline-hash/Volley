@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAcademyRegistration, confirmGameRegistration } from "@/lib/analytics/registrations";
 import { fetchMyGames } from "./my-games";
 
 import { ACTIVE_SPORTS } from "@/lib/active-sports";
@@ -1219,8 +1220,10 @@ export function useUnratedAcademyTargets(memberId: string) {
 }
 
 /** Attach a pending (codeless) member to a public academy. Returns false if already attached. */
-export function joinPublicAcademy(academyId: string) {
-  return supabase().rpc("join_public_academy", { p_academy_id: academyId });
+export async function joinPublicAcademy(academyId: string) {
+  const result = await supabase().rpc("join_public_academy", { p_academy_id: academyId });
+  if (!result.error && result.data === true) void confirmAcademyRegistration(academyId);
+  return result;
 }
 
 // ── Academy follows ─────────────────────────────────────────
@@ -3487,7 +3490,8 @@ export function useJoinFriendlyGame() {
       // TRUE = placed on the waitlist, FALSE = took a real spot.
       return data as boolean;
     },
-    onSuccess: () => {
+    onSuccess: (waitlisted, input) => {
+      if (waitlisted === false) void confirmGameRegistration(input.gameId);
       qc.invalidateQueries({ queryKey: queryKeys.friendlyGames });
       qc.invalidateQueries({ queryKey: queryKeys.myGameParticipants });
     },

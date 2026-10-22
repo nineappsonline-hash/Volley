@@ -1,4 +1,5 @@
 "use client";
+import { RegistrationStart } from "@/components/analytics/business-analytics";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -440,6 +441,7 @@ export function SignupForm() {
 
   return (
     <main className="pwa-pad-top relative flex min-h-screen overflow-hidden bg-background px-6">
+      {isTenant && <RegistrationStart event="academy_owner_registration_started" />}
       <div className="pointer-events-none absolute inset-0 bg-grid opacity-40" />
       <div className="pointer-events-none absolute -top-32 start-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-accent blur-3xl rtl:translate-x-1/2" />
       <div className="absolute end-4 top-4">
