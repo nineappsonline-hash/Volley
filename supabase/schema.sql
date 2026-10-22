@@ -344,7 +344,8 @@ END
 $$;
 
 INSERT INTO public.sport_settings (sport, min_players) VALUES
-  ('Beach Volleyball', 8)
+  ('Beach Volleyball', 8),
+  ('Basketball', 8)
 ON CONFLICT (sport) DO NOTHING;
 
 -- Teams table (a team groups members and belongs to one sport)

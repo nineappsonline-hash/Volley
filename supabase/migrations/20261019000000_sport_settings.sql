@@ -46,5 +46,6 @@ $$;
 -- Seed the sport-specific minimums that previously lived only in app code.
 -- Existing rows keep their values when this file re-runs.
 INSERT INTO public.sport_settings (sport, min_players) VALUES
-  ('Beach Volleyball', 8)
+  ('Beach Volleyball', 8),
+  ('Basketball', 8)
 ON CONFLICT (sport) DO NOTHING;
