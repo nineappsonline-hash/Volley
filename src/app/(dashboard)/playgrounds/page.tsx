@@ -6,7 +6,9 @@ import { PlaygroundsClient } from "@/components/playgrounds/playgrounds-client";
 import { MemberPlaygrounds } from "@/components/playgrounds/member-playgrounds";
 import { OwnerDashboard } from "@/components/playgrounds/owner-dashboard";
 
-export const metadata: Metadata = { title: "Playgrounds" };
+// Private app surface: the public court directory lives at /courts. Keep this
+// authenticated route out of the index so it cannot duplicate /courts.
+export const metadata: Metadata = { title: "Playgrounds", robots: { index: false, follow: true } };
 
 export default async function PlaygroundsPage() {
   const session = await getSession();

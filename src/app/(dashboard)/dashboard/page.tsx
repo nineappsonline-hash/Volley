@@ -8,7 +8,9 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { AdminDashboard } from "@/components/dashboard/admin-dashboard";
 import { MemberDashboard } from "@/components/dashboard/member-dashboard";
 
-export const metadata: Metadata = { title: "Dashboard" };
+// Private app surface: the public equivalents are /games and /sports. Keep it
+// out of the index so it cannot compete with those pages as duplicate content.
+export const metadata: Metadata = { title: "Dashboard", robots: { index: false, follow: true } };
 
 export default async function DashboardPage() {
   const session = await getSession();

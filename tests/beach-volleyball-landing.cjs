@@ -39,11 +39,11 @@ for (lang of ['en', 'ar']) {
   assert.ok(!html.includes('<section id="archery"'));
   assert.ok(html.includes('<article id="archery"'));
   assert.ok(html.includes(content.ARCHERY_DESCRIPTION[lang]));
-  assert.ok(html.includes('href="/dashboard?sport=archery"'));
+  assert.ok(html.includes('href="/sports/archery"'));
   assert.ok(!html.includes(lang === 'ar' ? '>لاقي ملعب<' : 'Find a playground'));
   assert.ok(html.includes('heroJoin'));
   assert.ok(html.includes(lang === 'ar' ? 'لاقي ماتش وانضم' : 'Find a game to join'));
-  assert.ok(html.includes('href="/dashboard?sport=tennis"'));
+  assert.ok(html.includes('href="/sports/tennis"'));
   assert.ok(html.includes('id="padel"'));
   assert.ok(html.includes('id="basketball"'));
   assert.ok(html.includes(content.TENNIS_DESCRIPTION[lang]));
@@ -54,17 +54,17 @@ for (lang of ['en', 'ar']) {
   assert.ok(html.indexOf('class="finalCta"') > html.indexOf('id="beach-challenge"'), 'the court is calling follows the 3D game');
   assert.ok(section.includes(content.BEACH_DESCRIPTION[lang]));
 
-  assert.ok(section.includes('href="/dashboard?sport=beach-volleyball"'));
+  assert.ok(section.includes('href="/sports/beach-volleyball"'));
 
   assert.ok(html.includes('aria-pressed="false"'), 'motion control exposes its initial state');
   assert.ok(section.includes('aria-hidden="true"'), 'decorative art is excluded from the reading order');
   assert.ok(!html.includes('/beach-volleyball/cairo'), 'do not link to a nonexistent nested route');
   assert.ok(html.includes('id="academy-management"'), 'owners have a visible homepage entry point');
-  assert.ok(html.includes('href="/dashboard/academies"'), 'management exploration opens the dashboard academy directory');
+  assert.ok(html.includes(`href="${lang === 'ar' ? '/ar' : ''}/academy-management"`), 'management exploration opens the owner management page');
   const viewportDir = lang === 'ar' ? 'rtl' : 'ltr';
   assert.ok(html.includes(`dir="${viewportDir}"`));
 }
-assert.ok(renderToStaticMarkup(React.createElement(LandingPage)).includes('href="/playgrounds"'));
+assert.ok(renderToStaticMarkup(React.createElement(LandingPage)).includes('href="/ar/courts"'));
 // Public game previews must preserve prices, dates and the destination game.
 const games = [
   { id: 'paid', title: 'Friday beach game', sport: 'Beach Volleyball', game_date: '2026-11-01', start_time: '20:00', share_price: 145, area: 'New Cairo', playground: { name: 'Sand court', area: 'New Cairo', governorate: 'Cairo', photos:['https://example.invalid/landing-court.jpg'] } },
