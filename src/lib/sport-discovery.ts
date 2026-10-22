@@ -85,4 +85,19 @@ const SPORT_SEARCH_COPY: Record<string, { en: { title: string; description: stri
     ar: { title: "الرماية بالقوس في القاهرة — دليل التدريب والمبتدئين", description: "بتدور على الرماية بالقوس في القاهرة؟ اعرف إزاي تختار تدريب مناسب، وتسأل عن تأجير القوس وتجهيزات الميدان، وتراجع صفحات الأكاديميات المنشورة على بلايزا." },
     keywords: ["archery Cairo", "archery Egypt", "archery training Egypt", "archery for beginners", "الرماية بالقوس في القاهرة", "تدريب الرماية بالقوس", "تعلم الرماية بالقوس"],
   },
+  basketball: {
+    en: { title: "Basketball in Cairo, Egypt — Courts & Pickup Games", description: "Find basketball in Cairo: compare half-court and full-court listings, browse published pickup games, and check the player count, level and price before you join." },
+    ar: { title: "الباسكت في القاهرة — ملاعب وماتشات ودية", description: "اكتشف الباسكت في القاهرة: قارن بين ملاعب نصف الملعب والملعب الكامل، وراجع ماتشات الباسكت المنشورة، واتأكد من عدد اللاعبين والمستوى والتكلفة قبل الانضمام." },
+    keywords: ["basketball courts Cairo", "basketball games Cairo", "pickup basketball Cairo", "find basketball players Cairo", "basketball near me", "ملاعب باسكت في القاهرة", "ماتشات باسكت", "ملاعب كرة سلة التجمع الخامس", "عاوز ألعب باسكت"],
+  },
+  padel: {
+    en: { title: "Padel Courts & Games in Cairo | Book Padel | Playza", description: "Discover padel courts and games in Cairo. Find players, compare available courts, and join your next padel match with Playza." },
+    ar: { title: "احجز ملعب بادل أو انضم لماتش بادل في القاهرة", description: "اكتشف ملاعب وماتشات البادل في القاهرة. لاقي لاعبين، وقارن الملاعب المتاحة، وانضم لأقرب ماتش بادل مع بلايزا." },
+    keywords: ["padel courts Cairo", "padel courts New Cairo", "padel booking Egypt", "padel games Cairo", "find padel players Cairo", "padel near me", "ملاعب بادل", "ملاعب بادل التجمع الخامس", "حجز ملعب بادل", "ناس تلعب بادل"],
+  },
+  "beach-volleyball": {
+    en: { title: "Beach Volleyball in Cairo — Sand Courts & Games", description: "Play beach volleyball in Cairo without leaving the city. Find sand-court games and courts, compare published prices and join individually through Playza." },
+    ar: { title: "الكرة الطائرة الشاطئية في القاهرة — ملاعب رملية وماتشات", description: "العب طائرة شاطئية في القاهرة من غير سفر. دور على الماتشات والملاعب الرملية، وقارن الأسعار المعلنة، وانضم بمفردك من خلال بلايزا." },
+    keywords: ["beach volleyball Cairo", "beach volleyball New Cairo", "beach volleyball courts Egypt", "beach volleyball games Cairo", "ملاعب طائرة شاطئية القاهرة", "كرة طائرة شاطئية التجمع الخامس"],
+  },
 };

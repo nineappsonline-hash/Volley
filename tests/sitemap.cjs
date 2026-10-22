@@ -18,6 +18,9 @@ const mocks={
  '@/lib/sport-discovery':{DISCOVERY_SPORTS:[{slug:'football'},{slug:'padel'}],discoveryPath:(lang,slug)=>`${lang==='ar'?'/ar':''}/sports${slug?'/'+slug:''}`},
  '@/lib/local-games':{LOCAL_GAME_GUIDES:[{slug:'volleyball-new-cairo'},{slug:'beach-volleyball-new-cairo'}],localGamePath:(lang,slug)=>`${lang==='ar'?'/ar':''}/play/${slug}`},
  '@/lib/game-discovery':{publicGamePath:id=>`/games/${id}`},
+ '@/lib/list-your-court':{listYourCourtPath:lang=>`${lang==='ar'?'/ar':''}/list-your-court`},
+ '@/lib/public-playgrounds':{getPublicCourtDirectory:async()=>[{id:'c1',name:'Court 1',area:'New Cairo',sport:{name:'Padel'}},{id:'c2',name:'Court 2',area:'New Cairo',sport:{name:'Football'}}]},
+ '@/lib/court-locations':{courtsLocationPath:(lang,sport,location)=>`${lang==='ar'?'/ar':''}/courts/${sport}/${location}`,locationSlugsWithInventory:(courts,sport)=>courts.filter(c=>c.sport.name===sport).map(()=> 'new-cairo').filter((v,i,a)=>a.indexOf(v)===i)},
  '@/lib/public-games':{getPublicGameIds:async()=>{if(failGames)throw Error('offline');return ['public-game'];},getPublicGameSports:async()=>{if(failGames)throw Error('offline');return ['Football','football'];},getPublicTournamentSports:async()=>['Padel']},
  '@/lib/supabase/admin':{createAdminClient:()=>{if(failAcademies)throw Error('unavailable');return {from:()=>({select(){return this;},in(){return this;},eq(k,v){assert.equal(k,'is_public');assert.equal(v,true);return this;},not(){return this;},order(){return this;},range:async(a,b)=>({data:rows.slice(a,b+1),error:null})})};}},
 };

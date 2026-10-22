@@ -11,6 +11,7 @@ import { courtsPath } from "@/lib/court-discovery";
 import { getPublicGames } from "@/lib/public-games";
 import { getCairoSportAcademies } from "@/lib/public-sport-academies";
 import { DISCOVERY_SPORTS, discoveryPath, findDiscoverySport, type DiscoveryLanguage } from "@/lib/sport-discovery";
+import { courtsLocationPath, locationLabel, locationSlugsWithInventory } from "@/lib/court-locations";
 import { SITE_URL, breadcrumbsJsonLd, faqPageJsonLd, jsonLdStringify, landingFaqItems } from "@/lib/seo";
 import { formatMoney, formatTime12h, AR_NUMERIC_LOCALE } from "@/lib/constants";
 
@@ -66,6 +67,7 @@ export async function SportDiscoveryPage({ slug, lang }: { slug: string; lang: D
   const showCourts = volleyball || slug === "tennis";
   const [games, academies, publicCourts] = await Promise.all([getPublicGames(sport.name), getCairoSportAcademies(sport.name), showCourts ? getPublicCourtDirectory(sport.name) : Promise.resolve([])]);
   const courts = publicCourts.filter(c => ["cairo", "القاهرة"].includes(c.governorate?.trim().toLowerCase() ?? ""));
+  const locationSlugs = showCourts ? locationSlugsWithInventory(courts, sport.name) : [];
   const cairoGames = games.filter(game => ["cairo", "القاهرة"].includes(game.playground?.governorate?.trim().toLowerCase() ?? ""));
   const questions: [string, string][] = ar ? [
     [`إزاي ألاقي ${name} في القاهرة؟`, "ابدأ بالماتشات والأكاديميات المنشورة على Playza. راجع عنوان المكان والمنطقة والميعاد ومستوى المشاركين. لو مفيش إعلان مناسب حاليًا، تقدر تتابع الأكاديميات أو تنظم نشاط من حسابك؛ توفر الأنشطة مش مضمون في كل منطقة."],
@@ -115,6 +117,9 @@ export async function SportDiscoveryPage({ slug, lang }: { slug: string; lang: D
             <Link href={`/p/${encodeURIComponent(c.id)}`} className="inline-block text-sm font-semibold underline underline-offset-4">{ar ? "المكان والمواعيد وتفاصيل الحجز" : "Location, schedule & booking details"}</Link>
           </article>)}</div> : <p className="rounded-2xl border bg-card p-4 text-muted-foreground">{ar ? "مفيش ملاعب منشورة متاحة للعرض هنا بالاختيار ده حاليًا." : "No published courts are available to display here for this selection right now."}</p>}
           <Link className={linkStyle} href={courtsPath(lang, slug)}>{ar ? `اكتشف ملاعب ${name} في مصر` : `Explore ${sport.name} courts in Egypt`}</Link>
+          {locationSlugs.length > 0 && <div className="flex flex-wrap gap-2 pt-1">
+            {locationSlugs.map(loc => <Link key={loc} href={courtsLocationPath(lang, slug, loc)} className="rounded-lg border px-3 py-2 text-sm font-semibold hover:bg-accent">{ar ? `ملاعب ${name} في ${locationLabel(lang, loc)}` : `${sport.name} courts in ${locationLabel(lang, loc)}`}</Link>)}
+          </div>}
         </section>
         <section className="space-y-4">
           <h2 className="text-2xl font-bold">{ar ? "قبل ما تختار لعب أو تدريب" : "Before choosing a game or training session"}</h2>
