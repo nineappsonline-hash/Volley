@@ -109,7 +109,8 @@ export function trackBusinessEvent(name: BusinessEvent, context: AnalyticsContex
     try { intent = JSON.parse(storageGet("playza:ga4:intent") ?? "{}"); } catch { /* Optional. */ }
     const clean=analyticsContext(context);
     if (["game_view","join_game_click","academy_view","academy_registration_click"].includes(name) && Object.keys(clean).length) storageSet("playza:ga4:intent",clean);
-    command("event",name,{...pageContext(),...analyticsContext(intent),...clean,send_to:GA_MEASUREMENT_ID}); return true;
+    const inheritIntent=["player_signup_completed","venue_registration_started","academy_owner_registration_started"].includes(name);
+    command("event",name,{...pageContext(),...(inheritIntent?analyticsContext(intent):{}),...clean,send_to:GA_MEASUREMENT_ID}); return true;
   } catch { return false; }
 }
 export function trackView(name: "game_view" | "academy_view", id: string, context: AnalyticsContext): void {

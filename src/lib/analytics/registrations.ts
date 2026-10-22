@@ -7,7 +7,9 @@ const GAME = "playza:ga4:game-intent:v1";
 type SignupKind = "player" | "venue" | "academy_owner";
 type PendingSignup = {kind:SignupKind; method:"email"|"google"; started:number; context:AnalyticsContext; userId?:string};
 export function startSignup(kind:SignupKind, method:"email"|"google", context:AnalyticsContext = {}): void {
-  storageSet(PENDING,{kind,method,started:Date.now(),context:analyticsContext(context)});
+  let intent:AnalyticsContext={};
+  if(kind==="player") {try {intent=JSON.parse(storageGet("playza:ga4:intent")??"{}");}catch{ /* Optional. */ }}
+  storageSet(PENDING,{kind,method,started:Date.now(),context:{...analyticsContext(intent),...analyticsContext(context)}});
 }
 export function cancelSignup(): void { storageRemove(PENDING); }
 export function rememberSignupUser(userId:string): void {
@@ -19,6 +21,8 @@ export async function confirmPendingSignup(): Promise<void> {
   try {
     const pending:PendingSignup|null=JSON.parse(storageGet(PENDING)??"null");
     if(!pending || Date.now()-pending.started>7*86400000) return;
+    // Email intent alone is not proof of a successful signUp response.
+    if(pending.method==="email" && !pending.userId) return;
     const client=createClient();
     const {data:{user},error}=await client.auth.getUser();
     if(error||!user || (pending.userId && pending.userId!==user.id)) return;
