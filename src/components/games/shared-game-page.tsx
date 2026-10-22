@@ -40,7 +40,9 @@ export function SharedGamePage({ game, inviteCode }: { game: SharedGameMeta | nu
       </CardHeader>
       <CardContent className="space-y-3">
         {game && <>
-          <div className={styles.meta}>
+          <div className={styles.shareBar}>
+            <GameShareActions game={{ ...game, place: game.map_label ?? game.location_link ?? "" }} compact={false} />
+            {gameIsJoinable(game) && <div className={styles.inviteBar}>\n              <button onClick={() => navigator.clipboard.writeText(publicGamePath(game.id))} className="border rounded px-4 py-2 text-sm hover:bg-muted/30">{lang === "ar" ? "انسخ الرابط" : "Copy link"}</button>\n              <a href="https://wa.me/?text={encodeURIComponent(`${game.title}\n${publicGamePath(game.id)}`)}" target="_blank" rel="noopener noreferrer" className="ml-3 border rounded px-4 py-2 text-sm hover:bg-muted/30">{lang === "ar" ? "واتساب" : "WhatsApp"}</a>\n            </div>}\n          </div>\n          <div className={styles.meta}>
             <p className={styles.metaLine}><bdi>{formatTime12h(game.start_time, lang)}{endTime && <> – {formatTime12h(endTime, lang)}</>}</bdi>{nextDay && <span className={styles.muted}>{ar ? "(تاني يوم)" : "(next day)"}</span>}<span className={styles.muted}>{ar ? "بتوقيت القاهرة" : "Cairo time"}</span></p>
             <p className={styles.metaLine}><time dateTime={game.game_date}>{new Intl.DateTimeFormat(ar ? AR_NUMERIC_LOCALE : "en-GB", { dateStyle: "full", timeZone: "Africa/Cairo" }).format(new Date(`${game.game_date}T12:00:00Z`))}</time></p>
             <p className={styles.metaLine}>{t(`games_gender_${game.gender}`)}<span className={styles.sep} aria-hidden="true">·</span><span className="break-words">{game.map_label}</span></p>
