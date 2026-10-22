@@ -60,6 +60,9 @@ type NewVenueDraft = {
   id?: string;
   name: string;
   address: string;
+  country: string;
+  governorate: string;
+  area: string;
   sport: string;
   location_link: string;
   photos: string[];
@@ -69,7 +72,8 @@ type NewVenueDraft = {
 };
 
 export function OwnerSignupForm() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const defaultCountry = lang === "ar" ? "مصر" : "Egypt";
   const router = useRouter();
   const searchParams = useSearchParams();
   const { signUp } = useAuth();
@@ -78,7 +82,7 @@ export function OwnerSignupForm() {
   const [pushPromptOpen, setPushPromptOpen] = useState(false);
   const pendingNav = useRef<(() => void) | null>(null);
 
-  const [location, setLocation] = useState({ country: "", governorate: "", city: "" });
+  const [location, setLocation] = useState({ country: defaultCountry, governorate: "", city: "" });
   const [businessName, setBusinessName] = useState("");
   const [account, setAccount] = useState({
     name: "",
@@ -174,6 +178,9 @@ export function OwnerSignupForm() {
         ...(v.id ? { id: v.id } : {}),
         name: v.name.trim() || businessName.trim(),
         address: v.address.trim() || null,
+        ...(v.country ? { country: v.country } : {}),
+        ...(v.governorate ? { governorate: v.governorate } : {}),
+        ...(v.area ? { area: v.area } : {}),
         sport: v.sport && v.sport !== "none" ? v.sport.trim() : null,
         location_link: v.location_link.trim() || null,
         ...(v.photos.length ? { photos: v.photos } : {}),
@@ -253,7 +260,18 @@ export function OwnerSignupForm() {
   const addNewVenueDraft = () =>
     setSignupVenues((vs) => [
       ...vs,
-      { name: "", address: "", sport: "", location_link: "", photos: [], rental_cost: "", court_count: "1" },
+      {
+        name: "",
+        address: "",
+        country: defaultCountry,
+        governorate: location.governorate,
+        area: location.city,
+        sport: "",
+        location_link: "",
+        photos: [],
+        rental_cost: "",
+        court_count: "1",
+      },
     ]);
   const addPoolVenueDraft = (v: PoolVenue) =>
     setSignupVenues((vs) => [
@@ -263,6 +281,9 @@ export function OwnerSignupForm() {
         fromPool: true,
         name: v.name,
         address: v.address ?? "",
+        country: defaultCountry,
+        governorate: location.governorate,
+        area: location.city,
         sport: "",
         location_link: "",
         photos: [],
@@ -444,6 +465,16 @@ export function OwnerSignupForm() {
                           </p>
                         </div>
                       </div>
+                      {!v.fromPool && (
+                        <LocationFields
+                          country={v.country}
+                          governorate={v.governorate}
+                          city={v.area}
+                          onCountryChange={(val) => setSignupVenue(i, { country: val })}
+                          onGovernorateChange={(val) => setSignupVenue(i, { governorate: val })}
+                          onCityChange={(val) => setSignupVenue(i, { area: val })}
+                        />
+                      )}
                       <div className="space-y-2">
                         <Label>{t("venues_address")}</Label>
                         <Input
