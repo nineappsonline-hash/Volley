@@ -1,5 +1,6 @@
 "use client";
 
+import { gameCreationSport } from "@/lib/game-creation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -57,12 +58,14 @@ export function CreateGameDialog({
   memberPlan,
   initialPlayground,
   initialDate,
+  initialSport,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   memberPlan?: "free" | "premium";
   initialPlayground?: Venue;
   initialDate?: string;
+  initialSport?: string;
 }) {
   const { t, lang } = useI18n();
   const isPro = memberPlan === "premium";
@@ -151,7 +154,7 @@ export function CreateGameDialog({
   useEffect(() => {
     if (open) {
       setTitle("");
-      setSport(initialPlayground?.sport?.name ?? "");
+      setSport(initialPlayground?.sport?.name ?? gameCreationSport(initialSport) ?? "");
       setPlaygroundId(initialPlayground?.id ?? "");
       setDate(initialDate ?? addDaysInput(1));
       if (initialPlayground) setPickLocation({ country: "all", governorate: "all", area: "all" });
@@ -171,7 +174,7 @@ export function CreateGameDialog({
       setShowRentInfo(false);
       setSharePaid(false);
     }
-  }, [open, initialPlayground, initialDate]);
+  }, [open, initialPlayground, initialDate, initialSport]);
 
   const selectedPlayground = playgrounds?.find((p) => p.id === playgroundId);
 

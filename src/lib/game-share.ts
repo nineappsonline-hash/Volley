@@ -16,8 +16,10 @@ export type ShareableGame = {
 /** Public links never carry invitation codes; private links must retain their code. */
 export function gameSharingTarget(game: ShareableGame, origin: string, lang: "en" | "ar" = "en") {
   if (!game.is_public && !game.invite_code) return null;
-  const cleanUrl = `${origin.replace(/\/+$/, "")}/games/${encodeURIComponent(game.id)}`;
-  const url = `${cleanUrl}?utm_source=whatsapp&utm_medium=share&utm_campaign=game_share`;
+  const cleanUrl = game.is_public
+    ? `${origin.replace(/\/+$/, "")}/games/${encodeURIComponent(game.id)}`
+    : `${origin.replace(/\/+$/, "")}/games?join=${encodeURIComponent(game.invite_code!)}`;
+  const url = `${cleanUrl}${game.is_public ? "?" : "&"}utm_source=whatsapp&utm_medium=share&utm_campaign=game_share`;
   const ar = lang === "ar";
   const date = new Intl.DateTimeFormat(ar ? "ar-EG-u-nu-latn" : "en-GB", { dateStyle: "full", timeZone: "Africa/Cairo" }).format(new Date(`${game.game_date}T12:00:00Z`));
   const price = ar ? game.host_pays || game.share_price === 0 ? "مجاني" : game.share_price == null ? "التكلفة لم تتحدد بعد" : `${game.share_price} جنيه لكل لاعب` : gameSharePrice(game);

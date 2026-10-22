@@ -103,6 +103,7 @@ import type {
   Profile,
 } from "@/lib/types";
 import { GameTeamsButton } from "./game-teams";
+import { gameCreationSport } from "@/lib/game-creation";
 import { CreateGameDialog } from "./create-game-dialog";
 import { EditGameDialog } from "./edit-game-dialog";
 
@@ -736,8 +737,8 @@ export function GamesClient({ profile }: { profile: Profile }) {
   const [countryFilter, setCountryFilter] = useState("");
   const [governorateFilter, setGovernorateFilter] = useState("");
   const requestedSport = searchParams.get("sport");
-  const [sportFilter, setSportFilter] = useState(() => COMMUNITY_SPORTS.find(sport => sport.toLowerCase() === requestedSport?.toLowerCase()) ?? "all");
-  useEffect(() => { setSportFilter(COMMUNITY_SPORTS.find(sport => sport.toLowerCase() === requestedSport?.toLowerCase()) ?? "all"); }, [requestedSport]);
+  const [sportFilter, setSportFilter] = useState(() => gameCreationSport(requestedSport) ?? "all");
+  useEffect(() => { setSportFilter(gameCreationSport(requestedSport) ?? "all"); }, [requestedSport]);
   const [areaFilter, setAreaFilter] = useState("");
   const [skillFilter, setSkillFilter] = useState<SkillFilter>("all");
   const [availability, setAvailability] = useState<Availability>("any");
@@ -1053,7 +1054,7 @@ export function GamesClient({ profile }: { profile: Profile }) {
         </>
       )}
 
-      <CreateGameDialog open={dialogOpen} onOpenChange={setDialogOpen} memberPlan={profile.member_plan} />
+      <CreateGameDialog open={dialogOpen} onOpenChange={setDialogOpen} memberPlan={profile.member_plan} initialSport={gameCreationSport(sportFilter)} />
 
 
     </div>

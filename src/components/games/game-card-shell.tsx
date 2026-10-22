@@ -1,6 +1,7 @@
 "use client";
 
 import { trackView } from "@/lib/analytics/events";
+import { GameShareActions } from "./game-share-actions";
 import Link from "next/link";
 import { useEffect, useId, useState, type ReactNode } from "react";
 import { format } from "date-fns";
@@ -36,6 +37,7 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
   const statusStyle = game.status === "completed" ? "border-emerald-200/40 bg-emerald-700" : game.status === "open" ? "border-blue-200/40 bg-blue-600" : game.status === "full" ? "border-amber-200/40 bg-amber-700" : "border-red-200/40 bg-red-700";
   const Indicator = detailsHref ? ArrowUpRight : ChevronDown;
   const overviewClass = "flex w-full items-start gap-3 p-3 text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:gap-4 sm:p-4";
+  const share = <GameShareActions compact game={{...game,joined:game.participants_count,place:[game.playground?.name,game.playground?.area??game.area,game.playground?.governorate].filter(Boolean).join(", ")||game.location||""}} />;
   const overview = <>
       <span className="relative isolate block h-24 w-20 shrink-0 overflow-hidden rounded-xl bg-brand sm:h-28 sm:w-28">
         {!photo && <span className="absolute inset-0 flex items-center justify-center text-white/30" aria-hidden="true">{SportIcon({ id: sport, size: 48 })}</span>}
@@ -55,6 +57,7 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
   </>;
   if (layout === "list") return <article className="overflow-hidden rounded-xl border border-border bg-card text-card-foreground transition-shadow hover:shadow-sm">
     {detailsHref ? <Link href={detailsHref} className={overviewClass}>{overview}</Link> : <button type="button" aria-expanded={expanded} aria-controls={detailsId} onClick={() => setExpanded(!expanded)} className={overviewClass}>{overview}</button>}
+    <div className="px-3 pb-3 sm:px-4">{share}</div>
     {!detailsHref && <div id={detailsId} hidden={!expanded} className="border-t border-border bg-muted/10 pt-2">{children}</div>}
   </article>;
   return <article className={`group/card self-start overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-lg hover:shadow-primary/10 ${game.status === "completed" ? "border-emerald-500/50" : game.status === "open" ? "border-blue-400/60 ring-1 ring-blue-400/15" : "border-border"}`}>
@@ -92,10 +95,13 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
         {!game.is_public && <span className="rounded-md bg-muted px-2 py-1">{ar ? "خاص" : "Private"}</span>}
         {booking?.confirmed && game.status !== "completed" && <span className="rounded-md bg-muted px-2 py-1">{ar ? "الحجز مؤكد" : "Booking confirmed"}</span>}
       </div>
-      <button type="button" aria-expanded={expanded} aria-controls={detailsId} onClick={()=>setExpanded(!expanded)} className="flex w-full items-center justify-between rounded-xl border border-border bg-muted/40 px-3.5 py-2.5 text-sm font-semibold transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <div className="flex flex-wrap items-start gap-2">
+      <button type="button" aria-expanded={expanded} aria-controls={detailsId} onClick={()=>setExpanded(!expanded)} className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border border-border bg-muted/40 px-3.5 py-2.5 text-sm font-semibold transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         {expanded ? (ar ? "إخفاء التفاصيل" : "Hide details") : (ar ? "التفاصيل والمشاركة" : "Details & participation")}
         <ChevronDown className={`h-4 w-4 transition-transform motion-reduce:transition-none ${expanded ? "rotate-180" : ""}`}/>
       </button>
+      {share}
+      </div>
     </div>
     <div id={detailsId} hidden={!expanded} className="border-t border-border bg-muted/10 pt-2">{children}</div>
   </article>;

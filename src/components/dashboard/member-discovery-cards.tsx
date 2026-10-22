@@ -1,5 +1,6 @@
 "use client";
 
+import { DashboardCreateGameButton } from "./create-game-button";
 import { GuestGameList } from "./guest-game-list";
 import type { FriendlyGameWithDetails } from "@/lib/types";
 import { DashboardGameList } from "./dashboard-game-list";
@@ -92,7 +93,7 @@ function DiscoveryCard({
   const id = useId();
 
   return <section aria-labelledby={`${id}-title`} className="min-w-0 space-y-4">
-    <header className={live ? "flex items-center justify-between gap-3" : "flex flex-wrap items-end justify-between gap-3"}>
+    <header className={live ? "flex flex-wrap items-center justify-between gap-3" : "flex flex-wrap items-end justify-between gap-3"}>
       <div className="min-w-0">{!live && <p className="mb-1 text-[10px] font-bold uppercase tracking-[.16em] text-muted-foreground">{tone === "games" ? (t("games_page_title")) : description}</p>}<h2 id={`${id}-title`} className="text-2xl font-extrabold tracking-tight">{title}</h2></div>
       {controls}
       {!live && <Link href={href} className="inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{action}<ArrowRight size={14} className="rtl:rotate-180" aria-hidden="true" /></Link>}
@@ -265,7 +266,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, p
         empty={ar ? "مفيش أكاديميات متاحة حالياً." : "No academies available yet."}
       />}
       {mode !== "academies" && <DiscoveryCard
-        controls={interactive && <button type="button" aria-label={ar ? "فلاتر الماتشات" : "Game filters"} title={ar ? "فلاتر الماتشات" : "Game filters"} aria-expanded={filtersOpen} aria-controls="member-game-filters" onClick={() => setFiltersOpen(!filtersOpen)} className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"><SlidersHorizontal size={19} aria-hidden="true" />{activeFilters > 0 && <span className="absolute -end-1 -top-1 rounded-full bg-primary px-1.5 text-[10px] font-bold text-foreground">{activeFilters}</span>}</button>}
+        controls={interactive && <div className="flex shrink-0 flex-wrap items-center justify-end gap-2"><DashboardCreateGameButton sport={sportFilter} profile={profile} /><button type="button" aria-label={ar ? "فلاتر الماتشات" : "Game filters"} title={ar ? "فلاتر الماتشات" : "Game filters"} aria-expanded={filtersOpen} aria-controls="member-game-filters" onClick={() => setFiltersOpen(!filtersOpen)} className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"><SlidersHorizontal size={19} aria-hidden="true" />{activeFilters > 0 && <span className="absolute -end-1 -top-1 rounded-full bg-primary px-1.5 text-[10px] font-bold text-foreground">{activeFilters}</span>}</button></div>}
         filters={interactive && filtersOpen && <div id="member-game-filters" className="grid gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
           <label className="text-sm">{ar ? "المحافظة" : "Governorate"}<select className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" value={governorate} onChange={e => { setGovernorate(e.target.value); setCity(""); }}><option value="">{ar ? "الكل" : "All"}</option>{governorates.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
           <label className="text-sm">{ar ? "المدينة / المنطقة" : "City / area"}<select className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3" value={city} onChange={e => { setCity(e.target.value); }}><option value="">{ar ? "الكل" : "All"}</option>{cities.map(value => <option key={value} value={value}>{value}</option>)}</select></label>

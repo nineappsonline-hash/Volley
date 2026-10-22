@@ -5,7 +5,7 @@ const ts = require('typescript');
 const React = require('react');
 const { renderToStaticMarkup } = require('react-dom/server');
 let lang = 'en', lastMessage = '';
-const modules = {};
+const modules = { '@/lib/analytics/events': { trackBusinessEvent() {} } };
 function load(file, mocks = {}) {
   const exports = {};
   const code = ts.transpileModule(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText;
@@ -33,7 +33,8 @@ const share = load('src/components/games/game-share-actions.tsx', {
 });
 (async () => {
   const target = gameSharingTarget(game, 'https://playza.example/');
-  assert.equal(target.url, 'https://playza.example/games/public-id');
+  assert.equal(new URL(target.url).origin + new URL(target.url).pathname, 'https://playza.example/games/public-id');
+  assert.equal(new URL(target.url).searchParams.get('utm_campaign'), 'game_share');
   assert.ok(!target.whatsappUrl.includes('SECRET'));
   const text = new URL(target.whatsappUrl).searchParams.get('text');
   for (const expected of [game.title, '20:00', 'Cairo time', game.place, 'EGP 145', '3 spots', target.url]) assert.ok(text.includes(expected));
@@ -41,7 +42,7 @@ const share = load('src/components/games/game-share-actions.tsx', {
   assert.ok(gameSharingTarget({ ...game, share_price: null }, 'https://example.com').text.includes('Price to be confirmed'));
   assert.ok(gameSharingTarget({ ...game, status: 'full' }, 'https://example.com').text.includes('Full; check waitlist'));
   assert.ok(gameSharingTarget({ ...game, status: 'cancelled' }, 'https://example.com').text.includes('Cancelled'));
-  assert.ok(gameSharingTarget({ ...game, is_public: false }, 'https://example.com').url.endsWith('?join=SECRET'));
+  assert.ok(gameSharingTarget({ ...game, is_public: false }, 'https://example.com').url.includes('?join=SECRET&'));
   assert.equal(gameSharingTarget({ ...game, is_public: false, invite_code: null }, 'https://example.com'), null);
   for (lang of ['en', 'ar']) {
     const element = share.GameShareActions({ game });
@@ -56,18 +57,18 @@ const share = load('src/components/games/game-share-actions.tsx', {
   assert.equal(buttons(compact).length, 1, 'compact invitation sharing uses one action');
   const compactHtml = renderToStaticMarkup(compact);
   assert.ok(!compactHtml.includes('<input') && !compactHtml.includes('Bring a friend'));
-  const actions = buttons(share.GameShareActions({ game }));
+  const actions = buttons(share.GameShareActions({ game })).filter(action => React.Children.toArray(action.props.children).some(child => child === "Copy link" || child === "Share"));
   let copied, nativeCalls = 0;
   Object.defineProperty(global, 'navigator', { configurable: true, value: { clipboard: { writeText: async value => { copied = value; } }, share: async () => { nativeCalls++; throw { name: 'AbortError' }; } } });
   await actions[0].props.onClick(); await new Promise(resolve => setImmediate(resolve));
-  assert.ok(copied.endsWith('/games/public-id'));
+  assert.equal(new URL(copied).pathname, '/games/public-id');
   assert.equal(lastMessage, 'Game link copied');
   lastMessage = ''; copied = null;
   await actions[1].props.onClick(); await new Promise(resolve => setImmediate(resolve));
   assert.equal(nativeCalls, 1); assert.equal(copied, null); assert.equal(lastMessage, '', 'cancel does not trigger fallback');
   navigator.share = undefined;
   await actions[1].props.onClick(); await new Promise(resolve => setImmediate(resolve));
-  assert.ok(copied.endsWith('/games/public-id'));
+  assert.equal(new URL(copied).pathname, '/games/public-id');
   navigator.clipboard.writeText = async () => { throw Error('denied'); };
   await actions[0].props.onClick(); await new Promise(resolve => setImmediate(resolve));
   assert.ok(lastMessage.includes('copy it manually'));
