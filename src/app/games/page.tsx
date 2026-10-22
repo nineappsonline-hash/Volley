@@ -2,6 +2,7 @@ import { ACTIVE_SPORTS, isActiveSport } from "@/lib/active-sports";
 import { notFound } from "next/navigation";
 import { publicGamePath } from "@/lib/game-discovery";
 import { LOCAL_GAME_GUIDES, localGamePath } from "@/lib/local-games";
+import { guidePath, playerGuidesForSport } from "@/lib/guides";
 import { PlayerJoiningGuide } from "@/components/games/player-joining-guide";
 import { gameSharePrice } from "@/lib/game-share";
 import { SignedInGameParticipantNames } from "@/components/games/game-participant-names";
@@ -304,6 +305,14 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
         )}
 
         <nav aria-label="Games in New Cairo" className="mt-10 flex flex-wrap gap-4">{LOCAL_GAME_GUIDES.map(guide => <Link key={guide.slug} href={localGamePath("en", guide.slug)} className="font-semibold underline underline-offset-4">{guide.en.title}</Link>)}</nav>
+
+        {sport && playerGuidesForSport(sportToSlug(sport)).length > 0 && (
+          <nav aria-label={`${sport} guides`} className="mt-6 flex flex-wrap gap-4">
+            {playerGuidesForSport(sportToSlug(sport)).map(guide => (
+              <Link key={guide.slug} href={guidePath("en", guide.slug)} className="text-brand font-semibold underline underline-offset-4">{guide.en.title}</Link>
+            ))}
+          </nav>
+        )}
 
         <section aria-labelledby="joining-questions" className="mt-12 rounded-xl border bg-card p-6">
           <h2 id="joining-questions" className="text-xl font-bold">Joining a game: common questions</h2>

@@ -1,7 +1,7 @@
 import { ACTIVE_SPORTS, isActiveSport } from "@/lib/active-sports";
 import { LOCAL_GAME_GUIDES, localGamePath } from "@/lib/local-games";
 import { publicGamePath } from "@/lib/game-discovery";
-import { VOLLEYBALL_GUIDES, guidePath } from "@/lib/volleyball-guides";
+import { ALL_GUIDES, guidePath } from "@/lib/guides";
 import type { MetadataRoute } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SITE_URL } from "@/lib/seo";
@@ -96,7 +96,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     alternates: { languages: { en: `${SITE_URL}${listYourCourtPath("en")}`, "ar-EG": `${SITE_URL}${listYourCourtPath("ar")}`, "x-default": `${SITE_URL}${listYourCourtPath("en")}` } },
   });
 
-  for (const slug of [undefined, ...VOLLEYBALL_GUIDES.map(g => g.slug)]) {
+  for (const slug of [undefined, ...ALL_GUIDES.map(g => g.slug)]) {
     for (const lang of ["en", "ar"] as const) staticPages.push({ url: `${SITE_URL}${guidePath(lang, slug)}`, changeFrequency: "monthly", priority: 0.8, alternates: { languages: { en: `${SITE_URL}${guidePath("en", slug)}`, "ar-EG": `${SITE_URL}${guidePath("ar", slug)}` } } });
   }
   for (const guide of LOCAL_GAME_GUIDES) {

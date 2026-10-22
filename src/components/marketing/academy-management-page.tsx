@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Users, CalendarDays, QrCode, Wallet, BarChart3, Smartphone, ArrowUpRight } from "lucide-react";
 import { ACADEMY_MANAGEMENT, academyManagementPath } from "@/lib/academy-management";
+import { listYourCourtPath } from "@/lib/list-your-court";
 import { SITE_URL, breadcrumbsJsonLd, jsonLdStringify } from "@/lib/seo";
 
 const icons = [Users, CalendarDays, QrCode, Wallet, BarChart3, Smartphone];
@@ -34,6 +35,9 @@ export function AcademyManagementPage({ lang }: { lang: "en" | "ar" }) {
     <section className="mx-auto grid max-w-6xl gap-8 px-6 pb-12 md:grid-cols-2">
       <div className="rounded-xl border bg-card p-6"><h2 className="text-xl font-bold text-brand">{c.workflowTitle}</h2><ol className="mt-4 list-decimal space-y-3 ps-5 text-muted-foreground">{c.workflow.map(step => <li key={step}>{step}</li>)}</ol></div>
       <div className="rounded-xl border bg-card p-6"><h2 className="text-xl font-bold text-brand">{c.fitTitle}</h2><p className="mt-4 leading-relaxed text-muted-foreground">{c.fit}</p><Link href="/solutions" className="mt-5 inline-block font-semibold text-brand underline underline-offset-4">{c.solutions}</Link><div className="mt-4 flex flex-wrap gap-3">{["volleyball", "football", "basketball", "padel", "swimming"].map(sport => <Link key={sport} href={`/solutions/${sport}`} className="rounded-lg border px-3 py-2 text-sm text-brand hover:bg-accent">{lang === "ar" ? ({ volleyball: "كرة طائرة", football: "كرة قدم", basketball: "كرة سلة", padel: "بادل", swimming: "سباحة" } as Record<string, string>)[sport] : sport}</Link>)}</div></div>
+    </section>
+    <section className="mx-auto max-w-4xl px-6 pb-10">
+      <Link href={listYourCourtPath(lang)} className="inline-flex rounded-xl border bg-card px-4 py-3 font-semibold text-brand hover:bg-accent">{lang === "ar" ? "ملكك أيضًا ملعب؟ سجّله مجانًا ومن غير عمولة" : "Own a venue too? List your court for free"}</Link>
     </section>
     <section className="mx-auto max-w-4xl px-6 pb-14"><h2 className="text-2xl font-bold text-brand">{c.faqTitle}</h2><div className="mt-6 space-y-3">{c.faqs.map(([q, a]) => <details key={q} className="rounded-xl border bg-card p-5"><summary className="cursor-pointer rounded font-semibold text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring">{q}</summary><p className="mt-3 leading-relaxed text-muted-foreground">{a}</p></details>)}</div></section>
   </main>;

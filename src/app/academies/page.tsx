@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { dictionary } from "@/lib/i18n/dictionary";
+import { ACADEMY_GUIDES, guidePath } from "@/lib/guides";
 import { getPublicAcademyIndex } from "@/lib/public-sport-academies";
 import { AcademiesDirectory } from "@/components/academies/academies-directory";
 import { SITE_URL, OG_IMAGE } from "@/lib/seo";
@@ -61,6 +62,25 @@ export default async function AcademiesPage() {
           </ul>
         </section>
       )}
+      <section
+        aria-label="Academy guides"
+        className="mx-auto max-w-5xl px-6 pb-14"
+      >
+        <h2 className="text-xl font-extrabold">Academy guides</h2>
+        <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {ACADEMY_GUIDES.map((guide) => (
+            <li key={guide.slug}>
+              <Link
+                href={guidePath("en", guide.slug)}
+                className="block rounded-lg border px-4 py-3 text-sm transition-colors hover:border-primary hover:bg-muted"
+              >
+                <span className="font-semibold">{guide.en.title}</span>
+                <span className="mt-0.5 block text-xs text-muted-foreground">{guide.en.description}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
     </>
   );
 }

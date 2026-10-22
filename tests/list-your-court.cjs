@@ -12,6 +12,7 @@ function load(file, mocks = {}) {
 }
 const seo = modules['@/lib/seo'] = load('src/lib/seo.ts');
 const lib = load('src/lib/list-your-court.ts', { '@/lib/seo': seo });
+modules['@/lib/academy-management'] = load('src/lib/academy-management.ts', { '@/lib/seo': seo });
 
 (async () => {
   for (const lang of ['en', 'ar']) {

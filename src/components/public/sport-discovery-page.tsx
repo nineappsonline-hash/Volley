@@ -1,7 +1,7 @@
 import { isActiveSport } from "@/lib/active-sports";
 import { publicGamePath } from "@/lib/game-discovery";
 import { LOCAL_GAME_GUIDES, localGamePath } from "@/lib/local-games";
-import { VOLLEYBALL_GUIDES, guidePath } from "@/lib/volleyball-guides";
+import { guidePath, playerGuidesForSport } from "@/lib/guides";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SportIcon } from "@/components/marketing/sport-icons";
@@ -84,7 +84,7 @@ export async function SportDiscoveryPage({ slug, lang }: { slug: string; lang: D
   return <main lang={lang} dir={ar ? "rtl" : "ltr"} className="min-h-screen bg-background pb-16">
     <Header lang={lang} slug={slug} />
     {volleyball && <nav aria-label={ar ? "ماتشات في التجمع" : "Games in New Cairo"} className="mx-auto flex max-w-6xl flex-wrap gap-4 px-5 pb-5">{LOCAL_GAME_GUIDES.map(g => <Link key={g.slug} className="underline underline-offset-4" href={localGamePath(lang, g.slug)}>{g[lang].title}</Link>)}</nav>}
-    {volleyball && <nav className="mx-auto flex max-w-6xl flex-wrap gap-4 px-5 pb-5" aria-label={ar ? "إرشادات اللعب" : "Playing guides"}>{VOLLEYBALL_GUIDES.map(g => <Link key={g.slug} className="text-brand underline underline-offset-4" href={guidePath(lang, g.slug)}>{g[lang].title}</Link>)}</nav>}
+    {playerGuidesForSport(slug).length > 0 && <nav className="mx-auto flex max-w-6xl flex-wrap gap-4 px-5 pb-5" aria-label={ar ? "إرشادات اللعب" : "Playing guides"}>{playerGuidesForSport(slug).map(g => <Link key={g.slug} className="text-brand underline underline-offset-4" href={guidePath(lang, g.slug)}>{g[lang].title}</Link>)}</nav>}
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@context": "https://schema.org", "@graph": [
       { "@type": "WebPage", name: title, url: `${SITE_URL}${discoveryPath(lang, slug)}`, inLanguage: ar ? "ar-EG" : "en", description: sport.advice[lang], about: { "@type": "Thing", name: sport.name } },
       breadcrumbsJsonLd([{ name: ar ? "الرئيسية" : "Home", url: SITE_URL }, { name: ar ? "الرياضات" : "Sports", url: `${SITE_URL}${discoveryPath(lang)}` }, { name, url: `${SITE_URL}${discoveryPath(lang, slug)}` }]),
@@ -95,7 +95,7 @@ export async function SportDiscoveryPage({ slug, lang }: { slug: string; lang: D
         <SportIcon id={slug === "beach-volleyball" ? "volleyball" : slug} size={48} className="mb-4 text-highlight" />
         <h1 className="text-white text-3xl font-bold sm:text-5xl">{title}</h1>
         <p className="mt-5 max-w-3xl text-lg leading-relaxed">{sport.advice[lang]}</p>
-        <div className="mt-6 flex flex-wrap gap-3"><Link href={gamesUrl} className="rounded-xl bg-white px-5 py-3 font-bold text-brand">{bookableSport ? ar ? "شوف الأنشطة المنشورة" : "Browse published activities" : ar ? "شوف كل الماتشات المنشورة" : "Browse all published games"}</Link><Link href="/academies" className="rounded-xl border border-white/40 px-5 py-3 font-semibold">{ar ? "اكتشف الأكاديميات" : "Explore academies"}</Link></div>
+        <div className="mt-6 flex flex-wrap gap-3"><Link href={gamesUrl} className="rounded-xl bg-white px-5 py-3 font-bold text-brand">{bookableSport ? ar ? `لاقي ماتشات ${sport.arabic}` : `Find ${sport.name} Games` : ar ? "شوف كل الماتشات المنشورة" : "Browse all published games"}</Link><Link href="/academies" className="rounded-xl border border-white/40 px-5 py-3 font-semibold">{ar ? "اكتشف الأكاديميات" : "Explore academies"}</Link></div>
       </section>
       {slug === "archery" && <>
         <section className="space-y-4"><h2 className="text-2xl font-bold">{ar ? "اختيار تدريب الرماية بالقوس للمبتدئين" : "Choosing archery training for beginners"}</h2><p className="max-w-4xl leading-relaxed text-muted-foreground">{ar ? "لو دي أول تجربة ليك، اسأل عن حصة تعريفية مع مدرب بدل افتراض إن دخول الميدان يشمل تعليم الأساسيات. اتأكد من نوع القوس المستخدم، وطريقة تقسيم المجموعات حسب السن والخبرة، وهل الأدوات وتأجير القوس داخل سعر الحصة. صفحة المكان لوحدها مش تأكيد لوجود تدريب للمبتدئين." : "For your first archery session, ask for a coached introduction rather than assuming range access includes instruction. Confirm the bow type, how groups are divided by age and experience, and whether equipment and bow rental are included in the session price. A venue profile alone does not confirm that beginner archery lessons are available."}</p></section>

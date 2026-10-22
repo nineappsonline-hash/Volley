@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BadgeCheck, Percent, Search, Image as ImageIcon, CalendarCheck, Clock, LayoutGrid, Languages, ArrowUpRight } from "lucide-react";
 import { LIST_YOUR_COURT, listYourCourtPath } from "@/lib/list-your-court";
+import { academyManagementPath } from "@/lib/academy-management";
 import { SITE_URL, breadcrumbsJsonLd, jsonLdStringify } from "@/lib/seo";
 
 const icons = [BadgeCheck, Percent, Search, ImageIcon, CalendarCheck, Clock, LayoutGrid, Languages];
@@ -93,6 +94,9 @@ export function ListYourCourtPage({ lang }: { lang: "en" | "ar" }) {
             ))}
           </div>
         </div>
+      </section>
+      <section className="mx-auto max-w-4xl px-6 pb-10">
+        <Link href={academyManagementPath(lang)} className="inline-flex rounded-xl border bg-card px-4 py-3 font-semibold text-brand hover:bg-accent">{ar ? "بدير أكاديمية؟ جرّب إدارة الأكاديميات مع بلايزا" : "Running an academy too? Manage it with Playza"}</Link>
       </section>
       <section className="mx-auto max-w-4xl px-6 pb-14">
         <h2 className="text-2xl font-bold text-brand">{c.faqTitle}</h2>

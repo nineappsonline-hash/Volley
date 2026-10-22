@@ -15,6 +15,7 @@ modules['@/lib/seo'] = load('src/lib/seo.ts');
 modules['@/lib/game-share'] = load('src/lib/game-share.ts');
 modules['@/lib/game-discovery'] = load('src/lib/game-discovery.ts');
 modules['@/lib/local-games'] = load('src/lib/local-games.ts');
+modules['@/lib/guides'] = load('src/lib/guides.ts');
 modules['@/lib/sport-slugs'] = load('src/lib/sport-slugs.ts');
 modules['@/lib/volleyball-guides'] = load('src/lib/volleyball-guides.ts');
 const discovery = modules['@/lib/sport-discovery'] = load('src/lib/sport-discovery.ts');

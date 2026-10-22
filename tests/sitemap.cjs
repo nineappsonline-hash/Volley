@@ -13,6 +13,7 @@ const rows=Array.from({length:1001},(_,i)=>({id:String(i),slug:'academy-'+i}));
 const mocks={
  '@/lib/active-sports':{ACTIVE_SPORTS:['Tennis','Volleyball','Beach Volleyball'],isActiveSport:name=>['Tennis','Volleyball','Beach Volleyball'].includes(name)},
  '@/lib/volleyball-guides':{VOLLEYBALL_GUIDES:[{slug:'volleyball-cairo'},{slug:'join-volleyball-without-team'},{slug:'beach-volleyball-beginners'}],guidePath:(lang,slug)=>`${lang==='ar'?'/ar':''}/guides${slug?'/'+slug:''}`},
+ '@/lib/guides':{ALL_GUIDES:[{slug:'volleyball-cairo'},{slug:'join-volleyball-without-team'},{slug:'beach-volleyball-beginners'},{slug:'find-basketball-players-cairo'},{slug:'find-padel-partners-cairo'},{slug:'find-tennis-partners-cairo'},{slug:'choose-sports-academy-for-your-child'},{slug:'adult-volleyball-training'},{slug:'beginner-padel-training'}],guidePath:(lang,slug)=>`${lang==='ar'?'/ar':''}/guides${slug?'/'+slug:''}`},
  '@/lib/seo':{SITE_URL:siteUrl(undefined)},
  '@/lib/sport-slugs':{sportToSlug:s=>s.toLowerCase()},
  '@/lib/sport-discovery':{DISCOVERY_SPORTS:[{slug:'football'},{slug:'padel'}],discoveryPath:(lang,slug)=>`${lang==='ar'?'/ar':''}/sports${slug?'/'+slug:''}`},
@@ -31,7 +32,7 @@ new Function('exports','require',ts.transpileModule(fs.readFileSync(path.join(__
  assert.equal(pages.filter(p=>p.url.includes('/a/')).length,1001);
  const discoveryPages=pages.filter(p=>p.url.includes('/sports'));
  assert.equal(discoveryPages.length,6);
- assert.equal(pages.filter(p=>p.url.includes('/guides')).length,8);
+ assert.equal(pages.filter(p=>p.url.includes('/guides')).length,20);
  assert.equal(pages.filter(p=>p.url.includes('/play/')).length,4);
  assert.ok(pages.some(p=>p.url.endsWith('/games/public-game')));
  for(const page of discoveryPages){

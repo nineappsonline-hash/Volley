@@ -1,13 +1,14 @@
 /**
  * Playza SEO keyword mapping based on actual business model.
- * 
+ *
  * Primary positioning: "Find people to play sports with, join games & discover sports academies in Egypt"
- * 
- * Scoring is qualitative (search intent × relevance × conversion potential), not verified Google volumes.
- * All data labeled as estimated per requirements.
+ *
+ * Prioritization is QUALITATIVE (search intent × relevance × conversion potential).
+ * No verified Google volumes or difficulty metrics are cited anywhere in this
+ * file or in the docs derived from it.
  */
 
-export type KeywordIntent = 
+export type KeywordIntent =
   | "player-find-games"      // Find people to play with / join games (PRIMARY)
   | "academy-discovery"      // Find sports academies/training
   | "venue-owner-b2b"        // Venue owners listing facilities
@@ -15,19 +16,31 @@ export type KeywordIntent =
   | "local-discovery"        // Location-based searches
   | "educational";           // How-to guides
 
+export type PageStatus = "live" | "improved-in-phase4" | "new-in-phase4";
+
 export type KeywordCluster = {
   id: string;
   name: string;
   nameAr: string;
   intent: KeywordIntent;
   priority: 1 | 2 | 3 | 4 | 5; // 1 = highest
-  conversionPotential: "high" | "medium" | "low"; // estimated
+  conversionPotential: "high" | "medium" | "low"; // estimated, qualitative
   primaryPage: string;
   keywords: {
     en: string[];
     ar: string[];
     arColloquial?: string[]; // Egyptian Arabic
   };
+  /** Who the cluster is written for. */
+  audience: string;
+  /** Site languages that carry the intent. */
+  languages: ("en" | "ar")[];
+  /** Where the demand is geographically relevant. */
+  geographicRelevance: string;
+  /** What a successful visit converts to. */
+  conversionGoal: string;
+  /** Implementation state of primaryPage as of Phase 4. */
+  pageStatus: PageStatus;
   notes: string;
 };
 
@@ -62,6 +75,11 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
         "عاوز ألعب مع ناس"
       ]
     },
+    audience: "Players without a regular group",
+    languages: ["en", "ar"],
+    geographicRelevance: "Cairo and Alexandria; location pages only where real inventory exists",
+    conversionGoal: "Game registration (signup → join)",
+    pageStatus: "improved-in-phase4",
     notes: "Primary B2C audience - highest priority for conversion"
   },
   {
@@ -94,7 +112,12 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
         "ماتشات طائرة في التجمع الخامس"
       ]
     },
-    notes: "Strong demand in Egypt"
+    audience: "Adult players looking for volleyball groups",
+    languages: ["en", "ar"],
+    geographicRelevance: "Cairo (guides cover New Cairo/Tagamoa where inventory exists)",
+    conversionGoal: "Game registration (signup → join)",
+    pageStatus: "improved-in-phase4",
+    notes: "Support /guides/volleyball-cairo and /play/volleyball-new-cairo; adult training covered by /guides/start-volleyball-adult"
   },
   {
     id: "beach-volleyball-players",
@@ -117,12 +140,18 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
       ],
       arColloquial: [
         "بيتس فولى",
-        "ماتشات بيتش فولى",
-        "ناس تلعب بيتش فولى",
-        "طائرة شاطئية في التجمع"
+        "ماتشات بيتس فولى",
+        "ناس تلعب بيتس فولى",
+        "طائرة شاطئية في التجمع",
+        "تجمعات بيتس فولى"
       ]
     },
-    notes: "Growing popularity, less competition"
+    audience: "Players looking for sand-court games",
+    languages: ["en", "ar"],
+    geographicRelevance: "Cairo (New Cairo sand courts where published)",
+    conversionGoal: "Game registration (signup → join)",
+    pageStatus: "improved-in-phase4",
+    notes: "Growing popularity, less competition; guides + New Cairo local page cover the intent"
   },
   {
     id: "basketball-players",
@@ -144,7 +173,8 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
         "كرة سلة",
         "ماتشات كرة سلة",
         "جروبات كرة سلة",
-        "تجمعات كرة سلة"
+        "تجمعات كرة سلة",
+        "تجمعات باسكت"
       ],
       arColloquial: [
         "عاوز ألعب باسكت",
@@ -153,7 +183,12 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
         "باسكت في التجمع الخامس"
       ]
     },
-    notes: "Strong youth and adult demand"
+    audience: "Adult pickup basketball players",
+    languages: ["en", "ar"],
+    geographicRelevance: "Cairo",
+    conversionGoal: "Game registration (signup → join)",
+    pageStatus: "improved-in-phase4",
+    notes: "Now supported by /guides/basketball-cairo (pickup format, level and arrival guidance)"
   },
   {
     id: "padel-players",
@@ -185,7 +220,12 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
         "لاعبين بادل في التجمع"
       ]
     },
-    notes: "High growth, court density increasing"
+    audience: "Doubles padel players seeking partners",
+    languages: ["en", "ar"],
+    geographicRelevance: "Cairo and New Cairo",
+    conversionGoal: "Game registration (signup → join)",
+    pageStatus: "improved-in-phase4",
+    notes: "Now supported by /guides/padel-cairo (2-on-2 partner mechanics) and /guides/padel-training-for-beginners"
   },
   {
     id: "tennis-players",
@@ -201,7 +241,8 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
         "tennis games cairo",
         "join tennis games egypt",
         "tennis partners egypt",
-        "tennis for adults cairo"
+        "tennis for adults cairo",
+        "tennis groups cairo"
       ],
       ar: [
         "تنس",
@@ -217,7 +258,12 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
         "لاعبين تنس في القاهرة"
       ]
     },
-    notes: "Established demand"
+    audience: "Tennis players seeking partners and matches",
+    languages: ["en", "ar"],
+    geographicRelevance: "Cairo",
+    conversionGoal: "Game registration (signup → join)",
+    pageStatus: "improved-in-phase4",
+    notes: "Now supported by /guides/tennis-cairo (partner matching vs lessons distinction)"
   },
   {
     id: "sports-academies",
@@ -254,7 +300,12 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
         "تدريب بادل للمبتدئين"
       ]
     },
-    notes: "Strong for parents and adults wanting to learn"
+    audience: "Parents choosing academies for children; adults seeking coaching",
+    languages: ["en", "ar"],
+    geographicRelevance: "Cairo; /a/<slug> pages index only public academies with real published data",
+    conversionGoal: "Academy enquiry/join (trial enquiry or join)",
+    pageStatus: "improved-in-phase4",
+    notes: "Directory now links the three academy guides; only verified profile data is displayed"
   },
   {
     id: "venue-owners-b2b",
@@ -280,10 +331,16 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
       ],
       arColloquial: [
         "تسويق ملعب رياضي",
-        "تسويق ملعب بادل"
+        "تسويق ملعب بادل",
+        "إضافة ملعب مجانًا"
       ]
     },
-    notes: "B2B - Free listing, no commission (key selling points)"
+    audience: "Court and venue owners",
+    languages: ["en", "ar"],
+    geographicRelevance: "Egypt nationwide",
+    conversionGoal: "Venue owner signup",
+    pageStatus: "improved-in-phase4",
+    notes: "Claims limited to free listing and no commission; cross-linked with academy management in Phase 4"
   },
   {
     id: "academy-owners-b2b",
@@ -310,7 +367,137 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
       ],
       arColloquial: []
     },
-    notes: "B2B - Management software focus"
+    audience: "Academy owners, managers and coaches",
+    languages: ["en", "ar"],
+    geographicRelevance: "Egypt nationwide",
+    conversionGoal: "Academy owner signup",
+    pageStatus: "improved-in-phase4",
+    notes: "Existing features only; cross-linked with venue listing in Phase 4"
+  }
+];
+
+/* ---------------- Guide clusters (Phase 4 new content) ---------------- */
+
+export const GUIDE_KEYWORD_CLUSTERS: KeywordCluster[] = [
+  {
+    id: "guide-basketball-cairo",
+    name: "How to Find Basketball Games and Players in Cairo",
+    nameAr: "عاوز تلعب باسكت ومش لاقي ناس؟",
+    intent: "educational",
+    priority: 1,
+    conversionPotential: "high",
+    primaryPage: "/guides/basketball-cairo",
+    keywords: {
+      en: ["basketball pickup games cairo", "find basketball players", "basketball groups cairo"],
+      ar: ["ماتشات كرة سلة", "تجمعات باسكت"],
+      arColloquial: ["عاوز تلعب باسكت ومش لاقي ناس", "ناس تلعب باسكت", "تجمعات باسكت"]
+    },
+    audience: "Pickup basketball players who play without a fixed group",
+    languages: ["en", "ar"],
+    geographicRelevance: "Cairo",
+    conversionGoal: "Signup → join a basketball game",
+    pageStatus: "new-in-phase4",
+    notes: "No prior guide covered non-volleyball sports; this is the first basketball article — no duplicate intent"
+  },
+  {
+    id: "guide-padel-cairo",
+    name: "How to Find Padel Partners in Cairo",
+    nameAr: "بتدور على شريك بادل؟",
+    intent: "educational",
+    priority: 1,
+    conversionPotential: "high",
+    primaryPage: "/guides/padel-cairo",
+    keywords: {
+      en: ["find padel partners cairo", "padel partners egypt", "padel groups cairo"],
+      ar: ["شريك بادل", "تجمعات بادل"],
+      arColloquial: ["بتدور على شريك بادل", "شريك بادل", "تجمعات بادل"]
+    },
+    audience: "Padel players needing a doubles partner",
+    languages: ["en", "ar"],
+    geographicRelevance: "Cairo",
+    conversionGoal: "Signup → join a padel game",
+    pageStatus: "new-in-phase4",
+    notes: "Distinct from the beginner-training guide (this one targets organized play)"
+  },
+  {
+    id: "guide-tennis-cairo",
+    name: "How to Find Tennis Partners in Cairo",
+    nameAr: "عاوز تلعب تنس ومش لاقي حد؟",
+    intent: "educational",
+    priority: 1,
+    conversionPotential: "high",
+    primaryPage: "/guides/tennis-cairo",
+    keywords: {
+      en: ["tennis partners cairo", "find tennis players", "tennis groups cairo"],
+      ar: ["شريك تنس", "ناس تلعب تنس"],
+      arColloquial: ["عاوز تلعب تنس ومش لاقي حد", "شريك تنس", "ناس تلعب تنس"]
+    },
+    audience: "Tennis players seeking matches and partners",
+    languages: ["en", "ar"],
+    geographicRelevance: "Cairo",
+    conversionGoal: "Signup → join a tennis game",
+    pageStatus: "new-in-phase4",
+    notes: "Explicitly separates partner/played matches from coached lessons to avoid intent collision with academies"
+  },
+  {
+    id: "guide-choose-academy-child",
+    name: "How to Choose a Sports Academy for Your Child",
+    nameAr: "إزاي تختار أكاديمية رياضية مناسبة لطفلك؟",
+    intent: "academy-discovery",
+    priority: 1,
+    conversionPotential: "high",
+    primaryPage: "/guides/choose-sports-academy-child",
+    keywords: {
+      en: ["sports academy for kids cairo", "basketball academy for kids", "volleyball academy for kids"],
+      ar: [        "أكاديمية طائرة للأطفال", "أكاديميات رياضية للأطفال"],
+      arColloquial: ["أكاديمية رياضية لطفلي", "أكاديميات في التجمع للأطفال"]
+    },
+    audience: "Parents evaluating academies",
+    languages: ["en", "ar"],
+    geographicRelevance: "Cairo and greater Egypt",
+    conversionGoal: "Trial enquiry → academy join",
+    pageStatus: "new-in-phase4",
+    notes: "Links to /academies directory and real academy pages; no rankings claimed"
+  },
+  {
+    id: "guide-start-volleyball-adult",
+    name: "How to Start Volleyball Training as an Adult",
+    nameAr: "إزاي تبدأ تدريب طايرة وأنت كبير؟",
+    intent: "academy-discovery",
+    priority: 2,
+    conversionPotential: "medium",
+    primaryPage: "/guides/start-volleyball-adult",
+    keywords: {
+      en: ["volleyball training for adults cairo", "beginner volleyball training egypt"],
+      ar: ["تدريب كرة طائرة للكبار"],
+      arColloquial: ["تدريب طايرة للكبار", "أتعلم طايرة وأنا كبير"]
+    },
+    audience: "Adults starting volleyball without school experience",
+    languages: ["en", "ar"],
+    geographicRelevance: "Cairo",
+    conversionGoal: "Academy enquiry or game join",
+    pageStatus: "new-in-phase4",
+    notes: "Bridges academy coaching and friendly games; no duplicate of /guides/volleyball-cairo (finding courts/games)"
+  },
+  {
+    id: "guide-padel-beginner-training",
+    name: "How to Find Beginner Padel Training",
+    nameAr: "إزاي تختار تدريب بادل للمبتدئين؟",
+    intent: "academy-discovery",
+    priority: 2,
+    conversionPotential: "medium",
+    primaryPage: "/guides/padel-training-for-beginners",
+    keywords: {
+      en: ["padel lessons cairo", "padel lessons egypt", "beginner padel training"],
+      ar: ["تدريب بادل"],
+      arColloquial: ["تدريب بادل للمبتدئين", "دروس بادل"]
+    },
+    audience: "Adults and teens starting padel",
+    languages: ["en", "ar"],
+    geographicRelevance: "Cairo",
+    conversionGoal: "Trial enquiry → academy join",
+    pageStatus: "new-in-phase4",
+    notes: "Distinct intent from /guides/padel-cairo (finding partners/games)"
   }
 ];
 
@@ -324,6 +511,7 @@ export const PAGE_KEYWORD_MAPPING: Record<string, {
   secondaryKeywordsEn: string[];
   secondaryKeywordsAr: string[];
 }> = {
+
   "/": {
     primaryCluster: "players-find-games",
     primaryKeywordEn: "Find people to play sports with Egypt",
@@ -350,7 +538,7 @@ export const PAGE_KEYWORD_MAPPING: Record<string, {
     primaryKeywordEn: "Find beach volleyball games and players in Cairo",
     primaryKeywordAr: "ماتشات طائرة شاطئية في القاهرة",
     secondaryKeywordsEn: ["beach volleyball partners", "beach volleyball games"],
-    secondaryKeywordsAr: ["بيتس فولى", "ناس تلعب بيتش فولى"]
+    secondaryKeywordsAr: ["بيتس فولى", "ناس تلعب بيتس فولى"]
   },
   "/sports/basketball": {
     primaryCluster: "basketball-players",
@@ -396,15 +584,29 @@ export const PAGE_KEYWORD_MAPPING: Record<string, {
   }
 };
 
+// Guide URLs (Phase 4)
+for (const cluster of GUIDE_KEYWORD_CLUSTERS) {
+  PAGE_KEYWORD_MAPPING[cluster.primaryPage] = {
+    primaryCluster: cluster.id,
+    primaryKeywordEn: cluster.name,
+    primaryKeywordAr: cluster.nameAr,
+    secondaryKeywordsEn: cluster.keywords.en,
+    secondaryKeywordsAr: [...cluster.keywords.ar, ...(cluster.keywords.arColloquial ?? [])],
+  };
+}
+
 /**
- * Local SEO targets based on actual activity
+ * Local SEO targets based on actual activity. Location landing pages are only
+ * produced at /courts/<sport>/<location> when the public court directory has
+ * real inventory for that sport+location combination; city game guides
+ * (/play/*) are editorial and follow the verified public game inventory.
  */
 export const LOCAL_SEO_TARGETS = [
-  "New Cairo", "Fifth Settlement", "Nasr City", "Heliopolis", 
+  "New Cairo", "Fifth Settlement", "Nasr City", "Heliopolis",
   "Maadi", "6th of October", "Sheikh Zayed", "Alexandria"
 ];
 
 export const LOCAL_SEO_TARGETS_AR = [
-  "التجمع الخامس", "مدينة نصر", "مصر الجديدة", "المعادي", 
+  "التجمع الخامس", "مدينة نصر", "مصر الجديدة", "المعادي",
   "6 أكتوبر", "الشيخ زايد", "الإسكندرية"
 ];
