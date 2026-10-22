@@ -39,7 +39,7 @@ export const SportsHeroSceneCopy = {
     artLabel: "Illustration of people playing sports together",
   },
   ar: {
-    eyebrow: "اختار ناس تلعب معها. انضم لماتش.",
+    eyebrow: "",
     intro: "عاوز تلعب ومش لاقي ناس؟ انضم لماتشات كرة الطائرة، وكرة السلة، والبادل، والتنس، والطائرة الشاطئية، واتعرف على لاعبين جدد، واكتشف أكاديميات رياضية قريبة منك.",
     note: "العب مع ناس. اتعرف على صحاب جدد.",
     artLabel: "رسم لناس بيعبوا رياضة مع بعض",
