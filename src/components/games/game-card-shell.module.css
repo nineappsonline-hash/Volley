@@ -1,0 +1,53 @@
+.surface {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: #fff;
+  background: radial-gradient(ellipse at 90% 0%, #793bba 0%, transparent 55%), linear-gradient(115deg, #35116b, #54218c);
+}
+.surface::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 3px;
+  background: #d4ff00;
+  pointer-events: none;
+}
+.content { position: relative; z-index: 1; }
+.art {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: .65;
+}
+.art::after {
+  content: "";
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  border: 1px solid #d4ff0026;
+  border-radius: 50%;
+  inset-inline-end: -85px;
+  bottom: -140px;
+  box-shadow: 0 0 0 22px #d4ff0008, 0 0 0 44px #d4ff0005;
+}
+.surface :global(.text-muted-foreground) { color: #e4d5f6; }
+.surface :global(.bg-muted) { background: #ffffff1a; }
+.surface :global(.bg-primary\/15),
+.surface :global(.bg-primary\/10) { background: #d4ff0026; color: #e4ff63; }
+.price { color: #d4ff00; }
+.actions :global(button), .actions :global(a) {
+  border-color: #d4ff0066;
+  background: #ffffff0d;
+  color: #e4ff63;
+  box-shadow: none;
+}
+.actions :global(button:hover), .actions :global(a:hover) {
+  background: #d4ff00;
+  color: #35116b;
+  border-color: #d4ff00;
+}
+.actions :global(input) { color: #241033; }
+.actions :global(a span) { color: inherit; }

@@ -2,6 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {renderToStaticMarkup}=require('react-dom/server');const cache=new Map();let open=false,params=new URLSearchParams(),lang='en';
 const fakeDialog=()=>null;
 const mocks={
+ './game-card-shell.module.css':{default:{surface:'surface',content:'content',art:'art',price:'price',actions:'actions'}},
  react:{...React,useState:initial=>[open,value=>{open=value}],useEffect:()=>{},useId:()=> 'game-details'},
  'next/link':{default:({children,...props})=>React.createElement('a',props,children)},
  'next/navigation':{useSearchParams:()=>params},

@@ -1,5 +1,6 @@
 "use client";
 
+import styles from "./game-card-shell.module.css";
 import { trackView } from "@/lib/analytics/events";
 import { GameShareActions } from "./game-share-actions";
 import Link from "next/link";
@@ -38,7 +39,7 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
   const booking = gameBookingPayment(game);
   const statusStyle = game.status === "completed" ? "border-emerald-200/40 bg-emerald-700" : game.status === "open" ? "border-blue-200/40 bg-blue-600" : game.status === "full" ? "border-amber-200/40 bg-amber-700" : "border-red-200/40 bg-red-700";
   const Indicator = detailsHref ? ArrowUpRight : ChevronDown;
-  const overviewClass = "flex w-full items-start gap-3 p-3 text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:gap-3";
+  const overviewClass = `${styles.content} flex w-full items-start gap-3 p-3 text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:gap-3`;
   const directions = googleDirectionsUrl(game.playground?.location_link);
   const share = <GameShareActions compact game={{...game,joined:game.participants_count,place:[game.playground?.name,game.playground?.area??game.area,game.playground?.governorate].filter(Boolean).join(", ")||game.location||""}} />;
   const overview = <>
@@ -51,7 +52,7 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
       <span className="block min-w-0 flex-1 space-y-1">
         <span className="flex items-start justify-between gap-2"><span className="line-clamp-2 text-sm font-extrabold leading-5 sm:text-base">{game.title}</span><Indicator size={16} className={`mt-0.5 shrink-0 transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden="true" /></span>
         <span className="flex items-start gap-1 text-xs text-muted-foreground"><MapPin size={12} className="mt-0.5 shrink-0" aria-hidden="true" /><span className="line-clamp-1">{game.playground?.name || game.location || game.area || t("games_no_playground")}</span></span>
-        <span className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1 text-xs"><span className="flex flex-wrap items-center gap-x-2 gap-y-0.5"><time className="block" dateTime={game.game_date}>{format(new Date(`${game.game_date}T00:00:00`), "EEE, d MMM", { locale })}</time><span className="block text-muted-foreground">{formatTime12h(game.start_time, lang)}</span></span><span className="text-end"><strong className="block text-sm">{game.host_pays ? (ar ? "مجاني" : "Free") : game.share_price == null ? "—" : formatMoney(game.share_price, lang)}</strong><span className="text-[10px] text-muted-foreground">{ar ? "لكل لاعب" : "per player"}</span></span></span>
+        <span className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1 text-xs"><span className="flex flex-wrap items-center gap-x-2 gap-y-0.5"><time className="block" dateTime={game.game_date}>{format(new Date(`${game.game_date}T00:00:00`), "EEE, d MMM", { locale })}</time><span className="block text-muted-foreground">{formatTime12h(game.start_time, lang)}</span></span><span className="text-end"><strong className={`block text-sm ${styles.price}`}>{game.host_pays ? (ar ? "مجاني" : "Free") : game.share_price == null ? "—" : formatMoney(game.share_price, lang)}</strong><span className="text-[10px] text-muted-foreground">{ar ? "لكل لاعب" : "per player"}</span></span></span>
         <span className="flex flex-wrap items-center justify-between gap-1 text-[10px] text-muted-foreground"><span>{game.participants_count}/{game.max_players} {ar ? "لاعب" : "players"}</span><span>{slots ? (ar ? `${slots} أماكن متاحة` : `${slots} spots left`) : (ar ? "مكتمل" : "Full")}</span></span>
         <span className="block h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: "hsl(var(--playza-lime) / 0.2)" }} aria-hidden="true"><span className="block h-full rounded-full" style={{ width: `${percent}%`, backgroundColor: "var(--color-primary)" }} /></span>
         <span className="flex flex-wrap gap-1.5 text-[10px]"><span className="rounded bg-muted px-1.5 py-0.5 font-medium">{t(`community_status_${game.status}`)}</span>{joined && <span className="rounded bg-primary/15 px-1.5 py-0.5 font-semibold">{waitlisted ? (ar ? "قائمة الانتظار" : "On the waitlist") : (ar ? "أنت مشارك" : "You're participating")}</span>}{!game.is_public && <span className="rounded bg-muted px-1.5 py-0.5">{ar ? "خاص" : "Private"}</span>}{booking?.confirmed && <span className="rounded bg-muted px-1.5 py-0.5">{ar ? "الحجز مؤكد" : "Booking confirmed"}</span>}</span>
@@ -59,11 +60,12 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
       </span>
   </>;
   if (layout === "list") return <article className="overflow-hidden rounded-xl border border-border bg-card text-card-foreground transition-shadow hover:shadow-sm">
-    <div className="sm:grid sm:grid-cols-[minmax(0,1fr)_auto]">
+    <div className={`${styles.surface} sm:grid sm:grid-cols-[minmax(0,1fr)_auto]`}>
+    <div className={styles.art} aria-hidden="true"><GameCardBackground sport={game.sport} /></div>
     {detailsHref ? <Link href={detailsHref} className={overviewClass}>{overview}</Link> : <button type="button" aria-expanded={expanded} aria-controls={detailsId} onClick={() => setExpanded(!expanded)} className={overviewClass}>{overview}</button>}
-    <div className="flex flex-wrap items-start justify-end gap-2 px-3 pb-2 sm:items-end sm:py-3 sm:ps-0">{directions && <GoogleMapsDirectionsButton compact href={directions} />}{share}</div>
+    <div className={`${styles.content} ${styles.actions} flex flex-wrap items-start justify-end gap-2 px-3 pb-2 sm:items-end sm:py-3 sm:ps-0`}>{directions && <GoogleMapsDirectionsButton compact href={directions} />}{share}</div>
     </div>
-    {!detailsHref && <div id={detailsId} hidden={!expanded} className="border-t border-border bg-muted/10 pt-2">{children}</div>}
+    {!detailsHref && <div id={detailsId} hidden={!expanded} className="border-t border-border bg-card text-card-foreground pt-2">{children}</div>}
   </article>;
   return <article className={`group/card self-start overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-lg hover:shadow-primary/10 ${game.status === "completed" ? "border-emerald-500/50" : game.status === "open" ? "border-blue-400/60 ring-1 ring-blue-400/15" : "border-border"}`}>
     <div className={`relative isolate min-h-48 overflow-hidden bg-gradient-to-br ${theme} px-5 pb-5 pt-4 text-white`}>
@@ -85,10 +87,10 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
         <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-white"/>{formatTime12h(game.start_time, lang)}</span>
       </div>
     </div>
-    <div className="space-y-4 p-5">
+    <div className={`${styles.surface} space-y-4 p-5`}>
       <div className="flex items-start justify-between gap-3">
         <p className="flex min-w-0 items-start gap-2 text-sm"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary"/><span className="line-clamp-2 font-medium">{game.playground?.name || game.location || game.area || t("games_no_playground")}</span></p>
-        <div className="shrink-0 text-end"><p className="text-base font-bold">{game.host_pays ? (ar ? "مجاني" : "Free") : game.share_price == null ? "—" : formatMoney(game.share_price, lang)}</p><p className="text-[11px] text-muted-foreground">{ar ? "لكل لاعب" : "per player"}</p></div>
+        <div className="shrink-0 text-end"><p className={`text-base font-bold ${styles.price}`}>{game.host_pays ? (ar ? "مجاني" : "Free") : game.share_price == null ? "—" : formatMoney(game.share_price, lang)}</p><p className="text-[11px] text-muted-foreground">{ar ? "لكل لاعب" : "per player"}</p></div>
       </div>
       <div>
         <div className="mb-2 flex items-center justify-between gap-2 text-xs"><span className="inline-flex items-center gap-1.5 font-medium"><Users className="h-3.5 w-3.5"/>{game.participants_count}/{game.max_players} {ar ? "لاعب" : "players"}</span><span className="text-muted-foreground">{slots ? (ar ? `${slots} أماكن متاحة` : `${slots} spots left`) : (ar ? "مكتمل" : "Full")}</span></div>
@@ -100,7 +102,7 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
         {!game.is_public && <span className="rounded-md bg-muted px-2 py-1">{ar ? "خاص" : "Private"}</span>}
         {booking?.confirmed && game.status !== "completed" && <span className="rounded-md bg-muted px-2 py-1">{ar ? "الحجز مؤكد" : "Booking confirmed"}</span>}
       </div>
-      <div className="flex flex-wrap items-start gap-2">
+      <div className={`${styles.actions} flex flex-wrap items-start gap-2`}>
       <button type="button" aria-expanded={expanded} aria-controls={detailsId} onClick={()=>setExpanded(!expanded)} className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border border-border bg-muted/40 px-3.5 py-2.5 text-sm font-semibold transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         {expanded ? (ar ? "إخفاء التفاصيل" : "Hide details") : (ar ? "التفاصيل والمشاركة" : "Details & participation")}
         <ChevronDown className={`h-4 w-4 transition-transform motion-reduce:transition-none ${expanded ? "rotate-180" : ""}`}/>
@@ -109,6 +111,6 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
       {share}
       </div>
     </div>
-    <div id={detailsId} hidden={!expanded} className="border-t border-border bg-muted/10 pt-2">{children}</div>
+    <div id={detailsId} hidden={!expanded} className="border-t border-border bg-card text-card-foreground pt-2">{children}</div>
   </article>;
 }
