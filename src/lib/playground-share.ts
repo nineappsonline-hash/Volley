@@ -5,11 +5,9 @@
  * app, and the text stays deliberately short — the destination page already
  * lists availability, so the message only needs to say which playground it is.
  */
-import { SITE_URL } from "@/lib/seo";
-
-/** Public, shareable playground page. */
+import { SITE_URL } from "@/lib/seo";/** Public, shareable playground page. */
 export function playgroundShareLink(id: string): string {
-  return `${SITE_URL}/p/${encodeURIComponent(id)}`;
+  return `${SITE_URL}/p/${encodeURIComponent(id)}?utm_source=whatsapp&utm_medium=share&utm_campaign=venue_share`;
 }
 
 /**

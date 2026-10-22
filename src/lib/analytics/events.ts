@@ -2,8 +2,8 @@
 import { COUNTRIES, COUNTRIES_AR, STATES_BY_COUNTRY, CITIES_BY_STATE } from "@/lib/locations";
 
 export const GA_MEASUREMENT_ID = "G-XJPEX3WY2B";
-export type BusinessEvent = "game_view" | "join_game_click" | "game_registration_completed" | "player_signup_completed" | "academy_view" | "academy_registration_click" | "academy_registration_completed" | "venue_registration_started" | "venue_registration_completed" | "academy_owner_registration_started" | "academy_owner_registration_completed";
-export type AnalyticsContext = { sport?: string | null; sports?: string[]; country?: string | null; governorate?: string | null; city?: string | null; area?: string | null; registration_type?: "academy_membership" | "training_reservation"; method?: "email" | "google" };
+export type BusinessEvent = "game_view" | "join_game_click" | "game_registration_completed" | "player_signup_completed" | "academy_view" | "academy_registration_click" | "academy_registration_completed" | "venue_registration_started" | "venue_registration_completed" | "academy_owner_registration_started" | "academy_owner_registration_completed" | "share_game" | "invite_players_click" | "share_academy" | "share_venue" | "share_sports_page";
+export type AnalyticsContext = { sport?: string | null; sports?: string[]; country?: string | null; governorate?: string | null; city?: string | null; area?: string | null; registration_type?: "academy_membership" | "training_reservation"; method?: "email" | "google"; share_method?: string; game_status?: string; };
 type Params = Record<string, string | number | boolean>;
 type AnalyticsWindow = Window & { dataLayer?: unknown[]; gtag?: (...args: unknown[]) => void; navigator: Navigator & { globalPrivacyControl?: boolean }; playzaGaConfigured?: boolean; playzaGaQueue?: unknown[][]; playzaAnalyticsConsent?: "granted" | "denied" };
 const JOURNEY = "playza:ga4:journey:v1";

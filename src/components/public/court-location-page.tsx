@@ -13,6 +13,7 @@ import {
   findCourtLocation,
 } from "@/lib/court-locations";
 import { formatMoney } from "@/lib/constants";
+import { ShareMenu } from "@/components/academies/academy-share";
 import { SITE_URL, jsonLdStringify, breadcrumbsJsonLd } from "@/lib/seo";
 
 /**
@@ -63,6 +64,11 @@ export async function CourtLocationPage({
             <Link href={courtsLocationPath(ar ? "en" : "ar", sportSlug, locationSlug)} lang={ar ? "en" : "ar"}>{ar ? "English" : "العربية"}</Link>
             <Link href="/login">{copy("Log in", "تسجيل الدخول")}</Link>
           </div>
+          <ShareMenu
+            target={{ url: `${SITE_URL}/courts?sport=${sportSlug}`, title: "${sport.name} courts in ${place}", text: `${sport.name} courts in ${place}` }}
+            label={lang === "ar" ? "مشاركة" : "Share"}
+            align="end"
+          />
         </nav>
       </header>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@context": "https://schema.org", "@graph": [

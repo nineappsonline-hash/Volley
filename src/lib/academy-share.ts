@@ -9,7 +9,7 @@ import { SITE_URL } from "@/lib/seo";
 
 /** Public academy page. */
 export function academyShareLink(slug: string): string {
-  return `${SITE_URL}/a/${encodeURIComponent(slug)}`;
+  return `${SITE_URL}/a/${encodeURIComponent(slug)}?utm_source=facebook&utm_medium=share&utm_campaign=academy_share`;
 }
 
 /** A single plan, deep-linked to its expanded card on the academy page. */

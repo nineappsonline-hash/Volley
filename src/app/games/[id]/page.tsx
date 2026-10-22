@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicGame, getPublicGames } from "@/lib/public-games";
 import { gamePlace, publicGamePath, publicGameMetadata, publicGameEvent } from "@/lib/game-discovery";
-import { SITE_URL, breadcrumbsJsonLd, jsonLdStringify } from "@/lib/seo";
+import { SITE_URL, breadcrumbsJsonLd, jsonLdStringify, BRAND } from "@/lib/seo";
 import { gameSharingTarget } from "@/lib/game-share";
 
 type Props = { params: Promise<{ id: string }> };
@@ -19,9 +19,11 @@ export async function generateMetadata({ params }: Props) {
     place: game.playground?.name || game.area || (game as any)?.governorate || "",
   } as const;
   const shared = gameSharingTarget(sharedGame, SITE_URL, "en");
+  const location = shared?.text?.match(/ in ([^.]+)/)?.[1] || game.playground?.name || game.area || (game as any)?.governorate || "";
   return {
-    title: shared?.title || game.title,
-    description: shared?.text?.split("\\n")[0] || `${game.sport} game on Playza`,
+    title: shared?.title || `${game.title} — ${game.sport} game`,
+    description: shared?.text?.split("\\n")[0] || `
+    Join a ${game.sport.toLowerCase()} game in ${location}. View schedule, fee and registration on Playza.`,
     openGraph: {
       title: shared?.title || `${game.title} — ${game.sport} game`,
       description: shared?.text?.split("\\n")[0] || `
