@@ -37,6 +37,7 @@ import {
   useDeleteVenue,
   useOwnerApplication,
   useOwnerVenues,
+  useResubmitPlaygroundOwner,
   useVenueRentals,
 } from "@/lib/queries";
 import type { Venue, VenueRental } from "@/lib/types";
@@ -47,6 +48,7 @@ export function OwnerDashboard() {
   const { data: application } = useOwnerApplication();
   const { data: rentals, isLoading: rentalsLoading } = useVenueRentals();
   const remove = useDeleteVenue();
+  const resubmit = useResubmitPlaygroundOwner();
 
   const [tab, setTab] = useState<"playgrounds" | "schedule" | "revenue">("playgrounds");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -174,6 +176,24 @@ export function OwnerDashboard() {
             <p className="rounded-md bg-background/70 p-2 text-xs">
               {t("owner_review_note")}: {application.review_note}
             </p>
+          )}
+          {rejected && (
+            <div className="pt-1">
+              <Button
+                size="sm"
+                disabled={resubmit.isPending}
+                onClick={async () => {
+                  try {
+                    await resubmit.mutateAsync();
+                    toast.success(t("owner_resubmit_success"));
+                  } catch (err) {
+                    toast.error(errorMessage(err, t("common_error")));
+                  }
+                }}
+              >
+                {t("owner_resubmit_button")}
+              </Button>
+            </div>
           )}
         </div>
       )}

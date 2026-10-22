@@ -1898,11 +1898,22 @@ export function usePlaygroundOwnerApprovals() {
         .eq("status", "pending")
         .order("created_at");
       if (error) throw error;
-      return (
-        data ?? []
-      ) as (PlaygroundOwner & {
+      const owners = (data ?? []) as (PlaygroundOwner & {
         profiles: Pick<Profile, "name" | "email" | "phone" | "avatar_url"> | null;
       })[];
+      if (owners.length === 0) return owners.map((o) => ({ ...o, venues: [] as Venue[] }));
+      const { data: venues, error: venuesError } = await supabase()
+        .from("venues")
+        .select("*, sport:sports(id, name)")
+        .in("owner_profile_id", owners.map((o) => o.profile_id))
+        .order("name");
+      if (venuesError) throw venuesError;
+      const byOwner = new Map<string, Venue[]>();
+      for (const venue of (venues ?? []) as Venue[]) {
+        const key = venue.owner_profile_id ?? "";
+        byOwner.set(key, [...(byOwner.get(key) ?? []), venue]);
+      }
+      return owners.map((o) => ({ ...o, venues: byOwner.get(o.profile_id) ?? [] }));
     },
   });
 }
@@ -1924,6 +1935,20 @@ export function useReviewPlaygroundOwner() {
         p_approve: approve,
         p_note: note ?? null,
       });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.ownerApplications });
+      qc.invalidateQueries({ queryKey: queryKeys.ownerApplication });
+    },
+  });
+}
+
+export function useResubmitPlaygroundOwner() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase().rpc("resubmit_playground_owner");
       if (error) throw error;
     },
     onSuccess: () => {
