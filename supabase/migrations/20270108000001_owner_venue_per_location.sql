@@ -68,7 +68,7 @@ BEGIN
       ELSE
         INSERT INTO public.venues (
           owner_profile_id, name, address, sport_id,
-          rental_cost, rental_hours, court_count, location_link, photos, country, governorate, area
+          rental_cost, rental_hours, court_count, location_link, photos, country, governorate, area, court_availability
         )
         VALUES (
           NEW.id,
@@ -82,7 +82,8 @@ BEGIN
           COALESCE(v_venue -> 'photos', '[]'::jsonb),
           COALESCE(NULLIF(v_venue ->> 'country', ''), v_new_country),
           COALESCE(NULLIF(v_venue ->> 'governorate', ''), v_new_governorate),
-          COALESCE(NULLIF(v_venue ->> 'area', ''), v_new_area)
+          COALESCE(NULLIF(v_venue ->> 'area', ''), v_new_area),
+          COALESCE(v_venue -> 'court_availability', '[]'::jsonb)
         );
       END IF;
     END LOOP;

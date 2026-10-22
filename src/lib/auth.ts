@@ -17,6 +17,7 @@ export type SignupVenue =
       sport?: string | null;
       location_link?: string | null;
       photos?: string[];
+      court_availability?: { weekday: number; start: string; end: string; court_number: number }[];
       rental_cost?: number | null;
       rental_hours?: number | null;
       court_count?: number;

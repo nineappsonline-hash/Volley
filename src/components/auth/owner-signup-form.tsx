@@ -38,12 +38,14 @@ import {
 } from "@/components/ui/dialog";
 import { PushPrompt } from "@/components/shared/push-prompt";
 import { LocationFields } from "@/components/shared/location-fields";
+import { CourtAvailabilityEditor } from "@/components/playgrounds/court-availability-editor";
 import { UsernameField } from "@/components/shared/username-field";
 import { COMMUNITY_SPORTS } from "@/lib/constants";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { errorMessage } from "@/lib/utils";
 import { useAuth, type SignupVenue } from "@/lib/auth";
+import type { VenueUnavailableSlot } from "@/lib/types";
 
 interface PoolVenue {
   id: string;
@@ -66,6 +68,7 @@ type NewVenueDraft = {
   sport: string;
   location_link: string;
   photos: string[];
+  court_availability: (VenueUnavailableSlot & { court_number: number })[];
   rental_cost: string;
   court_count: string;
   fromPool?: boolean;
@@ -184,6 +187,7 @@ export function OwnerSignupForm() {
         sport: v.sport && v.sport !== "none" ? v.sport.trim() : null,
         location_link: v.location_link.trim() || null,
         ...(v.photos.length ? { photos: v.photos } : {}),
+        ...(v.court_availability.length ? { court_availability: v.court_availability } : {}),
         rental_cost: v.rental_cost.trim() !== "" ? Number(v.rental_cost) : null,
         court_count: v.court_count.trim() !== "" ? Number(v.court_count) : 1,
       }));
@@ -269,6 +273,7 @@ export function OwnerSignupForm() {
         sport: "",
         location_link: "",
         photos: [],
+        court_availability: [],
         rental_cost: "",
         court_count: "1",
       },
@@ -287,6 +292,7 @@ export function OwnerSignupForm() {
         sport: "",
         location_link: "",
         photos: [],
+        court_availability: [],
         rental_cost: v.rental_cost != null ? String(v.rental_cost) : "",
         court_count: "1",
       },
@@ -543,6 +549,13 @@ export function OwnerSignupForm() {
                           {t("owner_playground_photos_hint")}
                         </p>
                       </div>
+                      {!v.fromPool && (
+                        <CourtAvailabilityEditor
+                          value={v.court_availability}
+                          onChange={(val) => setSignupVenue(i, { court_availability: val })}
+                          courtCount={Math.max(1, Number(v.court_count) || 1)}
+                        />
+                      )}
                     </div>
                   </div>
                 ))}
@@ -559,7 +572,7 @@ export function OwnerSignupForm() {
                   </Button>
                   <Button type="button" variant="outline" size="sm" onClick={addNewVenueDraft}>
                     <Plus className="h-4 w-4" />
-                    {t("signup_playground_add_new")}
+                    {t(signupVenues.length > 0 ? "signup_playground_add_another" : "signup_playground_add_new")}
                   </Button>
                 </div>
               </div>
