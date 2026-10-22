@@ -72,12 +72,12 @@ export function discoveryMetadata(lang: DiscoveryLanguage, sport?: DiscoverySpor
 const SPORT_SEARCH_COPY: Record<string, { en: { title: string; description: string }; ar: { title: string; description: string }; keywords: string[] }> = {
   tennis: {
     en: { title: "Find Tennis Players & Games in Cairo, Egypt | Playza", description: "Find tennis partners and games in Cairo. Browse upcoming friendly tennis matches, compare levels and locations, and join other players with Playza." },
-    ar: { title: "ماتشات تنس في القاهرة | لاقى ناس تلعب معاهم", description: "عاوز تلعب تنس في القاهرة؟ لاقى شركاء للعب وماتشات ودية، شوف المستوى والمكان وانضم للاعبين جدد." },
+    ar: { title: "ماتشات تنس في القاهرة | اختار ناس تلعب معها", description: "عاوز تلعب تنس في القاهرة؟ اختار شركاء للعب وماتشات ودية، شوف المستوى والمكان وانضم للاعبين جدد." },
     keywords: ["find tennis partners cairo", "tennis games cairo", "join tennis games egypt", "tennis players cairo", "tennis near me", "شريك تنس", "ماتشات تنس القاهرة", "ناس تلعب تنس"],
   },
   volleyball: {
     en: { title: "Find Volleyball Players & Games in Cairo, Egypt | Playza", description: "Find volleyball players and games in Cairo. Join friendly volleyball matches without a team — check level, location, price and spots left on Playza." },
-    ar: { title: "ماتشات كرة طائرة في القاهرة | لاقى ناس تلعب معاهم", description: "عاوز تلعب كرة طائرة ومش لاقى فريق؟ لاقى ماتشات ودية، واتعرف على ناس جديدة، وانضم للعبة بدون فريق." },
+    ar: { title: "ماتشات كرة طائرة في القاهرة | اختار ناس تلعب معها", description: "عاوز تلعب كرة طائرة ومش اختاري فريق؟اختاري ماتشات ودية، واتعرف على ناس جديدة، وانضم للعبة بدون فريق." },
     keywords: ["find volleyball players cairo", "volleyball games cairo", "join volleyball games", "volleyball groups cairo", "عاوز ألعب طائرة", "ناس تلعب طائرة", "ماتشات طائرة القاهرة"],
   },
   archery: {
@@ -87,17 +87,17 @@ const SPORT_SEARCH_COPY: Record<string, { en: { title: string; description: stri
   },
   basketball: {
     en: { title: "Find Basketball Players & Pickup Games in Cairo | Playza", description: "Find basketball players and pickup games in Cairo. Join friendly basketball matches, meet new players, and get on the court today with Playza." },
-    ar: { title: "ماتشات كرة سلة في القاهرة | لاقى ناس تلعب باسكت معاهم", description: "عاوز ألعب كرة سلة ومش لاقى ناس؟ لاقى ماتشات باسكت ودية، واتعرف على لاعبين جدد، وانضم للمجموعة." },
+    ar: { title: "ماتشات كرة سلة في القاهرة | اختار ناس تلعب باسكت معها", description: "عوازلألعب كرة سلة ومشاختاري ناس؟اختاري ماتشات باسكت ودية، واتعرف على لاعبين جدد، وانضم للمجموعة." },
     keywords: ["find basketball players cairo", "basketball pickup games cairo", "basketball games cairo", "join basketball games cairo", "عاوز ألعب باسكت", "ناس تلعب باسكت", "ماتشات باسكت القاهرة"],
   },
   padel: {
     en: { title: "Find Padel Partners & Games in Cairo | Playza", description: "Find padel partners and games in Cairo. Browse upcoming padel matches, find players at your level, and join your next game with Playza." },
-    ar: { title: "ماتشات بادل في القاهرة | لاقى شريك بادل أو ماتش", description: "عاوز تلعب بادل ومش لاقى شريك؟ لاقى لاعبين بادل في مستواك، وانضم لماتشات ودية في القاهرة والتجمع الخامس." },
+    ar: { title: "ماتشات بادل في القاهرة | اختار شريك بادل أو ماتش", description: "عاوز تلعب بادل ومش اختار شريك؟ اختار لاعبين بادل في مستواك، وانضم لماتشات ودية في القاهرة والتجمع الخامس." },
     keywords: ["find padel partners cairo", "padel games cairo", "join padel games egypt", "padel players new cairo", "شريك بادل", "ماتشات بادل القاهرة", "ناس تلعب بادل"],
   },
   "beach-volleyball": {
     en: { title: "Find Beach Volleyball Games & Players in Cairo | Playza", description: "Find beach volleyball games and players in Cairo. Join friendly sand court matches individually — no team needed. Meet players and play today." },
-    ar: { title: "ماتشات طائرة شاطئية في القاهرة | لاقى ناس تلعب بيتش فولى", description: "عاوز تلعب طائرة شاطئية ومش لاقى ناس؟ لاقى ماتشات ودية على الرمل، وانضم بمفردك واتعرف على لاعبين جدد." },
+    ar: { title: "ماتشات طائرة شاطئية في القاهرة | اختار ناس تلعب بيتش فولى", description: "عاوز تلعب طائرة شاطئية ومش اختار ناس؟ اختار ماتشات ودية على الرمل، وانضم بمفردك واتعرف على لاعبين جدد." },
     keywords: ["beach volleyball games cairo", "beach volleyball partners cairo", "beach volleyball new cairo", "بيتس فولى", "ماتشات بيتش فولى", "ناس تلعب بيتش فولى"],
   },
 };

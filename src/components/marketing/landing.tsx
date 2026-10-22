@@ -68,7 +68,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}><span />{SportsHeroSceneCopy[lang].eyebrow}</p>
-          <h1>{copy("Find People", "لاقى ناس")}<br />{copy("to Play With", "تلعب معاهم")}<br /><span>{copy("Join Games", "وانضم لماتش")}<svg viewBox="0 0 400 25" aria-hidden="true"><path d="M5 18Q190-7 395 12M30 23Q210 6 365 18" /></svg></span></h1>
+          <h1>{copy("Find People", "اختار ناس")}<br />{copy("to Play With", "تلعب معاهم")}<br /><span>{copy("Join Games", "وانضم لماتش")}<svg viewBox="0 0 400 25" aria-hidden="true"><path d="M5 18Q190-7 395 12M30 23Q210 6 365 18" /></svg></span></h1>
           <p className={styles.intro}>{SportsHeroSceneCopy[lang].intro}</p>
           <div className={styles.actions}><NextLink className={`${styles.primary} ${styles.heroJoin}`} href="/dashboard">{copy("Find a Game", "الاقي ماتش ألعب فيه")}<ArrowUpRight size={24} /></NextLink></div>
           <p className={styles.heroNote}><Volleyball size={17} />{SportsHeroSceneCopy[lang].note}</p>
@@ -100,7 +100,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
 
 
       <section id="sports" aria-labelledby="sports-title" className={styles.combinedSports}>
-        <div className={styles.sectionHeading}><h2 id="sports-title">{copy("Find players. Play your sport.", "لاقى ناس. العب رياضتك.")}</h2><p>{copy("Join games, find sports partners, and discover academies for volleyball, basketball, padel, tennis and beach volleyball in Egypt.", "انضم لماتشات، لاقى شركاء للعب، واكتشف أكاديميات لرياضات كرة الطائرة، وكرة السلة، والبادل، والتنس، والطائرة الشاطئية في مصر.")}</p></div>
+        <div className={styles.sectionHeading}><h2 id="sports-title">{copy("Find players. Play your sport.", "اختار ناس. العب رياضتك.")}</h2><p>{copy("Join games, find sports partners, and discover academies for volleyball, basketball, padel, tennis and beach volleyball in Egypt.", "انضم لماتشات، اختار شركاء للعب، واكتشف أكاديميات لرياضات كرة الطائرة، وكرة السلة، والبادل، والتنس، والطائرة الشاطئية في مصر.")}</p></div>
         <div className={styles.sportsCards}>
           {(["padel", "tennis", "volleyball", "basketball", "beach-volleyball", "archery"] as const).map(item => <article id={item} key={item} className={styles.sportTile} aria-labelledby={`${item}-title`}>
             <div className={styles.sportTileArt} aria-hidden="true"><SportCardArt sport={item} /></div>
