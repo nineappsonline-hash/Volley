@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getPublicGame, getPublicGames } from "@/lib/public-games";
 import { gamePlace, publicGamePath, publicGameMetadata, publicGameEvent } from "@/lib/game-discovery";
 import { SITE_URL, breadcrumbsJsonLd, jsonLdStringify } from "@/lib/seo";
+import { gameSharingTarget } from "@/lib/game-share";
 
 type Props = { params: Promise<{ id: string }> };
 export const dynamic = "force-dynamic";
@@ -11,7 +12,34 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: Props) {
   const game = await getPublicGame((await params).id);
   if (!game) notFound();
-  return publicGameMetadata(game);
+  const path = publicGamePath(game.id);
+  const sharedGame = {
+    ...game,
+    is_public: true,
+    place: game.playground?.name || game.area || (game as any)?.governorate || "",
+  } as const;
+  const shared = gameSharingTarget(sharedGame, SITE_URL, "en");
+  return {
+    title: shared?.title || game.title,
+    description: shared?.text?.split("\\n")[0] || `${game.sport} game on Playza`,
+    openGraph: {
+      title: shared?.title || `${game.title} — ${game.sport} game`,
+      description: shared?.text?.split("\\n")[0] || `
+      Join a ${game.sport.toLowerCase()} game in ${location}. View schedule, fee and registration on Playza.`,
+      url: path,
+      images: [{ url: `${SITE_URL}/og/game?code=${game.id}`, width: 1200, height: 630, alt: shared?.title || game.title }],
+      type: "website",
+      siteName: "Playza",
+      locale: "en_US",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: shared?.title || `${game.title} — ${game.sport} game`,
+      description: shared?.text?.split("\\n")[0] || `
+      Join a ${game.sport.toLowerCase()} game in ${location}. View schedule, fee and registration on Playza.`,
+      images: [{ url: `${SITE_URL}/og/game?code=${game.id}`, alt: shared?.title || game.title }],
+    },
+  };
 }
 
 export default async function PublicGamePage({ params }: Props) {
