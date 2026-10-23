@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CheckCircle2, Eye, Receipt, XCircle } from "lucide-react";
+import { CheckCircle2, ChevronDown, Eye, Receipt, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,6 +65,8 @@ interface PaymentRecord {
 
 export function PaymentApprovals() {
   const { t, lang, locale } = useI18n();
+  const [expanded, setExpanded] = useState(false);
+  const contentId = useId();
   const money = (v: number) => formatMoneyShort(v, lang);
   const membersQuery = useCommunityMembers();
   const { data: members } = membersQuery;
@@ -223,13 +225,16 @@ export function PaymentApprovals() {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
+        <CardTitle className="text-base">
+          <button type="button" aria-expanded={expanded} aria-controls={contentId} onClick={() => setExpanded(!expanded)} className="flex w-full items-center gap-2 rounded text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <Receipt className="h-4 w-4 text-primary" />
           {t("super_admin_payments_title")}
           {pendingCount > 0 && <Badge variant="warning">{pendingCount}</Badge>}
+          <ChevronDown className={`ms-auto h-4 w-4 shrink-0 transition-transform motion-reduce:transition-none ${expanded ? "rotate-180" : ""}`} aria-hidden="true" />
+          </button>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent id={contentId} hidden={!expanded} className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="inline-flex min-h-9 h-auto max-w-full flex-wrap items-center justify-start rounded-lg bg-muted p-1 text-muted-foreground">
             {(["all", "share", "rent", "subscription"] as TypeFilter[]).map((f) => (
@@ -422,8 +427,11 @@ export function PaymentApprovals() {
 function PaymentPurpose({ record, language }: { record: PaymentRecord; language: string }) {
   return <div className="mt-2 min-w-0 space-y-2 text-xs">
     <p className="whitespace-normal break-words text-sm font-semibold">{record.detail}</p>
-    <dl className="space-y-1">{record.context.map(field => <div key={field.label} className="flex flex-wrap gap-x-2">
+    <details className="group/purpose">
+      <summary className="flex w-fit cursor-pointer list-none items-center gap-1 rounded py-1 font-medium text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">{language === "ar" ? "تفاصيل الدفع" : "Payment details"}<ChevronDown className="h-3.5 w-3.5 transition-transform group-open/purpose:rotate-180 motion-reduce:transition-none" aria-hidden="true" /></summary>
+      <dl className="mt-1 space-y-1">{record.context.map(field => <div key={field.label} className="flex flex-wrap gap-x-2">
       <dt className="text-muted-foreground">{field.label}:</dt><dd className="min-w-0 whitespace-normal break-words">{field.value}</dd>
     </div>)}<div className="flex flex-wrap gap-x-2"><dt className="text-muted-foreground">{language === "ar" ? "مرجع الدفع" : "Payment reference"}:</dt><dd className="break-all font-mono text-[10px]">{record.key.slice(record.key.indexOf(":") + 1)}</dd></div></dl>
+    </details>
   </div>;
 }

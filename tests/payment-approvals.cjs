@@ -18,6 +18,11 @@ function load(file){file=path.resolve(file);if(cache.has(file))return cache.get(
 const {dictionary}=load('src/lib/i18n/dictionary.ts');const {PaymentApprovals}=load('src/components/super-admin/payment-approvals.tsx');
 for(lang of ['en','ar']){
  const html=renderToStaticMarkup(React.createElement(PaymentApprovals));
+ assert.ok(html.includes('aria-expanded="false"'), 'payment approval panel starts collapsed');
+ assert.ok(html.includes('hidden=""'), 'filter and payment content is hidden by default');
+ assert.equal((html.match(/<details /g)||[]).length,8,'each mobile/desktop payment has independently expandable context');
+ assert.ok(!html.includes('<details open'), 'payment details start collapsed');
+ assert.ok(html.includes(lang==='en'?'Payment details':'تفاصيل الدفع'));
  for(const value of [game.title,game.sport,'Sand court','New Cairo','Cairo','Organizer name','2026-11-01','Guest player','Payer name','Elite academy','game-123','share-123','rent-123','sub-123','academy-123',dictionary[lang].plans_tier_plus,dictionary[lang].mplan_tier_pro,dictionary[lang].checkout_cycle_yearly])assert.ok(html.includes(value),value);
  assert.ok(html.includes(lang==='en'?'Player membership':'عضوية لاعب'));
  assert.ok(html.includes(lang==='en'?'Payment reference':'مرجع الدفع'));
@@ -26,3 +31,21 @@ for(lang of ['en','ar']){
  error=true;const failed=renderToStaticMarkup(React.createElement(PaymentApprovals));assert.ok(failed.includes('role="alert"'));assert.ok(!failed.includes('share-123'));error=false;
 }
 console.log('PASS: bilingual share/rent game context, subscription plan/cycle/academy, payer and player distinction, references, missing relations and query errors on mobile and desktop');
+// Exercise the panel toggle without a session, receipt access, or payment writes.
+let expanded=false;
+mocks.react={...React,useId:()=> 'payment-panel',useMemo:fn=>fn(),useState:initial=>[typeof initial==='boolean'?expanded:initial,value=>{if(typeof value==='boolean')expanded=value;}]};
+cache.delete(path.resolve('src/components/super-admin/payment-approvals.tsx'));
+const TogglePanel=load('src/components/super-admin/payment-approvals.tsx').PaymentApprovals;
+function find(node,predicate){if(!node||typeof node!=='object')return; if(predicate(node))return node;let result;React.Children.forEach(node.props?.children,child=>{result??=find(child,predicate)});return result;}
+for(lang of ['en','ar']){
+ expanded=false;
+ for(const expected of [false,true,false]){
+  const tree=TogglePanel();
+  const toggle=find(tree,n=>n.type==='button'&&n.props['aria-controls']==='payment-panel');
+  const panel=find(tree,n=>n.props?.id==='payment-panel');
+  assert.equal(toggle.props['aria-expanded'],expected);
+  assert.equal(panel.props.hidden,!expected);
+  toggle.props.onClick();
+ }
+}
+console.log('PASS: payment panel opens/closes through its accessible toggle in both languages without accessing receipts or changing payments');
