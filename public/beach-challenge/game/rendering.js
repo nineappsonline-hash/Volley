@@ -1,6 +1,6 @@
 import {thirdPersonPose} from './camera.js';
 import {createAthlete,createAthleteHands} from './athlete.js';
-import {shotTarget} from './simulation.js';
+import {shotTarget,predictBallLanding} from './simulation.js';
 import {createHands} from './hands.js';
 import {handPose,contactPose,animationWeight} from './hand-pose.js';
 import * as THREE from '../vendor/three.module.js';
@@ -132,13 +132,17 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
  hands.root ? hands.root.visible=!thirdPerson : null;
  let displayedPose=handPose();
  const ballMaterial=mat(0xffffff,{map:ballTexture(logo),roughness:.55});const ball=mesh(new THREE.SphereGeometry(.105,low?16:28,low?10:20),ballMaterial);
+ const trackingTexture=paintedTexture(64,64,(ctx)=>{ctx.strokeStyle='#ffffff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(32,32,25,0,Math.PI*2);ctx.stroke()});
+ const ballCue=new THREE.Sprite(new THREE.SpriteMaterial({map:trackingTexture,color:0xd4ff00,transparent:true,depthWrite:false,depthTest:false,opacity:.85}));ballCue.name='ball-tracking-ring';ballCue.renderOrder=5;scene.add(ballCue);
+ const contactCue=new THREE.Sprite(new THREE.SpriteMaterial({map:trackingTexture,color:0xd4ff00,transparent:true,depthWrite:false,opacity:0}));contactCue.name='confirmed-contact-ring';scene.add(contactCue);
+ let cueHit=-1,landingAt=-1,landingHit=-1,predictedLanding=null;
  const shadowMap=paintedTexture(64,64,(ctx,w,h)=>{const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);g.addColorStop(0,'rgba(55,47,34,.45)');g.addColorStop(.4,'rgba(55,47,34,.22)');g.addColorStop(1,'rgba(55,47,34,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h)});
  const cpuShadow=mesh(new THREE.PlaneGeometry(.9,1.1),new THREE.MeshBasicMaterial({map:shadowMap,transparent:true,depthWrite:false,opacity:.75}),0,.027,-5.5);cpuShadow.rotation.x=-Math.PI/2;cpuShadow.castShadow=false;cpuShadow.receiveShadow=false;
  const shadow=mesh(new THREE.PlaneGeometry(.65,.65),new THREE.MeshBasicMaterial({map:shadowMap,transparent:true,depthWrite:false}),0,.026,0);shadow.rotation.x=-Math.PI/2;shadow.castShadow=false;shadow.receiveShadow=false;
- const landing=mesh(new THREE.RingGeometry(.30,.35,40),new THREE.MeshBasicMaterial({color:0xf5fdc4,side:THREE.DoubleSide,transparent:true,opacity:.7}),0,.03,0);landing.rotation.x=-Math.PI/2;landing.castShadow=false;
+ const landing=mesh(new THREE.RingGeometry(.30,.35,40),new THREE.MeshBasicMaterial({color:0xf5fdc4,side:THREE.DoubleSide,transparent:true,opacity:.7}),0,.03,0);landing.name='ball-landing-preview';landing.rotation.x=-Math.PI/2;landing.castShadow=false;
  const target=mesh(new THREE.RingGeometry(.14,.17,24),new THREE.MeshBasicMaterial({color:0xd5ef67,side:THREE.DoubleSide}),0,.035,-5.5);target.name='shot-aim-marker';target.rotation.x=-Math.PI/2;target.castShadow=false;
  // A short history line helps assisted players read fast returns. It never spans contacts or resets.
- const trailCount=7,trailPoints=new Float32Array(trailCount*3),trailGeometry=new THREE.BufferGeometry();trailGeometry.setAttribute('position',new THREE.BufferAttribute(trailPoints,3));
+ const trailCount=11,trailPoints=new Float32Array(trailCount*3),trailGeometry=new THREE.BufferGeometry();trailGeometry.setAttribute('position',new THREE.BufferAttribute(trailPoints,3));
  const trail=new THREE.Line(trailGeometry,new THREE.LineBasicMaterial({color:0xf5ffd0,transparent:true,opacity:.45,depthWrite:false}));trail.name='assisted-ball-trail';trail.frustumCulled=false;scene.add(trail);
  let trailClock=-1,trailHit=-1;
  let previousAI={x:0,z:-5.5},previousClock=0,walkPhase=0,lastHands=-1;
@@ -154,6 +158,13 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
    const blend=old&&old.phase===m.phase&&old.hitAt===(m.hitEvent?.at??-1);
    ball.position.set(blend?THREE.MathUtils.lerp(old.x,b.x,alpha):b.x,blend?THREE.MathUtils.lerp(old.y,b.y,alpha):b.y,blend?THREE.MathUtils.lerp(old.z,b.z,alpha):b.z);
    ball.rotation.set(m.clock*2.4,m.clock*1.1,m.clock*1.7);
+   ballCue.visible=settings.assist&&['serve','rally'].includes(m.phase);ballCue.position.copy(ball.position);ballCue.scale.setScalar(THREE.MathUtils.clamp(camera.position.distanceTo(ball.position)*.045,.4,.85));
+   const contactReady=m.phase==='rally'&&!m.contactLatched[0]&&m.contactState(yaw,pitch).withinReach;
+   ballCue.material.color.setHex(contactReady?0xd4ff00:0xffffff);
+   if(m.hitEvent&&m.hitEvent.at!==cueHit){cueHit=m.hitEvent.at;contactCue.position.copy(ball.position);}
+   const contactAge=m.clock-cueHit;contactCue.visible=settings.assist&&m.phase==='rally'&&cueHit>=0&&contactAge>=0&&contactAge<.25;
+   if(contactCue.visible){contactCue.scale.setScalar(.3+contactAge*3);contactCue.material.opacity=(1-contactAge/.25)*.85;}
+
    const newTrail=m.phase!=='rally'||m.clock<trailClock||trailHit!==(m.hitEvent?.at??-1);
    if(newTrail){for(let i=0;i<trailCount;i++)trailPoints.set([ball.position.x,ball.position.y,ball.position.z],i*3);trailClock=m.clock;trailHit=m.hitEvent?.at??-1;trailGeometry.attributes.position.needsUpdate=true}
    else if(m.clock-trailClock>=1/40){trailPoints.copyWithin(3,0,trailPoints.length-3);trailPoints.set([ball.position.x,ball.position.y,ball.position.z]);trailClock=m.clock;trailGeometry.attributes.position.needsUpdate=true}
@@ -182,7 +193,10 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
    displayedPose=displayedPose.map((v,i)=>({position:v.position.map((x,j)=>THREE.MathUtils.lerp(x,targetPose[i].position[j],blendPose)),rotation:v.rotation.map((x,j)=>THREE.MathUtils.lerp(x,targetPose[i].rotation[j],blendPose)),curl:THREE.MathUtils.lerp(v.curl,targetPose[i].curl,blendPose),spread:THREE.MathUtils.lerp(v.spread,targetPose[i].spread,blendPose)}));
    if(!thirdPerson&&(!low||m.clock-lastHands>=1/30||lastHands<0)){hands.update(displayedPose);lastHands=m.clock}
    shadow.position.set(ball.position.x,.026,ball.position.z);shadow.visible=Math.abs(b.x)<6&&Math.abs(b.z)<10;shadow.scale.setScalar(1+Math.max(0,b.y)*.08);shadow.material.opacity=Math.max(.25,1-b.y*.1);
-   landing.visible=settings.assist&&(settings.difficulty==='easy'||m.config.practice)&&m.phase==='rally';const t=(b.vy+Math.sqrt(Math.max(0,b.vy*b.vy+19.62*(b.y-.105))))/9.81;landing.position.set(b.x+b.vx*t,.03,b.z+b.vz*t);
+   landing.visible=settings.assist&&m.phase==='rally';
+   if(landing.visible&&(m.clock<landingAt||m.clock-landingAt>=.1||landingHit!==(m.hitEvent?.at??-1))){predictedLanding=predictBallLanding(b);landingAt=m.clock;landingHit=m.hitEvent?.at??-1;}
+   landing.visible=landing.visible&&!!predictedLanding;
+   if(predictedLanding)landing.position.set(predictedLanding.x,.03,predictedLanding.z);
    target.visible=settings.assist&&m.phase==='rally';const aim=shotTarget(yaw,pitch,m.window>0&&m.tip);target.position.set(aim.x,.035,aim.z);
    renderer.render(scene,camera);
   },

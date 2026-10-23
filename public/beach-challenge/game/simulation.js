@@ -90,3 +90,12 @@ export class Match{
  contactState(yaw=0,pitch=0){return this.config.arcade?arcadeContactState(this.player,this.ball,this.actionKind==='dive'&&this.diveTime<=0?'hit':this.actionKind,this.config.assist,this.abilityUntil>this.clock&&this.config.ability==='shield'):playerContactState(this.player,this.ball,yaw,pitch,this.config.assist)}
  get score(){return 100*this.points[0]+20*this.perfect+30*this.bestStreak+(this.points[0]>this.points[1]?150:0)}
 }
+
+/** Read-only landing preview uses the same gravity, spin and net response as play. */
+export function predictBallLanding(ball){
+ const copy={...ball};
+ if(!['x','y','z','vx','vy','vz'].every(key=>Number.isFinite(copy[key]))||copy.spin!==undefined&&!Number.isFinite(copy.spin))return null;
+ const step=1/180;
+ for(let i=0;i<1440;i++)if(integrate(copy,step)==='ground')return {x:copy.x,z:copy.z};
+ return null;
+}
