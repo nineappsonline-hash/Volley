@@ -1,6 +1,6 @@
 // Local teammates use the same gravity, touch budget and collision rules as the player.
 import {clamp,RULES,shotFlightTime} from './simulation.js';
-const homes=[[-2.7,2.1],[0,2.1],[2.7,2.1],[-2.7,6.2],[2.7,6.2]];
+const homes=[[-2.5,2.3],[2.5,2.3],[0,4]];
 export function createTeam(side){return homes.map(([x,z],i)=>({id:`${side}-${i}`,x,z:side?-z:z,y:0,vy:0,homeX:x,homeZ:side?-z:z,cooldown:0}))}
 export function stepTeam(match,side,dt){
  const team=side?match.opponents:match.teammates;if(!team?.length||match.phase!=='rally'||match.pendingToss)return;

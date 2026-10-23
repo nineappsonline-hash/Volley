@@ -42,7 +42,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
   }, [expanded, lang]);
 
   const [ability, setAbility] = useState("power");
-  const [teamSize, setTeamSize] = useState("6");
+  const [teamSize, setTeamSize] = useState("4");
   const [camera, setCamera] = useState("third");
   const [difficulty, setDifficulty] = useState("easy");
   const [session, setSession] = useState<{ mode: "match" | "practice"; lang: string; difficulty: string; ability: string; teamSize: string; camera: string } | null>(null);
@@ -116,7 +116,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
           </select>
         </label>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <label className="text-sm">{copy("Match", "الماتش")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3" value={teamSize} onChange={e=>setTeamSize(e.target.value)}><option value="6">{copy("6v6 local teams", "6 ضد 6 محلي")}</option><option value="1">{copy("1v1 duel", "واحد ضد واحد")}</option></select></label>
+          <label className="text-sm">{copy("Match", "الماتش")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3" value={teamSize} onChange={e=>setTeamSize(e.target.value)}><option value="4">{copy("4v4 local teams", "4 ضد 4 محلي")}</option><option value="1">{copy("1v1 duel", "واحد ضد واحد")}</option></select></label>
           <label className="text-sm">{copy("Camera", "الكاميرا")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3" value={camera} onChange={e=>setCamera(e.target.value)}><option value="third">{copy("Third person", "الشخص الثالث")}</option><option value="first">{copy("First person", "الشخص الأول")}</option></select></label>
           <label className="text-sm">{copy("Ability", "القدرة")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3" value={ability} onChange={e=>setAbility(e.target.value)}><option value="power">{copy("Power Strike", "ضربة قوية")}</option><option value="dash">{copy("Quick Step", "خطوة سريعة")}</option><option value="shield">{copy("Sky Wall", "حائط السما")}</option></select></label>
         </div>
