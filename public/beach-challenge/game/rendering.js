@@ -145,9 +145,9 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
  function resize(){if(low)renderer.setPixelRatio(Math.min(renderer.getPixelRatio(),devicePixelRatio,1,Math.sqrt(650000/(innerWidth*innerHeight))));renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}resize();
  return {scene,camera,renderer,resize,
   lowerQuality(){renderer.setPixelRatio(Math.max(.5,renderer.getPixelRatio()*.8));renderer.shadowMap.enabled=false;resize()},
-  render(m,yaw,pitch,alpha=1){
+  render(m,yaw,pitch,alpha=1,cameraDistance=4.2){
    const p=m.player,b=m.ball,old=m.previousBall;
-   if(thirdPerson){const c=thirdPersonPose(p,yaw,pitch);const follow=m.previousBall?1-Math.exp(-14*Math.max(1/120,Math.min(.05,m.clock-previousClock))):1;camera.position.lerp(new THREE.Vector3(c.x,c.y,c.z),follow);camera.lookAt(c.lookX,c.lookY,c.lookZ)}else{camera.position.set(p.x,p.y+1.7,p.z);camera.rotation.set(pitch,yaw,0)}
+   if(thirdPerson){const c=thirdPersonPose(p,yaw,pitch,cameraDistance);const follow=m.previousBall?1-Math.exp(-14*Math.max(1/120,Math.min(.05,m.clock-previousClock))):1;camera.position.lerp(new THREE.Vector3(c.x,c.y,c.z),follow);camera.lookAt(c.lookX,c.lookY,c.lookZ)}else{camera.position.set(p.x,p.y+1.7,p.z);camera.rotation.set(pitch,yaw,0)}
    if(localAthlete){localAthlete.root.visible=thirdPerson;localAthlete.update({...m,ai:p,player:m.ai,last:1-m.last,hitEvent:m.hitEvent?{...m.hitEvent,side:1-m.hitEvent.side}:null});localAthlete.root.rotation.x=m.diveTime>0?-1.1:0}
    if(localFallback){localFallback.visible=thirdPerson;localFallback.position.set(p.x,p.y,p.z);localFallback.rotation.set(m.diveTime>0?-.7:0,yaw+Math.PI,0)}
    // Never interpolate across a scored rally/reset or a confirmed contact impulse.
