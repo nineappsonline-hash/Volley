@@ -2,62 +2,59 @@
 
 ## Current state
 
-**The Vercel hosting/domain move is complete.** `https://playza.nineapps.online` is verified on the new Vercel account and serves the validated new deployment. The website deliberately remains connected to the original live Supabase project, `wknaiyouwjobmzzjoutz`, so this hostname move does not switch databases or lose recent activity. The separate Supabase copy is provisioned and validated, but its final synchronization/backend cutover remains pending.
+**The Vercel and Supabase cutovers are complete.** `https://playza.nineapps.online` now runs in the new Vercel account and uses the new Supabase project, including existing accounts, application records and uploaded files. No paid account/team transfer was used.
 
-- Source Supabase project: `wknaiyouwjobmzzjoutz` (`Volley`, eu-west-1).
-- Destination Supabase project: `jqysnlkykznwdonicwsm` (`Playza`, eu-west-1), in the new account's organization.
-- Destination Vercel project: `playza`, scope `9apps`, project `prj_ynczLkR3zLEp2wukUvevUy2yJJf9`.
-- Current hosting deployment: `https://playza-hs47i9lrk-9apps.vercel.app`, deployment `dpl_FZTiV8n5qHThp41srcJgnrwz6HKZ`. The custom production hostname is pinned to this deployment in the new account.
-- The earlier initial-copy deployment `dpl_AUiTAYZbdh1NQFBt1kFUswkb18eA` validated the new Supabase snapshot; it is not the current live backend configuration.
-- Retained live production domain: `playza.nineapps.online`. Its original Vercel project binding was released, and the new project binding is verified.
-- No paid project/team transfer was used. The pre-existing paused destination Supabase project was left untouched.
+- New Supabase project: `jqysnlkykznwdonicwsm` (`Playza`, eu-west-1). [Dashboard](https://supabase.com/dashboard/project/jqysnlkykznwdonicwsm).
+- New Vercel project: `playza`, scope `9apps`, project `prj_ynczLkR3zLEp2wukUvevUy2yJJf9`.
+- Validated cutover deployment: `dpl_GnVNGCZGbTkAmFD7h6RJjbRWGgzx`, `https://playza-gk0d3vj1g-9apps.vercel.app`, built from commit `262cecef`. Later successful Git deployments may supersede it.
+- GitHub repository `jimmydodo/Volley` is connected, with production branch `main`. Production and preview environment defaults now use the new backend.
+- Local ignored `.env.local` and Supabase project/pooler linkage now target the new backend. Global CLI account logins were left unchanged; future Supabase CLI management requires authentication to the new account.
+- The old Supabase project, `wknaiyouwjobmzzjoutz`, is retained with application writes paused and all seven scheduled jobs disabled. Do not point clients back to it without a controlled rollback.
+- The pre-existing paused project in the new Supabase account was left untouched. The new Playza project remains writable with signup enabled, as requested.
 
-## Copied and verified
+## Data copied and verified
 
-- 88 application tables. Snapshot row counts matched across 119 backed-up application/auth/storage tables, with no count differences.
-- All 89 authentication accounts and 89 profiles. Account IDs and saved password hashes matched the backup exactly; no password reset or user recreation was performed. Existing Google identities were included.
-- All 139 uploaded files across the populated storage buckets: 158,216,935 bytes. Each copied file was downloaded again from the destination and checked against its source SHA-256 digest. All seven bucket definitions were retained, including empty buckets and private receipt buckets. Original file IDs, ownership and historical timestamps were restored and verified.
-- All 280 application/auth/storage RLS policies matched the source. One custom auth trigger was restored. Anonymous access to a private receipt was denied, while public media remained accessible.
-- Application Realtime subscription membership matched on all 13 source application tables. Platform-maintained retained broadcast partitions are managed independently by Supabase and were not treated as application tables.
-- Supabase CLI migration history restored separately. Empty platform-owned vector metadata was excluded using the documented restore procedure; no source vector data was discarded.
-- Google provider, email/SMTP and relevant authentication settings copied. No MFA-factor or Vault-secret records existed in the source, so there was no encrypted MFA/Vault payload to re-key.
-- Both deployed Edge Functions (`notify-push`, `notify-email`) copied from the actual source deployment, with their original JWT verification settings. Six application notification settings were retrieved privately, hash-checked against the source and configured on the destination. Temporary migration helpers were deleted from the source; no helper endpoints remain.
-- Seven scheduled jobs restored **inactive** to prevent duplicate notifications and housekeeping before cutover. Embedded old-project notification JWTs were repointed to destination keys.
-- Nine Vercel application-variable names were inventoried. Protected/Secret values are not revealed by normal API/CLI exports: exported blanks must not be treated as working credentials. For the completed hosting move, the live Supabase URL/keys were verified through the source management API, the canonical URL was retained and payment settings were restored from the existing workspace configuration. An explicitly authorized temporary protected-settings deployment could not be created because the old Vercel account had an overdue balance; no such endpoint was left running. Exact equality with the old write-only payment settings could not be independently established, and no real card charge was tested. No booking, payment or notification was created or changed by QA.
+The initial copy included 88 application tables, authentication records, storage definitions, database functions, grants and migration history. Initial row counts matched across 119 backed-up application/auth/storage tables. All 280 application/auth/storage RLS policies matched; the custom auth trigger and all 13 application Realtime publication tables were retained. Empty platform-managed vector metadata was excluded; no vector data existed.
 
-## Validation
+The final comparison found one additional source account/profile, source venue edits and a venue deletion, and two new uploads. A comparison against the initial snapshot showed no destination-only account/profile additions or conflicting venue edits. These changes were synchronized after the user explicitly authorized pausing writes and jobs on the old project. A first pause attempt encountered a protected internal migration table and rolled back atomically; the successful pause excludes protected platform migration tables.
 
-The current destination Vercel production build passed compilation, lint/type validation and route generation. A read-only mobile browser check returned HTTP 200 for `/`, `/dashboard`, `/login` and `/games/beach-volleyball`, without horizontal overflow, captured JavaScript errors or failing Supabase responses. The initial-copy browser check used only the new Supabase host. After the hosting-only cutover, a second check on the actual custom hostname passed the same four pages and confirmed requests use only the original live Supabase host, with no captured JavaScript errors or failing Supabase responses. Analytics requests were intercepted so QA did not send events to the production GA4 property.
+At cutover:
 
-This is an initial snapshot validation, not a claim that later source writes have already been synchronized or that end-to-end Google login has been completed. The completed hosting move keeps the original Supabase URL and authentication project. A later Supabase-project switch can require signing in again; preserved accounts retain their passwords and IDs.
+- **90 authentication accounts, 90 identities and 90 profiles** matched, including account IDs and saved password hashes. No accounts were recreated and no password reset was performed.
+- All application tables matched after normalizing old storage URLs to the new project. The updated source venue records and deletion were retained.
+- **141 uploaded files**, totaling **162,685,422 bytes**, were present. The initial 139 files and the two additional files were downloaded from the destination and SHA-256 checked against their source bytes. Final paths, sizes, IDs and ownership matched across projects. Original ownership and historical timestamps were preserved without overwriting destination storage version metadata.
+- All seven bucket definitions were retained, including public media and private receipt buckets. Initial access tests denied anonymous private-receipt access and allowed public media.
+- The only remaining comparison differences were volatile auth sessions, refresh tokens, OAuth flow state and session authentication-method records created on the old project after the initial copy. These were not treated as new user accounts or portable live sessions. Users may need to sign in again; account IDs and passwords remain intact.
 
-## Remaining backend-migration setup
+## Authentication, background work and configuration
 
-1. In the existing Google Cloud OAuth **Web application** client, add this Authorized redirect URI while retaining the original:
-   `https://jqysnlkykznwdonicwsm.supabase.co/auth/v1/callback`
-   Use Google Auth Platform → Clients. The exact new callback must be accepted before the Supabase backend is switched. It is not required for the completed hosting move because the original live authentication project remains connected.
-2. In `https://vercel.com/9apps/playza/settings/git`, connect `jimmydodo/Volley` through the authorized GitHub account and select production branch `main`. The GitHub repository connection has now been verified in the destination Vercel project.
-3. A temporary read-only staging guard and disabled destination signup were proposed to prevent shadow bookings/accounts before cutover. Automatic approval review rejected the broad database guard without explicit authorization. **No such guard or signup restriction was applied.** The user explicitly chose to keep the new copy writable, with signup enabled; no staging guard will be applied. Destination background jobs remain inactive.
+Google provider and email/SMTP settings were copied. The user confirmed adding `https://jqysnlkykznwdonicwsm.supabase.co/auth/v1/callback` to the existing Google OAuth client. The new project's Google provider, client configuration, canonical site URL and enabled signup were checked. Full interactive Google/password login with a real user's credentials was not performed by automation.
 
-## Remaining Supabase cutover sequence — not executed
+Both deployed Edge Functions, `notify-push` and `notify-email`, were copied with their original JWT verification settings. Six notification secrets were copied privately and hash-checked. Temporary source helper endpoints were deleted. Embedded notification URLs/JWTs were repointed to the new project. The seven destination scheduled jobs were activated only after live checks passed; the source has zero active scheduled jobs.
 
-1. Verify the external OAuth callback, destination deployment, repository connection and chosen staging restrictions. Snapshot the existing domain bindings and production deployment for rollback.
-2. Coordinate a brief source-write freeze or equivalent controlled synchronization window. Retake the source database/storage snapshot and synchronize all changes since the initial copy. The source must remain authoritative until this completes; do not simply switch an old snapshot live.
-3. Recheck account/password digests, counts, storage hashes and ownership, constraints, RLS, Realtime, authenticated access and payment/notification configuration against that final snapshot. Remove any explicitly authorized temporary destination staging restrictions at cutover.
-4. The hostname is already on the new Vercel project; switch its application backend configuration only after those checks pass. Verify HTTPS, public pages, password/Google login, private receipts and application reads against the new backend.
-5. Activate the seven destination jobs and disable their source counterparts to prevent duplicate work. The ignored local Vercel project linkage already points to the new project and GitHub is connected. Re-link Supabase CLI state only when its backend is cut over; the global Vercel CLI login was not changed for other workspaces. Do not delete the old projects during cutover.
-6. If checks fail, restore the recorded original domain binding and source scheduler state before accepting new writes on the new backend. Once new production writes begin, rollback also requires reconciling those writes; moving the domain back alone is not a safe data rollback.
+Only the three Supabase environment variables changed during backend cutover. Existing canonical URLs and payment configuration were retained. Protected old Vercel values could not be exported through normal APIs, and the old account's overdue balance prevented the explicitly authorized temporary settings-export deployment. During the earlier hosting move, verified Supabase keys came from its management API and payment configuration came from the existing workspace settings. Exact equality with the old write-only payment values was not independently established. No real card charge was tested, and no payment or booking logic changed.
 
-## Hosting cutover verification
+## Validation and live switch
 
-Before reassignment, the original hostname returned HTTP 402 from the old Vercel account. The original alias metadata was saved privately. Only `playza.nineapps.online` was released from the old project; the old project, both databases and the parent domain were retained. The hostname was attached to the new project, verified and aliased to the ready deployment. Live HTTPS checks passed for `/`, `/dashboard` and `/login`; a mobile browser check additionally passed `/games/beach-volleyball`. Production GitHub connectivity is confirmed. No source database writes or scheduled-job changes were needed for this hosting-only move.
+The production build passed compilation, lint/type validation and route generation. It was staged without assigning production domains, then checked through Vercel's authenticated automation access. The latest committed super-admin fixes were included in a refreshed build before cutover.
 
-## Private operational material
+Final read-only mobile browser checks on the actual custom domain passed `/`, `/dashboard`, `/login` and `/games/beach-volleyball`: all returned HTTP 200, with no horizontal overflow, captured JavaScript errors or failing Supabase responses. Requests used **only `jqysnlkykznwdonicwsm.supabase.co`**. Analytics requests were intercepted to avoid sending QA events to GA4. No test accounts, bookings or payments were created.
 
-Backups, database passwords, account tokens, environment exports, downloaded files and per-file verification manifests are held outside the repository under a user-restricted temporary directory, `/tmp/playza-account-migration`. They are not included in this document or in Git. Preserve a secure backup outside temporary storage before decommissioning the old projects. Account tokens shared for this operation should be rotated after migration and verification are complete.
+The Vercel CLI promotion reported a team-resolution error. Promotion succeeded through the API with explicit project/team IDs, and alias metadata confirmed the exact validated deployment. A check during propagation saw mixed old/new responses and a React recovery error; the subsequent fresh check passed with only the new backend and no errors.
+
+These checks establish successful deployment and public application access; they do not substitute for a real user's interactive sign-in or a real payment-provider transaction.
+
+## Retention and rollback
+
+Both old projects remain available. The old database is intentionally write-paused so stale browser clients cannot create records in the retired backend. Administrative management access remains available, and the private pause rollback script records the original scheduler state. Do not unpause it for normal production activity.
+
+The previous new-account deployment used the old backend and is recorded privately. Once the new backend accepts production writes, rollback requires reconciling those writes before restoring old database traffic. Simply reassigning a domain or restoring old environment values could lose new activity. The old Vercel account's billing error makes its original deployment an unsuitable hosting rollback target.
+
+Backups, credentials, uploaded-file copies, comparison snapshots and rollback scripts are held outside Git under the restricted temporary directory `/tmp/playza-account-migration`. Preserve them in secure durable storage before deleting either old project. Tokens shared for migration should be rotated after verification. No secret values or personal records are included in this report or Git.
 
 ## References
 
 - https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore
 - https://developers.google.com/identity/protocols/oauth2/web-server
-- https://vercel.com/docs/git/vercel-for-github
+- https://vercel.com/docs/deployments/promoting-a-deployment
+- https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/protection-bypass-automation
