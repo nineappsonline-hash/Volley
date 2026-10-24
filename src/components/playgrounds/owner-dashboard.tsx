@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
+import { CourtCorrectionRequest, needsCourtCorrections } from "./court-corrections";
 import { PlaygroundFormDialog } from "@/components/playgrounds/playground-form-dialog";
 import { CourtPayouts } from "./court-payouts";
 import { AvailabilityDialog } from "@/components/playgrounds/availability-dialog";
@@ -254,6 +255,7 @@ export function OwnerDashboard() {
                         {t(`venue_approval_${v.approval_status ?? "approved"}`)}
                       </Badge>
                     </div>
+                    <CourtCorrectionRequest venue={v} />
                     <div className="flex items-center justify-between gap-2 text-sm">
                       <span className="text-muted-foreground">
                         {v.rental_cost != null
@@ -275,7 +277,7 @@ export function OwnerDashboard() {
                         </Button>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm" className="w-full" onClick={() => setAvailabilityVenue(v)}>
+                    <Button variant="outline" size="sm" className="w-full" disabled={needsCourtCorrections(v)} onClick={() => setAvailabilityVenue(v)}>
                       <CalendarX className="h-4 w-4" />
                       {t("owner_availability_button")}
                     </Button>

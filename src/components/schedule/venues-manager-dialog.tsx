@@ -1,5 +1,7 @@
 "use client";
 
+import { COURT_REVIEW_FIELDS, courtReviewFields } from "@/lib/court-review";
+import { CourtCorrectionsDialog, needsCourtCorrections } from "@/components/playgrounds/court-corrections";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { MapPin, Pencil, Plus, Trash2, X } from "lucide-react";
@@ -40,7 +42,7 @@ export function VenuesManagerDialog({
   open,
   onOpenChange,
 }: VenuesManagerDialogProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { data: academy } = useAcademy();
   const { data: venues, isLoading } = useVenues(true);
   const { data: sports } = useSports();
@@ -51,6 +53,7 @@ export function VenuesManagerDialog({
     (v) => v.academy_id === academy?.id
   );
 
+  const [correctionVenue, setCorrectionVenue] = useState<Venue | null>(null);
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [capacity, setCapacity] = useState("");
@@ -84,6 +87,7 @@ export function VenuesManagerDialog({
   };
 
   const startEdit = (v: Venue) => {
+    if (needsCourtCorrections(v)) { setCorrectionVenue(v); return; }
     setEditingId(v.id);
     setName(v.name);
     setAddress(v.address ?? "");
@@ -159,6 +163,7 @@ export function VenuesManagerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
+      {correctionVenue && <CourtCorrectionsDialog key={correctionVenue.id} venue={correctionVenue} open onOpenChange={open => !open && setCorrectionVenue(null)} />}
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -340,6 +345,7 @@ export function VenuesManagerDialog({
                     >
                       <p className="truncate text-sm font-medium">{venue.name}</p>
                       <p className="text-xs text-muted-foreground">{t(`venue_approval_${venue.approval_status ?? "approved"}`)}</p>
+                      <span className="block text-xs text-destructive">{courtReviewFields(venue.review_missing_fields).map(field => COURT_REVIEW_FIELDS[field][lang === "ar" ? "ar" : "en"]).join(" · ")}{venue.review_note ? ` · ${venue.review_note}` : ""}</span>
                       {(venue.address ||
                         venue.capacity != null ||
                         venue.school_name ||

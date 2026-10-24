@@ -1,5 +1,6 @@
 "use client";
 
+import { CourtCorrectionsDialog, needsCourtCorrections } from "./court-corrections";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { ImagePlus, X } from "lucide-react";
@@ -39,7 +40,12 @@ interface PlaygroundFormDialogProps {
   ownerPhone?: string | null;
 }
 
-export function PlaygroundFormDialog({
+export function PlaygroundFormDialog(props: PlaygroundFormDialogProps) {
+  if (props.venue && needsCourtCorrections(props.venue)) return <CourtCorrectionsDialog venue={props.venue} open={props.open} onOpenChange={props.onOpenChange} />;
+  return <FullPlaygroundFormDialog {...props} />;
+}
+
+function FullPlaygroundFormDialog({
   open,
   onOpenChange,
   venue,

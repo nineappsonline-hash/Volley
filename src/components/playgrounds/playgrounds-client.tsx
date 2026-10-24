@@ -1,5 +1,6 @@
 "use client";
 
+import { CourtCorrectionRequest, CourtCorrectionsDialog, needsCourtCorrections } from "./court-corrections";
 import { useState } from "react";
 import { toast } from "sonner";
 import { LandPlot, Pencil, Plus, Trash2 } from "lucide-react";
@@ -57,6 +58,7 @@ export function PlaygroundsClient() {
   const save = useSaveVenue();
   const remove = useDeleteVenue();
 
+  const [correctionVenue, setCorrectionVenue] = useState<Venue | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Venue | null>(null);
   const [name, setName] = useState("");
@@ -96,6 +98,7 @@ export function PlaygroundsClient() {
   };
 
   const openEdit = (v: Venue) => {
+    if (needsCourtCorrections(v)) { setCorrectionVenue(v); return; }
     setEditing(v);
     setName(v.name);
     setAddress(v.address ?? "");
@@ -186,6 +189,7 @@ export function PlaygroundsClient() {
                       </span>
                     )}
                   </p>
+                    <CourtCorrectionRequest venue={v} />
                     {v.address && (
                       <p className="text-xs text-muted-foreground">{v.address}</p>
                     )}
@@ -241,6 +245,7 @@ export function PlaygroundsClient() {
         </div>
       )}
 
+      {correctionVenue && <CourtCorrectionsDialog key={correctionVenue.id} venue={correctionVenue} open onOpenChange={open => !open && setCorrectionVenue(null)} />}
       {/* Create / edit dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">

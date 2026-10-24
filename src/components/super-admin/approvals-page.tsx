@@ -1,5 +1,8 @@
 "use client";
 
+import { COURT_REVIEW_FIELDS, type CourtReviewField } from "@/lib/court-review";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
+import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -24,6 +27,9 @@ export function ApprovalsPage() {
     ? ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"]
     : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const [section, setSection] = useState<"payments" | "playgrounds" | "owners" | "payouts">("payments");
+  const [rejecting, setRejecting] = useState<Venue | null>(null);
+  const [missingFields, setMissingFields] = useState<CourtReviewField[]>([]);
+  const [reviewNote, setReviewNote] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
   const { data: academies } = useAllAcademies();
   const { data: ownerApplications } = usePlaygroundOwnerApprovals();
@@ -36,12 +42,13 @@ export function ApprovalsPage() {
     },
   });
   const review = useMutation({
-    mutationFn: async ({ id, approve }: { id: string; approve: boolean }) => {
-      const { error } = await createClient().rpc("review_playground", { p_venue_id: id, p_approve: approve });
+    mutationFn: async ({ id, approve, fields = [], note = "" }: { id: string; approve: boolean; fields?: CourtReviewField[]; note?: string }) => {
+      const { error } = await createClient().rpc("review_court_submission", { p_venue_id: id, p_approve: approve, p_missing_fields: fields, p_note: note });
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success(t("venue_review_saved"));
+      setRejecting(null); setMissingFields([]); setReviewNote("");
       for (const queryKey of [["venue-approvals"], ["venues"], ["playgrounds"], ["platform-records"]]) {
         cache.invalidateQueries({ queryKey });
       }
@@ -94,10 +101,21 @@ export function ApprovalsPage() {
               <img src={url} alt={`${venue.name} — ${index + 1}`} className="aspect-[4/3] w-full object-cover transition-transform hover:scale-105" />
             </button>)}</div> : <p className="rounded-lg border border-dashed p-5 text-center text-sm text-muted-foreground">{lang === "ar" ? "لم يتم رفع صور لهذا الملعب" : "No photos have been uploaded for this court"}</p>}
           </section>
-          <div className="flex gap-2"><Button disabled={review.isPending} onClick={() => review.mutate({ id: venue.id, approve: true })}>{t("approvals_approve")}</Button><Button variant="destructive" disabled={review.isPending} onClick={() => review.mutate({ id: venue.id, approve: false })}>{t("approvals_reject")}</Button></div>
+          <div className="flex gap-2"><Button disabled={review.isPending} onClick={() => review.mutate({ id: venue.id, approve: true })}>{t("approvals_approve")}</Button><Button variant="destructive" disabled={review.isPending} onClick={() => { setRejecting(venue); setMissingFields([]); setReviewNote(""); }}>{t("approvals_reject")}</Button></div>
         </CardContent>
       </Card>)}
     </div>}
+    <Dialog open={!!rejecting} onOpenChange={open => !open && !review.isPending && setRejecting(null)}><DialogContent><DialogHeader>
+      <DialogTitle>{lang === "ar" ? "طلب استكمال معلومات الملعب" : "Request missing court information"}</DialogTitle>
+    </DialogHeader>
+      <p className="text-sm text-muted-foreground">{lang === "ar" ? "حدد المعلومات المطلوب استكمالها. سيُطلب من صاحب الملعب تعديل هذه المعلومات فقط ثم إعادة الإرسال." : "Select the information to complete. The court manager will be asked to update only these details and resubmit."}</p>
+      <DropdownMenu><DropdownMenuTrigger asChild><Button variant="outline" disabled={review.isPending} className="w-full justify-between">{lang === "ar" ? "المعلومات المطلوبة" : "Missing information"} ({missingFields.length}) ▾</Button></DropdownMenuTrigger>
+        <DropdownMenuContent className="max-h-80 w-72 overflow-y-auto">{(Object.keys(COURT_REVIEW_FIELDS) as CourtReviewField[]).map(field => <DropdownMenuCheckboxItem key={field} checked={missingFields.includes(field)} onSelect={event => event.preventDefault()} onCheckedChange={checked => setMissingFields(current => checked ? [...current, field] : current.filter(value => value !== field))}>{COURT_REVIEW_FIELDS[field][lang === "ar" ? "ar" : "en"]}</DropdownMenuCheckboxItem>)}</DropdownMenuContent>
+      </DropdownMenu>
+      <ul className="list-inside list-disc text-sm">{missingFields.map(field => <li key={field}>{COURT_REVIEW_FIELDS[field][lang === "ar" ? "ar" : "en"]}</li>)}</ul>
+      <label className="space-y-2 text-sm">{lang === "ar" ? "توضيح إضافي (اختياري)" : "Additional instructions (optional)"}<Textarea maxLength={2000} disabled={review.isPending} value={reviewNote} onChange={event => setReviewNote(event.target.value)} /></label>
+      <Button variant="destructive" disabled={review.isPending || missingFields.length === 0} onClick={() => rejecting && review.mutate({ id: rejecting.id, approve: false, fields: missingFields, note: reviewNote })}>{lang === "ar" ? "رفض وإرسال طلب الاستكمال" : "Reject and request corrections"}</Button>
+    </DialogContent></Dialog>
     <Dialog open={!!photo} onOpenChange={open => !open && setPhoto(null)}><DialogContent className="max-w-3xl"><DialogHeader><DialogTitle>{t("nav_playgrounds")}</DialogTitle></DialogHeader>{photo &&
       // eslint-disable-next-line @next/next/no-img-element
       <img src={photo} alt={t("nav_playgrounds")} className="max-h-[75vh] w-full object-contain" />}</DialogContent></Dialog>

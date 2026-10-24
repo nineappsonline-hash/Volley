@@ -467,6 +467,8 @@ export interface CoachInvitation {
 }
 
 export interface Venue {
+  review_missing_fields?: string[];
+  review_note?: string | null;
   approval_status?: "pending" | "approved" | "rejected";
   sport?: { id: string; name: string } | null;
   id: string;
