@@ -1066,7 +1066,7 @@ export function PlatformRecords() {
             <div className="flex items-center gap-2.5">
               {tab === "Members" && <ProfileAvatar name={row.name ?? ""} url={row.avatar_url} avatarId={row.avatar_id} className="h-12 w-12 shrink-0 ring-2 ring-blue-400/30 ring-offset-2 ring-offset-background" />}
               {tab === "Academies" && <AcademyLogo academyId={row.id} name={row.name ?? ""} logoUrl={row.logo_url ?? null} />}
-              {tab !== "Members" && tab !== "Academies" && tab !== "Playgrounds" && <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted text-muted-foreground"><MapPin className="h-6 w-6" aria-hidden="true" /></span>}
+              {(tab === "Tournaments") && <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted text-muted-foreground"><MapPin className="h-6 w-6" aria-hidden="true" /></span>}
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className={tab === "Friendly games" ? "w-full break-words text-base font-semibold leading-snug" : "break-words font-semibold"}>{row.name ?? row.title}</h3>
