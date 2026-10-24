@@ -20,6 +20,9 @@ import { OwnerApprovals } from "./owner-approvals";
 export function ApprovalsPage() {
   const { t, lang } = useI18n();
   const cache = useQueryClient();
+  const weekdays = lang === "ar"
+    ? ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"]
+    : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const [section, setSection] = useState<"payments" | "playgrounds" | "owners" | "payouts">("payments");
   const [photo, setPhoto] = useState<string | null>(null);
   const { data: academies } = useAllAcademies();
@@ -29,7 +32,7 @@ export function ApprovalsPage() {
     queryFn: async () => {
       const { data, error } = await createClient().rpc("court_catalog", {p_manage:true});
       if (error) throw error;
-      return ((data??[]) as Venue[]).filter(v=>v.approval_status==="pending").map(v=>({...v,sport:v.sport?.name}));
+      return ((data??[]) as Venue[]).filter(v=>v.approval_status==="pending");
     },
   });
   const review = useMutation({
@@ -61,19 +64,36 @@ export function ApprovalsPage() {
       {error && <p role="alert" className="text-destructive">{errorMessage(error, t("common_error"))}</p>}
       {!isLoading && !error && venues?.length === 0 && <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">{t("approvals_empty")}</p>}
       {venues?.map(venue => <Card key={venue.id}>
-        <CardHeader><CardTitle>{venue.name}</CardTitle><p className="text-sm text-muted-foreground">{academies?.find(a => a.id === venue.academy_id)?.name ?? "—"} · {venue.sport ?? "—"}</p></CardHeader>
+        <CardHeader><CardTitle>{venue.name}</CardTitle><p className="text-sm text-muted-foreground">{academies?.find(a => a.id === venue.academy_id)?.name ?? "—"} · {venue.sport?.name ?? "—"}</p></CardHeader>
         <CardContent className="space-y-4">
-          <p>{[venue.country, venue.governorate, venue.area, venue.address].filter(Boolean).join(" · ")}</p>
+          <div><p className="text-xs text-muted-foreground">{lang === "ar" ? "عنوان الملعب" : "Court address"}</p><p className="mt-1 break-words">{[venue.country, venue.governorate, venue.area, venue.address].filter(Boolean).join(" · ") || "—"}</p></div>
           <dl className="grid gap-3 text-sm sm:grid-cols-3">
             <div><dt className="text-muted-foreground">{t("venues_rental_cost")}</dt><dd>{venue.rental_cost ?? "—"} EGP / {venue.rental_hours ?? 1} {lang === "ar" ? "ساعة" : "hour(s)"}</dd></div>
             <div><dt className="text-muted-foreground">{lang === "ar" ? "السعة" : "Capacity"}</dt><dd>{venue.capacity ?? "—"}</dd></div>
             <div><dt className="text-muted-foreground">{t("rentals_courts_short")}</dt><dd>{venue.court_count ?? 1}</dd></div>
+            <div><dt className="text-muted-foreground">{lang === "ar" ? "الرياضة" : "Sport"}</dt><dd>{venue.sport?.name ?? (lang === "ar" ? "لم يتم تحديدها" : "Not provided")}</dd></div>
+            <div><dt className="text-muted-foreground">{t("signup_phone")}</dt><dd dir="ltr" className="text-start">{venue.contact_phone || "—"}</dd></div>
+            {venue.school_name && <div><dt className="text-muted-foreground">{lang === "ar" ? "اسم المدرسة / المنشأة" : "School / facility"}</dt><dd>{venue.school_name}</dd></div>}
           </dl>
+          <section className="space-y-2 rounded-lg bg-muted/40 p-3">
+            <h3 className="text-sm font-semibold">{lang === "ar" ? "مواعيد العمل" : "Working hours"}</h3>
+            {(venue.court_availability?.length || venue.working_hours?.length) ? <ul className="grid gap-2 text-sm sm:grid-cols-2">
+              {(venue.court_availability?.length ? venue.court_availability : venue.working_hours ?? []).map((slot, index) => <li key={index} className="flex flex-wrap gap-x-2">
+                {"court_number" in slot && <span>{lang === "ar" ? "ملعب" : "Court"} {String(slot.court_number)} ·</span>}
+                <span>{weekdays[slot.weekday]}</span><span dir="ltr">{slot.start.slice(0, 5)} – {slot.end.slice(0, 5)}</span>
+              </li>)}
+            </ul> : <p className="text-sm text-muted-foreground">{lang === "ar" ? "لم يتم تقديم مواعيد عمل" : "No working hours submitted"}</p>}
+            {!!venue.unavailable_slots?.length && <div className="text-sm"><p className="font-medium">{lang === "ar" ? "الأوقات غير المتاحة" : "Unavailable times"}</p>{venue.unavailable_slots.map((slot, index) => <p key={index}>{weekdays[slot.weekday]} · <span dir="ltr">{slot.start.slice(0, 5)} – {slot.end.slice(0, 5)}</span></p>)}</div>}
+            {!!venue.blocked_dates?.length && <div className="text-sm"><p className="font-medium">{lang === "ar" ? "التواريخ المحجوزة" : "Blocked dates"}</p>{venue.blocked_dates.map((slot, index) => <p key={index}>{slot.date} · {slot.all_day ? (lang === "ar" ? "اليوم بالكامل" : "All day") : `${slot.start ?? ""} – ${slot.end ?? ""}`}</p>)}</div>}
+          </section>
           {venue.location_link && /^https?:\/\//i.test(venue.location_link) && <a className="text-sm text-primary underline" target="_blank" rel="noopener noreferrer" href={venue.location_link}>{lang === "ar" ? "افتح الموقع على الخريطة" : "View location"}</a>}
-          <div className="flex flex-wrap gap-2">{Array.from(new Set<string>([venue.cover_url, ...(Array.isArray(venue.photos) ? venue.photos : [])].filter((url): url is string => !!url))).map(url => <button key={url} type="button" onClick={() => setPhoto(url)} aria-label={lang === "ar" ? "تكبير الصورة" : "Expand photo"}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt={venue.name} className="h-24 w-32 rounded-lg object-cover" />
-          </button>)}</div>
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold">{lang === "ar" ? "صور الملعب" : "Court photos"}</h3>
+            {venue.cover_url || venue.photos?.length ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{Array.from(new Set<string>([venue.cover_url, ...(Array.isArray(venue.photos) ? venue.photos : [])].filter((url): url is string => !!url))).map((url, index) => <button key={url} type="button" className="overflow-hidden rounded-lg border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" onClick={() => setPhoto(url)} aria-label={`${lang === "ar" ? "تكبير صورة الملعب" : "Expand court photo"} ${index + 1}`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt={`${venue.name} — ${index + 1}`} className="aspect-[4/3] w-full object-cover transition-transform hover:scale-105" />
+            </button>)}</div> : <p className="rounded-lg border border-dashed p-5 text-center text-sm text-muted-foreground">{lang === "ar" ? "لم يتم رفع صور لهذا الملعب" : "No photos have been uploaded for this court"}</p>}
+          </section>
           <div className="flex gap-2"><Button disabled={review.isPending} onClick={() => review.mutate({ id: venue.id, approve: true })}>{t("approvals_approve")}</Button><Button variant="destructive" disabled={review.isPending} onClick={() => review.mutate({ id: venue.id, approve: false })}>{t("approvals_reject")}</Button></div>
         </CardContent>
       </Card>)}
