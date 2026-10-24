@@ -83,3 +83,4 @@ html[lang="ar-EG"] .eyebrow,html[lang="ar-EG"] #feedback,html[lang="ar-EG"] .pan
 .touch-actions{width:min(240px,55vw);justify-content:flex-end;gap:8px}.touch-actions button:first-child{position:static}
 
 .primary{background:var(--color-primary);color:var(--color-text-primary)}.secondary{background:var(--color-secondary);color:white;border-color:var(--color-secondary)}
+.shot-power{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;border:1px solid #d4ff0080;border-radius:14px;padding:5px 8px;background:#35116be8;color:#d4ff00;text-align:center;z-index:4;font-size:12px;user-select:none}.shot-power button{width:36px;height:36px;padding:0;border-radius:9px;background:#ffffff18;color:white;font-size:22px}.shot-power small{display:block;font-size:9px;color:#e4d5f6;margin-top:3px}.touch-controls .shot-power{bottom:230px;gap:6px}.touch-controls .shot-power button{width:44px;height:44px}

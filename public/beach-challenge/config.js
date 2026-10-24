@@ -1,1 +1,1 @@
-export const SITE_CONFIG={showHomepageGame:true,bookingUrl:'/games',rulesVersion:'2.2.0'};
+export const SITE_CONFIG={showHomepageGame:true,bookingUrl:'/games',rulesVersion:'3.0.0'};

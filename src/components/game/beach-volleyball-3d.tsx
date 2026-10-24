@@ -43,9 +43,10 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
 
   const [ability, setAbility] = useState("power");
   const [teamSize, setTeamSize] = useState("4");
+  const [matchFormat, setMatchFormat] = useState("rally");
   const [camera, setCamera] = useState("third");
   const [difficulty, setDifficulty] = useState("easy");
-  const [session, setSession] = useState<{ mode: "match" | "practice"; lang: string; difficulty: string; ability: string; teamSize: string; camera: string } | null>(null);
+  const [session, setSession] = useState<{ mode: "match" | "practice"; lang: string; difficulty: string; ability: string; teamSize: string; camera: string; matchFormat: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
   const playButton = useRef<HTMLButtonElement>(null);
@@ -83,7 +84,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
   }, [session, loading]);
 
   function start(mode: "match" | "practice") {
-    setFailed(false);setLoading(true);setSession({ mode, lang, difficulty, ability, teamSize: mode === "practice" ? "1" : teamSize, camera });
+    setFailed(false);setLoading(true);setSession({ mode, lang, difficulty, ability, teamSize: mode === "practice" ? "1" : teamSize, camera, matchFormat });
     trackGameEvent("game_open", { source: variant === "inline" ? "homepage-3d" : "page-3d", mode });
   }
 
@@ -97,7 +98,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
     </div>
     {session ? <>
       <iframe ref={frame} title={copy("Playza Beach Challenge — 3D volleyball", "تحدي بلايزا — كرة طائرة ثلاثية الأبعاد")}
-        src={`/beach-challenge/index.html?embed=1&mode=${session.mode}&lang=${session.lang}&difficulty=${session.difficulty}&ability=${session.ability}&teamSize=${session.teamSize}&camera=${session.camera}`}
+        src={`/beach-challenge/index.html?embed=1&mode=${session.mode}&lang=${session.lang}&difficulty=${session.difficulty}&ability=${session.ability}&teamSize=${session.teamSize}&camera=${session.camera}&matchFormat=${session.matchFormat}`}
         allow="fullscreen; clipboard-write; web-share" allowFullScreen
         className={cn("block w-full border-0", (fullscreen || expanded) ? "min-h-0 flex-1" : variant === "page" ? "h-[min(75vh,800px)] min-h-[500px]" : "h-[500px] sm:h-[600px]")}
       />
@@ -107,7 +108,7 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
         <AppLogo className="mb-5 w-36" />
         <p className="text-xs font-bold uppercase tracking-widest text-highlight">{copy("PLAYZA BEACH CHALLENGE · 3D", "تحدي بلايزا · ثلاثي الأبعاد")}</p>
         <h2 className="mt-3 text-3xl font-black text-white">{copy("Your court. Your next point.", "ملعبك. ونقطتك الجاية.")}</h2>
-        <p className="mt-3 text-sm leading-7 text-white/75">{copy("90 seconds. You versus the computer. Free third-person volleyball with local teams, with no account needed.", "90 ثانية. إنت ضد الكمبيوتر. كرة طائرة بمنظور الشخص الثالث وفرق محلية، ببلاش ومن غير حساب.")}</p>
+        <p className="mt-3 text-sm leading-7 text-white/75">{copy("Play a full 4v4 rally match or a quick 90-second challenge. Free third-person volleyball, with no account needed.", "العب ماتش 4 ضد 4 بالنقط، أو تحدي سريع 90 ثانية. كرة طائرة بمنظور الشخص الثالث، ببلاش ومن غير حساب.")}</p>
         <BeachGameStats className="mt-5" />
         {failed && <p className="mt-3 text-sm text-highlight" role="alert">{copy("The game couldn’t load. Try again in a WebGL2-capable browser.", "اللعبة مقدرتش تشتغل. جرّب تاني بمتصفح بيدعم WebGL2.")}</p>}
         <label className="mt-5 block text-sm text-white">{copy("Opponent", "المنافس")}
@@ -115,10 +116,10 @@ export function BeachVolleyballGame({ variant = "inline", bookingHref = "/games?
             <option value="easy">{copy("Easy", "سهل")}</option><option value="medium">{copy("Medium", "متوسط")}</option><option value="hard">{copy("Hard", "صعب")}</option>
           </select>
         </label>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="text-sm">{copy("Match", "الماتش")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3" value={teamSize} onChange={e=>setTeamSize(e.target.value)}><option value="4">{copy("4v4 local teams", "4 ضد 4 محلي")}</option><option value="1">{copy("1v1 duel", "واحد ضد واحد")}</option></select></label>
-          <label className="text-sm">{copy("Camera", "الكاميرا")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3" value={camera} onChange={e=>setCamera(e.target.value)}><option value="third">{copy("Third person", "الشخص الثالث")}</option><option value="first">{copy("First person", "الشخص الأول")}</option></select></label>
-          <label className="text-sm">{copy("Ability", "القدرة")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3" value={ability} onChange={e=>setAbility(e.target.value)}><option value="power">{copy("Power Strike", "ضربة قوية")}</option><option value="dash">{copy("Quick Step", "خطوة سريعة")}</option><option value="shield">{copy("Sky Wall", "حائط السما")}</option></select></label>
+          <label className="text-sm">{copy("Format", "نظام اللعب")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3" value={matchFormat} onChange={e=>setMatchFormat(e.target.value)}><option value="rally">{copy("First to 25 · win by 2", "أول فريق يوصل 25 بفرق نقطتين")}</option><option value="challenge">{copy("90-second challenge", "تحدي 90 ثانية")}</option></select></label><label className="text-sm">{copy("Camera", "الكاميرا")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3" value={camera} onChange={e=>setCamera(e.target.value)}><option value="third">{copy("Third person", "الشخص الثالث")}</option><option value="first">{copy("First person", "الشخص الأول")}</option></select></label>
+          <label className="text-sm">{copy("Ability", "القدرة")}<select className="mt-2 block w-full rounded-lg border border-white/25 bg-brand-950 p-3" value={ability} onChange={e=>setAbility(e.target.value)}><option value="power">{copy("Power Strike", "ضربة قوية")}</option><option value="curve">{copy("Curve Strike", "سحقة ملفوفة")}</option><option value="dash">{copy("Quick Step", "خطوة سريعة")}</option><option value="shield">{copy("Sky Wall", "حائط السما")}</option></select></label>
         </div>
         <div className="mt-5 flex flex-wrap gap-3"><button ref={playButton} type="button" onClick={() => start("match")} className="rounded-full bg-primary px-6 py-3 font-bold text-foreground">{copy("Play free →", "العب ببلاش ←")}</button>
           <button type="button" onClick={() => start("practice")} className="rounded-full border border-white/30 px-6 py-3 font-bold">{copy("Learn to play", "اتعلم تلعب")}</button></div>

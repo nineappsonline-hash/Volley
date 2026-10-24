@@ -1,6 +1,6 @@
 import {thirdPersonPose} from './camera.js';
 import {createAthlete,createAthleteHands} from './athlete.js';
-import {shotTarget,predictBallLanding} from './simulation.js';
+import {predictBallLanding} from './simulation.js';
 import {createHands} from './hands.js';
 import {handPose,contactPose,animationWeight} from './hand-pose.js';
 import * as THREE from '../vendor/three.module.js';
@@ -152,7 +152,7 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
   render(m,yaw,pitch,alpha=1,cameraDistance=4.2){
    const p=m.player,b=m.ball,old=m.previousBall;
    if(thirdPerson){const c=thirdPersonPose(p,yaw,pitch,cameraDistance);const follow=m.previousBall?1-Math.exp(-14*Math.max(1/120,Math.min(.05,m.clock-previousClock))):1;camera.position.lerp(new THREE.Vector3(c.x,c.y,c.z),follow);camera.lookAt(c.lookX,c.lookY,c.lookZ)}else{camera.position.set(p.x,p.y+1.7,p.z);camera.rotation.set(pitch,yaw,0)}
-   if(localAthlete){localAthlete.root.visible=thirdPerson;localAthlete.update({...m,ai:p,player:m.ai,last:1-m.last,hitEvent:m.hitEvent?{...m.hitEvent,side:1-m.hitEvent.side}:null});localAthlete.root.rotation.x=m.diveTime>0?-1.1:0}
+   if(localAthlete){localAthlete.root.visible=thirdPerson;localAthlete.update({...m,ai:p,player:m.ai,last:1-m.last,hitEvent:m.hitEvent&&(!m.hitEvent.actor||m.hitEvent.actor==='player')?{...m.hitEvent,side:1-m.hitEvent.side}:null});localAthlete.root.rotation.x=m.diveTime>0?-1.1:0}
    if(localFallback){localFallback.visible=thirdPerson;localFallback.position.set(p.x,p.y,p.z);localFallback.rotation.set(m.diveTime>0?-.7:0,yaw+Math.PI,0)}
    // Never interpolate across a scored rally/reset or a confirmed contact impulse.
    const blend=old&&old.phase===m.phase&&old.hitAt===(m.hitEvent?.at??-1);
@@ -170,7 +170,7 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
    else if(m.clock-trailClock>=1/40){trailPoints.copyWithin(3,0,trailPoints.length-3);trailPoints.set([ball.position.x,ball.position.y,ball.position.z]);trailClock=m.clock;trailGeometry.attributes.position.needsUpdate=true}
    trail.visible=settings.assist&&m.phase==='rally'&&Math.hypot(b.vx,b.vy,b.vz)>2;
 
-   athlete?.update(m);
+   athlete?.update({...m,hitEvent:m.hitEvent?.actor&&m.hitEvent.actor!=='cpu'?null:m.hitEvent});
    [...(m.teammates||[]),...(m.opponents||[])].forEach((a,i)=>{const visual=teamVisuals[i];if(!visual)return;const side=i<3?0:1;visual.marker.position.set(a.x,.04,a.z);if(visual.actor)visual.actor.update({...m,ai:a,player:side?m.player:m.ai,last:side?m.last:1-m.last,hitEvent:m.hitEvent?.actor===a.id?{...m.hitEvent,side:1}:null});if(visual.fallback){visual.fallback.position.set(a.x,a.y,a.z);visual.fallback.rotation.y=side?0:Math.PI}});
    cpuShadow.position.set(m.ai.x,.027,m.ai.z);cpuShadow.material.opacity=Math.max(.25,.75-m.ai.y*.25);
    opponent.position.set(m.ai.x,m.ai.y,m.ai.z);opponent.rotation.y=Math.atan2(p.x-m.ai.x,p.z-m.ai.z)*.5;
@@ -182,7 +182,7 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
    const pulse=cpuContact?Math.sin(Math.min(1,age/.42)*Math.PI):0;
    cpuArms.forEach((a,i)=>{a.rotation.x=cpuContact?(m.hitEvent.type==='spike'?2.6:-1.2)*pulse:(moving?stride*(i?-1:1)*.65:-.08);a.rotation.z=(i?-.08:.08)});
    const hit=m.hitEvent;
-   const confirmed=hit?.side===0&&age>=0&&age<.65;
+   const confirmed=hit?.side===0&&(!hit.actor||hit.actor==='player')&&age>=0&&age<.65;
    // Anticipation poses follow ball height; only a confirmed contact plays the strike.
    const near=m.phase==='rally'&&b.z>0&&Math.hypot(b.x-p.x,b.z-p.z)<2.2;
    const height=b.y-p.y;
@@ -197,7 +197,7 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
    if(landing.visible&&(m.clock<landingAt||m.clock-landingAt>=.1||landingHit!==(m.hitEvent?.at??-1))){predictedLanding=predictBallLanding(b);landingAt=m.clock;landingHit=m.hitEvent?.at??-1;}
    landing.visible=landing.visible&&!!predictedLanding;
    if(predictedLanding)landing.position.set(predictedLanding.x,.03,predictedLanding.z);
-   target.visible=settings.assist&&m.phase==='rally';const aim=shotTarget(yaw,pitch,m.window>0&&m.tip);target.position.set(aim.x,.035,aim.z);
+   target.visible=settings.assist&&m.phase==='rally';const aim=m.shotPreview(yaw,pitch);target.position.set(aim.x,.035,aim.z);
    renderer.render(scene,camera);
   },
   dispose(){const geometries=new Set(),materials=new Set(),textures=new Set(),skeletons=new Set();scene.traverse(o=>{if(o.skeleton)skeletons.add(o.skeleton);if(o.geometry)geometries.add(o.geometry);for(const material of o.material?(Array.isArray(o.material)?o.material:[o.material]):[]){materials.add(material);for(const value of Object.values(material))if(value?.isTexture)textures.add(value)}});textures.add(scene.background);for(const s of skeletons)s.dispose();for(const t of textures)t?.dispose();for(const m of materials)m.dispose();for(const g of geometries)g.dispose();renderer.dispose()}
