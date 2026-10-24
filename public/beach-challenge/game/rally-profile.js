@@ -10,7 +10,7 @@ export function rallyAim(yaw=0,pitch=0,tip=false,tilt=0,player={x:0,z:5.5}){
 }
 export function rallyShot(kind,{player,aim={x:0,z:-5.5},direction={x:0,z:0},power=1,teamSize=4,boost=false}={}){
  const p=hitPower(power),flightScale=1+(1-p)*.55;
- if(kind==='receive'&&teamSize===4)return {target:{x:bound(player.x*.35+direction.x*2*p,-3.5,3.5),y:1.7,z:bound(2.1+direction.z*1.5*p,.7,6)},time:RALLY_PROFILE.receiveTime*flightScale};
+ if(kind==='receive'&&teamSize>1)return {target:{x:bound(player.x*.35+direction.x*2*p,-3.5,3.5),y:1.7,z:bound(2.1+direction.z*1.5*p,.7,6)},time:RALLY_PROFILE.receiveTime*flightScale};
  if(kind==='set')return {target:{x:bound(player.x+direction.x*(1.2+2.3*p),-4.8,4.8),y:2.9+p*.6,z:bound(player.z-1.6+direction.z*(1.2+2.3*p),.6,7.5)},time:RALLY_PROFILE.setTime*flightScale};
  const time=kind==='spike'?(boost?.48:RALLY_PROFILE.spikeTime)*flightScale:kind==='tip'?.95:kind==='dive'?1.6:1.6;
  return {target:{x:aim.x,z:aim.z},time};

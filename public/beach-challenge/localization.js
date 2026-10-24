@@ -1,5 +1,5 @@
 const translations={
-'Format':'نظام اللعب','Rally match · First to 25, win by 2':'ماتش بالنقط · أول فريق يوصل 25 بفرق نقطتين','90-second challenge':'تحدي 90 ثانية',
+'2 vs 2 · Doubles':'اتنين ضد اتنين','Format':'نظام اللعب','Rally match · First to 25, win by 2':'ماتش بالنقط · أول فريق يوصل 25 بفرق نقطتين','90-second challenge':'تحدي 90 ثانية',
 'Curve Strike · Bend your next spike':'سحقة ملفوفة · لف السحقة الجاية','CURVE STRIKE READY':'السحقة الملفوفة جاهزة','TEAM RECEIVE':'استقبال الفريق','FIRST TO 25 · WIN BY 2':'أول فريق يوصل 25 بفرق نقطتين','25 POINTS':'25 نقطة',
 'TOSS':'ارفع الكورة','LOCK POWER':'ثبّت القوة','BUMP':'استقبال','SET':'إعداد','SPIKE':'سحق','BLOCK':'صد','BUMP / SET':'استقبال / إعداد','SPIKE / BLOCK':'سحق / صد','Z / X · POWER':'Z / X · قوة الضربة',
 'Three touches per side. First to 25, win by two. Or choose a 90-second challenge. Your personal best stays on this device.':'تلات لمسات لكل فريق. أول فريق يوصل 25 بفرق نقطتين يكسب، أو اختار تحدي 90 ثانية. أحسن نتيجة بتفضل على الجهاز ده.',

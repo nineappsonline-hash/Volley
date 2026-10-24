@@ -1,6 +1,6 @@
 import {clamp,RULES,shotFlightTime} from './simulation.js';
 const homes=[[-2.5,2.3],[2.5,2.3],[0,4]];
-export function createTeam(side){return homes.map(([x,z],i)=>({id:`${side}-${i}`,x,z:side?-z:z,y:0,vy:0,homeX:x,homeZ:side?-z:z,cooldown:0,readAt:-1}))}
+export function createTeam(side,size=4){return (size===2?[[0,2.3]]:homes).map(([x,z],i)=>({id:`${side}-${i}`,x,z:side?-z:z,y:0,vy:0,homeX:x,homeZ:side?-z:z,cooldown:0,readAt:-1}))}
 function distance(a,b){return Math.hypot(a.x-b.x,a.z-b.z)}
 export function stepTeam(match,side,dt){
  const supports=side?match.opponents:match.teammates;

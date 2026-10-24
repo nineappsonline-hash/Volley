@@ -126,7 +126,7 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
  const athlete=athleteAsset?createAthlete(scene,athleteAsset,logo,low):null;if(athlete)opponent.visible=false;
  const localAthlete=athleteAsset?createAthlete(scene,athleteAsset,logo,low):null;
  const localFallback=localAthlete?null:opponent.clone(true);if(localFallback)scene.add(localFallback);
- const teamVisuals=Array.from({length:[4,6].includes(settings.teamSize)?6:0},(_,i)=>{const actor=athleteAsset?createAthlete(scene,athleteAsset,logo,low):null;const fallback=actor?null:opponent.clone(true);if(fallback)scene.add(fallback);const marker=mesh(new THREE.RingGeometry(.30,.36,20),new THREE.MeshBasicMaterial({color:i<3?0xc7f23d:0xff795b,side:THREE.DoubleSide}),0,.04,0);marker.rotation.x=-Math.PI/2;marker.castShadow=false;return {actor,fallback,marker}});
+ const supportCount=settings.teamSize===2?1:[4,6].includes(settings.teamSize)?3:0;const teamVisuals=Array.from({length:supportCount*2},(_,i)=>{const actor=athleteAsset?createAthlete(scene,athleteAsset,logo,low):null;const fallback=actor?null:opponent.clone(true);if(fallback)scene.add(fallback);const marker=mesh(new THREE.RingGeometry(.30,.36,20),new THREE.MeshBasicMaterial({color:i<supportCount?0xc7f23d:0xff795b,side:THREE.DoubleSide}),0,.04,0);marker.rotation.x=-Math.PI/2;marker.castShadow=false;return {actor,fallback,marker}});
  const thirdPerson=settings.camera!=='first';
  const hands=athleteAsset?createAthleteHands(camera,athleteAsset,low):createHands(camera,skin,teal,low);
  hands.root ? hands.root.visible=!thirdPerson : null;
@@ -171,7 +171,7 @@ export function createWorld(canvas,settings,logo,athleteAsset=null){
    trail.visible=settings.assist&&m.phase==='rally'&&Math.hypot(b.vx,b.vy,b.vz)>2;
 
    athlete?.update({...m,hitEvent:m.hitEvent?.actor&&m.hitEvent.actor!=='cpu'?null:m.hitEvent});
-   [...(m.teammates||[]),...(m.opponents||[])].forEach((a,i)=>{const visual=teamVisuals[i];if(!visual)return;const side=i<3?0:1;visual.marker.position.set(a.x,.04,a.z);if(visual.actor)visual.actor.update({...m,ai:a,player:side?m.player:m.ai,last:side?m.last:1-m.last,hitEvent:m.hitEvent?.actor===a.id?{...m.hitEvent,side:1}:null});if(visual.fallback){visual.fallback.position.set(a.x,a.y,a.z);visual.fallback.rotation.y=side?0:Math.PI}});
+   [...(m.teammates||[]),...(m.opponents||[])].forEach((a,i)=>{const visual=teamVisuals[i];if(!visual)return;const side=i<supportCount?0:1;visual.marker.position.set(a.x,.04,a.z);if(visual.actor)visual.actor.update({...m,ai:a,player:side?m.player:m.ai,last:side?m.last:1-m.last,hitEvent:m.hitEvent?.actor===a.id?{...m.hitEvent,side:1}:null});if(visual.fallback){visual.fallback.position.set(a.x,a.y,a.z);visual.fallback.rotation.y=side?0:Math.PI}});
    cpuShadow.position.set(m.ai.x,.027,m.ai.z);cpuShadow.material.opacity=Math.max(.25,.75-m.ai.y*.25);
    opponent.position.set(m.ai.x,m.ai.y,m.ai.z);opponent.rotation.y=Math.atan2(p.x-m.ai.x,p.z-m.ai.z)*.5;
    const delta=Math.max(0,m.clock-previousClock),distance=Math.hypot(m.ai.x-previousAI.x,m.ai.z-previousAI.z);
