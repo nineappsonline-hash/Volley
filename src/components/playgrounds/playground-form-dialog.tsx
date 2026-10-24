@@ -1,5 +1,8 @@
 "use client";
 
+import { uploadSignupCourtPhoto } from "@/lib/court-photo-upload";
+import { missingCourtSubmissionFields } from "@/lib/court-submission";
+import { COURT_REVIEW_FIELDS } from "@/lib/court-review";
 import { CourtCorrectionsDialog, needsCourtCorrections } from "./court-corrections";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -32,7 +35,11 @@ import { errorMessage } from "@/lib/utils";
 import { useSaveVenue, useSports } from "@/lib/queries";
 import type { Venue } from "@/lib/types";
 
+export type CourtSubmissionDraft = Partial<Venue> & { name: string; sport_name: string };
+
 interface PlaygroundFormDialogProps {
+  onSaveDraft?: (details: CourtSubmissionDraft) => void;
+  draftMode?: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   venue: Venue | null;
@@ -51,6 +58,8 @@ function FullPlaygroundFormDialog({
   venue,
   ownerProfileId,
   ownerPhone,
+  onSaveDraft,
+  draftMode,
 }: PlaygroundFormDialogProps) {
   const { t, lang } = useI18n();
   const ar = lang === "ar";
@@ -80,12 +89,16 @@ function FullPlaygroundFormDialog({
   const displayPhotos = Array.from(new Set([...(coverUrl ? [coverUrl] : []), ...photos]));
 
   const handleSave = async () => {
-    if (!name.trim()) return;
-    if (ownerProfileId && (!address.trim() || !phone.trim() || sportId==="none" || rentalCost==="" || !Number.isFinite(Number(rentalCost)) || Number(rentalCost)<0 || !Number.isInteger(Number(courtCount)) || Number(courtCount)<1)) {
-      toast.error(ar?"أدخل العنوان ورقم التواصل والرياضة وسعرًا صحيحًا وعدد الملاعب":"Enter an address, contact phone, sport, valid rental price and court count");return;
+    const missing = missingCourtSubmissionFields({ name, address, sport_id: sportId === "none" ? null : sportId,
+      contact_phone: phone, country: location.country, governorate: location.governorate, area: location.city,
+      location_link: locationLink, rental_cost: rentalCost === "" ? null : Number(rentalCost), rental_hours: rentalHours === "" ? null : Number(rentalHours),
+      court_count: Number(courtCount), photos, cover_url: coverUrl, court_availability: courtAvailability });
+    if (missing.length) {
+      toast.error(`${ar ? "المعلومات المطلوبة" : "Required information"}: ${missing.map(field => COURT_REVIEW_FIELDS[field][ar ? "ar" : "en"]).join(" · ")}`);
+      return;
     }
     try {
-      await save.mutateAsync({
+      const details = {
         id: venue?.id,
         owner_profile_id: ownerProfileId ?? venue?.owner_profile_id ?? null,
         name: name.trim(),
@@ -105,7 +118,13 @@ function FullPlaygroundFormDialog({
         location_link: locationLink.trim() || null,
         photos,
         cover_url: coverUrl,
-      });
+      };
+      if (onSaveDraft) {
+        onSaveDraft({ ...details, sport_name: (courtSports ?? sports ?? []).find(sport => sport.id === sportId)?.name ?? "" });
+        onOpenChange(false);
+        return;
+      }
+      await save.mutateAsync(details);
       toast.success(t("venue_submitted_review"));
       onOpenChange(false);
     } catch (err) {
@@ -118,6 +137,7 @@ function FullPlaygroundFormDialog({
       const supabase = createClient();
       const urls: string[] = [];
       for (const file of files) {
+        if (draftMode) { urls.push(await uploadSignupCourtPhoto(file)); continue; }
         const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
         const path = `venues/photo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
         const { error } = await supabase.storage
@@ -139,6 +159,9 @@ function FullPlaygroundFormDialog({
   const handlePhotoInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
+    if (files.some(file => file.size > 4 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp"].includes(file.type))) {
+      toast.error(ar ? "اختر صور JPG أو PNG أو WebP بحجم أقل من ٤ ميجابايت" : "Choose JPG, PNG or WebP images under 4 MB"); return;
+    }
     setUploadingPhoto(true);
     upload.mutate(files, {
       onSettled: () => {
@@ -160,21 +183,22 @@ function FullPlaygroundFormDialog({
           <DialogTitle>{venue ? t("playgrounds_edit") : t("playgrounds_add")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          <p className="rounded-lg bg-muted p-3 text-sm">{ar ? "جميع بيانات الملعب مطلوبة، بما فيها رقم التواصل والموقع والصور ومواعيد العمل. اسم المنشأة والسعة اختياريان." : "Court details, contact phone, location, photos and working hours are required. School / facility and player capacity are optional."}</p>
           <div className="space-y-2">
-            <Label>{t("venues_name")}</Label>
+            <Label>{t("venues_name")} <span aria-hidden="true">*</span></Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} />
           </div>
 
           { (
             <div className="space-y-2">
-              <Label>{t("venues_sport")}</Label>
+              <Label>{t("venues_sport")} <span aria-hidden="true">*</span></Label>
               <Select value={sportId} onValueChange={setSportId}>
                 <SelectTrigger aria-label={t("venues_sport")}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">{t("venues_no_sport")}</SelectItem>
-                  {(ownerProfileId ? courtSports ?? [] : sports ?? []).map((s) => (
+                  {(ownerProfileId || draftMode ? courtSports ?? [] : sports ?? []).map((s) => (
                     <SelectItem key={s.id} value={s.id}>
                       {s.name}
                     </SelectItem>
@@ -186,7 +210,7 @@ function FullPlaygroundFormDialog({
 
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             <div className="space-y-2">
-              <Label>{t("venues_rental_cost")}</Label>
+              <Label>{t("venues_rental_cost")} <span aria-hidden="true">*</span></Label>
               <Input
                 type="number"
                 min="0"
@@ -199,7 +223,7 @@ function FullPlaygroundFormDialog({
               <p className="text-[11px] text-muted-foreground">{t("venues_rental_cost_hint")}</p>
             </div>
             <div className="space-y-2">
-              <Label>{t("venues_rental_hours")}</Label>
+              <Label>{t("venues_rental_hours")} <span aria-hidden="true">*</span></Label>
               <Input
                 type="number"
                 min="0"
@@ -211,7 +235,7 @@ function FullPlaygroundFormDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label>{t("venues_court_count")}</Label>
+              <Label>{t("venues_court_count")} <span aria-hidden="true">*</span></Label>
               <Input
                 type="number"
                 min="1"
@@ -246,7 +270,7 @@ function FullPlaygroundFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>{t("venues_address")}</Label>
+            <Label>{t("venues_address")} <span aria-hidden="true">*</span></Label>
             <Input value={address} onChange={(e) => setAddress(e.target.value)} />
           </div>
 
@@ -262,7 +286,7 @@ function FullPlaygroundFormDialog({
           />
 
           <div className="space-y-2">
-            <Label>{t("sa_location_link")}</Label>
+            <Label>{t("sa_location_link")} <span aria-hidden="true">*</span></Label>
             <Input
               dir="ltr"
               value={locationLink}
@@ -271,11 +295,13 @@ function FullPlaygroundFormDialog({
             />
           </div>
 
-          <div className="space-y-2"><Label>{ar ? "رقم التواصل للملعب" : "Court contact phone"}</Label><Input type="tel" dir="ltr" value={phone} onChange={e=>setPhone(e.target.value)} /></div>
-          <LocationFields country={location.country} governorate={location.governorate} city={location.city} onCountryChange={v=>setLocation(l=>({...l,country:v}))} onGovernorateChange={v=>setLocation(l=>({...l,governorate:v}))} onCityChange={v=>setLocation(l=>({...l,city:v}))}/>
+          <div className="space-y-2"><Label>{ar ? "رقم التواصل للملعب" : "Court contact phone"} *</Label><Input type="tel" dir="ltr" value={phone} onChange={e=>setPhone(e.target.value)} /></div>
+          <p className="text-sm font-medium">{ar ? "الدولة والمحافظة والمدينة" : "Country, governorate and city"} *</p>
+          <LocationFields country={location.country} governorate={location.governorate} city={location.city} onCountryChange={v=>setLocation(l=>({...l,country:v,governorate:"",city:""}))} onGovernorateChange={v=>setLocation(l=>({...l,governorate:v,city:""}))} onCityChange={v=>setLocation(l=>({...l,city:v}))}/>
+          <p className="text-sm font-medium">{ar ? "مواعيد عمل الملاعب" : "Court working hours"} *</p>
           <CourtAvailabilityEditor value={courtAvailability} onChange={setCourtAvailability} courtCount={Math.max(1,Number(courtCount)||1)} />
           <div className="space-y-2">
-            <Label>{t("venues_photos")}</Label>
+            <Label>{t("venues_photos")} <span aria-hidden="true">*</span></Label>
             <div className="flex flex-wrap gap-2">
               {displayPhotos.map((url) => (
                 <div key={url} className="group relative">
@@ -303,7 +329,7 @@ function FullPlaygroundFormDialog({
                 <input
                   ref={photoInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp"
                   multiple
                   className="hidden"
                   onChange={handlePhotoInput}
@@ -317,7 +343,7 @@ function FullPlaygroundFormDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("common_cancel")}
           </Button>
-          <Button disabled={!name.trim() || save.isPending} onClick={handleSave}>
+          <Button disabled={uploadingPhoto || save.isPending} onClick={handleSave}>
             {save.isPending ? t("common_saving") : t("common_save")}
           </Button>
         </DialogFooter>

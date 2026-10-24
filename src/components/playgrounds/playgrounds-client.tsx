@@ -1,17 +1,11 @@
 "use client";
 
-import { CourtCorrectionRequest, CourtCorrectionsDialog, needsCourtCorrections } from "./court-corrections";
+import { CourtCorrectionRequest } from "./court-corrections";
+import { PlaygroundFormDialog } from "./playground-form-dialog";
 import { useState } from "react";
 import { toast } from "sonner";
 import { LandPlot, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,17 +16,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -43,35 +28,20 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
-import { MapPicker } from "@/components/shared/map-picker";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import { errorMessage } from "@/lib/utils";
-import { useDeleteVenue, useSaveVenue, useSports, useVenues, useAcademy } from "@/lib/queries";
+import { useDeleteVenue, useVenues, useAcademy } from "@/lib/queries";
 import type { Venue } from "@/lib/types";
 
 export function PlaygroundsClient() {
   const { t, lang } = useI18n();
   const { data: venues, isLoading } = useVenues(true);
-  const { data: sports } = useSports();
   const { data: academy } = useAcademy();
-  const save = useSaveVenue();
   const remove = useDeleteVenue();
 
-  const [correctionVenue, setCorrectionVenue] = useState<Venue | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Venue | null>(null);
-  const [name, setName] = useState("");
-  const [address, setAddress] = useState("");
-  const [capacity, setCapacity] = useState("");
-  const [sportId, setSportId] = useState("none");
-  const [schoolName, setSchoolName] = useState("");
-  const [rentalCost, setRentalCost] = useState("");
-  const [rentalHours, setRentalHours] = useState("1");
-  const [courtCount, setCourtCount] = useState("1");
-  const [lat, setLat] = useState<number | null>(null);
-  const [lng, setLng] = useState<number | null>(null);
-  const [locationLink, setLocationLink] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Venue | null>(null);
 
   const ownedVenues = (venues ?? []).filter(
@@ -81,63 +51,8 @@ export function PlaygroundsClient() {
   const sportName = (v: Venue) =>
     v.sport?.name ?? t("venues_no_sport");
 
-  const openNew = () => {
-    setEditing(null);
-    setName("");
-    setAddress("");
-    setCapacity("");
-    setSportId("none");
-    setSchoolName("");
-    setRentalCost("");
-    setRentalHours("1");
-    setCourtCount("1");
-    setLat(null);
-    setLng(null);
-    setLocationLink("");
-    setDialogOpen(true);
-  };
-
-  const openEdit = (v: Venue) => {
-    if (needsCourtCorrections(v)) { setCorrectionVenue(v); return; }
-    setEditing(v);
-    setName(v.name);
-    setAddress(v.address ?? "");
-    setCapacity(v.capacity != null ? String(v.capacity) : "");
-    setSportId(v.sport_id ?? "none");
-    setSchoolName(v.school_name ?? "");
-    setRentalCost(v.rental_cost != null ? String(v.rental_cost) : "");
-    setRentalHours(v.rental_hours != null ? String(v.rental_hours) : "1");
-    setCourtCount(v.court_count != null ? String(v.court_count) : "1");
-    setLat(v.lat ?? null);
-    setLng(v.lng ?? null);
-    setLocationLink(v.location_link ?? "");
-    setDialogOpen(true);
-  };
-
-  const handleSave = async () => {
-    if (!name.trim()) return;
-    try {
-      await save.mutateAsync({
-        id: editing?.id,
-        name: name.trim(),
-        address: address.trim() || null,
-        capacity: capacity ? Number(capacity) : null,
-        sport_id: sportId === "none" ? null : sportId,
-        school_name: schoolName.trim() || null,
-        rental_cost: rentalCost ? Number(rentalCost) : null,
-        rental_hours: rentalHours ? Number(rentalHours) : null,
-        court_count: Number(courtCount) || 1,
-        lat,
-        lng,
-        location_link: locationLink.trim() || null,
-      });
-      toast.success(t("venue_submitted_review"));
-      setDialogOpen(false);
-      setEditing(null);
-    } catch (err) {
-      toast.error(errorMessage(err, t("common_error")));
-    }
-  };
+  const openNew = () => { setEditing(null); setDialogOpen(true); };
+  const openEdit = (venue: Venue) => { setEditing(venue); setDialogOpen(true); };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -245,138 +160,7 @@ export function PlaygroundsClient() {
         </div>
       )}
 
-      {correctionVenue && <CourtCorrectionsDialog key={correctionVenue.id} venue={correctionVenue} open onOpenChange={open => !open && setCorrectionVenue(null)} />}
-      {/* Create / edit dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{editing ? t("playgrounds_edit") : t("playgrounds_add")}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>{t("venues_name")}</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>{t("venues_sport")}</Label>
-              <Select value={sportId} onValueChange={setSportId}>
-                <SelectTrigger aria-label={t("venues_sport")}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">{t("venues_no_sport")}</SelectItem>
-                  {(sports ?? []).map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label>{t("venues_rental_cost")}</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  dir="ltr"
-                  value={rentalCost}
-                  onChange={(e) => setRentalCost(e.target.value)}
-                  placeholder="0"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  {t("venues_rental_cost_hint")}
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label>{t("venues_rental_hours")}</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.5"
-                  dir="ltr"
-                  value={rentalHours}
-                  onChange={(e) => setRentalHours(e.target.value)}
-                  placeholder="1"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  {t("venues_rental_hours_hint")}
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label>{t("venues_court_count")}</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  step="1"
-                  dir="ltr"
-                  value={courtCount}
-                  onChange={(e) => setCourtCount(e.target.value)}
-                  placeholder="1"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  {t("venues_court_count_hint")}
-                </p>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>{t("venues_school")}</Label>
-              <Input
-                value={schoolName}
-                onChange={(e) => setSchoolName(e.target.value)}
-                placeholder={t("venues_school")}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t("venues_address")}</Label>
-                <Input value={address} onChange={(e) => setAddress(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t("venues_capacity")}</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  dir="ltr"
-                  value={capacity}
-                  onChange={(e) => setCapacity(e.target.value)}
-                />
-              </div>
-            </div>
-            <MapPicker
-              lat={lat}
-              lng={lng}
-              onChange={(loc) => {
-                setLat(loc.lat);
-                setLng(loc.lng);
-                if (loc.label) setAddress(loc.label);
-              }}
-              hint={t("venues_map_hint")}
-            />
-            <div className="space-y-2">
-              <Label>{t("sa_location_link")}</Label>
-              <Input
-                dir="ltr"
-                value={locationLink}
-                onChange={(e) => setLocationLink(e.target.value)}
-                placeholder={t("sa_location_link_placeholder")}
-              />
-              <p className="text-[11px] text-muted-foreground">
-                {t("sa_location_link_hint")}
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              {t("common_cancel")}
-            </Button>
-            <Button disabled={!name.trim() || save.isPending} onClick={handleSave}>
-              {save.isPending ? t("common_saving") : t("common_save")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <PlaygroundFormDialog key={`${editing?.id ?? "new"}-${dialogOpen}`} venue={editing} open={dialogOpen} onOpenChange={setDialogOpen} />
 
       {/* Delete confirmation */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>

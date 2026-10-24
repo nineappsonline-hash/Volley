@@ -1,5 +1,8 @@
 "use client";
 
+import { uploadSignupCourtPhoto } from "@/lib/court-photo-upload";
+import { missingCourtSubmissionFields } from "@/lib/court-submission";
+import { COURT_REVIEW_FIELDS } from "@/lib/court-review";
 import { useEffect, useRef, useState } from "react";
 import { RegistrationStart } from "@/components/analytics/business-analytics";
 import Link from "next/link";
@@ -61,6 +64,7 @@ interface PoolVenue {
 }
 
 type NewVenueDraft = {
+  contact_phone?: string;
   id?: string;
   name: string;
   address: string;
@@ -108,18 +112,8 @@ export function OwnerSignupForm() {
 
   const upload = useMutation({
     mutationFn: async ({ files, index }: { files: File[]; index: number }) => {
-      const supabase = createClient();
       const urls: string[] = [];
-      for (const file of files) {
-        const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
-        const path = `venues/signup-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-        const { error } = await supabase.storage
-          .from("venue-photos")
-          .upload(path, file, { contentType: file.type, upsert: false });
-        if (error) throw error;
-        const { data } = supabase.storage.from("venue-photos").getPublicUrl(path);
-        urls.push(data.publicUrl);
-      }
+      for (const file of files) urls.push(await uploadSignupCourtPhoto(file));
       return { urls, index };
     },
     onSuccess: ({ urls, index }) => {
@@ -183,6 +177,7 @@ export function OwnerSignupForm() {
         ...(v.id ? { id: v.id } : {}),
         name: v.name.trim() || businessName.trim(),
         address: v.address.trim() || null,
+        contact_phone: v.contact_phone?.trim() || account.phone.trim(),
         ...(v.country ? { country: v.country } : {}),
         ...(v.governorate ? { governorate: v.governorate } : {}),
         ...(v.area ? { area: v.area } : {}),
@@ -264,6 +259,16 @@ export function OwnerSignupForm() {
     if (!location.country.trim()) {
       toast.error(t("field_required"));
       return;
+    }
+    if (uploadingPhoto !== null) { toast.error(t("common_loading")); return; }
+    for (const [index, venue] of signupVenues.entries()) {
+      if (venue.fromPool) continue;
+      const missing = missingCourtSubmissionFields({ name: venue.name, address: venue.address,
+        sport_id: venue.sport && venue.sport !== "none" ? venue.sport : null, contact_phone: venue.contact_phone ?? account.phone,
+        country: venue.country, governorate: venue.governorate, area: venue.area, location_link: venue.location_link,
+        photos: venue.photos, court_availability: venue.court_availability, rental_cost: venue.rental_cost === "" ? null : Number(venue.rental_cost),
+        rental_hours: 1, court_count: Number(venue.court_count) });
+      if (missing.length) { toast.error(`${lang === "ar" ? "الملعب" : "Court"} ${index + 1}: ${missing.map(field => COURT_REVIEW_FIELDS[field][lang === "ar" ? "ar" : "en"]).join(" · ")}`); return; }
     }
     void finishSignup();
   };
@@ -418,6 +423,7 @@ export function OwnerSignupForm() {
                 {t("owner_playgrounds_hint")}
               </p>
               <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">{lang === "ar" ? "كل ملعب جديد يحتاج إلى الرياضة والعنوان والموقع ورابط الخريطة والسعر وعدد الملاعب والصور ومواعيد العمل. يمكنك استخدام رقم حسابك للتواصل مع الملعب أو تغييره." : "Each new court requires a sport, full address and location, map link, price, court count, photos and working hours. The court contact starts with your account phone and can be changed."}</p>
                 {signupVenues.map((v, i) => (
                   <div key={v.id ?? `new-${i}`} className="space-y-3 rounded-lg border p-3">
                     <div className="flex items-center justify-between gap-2">
@@ -429,6 +435,7 @@ export function OwnerSignupForm() {
                       </Button>
                     </div>
                     <div className="space-y-3">
+                      {!v.fromPool && <div className="grid gap-3 sm:grid-cols-2"><div className="space-y-2"><Label>{t("venues_name")} *</Label><Input value={v.name} onChange={event => setSignupVenue(i, { name: event.target.value })} /></div><div className="space-y-2"><Label>{lang === "ar" ? "رقم التواصل للملعب" : "Court contact phone"} *</Label><Input type="tel" dir="ltr" value={v.contact_phone ?? account.phone} onChange={event => setSignupVenue(i, { contact_phone: event.target.value })} /></div></div>}
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                         <div className="space-y-2">
                           <Label>{t("owner_playground_sport")}</Label>
@@ -490,7 +497,7 @@ export function OwnerSignupForm() {
                         />
                       )}
                       <div className="space-y-2">
-                        <Label>{t("venues_address")}</Label>
+                        <Label>{t("venues_address")} *</Label>
                         <Input
                           type="text"
                           placeholder={t("venues_address")}
@@ -499,7 +506,7 @@ export function OwnerSignupForm() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>{t("owner_playground_location_link")}</Label>
+                        <Label>{t("owner_playground_location_link")} *</Label>
                         <Input
                           dir="ltr"
                           placeholder={t("owner_playground_location_link_placeholder")}
@@ -508,7 +515,7 @@ export function OwnerSignupForm() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>{t("owner_playground_photos")}</Label>
+                        <Label>{t("owner_playground_photos")} *</Label>
                         <div className="flex flex-wrap items-center gap-2">
                           {v.photos.map((url) => (
                             <div key={url} className="relative">
@@ -547,7 +554,7 @@ export function OwnerSignupForm() {
                               photoInputs.current[i] = el;
                             }}
                             type="file"
-                            accept="image/*"
+                            accept="image/jpeg,image/png,image/webp"
                             multiple
                             hidden
                             onChange={(e) => handlePhotoInput(e, i)}

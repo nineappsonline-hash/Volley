@@ -73,13 +73,13 @@ export function ApprovalsPage() {
       {venues?.map(venue => <Card key={venue.id}>
         <CardHeader><CardTitle>{venue.name}</CardTitle><p className="text-sm text-muted-foreground">{academies?.find(a => a.id === venue.academy_id)?.name ?? "—"} · {venue.sport?.name ?? "—"}</p></CardHeader>
         <CardContent className="space-y-4">
-          <div><p className="text-xs text-muted-foreground">{lang === "ar" ? "عنوان الملعب" : "Court address"}</p><p className="mt-1 break-words">{[venue.country, venue.governorate, venue.area, venue.address].filter(Boolean).join(" · ") || "—"}</p></div>
+          <div><p className="text-xs text-muted-foreground">{lang === "ar" ? "عنوان الملعب" : "Court address"}</p><p className="mt-1 break-words">{venue.address || (lang === "ar" ? "مطلوب — لم يتم تقديمه" : "Required — not provided")}</p></div>
           <dl className="grid gap-3 text-sm sm:grid-cols-3">
             <div><dt className="text-muted-foreground">{t("venues_rental_cost")}</dt><dd>{venue.rental_cost ?? "—"} EGP / {venue.rental_hours ?? 1} {lang === "ar" ? "ساعة" : "hour(s)"}</dd></div>
             <div><dt className="text-muted-foreground">{lang === "ar" ? "السعة" : "Capacity"}</dt><dd>{venue.capacity ?? "—"}</dd></div>
             <div><dt className="text-muted-foreground">{t("rentals_courts_short")}</dt><dd>{venue.court_count ?? 1}</dd></div>
             <div><dt className="text-muted-foreground">{lang === "ar" ? "الرياضة" : "Sport"}</dt><dd>{venue.sport?.name ?? (lang === "ar" ? "لم يتم تحديدها" : "Not provided")}</dd></div>
-            <div><dt className="text-muted-foreground">{t("signup_phone")}</dt><dd dir="ltr" className="text-start">{venue.contact_phone || "—"}</dd></div>
+            <div><dt className="text-muted-foreground">{t("signup_phone")}</dt><dd dir="ltr" className="text-start">{venue.contact_phone || (lang === "ar" ? "مطلوب — لم يتم تقديمه" : "Required — not provided")}</dd></div>
             {venue.school_name && <div><dt className="text-muted-foreground">{lang === "ar" ? "اسم المدرسة / المنشأة" : "School / facility"}</dt><dd>{venue.school_name}</dd></div>}
           </dl>
           <section className="space-y-2 rounded-lg bg-muted/40 p-3">
@@ -93,6 +93,8 @@ export function ApprovalsPage() {
             {!!venue.unavailable_slots?.length && <div className="text-sm"><p className="font-medium">{lang === "ar" ? "الأوقات غير المتاحة" : "Unavailable times"}</p>{venue.unavailable_slots.map((slot, index) => <p key={index}>{weekdays[slot.weekday]} · <span dir="ltr">{slot.start.slice(0, 5)} – {slot.end.slice(0, 5)}</span></p>)}</div>}
             {!!venue.blocked_dates?.length && <div className="text-sm"><p className="font-medium">{lang === "ar" ? "التواريخ المحجوزة" : "Blocked dates"}</p>{venue.blocked_dates.map((slot, index) => <p key={index}>{slot.date} · {slot.all_day ? (lang === "ar" ? "اليوم بالكامل" : "All day") : `${slot.start ?? ""} – ${slot.end ?? ""}`}</p>)}</div>}
           </section>
+          <dl className="grid gap-3 text-sm sm:grid-cols-3">{[[lang === "ar" ? "الدولة" : "Country", venue.country], [lang === "ar" ? "المحافظة" : "Governorate", venue.governorate], [lang === "ar" ? "المدينة / المنطقة" : "City / area", venue.area]].map(([label, value]) => <div key={label}><dt className="text-muted-foreground">{label}</dt><dd>{value || (lang === "ar" ? "مطلوب — لم يتم تقديمه" : "Required — not provided")}</dd></div>)}</dl>
+          {!venue.location_link && <p className="text-sm text-destructive">{lang === "ar" ? "رابط الخريطة مطلوب — لم يتم تقديمه" : "Map link required — not provided"}</p>}
           {venue.location_link && /^https?:\/\//i.test(venue.location_link) && <a className="text-sm text-primary underline" target="_blank" rel="noopener noreferrer" href={venue.location_link}>{lang === "ar" ? "افتح الموقع على الخريطة" : "View location"}</a>}
           <section className="space-y-2">
             <h3 className="text-sm font-semibold">{lang === "ar" ? "صور الملعب" : "Court photos"}</h3>

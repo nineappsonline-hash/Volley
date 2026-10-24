@@ -10,6 +10,7 @@ export type SignupVenue =
   | {
       name: string;
       address?: string | null;
+      contact_phone?: string | null;
       country?: string | null;
       governorate?: string | null;
       area?: string | null;

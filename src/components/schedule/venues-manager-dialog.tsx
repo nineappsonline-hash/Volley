@@ -1,404 +1,46 @@
 "use client";
 
-import { COURT_REVIEW_FIELDS, courtReviewFields } from "@/lib/court-review";
-import { CourtCorrectionsDialog, needsCourtCorrections } from "@/components/playgrounds/court-corrections";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { MapPin, Pencil, Plus, Trash2, X } from "lucide-react";
+import { MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { PlaygroundFormDialog } from "@/components/playgrounds/playground-form-dialog";
+import { CourtCorrectionRequest } from "@/components/playgrounds/court-corrections";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  useAcademy,
-  useDeleteVenue,
-  useSaveVenue,
-  useSports,
-  useVenues,
-} from "@/lib/queries";
+import { useAcademy, useDeleteVenue, useVenues } from "@/lib/queries";
 import type { Venue } from "@/lib/types";
 
-interface VenuesManagerDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-export function VenuesManagerDialog({
-  open,
-  onOpenChange,
-}: VenuesManagerDialogProps) {
-  const { t, lang } = useI18n();
+interface VenuesManagerDialogProps { open: boolean; onOpenChange: (open: boolean) => void }
+export function VenuesManagerDialog({ open, onOpenChange }: VenuesManagerDialogProps) {
+  const { t } = useI18n();
   const { data: academy } = useAcademy();
   const { data: venues, isLoading } = useVenues(true);
-  const { data: sports } = useSports();
-  const saveVenue = useSaveVenue();
-  const deleteVenue = useDeleteVenue();
-
-  const ownedVenues = (venues ?? []).filter(
-    (v) => v.academy_id === academy?.id
-  );
-
-  const [correctionVenue, setCorrectionVenue] = useState<Venue | null>(null);
-  const [name, setName] = useState("");
-  const [address, setAddress] = useState("");
-  const [capacity, setCapacity] = useState("");
-  const [sportId, setSportId] = useState("none");
-  const [schoolName, setSchoolName] = useState("");
-  const [rentalCost, setRentalCost] = useState("");
-  const [rentalHours, setRentalHours] = useState("1");
-  const [courtCount, setCourtCount] = useState("1");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    if (open) {
-      resetForm();
-      setEditingId(null);
-      setConfirmDeleteId(null);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  const resetForm = () => {
-    setName("");
-    setAddress("");
-    setCapacity("");
-    setSportId("none");
-    setSchoolName("");
-    setRentalCost("");
-    setRentalHours("1");
-    setCourtCount("1");
+  const remove = useDeleteVenue();
+  const [editing, setEditing] = useState<Venue | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const owned = (venues ?? []).filter(venue => venue.academy_id === academy?.id);
+  const edit = (venue: Venue | null) => { setEditing(venue); setEditorOpen(true); };
+  const deleteVenue = async (id: string) => {
+    try { await remove.mutateAsync(id); setDeleting(null); toast.success(t("venues_deleted")); }
+    catch (error) { toast.error(errorMessage(error, t("common_error"))); }
   };
-
-  const startEdit = (v: Venue) => {
-    if (needsCourtCorrections(v)) { setCorrectionVenue(v); return; }
-    setEditingId(v.id);
-    setName(v.name);
-    setAddress(v.address ?? "");
-    setCapacity(v.capacity != null ? String(v.capacity) : "");
-    setSportId(v.sport_id ?? "none");
-    setSchoolName(v.school_name ?? "");
-    setRentalCost(v.rental_cost != null ? String(v.rental_cost) : "");
-    setRentalHours(v.rental_hours != null ? String(v.rental_hours) : "1");
-    setCourtCount(v.court_count != null ? String(v.court_count) : "1");
-    setConfirmDeleteId(null);
-  };
-
-  const handleAdd = async () => {
-    if (!name.trim()) return;
-    setBusy(true);
-    try {
-      await saveVenue.mutateAsync({
-        name: name.trim(),
-        address: address.trim() || null,
-        capacity: capacity ? Number(capacity) : null,
-        sport_id: sportId === "none" ? null : sportId,
-        school_name: schoolName.trim() || null,
-        rental_cost: rentalCost ? Number(rentalCost) : null,
-        rental_hours: rentalHours ? Number(rentalHours) : null,
-        court_count: Number(courtCount) || 1,
-      });
-      toast.success(t("venue_submitted_review"));
-      resetForm();
-    } catch (err) {
-      toast.error(errorMessage(err, t("common_error")));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleUpdate = async () => {
-    if (!editingId || !name.trim()) return;
-    setBusy(true);
-    try {
-      await saveVenue.mutateAsync({
-        id: editingId,
-        name: name.trim(),
-        address: address.trim() || null,
-        capacity: capacity ? Number(capacity) : null,
-        sport_id: sportId === "none" ? null : sportId,
-        school_name: schoolName.trim() || null,
-        rental_cost: rentalCost ? Number(rentalCost) : null,
-        rental_hours: rentalHours ? Number(rentalHours) : null,
-        court_count: Number(courtCount) || 1,
-      });
-      toast.success(t("venue_submitted_review"));
-      setEditingId(null);
-      resetForm();
-    } catch (err) {
-      toast.error(errorMessage(err, t("common_error")));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    setBusy(true);
-    try {
-      await deleteVenue.mutateAsync(id);
-      toast.success(t("venues_deleted"));
-      setConfirmDeleteId(null);
-    } catch (err) {
-      toast.error(errorMessage(err, t("common_error")));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      {correctionVenue && <CourtCorrectionsDialog key={correctionVenue.id} venue={correctionVenue} open onOpenChange={open => !open && setCorrectionVenue(null)} />}
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-primary" />
-            {t("venues_title")}
-          </DialogTitle>
-          <DialogDescription>{t("venues_empty")}</DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <div className="space-y-3 rounded-lg border p-3">
-            <div className="space-y-1.5">
-              <Label>{t("venues_name")}</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="col-span-2 space-y-1.5">
-                <Label>{t("venues_address")}</Label>
-                <Input value={address} onChange={(e) => setAddress(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>{t("venues_capacity")}</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  dir="ltr"
-                  value={capacity}
-                  onChange={(e) => setCapacity(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-                <Label>{t("venues_sport")}</Label>
-                <Select value={sportId} onValueChange={setSportId}>
-                  <SelectTrigger aria-label={t("venues_sport")}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">{t("venues_no_sport")}</SelectItem>
-                    {(sports ?? []).map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>{t("venues_rental_cost")}</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  dir="ltr"
-                  value={rentalCost}
-                  onChange={(e) => setRentalCost(e.target.value)}
-                  placeholder="0"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  {t("venues_rental_cost_hint")}
-                </p>
-              </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1.5">
-                <Label>{t("venues_rental_hours")}</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.5"
-                  dir="ltr"
-                  value={rentalHours}
-                  onChange={(e) => setRentalHours(e.target.value)}
-                  placeholder="1"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  {t("venues_rental_hours_hint")}
-                </p>
-              </div>
-              <div className="space-y-1.5">
-                <Label>{t("venues_court_count")}</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  step="1"
-                  dir="ltr"
-                  value={courtCount}
-                  onChange={(e) => setCourtCount(e.target.value)}
-                  placeholder="1"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  {t("venues_court_count_hint")}
-                </p>
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>{t("venues_school")}</Label>
-              <Input
-                value={schoolName}
-                onChange={(e) => setSchoolName(e.target.value)}
-                placeholder={t("venues_school")}
-              />
-            </div>
-            <div className="flex justify-end gap-2">
-              {editingId && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setEditingId(null);
-                    resetForm();
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                  {t("common_cancel")}
-                </Button>
-              )}
-              <Button
-                type="button"
-                size="sm"
-                disabled={busy || !name.trim()}
-                onClick={editingId ? handleUpdate : handleAdd}
-              >
-                <Plus className="h-4 w-4" />
-                {editingId ? t("common_save") : t("venues_add")}
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-1 rounded-lg border p-1">
-            {isLoading ? (
-              <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-                {t("common_loading")}
-              </p>
-            ) : ownedVenues.length === 0 ? (
-              <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-                {t("venues_empty")}
-              </p>
-            ) : (
-              ownedVenues.map((venue) =>
-                confirmDeleteId === venue.id ? (
-                  <div
-                    key={venue.id}
-                    className="flex items-center justify-between gap-2 px-2 py-1.5 text-sm"
-                  >
-                    <span className="text-destructive">{venue.name}</span>
-                    <span className="flex items-center gap-1">
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        className="h-7 px-2 text-xs"
-                        disabled={busy}
-                        onClick={() => handleDelete(venue.id)}
-                      >
-                        {t("common_confirm")}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        aria-label={t("common_cancel")}
-                        onClick={() => setConfirmDeleteId(null)}
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    </span>
-                  </div>
-                ) : (
-                  <div
-                    key={venue.id}
-                    className="group flex items-center justify-between gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-accent"
-                  >
-                    <button
-                      type="button"
-                      className="min-w-0 flex-1 text-start"
-                      onClick={() => startEdit(venue)}
-                      title={t("common_edit")}
-                    >
-                      <p className="truncate text-sm font-medium">{venue.name}</p>
-                      <p className="text-xs text-muted-foreground">{t(`venue_approval_${venue.approval_status ?? "approved"}`)}</p>
-                      <span className="block text-xs text-destructive">{courtReviewFields(venue.review_missing_fields).map(field => COURT_REVIEW_FIELDS[field][lang === "ar" ? "ar" : "en"]).join(" · ")}{venue.review_note ? ` · ${venue.review_note}` : ""}</span>
-                      {(venue.address ||
-                        venue.capacity != null ||
-                        venue.school_name ||
-                        venue.rental_cost != null ||
-                        (venue.court_count ?? 1) > 1) && (
-                        <p className="truncate text-xs text-muted-foreground">
-                          {[
-                            venue.address,
-                            venue.capacity != null ? `${venue.capacity}` : null,
-                            venue.school_name,
-                            venue.rental_cost != null
-                              ? `${venue.rental_cost}/h × ${
-                                  venue.rental_hours ?? 1
-                                }h`
-                              : null,
-                            (venue.court_count ?? 1) > 1
-                              ? `${venue.court_count} ${t("rentals_courts_short")}`
-                              : null,
-                          ]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </p>
-                      )}
-                    </button>
-                    <span className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        aria-label={t("common_edit")}
-                        onClick={() => startEdit(venue)}
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-destructive hover:text-destructive"
-                        aria-label={t("common_delete")}
-                        onClick={() => setConfirmDeleteId(venue.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </span>
-                  </div>
-                )
-              )
-            )}
-          </div>
+  return <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg"><DialogHeader>
+      <DialogTitle className="flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" />{t("venues_title")}</DialogTitle>
+      <DialogDescription>{t("playgrounds_subtitle")}</DialogDescription>
+    </DialogHeader>
+      <Button onClick={() => edit(null)}><Plus className="h-4 w-4" />{t("playgrounds_add")}</Button>
+      {isLoading ? <p>{t("common_loading")}</p> : owned.length === 0 ? <p className="p-4 text-center text-muted-foreground">{t("venues_empty")}</p> : <div className="space-y-3">{owned.map(venue => <div key={venue.id} className="space-y-2 rounded-lg border p-3">
+        <div className="flex items-start justify-between gap-2"><div><p className="font-medium">{venue.name}</p><p className="text-xs text-muted-foreground">{t(`venue_approval_${venue.approval_status ?? "approved"}`)}</p><p className="text-sm">{venue.address}</p></div>
+          <div className="flex gap-1"><Button variant="ghost" size="icon" aria-label={t("common_edit")} onClick={() => edit(venue)}><Pencil className="h-4 w-4" /></Button><Button variant="ghost" size="icon" aria-label={t("common_delete")} onClick={() => setDeleting(venue.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button></div>
         </div>
-      </DialogContent>
-    </Dialog>
-  );
+        <CourtCorrectionRequest venue={venue} />
+        {deleting === venue.id && <div className="space-y-2"><p className="text-sm">{t("playgrounds_delete_confirm")}</p><Button variant="destructive" size="sm" disabled={remove.isPending} onClick={() => void deleteVenue(venue.id)}>{t("common_confirm")}</Button> <Button variant="outline" size="sm" onClick={() => setDeleting(null)}>{t("common_cancel")}</Button></div>}
+      </div>)}</div>}
+    </DialogContent>
+    {editorOpen && <PlaygroundFormDialog key={editing?.id ?? "new"} venue={editing} open onOpenChange={setEditorOpen} />}
+  </Dialog>;
 }

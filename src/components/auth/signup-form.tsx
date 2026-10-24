@@ -1,4 +1,8 @@
 "use client";
+import { PlaygroundFormDialog, type CourtSubmissionDraft } from "@/components/playgrounds/playground-form-dialog";
+import { missingCourtSubmissionFields } from "@/lib/court-submission";
+import { COURT_REVIEW_FIELDS } from "@/lib/court-review";
+import type { Venue } from "@/lib/types";
 import { RegistrationStart } from "@/components/analytics/business-analytics";
 
 import { useEffect, useRef, useState } from "react";
@@ -134,6 +138,7 @@ interface PoolVenue {
 }
 
 type NewVenueDraft = {
+  submission?: CourtSubmissionDraft;
   id?: string;
   name: string;
   address: string;
@@ -145,7 +150,8 @@ type NewVenueDraft = {
 };
 
 export function SignupForm() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const [venueEditor, setVenueEditor] = useState<number | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { signUp } = useAuth();
@@ -356,6 +362,9 @@ export function SignupForm() {
       return;
     }
     const venues: SignupVenue[] = signupVenues.map((v) => ({
+      ...v.submission,
+      sport: v.submission?.sport_name,
+      contact_phone: v.submission?.contact_phone || account.phone.trim(),
       ...(v.id ? { id: v.id } : {}),
       name: v.name.trim(),
       address: v.address.trim() || null,
@@ -365,6 +374,11 @@ export function SignupForm() {
       rental_hours:
         v.rental_hours.trim() !== "" ? Number(v.rental_hours) : 1,
     }));
+    for (const [index, venue] of venues.entries()) {
+      if ("id" in venue && venue.id) continue;
+      const missing = missingCourtSubmissionFields({ ...signupVenues[index].submission, ...venue, sport: undefined });
+      if (missing.length) { toast.error(`${lang === "ar" ? "الملعب" : "Court"} ${index + 1}: ${missing.map(field => COURT_REVIEW_FIELDS[field][lang === "ar" ? "ar" : "en"]).join(" · ")}`); setVenueEditor(index); return; }
+    }
     await finishSignup(account.email, account.password, account.name, account.username, account.phone, {
       newName: academyName.trim(),
       sports: sports.join(","),
@@ -637,6 +651,7 @@ export function SignupForm() {
                           key={v.id ?? `new-${i}`}
                           className="space-y-3 rounded-lg border p-3"
                         >
+                          {!v.fromPool && <div className="space-y-2"><p className="text-xs text-muted-foreground">{lang === "ar" ? "رقم التواصل والموقع والرياضة والصور ومواعيد العمل مطلوبة لكل ملعب جديد." : "Contact phone, location, sport, photos and working hours are required for each new court."}</p><Button type="button" variant="outline" onClick={() => setVenueEditor(i)}>{lang === "ar" ? "استكمال بيانات الملعب المطلوبة" : "Complete required court details"}</Button></div>}
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex min-w-0 items-center gap-2">
                               <span className="truncate text-sm font-medium">
@@ -1185,6 +1200,15 @@ export function SignupForm() {
           }
         }}
       />
+      {venueEditor !== null && signupVenues[venueEditor] && <PlaygroundFormDialog
+        key={`signup-court-${venueEditor}`} open draftMode ownerPhone={account.phone}
+        venue={{ ...signupVenues[venueEditor].submission, name: signupVenues[venueEditor].name, address: signupVenues[venueEditor].address,
+          country: signupVenues[venueEditor].submission?.country || location.country, governorate: signupVenues[venueEditor].submission?.governorate || location.governorate,
+          area: signupVenues[venueEditor].submission?.area || location.city, rental_cost: signupVenues[venueEditor].rental_cost === "" ? null : Number(signupVenues[venueEditor].rental_cost),
+          rental_hours: Number(signupVenues[venueEditor].rental_hours) || 1 } as Venue}
+        onOpenChange={open => !open && setVenueEditor(null)}
+        onSaveDraft={details => { setSignupVenue(venueEditor, { submission: details, name: details.name, address: details.address ?? "", capacity: details.capacity == null ? "" : String(details.capacity), school_name: details.school_name ?? "", rental_cost: String(details.rental_cost ?? ""), rental_hours: String(details.rental_hours ?? 1) }); }}
+      />}
       <PushPrompt
         open={pushPromptOpen}
         onOpenChange={(o) => {
