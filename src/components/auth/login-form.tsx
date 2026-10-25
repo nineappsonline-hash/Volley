@@ -25,6 +25,7 @@ import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { GoogleSignInButton, OrDivider } from "@/components/auth/google-signin-button";
 import { authDestination, authLink } from "@/lib/auth-redirect";
+import { oauthFailureReason } from "@/lib/oauth-errors";
 import { useAuth } from "@/lib/auth";
 import { useEffect } from "react";
 
@@ -42,8 +43,17 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [oauthFailure, setOauthFailure] = useState<"expired" | "cancelled" | "provider" | null>(null);
 
   useEffect(() => {
+    const fragment = new URLSearchParams(window.location.hash.slice(1));
+    if (searchParams.get("error") || fragment.has("error") || fragment.has("error_description")) {
+      const reason = searchParams.get("reason");
+      setOauthFailure(reason === "expired" || reason === "cancelled" ? reason : oauthFailureReason(fragment.get("error_code") || fragment.get("error")));
+      // Provider descriptions may contain sensitive details: never render them,
+      // and remove the error fragment from the address bar.
+      if (fragment.has("error") || fragment.has("error_description")) window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search);
+    }
     if (searchParams.get("passwordUpdated") === "1") {
       toast.success(t("login_password_updated"));
     }
@@ -93,6 +103,7 @@ export function LoginForm() {
 
         <Card>
           <CardContent className="p-6">
+            {oauthFailure && <p role="alert" className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{t(oauthFailure === "expired" ? "login_google_expired" : oauthFailure === "cancelled" ? "login_google_cancelled" : "login_google_return_error")}</p>}
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField

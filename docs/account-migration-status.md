@@ -58,3 +58,11 @@ Backups, credentials, uploaded-file copies, comparison snapshots and rollback sc
 - https://developers.google.com/identity/protocols/oauth2/web-server
 - https://vercel.com/docs/deployments/promoting-a-deployment
 - https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/protection-bypass-automation
+
+## Google sign-in follow-up — 25 October 2026
+
+The public login starts Google OAuth against the new project, with the correct canonical `/auth/callback` URL, S256 challenge and saved verifier cookie. A read-only browser test intercepted the authorization request before it reached Google; no account was created or signed in. Redirect allowlisting and enabled-provider settings are correct, and the source/destination Google client IDs match.
+
+The exported Google secret was an opaque 64-character value, and its destination representation differs. Its presence was previously checked but its usability was not verified. Aggregate records show no successful Google login on the destination after cutover. The actual Google Cloud client secret must be entered directly into the destination project's Google provider settings; the user has been given instructions. This is the leading configuration issue, not a claim that a Google token exchange has been independently verified. Keep existing OAuth client secrets active when adding another secret for this project.
+
+The callback now requires a verified user before redirecting to a protected destination, prevents caching of authentication redirects and maps failures to safe expired/cancelled/provider categories. Login shows bilingual failure guidance and removes provider error fragments without rendering raw descriptions. Mocked callback tests cover code exchange, profile completion, destination preservation, missing sessions and failed/expired/cancelled callbacks. An interactive Google login remains necessary after updating the provider secret.
