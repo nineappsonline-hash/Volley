@@ -20,3 +20,10 @@ The pictured recent court-rent attempt had no saved provider session, checkout U
 Validation: `tests/card-payment-review.cjs` exercises real Postgres-compatible functions, permissions, manual overrides, subscription review, audit retention, idempotence, webhook replay and hold expiry. `tests/card-payment-reconciliation.cjs` executes the verification helper and admin route with mocked providers, including failed/mismatched/authorized-only payments and safe errors. Bilingual payment rendering, existing webhook, booking accounting and payment-email suites pass. TypeScript, strict lint and production build pass. Live checks used read-only provider APIs and aggregate database results; no charge or refund was generated.
 
 Provider references: [session payment read](https://developers.kashier.io/docs/api-reference/payment-sessions/getPaymentSession), [checkout session resource](https://developers.kashier.io/docs/api-reference/payment-sessions/getPaymentSessionById).
+
+
+### Admin access correction
+
+The first card-review implementation incorrectly required an active profile with `role=super_admin` in addition to the verified Auth admin check. One authorized platform administrator has an inactive member profile, so the API admitted the administrator but the database review rejected the action. Migration `20270108000006_align_card_review_admin_access.sql` reuses `is_super_admin()` for the actor instead. The service-only invoker routine temporarily supplies the actor as the transaction-local subject for that check and restores the original subject before payment mutations; no Auth session or token is created or changed. Client-supplied actor IDs remain ignored by the API.
+
+Regression coverage now includes verified admins with inactive member profiles, unauthorized accounts with super-admin profile roles, banned/unverified Auth accounts, and restoration of the service request subject. Live approval checks for all three affected court-rent records ran inside rolled-back transactions; payment decisions were not persisted by validation.
