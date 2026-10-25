@@ -41,9 +41,10 @@ Opening checkout or returning from Kashier does not mark anything paid. The
 return page reads the database status and polls for webhook confirmation.
 
 The webhook validates the Payment API Key HMAC, requires signed identity,
-amount, currency and status fields, then independently reads the Kashier session
-and requires `PAID`, the expected merchant and order, full captured amount and
-no refund. A service-only database function records the transaction and fulfills
+amount, currency and status fields, then settles the signed successful capture. A best-effort session read is an
+audit check and does not block a valid signed webhook. Return-page and admin
+reconciliation require an independent provider read bound to the expected
+merchant, order, amount and currency; authorization alone is not success. A service-only database function records the transaction and fulfills
 it atomically. Duplicate notifications cannot extend a plan twice or send two
 receipts. Public/client RPCs cannot approve a card checkout.
 
@@ -72,3 +73,10 @@ Welcome emails remain unchanged. Deploy the migration and edge function together
 Official references: [Sessions](https://developers.kashier.io/docs/accept-payments/payment-sessions),
 [Webhooks](https://developers.kashier.io/docs/webhooks),
 [Meeza](https://developers.kashier.io/docs/accept-payments/meeza).
+
+
+Admin review and pending-checkout filters are documented in
+[payment-approval-context.md](payment-approval-context.md). Apply migration
+`20270108000005_admin_card_payment_reviews.sql` for the server-only card review
+routine and preservation of explicit decisions during settlement/expiry. Manual
+review never calls Kashier charge, capture or refund endpoints.

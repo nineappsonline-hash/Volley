@@ -7,6 +7,7 @@ const mocks={
  '@/lib/supabase/client':{createClient(){throw Error('render must not access receipts or mutate payments')}},
  '@/lib/i18n':{useI18n:()=>({lang,t:key=>dictionary[lang][key]??key})},
  '@/lib/queries':{
+  useCardPaymentOrders:()=>query([{id:"card-order",kind:"subscription",target_id:"member-sub",status:"pending",details:{}}]),
   useCommunityMembers:()=>query([{id:'payer',name:'Payer name',username:'payer'}]),
   useAllGamePayments:()=>query([{id:'share-123',game_id:'game-123',member_id:'payer',player_name:'Guest player',share_amount:100,pay_method:'instapay',joined_at:'2026-10-20T12:00:00Z',pay_status:'pending',game:missing?null:game}]),
   useAllRentPayments:()=>query([{id:'rent-123',game_id:'game-123',member_id:'payer',amount:200,pay_method:'cash',created_at:'2026-10-20T12:00:00Z',pay_status:'pending',game:missing?null:game}]),
@@ -20,11 +21,11 @@ for(lang of ['en','ar']){
  const html=renderToStaticMarkup(React.createElement(PaymentApprovals));
  assert.ok(html.includes('aria-expanded="false"'), 'payment approval panel starts collapsed');
  assert.ok(html.includes('hidden=""'), 'filter and payment content is hidden by default');
- assert.equal((html.match(/<details /g)||[]).length,8,'each mobile/desktop payment has independently expandable context');
+ assert.equal((html.match(/<details /g)||[]).length,6,'each mobile/desktop payment has independently expandable context');
  assert.ok(!html.includes('<details open'), 'payment details start collapsed');
  assert.ok(html.includes(lang==='en'?'Payment details':'تفاصيل الدفع'));
- for(const value of [game.title,game.sport,'Sand court','New Cairo','Cairo','Organizer name','2026-11-01','Guest player','Payer name','Elite academy','game-123','share-123','rent-123','sub-123','academy-123',dictionary[lang].plans_tier_plus,dictionary[lang].mplan_tier_pro,dictionary[lang].checkout_cycle_yearly])assert.ok(html.includes(value),value);
- assert.ok(html.includes(lang==='en'?'Player membership':'عضوية لاعب'));
+ for(const value of [game.title,game.sport,'Sand court','New Cairo','Cairo','Organizer name','2026-11-01','Guest player','Payer name','Elite academy','game-123','share-123','rent-123','sub-123','academy-123',dictionary[lang].plans_tier_plus,dictionary[lang].checkout_cycle_yearly])assert.ok(html.includes(value),value);
+ assert.ok(!html.includes('member-sub'), 'unconfirmed card checkout is excluded from Pending');
  assert.ok(html.includes(lang==='en'?'Payment reference':'مرجع الدفع'));
  assert.equal((html.match(/Sand court/g)||[]).length,4,'share and rent show venue in mobile and desktop layouts');
  missing=true;const unavailable=renderToStaticMarkup(React.createElement(PaymentApprovals));assert.ok(unavailable.includes(lang==='en'?'Game details unavailable':'تفاصيل الماتش غير متاحة'));assert.ok(unavailable.includes(lang==='en'?'Academy details unavailable':'بيانات الأكاديمية غير متاحة'));assert.ok(unavailable.includes('game-123'));missing=false;
@@ -33,7 +34,7 @@ for(lang of ['en','ar']){
 console.log('PASS: bilingual share/rent game context, subscription plan/cycle/academy, payer and player distinction, references, missing relations and query errors on mobile and desktop');
 // Exercise the panel toggle without a session, receipt access, or payment writes.
 let expanded=false;
-mocks.react={...React,useId:()=> 'payment-panel',useMemo:fn=>fn(),useState:initial=>[typeof initial==='boolean'?expanded:initial,value=>{if(typeof value==='boolean')expanded=value;}]};
+mocks.react={...React,useEffect:()=>{},useRef:()=>({current:false}),useId:()=> 'payment-panel',useMemo:fn=>fn(),useState:initial=>[typeof initial==='boolean'?expanded:initial,value=>{if(typeof value==='boolean')expanded=value;}]};
 cache.delete(path.resolve('src/components/super-admin/payment-approvals.tsx'));
 const TogglePanel=load('src/components/super-admin/payment-approvals.tsx').PaymentApprovals;
 function find(node,predicate){if(!node||typeof node!=='object')return; if(predicate(node))return node;let result;React.Children.forEach(node.props?.children,child=>{result??=find(child,predicate)});return result;}
@@ -49,3 +50,18 @@ for(lang of ['en','ar']){
  }
 }
 console.log('PASS: payment panel opens/closes through its accessible toggle in both languages without accessing receipts or changing payments');
+// Render All statuses with a real confirmed card record and assert that the
+// override control is available in both layouts, while Pending excludes it.
+let stateIndex=0;
+mocks.react={...React,useEffect:()=>{},useRef:()=>({current:false}),useId:()=> 'payment-panel',useMemo:fn=>fn(),useState:initial=>{const index=stateIndex++;return [index===0?true:initial==='pending'?'all':initial,()=>{}]}};
+mocks['@/lib/queries'].useCardPaymentOrders=()=>query([{id:'card-order',kind:'subscription',target_id:'member-sub',status:'paid',details:{}}]);
+cache.delete(path.resolve('src/components/super-admin/payment-approvals.tsx'));
+const AllStatuses=load('src/components/super-admin/payment-approvals.tsx').PaymentApprovals;
+for(lang of ['en','ar']){
+ stateIndex=0;const html=renderToStaticMarkup(React.createElement(AllStatuses));
+ assert.ok(html.includes('member-sub'));
+ assert.ok(html.includes(lang==='en'?'Admin review does not charge or refund':'قرار الإدارة لا يخصم'));
+ const reject=dictionary[lang].super_admin_fee_reject;
+ assert.equal((html.match(new RegExp('>'+reject+'<','g'))||[]).length,8,'confirmed card rows retain Reject controls in both layouts');
+}
+console.log('PASS: confirmed Kashier payments are reviewable from All payments in both languages/layouts');

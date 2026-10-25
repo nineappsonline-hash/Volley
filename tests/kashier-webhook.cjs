@@ -45,16 +45,11 @@ assert.match(webhook, /p_amount:data\.amount,p_currency:data\.currency/, 'the si
 // only after Kashier itself confirms the session is paid.
 assert.ok(fs.existsSync(path.join(root, 'src/app/api/payments/kashier/confirm/route.ts')), 'confirm route exists');
 assert.match(confirmRoute, /order\.user_id!==user\.id/, 'a user can only reconcile their own order');
-assert.match(confirmRoute, /PAID_TRANSACTION_STATUSES/, 'reconciliation requires a paid session');
+assert.match(confirmRoute, /verifiedCardTransaction\(order\)/, 'reconciliation requires verified provider proof');
 assert.match(confirmRoute, /if\(!transactionId\)return/i, 'it never settles without a transaction id from Kashier');
 assert.match(confirmRoute, /db\.rpc\('settle_kashier_order'/, 'it settles through the same idempotent RPC');
-assert.match(
-  confirmRoute.split("db.rpc('settle_kashier_order'")[0],
-  /\/v3\/payment\/sessions\/\$\{encodeURIComponent\(order\.session_id\)\}\/payment/,
-  'it verifies the session via the documented endpoint'
-);
 assert.match(resultPage, /\/api\/payments\/kashier\/confirm/, 'the status page triggers reconciliation when stuck pending');
-assert.match(resultPage, /if\(j\?\.status==='paid'\)\{setStatus\('paid'\);return;\}/, 'it stops polling once reconciled');
+assert.ok(resultPage.includes("j?.status==='review_required'"), 'late paid reservations retain the review-required result');
 
 console.log('PASS: Kashier webhooks use the correct endpoint and never block settlement');
 console.log('PASS: a lost webhook is reconciled from the return landing page, guarded by Kashier proof');

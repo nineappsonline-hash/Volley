@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { CheckCircle2, ChevronDown, Eye, Receipt, XCircle } from "lucide-react";
 import { format } from "date-fns";
@@ -34,6 +34,7 @@ import { errorMessage } from "@/lib/utils";
 import { QueryState } from "@/components/shared/query-state";
 import { formatTime12h, formatMoneyShort } from "@/lib/constants";
 import {
+  useCardPaymentOrders,
   useAllGamePayments,
   useAllRentPayments,
   useAllSubscriptions,
@@ -43,8 +44,10 @@ import {
   useReviewSubscription,
 } from "@/lib/queries";
 
+import { paymentReviewStatus, type PaymentReviewStatus } from "@/lib/payments/review-status";
+
 type PayKind = "share" | "rent" | "subscription";
-type PayStatus = "pending" | "approved" | "rejected";
+type PayStatus = PaymentReviewStatus;
 type TypeFilter = "all" | PayKind;
 
 interface PaymentRecord {
@@ -61,6 +64,7 @@ interface PaymentRecord {
   receiptUrl: string | null;
   bucket: "game-fee-receipts" | "subscription-receipts";
   status: PayStatus;
+  orderId?: string;
 }
 
 export function PaymentApprovals() {
@@ -76,6 +80,29 @@ export function PaymentApprovals() {
   const { data: rents } = rentsQuery;
   const subscriptionsQuery = useAllSubscriptions();
   const { data: subscriptions } = subscriptionsQuery;
+  const cardOrdersQuery = useCardPaymentOrders();
+  const { data: cardOrders } = cardOrdersQuery;
+  const [cardBusy, setCardBusy] = useState(false);
+  const refreshed = useRef(false);
+  const reloadPayments = async () => {
+    await Promise.all([sharesQuery.refetch(), rentsQuery.refetch(), subscriptionsQuery.refetch(), cardOrdersQuery.refetch()]);
+  };
+  const refreshCards = async () => {
+    setCardBusy(true);
+    try {
+      const response = await fetch("/api/platform-admin/card-payments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "refresh" }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      await reloadPayments();
+      if (result.unavailable) toast.error(lang === "ar" ? "تعذر التحقق من بعض المدفوعات. راجع كاشير قبل الموافقة يدويًا." : "Some payments could not be verified. Check Kashier before approving manually.");
+    } catch (error) { toast.error(errorMessage(error, t("common_error"))); }
+    finally { setCardBusy(false); }
+  };
+  useEffect(() => {
+    if (expanded && !refreshed.current) { refreshed.current = true; void refreshCards(); }
+  // Refresh once on opening, never on a query update or rerender.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expanded]);
   const reviewShare = useReviewParticipantShare();
   const reviewRent = useReviewRentPayment();
   const reviewSub = useReviewSubscription();
@@ -167,10 +194,13 @@ export function PaymentApprovals() {
       });
     }
 
-    return out;
-  }, [shares, rents, subscriptions, t, lang, locale]);
+    return out.map(record => {
+      const order = cardOrders?.find(o => o.kind === record.kind && o.target_id === record.key.slice(record.key.indexOf(":") + 1));
+      return { ...record, orderId: order?.id, status: paymentReviewStatus(record.status, record.method, order) };
+    });
+  }, [shares, rents, subscriptions, cardOrders, t, lang, locale]);
 
-  const pendingCount = records.filter((r) => r.status === "pending" && r.method !== "kashier").length;
+  const pendingCount = records.filter((r) => r.status === "pending" || r.status === "review_required").length;
 
   const filtered = useMemo(
     () =>
@@ -186,9 +216,17 @@ export function PaymentApprovals() {
     record: PaymentRecord,
     approve: boolean,
   ) => {
-    if (record.method === "kashier") return;
+    if (record.method === "kashier" && !window.confirm(lang === "ar"
+      ? (approve ? "تأكيد الموافقة يدويًا؟ تحقق من استلام المبلغ في كاشير أولًا. لن يتم خصم أي مبلغ." : "رفض سجل الدفع؟ هذا لا يُعيد المبلغ للبطاقة. أي استرداد يتم من كاشير بشكل منفصل.")
+      : (approve ? "Approve manually? Verify receipt of funds in Kashier first. This will not charge the card." : "Reject this payment record? This does not refund the card. Any refund must be handled separately in Kashier."))) return;
     try {
-      if (record.kind === "share") {
+      if (record.method === "kashier") {
+        setCardBusy(true);
+        const response = await fetch("/api/platform-admin/card-payments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "review", orderId: record.orderId, approve }) });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error);
+        await reloadPayments();
+      } else if (record.kind === "share") {
         const dbId = record.key.slice("share:".length);
         await reviewShare.mutateAsync({ participantId: dbId, approve });
       } else if (record.kind === "rent") {
@@ -203,7 +241,7 @@ export function PaymentApprovals() {
       );
     } catch (error) {
       toast.error(errorMessage(error, t("common_error")));
-    }
+    } finally { setCardBusy(false); }
   };
 
   const handleViewReceipt = async (record: PaymentRecord) => {
@@ -221,6 +259,14 @@ export function PaymentApprovals() {
       setOpeningReceipt(null);
     }
   };
+
+  const statusLabel = (status: PayStatus) => status === "awaiting_payment" ? (lang === "ar" ? "بانتظار الدفع بالبطاقة" : "Awaiting card payment") : status === "review_required" ? (lang === "ar" ? "تم الدفع — يحتاج مراجعة" : "Paid — needs review") : t(status === "pending" ? "super_admin_payments_pending" : status === "approved" ? "super_admin_payments_approved" : "super_admin_payments_rejected");
+  const statusBadge = (status: PayStatus) => <Badge variant={status === "approved" ? "success" : status === "rejected" ? "destructive" : "warning"}>{statusLabel(status)}</Badge>;
+  const cardNote = (r: PaymentRecord) => r.method === "kashier" ? <span className="text-xs text-muted-foreground">{lang === "ar" ? "قرار الإدارة لا يخصم أو يُعيد أي مبلغ من كاشير." : "Admin review does not charge or refund Kashier payments."}</span> : null;
+  const actions = (r: PaymentRecord) => (r.method === "kashier" ? !!r.orderId : r.status === "pending") && <>
+    {r.status !== "approved" && <Button variant="outline" size="sm" disabled={cardBusy || reviewShare.isPending || reviewRent.isPending || reviewSub.isPending} onClick={() => void handleApproveReject(r, true)}><CheckCircle2 className="me-1 h-3 w-3" />{t("super_admin_fee_approve")}</Button>}
+    {r.status !== "rejected" && <Button variant="outline" size="sm" disabled={cardBusy || reviewShare.isPending || reviewRent.isPending || reviewSub.isPending} onClick={() => void handleApproveReject(r, false)}><XCircle className="me-1 h-3 w-3" />{t("super_admin_fee_reject")}</Button>}
+  </>;
 
   return (
     <Card>
@@ -261,6 +307,7 @@ export function PaymentApprovals() {
               </button>
             ))}
           </div>
+          <Button variant="outline" size="sm" disabled={cardBusy} onClick={() => void refreshCards()}>{lang === "ar" ? "تحديث مدفوعات كاشير" : "Refresh Kashier payments"}</Button>
           <Select
             value={statusFilter}
             onValueChange={(v) => setStatusFilter(v as "all" | PayStatus)}
@@ -275,6 +322,8 @@ export function PaymentApprovals() {
               <SelectItem value="pending" data-sort={1}>
                 {t("super_admin_payments_pending")}
               </SelectItem>
+              <SelectItem value="awaiting_payment">{lang === "ar" ? "بانتظار الدفع بالبطاقة" : "Awaiting card payment"}</SelectItem>
+              <SelectItem value="review_required">{lang === "ar" ? "تم الدفع — يحتاج مراجعة" : "Paid — needs review"}</SelectItem>
               <SelectItem value="approved" data-sort={2}>
                 {t("super_admin_payments_approved")}
               </SelectItem>
@@ -285,7 +334,7 @@ export function PaymentApprovals() {
           </Select>
         </div>
 
-        <QueryState queries={[sharesQuery, rentsQuery, subscriptionsQuery]}>
+        <QueryState queries={[sharesQuery, rentsQuery, subscriptionsQuery, cardOrdersQuery]}>
         {filtered.length === 0 ? (
           <EmptyState
             message={t("super_admin_payments_empty")}
@@ -298,9 +347,7 @@ export function PaymentApprovals() {
               <article key={r.key} className="min-w-0 space-y-3 rounded-xl border p-3">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <h3 className="min-w-0 break-words font-semibold">{r.label}</h3>
-                  <Badge variant={r.status === "pending" ? "warning" : r.status === "approved" ? "success" : "destructive"}>
-                    {t(r.status === "pending" ? "super_admin_payments_pending" : r.status === "approved" ? "super_admin_payments_approved" : "super_admin_payments_rejected")}
-                  </Badge>
+                  {statusBadge(r.status)}
                 </div>
                 <PaymentPurpose record={r} language={lang} />
                 <div className="flex flex-wrap justify-between gap-2 text-sm">
@@ -309,12 +356,9 @@ export function PaymentApprovals() {
                 </div>
                 <p className="text-xs text-muted-foreground">{format(new Date(r.createdAt), "MMM d, yyyy · h:mm a", { locale })}{r.method && <> · {t(`game_fee_method_${r.method}` as any)}</>}</p>
                 <div className="flex flex-wrap gap-2">
-                  {r.method === "kashier" && <span className="text-xs text-muted-foreground">{lang === "ar" ? (r.status === "pending" ? "بانتظار إتمام الدفع بالبطاقة؛ يتم التأكيد تلقائيًا" : "مدفوعات البطاقة تُراجع تلقائيًا عبر كاشير") : (r.status === "pending" ? "Awaiting card payment; confirmed automatically" : "Card payments are verified automatically by Kashier")}</span>}
+                  {cardNote(r)}
                   {r.receiptUrl && <Button variant="outline" className="h-auto min-h-11 whitespace-normal" disabled={openingReceipt !== null} onClick={() => handleViewReceipt(r)}><Eye className="me-1 h-4 w-4 shrink-0" />{t("super_admin_fee_view_receipt")}</Button>}
-                  {r.status === "pending" && r.method !== "kashier" && <>
-                    <Button variant="outline" className="min-h-11 text-success-ink" disabled={reviewShare.isPending || reviewRent.isPending || reviewSub.isPending} onClick={() => handleApproveReject(r, true)}>{t("super_admin_fee_approve")}</Button>
-                    <Button variant="outline" className="min-h-11" disabled={reviewShare.isPending || reviewRent.isPending || reviewSub.isPending} onClick={() => handleApproveReject(r, false)}>{t("super_admin_fee_reject")}</Button>
-                  </>}
+                  {actions(r)}
                 </div>
               </article>
             ))}
@@ -355,23 +399,11 @@ export function PaymentApprovals() {
                         {format(new Date(r.createdAt), "MMM d, yyyy · h:mm a", { locale })}
                       </TableCell>
                       <TableCell>
-                        {r.status === "pending" ? (
-                          <Badge variant="warning">{t("super_admin_payments_pending")}</Badge>
-                        ) : r.status === "approved" ? (
-                          <Badge variant="success" className="gap-1">
-                            <CheckCircle2 className="h-3 w-3" />
-                            {t("super_admin_payments_approved")}
-                          </Badge>
-                        ) : (
-                          <Badge variant="destructive" className="gap-1">
-                            <XCircle className="h-3 w-3" />
-                            {t("super_admin_payments_rejected")}
-                          </Badge>
-                        )}
+                        {statusBadge(r.status)}
                       </TableCell>
                       <TableCell className="text-end">
                         <div className="flex items-center justify-end gap-1">
-                          {r.method === "kashier" && <span className="text-xs text-muted-foreground">{lang === "ar" ? (r.status === "pending" ? "بانتظار إتمام الدفع بالبطاقة؛ يتم التأكيد تلقائيًا" : "مدفوعات البطاقة تُراجع تلقائيًا عبر كاشير") : (r.status === "pending" ? "Awaiting card payment; confirmed automatically" : "Card payments are verified automatically by Kashier")}</span>}
+                          {cardNote(r)}
                   {r.receiptUrl && (
                             <Button
                               variant="ghost"
@@ -384,30 +416,7 @@ export function PaymentApprovals() {
                               {t("super_admin_fee_view_receipt")}
                             </Button>
                           )}
-                          {r.status === "pending" && r.method !== "kashier" && (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="gap-1 text-success-ink hover:text-success-ink"
-                                disabled={reviewShare.isPending || reviewRent.isPending || reviewSub.isPending}
-                                onClick={() => handleApproveReject(r, true)}
-                              >
-                                <CheckCircle2 className="h-3 w-3" />
-                                {t("super_admin_fee_approve")}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="gap-1 text-muted-foreground"
-                                disabled={reviewShare.isPending || reviewRent.isPending || reviewSub.isPending}
-                                onClick={() => handleApproveReject(r, false)}
-                              >
-                                <XCircle className="h-3 w-3" />
-                                {t("super_admin_fee_reject")}
-                              </Button>
-                            </>
-                          )}
+                          {actions(r)}
                         </div>
                       </TableCell>
                     </TableRow>

@@ -4235,7 +4235,7 @@ export function useAllGamePayments() {
         .select(
           "id, game_id, member_id, player_name, share_amount, pay_method, pay_receipt_url, pay_status, joined_at, game:friendly_games(title, sport, game_date, start_time, duration_hours, creator_name, status, location, area, playground:venues(name, area, governorate))"
         )
-        .in("pay_status", ["pending", "approved", "rejected"])
+        .in("pay_status", ["unpaid", "pending", "approved", "rejected"])
         .order("joined_at", { ascending: false })
         .limit(200);
       if (error) throw error;
@@ -4251,7 +4251,7 @@ export function useAllGamePayments() {
         joined_at: string;
         game: PaymentGameContext | PaymentGameContext[] | null;
       }[];
-      return rows.map((r) => ({
+      return rows.filter(r => r.pay_status !== "unpaid" || r.pay_method === "kashier").map((r) => ({
         ...r,
         game: Array.isArray(r.game) ? (r.game[0] ?? null) : r.game,
       }));
@@ -4638,5 +4638,20 @@ export function useMyGames(memberId: string) {
     refetchInterval: 15_000,
     refetchOnWindowFocus: "always",
     queryFn: () => fetchMyGames(supabase(), memberId),
+  });
+}
+
+// Collection state is separate from an administrator's review of a payment.
+export function useCardPaymentOrders() {
+  return useQuery({
+    queryKey: ["card-payment-orders"],
+    refetchInterval: 30000,
+    queryFn: async () => {
+      const { data, error } = await supabase().from("kashier_orders")
+        .select("id,kind,target_id,status,details,created_at")
+        .order("created_at", { ascending: false }).limit(1000);
+      if (error) throw error;
+      return (data ?? []) as { id: string; kind: string; target_id: string; status: string; details: { admin_review?: string }; created_at: string }[];
+    },
   });
 }
