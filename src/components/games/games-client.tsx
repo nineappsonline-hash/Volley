@@ -437,7 +437,7 @@ export function GameCard({
               </Button>
             ) : full ? (
               <Button variant="outline" size="sm" disabled>
-                {t("community_full") || "Full"}
+                {lang === "ar" ? "ممتلئ" : "Full"}
               </Button>
             ) : (
               <Button size="sm" onClick={handleJoin}>
