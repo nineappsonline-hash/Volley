@@ -7235,26 +7235,9 @@ BEGIN
   FROM public.friendly_game_participants
   WHERE game_id = p_game_id AND NOT is_waitlisted;
 
-  -- The game is full: take the waitlist. No payment is collected until the
-  -- player is actually promoted into a real spot.
+  -- The game is full: no longer accepting new players.
   IF v_count >= v_game.max_players THEN
-    INSERT INTO public.friendly_game_participants
-      (game_id, member_id, role, player_name, is_waitlisted, share_amount, pay_status)
-    VALUES (p_game_id, v_member, 'player',
-            (SELECT public.player_display_name(p) FROM public.profiles p WHERE p.id = v_member),
-            TRUE, 0, 'unpaid');
-
-    INSERT INTO public.notifications (recipient_id, type, title, body, link)
-    VALUES (
-      v_game.creator_id,
-      'game_alert',
-      'Waitlist spot requested',
-      (SELECT public.player_display_name(pp) FROM public.profiles pp WHERE pp.id = v_member)
-        || ' joined the waitlist for ' || btrim(v_game.title) || '.',
-      '/games'
-    );
-
-    RETURN TRUE;
+    RAISE EXCEPTION 'This game is full';
   END IF;
 
   -- A real spot is available: the host pays the whole reservation in
@@ -8284,26 +8267,9 @@ BEGIN
   FROM public.friendly_game_participants
   WHERE game_id = p_game_id AND NOT is_waitlisted;
 
-  -- The game is full: take the waitlist. No payment is collected until the
-  -- player is actually promoted into a real spot.
+  -- The game is full: no longer accepting new players.
   IF v_count >= v_game.max_players THEN
-    INSERT INTO public.friendly_game_participants
-      (game_id, member_id, role, player_name, is_waitlisted, share_amount, pay_status)
-    VALUES (p_game_id, v_member, 'player',
-            (SELECT public.player_display_name(p) FROM public.profiles p WHERE p.id = v_member),
-            TRUE, 0, 'unpaid');
-
-    INSERT INTO public.notifications (recipient_id, type, title, body, link)
-    VALUES (
-      v_game.creator_id,
-      'game_alert',
-      'Waitlist spot requested',
-      (SELECT public.player_display_name(pp) FROM public.profiles pp WHERE pp.id = v_member)
-        || ' joined the waitlist for ' || btrim(v_game.title) || '.',
-      '/games'
-    );
-
-    RETURN TRUE;
+    RAISE EXCEPTION 'This game is full';
   END IF;
 
   -- A real spot is available: the host pays the whole reservation in

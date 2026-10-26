@@ -247,7 +247,7 @@ export function JoinGameDialog({
               {game.game_date && <p className="flex items-center gap-2"><CalendarDays className="h-4 w-4 shrink-0" />{game.game_date}{game.start_time ? ` · ${formatTime12h(game.start_time, lang)}` : ""}</p>}
               {(game.playground?.name || game.location || game.area) && <p className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0" />{[game.playground?.name ?? game.location, game.area].filter(Boolean).join(" · ")}</p>}
               {game.max_players != null && game.participants_count != null && <p className="flex items-center gap-2"><Users className="h-4 w-4 shrink-0" />{Math.max(0, game.max_players - game.participants_count)} {lang === "ar" ? "مكان متاح" : "spots available"}</p>}
-              {game.status === "full" && <p className="font-medium text-warning-ink">{lang === "ar" ? "الماتش كامل. تقدر تدخل قائمة الانتظار، بس مكانك لسه مش مؤكد." : "This game is full. You may join the waitlist; a place is not confirmed."}</p>}
+              {game.status === "full" && <p className="font-medium text-destructive">{lang === "ar" ? "الماتش كامل. لا يمكن الانضمام." : "This game is full. Joining is not available."}</p>}
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-primary/15 pt-3">
               <span className="text-sm font-semibold">{lang === "ar" ? "الإجمالي لك ولضيوفك" : "Total for you and your guests"} · {1 + guests.length} {lang === "ar" ? "لاعب" : "players"}</span>

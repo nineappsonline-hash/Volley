@@ -436,9 +436,8 @@ export function GameCard({
                 {t("community_leave")}
               </Button>
             ) : full ? (
-              <Button variant="outline" size="sm" onClick={() => void handleJoinWaitlist()} disabled={join.isPending}>
-                <UsersRound className="me-1 h-3.5 w-3.5" />
-                {t("games_waitlist_join")}
+              <Button variant="outline" size="sm" disabled>
+                {t("community_full") || "Full"}
               </Button>
             ) : (
               <Button size="sm" onClick={handleJoin}>
