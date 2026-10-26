@@ -367,8 +367,8 @@ export function GameCard({
               {count}/{game.max_players}
             </span>
             <span className="flex items-center gap-2 text-muted-foreground">
-              {waitlistCount > 0 && (
-                <span style={{display:'none'}}>{t("games_waitlist_count").replace("{n}", String(waitlistCount))}</span>
+              {false && (
+                <span style={{display:'none'}}>{t("games_waitlist_count").replace("{n}", String(0))}</span>
               )}
               <span>
                 {full
