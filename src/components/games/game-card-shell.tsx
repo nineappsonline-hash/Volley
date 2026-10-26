@@ -37,7 +37,7 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
     : "from-brand to-brand-900";
   const photo = venueCardPhoto(game.playground?.photos, game.playground?.cover_url);
   const booking = gameBookingPayment(game);
-  const statusStyle = game.status === "completed" ? "border-emerald-200/40 bg-emerald-700" : game.status === "open" ? "border-blue-200/40 bg-blue-600" : game.status === "full" ? "border-amber-200/40 bg-amber-700" : "border-red-200/40 bg-red-700";
+  const statusStyle = game.status === "completed" ? "border-emerald-200/40 bg-emerald-700" : game.status === "open" ? "border-blue-200/40 bg-blue-600" : game.status === "full" ? "border-red-400/60 bg-red-700 ring-2 ring-red-400/70" : "border-red-200/40 bg-red-700";
   const Indicator = detailsHref ? ArrowUpRight : ChevronDown;
   const overviewClass = `${styles.content} flex w-full items-start gap-3 p-3 text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:gap-3`;
   const directions = googleDirectionsUrl(game.playground?.location_link);
@@ -79,7 +79,7 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
       {game.status === "completed" && <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-emerald-900/55" />}
       <div className="relative flex flex-wrap items-center justify-between gap-2">
         <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-white"><Trophy className="h-4 w-4" />{game.sport}</span>
-        <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold text-white shadow-sm ${statusStyle}`}>{game.status === "completed" && <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />}{t(`community_status_${game.status}`)}</span>
+        <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold text-white shadow-sm ${statusStyle}`}>{game.status === "completed" && <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />}{game.status === "full" ? (lang === "ar" ? "محجوز بالكامل" : "FULLY BOOKED") : t(`community_status_${game.status}`)}</span>
       </div>
       <h3 className="relative mt-4 line-clamp-2 min-h-12 text-lg font-bold leading-6 text-white">{game.title}</h3>
       <div className="relative mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-white/90">
