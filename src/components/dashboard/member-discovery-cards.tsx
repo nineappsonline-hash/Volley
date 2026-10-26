@@ -179,7 +179,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, p
   const gameItems = (games.data ?? [])
     .filter(
       (game) =>
-        (interactive ? (game.status === "open" || (game.status === "full" && game.id === focusGameId)) : (game.status === "open" || game.status === "full")) &&
+        (game.status === "open" || game.status === "full") &&
         game.game_date >= today &&
         (!interactive || ((sportFilter === "all" || game.sport?.trim().toLowerCase() === sportFilter.toLowerCase()) &&
           (level === "all" || game.skill_level === level) && (!date || game.game_date === date) &&

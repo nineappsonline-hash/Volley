@@ -24,7 +24,7 @@ export function gameSharingTarget(game: ShareableGame, origin: string, lang: "en
   const date = new Intl.DateTimeFormat(ar ? "ar-EG-u-nu-latn" : "en-GB", { dateStyle: "full", timeZone: "Africa/Cairo" }).format(new Date(`${game.game_date}T12:00:00Z`));
   const price = ar ? game.host_pays || game.share_price === 0 ? "مجاني" : game.share_price == null ? "التكلفة لم تتحدد بعد" : `${game.share_price} جنيه لكل لاعب` : gameSharePrice(game);
   const spots = Math.max(0, game.max_players - game.joined);
-  const availability = game.status === "cancelled" ? ar ? "الماتش اتلغى" : "Cancelled" : game.status === "completed" ? ar ? "الماتش انتهى" : "Completed" : game.status === "full" || spots === 0 ? ar ? "العدد مكتمل؛ راجع خيارات الانتظار" : "Full; check waitlist options" : ar ? `${spots} أماكن متاحة وقت المشاركة` : `${spots} spots available at time of sharing`;
+  const availability = game.status === "cancelled" ? ar ? "الماتش اتلغى" : "Cancelled" : game.status === "completed" ? ar ? "الماتش انتهى" : "Completed" : game.status === "full" || spots === 0 ? ar ? "العدد مكتمل" : "Full" : ar ? `${spots} أماكن متاحة وقت المشاركة` : `${spots} spots available at time of sharing`;
   const text = [game.title, game.sport, `${date} · ${game.start_time.slice(0, 5)} (${ar ? "بتوقيت القاهرة" : "Cairo time"})`, game.place, price, availability, ar ? "راجع آخر التفاصيل والتوفر قبل الانضمام." : "Check the latest details and availability before joining."].filter(Boolean).join("\n");
   return { title: game.title, text, url, whatsappUrl: `https://wa.me/?text=${encodeURIComponent(`${text}\n${url}`)}` };
 }
