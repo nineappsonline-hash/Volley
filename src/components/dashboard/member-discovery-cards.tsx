@@ -110,7 +110,7 @@ function DiscoveryCard({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {item.image && <img src={item.image} alt="" loading="lazy" className={`absolute inset-0 h-full w-full ${item.academyLogo !== undefined ? "bg-white object-contain p-5" : "object-cover"}`} onError={event => { event.currentTarget.style.display = "none"; }} />}
                 {item.badge && <span className="absolute start-3 top-3 rounded-full bg-brand/90 px-2.5 py-1 text-[10px] font-bold text-highlight">{item.badge}</span>}
-                {item.status && <span className={`absolute end-3 ${live ? "bottom-2" : "top-3"} rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${item.status === "full" ? "bg-destructive text-destructive-foreground shadow-md" : "bg-background/95 text-foreground"}`}>{item.status === "full" ? (lang === "ar" ? "محجوز بالكامل" : "FULLY BOOKED") : t(`community_status_${item.status}` as keyof Dict)}</span>}
+                {item.status && <span className={`absolute end-3 ${live ? "bottom-2" : "top-3"} rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${item.status === "full" ? "bg-destructive text-destructive-foreground shadow-md" : "bg-background/95 text-foreground"}`}>{item.status === "full" ? (ar ? "محجوز بالكامل" : "FULLY BOOKED") : t(`community_status_${item.status}` as keyof Dict)}</span>}
               </div>
               <div className="bg-brand px-3 py-2.5 text-white"><h3 className="line-clamp-2 text-sm font-bold leading-5 text-white">{item.title}</h3></div>
             </Link>
