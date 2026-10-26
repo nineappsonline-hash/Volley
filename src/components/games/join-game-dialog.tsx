@@ -161,7 +161,7 @@ export function JoinGameDialog({
           payMethod: null,
           payReceiptUrl: null,
         });
-        toast.success(`${game.title} · ${added ? t("games_waitlist_joined") : t("community_joined")}`);
+        toast.success(`${game.title} · ${t("community_joined")}`);
         requestPushPrompt();
         onOpenChange(false);
         onSuccess?.();
@@ -191,14 +191,14 @@ export function JoinGameDialog({
         });
         toast.success(t("games_rent_submitted"));
       } else {
-        const added = await join.mutateAsync({
+        await join.mutateAsync({
           gameId: game.id,
           guests,
           inviteCode,
           payMethod,
           payReceiptUrl: receiptUrl,
         });
-        toast.success(`${game.title} · ${added ? t("games_waitlist_joined") : t("community_joined")}`);
+        toast.success(`${game.title} · ${t("community_joined")}`);
         requestPushPrompt();
       }
       onOpenChange(false);

@@ -167,16 +167,14 @@ export function GameCard({
   const canEdit = isOrganizer || profile.role === "super_admin";
   const joined = !!mine || isOrganizer;
   const rentRemaining = gameRentRemaining(game);
-  const waitlisted = !!mine?.is_waitlisted;
   const playgroundThumb = venueCardPhoto(game.playground?.photos, game.playground?.cover_url);
   const count = game.participants_count;
-  const waitlistCount = game.waitlist_count ?? 0;
   const full = game.status === "full" || count >= game.max_players;
   const slotsLeft = Math.max(game.max_players - count, 0);
   const minPlayers = game.min_players ?? 2;
   const ready = game.status === "open" && count >= minPlayers;
   const moreNeeded = Math.max(minPlayers - count, 0);
-  const reminderOn = (mine?.kickoff_remind_opt_in ?? true) && !waitlisted;
+  const reminderOn = mine?.kickoff_remind_opt_in ?? true;
   const needsResult =
     isOrganizer &&
     game.status !== "cancelled" &&
@@ -193,7 +191,6 @@ export function GameCard({
   const gameStart = new Date(`${game.game_date}T${game.start_time}`).getTime();
   const leaveBlocked =
     !!mine &&
-    !mine.is_waitlisted &&
     (mine.share_amount ?? 0) > 0 &&
     (mine.pay_status === "pending" || mine.pay_status === "approved") &&
     Date.now() + 24 * 60 * 60 * 1000 > gameStart;
@@ -223,7 +220,7 @@ export function GameCard({
         payMethod: null,
         payReceiptUrl: null,
       });
-      toast.success(added ? t("games_waitlist_joined") : t("community_joined"));
+      toast.success(t("community_joined"));
       requestPushPrompt();
     } catch (err) {
       toast.error(errorMessage(err, t("common_error")));
@@ -252,7 +249,7 @@ export function GameCard({
   ].filter(Boolean);
 
   return (
-    <GameCardShell initialExpanded={focus === game.id} layout="list" game={game} joined={joined} waitlisted={!!mine?.is_waitlisted}>
+    <GameCardShell initialExpanded={focus === game.id} layout="list" game={game} joined={joined}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="truncate text-base">{game.title}</CardTitle>
@@ -274,9 +271,9 @@ export function GameCard({
                 {t("games_share_pending")}
               </Badge>
             )}
-            {waitlisted && (
+            {false && (
               <Badge variant="secondary" className="gap-1 text-[10px]">
-                <UsersRound className="h-3 w-3" />
+                <Clock className="h-3 w-3" />
                 {t("games_on_waitlist")}
               </Badge>
             )}
@@ -371,7 +368,7 @@ export function GameCard({
             </span>
             <span className="flex items-center gap-2 text-muted-foreground">
               {waitlistCount > 0 && (
-                <span>{t("games_waitlist_count").replace("{n}", String(waitlistCount))}</span>
+                <span style={{display:'none'}}>{t("games_waitlist_count").replace("{n}", String(waitlistCount))}</span>
               )}
               <span>
                 {full
@@ -541,26 +538,24 @@ export function GameCard({
           </Button>
         </div>
       )}
-      {joined && !waitlisted && (
+      {joined && (
         <div className="flex flex-wrap items-center gap-2">
           <GameChat gameId={game.id} gameTitle={game.title} memberId={profile.id} isOrganizer={isOrganizer} />
-          {!waitlisted && (
-            <div className="flex items-center gap-1.5 rounded-lg border bg-muted/30 px-2.5 py-1.5 text-xs text-muted-foreground">
-              <Bell className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">{t("games_remind_me")}</span>
-              <Switch
-                checked={reminderOn}
-                disabled={reminder.isPending}
-                onCheckedChange={(on) =>
-                  reminder.mutate(
-                    { gameId: game.id, enabled: on },
-                    { onError: (err) => toast.error(errorMessage(err, t("common_error"))) }
-                  )
-                }
-                aria-label={t("games_remind_on")}
-              />
-            </div>
-          )}
+          <div className="flex items-center gap-1.5 rounded-lg border bg-muted/30 px-2.5 py-1.5 text-xs text-muted-foreground">
+            <Bell className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{t("games_remind_me")}</span>
+            <Switch
+              checked={reminderOn}
+              disabled={reminder.isPending}
+              onCheckedChange={(on) =>
+                reminder.mutate(
+                  { gameId: game.id, enabled: on },
+                  { onError: (err) => toast.error(errorMessage(err, t("common_error"))) }
+                )
+              }
+              aria-label={t("games_remind_on")}
+            />
+          </div>
         </div>
       )}
       </CardContent>

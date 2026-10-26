@@ -134,7 +134,6 @@ function GameCard({
   // A paid member (committed share) can only leave more than 24h before kickoff.
   const leaveBlocked =
     !!mine &&
-    !mine.is_waitlisted &&
     (mine.share_amount ?? 0) > 0 &&
     (mine.pay_status === "pending" || mine.pay_status === "approved") &&
     Date.now() + 24 * 60 * 60 * 1000 > new Date(`${game.game_date}T${game.start_time}`).getTime();
@@ -184,7 +183,7 @@ function GameCard({
   };
 
   return (
-    <GameCardShell game={game} joined={joined} waitlisted={!!mine?.is_waitlisted}>
+    <GameCardShell game={game} joined={joined}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="truncate text-base">{game.title}</CardTitle>
