@@ -94,7 +94,6 @@ export function PaymentApprovals() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
       await reloadPayments();
-      if (result.unavailable) toast.error(lang === "ar" ? "تعذر التحقق من بعض المدفوعات. راجع كاشير قبل الموافقة يدويًا." : "Some payments could not be verified. Check Kashier before approving manually.");
     } catch (error) { toast.error(errorMessage(error, t("common_error"))); }
     finally { setCardBusy(false); }
   };
