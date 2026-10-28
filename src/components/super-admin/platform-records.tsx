@@ -31,7 +31,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { matchesAdminSearch } from "@/lib/admin-record-search";
 import { rentalCoverage, type RentalInterval } from "@/lib/admin-schedule";
 import { PLATFORM_ADMIN_EMAILS, matchesAccountEmail } from "@/lib/platform-admin";
-import { useCancelFriendlyGame, useSuperAdminDeleteAcademy, useAdminAddGameMember, useAdminRemoveGameMember } from "@/lib/queries";
+import { useCancelFriendlyGame, useSuperAdminDeleteAcademy, useAdminAddGameMember, useAdminRemoveGameMember, useAdminGameGuest } from "@/lib/queries";
 import type { Academy, VenueUnavailableSlot } from "@/lib/types";
 import type { Dict } from "@/lib/i18n/dictionary";
 import { useI18n } from "@/lib/i18n";
@@ -478,6 +478,8 @@ function GameParticipantRow({ participant, data }: { participant: Row; data: Rec
 }
 function ManageGamePlayers({ game, data }: { game: Row; data: Records }) {
   const { t, lang } = useI18n();
+  const guestMutation = useAdminGameGuest();
+  const [guestName, setGuestName] = useState("");
   const addMember = useAdminAddGameMember();
   const removeMember = useAdminRemoveGameMember();
   const [open, setOpen] = useState(false);
@@ -486,7 +488,7 @@ function ManageGamePlayers({ game, data }: { game: Row; data: Records }) {
   const memberIds = new Set(participants.map(p => p.member_id));
   const { confirmed: roster, awaitingPayment, waitlisted: waitlist } = splitGameParticipants(participants);
   const canManage = game.status === "open" || game.status === "full";
-  const busy = addMember.isPending || removeMember.isPending;
+  const busy = addMember.isPending || removeMember.isPending || guestMutation.isPending;
   const notSet = t("sa_unnamed_member");
 
   const candidates = (data.profiles ?? []).filter((p: Row) => !memberIds.has(p.id));
@@ -537,7 +539,13 @@ function ManageGamePlayers({ game, data }: { game: Row; data: Records }) {
         <p className="text-xs text-muted-foreground">{participant.role === "organizer" ? t("sa_organizer") : t("sa_player")}{participant.share_amount != null && Number(participant.share_amount) > 0 && <span> · {formatMoney(participant.share_amount, lang)}</span>}</p>
       </div>
       {pay}
-      {canRemove && <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => remove(participant.member_id)}>
+      {canManage && participant.member_id == null && !participant.sponsor_participant_id && participant.pay_status === "unpaid" && <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => {
+        if (window.confirm(lang === "ar" ? "تؤكد استلام المبلغ النقدي من الضيف؟" : "Confirm cash payment received from this guest?")) {
+          guestMutation.mutate({ gameId: game.id, participantId: participant.id, confirmPayment: true }, { onError: error => toast.error(errorMessage(error, t("common_error"))) });
+        }
+      }}>{lang === "ar" ? "تأكيد استلام النقدية" : "Confirm cash received"}</Button>}
+
+      {canRemove && <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => participant.member_id ? remove(participant.member_id) : guestMutation.mutate({ gameId: game.id, participantId: participant.id }, { onError: error => toast.error(errorMessage(error, t("common_error"))) })}>
         {removing ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserRoundX className="me-1 h-4 w-4" />}
         {t("sa_game_remove_member")}
       </Button>}
@@ -547,6 +555,19 @@ function ManageGamePlayers({ game, data }: { game: Row; data: Records }) {
   return <section className="space-y-2">
     <h3 className="text-sm font-semibold">{t("sa_game_manage_players")}</h3>
     {!canManage ? <p className="text-sm text-muted-foreground">{t("sa_game_finished_no_manage")}</p> : <>
+      <form className="space-y-2 rounded-lg border p-3" onSubmit={event => {
+        event.preventDefault();
+        if (busy || !guestName.trim()) return;
+        guestMutation.mutate({ gameId: game.id, name: guestName.trim() }, {
+          onSuccess: () => { setGuestName(""); toast.success(lang === "ar" ? "تمت إضافة الضيف" : "Guest added"); },
+          onError: error => toast.error(errorMessage(error, t("common_error"))),
+        });
+      }}>
+        <label className="block text-sm font-medium" htmlFor={`guest-${game.id}`}>{lang === "ar" ? "اسم الضيف — بدون حساب" : "Guest name — no account"}</label>
+        <Input id={`guest-${game.id}`} value={guestName} onChange={event => setGuestName(event.target.value)} maxLength={100} required disabled={busy} dir="auto" />
+        <p className="text-xs text-muted-foreground">{lang === "ar" ? "كل ضيف يشغل مكانًا. في الماتش المدفوع، يُضاف بدون دفع لحين مراجعة الدفع." : "Each guest takes one place. For paid games, guests are added as unpaid until payment is reviewed."}</p>
+        <Button type="submit" variant="outline" disabled={busy || !guestName.trim()}>{lang === "ar" ? "إضافة ضيف" : "Add guest"}</Button>
+      </form>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button type="button" variant="outline" role="combobox" aria-expanded={open} disabled={busy} className="h-9 w-full justify-between font-normal">
