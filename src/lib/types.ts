@@ -1101,7 +1101,7 @@ export interface FriendlyGameParticipant {
   is_waitlisted: boolean;
   joined_at: string;
   share_amount: number | null;
-  pay_method: "instapay" | "e_wallet" | "kashier" | "visa" | null;
+  pay_method: "instapay" | "e_wallet" | "kashier" | "visa" | "cash" | null;
   pay_receipt_url: string | null;
   pay_status: "unpaid" | "pending" | "approved" | "rejected";
   // Personal kickoff-reminder toggle (defaults to TRUE).

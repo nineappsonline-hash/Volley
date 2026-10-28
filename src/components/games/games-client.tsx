@@ -88,7 +88,6 @@ import { gameRentRemaining } from "@/lib/game-costs";
 import { createClient } from "@/lib/supabase/client";
 import {
   useFriendlyGames,
-  useJoinFriendlyGame,
   useLeaveFriendlyGame,
   useMyGameParticipants,
   useSetKickoffReminder,
@@ -153,7 +152,6 @@ export function GameCard({
   const recruit = useRequestGamePlayers();
   const [recruited, setRecruited] = useState(false);
   const leave = useLeaveFriendlyGame();
-  const join = useJoinFriendlyGame();
   const reminder = useSetKickoffReminder();
   const [reportOpen, setReportOpen] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
@@ -209,22 +207,6 @@ export function GameCard({
     trackBusinessEvent("join_game_click",{sport:game.sport,area:game.area,country:game.playground?.country,governorate:game.playground?.governorate});
     rememberGameJoin(game.id);
     setPayOpen("join");
-  };
-
-  const handleJoinWaitlist = async () => {
-    trackBusinessEvent("join_game_click",{sport:game.sport,area:game.area,governorate:game.playground?.governorate});
-    try {
-      const added = await join.mutateAsync({
-        gameId: game.id,
-        inviteCode: null,
-        payMethod: null,
-        payReceiptUrl: null,
-      });
-      toast.success(t("community_joined"));
-      requestPushPrompt();
-    } catch (err) {
-      toast.error(errorMessage(err, t("common_error")));
-    }
   };
 
   const handleLeave = async () => {
@@ -367,9 +349,6 @@ export function GameCard({
               {count}/{game.max_players}
             </span>
             <span className="flex items-center gap-2 text-muted-foreground">
-              {false && (
-                <span style={{display:'none'}}>{t("games_waitlist_count").replace("{n}", String(0))}</span>
-              )}
               <span>
                 {full
                   ? t("community_game_full")

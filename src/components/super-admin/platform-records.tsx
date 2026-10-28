@@ -486,7 +486,7 @@ function ManageGamePlayers({ game, data }: { game: Row; data: Records }) {
   const [query, setQuery] = useState("");
   const participants = data.friendly_game_participants.filter(p => p.game_id === game.id);
   const memberIds = new Set(participants.map(p => p.member_id));
-  const { confirmed: roster, awaitingPayment, waitlisted: waitlist } = splitGameParticipants(participants);
+  const { confirmed: roster, awaitingPayment } = splitGameParticipants(participants);
   const canManage = game.status === "open" || game.status === "full";
   const busy = addMember.isPending || removeMember.isPending || guestMutation.isPending;
   const notSet = t("sa_unnamed_member");
@@ -613,10 +613,7 @@ function ManageGamePlayers({ game, data }: { game: Row; data: Records }) {
         <p className="pt-1 text-xs font-semibold text-warning-ink">{lang === "ar" ? "في انتظار تأكيد الدفع — غير مقبولين بعد" : "Awaiting payment confirmation — not accepted yet"} ({awaitingPayment.length})</p>
         <div className="space-y-2">{awaitingPayment.map(p => memberRow(p, p.role !== "organizer"))}</div>
       </>}
-      {waitlist.length > 0 && <>
-        <p className="pt-1 text-xs font-semibold text-muted-foreground">{t("sa_game_waitlist")} ({waitlist.length})</p>
-        <div className="space-y-2">{waitlist.map(p => memberRow(p, true))}</div>
-      </>}
+
     </>}
   </section>;
 }
@@ -635,7 +632,7 @@ function GameDetails({ game, data }: { game: Row; data: Records }) {
   };
   const notSet = t("sa_not_set");
   const participants = data.friendly_game_participants.filter(p => p.game_id === game.id);
-  const { confirmed: players, awaitingPayment, waitlisted: waitlist } = splitGameParticipants(participants);
+  const { confirmed: players, awaitingPayment } = splitGameParticipants(participants);
   const paid = players;
   const creator = data.profiles.find(p => p.id === game.creator_id);
   const playground = data.venues.find(v => v.id === game.playground_id);
@@ -685,7 +682,7 @@ function GameDetails({ game, data }: { game: Row; data: Records }) {
       <div className="rounded-lg border p-3">
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
           <span className="text-lg font-semibold">{players.length}/{game.max_players}</span>
-          <span className="text-muted-foreground">{t("sa_game_min")}: {game.min_players ?? notSet}{waitlist.length > 0 && <span> · {t("sa_game_waitlist")}: {waitlist.length}</span>}</span>
+          <span className="text-muted-foreground">{t("sa_game_min")}: {game.min_players ?? notSet}</span>
         </div>
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${game.max_players > 0 ? Math.min(100, (players.length / game.max_players) * 100) : 0}%` }} /></div>
       </div>

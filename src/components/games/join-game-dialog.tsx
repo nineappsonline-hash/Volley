@@ -151,7 +151,10 @@ export function JoinGameDialog({
   const isFree = game.host_pays === true && mode === "join";
   const busy = join.isPending || pay.isPending || rentPay.isPending;
 
+  const noPlaces = mode === "join" && (game.status === "full" || (game.max_players != null && game.participants_count != null && game.participants_count + 1 + guests.length > game.max_players));
+
   const submit = async () => {
+    if (noPlaces) return;
     if (isFree) {
       try {
         const added = await join.mutateAsync({
@@ -209,7 +212,7 @@ export function JoinGameDialog({
   };
 
   const guestsValid = guests.every(g => g.name.trim().length > 0 && g.name.trim().length <= 100 && (!game.gender || game.gender === "mixed" || g.gender === game.gender) && ((game.min_age == null && game.max_age == null) || (g.age !== "" && Number.isInteger(Number(g.age)) && Number(g.age) >= (game.min_age ?? 0) && Number(g.age) <= (game.max_age ?? 100))));
-  const canSubmit = guestsValid && (isFree
+  const canSubmit = !noPlaces && guestsValid && (isFree
     ? !busy
     : !!payMethod &&
       payMethod !== "kashier" &&
@@ -247,7 +250,7 @@ export function JoinGameDialog({
               {game.game_date && <p className="flex items-center gap-2"><CalendarDays className="h-4 w-4 shrink-0" />{game.game_date}{game.start_time ? ` · ${formatTime12h(game.start_time, lang)}` : ""}</p>}
               {(game.playground?.name || game.location || game.area) && <p className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0" />{[game.playground?.name ?? game.location, game.area].filter(Boolean).join(" · ")}</p>}
               {game.max_players != null && game.participants_count != null && <p className="flex items-center gap-2"><Users className="h-4 w-4 shrink-0" />{Math.max(0, game.max_players - game.participants_count)} {lang === "ar" ? "مكان متاح" : "spots available"}</p>}
-              {game.status === "full" && <p className="font-medium text-destructive">{lang === "ar" ? "الماتش كامل. لا يمكن الانضمام." : "This game is full. Joining is not available."}</p>}
+              {noPlaces && <p className="font-medium text-destructive">{lang === "ar" ? "الماتش كامل. لا يمكن الانضمام." : "This game is full. Joining is not available."}</p>}
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-primary/15 pt-3">
               <span className="text-sm font-semibold">{lang === "ar" ? "الإجمالي لك ولضيوفك" : "Total for you and your guests"} · {1 + guests.length} {lang === "ar" ? "لاعب" : "players"}</span>
@@ -447,7 +450,7 @@ export function JoinGameDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("common_cancel")}
           </Button>
-          {!isFree && payMethod === "kashier" ? <KashierButton target={{kind:isRent?"rent":"share",targetId:game.id,inviteCode,guests:mode==="join"?guests:undefined}} disabled={busy || !guestsValid || amount <= 0} /> : <Button onClick={submit} disabled={!canSubmit} className="gap-1">
+          {!isFree && payMethod === "kashier" ? <KashierButton target={{kind:isRent?"rent":"share",targetId:game.id,inviteCode,guests:mode==="join"?guests:undefined}} disabled={busy || noPlaces || !guestsValid || amount <= 0} /> : <Button onClick={submit} disabled={!canSubmit} className="gap-1">
             <Wallet className="h-4 w-4" />
             {busy
               ? t("common_saving")

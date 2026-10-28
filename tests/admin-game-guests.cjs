@@ -9,7 +9,7 @@ const assert = require('node:assert/strict');
     CREATE TABLE profiles(id uuid PRIMARY KEY, name text);
     CREATE FUNCTION public.player_display_name(p profiles) RETURNS text LANGUAGE sql AS $$ SELECT p.name $$;
     CREATE TABLE friendly_games(id uuid PRIMARY KEY, title text DEFAULT 'Game', creator_id uuid, status text, max_players integer, host_pays boolean, share_price numeric);
-    CREATE TABLE friendly_game_participants(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), game_id uuid REFERENCES friendly_games(id), member_id uuid REFERENCES profiles(id), sponsor_participant_id uuid REFERENCES friendly_game_participants(id) ON DELETE CASCADE, role text, player_name text, is_waitlisted boolean DEFAULT false, share_amount numeric, pay_status text, pay_method text, kickoff_remind_opt_in boolean, joined_at timestamptz DEFAULT now(), CONSTRAINT game_guest_identity CHECK(member_id IS NOT NULL OR sponsor_participant_id IS NOT NULL));
+    CREATE TABLE friendly_game_participants(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), game_id uuid REFERENCES friendly_games(id), member_id uuid REFERENCES profiles(id), sponsor_participant_id uuid REFERENCES friendly_game_participants(id) ON DELETE CASCADE, role text, player_name text, is_waitlisted boolean DEFAULT false, share_amount numeric, pay_status text, pay_method text CONSTRAINT friendly_game_participants_pay_method_check CHECK(pay_method IN ('instapay','e_wallet','visa','kashier')), kickoff_remind_opt_in boolean, joined_at timestamptz DEFAULT now(), CONSTRAINT game_guest_identity CHECK(member_id IS NOT NULL OR sponsor_participant_id IS NOT NULL));
     CREATE TABLE notifications(recipient_id uuid NOT NULL, type text, title text, body text, link text);`);
   const promotion = fs.readFileSync('supabase/migrations/20260924000000_game_waitlist_and_refunds.sql','utf8');
   await db.exec(promotion.slice(promotion.indexOf('CREATE OR REPLACE FUNCTION public.promote_waitlisted_player'), promotion.indexOf('GRANT EXECUTE ON FUNCTION public.promote_waitlisted_player')));
@@ -17,6 +17,10 @@ const assert = require('node:assert/strict');
   const id='00000000-0000-0000-0000-000000000001';
   const other='00000000-0000-0000-0000-000000000002';
   await db.exec(`INSERT INTO profiles VALUES ('${id}','Admin'); INSERT INTO friendly_games(id,creator_id,status,max_players,host_pays,share_price) VALUES ('${id}','${id}','open',1,false,50),('${other}','${id}','open',2,true,50);`);
+  // Model the production payment constraint, and close a legacy unpaid waitlist.
+  await db.exec(`INSERT INTO friendly_game_participants(game_id,member_id,role,player_name,is_waitlisted,share_amount,pay_status) VALUES ('${id}','${id}','player','Waiting player',true,0,'unpaid')`);
+  await db.exec(fs.readFileSync('supabase/migrations/20270108000008_disable_game_waitlists_and_allow_guest_cash.sql','utf8'));
+  assert.equal((await db.query('SELECT count(*)::int AS n FROM friendly_game_participants')).rows[0].n,0);
   const add=(game,name)=>db.query('SELECT admin_add_friendly_game_guest($1,$2)',[game,name]);
   const remove=(game,participant)=>db.query('SELECT admin_remove_friendly_game_guest($1,$2)',[game,participant]);
   await assert.rejects(add(id,'Guest'),/Only a super admin/);
@@ -44,20 +48,40 @@ const assert = require('node:assert/strict');
   await add(other,'Free guest');
   guest=(await db.query('SELECT * FROM friendly_game_participants')).rows[0];
   assert.equal(Number(guest.share_amount),0); assert.equal(guest.pay_status,'approved');
-  // Freeing a guest place promotes the oldest waiting account with the real helper.
+  // Every write path rejects new waiting entries and over-capacity seats.
   await add(id,'Temporary guest');
-  await db.exec(`INSERT INTO friendly_game_participants(game_id,member_id,role,player_name,is_waitlisted,pay_status) VALUES ('${id}','${id}','player','Waiting player',true,'unpaid')`);
+  await assert.rejects(db.exec(`INSERT INTO friendly_game_participants(game_id,member_id,role,player_name,is_waitlisted,share_amount,pay_status) VALUES ('${id}','${id}','player','Waiting player',true,0,'unpaid')`),/Waiting lists are disabled/);
+  await assert.rejects(db.exec(`INSERT INTO friendly_game_participants(game_id,member_id,role,player_name,is_waitlisted,share_amount,pay_status,pay_method) VALUES ('${id}','${id}','player','Card player',false,50,'unpaid','kashier')`),/full/);
   guest=(await db.query('SELECT * FROM friendly_game_participants WHERE game_id=$1 AND member_id IS NULL',[id])).rows[0];
   await remove(id,guest.id);
-  const promoted=(await db.query('SELECT * FROM friendly_game_participants WHERE member_id=$1',[id])).rows[0];
-  assert.equal(promoted.is_waitlisted,false); assert.equal(Number(promoted.share_amount),50);
+  assert.equal((await db.query('SELECT status FROM friendly_games WHERE id=$1',[id])).rows[0].status,'open');
+  assert.equal((await db.query('SELECT count(*)::int AS n FROM friendly_game_participants WHERE is_waitlisted')).rows[0].n,0);
+  // Execute the real older member/admin join functions: they must also reject
+  // full-game attempts, even when a stale client still requests a waitlist.
+  await db.exec(`ALTER TABLE friendly_games ADD COLUMN is_public boolean DEFAULT true, ADD COLUMN invite_code text, ADD COLUMN gender text, ADD COLUMN min_age integer, ADD COLUMN max_age integer;
+    ALTER TABLE profiles ADD COLUMN gender text, ADD COLUMN birth_date date;
+    CREATE TABLE blocks(blocker_id uuid,blocked_id uuid);
+    CREATE FUNCTION public.notify_email_forward(jsonb) RETURNS void LANGUAGE sql AS $$ SELECT $$;`);
+  const joins=fs.readFileSync('supabase/migrations/20260927000000_transactional_emails.sql','utf8');
+  const joinStart=joins.indexOf('CREATE OR REPLACE FUNCTION public.join_friendly_game(');
+  await db.exec(joins.slice(joinStart,joins.indexOf('GRANT EXECUTE ON FUNCTION public.join_friendly_game',joinStart)));
+  const admin=fs.readFileSync('supabase/migrations/20261226000000_admin_game_members.sql','utf8');
+  await db.exec(admin.slice(0,admin.indexOf('-- ─')));
+  await db.exec(`UPDATE friendly_games SET host_pays=true WHERE id='${id}'`);
+  await db.query('SELECT join_friendly_game($1)',[id]);
+  await assert.rejects(add(id,'Too many guests'),/no available places/);
+  const third='00000000-0000-0000-0000-000000000003';
+  await db.exec(`INSERT INTO profiles(id,name) VALUES ('${third}','New member'); SET test.uid='${third}'`);
+  await assert.rejects(db.query('SELECT join_friendly_game($1)',[id]),/Waiting lists are disabled/);
+  await assert.rejects(db.query('SELECT admin_add_friendly_game_member($1,$2)',[id,third]),/Waiting lists are disabled/);
+  assert.equal((await db.query('SELECT count(*)::int AS n FROM friendly_game_participants WHERE game_id=$1',[id])).rows[0].n,1);
   for(const status of ['completed','cancelled']) {
     await db.query('UPDATE friendly_games SET status=$1 WHERE id=$2',[status,other]);
     await assert.rejects(add(other,'Late guest'),/finished or cancelled/);
   }
-  assert.equal((await db.query('SELECT count(*)::int AS n FROM profiles')).rows[0].n,1);
+  assert.equal((await db.query('SELECT count(*)::int AS n FROM profiles')).rows[0].n,2);
   const privileges=(await db.query(`SELECT has_function_privilege('anon','public.admin_add_friendly_game_guest(uuid,text)','EXECUTE') AS anon, has_function_privilege('authenticated','public.admin_add_friendly_game_guest(uuid,text)','EXECUTE') AS authenticated`)).rows[0];
   assert.deepEqual(privileges,{anon:false,authenticated:true});
   await db.close();
-  console.log('PASS: admin-only accountless guests, name validation, capacity, payments, scoped removal, waitlist promotion and grants');
+  console.log('PASS: admin-only accountless guests, name validation, capacity, payments, scoped removal, closed waitlists, member/admin/card capacity and grants');
 })().catch(e=>{console.error(e);process.exitCode=1;});

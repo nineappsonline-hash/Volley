@@ -12,7 +12,7 @@ import { authLink } from "@/lib/auth-redirect";
 import { useI18n } from "@/lib/i18n";
 
 export function PublicGameJoin({ game, inviteCode, returnTo }: {
-  game: { sport?: string; governorate?: string | null; country?: string | null; id: string; title: string; share_price: number | null; host_pays?: boolean; host_total?: number | null; game_date?: string; start_time?: string; location?: string | null; area?: string | null; max_players?: number; participants_count?: number; status?: string };
+  game: { sport?: string; governorate?: string | null; country?: string | null; id: string; title: string; share_price: number | null; host_pays?: boolean; host_total?: number | null; game_date?: string; start_time?: string; location?: string | null; area?: string | null; max_players?: number; participants_count?: number; joined?: number; status?: string };
   inviteCode?: string;
   returnTo?: string;
 }) {
@@ -24,7 +24,9 @@ export function PublicGameJoin({ game, inviteCode, returnTo }: {
   const [mode, setMode] = useState<"join" | "pay">("join");
   const [busy, setBusy] = useState(false);
   const destination = returnTo ?? (inviteCode ? `/games?join=${encodeURIComponent(inviteCode)}` : `${pathname}${params.size ? `?${params}` : ""}`);
+  const full = game.status === "full" || (game.max_players != null && (game.participants_count ?? game.joined ?? 0) >= game.max_players);
   async function join() {
+    if (full) return;
     trackBusinessEvent("join_game_click", {sport:game.sport,governorate:game.governorate,area:game.area,country:game.country});
     rememberGameJoin(game.id);
     setBusy(true);
@@ -45,7 +47,7 @@ export function PublicGameJoin({ game, inviteCode, returnTo }: {
     finally { setBusy(false); }
   }
   return <>
-    <Button className="w-full" disabled={busy} onClick={() => void join()}>{t("community_join")}</Button>
+    <Button className="w-full" disabled={busy || full} onClick={() => void join()}>{t(full ? "community_game_full" : "community_join")}</Button>
     <JoinGameDialog open={paymentOpen} onOpenChange={setPaymentOpen} game={game} inviteCode={inviteCode} mode={mode} onSuccess={() => { router.refresh(); }} />
   </>;
 }
