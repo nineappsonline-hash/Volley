@@ -10,15 +10,13 @@ import { COMMUNITY_SPORTS, formatMoney } from "@/lib/constants";
 import { errorMessage } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { QueryState } from "@/components/shared/query-state";
+import { CreateAcademyDialog } from "./create-academy-dialog";
 
 export function CreateAcademyButton(){
  const {lang}=useI18n();const ar=lang==="ar";const refresh=useRefreshTraining();
- const [open,setOpen]=useState(false);const [busy,setBusy]=useState(false);const [created,setCreated]=useState<string|null>(null);
- const [details,setDetails]=useState({name:"",description:"",country:"Egypt",governorate:"",area:""});
- const labels={name:ar?"اسم الأكاديمية":"Academy name",description:ar?"الوصف":"Description",country:ar?"الدولة":"Country",governorate:ar?"المحافظة":"Governorate",area:ar?"المنطقة":"Area"};
- return <><Button onClick={()=>{setCreated(null);setDetails({name:"",description:"",country:"Egypt",governorate:"",area:""});setOpen(true);}}>{ar?"إنشاء أكاديمية":"Create academy"}</Button><Dialog open={open} onOpenChange={value=>{if(!busy)setOpen(value);}}><DialogContent className="training-mobile max-h-[90dvh] overflow-y-auto p-3 sm:max-w-2xl sm:p-6"><DialogHeader><DialogTitle>{ar?"إنشاء أكاديمية وبرامج التدريب":"Create academy & training programs"}</DialogTitle><DialogDescription>{ar?"الأكاديمية ستظهر في الدليل العام. أضف بعدها البرامج والأسعار ومواعيد التدريب.":"The academy will appear in the public directory. Then add programs, prices and session times."}</DialogDescription></DialogHeader>{created?<AcademyTrainingManager academyId={created}/>:<form className="space-y-3" onSubmit={async e=>{e.preventDefault();setBusy(true);try{const {data,error}=await createClient().rpc("admin_create_training_academy",{p_details:details});if(error)throw error;setCreated(data as string);await refresh();toast.success(ar?"تم إنشاء الأكاديمية":"Academy created");}catch(error){toast.error(errorMessage(error,ar?"تعذر الإنشاء":"Could not create academy"));}finally{setBusy(false);}}}>{Object.entries(labels).map(([key,label])=><label key={key} className="block space-y-1 text-sm"><span>{label}</span><Input required={key==="name"} maxLength={key==="description"?2000:150} value={details[key as keyof typeof details]} disabled={busy} onChange={e=>setDetails({...details,[key]:e.target.value})}/></label>)}<Button disabled={busy} type="submit">{ar?"إنشاء الأكاديمية":"Create academy"}</Button></form>}</DialogContent></Dialog></>;
+ const [open,setOpen]=useState(false);const [created,setCreated]=useState<string|null>(null);
+ return <>{created?<div className="space-y-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-medium">{ar?"الأكاديمية جاهزة. أضف مجموعات التدريب الآن.":"Academy is ready. Add training groups now."}</p><Button size="sm" variant="outline" onClick={()=>setCreated(null)}>{ar?"إنشاء أكاديمية أخرى":"Create another academy"}</Button></div><AcademyTrainingManager academyId={created}/></div>:<Button onClick={()=>setOpen(true)}>{ar?"إنشاء أكاديمية":"Create academy"}</Button>}<CreateAcademyDialog open={open} onOpenChange={setOpen} onCreated={async id=>{setCreated(id);await refresh();}}/></>;
 }
 export function AcademyTrainingManager({academyId,ownerManaged=false,branchFilter=""}:{academyId:string;ownerManaged?:boolean;branchFilter?:string}){
  const {lang}=useI18n();const ar=lang==="ar";const query=useTrainingPrograms(academyId);const refresh=useRefreshTraining();const [editing,setEditing]=useState<TrainingProgram|"new"|null>(null);const [busy,setBusy]=useState(false);
