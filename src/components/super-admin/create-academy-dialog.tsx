@@ -43,7 +43,8 @@ import { uploadSignupCourtPhoto } from "@/lib/court-photo-upload";
 import { missingCourtSubmissionFields } from "@/lib/court-submission";
 import { COURT_REVIEW_FIELDS } from "@/lib/court-review";
 import { parseAcademyPrices } from "@/lib/academy-pricing";
-import { SPORT_LABEL_KEYS } from "@/lib/sport-labels";
+import { SPORT_LABEL_KEYS, sportLabel } from "@/lib/sport-labels";
+import { workingHoursFromCourtAvailability } from "@/lib/venue-slots";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
@@ -86,9 +87,17 @@ interface PoolVenue {
   country: string | null;
   governorate: string | null;
   area: string | null;
+  court_count: number | null;
+  sport_name: string | null;
 }
 
 const SPORTS = Object.entries(SPORT_LABEL_KEYS).map(([value, key]) => ({ value, key }));
+const sportsForVenue = (selected: string[], current: string) =>
+  selected.length
+    ? SPORTS.filter(
+        (sport) => selected.includes(sport.value) || sport.value === current
+      )
+    : SPORTS;
 const DEFAULT_PLANS: PlanDraft[] = [
   { name: "Full", sessions_count: "8", price: "" },
   { name: "Half", sessions_count: "4", price: "" },
@@ -164,14 +173,27 @@ export function CreateAcademyDialog({
     queryKey: ["platform-pool-venues"],
     enabled: open,
     queryFn: async () => {
-      const { data, error } = await createClient()
-        .from("venues")
-        .select("id, name, address, country, governorate, area")
-        .is("academy_id", null)
-        .is("owner_profile_id", null)
-        .order("name");
+      const supabase = createClient();
+      const [{ data, error }, { data: labels, error: labelsError }] =
+        await Promise.all([
+          supabase
+            .from("venues")
+            .select("id, name, address, country, governorate, area, court_count")
+            .is("academy_id", null)
+            .order("name"),
+          supabase.rpc("playground_sport_labels"),
+        ]);
       if (error) throw error;
-      return (data ?? []) as PoolVenue[];
+      if (labelsError) throw labelsError;
+      const sportsByVenue = new Map<string, string>(
+        ((labels ?? []) as { venue_id: string; sport_name: string }[]).map(
+          (row) => [row.venue_id, row.sport_name]
+        )
+      );
+      return ((data ?? []) as Omit<PoolVenue, "sport_name">[]).map((venue) => ({
+        ...venue,
+        sport_name: sportsByVenue.get(venue.id) ?? null,
+      }));
     },
   });
 
@@ -222,6 +244,11 @@ export function CreateAcademyDialog({
         fromPool: true,
         name: venue.name,
         address: venue.address ?? "",
+        sport: venue.sport_name ?? "",
+        court_count:
+          venue.court_count != null && venue.court_count > 0
+            ? String(venue.court_count)
+            : "1",
       },
     ]);
     setPoolPickerOpen(false);
@@ -247,10 +274,26 @@ export function CreateAcademyDialog({
   };
 
   const takenPoolIds = new Set(venues.map((venue) => venue.id).filter(Boolean));
-  const availablePoolVenues = (poolQuery.data ?? []).filter(
+  const selectedSports = new Set(
+    sports.map((sport) => sport.trim().toLowerCase())
+  );
+  const matchingPoolVenues = (poolQuery.data ?? []).filter(
+    (venue) =>
+      !selectedSports.size ||
+      venue.sport_name == null ||
+      selectedSports.has(venue.sport_name.trim().toLowerCase())
+  );
+  const availablePoolVenues = matchingPoolVenues.filter(
     (venue) =>
       !takenPoolIds.has(venue.id) &&
-      [venue.name, venue.address, venue.country, venue.governorate, venue.area]
+      [
+        venue.name,
+        venue.address,
+        venue.sport_name,
+        venue.country,
+        venue.governorate,
+        venue.area,
+      ]
         .join(" ")
         .toLowerCase()
         .includes(poolSearch.toLowerCase())
@@ -371,6 +414,9 @@ export function CreateAcademyDialog({
             area: venue.area || null,
             photos: venue.photos,
             court_availability: venue.court_availability,
+            working_hours: workingHoursFromCourtAvailability(
+              venue.court_availability
+            ),
           })),
           admin: {
             name: admin.name.trim(),
@@ -706,8 +752,8 @@ export function CreateAcademyDialog({
               </h3>
               <p className="text-xs text-muted-foreground">
                 {copy(
-                  "Each new court needs a sport, full address and location, map link, price, court count, photos and working hours.",
-                  "كل ملعب جديد يحتاج رياضة وعنوانًا وموقعًا ورابط خريطة وسعرًا وعدد ملاعب وصورًا ومواعيد عمل."
+                  "Each new court needs a sport, full address and location, map link, price, court count, photos and working hours. You can also set training times for playgrounds taken from the pool.",
+                  "كل ملعب جديد يحتاج رياضة وعنوانًا وموقعًا ورابط خريطة وسعرًا وعدد ملاعب وصورًا ومواعيد عمل. يمكنك أيضًا تحديد مواعيد التدريب للملاعب الموجودة في المجموعة."
                 )}
               </p>
               {venues.map((venue, index) => (
@@ -717,6 +763,11 @@ export function CreateAcademyDialog({
                       <span className="truncate text-sm font-medium">
                         {venue.name || `${copy("Playground", "ملعب")} #${index + 1}`}
                       </span>
+                      {venue.fromPool && venue.sport && (
+                        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                          {sportLabel(venue.sport, t)}
+                        </span>
+                      )}
                       {venue.fromPool && (
                         <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                           {copy("existing", "موجود")}
@@ -753,7 +804,7 @@ export function CreateAcademyDialog({
                               <SelectValue placeholder={copy("Choose sport", "اختر الرياضة")} />
                             </SelectTrigger>
                             <SelectContent>
-                              {SPORTS.map((sport) => (
+                              {sportsForVenue(sports, venue.sport).map((sport) => (
                                 <SelectItem key={sport.value} value={sport.value}>
                                   {t(sport.key)}
                                 </SelectItem>
@@ -909,13 +960,13 @@ export function CreateAcademyDialog({
                           />
                         </div>
                       </div>
-                      <CourtAvailabilityEditor
-                        value={venue.court_availability}
-                        onChange={(value) => setVenue(index, { court_availability: value })}
-                        courtCount={Math.max(1, Number(venue.court_count) || 1)}
-                      />
                     </>
                   )}
+                  <CourtAvailabilityEditor
+                    value={venue.court_availability}
+                    onChange={(value) => setVenue(index, { court_availability: value })}
+                    courtCount={Math.max(1, Number(venue.court_count) || 1)}
+                  />
                 </div>
               ))}
               <div className="flex flex-wrap gap-2">
@@ -983,7 +1034,12 @@ export function CreateAcademyDialog({
           <div className="space-y-2">
             {availablePoolVenues.length === 0 && (
               <p className="py-6 text-center text-sm text-muted-foreground">
-                {copy("No unassigned playgrounds.", "لا توجد ملاعب غير مرتبطة.")}
+                {selectedSports.size
+                  ? copy(
+                      "No unassigned playgrounds match the selected sports.",
+                      "لا توجد ملاعب غير مرتبطة تطابق الرياضات المختارة."
+                    )
+                  : copy("No unassigned playgrounds.", "لا توجد ملاعب غير مرتبطة.")}
               </p>
             )}
             {availablePoolVenues.map((venue) => (
@@ -991,7 +1047,13 @@ export function CreateAcademyDialog({
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{venue.name}</p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {[venue.country, venue.governorate, venue.area, venue.address]
+                    {[
+                      venue.sport_name ? sportLabel(venue.sport_name, t) : null,
+                      venue.country,
+                      venue.governorate,
+                      venue.area,
+                      venue.address,
+                    ]
                       .filter(Boolean)
                       .join(" · ") || venue.name}
                   </p>
