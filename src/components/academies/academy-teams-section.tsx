@@ -91,6 +91,9 @@ export function AcademyTeamsSection({
                           >
                             {team.academy.name}
                           </Link>
+                          <p className="mt-0.5 truncate text-xs font-bold text-muted-foreground uppercase tracking-tighter">
+                            {team.sport?.name ?? t("directory_teams_other_sport")}
+                          </p>
                           <p className="mt-0.5 truncate text-base font-bold">{team.name}</p>
                         </div>
                       </div>
