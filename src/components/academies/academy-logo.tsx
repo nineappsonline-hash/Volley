@@ -27,8 +27,8 @@ function useLogo(academyId: string, enabled = true) {
 }
 
 export function AcademyLogo({ academyId, name, logoUrl }: { academyId: string; name: string; logoUrl?: string | null }) {
-  const { data } = useLogo(academyId, logoUrl === undefined);
-  const url = logoUrl === undefined ? data : logoUrl;
+  const { data } = useLogo(academyId, logoUrl === undefined || logoUrl === null);
+  const url = (logoUrl === undefined || logoUrl === null) ? data : logoUrl;
   const [failed, setFailed] = useState<string | null>(null);
   return <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-white p-1.5 shadow-sm">
     {url && failed !== url ? (
