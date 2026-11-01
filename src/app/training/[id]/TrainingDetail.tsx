@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { AcademyLogo } from "@/components/academies/academy-logo";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import { GameSharePayment } from "@/components/games/game-share-payment";
-import Link from "next/link";
+import { TopNavigation } from "@/components/layout/top-navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Calendar, MapPin, Users, Building2 } from "lucide-react";
@@ -101,6 +102,7 @@ export function TrainingDetail({
 
   return (
     <div className="min-h-screen mx-auto max-w-5xl px-6 pb-14">
+      <TopNavigation />
       <Card className="mb-6">
         <CardHeader>
           <div className="flex items-start gap-4">
