@@ -1468,7 +1468,7 @@ export function useAcademyManagement(academyId: string | null) {
     queryKey: ["academy-management", academyId],
     enabled: !!academyId,
     queryFn: async () => {
-      const [adminRes, sportsRes, branchesRes, venuesRes, coachesRes] =
+      const [adminRes, sportsRes, branchesRes, venuesRes, coachesRes, linksRes] =
         await Promise.all([
           supabase()
             .from("profiles")
@@ -1498,8 +1498,19 @@ export function useAcademyManagement(academyId: string | null) {
             .select("*")
             .eq("academy_id", academyId!)
             .order("created_at", { ascending: true }),
+          supabase()
+            .from("academy_venues")
+            .select("venue_id")
+            .eq("academy_id", academyId!),
         ]);
-      for (const r of [adminRes, sportsRes, branchesRes, venuesRes, coachesRes]) {
+      for (const r of [
+        adminRes,
+        sportsRes,
+        branchesRes,
+        venuesRes,
+        coachesRes,
+        linksRes,
+      ]) {
         if (r.error) throw r.error;
       }
       const sportsRows = (sportsRes.data ?? []) as { id: string; name: string }[];
@@ -1507,13 +1518,24 @@ export function useAcademyManagement(academyId: string | null) {
         sportsRows.map((s) => [s.id, s.name])
       );
       const allVenues = (venuesRes.data ?? []) as Venue[];
+      const linkedVenueIds = new Set(
+        ((linksRes.data ?? []) as { venue_id: string }[]).map(
+          (row) => row.venue_id
+        )
+      );
       return {
         admin: (adminRes.data?.[0] as Profile) ?? null,
         sports: sportsRows,
         sportsById,
         branches: (branchesRes.data ?? []) as AcademyBranch[],
-        venues: allVenues.filter((venue) => venue.academy_id === academyId),
-        poolVenues: allVenues.filter((venue) => venue.academy_id == null),
+        venues: allVenues.filter(
+          (venue) =>
+            venue.academy_id === academyId || linkedVenueIds.has(venue.id)
+        ),
+        poolVenues: allVenues.filter(
+          (venue) =>
+            venue.academy_id !== academyId && !linkedVenueIds.has(venue.id)
+        ),
         coaches: (coachesRes.data ?? []) as Coach[],
       };
     },
