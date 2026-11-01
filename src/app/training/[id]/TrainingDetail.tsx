@@ -100,7 +100,7 @@ export function TrainingDetail({
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-6 pb-14">
+    <div className="min-h-screen mx-auto max-w-5xl px-6 pb-14">
       <Card className="mb-6">
         <CardHeader>
           <div className="flex items-start gap-4">

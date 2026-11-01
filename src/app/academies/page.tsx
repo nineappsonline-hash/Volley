@@ -36,7 +36,7 @@ export default async function AcademiesPage() {
   const t = dictionary.ar;
 
   return (
-    <>
+    <div className="min-h-screen">
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur-md px-6 py-3 flex items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <AppLogo className="h-6 w-auto" />
@@ -72,6 +72,6 @@ export default async function AcademiesPage() {
           ))}
         </ul>
       </section>
-    </>
+    </div>
   );
 }
