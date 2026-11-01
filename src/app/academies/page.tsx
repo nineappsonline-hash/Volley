@@ -2,40 +2,44 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { dictionary } from "@/lib/i18n/dictionary";
 import { ACADEMY_GUIDES, guidePath } from "@/lib/guides";
-import { getPublicAcademyIndex } from "@/lib/public-sport-academies";
+import { getPublicAcademyIndex, getPublicTeams } from "@/lib/public-sport-academies";
 import { AcademiesDirectory } from "@/components/academies/academies-directory";
+import { AcademyTeamsSection } from "@/components/academies/academy-teams-section";
 import { SITE_URL, OG_IMAGE } from "@/lib/seo";
 
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "Find Sports Academies & Training in Egypt | Playza",
-  description: "Discover sports academies in Egypt for kids and adults. Find volleyball, basketball, tennis, padel and training near you. Compare and connect through Playza.",
+  title: "Find Sports Teams & Academies in Egypt | Playza",
+  description: "Discover sports teams and academies in Egypt for kids and adults. Find volleyball, basketball, tennis, padel and training near you by sport, gender, age, and location.",
   keywords: [
-    "sports academies egypt", "sports academies cairo", "sports academies new cairo",
-    "volleyball academy cairo", "basketball academy for kids", "tennis academy cairo",
-    "padel academy cairo", "sports training for adults",
-    "أكاديميات رياضية مصر", "أكاديمية كرة طائرة", "أكاديمية كرة سلة للأطفال", "تدريب رياضي للكبار"
+    "sports teams egypt", "sports academies egypt", "volleyball teams cairo", "basketball teams cairo", "tennis academy cairo",
+    "padel academy cairo", "sports training for kids and adults",
+    "فرق رياضية مصر", "أكاديميات رياضية مصر", "فرق كرة طائرة", "فرق كرة سلة للأطفال"
   ],
   alternates: { canonical: "/academies" },
   openGraph: {
-    title: "Find Sports Academies & Training in Egypt | Playza",
-    description: "Discover sports academies in Egypt for kids and adults. Find training near you.",
+    title: "Find Sports Teams & Academies in Egypt | Playza",
+    description: "Discover sports teams and academies in Egypt for kids and adults. Find training near you by sport, gender, age, and location.",
     url: `${SITE_URL}/academies`,
     siteName: "Playza",
     images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
     locale: "en_US",
     type: "website",
   },
-  twitter: { card: "summary_large_image", title: "Find Sports Academies & Training in Egypt | Playza", description: "Discover sports academies in Egypt for kids and adults.", images: [OG_IMAGE] },
+  twitter: { card: "summary_large_image", title: "Find Sports Teams & Academies in Egypt | Playza", description: "Discover sports teams and academies in Egypt for kids and adults.", images: [OG_IMAGE] },
 };
 
 export default async function AcademiesPage() {
-  const academies = await getPublicAcademyIndex();
+  const [academies, teams] = await Promise.all([
+    getPublicAcademyIndex(),
+    getPublicTeams(),
+  ]);
   const t = dictionary.ar;
 
   return (
     <>
+      <AcademyTeamsSection teams={teams} />
       <AcademiesDirectory />
       {academies.length > 0 && (
         <section
