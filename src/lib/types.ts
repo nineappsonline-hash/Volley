@@ -335,6 +335,8 @@ export interface PlanSubscription {
 
 export type SkillLevel = "beginner" | "intermediate" | "advanced";
 
+export type TeamGender = "boys" | "girls" | "mixed";
+
 export type ExpenseCategory =
   | "equipment"
   | "uniforms"
@@ -632,6 +634,9 @@ export interface Team {
   sport_id: string | null;
   coach_id: string | null;
   age_group: string | null;
+  gender: TeamGender;
+  min_age: number | null;
+  max_age: number | null;
   skill_level: SkillLevel | null;
   description: string | null;
   created_at: string;

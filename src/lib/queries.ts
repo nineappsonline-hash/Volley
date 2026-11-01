@@ -498,7 +498,9 @@ export function useSaveTeam() {
         name: team.name,
         sport_id: team.sport_id ?? null,
         coach_id: team.coach_id ?? null,
-        age_group: team.age_group ?? null,
+        gender: team.gender ?? "mixed",
+        min_age: team.min_age ?? null,
+        max_age: team.max_age ?? null,
         skill_level: team.skill_level ?? null,
         description: team.description ?? null,
       };

@@ -33,7 +33,7 @@ import {
   useSports,
   useTeams,
 } from "@/lib/queries";
-import type { TeamWithDetails } from "@/lib/types";
+import type { TeamGender, TeamWithDetails } from "@/lib/types";
 
 interface TeamFormDialogProps {
   open: boolean;
@@ -57,7 +57,9 @@ export function TeamFormDialog({
   const [name, setName] = useState("");
   const [sportId, setSportId] = useState<string>("none");
   const [coachId, setCoachId] = useState<string>("none");
-  const [ageGroup, setAgeGroup] = useState("");
+  const [gender, setGender] = useState<TeamGender>("mixed");
+  const [minAge, setMinAge] = useState("");
+  const [maxAge, setMaxAge] = useState("");
   const [skillLevel, setSkillLevel] = useState<string>("none");
   const [description, setDescription] = useState("");
   const [memberIds, setMemberIds] = useState<string[]>([]);
@@ -68,7 +70,9 @@ export function TeamFormDialog({
       setName(team?.name ?? "");
       setSportId(team?.sport_id ?? "none");
       setCoachId(team?.coach_id ?? "none");
-      setAgeGroup(team?.age_group ?? "");
+      setGender(team?.gender ?? "mixed");
+      setMinAge(team?.min_age != null ? String(team.min_age) : "");
+      setMaxAge(team?.max_age != null ? String(team.max_age) : "");
       setSkillLevel(team?.skill_level ?? "none");
       setDescription(team?.description ?? "");
       setMemberIds(
@@ -93,6 +97,21 @@ export function TeamFormDialog({
       toast.error(t("field_required"));
       return;
     }
+    if (sportId === "none") {
+      toast.error(t("teams_sport_required"));
+      return;
+    }
+    const min = minAge.trim() === "" ? null : Number(minAge);
+    const max = maxAge.trim() === "" ? null : Number(maxAge);
+    if (
+      (min === null) !== (max === null) ||
+      (min !== null && (!Number.isInteger(min) || min < 0)) ||
+      (max !== null &&
+        (!Number.isInteger(max) || max < 0 || (min !== null && max < min)))
+    ) {
+      toast.error(t("teams_age_invalid"));
+      return;
+    }
     setSaving(true);
     try {
       const teamId = await saveTeam.mutateAsync({
@@ -100,7 +119,9 @@ export function TeamFormDialog({
         name: name.trim(),
         sport_id: sportId === "none" ? null : sportId,
         coach_id: coachId === "none" ? null : coachId,
-        age_group: ageGroup.trim() || null,
+        gender,
+        min_age: min,
+        max_age: max,
         skill_level:
           skillLevel !== "none"
             ? (skillLevel as "beginner" | "intermediate" | "advanced")
@@ -145,13 +166,13 @@ export function TeamFormDialog({
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>{t("schedule_sport")}</Label>
+              <Label>{t("schedule_sport")} *</Label>
               <Select value={sportId} onValueChange={setSportId}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">{t("schedule_sport_none")}</SelectItem>
+                  <SelectItem value="none">{t("common_select")}</SelectItem>
                   {(sports ?? []).map((sport) => (
                     <SelectItem key={sport.id} value={sport.id}>
                       {sport.name}
@@ -180,12 +201,20 @@ export function TeamFormDialog({
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>{t("age_group")}</Label>
-              <Input
-                value={ageGroup}
-                onChange={(e) => setAgeGroup(e.target.value)}
-                placeholder={t("age_group_placeholder")}
-              />
+              <Label>{t("teams_gender")}</Label>
+              <Select
+                value={gender}
+                onValueChange={(value) => setGender(value as TeamGender)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="boys">{t("teams_gender_boys")}</SelectItem>
+                  <SelectItem value="girls">{t("teams_gender_girls")}</SelectItem>
+                  <SelectItem value="mixed">{t("teams_gender_mixed")}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>{t("skill_level")}</Label>
@@ -202,6 +231,31 @@ export function TeamFormDialog({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>{t("teams_age_from")}</Label>
+              <Input
+                type="number"
+                min="0"
+                max="120"
+                inputMode="numeric"
+                value={minAge}
+                onChange={(e) => setMinAge(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("teams_age_to")}</Label>
+              <Input
+                type="number"
+                min="0"
+                max="120"
+                inputMode="numeric"
+                value={maxAge}
+                onChange={(e) => setMaxAge(e.target.value)}
+              />
             </div>
           </div>
 

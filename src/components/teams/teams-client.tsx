@@ -143,6 +143,25 @@ export function TeamsClient() {
                         {team.sport.name}
                       </Badge>
                     )}
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      <Badge variant="secondary" className="text-xs">
+                        {t(`teams_gender_${team.gender ?? "mixed"}`)}
+                      </Badge>
+                      {team.min_age != null && team.max_age != null && (
+                        <Badge variant="secondary" className="text-xs">
+                          {t("teams_age_range_value")
+                            .replace("{from}", String(team.min_age))
+                            .replace("{to}", String(team.max_age))}
+                        </Badge>
+                      )}
+                      {team.min_age == null &&
+                        team.max_age == null &&
+                        team.age_group && (
+                          <Badge variant="secondary" className="text-xs">
+                            {team.age_group}
+                          </Badge>
+                        )}
+                    </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                     <Button
