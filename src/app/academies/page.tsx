@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { dictionary } from "@/lib/i18n/dictionary";
 import { ACADEMY_GUIDES, guidePath } from "@/lib/guides";
+import { getSession } from "@/lib/session";
 import { getPublicTeams } from "@/lib/public-sport-academies";
 import { AcademyTeamsSection } from "@/components/academies/academy-teams-section";
 import { SITE_URL, OG_IMAGE } from "@/lib/seo";
-import { TopNavigation } from "@/components/layout/top-navigation";
+import { Topbar } from "@/components/layout/topbar";
+import { createClient } from "@/lib/supabase/server";
 
 export const revalidate = 3600;
 
@@ -32,11 +34,27 @@ export const metadata: Metadata = {
 
 export default async function AcademiesPage() {
   const teams = await getPublicTeams();
+  const session = await getSession();
   const t = dictionary.ar;
+
+  const topbar = session ? (
+    <Topbar
+      role={session.profile.role}
+      name={session.profile.name}
+      username={session.profile.username}
+      avatarUrl={session.profile.avatar_url}
+      avatarId={session.profile.avatar_id}
+      memberPlan={session.profile.member_plan}
+      isCoach={false}
+      hasAcademyWorkspace={false}
+    />
+  ) : (
+    <Topbar role="member" name="" username="" guest />
+  );
 
   return (
     <div className="min-h-screen">
-      <TopNavigation />
+      {topbar}
       <AcademyTeamsSection teams={teams} />
       <section
         aria-label="Academy guides"

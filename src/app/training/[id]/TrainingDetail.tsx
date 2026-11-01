@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import { GameSharePayment } from "@/components/games/game-share-payment";
-import { TopNavigation } from "@/components/layout/top-navigation";
+import { Topbar } from "@/components/layout/topbar";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Calendar, MapPin, Users, Building2 } from "lucide-react";
@@ -18,10 +18,12 @@ export function TrainingDetail({
   program,
   team,
   isProgram,
+  session,
 }: {
   program: any;
   team: any;
   isProgram: boolean;
+  session: any;
 }) {
   const { t, lang } = useI18n();
   const ar = lang === "ar";
@@ -102,7 +104,20 @@ export function TrainingDetail({
 
   return (
     <div className="min-h-screen mx-auto max-w-5xl px-6 pb-14">
-      <TopNavigation />
+      {session ? (
+        <Topbar
+          role={session.profile.role}
+          name={session.profile.name}
+          username={session.profile.username}
+          avatarUrl={session.profile.avatar_url}
+          avatarId={session.profile.avatar_id}
+          memberPlan={session.profile.member_plan}
+          isCoach={false}
+          hasAcademyWorkspace={false}
+        />
+      ) : (
+        <Topbar role="member" name="" username="" guest />
+      )}
       <Card className="mb-6">
         <CardHeader>
           <div className="flex items-start gap-4">

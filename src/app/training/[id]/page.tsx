@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getSession } from "@/lib/session";
 import { TrainingDetail } from "./TrainingDetail";
 
 export default async function TrainingDetailPage({
@@ -11,6 +12,7 @@ export default async function TrainingDetailPage({
   const isProgram = id.startsWith("program-");
   const programId = isProgram ? id.replace("program-", "") : null;
   const client = createAdminClient();
+  const session = await getSession();
 
   let program: any = null;
   let team: any = null;
@@ -36,5 +38,5 @@ export default async function TrainingDetailPage({
     if (!team) notFound();
   }
 
-  return <TrainingDetail program={program} team={team} isProgram={isProgram} />;
+  return <TrainingDetail program={program} team={team} isProgram={isProgram} session={session} />;
 }
