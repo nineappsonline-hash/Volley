@@ -47,6 +47,7 @@ const venueSchema = z.object({
   photos: z.array(z.string().trim().url()).optional(),
   cover_url: nullableText,
   court_availability: z.array(courtWindow).optional(),
+  unavailable_slots: z.array(timeWindow).optional(),
   working_hours: z.array(timeWindow).optional(),
 });
 

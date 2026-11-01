@@ -39,12 +39,16 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { LocationFields } from "@/components/shared/location-fields";
 import { CourtAvailabilityEditor } from "@/components/playgrounds/court-availability-editor";
+import { TrainingTimesEditor } from "@/components/playgrounds/training-times-editor";
 import { uploadSignupCourtPhoto } from "@/lib/court-photo-upload";
 import { missingCourtSubmissionFields } from "@/lib/court-submission";
 import { COURT_REVIEW_FIELDS } from "@/lib/court-review";
 import { parseAcademyPrices } from "@/lib/academy-pricing";
 import { SPORT_LABEL_KEYS, sportLabel } from "@/lib/sport-labels";
-import { workingHoursFromCourtAvailability } from "@/lib/venue-slots";
+import {
+  isValidSlotList,
+  workingHoursFromCourtAvailability,
+} from "@/lib/venue-slots";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { errorMessage } from "@/lib/utils";
@@ -72,6 +76,7 @@ interface VenueDraft {
   contact_phone: string;
   photos: string[];
   court_availability: Window[];
+  unavailable_slots: VenueUnavailableSlot[];
 }
 
 interface PlanDraft {
@@ -89,6 +94,7 @@ interface PoolVenue {
   area: string | null;
   court_count: number | null;
   sport_name: string | null;
+  unavailable_slots: VenueUnavailableSlot[] | null;
 }
 
 const SPORTS = Object.entries(SPORT_LABEL_KEYS).map(([value, key]) => ({ value, key }));
@@ -120,6 +126,7 @@ const emptyVenue = (country: string, governorate: string, area: string): VenueDr
   contact_phone: "",
   photos: [],
   court_availability: [],
+  unavailable_slots: [],
 });
 
 interface CreateAcademyDialogProps {
@@ -178,7 +185,9 @@ export function CreateAcademyDialog({
         await Promise.all([
           supabase
             .from("venues")
-            .select("id, name, address, country, governorate, area, court_count")
+            .select(
+              "id, name, address, country, governorate, area, court_count, unavailable_slots"
+            )
             .is("academy_id", null)
             .order("name"),
           supabase.rpc("playground_sport_labels"),
@@ -249,6 +258,7 @@ export function CreateAcademyDialog({
           venue.court_count != null && venue.court_count > 0
             ? String(venue.court_count)
             : "1",
+        unavailable_slots: venue.unavailable_slots ?? [],
       },
     ]);
     setPoolPickerOpen(false);
@@ -344,6 +354,17 @@ export function CreateAcademyDialog({
       return;
     }
     for (const [index, venue] of venues.entries()) {
+      if (!isValidSlotList(venue.unavailable_slots)) {
+        toast.error(
+          `${copy("Playground", "ملعب")} ${index + 1}: ${copy(
+            "Training times need a valid day, start and end.",
+            "مواعيد التدريب تحتاج يومًا وبداية ونهاية صحيحة."
+          )}`
+        );
+        return;
+      }
+    }
+    for (const [index, venue] of venues.entries()) {
       if (venue.fromPool) continue;
       const missing = missingCourtSubmissionFields({
         name: venue.name,
@@ -414,6 +435,7 @@ export function CreateAcademyDialog({
             area: venue.area || null,
             photos: venue.photos,
             court_availability: venue.court_availability,
+            unavailable_slots: venue.unavailable_slots,
             working_hours: workingHoursFromCourtAvailability(
               venue.court_availability
             ),
@@ -752,8 +774,8 @@ export function CreateAcademyDialog({
               </h3>
               <p className="text-xs text-muted-foreground">
                 {copy(
-                  "Each new court needs a sport, full address and location, map link, price, court count, photos and working hours. You can also set training times for playgrounds taken from the pool.",
-                  "كل ملعب جديد يحتاج رياضة وعنوانًا وموقعًا ورابط خريطة وسعرًا وعدد ملاعب وصورًا ومواعيد عمل. يمكنك أيضًا تحديد مواعيد التدريب للملاعب الموجودة في المجموعة."
+                  "Each new court needs a sport, full address and location, map link, price, court count, photos and working hours. For every playground you can also add training times, which are blocked for rentals and games.",
+                  "كل ملعب جديد يحتاج رياضة وعنوانًا وموقعًا ورابط خريطة وسعرًا وعدد ملاعب وصورًا ومواعيد عمل. ولكل ملعب يمكنك أيضًا إضافة مواعيد التدريب، التي تُحجز وتمنع الإيجار والمباريات فيها."
                 )}
               </p>
               {venues.map((venue, index) => (
@@ -966,6 +988,10 @@ export function CreateAcademyDialog({
                     value={venue.court_availability}
                     onChange={(value) => setVenue(index, { court_availability: value })}
                     courtCount={Math.max(1, Number(venue.court_count) || 1)}
+                  />
+                  <TrainingTimesEditor
+                    value={venue.unavailable_slots}
+                    onChange={(value) => setVenue(index, { unavailable_slots: value })}
                   />
                 </div>
               ))}
