@@ -76,14 +76,9 @@ export function AcademyTeamsSection({
                         : t("directory_teams_age_unknown");
                 return (
                   <Link key={team.id} href={`/training/${team.id}`} className="block">
-                    <Card className="flex flex-col">
-                      <CardContent className="flex flex-1 flex-col gap-3 p-4">
+                    <Card className="flex flex-col relative">
+                      <CardContent className="flex flex-1 flex-col gap-3 p-4 relative pb-6">
                       <div className="flex items-start gap-3">
-                        <AcademyLogo
-                          academyId={team.academy.id}
-                          name={team.academy.name}
-                          logoUrl={team.academy.logo_url}
-                        />
                         <div className="min-w-0 flex-1">
                           <Link
                             href={`/a/${team.academy.slug}`}
@@ -142,6 +137,13 @@ export function AcademyTeamsSection({
                             {t("directions")}
                           </a>
                         )}
+                      </div>
+                      <div className="absolute bottom-2 right-2">
+                        <AcademyLogo
+                          academyId={team.academy.id}
+                          name={team.academy.name}
+                          logoUrl={team.academy.logo_url}
+                        />
                       </div>
                     </CardContent>
                   </Card>
