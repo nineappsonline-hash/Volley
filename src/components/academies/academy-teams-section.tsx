@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Building2, Calendar, MapPin, Navigation, Trophy, Users, Volleyball } from "lucide-react";
+import { Building2, Calendar, MapPin, Navigation, Trophy, Users } from "lucide-react";
 import { AcademyLogo } from "@/components/academies/academy-logo";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -143,8 +143,12 @@ export function AcademyTeamsSection({
                           </a>
                         )}
                       </div>
-                      <div className="absolute bottom-2 right-2 flex items-center justify-center overflow-hidden rounded-xl border bg-white p-1.5 shadow-sm">
-                        <Volleyball className="h-6 w-6 text-slate-500" />
+                      <div className="absolute bottom-2 right-2">
+                        <AcademyLogo
+                          academyId={team.academy.id}
+                          name={team.academy.name}
+                          logoUrl={team.academy.logo_url}
+                        />
                       </div>
                     </CardContent>
                   </Card>
