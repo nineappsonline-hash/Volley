@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { PublicTeamDirectoryEntry } from "@/lib/types";
+import type { PublicTeamDirectoryEntry, TeamGender } from "@/lib/types";
 
 export type PublicSportAcademy = { name: string; slug: string; area: string | null; governorate: string | null; description: string | null };
 
@@ -38,7 +38,7 @@ export async function getPublicTeams(): Promise<PublicTeamDirectoryEntry[]> {
     academy: PublicTeamDirectoryEntry["academy"] & { is_public?: boolean; slug?: string | null } | null;
   };
   const client = createAdminClient();
-  const [{ data, error }, { data: venues, error: venueError }] =
+  const [{ data, error }, { data: venues, error: venueError }, { data: programs, error: programError }] =
     await Promise.all([
       client
         .from("teams")
@@ -53,16 +53,25 @@ export async function getPublicTeams(): Promise<PublicTeamDirectoryEntry[]> {
         .from("venues")
         .select("id, name, address, country, governorate, area, location_link")
         .limit(2000),
+      client.rpc("academy_training_catalog", { p_academy_id: null }),
     ]);
   if (error) throw new Error(`public team query failed: ${error.message}`);
   if (venueError) throw new Error(`public team venue query failed: ${venueError.message}`);
+  if (programError) throw new Error(`public team program query failed: ${programError.message}`);
 
   const venueMap = new Map<string, NonNullable<PublicTeamDirectoryEntry["venue"]>>();
   for (const venue of (venues ?? []) as NonNullable<PublicTeamDirectoryEntry["venue"]>[]) {
     venueMap.set(venue.id, venue);
   }
 
-  return ((data ?? []) as unknown as TeamRow[])
+  const academyMap = new Map<string, NonNullable<PublicTeamDirectoryEntry["academy"]>>();
+  for (const academy of (data ?? []) as unknown as TeamRow[]) {
+    if (academy.academy?.slug) {
+      academyMap.set(academy.academy.id, academy.academy);
+    }
+  }
+
+  const teams: PublicTeamDirectoryEntry[] = ((data ?? []) as unknown as TeamRow[])
     .filter(
       (team) => team.academy?.slug
     )
@@ -85,6 +94,54 @@ export async function getPublicTeams(): Promise<PublicTeamDirectoryEntry[]> {
       },
       venue: venue_id ? venueMap.get(venue_id) ?? null : null,
     }));
+
+  const programTeams = ((programs ?? []) as unknown as Array<{
+    id: string;
+    academy_id: string;
+    academy_name: string;
+    academy_slug: string;
+    name: string;
+    sport: string;
+    venue_id: string;
+    venue_name: string;
+    venue_address: string | null;
+    gender: "mixed" | "male" | "female";
+    min_age: number | null;
+    max_age: number | null;
+    active: boolean;
+    venue_governorate: string | null;
+    venue_area: string | null;
+  }>)
+    .filter((p) => p.active && p.academy_slug)
+    .map((p) => {
+      const gender: TeamGender = p.gender === "male" ? "boys" : p.gender === "female" ? "girls" : "mixed";
+      const academy: PublicTeamDirectoryEntry["academy"] = academyMap.get(p.academy_id) ?? {
+        id: p.academy_id,
+        name: p.academy_name,
+        slug: p.academy_slug,
+        logo_url: null,
+        country: null,
+        governorate: p.venue_governorate,
+        area: p.venue_area,
+      };
+      const venue: NonNullable<PublicTeamDirectoryEntry["venue"]> | null = p.venue_id
+        ? venueMap.get(p.venue_id) ?? null
+        : null;
+
+      return {
+        id: `program-${p.id}`,
+        name: p.name,
+        gender,
+        min_age: p.min_age,
+        max_age: p.max_age,
+        skill_level: null,
+        sport: { id: "", name: p.sport },
+        academy,
+        venue,
+      };
+    });
+
+  return [...teams, ...programTeams];
 }
 
 /** Public academy cards only; no member, contact or subscription data. */
