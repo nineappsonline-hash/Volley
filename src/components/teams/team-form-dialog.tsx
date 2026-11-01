@@ -26,6 +26,8 @@ import { useI18n } from "@/lib/i18n";
 import { SKILL_LEVELS } from "@/lib/constants";
 import { cn, errorMessage, initials } from "@/lib/utils";
 import {
+  useAcademy,
+  useAcademyVenues,
   useCoaches,
   useProfiles,
   useSaveTeam,
@@ -53,10 +55,13 @@ export function TeamFormDialog({
   const { data: sports } = useSports();
   const { data: profiles } = useProfiles();
   const { data: coaches } = useCoaches();
+  const { data: academy } = useAcademy();
+  const { data: academyVenues } = useAcademyVenues(academy?.id);
 
   const [name, setName] = useState("");
   const [sportId, setSportId] = useState<string>("none");
   const [coachId, setCoachId] = useState<string>("none");
+  const [venueId, setVenueId] = useState<string>("none");
   const [gender, setGender] = useState<TeamGender>("mixed");
   const [minAge, setMinAge] = useState("");
   const [maxAge, setMaxAge] = useState("");
@@ -70,6 +75,7 @@ export function TeamFormDialog({
       setName(team?.name ?? "");
       setSportId(team?.sport_id ?? "none");
       setCoachId(team?.coach_id ?? "none");
+      setVenueId(team?.venue_id ?? "none");
       setGender(team?.gender ?? "mixed");
       setMinAge(team?.min_age != null ? String(team.min_age) : "");
       setMaxAge(team?.max_age != null ? String(team.max_age) : "");
@@ -119,6 +125,7 @@ export function TeamFormDialog({
         name: name.trim(),
         sport_id: sportId === "none" ? null : sportId,
         coach_id: coachId === "none" ? null : coachId,
+        venue_id: venueId === "none" ? null : venueId,
         gender,
         min_age: min,
         max_age: max,
@@ -197,6 +204,23 @@ export function TeamFormDialog({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t("teams_playground")}</Label>
+            <Select value={venueId} onValueChange={setVenueId}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">{t("teams_playground_none")}</SelectItem>
+                {(academyVenues ?? []).map((venue) => (
+                  <SelectItem key={venue.id} value={venue.id}>
+                    {[venue.name, venue.area].filter(Boolean).join(" · ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

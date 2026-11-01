@@ -633,6 +633,7 @@ export interface Team {
   name: string;
   sport_id: string | null;
   coach_id: string | null;
+  venue_id: string | null;
   age_group: string | null;
   gender: TeamGender;
   min_age: number | null;
@@ -649,7 +650,36 @@ export interface TeamMemberRow {
 
 export interface TeamWithDetails extends Team {
   sport: Pick<Sport, "id" | "name"> | null;
+  venue?: Pick<Venue, "id" | "name"> | null;
   team_members: TeamMemberRow[];
+}
+
+export interface PublicTeamDirectoryEntry {
+  id: string;
+  name: string;
+  gender: TeamGender;
+  min_age: number | null;
+  max_age: number | null;
+  skill_level: SkillLevel | null;
+  sport: { id: string; name: string } | null;
+  academy: {
+    id: string;
+    name: string;
+    slug: string;
+    logo_url: string | null;
+    country: string | null;
+    governorate: string | null;
+    area: string | null;
+  };
+  venue: {
+    id: string;
+    name: string;
+    address: string | null;
+    country: string | null;
+    governorate: string | null;
+    area: string | null;
+    location_link: string | null;
+  } | null;
 }
 
 export interface Announcement {

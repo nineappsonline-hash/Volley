@@ -84,6 +84,7 @@ export const queryKeys = {
   sportSettings: ["sport_settings"] as const,
   teams: ["teams"] as const,
   academy: ["academy"] as const,
+  academyVenues: ["academy-venues"] as const,
   branches: ["branches"] as const,
   announcements: ["announcements"] as const,
   coaches: ["coaches"] as const,
@@ -475,6 +476,7 @@ export function useTeams() {
         .select(
           `*,
            sport:sports(id, name),
+           venue:venues(id, name),
            team_members(member_id, profile:profiles(id, name, nickname))`
         )
         .order("name");
@@ -498,6 +500,7 @@ export function useSaveTeam() {
         name: team.name,
         sport_id: team.sport_id ?? null,
         coach_id: team.coach_id ?? null,
+        venue_id: team.venue_id ?? null,
         gender: team.gender ?? "mixed",
         min_age: team.min_age ?? null,
         max_age: team.max_age ?? null,
@@ -875,6 +878,36 @@ export function useAcademy() {
         .maybeSingle();
       if (error) throw error;
       return data as Academy | null;
+    },
+  });
+}
+
+export function useAcademyVenues(academyId: string | null | undefined) {
+  return useQuery({
+    queryKey: [...queryKeys.academyVenues, academyId ?? "none"],
+    enabled: Boolean(academyId),
+    queryFn: async () => {
+      const client = supabase();
+      const [{ data: owned, error: ownedError }, { data: links, error: linksError }] =
+        await Promise.all([
+          client
+            .from("venues")
+            .select("id, name, address, country, governorate, area")
+            .eq("academy_id", academyId!),
+          client
+            .from("academy_venues")
+            .select("venue:venues(id, name, address, country, governorate, area)")
+            .eq("academy_id", academyId!),
+        ]);
+      if (ownedError) throw ownedError;
+      if (linksError) throw linksError;
+      const venues = new Map<string, Venue>();
+      for (const venue of (owned ?? []) as Venue[]) venues.set(venue.id, venue);
+      for (const link of links ?? []) {
+        const venue = Array.isArray(link.venue) ? link.venue[0] : link.venue;
+        if (venue) venues.set(venue.id, venue as Venue);
+      }
+      return [...venues.values()].sort((a, b) => a.name.localeCompare(b.name));
     },
   });
 }
