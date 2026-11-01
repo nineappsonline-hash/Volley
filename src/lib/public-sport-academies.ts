@@ -35,7 +35,7 @@ export async function getPublicAcademyIndex(): Promise<PublicSportAcademy[]> {
 export async function getPublicTeams(): Promise<PublicTeamDirectoryEntry[]> {
   type TeamRow = Omit<PublicTeamDirectoryEntry, "venue"> & {
     venue_id?: string | null;
-    academy: PublicTeamDirectoryEntry["academy"] & { is_public?: boolean; slug?: string | null };
+    academy: PublicTeamDirectoryEntry["academy"] & { is_public?: boolean; slug?: string | null } | null;
   };
   const client = createAdminClient();
   const [{ data, error }, { data: venues, error: venueError }] =
@@ -45,7 +45,7 @@ export async function getPublicTeams(): Promise<PublicTeamDirectoryEntry[]> {
         .select(`
           *,
           sport:sports(id, name),
-          academy:academies!inner(id, name, slug, logo_url, country, governorate, area, is_public)
+          academy:academies(id, name, slug, logo_url, country, governorate, area, is_public)
         `)
         .order("name")
         .limit(500),
@@ -64,7 +64,7 @@ export async function getPublicTeams(): Promise<PublicTeamDirectoryEntry[]> {
 
   return ((data ?? []) as unknown as TeamRow[])
     .filter(
-      (team) => !!team.academy?.slug
+      (team) => team.academy?.slug
     )
     .map(({ venue_id, academy, sport, ...team }) => ({
       id: team.id,
