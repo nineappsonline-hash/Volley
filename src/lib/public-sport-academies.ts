@@ -64,7 +64,7 @@ export async function getPublicTeams(): Promise<PublicTeamDirectoryEntry[]> {
 
   return ((data ?? []) as unknown as TeamRow[])
     .filter(
-      (team) => team.academy?.is_public === true && team.academy?.slug?.trim()
+      (team) => team.academy?.slug?.trim()
     )
     .map(({ venue_id, academy, sport, ...team }) => ({
       id: team.id,
