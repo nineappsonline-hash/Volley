@@ -75,8 +75,9 @@ export function AcademyTeamsSection({
                         ? `≤ ${team.max_age}`
                         : t("directory_teams_age_unknown");
                 return (
-                  <Card key={team.id} className="flex flex-col">
-                    <CardContent className="flex flex-1 flex-col gap-3 p-4">
+                  <Link key={team.id} href={`/training/${team.id}`} className="block">
+                    <Card className="flex flex-col">
+                      <CardContent className="flex flex-1 flex-col gap-3 p-4">
                       <div className="flex items-start gap-3">
                         <AcademyLogo
                           academyId={team.academy.id}
@@ -144,7 +145,8 @@ export function AcademyTeamsSection({
                       </div>
                     </CardContent>
                   </Card>
-                );
+                </Link>
+                )
               })}
             </div>
           </div>

@@ -5,6 +5,8 @@ import { ACADEMY_GUIDES, guidePath } from "@/lib/guides";
 import { getPublicTeams } from "@/lib/public-sport-academies";
 import { AcademyTeamsSection } from "@/components/academies/academy-teams-section";
 import { SITE_URL, OG_IMAGE } from "@/lib/seo";
+import { LanguageToggle } from "@/components/layout/language-toggle";
+import { AppLogo } from "@/components/shared/app-logo";
 
 export const revalidate = 3600;
 
@@ -35,6 +37,21 @@ export default async function AcademiesPage() {
 
   return (
     <>
+      <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur-md px-6 py-3 flex items-center justify-between gap-3">
+        <Link href="/" className="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <AppLogo className="h-6 w-auto" />
+          <span className="font-semibold text-sm hidden sm:inline">Playza</span>
+        </Link>
+        <nav className="hidden sm:flex items-center gap-2">
+          <Link href="/games" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors">Games</Link>
+          <Link href="/sports" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors">Sports</Link>
+          <Link href="/academies" className="text-xs font-medium text-primary">Academies</Link>
+        </nav>
+        <div className="flex items-center gap-2">
+          <LanguageToggle />
+          <Link href="/login" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors">Sign in</Link>
+        </div>
+      </header>
       <AcademyTeamsSection teams={teams} />
       <section
         aria-label="Academy guides"
