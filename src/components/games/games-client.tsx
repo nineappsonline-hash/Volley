@@ -82,7 +82,6 @@ import { LocationFields } from "@/components/shared/location-fields";
 import { normalizeCountry } from "@/lib/locations";
 import { matchesGameLocation } from "@/lib/game-filters";
 import { COMMUNITY_SPORTS, formatMoney, formatTime12h } from "@/lib/constants";
-import { GameBookingStatus } from "@/components/games/game-booking-status";
 import { gameRentRemaining } from "@/lib/game-costs";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -385,6 +384,8 @@ export function GameCard({
           )}
         </div>
 
+        <GameCostEstimate compact pricePerPlayer={game.host_pays ? game.host_total : game.share_price} rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} hostPays={game.host_pays} sport={game.sport} />
+
         <div className="flex flex-wrap gap-2 pt-1">
           {isOrganizer && !isPrivate && game.status === "open" && slotsLeft > 0 && gameStart > Date.now() && <Button variant="outline" disabled={recruit.isPending || recruited} className="gap-2 border-brand-300 bg-brand-50 text-brand-900 hover:bg-brand-100 " onClick={async () => {
             try {
@@ -492,10 +493,6 @@ export function GameCard({
           </div>
         </div>
       <GameTeamsButton gameId={game.id} date={game.game_date} time={game.start_time} status={game.status} canManage={canEdit} />
-      <div className="grid gap-2 sm:grid-cols-2">
-        <GameBookingStatus game={game} compact />
-        <GameCostEstimate compact pricePerPlayer={game.host_pays ? game.host_total : game.share_price} rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} hostPays={game.host_pays} sport={game.sport} />
-      </div>
       {rentRemaining > 0 && (game.status === "open" || game.status === "full") && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 ">
           <div className="min-w-0">
