@@ -1092,7 +1092,10 @@ export function PlatformRecords() {
                   {row.guardian_id && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{t("sa_family_member")}</span>}
                 </div>
                 {tab === "Members" ? (row.email ? <p className="mt-1 break-all text-sm text-muted-foreground">{row.email}</p> : <p className="mt-1 text-xs text-muted-foreground">{t("sa_no_login")}</p>) : tab === "Friendly games" ? <div className="mt-3 space-y-3">
-                  <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${GAME_STATUS_STYLES[row.status] ?? "bg-muted text-muted-foreground"}`}>{t(`community_status_${row.status}` as keyof Dict)}</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${GAME_STATUS_STYLES[row.status] ?? "bg-muted text-muted-foreground"}`}>{t(`community_status_${row.status}` as keyof Dict)}</span>
+                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${row.is_public === false ? "bg-attention-100 text-warning-ink" : "bg-muted text-muted-foreground"}`}>{row.is_public === false ? t("games_private") : t("games_public")}</span>
+                  </div>
                   <dl className="space-y-2.5 border-t border-border/60 pt-3 text-sm">
                     <div className="flex items-start gap-2.5"><CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" /><div><dt className="text-xs text-muted-foreground">{lang === "ar" ? "اليوم والتاريخ" : "Day & date"}</dt><dd className="mt-0.5 font-medium">{row.game_date ? new Intl.DateTimeFormat(lang, { weekday: "short", month: "short", day: "numeric" }).format(new Date(`${row.game_date}T00:00:00`)) : "—"}</dd></div></div>
                     <div className="flex items-start gap-2.5"><Clock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" /><div><dt className="text-xs text-muted-foreground">{lang === "ar" ? "الوقت" : "Time"}</dt><dd className="mt-0.5 font-medium">{row.start_time ? formatTime12h(String(row.start_time), lang) : "—"}</dd></div></div>
