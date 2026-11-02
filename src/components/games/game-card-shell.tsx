@@ -19,7 +19,7 @@ import { gameBookingPayment } from "@/lib/game-costs";
 import type { FriendlyGameWithDetails } from "@/lib/types";
 
 /** Compact overview shared by the games directory and community feed. */
-export function GameCardShell({ game, joined, waitlisted, children, detailsHref, initialExpanded = false, layout = "card" }: { detailsHref?: string; initialExpanded?: boolean; layout?: "card" | "list"; game: FriendlyGameWithDetails; joined: boolean; waitlisted?: boolean; children?: ReactNode }) {
+export function GameCardShell({ game, joined, waitlisted, children, detailsHref, initialExpanded = false, layout = "card", hideActionsWhenExpanded = false }: { detailsHref?: string; initialExpanded?: boolean; layout?: "card" | "list"; game: FriendlyGameWithDetails; joined: boolean; waitlisted?: boolean; children?: ReactNode; hideActionsWhenExpanded?: boolean }) {
   const { lang, locale, t } = useI18n();
   const ar = lang === "ar";
   const [expanded, setExpanded] = useState(initialExpanded);
@@ -63,7 +63,7 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
     <div className={`${styles.surface} sm:grid sm:grid-cols-[minmax(0,1fr)_auto]`}>
     <div className={styles.art} aria-hidden="true"><GameCardBackground sport={game.sport} /></div>
     {detailsHref ? <Link href={detailsHref} className={overviewClass}>{overview}</Link> : <button type="button" aria-expanded={expanded} aria-controls={detailsId} onClick={() => setExpanded(!expanded)} className={overviewClass}>{overview}</button>}
-    <div className={`${styles.content} ${styles.actions} flex flex-wrap items-start justify-end gap-2 px-3 pb-2 sm:items-end sm:py-3 sm:ps-0`}>{directions && <GoogleMapsDirectionsButton compact href={directions} />}{share}</div>
+    {(!hideActionsWhenExpanded || !expanded) && <div className={`${styles.content} ${styles.actions} flex flex-wrap items-start justify-end gap-2 px-3 pb-2 sm:items-end sm:py-3 sm:ps-0`}>{directions && <GoogleMapsDirectionsButton compact href={directions} />}{share}</div>}
     </div>
     {!detailsHref && <div id={detailsId} hidden={!expanded} className="border-t border-border bg-card text-card-foreground pt-2">{children}</div>}
   </article>;

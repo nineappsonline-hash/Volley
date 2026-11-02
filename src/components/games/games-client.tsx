@@ -5,7 +5,6 @@ import { isActiveSport } from "@/lib/active-sports";
 import { GameShareActions } from "./game-share-actions";
 import { GameAlertPreferencesPanel } from "./game-alert-follow";
 
-import { GoogleMapsDirectionsButton } from "@/components/shared/google-maps-directions-button";
 import { useRequestGamePlayers } from "@/lib/queries";
 import { GameCardShell } from "@/components/games/game-card-shell";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -231,7 +230,7 @@ export function GameCard({
   ].filter(Boolean);
 
   return (
-    <GameCardShell initialExpanded={focus === game.id} layout="list" game={game} joined={joined}>
+    <GameCardShell initialExpanded={focus === game.id} layout="list" game={game} joined={joined} hideActionsWhenExpanded>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="truncate text-base">{game.title}</CardTitle>
@@ -276,41 +275,44 @@ export function GameCard({
         </p>
       </CardHeader>
 
-      <CardContent className="flex flex-1 flex-col gap-3">
+      <CardContent className="flex flex-1 flex-col gap-2">
         <GameParticipantNames participants={game.participants ?? []} />
-        {/* Playground */}
-        <div className="flex flex-wrap items-start gap-2 rounded-lg border bg-muted/30 p-2.5">
-          {playgroundThumb ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={playgroundThumb} alt={game.playground?.name ?? ""} className="mt-0.5 h-10 w-10 shrink-0 rounded-md border object-cover" />
-          ) : (
-            <LandPlot className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-          )}
-          <div className="min-w-0 flex-1 text-sm">
-            <p className="truncate font-semibold">
-              {game.playground?.name ?? game.location ?? t("games_no_playground")}
-            </p>
-            {game.playground && playgroundLabel(game.playground) !== game.playground.name && (
-              <p className="truncate text-xs text-muted-foreground">
-                {playgroundLabel(game.playground)}
+        {/* Venue, directions and sharing */}
+        <div className="rounded-lg border bg-muted/30 p-2.5">
+          <div className="flex items-center gap-2.5">
+            {playgroundThumb ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={playgroundThumb} alt={game.playground?.name ?? ""} className="h-10 w-10 shrink-0 rounded-md border object-cover" />
+            ) : (
+              <LandPlot className="h-4 w-4 shrink-0 text-primary" />
+            )}
+            <div className="min-w-0 flex-1 text-sm">
+              <p className="truncate font-semibold">
+                {game.playground?.name ?? game.location ?? t("games_no_playground")}
               </p>
-            )}
-            {playgroundTarget && (
-              <span className="mt-0.5 flex items-center gap-1.5">
-                <PlaygroundDistance lat={playgroundTarget.lat} lng={playgroundTarget.lng} />
-              </span>
-            )}
+              {game.playground && playgroundLabel(game.playground) !== game.playground.name && (
+                <p className="truncate text-xs text-muted-foreground">
+                  {playgroundLabel(game.playground)}
+                </p>
+              )}
+              {playgroundTarget && (
+                <span className="mt-0.5 flex items-center gap-1.5">
+                  <PlaygroundDistance lat={playgroundTarget.lat} lng={playgroundTarget.lng} />
+                </span>
+              )}
+            </div>
+            <Badge variant="secondary" className="shrink-0 gap-1 text-[10px]">
+              <UsersRound className="h-3 w-3" />
+              {isPrivate ? t("games_private") : t("games_public")}
+            </Badge>
           </div>
-          {game.playground?.location_link && (
-            <GoogleMapsDirectionsButton href={game.playground.location_link} className="w-full" />
-          )}
-          <Badge variant="secondary" className="shrink-0 gap-1 text-[10px]">
-            <UsersRound className="h-3 w-3" />
-            {isPrivate ? t("games_private") : t("games_public")}
-          </Badge>
+          <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border/60 pt-2">
+            {game.playground?.location_link && (
+              <DirectionsLinks compact locationLink={game.playground.location_link} query={game.location ?? game.area ?? game.title} />
+            )}
+            <GameShareActions compact game={{ ...game, joined: count, place: [game.playground?.name, game.playground?.area ?? game.area, game.playground?.governorate].filter(Boolean).join(", ") || game.location || "" }} />
+          </div>
         </div>
-
-        <GameShareActions game={{ ...game, joined: count, place: [game.playground?.name, game.playground?.area ?? game.area, game.playground?.governorate].filter(Boolean).join(", ") || game.location || "" }} />
 
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
           <span className="flex items-center gap-1.5">
@@ -416,8 +418,8 @@ export function GameCard({
                 {lang === "ar" ? "ممتلئ" : "Full"}
               </Button>
             ) : (
-              <Button size="sm" onClick={handleJoin}>
-                <Plus className="me-1 h-3.5 w-3.5" />
+              <Button size="lg" onClick={handleJoin} className="h-12 w-full gap-2 rounded-xl px-8 text-base font-extrabold shadow-lg shadow-primary/30 ring-2 ring-primary/15 [&_svg]:size-5 sm:w-auto">
+                <Plus />
                 {t("community_join")}
               </Button>
             ))}
@@ -473,15 +475,6 @@ export function GameCard({
             </>
           )}
 
-          {game.playground?.location_link && (
-            <DirectionsLinks
-              locationLink={game.playground?.location_link}
-              lat={game.lat}
-              lng={game.lng}
-              query={game.location ?? game.area ?? game.title}
-            />
-          )}
-
           <div className="ms-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -499,8 +492,10 @@ export function GameCard({
           </div>
         </div>
       <GameTeamsButton gameId={game.id} date={game.game_date} time={game.start_time} status={game.status} canManage={canEdit} />
-      <GameBookingStatus game={game} />
-      <GameCostEstimate pricePerPlayer={game.host_pays ? game.host_total : game.share_price} rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} hostPays={game.host_pays} sport={game.sport} />
+      <div className="grid gap-2 sm:grid-cols-2">
+        <GameBookingStatus game={game} compact />
+        <GameCostEstimate compact pricePerPlayer={game.host_pays ? game.host_total : game.share_price} rate={game.playground_hourly_rate} hours={game.duration_hours ?? 1} min={game.min_players ?? 2} hostPays={game.host_pays} sport={game.sport} />
+      </div>
       {rentRemaining > 0 && (game.status === "open" || game.status === "full") && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 ">
           <div className="min-w-0">

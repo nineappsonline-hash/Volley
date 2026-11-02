@@ -17,7 +17,7 @@ type Props = {
 };
 
 /** Opens Google Maps directions directly without an API key or billing. */
-export function DirectionsLinks({ locationLink, venueId }: Props) {
+export function DirectionsLinks({ locationLink, venueId, compact = false, className }: Props & { compact?: boolean; className?: string }) {
   const { t } = useI18n();
   const saved = useQuery({
     queryKey: ["venue-directions-link", venueId],
@@ -30,7 +30,7 @@ export function DirectionsLinks({ locationLink, venueId }: Props) {
   });
   const href = googleDirectionsUrl(locationLink || saved.data);
   if (!href) return null;
-  return <GoogleMapsDirectionsButton href={href} />;
+  return <GoogleMapsDirectionsButton compact={compact} className={className} href={href} />;
 }
 
 export function directionsUrl(lat: number | null | undefined, lng: number | null | undefined, query = "", locationLink?: string | null): string | undefined {

@@ -13,6 +13,7 @@ export function GameCostEstimate({
   sport = "",
   pricePerPlayer,
   venueId,
+  compact = false,
 }: {
   rate?: number | null;
   venueId?: string | null;
@@ -22,11 +23,12 @@ export function GameCostEstimate({
   sport?: string;
   /** Saved price takes precedence on existing games; creation forms still estimate. */
   pricePerPlayer?: number | null;
+  compact?: boolean;
 }) {
   const { lang } = useI18n();
   const ar = lang === "ar";
   const savedPrice = pricePerPlayer != null && Number.isFinite(pricePerPlayer) && pricePerPlayer >= 0 ? pricePerPlayer : null;
-  if (venueId && savedPrice == null) return <CourtQuote venueId={venueId} hours={hours} min={min} hostPays={hostPays} sport={sport} />;
+  if (venueId && savedPrice == null) return <CourtQuote venueId={venueId} hours={hours} min={min} hostPays={hostPays} sport={sport} compact={compact} />;
   const estimate = savedPrice != null
     ? { total: savedPrice }
 
@@ -35,7 +37,7 @@ export function GameCostEstimate({
     : estimateSharePrice(rate, hours, min, sport);
 
   return (
-    <div className="space-y-1 rounded-lg border bg-info/5 p-3 text-sm">
+    <div className={compact ? "space-y-0.5 rounded-lg border bg-info/5 p-2 text-xs" : "space-y-1 rounded-lg border bg-info/5 p-3 text-sm"}>
       <p className="font-semibold">
         {ar
           ? hostPays
@@ -58,7 +60,7 @@ export function GameCostEstimate({
       </p>
       {estimate ? (
         <>
-          <p className="font-extrabold text-info-ink">
+          <p className={compact ? "text-sm font-extrabold text-info-ink" : "font-extrabold text-info-ink"}>
             {formatMoney(estimate.total, lang)}
           </p>
         </>
@@ -72,9 +74,9 @@ export function GameCostEstimate({
     </div>
   );
 }
-function CourtQuote({venueId,hours,min,hostPays,sport}:{venueId:string;hours:number;min:number;hostPays:boolean;sport:string}) {
+function CourtQuote({venueId,hours,min,hostPays,sport,compact}:{venueId:string;hours:number;min:number;hostPays:boolean;sport:string;compact:boolean}) {
   const {data:quote}=useQuery({queryKey:["court-quote",venueId,hours],enabled:hours>0&&hours<=24,queryFn:async()=>{
     const {data,error}=await createClient().rpc("court_booking_quote",{p_venue:venueId,p_hours:hours});if(error)throw error;return data as {per_player:number;full_court:number}|null;
   }});
-  return <GameCostEstimate hours={hours} min={min} hostPays={hostPays} sport={sport} pricePerPlayer={quote?(hostPays?quote.full_court:quote.per_player):null}/>;
+  return <GameCostEstimate hours={hours} min={min} hostPays={hostPays} sport={sport} pricePerPlayer={quote?(hostPays?quote.full_court:quote.per_player):null} compact={compact}/>;
 }
