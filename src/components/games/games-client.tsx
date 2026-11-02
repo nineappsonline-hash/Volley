@@ -25,7 +25,6 @@ import {
   Pencil,
   Repeat,
   Share2,
-  ShieldCheck,
   Trophy,
   Users,
   UsersRound,
@@ -81,7 +80,7 @@ import { useI18n } from "@/lib/i18n";
 import { LocationFields } from "@/components/shared/location-fields";
 import { normalizeCountry } from "@/lib/locations";
 import { matchesGameLocation } from "@/lib/game-filters";
-import { COMMUNITY_SPORTS, formatMoney, formatTime12h } from "@/lib/constants";
+import { COMMUNITY_SPORTS, formatTime12h } from "@/lib/constants";
 import { gameRentRemaining } from "@/lib/game-costs";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -493,22 +492,6 @@ export function GameCard({
           </div>
         </div>
       <GameTeamsButton gameId={game.id} date={game.game_date} time={game.start_time} status={game.status} canManage={canEdit} />
-      {rentRemaining > 0 && (game.status === "open" || game.status === "full") && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-attention-300/60 bg-attention-50 p-2.5 ">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold text-warning-ink">
-              {t("games_rent_button")}
-            </p>
-            <p className="text-xs text-warning-ink/80">
-              {formatMoney(rentRemaining, lang)}
-            </p>
-          </div>
-          <Button size="sm" onClick={() => setPayOpen("rent")}>
-            <ShieldCheck className="me-1 h-3.5 w-3.5" />
-            {t("games_rent_button")}
-          </Button>
-        </div>
-      )}
       {joined && (
         <div className="flex flex-wrap items-center gap-2">
           <GameChat gameId={game.id} gameTitle={game.title} memberId={profile.id} isOrganizer={isOrganizer} />
