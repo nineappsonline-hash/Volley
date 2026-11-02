@@ -23,6 +23,15 @@ recurring card charges. Existing InstaPay and e-wallet options remain available.
    `https://playza.nineapps.online/webhook`. This URL accepts POST, not a browser
    GET. Keep Kashier's dashboard webhook at that URL if configured; duplicate
    deliveries are safe.
+   The route first tries the Payment Sessions API. If that API is blocked (for
+   example a Kashier IP allow-list rejecting Vercel's dynamic egress), it falls
+   back to a signed hosted-checkout URL at `https://payments.kashier.io/` using
+   the Payment API Key and the same order hash. The fallback never exposes the
+   Secret Key and the webhook remains the payment authority. Session reads on
+   the return page are skipped for fallback orders because Kashier returns no
+   session id; the webhook still settles them. To restore session-based
+   reconciliation, allow-list a stable egress IP or route API calls through a
+   static proxy.
 4. Deploy `supabase functions deploy notify-email`. Configure its existing
    `RESEND_API_KEY` and `EMAIL_FROM`, plus `PAYMENT_RECEIVED_EMAIL` for the admin
    notification recipient (falls back to `GAME_PAYMENT_REVIEW_EMAIL`). Members
