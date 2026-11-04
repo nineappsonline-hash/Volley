@@ -97,3 +97,19 @@
   .heroCopy{background-size:auto,200% auto;background-position:center,right top}
   .desktopGames :global([data-game-photo]){background-size:auto,200% auto;background-position:center,right top}
 }
+
+/* Photo cards use light surfaces at every viewport size. Their controls and
+   badges must not inherit the lime ink intended for purple game surfaces. */
+.desktopGames {
+  --game-accent-ink: #55159a;
+  --game-action-border: #bba1d4;
+  --game-action-background: #f8f4ff;
+  --game-badge-background: #eee4fa;
+  --game-muted-background: #f1edf6;
+}
+.desktopGames :global([data-game-info]) :global(.bg-muted) {
+  color: #4d3468;
+}
+.desktopGames :global([data-game-overview]) :global([role="status"]) {
+  color: #55159a;
+}

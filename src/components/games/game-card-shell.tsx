@@ -67,7 +67,7 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
     {detailsHref ? <Link href={detailsHref} data-game-summary="" className={overviewClass}>{overview}</Link> : <button type="button" aria-expanded={expanded} aria-controls={detailsId} onClick={() => setExpanded(!expanded)} data-game-summary="" className={overviewClass}>{overview}</button>}
     {(!hideActionsWhenExpanded || !expanded) && <div className={`${styles.content} ${styles.actions} flex flex-wrap items-start justify-end gap-2 px-3 pb-2 sm:items-end sm:py-3 sm:ps-0`}>{directions && <GoogleMapsDirectionsButton compact href={directions} />}{share}</div>}
     </div>
-    {!detailsHref && <div id={detailsId} hidden={!expanded} className="border-t border-border bg-card text-card-foreground pt-2">{children}</div>}
+    {!detailsHref && <div id={detailsId} hidden={!expanded} className={`${styles.details} border-t border-border bg-card text-card-foreground pt-2`}>{children}</div>}
   </article>;
   return <article className={`group/card self-start overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-lg hover:shadow-primary/10 ${game.status === "completed" ? "border-emerald-500/50" : game.status === "open" ? "border-blue-400/60 ring-1 ring-blue-400/15" : "border-border"}`}>
     <div className={`relative isolate min-h-48 overflow-hidden bg-gradient-to-br ${theme} px-5 pb-5 pt-4 text-white`}>
@@ -113,6 +113,6 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
       {share}
       </div>
     </div>
-    <div id={detailsId} hidden={!expanded} className="border-t border-border bg-card text-card-foreground pt-2">{children}</div>
+    <div id={detailsId} hidden={!expanded} className={`${styles.details} border-t border-border bg-card text-card-foreground pt-2`}>{children}</div>
   </article>;
 }
