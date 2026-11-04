@@ -1,5 +1,6 @@
 "use client";
 
+import { matchesGameSearch } from "@/lib/game-search";
 import { DashboardCreateGameButton } from "./create-game-button";
 import { GuestGameList } from "./guest-game-list";
 import type { FriendlyGameWithDetails } from "@/lib/types";
@@ -176,7 +177,7 @@ export function MemberDiscoveryCards({ search = "", memberId, hasAcademy, prefer
   const governorates = [...new Set((games.data ?? []).map(game => game.playground?.governorate).filter((value): value is string => !!value))].sort();
   const cities = [...new Set((games.data ?? []).filter(game => !governorate || game.playground?.governorate === governorate).map(game => game.playground?.area ?? game.area).filter((value): value is string => !!value))].sort();
   const activeFilters = [governorate, city, age, gender !== "all", maxPrice, court, level !== "all", date].filter(Boolean).length;
-  const gameItems = (games.data ?? []).filter(game => !search.trim() || [game.title, game.sport, game.location, game.area, game.playground?.name].some(value => value?.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())))
+  const gameItems = (games.data ?? []).filter(game => matchesGameSearch(game, search))
     .filter(
       (game) =>
         (game.status === "open" || game.status === "full") &&

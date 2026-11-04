@@ -51,3 +51,35 @@ for(lang of ['en','ar']){
  assert.ok(card.includes('focus=next'));assert.ok(!card.includes('Later game'));assert.ok(!card.includes('Waitlisted game'));
 }
 console.log('PASS: bilingual mobile search/actions, four navigation destinations and active states, earliest confirmed booking and empty booking state');
+
+// Exercise the real shared form handlers used on desktop and mobile.
+function findNode(node, predicate) {
+ if (!node || typeof node !== 'object') return;
+ if (predicate(node)) return node;
+ for (const child of React.Children.toArray(node.props?.children)) {
+  const found = findNode(child, predicate);
+  if (found) return found;
+ }
+}
+const OriginalFormData = global.FormData;
+const originalDocument = global.document;
+let searchValue = '', scrolled = false, prevented = false;
+try {
+ global.FormData = class { constructor(form) { this.form = form; } get() { return this.form.search; } };
+ global.document = { getElementById: id => { assert.equal(id, 'member-live-games'); return { scrollIntoView() { scrolled = true; } }; } };
+ const tree = MemberHomeHeader({ onSearchChange: value => { searchValue = value; } });
+ const input = findNode(tree, node => node.type === 'input' && node.props.name === 'search');
+ const form = findNode(tree, node => node.type === 'form');
+ input.props.onChange({ currentTarget: { value: 'Gateway' } });
+ assert.equal(searchValue, 'Gateway', 'typing updates the results');
+ input.props.onChange({ currentTarget: { value: '' } });
+ assert.equal(searchValue, '', 'clearing the input resets the results');
+ form.props.onSubmit({ preventDefault() { prevented = true; }, currentTarget: { search: 'volleyball Cairo' } });
+ assert.equal(searchValue, 'volleyball Cairo');
+ assert.equal(prevented, true, 'submission stays on the dashboard');
+ assert.equal(scrolled, true, 'submission reveals the results');
+} finally {
+ global.FormData = OriginalFormData;
+ global.document = originalDocument;
+}
+console.log('PASS: shared search typing, clear/reset and form submission update results without navigating away');

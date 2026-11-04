@@ -1,0 +1,16 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const ts = require('typescript');
+const exportsObject = {};
+new Function('exports', ts.transpileModule(fs.readFileSync('src/lib/game-search.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText)(exportsObject);
+const { matchesGameSearch } = exportsObject;
+const game = { title: 'Evening Mix', sport: 'Beach Volleyball', location: null, area: null, playground: { name: 'Gateway', area: 'Fifth Settlement', governorate: 'Cairo', address: 'شارع أحمد' } };
+for (const query of ['', '   ', 'GATEWAY', ' beach   volleyball ', 'volley gateway', 'Cairo Gateway', 'fifth-settlement', 'طائرة شاطئية', 'شارع احمد', 'شَاطِئِيَّة']) assert.equal(matchesGameSearch(game, query), true, query);
+for (const query of ['tennis', 'Gateway Giza', 'volley unknown']) assert.equal(matchesGameSearch(game, query), false, query);
+assert.equal(matchesGameSearch({ title: 'Match', sport: 'Tennis' }, 'تنس'), true);
+assert.equal(matchesGameSearch({ title: null, sport: null }, 'anything'), false);
+const games = [game, { ...game, sport: 'Tennis', title: 'Tennis Match' }];
+assert.equal(games.filter(g => g.sport === 'Beach Volleyball' && matchesGameSearch(g, 'Gateway')).length, 1);
+assert.equal(games.filter(g => g.sport === 'Beach Volleyball' && matchesGameSearch(g, 'tennis')).length, 0);
+assert.equal(games.filter(g => matchesGameSearch(g, '')).length, 2);
+console.log('PASS: case/whitespace, cross-field words, venue/location details, Arabic sport names and normalization, missing fields, empty/reset and sport intersection');
