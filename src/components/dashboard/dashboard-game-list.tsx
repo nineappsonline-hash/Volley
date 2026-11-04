@@ -1,5 +1,6 @@
 "use client";
 
+import styles from "./member-home.module.css";
 import { useState } from "react";
 import { toast } from "sonner";
 import { GameCard } from "@/components/games/games-client";
@@ -22,7 +23,7 @@ export function DashboardGameList({ games, profile }: { games: FriendlyGameWithD
     }
   };
   return <QueryState queries={[participants]}>
-    <div className="flex flex-col gap-3">
+    <div className={`flex flex-col gap-3 ${styles.desktopGames}`}>
       {games.map(game => <div key={game.id} id={`game-${game.id}`} className="scroll-mt-20"><GameCard game={game} profile={profile} myParticipants={participants.data ?? []} copiedKey={copiedKey} onCopy={copy} /></div>)}
     </div>
   </QueryState>;

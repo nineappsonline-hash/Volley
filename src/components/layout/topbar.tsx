@@ -4,7 +4,7 @@ import { authLink } from "@/lib/auth-redirect";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { LogOut, Menu, UserRound } from "lucide-react";
+import { LogOut, Menu, UserRound, Home, CalendarDays, GraduationCap, Trophy, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -71,7 +71,7 @@ export function Topbar({ guest = false, role, navigationRole = role, name, usern
       <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className={navigationRole === "member" ? "" : "lg:hidden"} aria-label={lang === "ar" ? "افتح القائمة" : "Open navigation"}>
+          <Button variant="ghost" size="icon" className={navigationRole === "member" ? "lg:hidden" : "lg:hidden"} aria-label={lang === "ar" ? "افتح القائمة" : "Open navigation"}>
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
@@ -89,6 +89,13 @@ export function Topbar({ guest = false, role, navigationRole = role, name, usern
         </Link>
       )}
 
+      {navigationRole === "member" && <nav className="mx-auto hidden items-center gap-2 lg:flex" aria-label={lang === "ar" ? "القائمة الرئيسية" : "Main navigation"}>{[
+        { href: "/dashboard", icon: Home, en: "Discover", ar: "اكتشف" },
+        { href: "/dashboard/games", icon: CalendarDays, en: "My Games", ar: "ماتشاتي" },
+        { href: "/dashboard/academies", icon: GraduationCap, en: "Academies", ar: "الأكاديميات" },
+        { href: "/dashboard/tournaments", icon: Trophy, en: "Tournaments", ar: "البطولات" },
+        { href: "/profile#evaluations", icon: TrendingUp, en: "Player Development", ar: "تطور اللاعب" },
+      ].map(({ href, icon: Icon, en, ar }) => <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors hover:bg-purple-100 ${pathname === href ? "bg-purple-100 text-purple-800" : ""}`}><Icon size={21} />{lang === "ar" ? ar : en}</Link>)}</nav>}
       <div className="ms-auto flex items-center gap-1">
         {role === "admin" && academy && (
           <span

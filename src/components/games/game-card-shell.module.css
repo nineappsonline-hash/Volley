@@ -51,3 +51,5 @@
 }
 .actions :global(input) { color: #241033; }
 .actions :global(a span) { color: inherit; }
+
+.desktopCta { display: none; }

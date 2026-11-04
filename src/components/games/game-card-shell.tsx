@@ -43,13 +43,13 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
   const directions = googleDirectionsUrl(game.playground?.location_link);
   const share = <GameShareActions compact game={{...game,joined:game.participants_count,place:[game.playground?.name,game.playground?.area??game.area,game.playground?.governorate].filter(Boolean).join(", ")||game.location||""}} />;
   const overview = <>
-      <span className="relative isolate block h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand">
+      <span data-game-photo="" className="relative isolate block h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand">
         {!photo && <span className="absolute inset-0 flex items-center justify-center text-white/30" aria-hidden="true">{SportIcon({ id: sport, size: 48 })}</span>}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {photo && <img src={photo} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} />}
         <span className="absolute inset-x-0 bottom-0 bg-brand/95 px-1 py-1.5 text-center text-[9px] font-bold leading-tight text-highlight sm:text-[10px]">{game.sport}</span>
       </span>
-      <span className="block min-w-0 flex-1 space-y-1">
+      <span data-game-info="" className="block min-w-0 flex-1 space-y-1">
         <span className="flex items-start justify-between gap-2"><span className="line-clamp-2 text-sm font-extrabold leading-5 sm:text-base">{game.title}</span><Indicator size={16} className={`mt-0.5 shrink-0 transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden="true" /></span>
         <span className="flex items-start gap-1 text-xs text-muted-foreground"><MapPin size={12} className="mt-0.5 shrink-0" aria-hidden="true" /><span className="line-clamp-1">{game.playground?.name || game.location || game.area || t("games_no_playground")}</span></span>
         <span className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1 text-xs"><span className="flex flex-wrap items-center gap-x-2 gap-y-0.5"><time className="block" dateTime={game.game_date}>{format(new Date(`${game.game_date}T00:00:00`), "EEE, d MMM", { locale })}</time><span className="block text-muted-foreground">{formatTime12h(game.start_time, lang)}</span></span><span className="text-end"><strong className={`block text-sm ${styles.price}`}>{game.host_pays ? (ar ? "مجاني" : "Free") : game.share_price == null ? "—" : formatMoney(game.share_price, lang)}</strong><span className="text-[10px] text-muted-foreground">{ar ? "لكل لاعب" : "per player"}</span></span></span>
@@ -58,11 +58,12 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
         <span className="flex flex-wrap gap-1.5 text-[10px]"><span className="rounded bg-muted px-1.5 py-0.5 font-medium">{t(`community_status_${game.status}`)}</span>{joined && <span className="rounded bg-primary/15 px-1.5 py-0.5 font-semibold">{waitlisted ? (ar ? "قائمة الانتظار" : "On the waitlist") : (ar ? "أنت مشارك" : "You're participating")}</span>}{!game.is_public && <span className="rounded bg-muted px-1.5 py-0.5">{ar ? "خاص" : "Private"}</span>}{booking?.confirmed && <span className="rounded bg-muted px-1.5 py-0.5">{ar ? "الحجز مؤكد" : "Booking confirmed"}</span>}</span>
         <span className="sr-only">{detailsHref ? (ar ? "عرض تفاصيل الماتش" : "View game details") : (ar ? "التفاصيل والمشاركة" : "Details & participation")}</span>
       </span>
+      <span className={styles.desktopCta}>{expanded ? (ar ? "إخفاء التفاصيل" : "Hide details") : joined ? (ar ? "عرض الحجز" : "View Booking") : (ar ? "انضم للماتش" : "Join Game")} <ArrowUpRight size={17} aria-hidden="true" /></span>
   </>;
-  if (layout === "list") return <article className="overflow-hidden rounded-xl border border-border bg-card text-card-foreground transition-shadow hover:shadow-sm">
+  if (layout === "list") return <article data-game-overview="" className="overflow-hidden rounded-xl border border-border bg-card text-card-foreground transition-shadow hover:shadow-sm">
     <div className={`${styles.surface} sm:grid sm:grid-cols-[minmax(0,1fr)_auto]`}>
     <div className={styles.art} aria-hidden="true"><GameCardBackground sport={game.sport} /></div>
-    {detailsHref ? <Link href={detailsHref} className={overviewClass}>{overview}</Link> : <button type="button" aria-expanded={expanded} aria-controls={detailsId} onClick={() => setExpanded(!expanded)} className={overviewClass}>{overview}</button>}
+    {detailsHref ? <Link href={detailsHref} data-game-summary="" className={overviewClass}>{overview}</Link> : <button type="button" aria-expanded={expanded} aria-controls={detailsId} onClick={() => setExpanded(!expanded)} data-game-summary="" className={overviewClass}>{overview}</button>}
     {(!hideActionsWhenExpanded || !expanded) && <div className={`${styles.content} ${styles.actions} flex flex-wrap items-start justify-end gap-2 px-3 pb-2 sm:items-end sm:py-3 sm:ps-0`}>{directions && <GoogleMapsDirectionsButton compact href={directions} />}{share}</div>}
     </div>
     {!detailsHref && <div id={detailsId} hidden={!expanded} className="border-t border-border bg-card text-card-foreground pt-2">{children}</div>}

@@ -28,7 +28,7 @@ export default async function DashboardLayout({
   const session = await getSession();
   if (!session) return <div className="min-h-screen bg-background pb-[calc(6rem+env(safe-area-inset-bottom))]">
     <Topbar role="member" name="" username="" guest />
-    <main className="mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-8">{children}</main>
+    <main className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-8">{children}</main>
     <MemberBottomNavigation guest />
   </div>;
   const { profile } = session;
@@ -85,7 +85,7 @@ export default async function DashboardLayout({
           hasAcademyWorkspace={!!workspaceAccess}
           academy={academy}
         />
-        <main className="mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-8">
+        <main className={`mx-auto w-full ${profile.role === "member" ? "max-w-[1600px]" : "max-w-6xl"} p-4 sm:p-6 lg:p-8`}>
           {profile.role !== "super_admin" && profile.role !== "member" && <InstallBanner />}
           {profile.role === "super_admin" || profile.role === "playground_owner" ? (
             children

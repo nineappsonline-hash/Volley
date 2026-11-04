@@ -6,19 +6,22 @@ import { useState } from "react";
 import { useProfile } from "@/lib/queries";
 import type { Profile } from "@/lib/types";
 import { MemberDiscoveryCards } from "./member-discovery-cards";
+import { DesktopNextGame } from "./desktop-next-game";
+import styles from "./member-home.module.css";
 import { DashboardNavigation } from "./dashboard-navigation";
 
 export function MemberDashboard({ profile }: { profile: Profile }) {
   const { data: ownProfile } = useProfile(profile.id);
   const p = ownProfile ?? profile;
+  const [search, setSearch] = useState("");
   const params = useSearchParams();
   const [selectedSport, setSelectedSport] = useState(() => slugToSport(params.get("sport") ?? "") ?? "all");
 
-  return <div className="mx-auto min-w-0 max-w-6xl pb-2">
-    <DashboardNavigation selectedSport={selectedSport} onSportChange={setSelectedSport} name={p.name}>
-      <section id="activity" className="scroll-mt-24">
-        <MemberDiscoveryCards memberId={p.id} hasAcademy={!!p.academy_id} preferences={p} profile={p} focusGameId={params.get("focus") ?? undefined} mode="games" interactive sportFilter={selectedSport} />
-      </section>
+  return <div className="mx-auto min-w-0 max-w-[1600px] pb-2">
+    <DashboardNavigation onSearchChange={setSearch} profile={p} selectedSport={selectedSport} onSportChange={setSelectedSport} name={p.name}>
+      <div className={styles.desktopContent}><DesktopNextGame memberId={p.id} /><section id="activity" className="min-w-0 scroll-mt-24">
+        <MemberDiscoveryCards search={search} memberId={p.id} hasAcademy={!!p.academy_id} preferences={p} profile={p} focusGameId={params.get("focus") ?? undefined} mode="games" interactive sportFilter={selectedSport} />
+      </section></div>
     </DashboardNavigation>
   </div>;
 }

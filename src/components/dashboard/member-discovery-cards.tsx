@@ -131,7 +131,7 @@ function DiscoveryCard({
   </section>;
 }
 
-export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, profile, guestQuery, focusGameId, mode = "all", interactive = false, sportFilter = "all" }: { focusGameId?: string; guestQuery?: DiscoveryQuery & { data: FriendlyGameWithDetails[] }; profile?: Profile; interactive?: boolean; sportFilter?: string; memberId: string; hasAcademy: boolean; preferences?: DiscoveryPreferences; mode?: "all" | "games" | "academies" }) {
+export function MemberDiscoveryCards({ search = "", memberId, hasAcademy, preferences = {}, profile, guestQuery, focusGameId, mode = "all", interactive = false, sportFilter = "all" }: { search?: string; focusGameId?: string; guestQuery?: DiscoveryQuery & { data: FriendlyGameWithDetails[] }; profile?: Profile; interactive?: boolean; sportFilter?: string; memberId: string; hasAcademy: boolean; preferences?: DiscoveryPreferences; mode?: "all" | "games" | "academies" }) {
   const { t, lang, locale } = useI18n();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [governorate, setGovernorate] = useState("");
@@ -176,7 +176,7 @@ export function MemberDiscoveryCards({ memberId, hasAcademy, preferences = {}, p
   const governorates = [...new Set((games.data ?? []).map(game => game.playground?.governorate).filter((value): value is string => !!value))].sort();
   const cities = [...new Set((games.data ?? []).filter(game => !governorate || game.playground?.governorate === governorate).map(game => game.playground?.area ?? game.area).filter((value): value is string => !!value))].sort();
   const activeFilters = [governorate, city, age, gender !== "all", maxPrice, court, level !== "all", date].filter(Boolean).length;
-  const gameItems = (games.data ?? [])
+  const gameItems = (games.data ?? []).filter(game => !search.trim() || [game.title, game.sport, game.location, game.area, game.playground?.name].some(value => value?.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())))
     .filter(
       (game) =>
         (game.status === "open" || game.status === "full") &&
