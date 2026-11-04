@@ -144,3 +144,48 @@
 :global(html.dark) .desktopGames :global([data-game-overview]) strong,
 :global(html.dark) .desktopGames :global([role="status"]) { color: #d8b4fe; }
 :global(html.dark) .desktopGames :global([data-game-info]) :global(.bg-muted) { color: #dfd1ec; }
+
+/* Give each game a complete frame, with space separating it from its neighbours. */
+.desktopGames {
+  gap: 24px;
+}
+.desktopGames :global([data-game-overview]) {
+  border: 2px solid #d2bfe6;
+  border-radius: 18px;
+  background: hsl(var(--card));
+  box-shadow: 0 5px 16px #35116b14;
+}
+.desktopGames :global([data-game-overview])>div:first-child::before {
+  display: none;
+}
+.desktopGames :global([data-game-photo]) {
+  border-bottom: 1px solid #d2bfe6;
+}
+.desktopGames :global([data-game-info])>span:first-child {
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid hsl(var(--border));
+  font-size: 17px;
+  line-height: 1.4;
+}
+:global(html.dark) .desktopGames :global([data-game-overview]) {
+  border-color: #795695;
+  box-shadow: 0 6px 20px #0005;
+}
+:global(html.dark) .desktopGames :global([data-game-photo]) {
+  border-color: #795695;
+}
+@media(max-width:1023px) {
+  .desktopGames {
+    gap: 32px;
+  }
+  .desktopGames :global([data-game-summary])>[data-game-info] {
+    padding: 16px;
+  }
+  .desktopGames :global([data-game-overview])>div:first-child>div:last-child {
+    padding: 0 16px 16px;
+  }
+  .desktopGames :global([data-game-info])>span:first-child {
+    font-size: 19px;
+  }
+}
