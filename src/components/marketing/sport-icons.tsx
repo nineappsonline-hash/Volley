@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Volleyball } from "lucide-react";
 
 const mdiPaths: Record<string, string> = {
   football:
@@ -145,17 +146,13 @@ const custom: Record<string, ReactNode> = {
 
 // Outline equipment icons shared by discovery tiles and game cards.
 const equipmentOutlines: Record<string, ReactNode> = {
-  volleyball: <>
-    <circle cx="12" cy="12" r="9.5" />
-    <path d="M7 4c4 1 7 4 8 8m-5-9c4 2 7 5 8 9m3-3c-3 3-7 4-11 3m10 0c-3 3-7 4-11 3m6 6c-1-4-4-7-7-9m4 9c-1-4-4-7-7-9M3 9c3-1 5-4 6-6m-6 9c2 0 4-1 5-2" />
-  </>,
   basketball: <>
     <circle cx="12" cy="12" r="9.5" />
     <path d="M2.5 12h19M12 2.5v19M5.5 5c7 3 7 11 0 14M18.5 5c-7 3-7 11 0 14" />
   </>,
   tennis: <>
     <circle cx="12" cy="12" r="9.5" />
-    <path d="M5 5c5 0 9 3 9 7s4 7 5 7M5 19c0-5 3-9 7-9s7-4 7-5" />
+    <path d="M5.28 5.28C13 5.8 13 18.2 5.28 18.72M18.72 5.28C11 5.8 11 18.2 18.72 18.72" />
   </>,
   padel: <g transform="rotate(38 12 12)">
     <path d="M12 2.5c-3.5 0-6 2.6-6 6.2 0 3.1 1.7 5.4 4.3 6.2v3.4h3.4v-3.4c2.6-.8 4.3-3.1 4.3-6.2 0-3.6-2.5-6.2-6-6.2Z" />
@@ -168,6 +165,7 @@ const equipmentOutlines: Record<string, ReactNode> = {
 };
 
 export function SportIcon({ id, size = 16, className }: { id: string; size?: number; className?: string }) {
+  if (id === "volleyball") return <Volleyball size={size} className={className} strokeWidth={1.35} aria-hidden="true" />;
   if (equipmentOutlines[id]) return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={size} height={size} className={className} fill="none" stroke="currentColor" strokeWidth={1.35} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {equipmentOutlines[id]}
