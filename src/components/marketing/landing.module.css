@@ -792,3 +792,16 @@
 .cta:hover,.installCta:hover{background:var(--color-primary-hover);color:var(--color-navy)}
 .page :is(a,button,summary):focus-visible{outline-color:var(--color-navy)}
 .page :is(.footer,.finalCta,.arenaSection,.installBannerInner) :focus-visible{outline-color:var(--color-lime)}
+
+/* Public landing pages share the automatic evening palette. */
+:global(html.dark) .page { color: hsl(var(--foreground)); }
+:global(html.dark) .secondary,
+:global(html.dark) .floatingCard,
+:global(html.dark) .progressCard,
+:global(html.dark) .sports,
+:global(html.dark) .audienceButtons button,
+:global(html.dark) .featureCard,
+:global(html.dark) .mobileNav,
+:global(html.dark) .installIcon,
+:global(html.dark) .installSheet { background: hsl(var(--card)); color: hsl(var(--foreground)); border-color: hsl(var(--border)); }
+:global(html.dark) .hero em { color: hsl(var(--secondary)); }

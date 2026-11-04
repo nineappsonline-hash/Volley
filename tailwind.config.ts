@@ -5,6 +5,7 @@ const scale = (name: string) => Object.fromEntries(
     [step, `hsl(var(--playza-${name}-${step}) / <alpha-value>)`])
 );
 const config: Config = {
+  darkMode: "class",
   content: [
     "./src/pages/**/*.{ts,tsx}",
     "./src/components/**/*.{ts,tsx}",

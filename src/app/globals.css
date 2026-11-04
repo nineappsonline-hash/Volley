@@ -55,14 +55,14 @@
   }
   html {
     scroll-behavior: smooth;
-    background-color: hsl(var(--playza-slate-50));
+    background-color: hsl(var(--background));
   }
   body {
     @apply bg-background antialiased;
     color: hsl(var(--body-text));
     font-weight: 400;
     line-height: 1.7;
-    background-color: hsl(var(--playza-slate-50));
+    background-color: hsl(var(--background));
     background-image: url("/images/sports-doodles.svg"),
       radial-gradient(ellipse at 0% 25%, hsl(var(--playza-purple) / .10), transparent 48%),
       radial-gradient(ellipse at 100% 75%, hsl(var(--playza-lime) / .16), transparent 43%),
@@ -429,3 +429,53 @@ input[type="checkbox"], input[type="radio"] { accent-color: hsl(var(--playza-pur
 /* Third-party date picker follows the same booking control colors. */
 .rdp{--rdp-accent-color:hsl(var(--playza-purple));--rdp-background-color:hsl(var(--playza-purple-100));--rdp-outline:2px solid hsl(var(--playza-purple));--rdp-outline-selected:2px solid hsl(var(--playza-purple))}
 .rdp .rdp-day_selected{background:hsl(var(--playza-purple));color:white}
+
+/* Automatic evening palette. Brand imagery and lime calls to action retain their identity. */
+html.dark {
+  color-scheme: dark;
+  --background: 260 28% 8%;
+  --surface: 260 24% 13%;
+  --foreground: 260 25% 95%;
+  --body-text: var(--foreground);
+  --text-secondary: 260 14% 73%;
+  --primary-foreground: 260 40% 12%;
+  --secondary: 270 85% 78%;
+  --secondary-hover: 270 90% 85%;
+  --secondary-foreground: 260 40% 12%;
+  --muted: 260 20% 19%;
+  --muted-foreground: 260 14% 73%;
+  --accent: 268 30% 24%;
+  --accent-foreground: 270 90% 88%;
+  --border: 260 18% 27%;
+  --ring: 270 85% 78%;
+  --success-ink: 145 65% 73%;
+  --warning-ink: 40 95% 75%;
+  --info-ink: 210 90% 78%;
+  --error-ink: 0 85% 80%;
+  --color-background: hsl(var(--background));
+  --color-surface: hsl(var(--surface));
+  --color-text-primary: hsl(var(--foreground));
+  --color-text-secondary: hsl(var(--muted-foreground));
+  --color-text: var(--color-text-primary);
+  --color-text-muted: var(--color-text-secondary);
+  --color-border: hsl(var(--border));
+  --color-secondary: hsl(var(--secondary));
+  --color-purple-tint: hsl(var(--accent));
+  --color-soft-lime: hsl(var(--muted));
+}
+html.dark body { background-image: radial-gradient(ellipse at top, #50287622, transparent 65%); }
+html.dark .text-primary { color: hsl(var(--secondary)); }
+/* Older screens still use fixed light utility surfaces rather than semantic tokens. */
+html.dark :is(.bg-white, .bg-slate-50, .bg-gray-50) { background-color: hsl(var(--card)); }
+html.dark :is(.bg-purple-50, .bg-purple-100) { background-color: hsl(var(--accent)); }
+html.dark :is(.text-slate-900, .text-gray-900, .text-purple-800, .text-purple-900) { color: hsl(var(--foreground)); }
+html.dark :is(.text-slate-500, .text-slate-600, .text-gray-500, .text-gray-600) { color: hsl(var(--muted-foreground)); }
+html.dark :is(.bg-positive-100, .bg-attention-100, .bg-negative-100) { background-color: hsl(var(--muted)); }
+html.dark [data-sonner-toaster] {
+  --success-bg: hsl(var(--card));
+  --warning-bg: hsl(var(--card));
+  --error-bg: hsl(var(--card));
+  --info-bg: hsl(var(--card));
+}
+
+html.dark .bg-primary { color: #241033; }

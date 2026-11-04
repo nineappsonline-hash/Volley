@@ -60,3 +60,6 @@
 .details :global(.text-primary) { color: #55159a; }
 .details :global(.bg-primary\/10),
 .details :global(.bg-primary\/15) { color: #55159a; background: #f1e8ff; }
+:global(html.dark) .details :global(.text-primary) { color: #d8b4fe; }
+:global(html.dark) .details :global(.bg-primary\/10),
+:global(html.dark) .details :global(.bg-primary\/15) { color: #d8b4fe; background: #382549; }

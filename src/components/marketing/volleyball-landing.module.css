@@ -164,3 +164,14 @@
 .landingGameCards>article>a{color:inherit}.landingGameCards>article>a:focus-visible{outline:3px solid var(--color-primary);outline-offset:-5px}
 .landingGameCards :global(.text-muted-foreground){color:#ede4ff}.landingGameCards :global(.bg-muted){background:#ffffff18;color:white}.landingGameCards strong{color:var(--color-primary)}
 @media(prefers-reduced-motion:reduce){.landingGameCards>article{transition:none}.landingGameCards>article:hover{transform:none}}
+
+:global(html.dark) .page {
+  color-scheme: dark;
+  --foreground: 260 25% 95%;
+  --body-text: var(--foreground);
+  --ink: hsl(var(--foreground));
+}
+:global(html.dark) .hero h1>span,
+:global(html.dark) .nav a:hover { color: hsl(var(--secondary)); }
+:global(html.dark) .academyCard,
+:global(html.dark) .ownerPin { background: hsl(var(--card)); color: hsl(var(--foreground)); }

@@ -1,5 +1,6 @@
 "use client";
 
+import { applyAutomaticTheme } from "@/lib/automatic-theme";
 import { useState, useEffect, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { I18nProvider } from "@/lib/i18n";
@@ -20,10 +21,16 @@ export function Providers({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    document.documentElement.classList.remove("dark");
-    document.documentElement.classList.add("light");
-    document.documentElement.style.colorScheme = "light";
-    try { localStorage.removeItem("theme"); } catch { /* Storage may be disabled. */ }
+    applyAutomaticTheme();
+    const timer = window.setInterval(applyAutomaticTheme, 30_000);
+    const refresh = () => { if (document.visibilityState === "visible") applyAutomaticTheme(); };
+    window.addEventListener("focus", applyAutomaticTheme);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", applyAutomaticTheme);
+      document.removeEventListener("visibilitychange", refresh);
+    };
   }, []);
 
   return (

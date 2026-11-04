@@ -113,3 +113,34 @@
 .desktopGames :global([data-game-overview]) :global([role="status"]) {
   color: #55159a;
 }
+
+/* Evening surfaces use lavender ink, retaining dark text on lime actions. */
+:global(html.dark) .heroSearch { background: hsl(var(--card)); color: hsl(var(--foreground)); }
+:global(html.dark) .heroSearch>input { color: hsl(var(--foreground)); }
+:global(html.dark) .heroSearch>input::placeholder { color: hsl(var(--muted-foreground)); }
+:global(html.dark) .heroSearch>button:last-child,
+:global(html.dark) .heroSearch>a { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); border-color: hsl(var(--secondary)); }
+:global(html.dark) .sports>button,
+:global(html.dark) .sportIcon,
+:global(html.dark) .sportsHeader>button { color: hsl(var(--secondary)); }
+:global(html.dark) .sports>button[aria-pressed="true"],
+:global(html.dark) .sports>button[aria-pressed="true"] .sportIcon,
+:global(html.dark) .sports>button:hover { color: #35116b; }
+:global(html.dark) .nextGame,
+:global(html.dark) .nextGameCard { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+:global(html.dark) .nextGame h2,
+:global(html.dark) .nextGame h3,
+:global(html.dark) .nextGame p { color: hsl(var(--foreground)); }
+:global(html.dark) .nextGameViewAll,
+:global(html.dark) .nextGameMobileLink,
+:global(html.dark) .categoryIcon { color: hsl(var(--secondary)); }
+:global(html.dark) .desktopGames {
+  --game-accent-ink: #d8b4fe;
+  --game-action-border: #795695;
+  --game-action-background: #2a2039;
+  --game-badge-background: #382549;
+  --game-muted-background: #282133;
+}
+:global(html.dark) .desktopGames :global([data-game-overview]) strong,
+:global(html.dark) .desktopGames :global([role="status"]) { color: #d8b4fe; }
+:global(html.dark) .desktopGames :global([data-game-info]) :global(.bg-muted) { color: #dfd1ec; }

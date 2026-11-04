@@ -1,3 +1,4 @@
+import { automaticThemeScript } from "@/lib/automatic-theme";
 import { BusinessAnalytics } from "@/components/analytics/business-analytics";
 import { LANDING_TITLE, LANDING_DESCRIPTION, LANDING_KEYWORDS } from "@/lib/landing-content";
 import { PLAYZA } from "@/lib/brand";
@@ -93,6 +94,7 @@ export default function RootLayout({
   return (
     <html lang={lang} dir={dir} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: automaticThemeScript }} />
         <script
           dangerouslySetInnerHTML={{
             __html: `try{if(!${publicPathMatcherSource()}){var s=localStorage.getItem('volley-lang');var st=s?JSON.parse(s).state:null;var lang=st&&st.lang==='en'?'en':'ar';document.documentElement.setAttribute('lang',lang==='ar'?'ar-EG':'en-EG');document.documentElement.setAttribute('dir',lang==='ar'?'rtl':'ltr');}}catch(e){}`,
