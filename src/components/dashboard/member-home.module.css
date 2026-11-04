@@ -37,3 +37,63 @@
 @media(min-width:1024px){.heroSearch>input{flex:1;min-width:0;background:transparent;font-size:15px;outline:none;padding:8px 0}.heroSearch>input:focus-visible{box-shadow:0 2px #7333af}.heroSearch>input::placeholder{color:#6a607b}}
 
 @media(min-width:1024px){.homeHeader>section{grid-column:1/-1}}
+
+.nextGameViewAll,.nextGameMobileLink{display:none}
+@media(max-width:1023px){
+  .homeHeader{gap:16px}
+  .welcome,.categories{display:none}
+  .desktopHero{display:grid;gap:10px;min-width:0}
+  .heroCopy{position:relative;isolation:isolate;overflow:hidden;min-height:172px;border-radius:18px;padding:20px 24px;color:white;background:linear-gradient(90deg,#40136beF,#5d258f88 65%,#52208022),url('/images/playza-dashboard-sports.webp') center 35%/cover;box-shadow:0 2px 4px #35116b20}
+  .heroCopy h1{color:white;font-size:clamp(26px,7vw,40px);font-weight:850;font-style:italic;letter-spacing:-.035em;line-height:1.03;max-width:70%}
+  .heroCopy p{font-size:13px;line-height:1.4;max-width:58%;margin-top:14px}
+  .heroCopy p:before{content:"";display:block;height:3px;width:65px;background:#caff32;border-radius:100%;transform:rotate(-10deg);margin-bottom:10px}
+  .heroSearch{display:grid;position:relative;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;color:#35116b}
+  .heroSearch>svg{position:absolute;inset-inline-start:15px;top:12px;width:20px;height:20px;pointer-events:none}
+  .heroSearch>input{grid-column:1/-1;min-width:0;width:100%;height:44px;border:1px solid #d4cde1;border-radius:26px;background:hsl(var(--card));padding:8px 18px;padding-inline-start:43px;font-size:13px;color:hsl(var(--foreground))}
+  .heroSearch>input::placeholder{color:#776b8b}.heroSearch>input:focus-visible{outline:2px solid #7020bc;outline-offset:2px}
+  .heroSearch>button,.heroSearch>a{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:44px;height:auto;padding:10px 6px;border-radius:11px;background:#caff32;color:#190e2d;font-size:13px;font-weight:800;white-space:normal;text-align:center;line-height:1.25}
+  .heroSearch>button:last-child,.heroSearch>a{border:1px solid #6c20b9;background:#f2eaff;color:#35116b}
+  .sportsHeader h2{font-size:18px}.sportsHeader>button{background:none;border:0;padding:0;min-height:32px;font-size:12px;color:#55129b}.sportsHeader>button[aria-pressed="true"]{background:none;color:#55129b}
+  .sports{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;padding:0 0 4px;scroll-snap-type:x proximity}
+  .sports>button{flex:0 0 calc((100% - 32px)/5);min-width:62px;min-height:78px;padding:8px 3px;gap:5px;border-radius:13px;background:hsl(var(--muted)/.75);font-size:11px;font-weight:550;color:#35116b;scroll-snap-align:start;line-height:1.15}
+  .sports>button:nth-child(5){order:-5}.sports>button:nth-child(4){order:-4}.sports>button:nth-child(3){order:-3}.sports>button:nth-child(2){order:-2}.sports>button:nth-child(6){order:-1}
+  .sports>button[aria-pressed="true"]{background:#d1ff62;font-weight:800}.sportIcon,.sports>button[aria-pressed="true"] .sportIcon{height:32px;width:32px;border:0;background:none;box-shadow:none;color:#35116b}.sportIcon svg{width:32px;height:32px}
+  .desktopContent{display:grid;gap:18px;min-width:0}
+  .nextGame{position:relative;display:block;min-width:0}.nextGame h2{font-size:18px;font-weight:800;padding-inline-end:75px;margin-bottom:12px;line-height:1.4}.nextGame h2>svg{display:none}
+  .nextGameViewAll{display:inline-flex;position:absolute;inset-inline-end:0;top:3px;align-items:center;gap:5px;font-size:12px;font-weight:750;color:#55129b;min-height:24px}
+  .nextGameCard{position:relative;min-width:0;border-radius:15px;background:linear-gradient(110deg,#f1eaff,#eadefc);padding:9px 27px 9px 10px;color:#25133c}
+  .nextGameInfo{display:flex;align-items:center;gap:12px;min-width:0;min-height:76px}.nextGameInfo>div:last-child{min-width:0}.nextGamePhoto{width:82px;height:76px;flex-shrink:0;border-radius:12px;background-size:cover;background-position:center}
+  .nextGame h3{font-size:17px;font-weight:800;line-height:1.2;margin-bottom:7px;color:#190e2d}.nextGame p{display:flex;gap:5px;align-items:flex-start;font-size:10px;line-height:1.6;margin:3px 0}.nextGame p svg{width:13px;height:13px;flex-shrink:0;margin-top:1px}
+  .nextGameActions{display:none}.nextGameMobileLink{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-inline-end:10px;color:#35116b;font-size:28px;border-radius:15px}.nextGameMobileLink:dir(rtl){transform:scaleX(-1)}
+  .emptyGameLink{display:inline-flex;margin-top:10px;padding:7px 12px;border-radius:8px;background:#caff32;font-size:12px;font-weight:700}
+  .mobileTopbar{border:0;box-shadow:none}.mobileTopbar>div{height:64px;gap:5px;padding-inline:18px}.mobileTopbar>div>button:first-child{width:30px}.mobileTopbar a[aria-label]>svg,.mobileTopbar a[aria-label]>img{height:31px;width:auto}
+}
+
+@media(max-width:1023px){
+.desktopGames :global([data-game-overview]){box-shadow:0 2px 4px #28113f12;border-radius:13px}
+.desktopGames :global([data-game-overview])>div:first-child{display:block;background:hsl(var(--card));color:hsl(var(--foreground))}
+.desktopGames :global([data-game-overview])>div:first-child>div[aria-hidden="true"]{display:none}
+.desktopGames :global([data-game-summary]){display:flex;flex-direction:column;padding:0;gap:0}
+.desktopGames :global([data-game-photo]){width:100%;height:150px;border-radius:0;background:linear-gradient(130deg,#43216b99,#43216b22),url('/images/playza-dashboard-sports.webp') center/cover}
+.desktopGames :global([data-game-photo])>span:first-child{display:none}
+.desktopGames :global([data-game-photo])>span:last-child{inset-inline:auto;inset-inline-start:12px;bottom:auto;top:12px;border-radius:20px;padding:5px 10px;background:#caff32;color:#28113f;font-size:10px}
+.desktopGames :global([data-game-summary])>[data-game-info]{width:100%;padding:12px;display:block}
+.desktopGames :global([data-game-overview]) :global(.text-muted-foreground){color:hsl(var(--muted-foreground))}
+.desktopGames :global([data-game-overview]) strong{color:#561296}
+.desktopGames :global([data-game-overview])>div:first-child>div:last-child{justify-content:flex-start;padding:0 12px 12px}
+.desktopGames :global([data-game-summary])>span:last-child{display:flex;align-items:center;justify-content:center;gap:12px;background:#caff32;color:#190e2d;font-size:13px;font-weight:800;width:calc(100% - 24px);margin:0 12px 12px;border-radius:8px;padding:8px}
+}
+
+@media(max-width:1023px){
+  .desktopGames :global([data-game-photo])>span:last-child{display:none}
+  .desktopGames :global([data-game-photo])>span:nth-last-child(2){display:inline-flex;position:absolute;inset-inline-start:12px;top:10px;gap:5px;align-items:center;border-radius:20px;background:#caff32;color:#190e2d;padding:4px 10px;font-size:11px;font-weight:800}
+  .desktopGames :global([data-game-photo])>span:nth-last-child(2):before{content:"";width:7px;height:7px;border-radius:50%;background:#19bb00}
+  .desktopGames :global([data-game-info])>span:first-child{font-size:18px;line-height:1.3;margin-bottom:5px}
+  .desktopGames :global([data-game-info])>span:nth-child(2){font-size:12px}
+  .desktopGames :global([data-game-summary])>span:last-child{font-size:15px;padding:10px}
+  .desktopGames :global([data-game-summary])>span:last-child svg{transform:rotate(45deg)}
+}
+@media(max-width:1023px){
+  .heroCopy{background-size:auto,200% auto;background-position:center,right top}
+  .desktopGames :global([data-game-photo]){background-size:auto,200% auto;background-position:center,right top}
+}

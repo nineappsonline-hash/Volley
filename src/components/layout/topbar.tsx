@@ -1,5 +1,6 @@
 "use client";
 
+import dashboardStyles from "@/components/dashboard/member-home.module.css";
 import { authLink } from "@/lib/auth-redirect";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -67,7 +68,7 @@ export function Topbar({ guest = false, role, navigationRole = role, name, usern
   };
 
   return (
-    <header className="pwa-pad-top sticky top-0 z-40 border-b bg-card/95 backdrop-blur-md">
+    <header className={`pwa-pad-top sticky top-0 z-40 border-b bg-card/95 backdrop-blur-md ${navigationRole === "member" ? dashboardStyles.mobileTopbar : ""}`}>
       <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
         <SheetTrigger asChild>

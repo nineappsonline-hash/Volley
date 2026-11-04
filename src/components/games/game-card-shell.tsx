@@ -47,6 +47,7 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
         {!photo && <span className="absolute inset-0 flex items-center justify-center text-white/30" aria-hidden="true">{SportIcon({ id: sport, size: 48 })}</span>}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {photo && <img src={photo} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} />}
+        <span className={styles.mobileStatus}>{game.status === "open" ? (slots <= 2 ? (ar ? "قرب يكتمل" : "Almost Full") : (ar ? "متاح" : "Open")) : t(`community_status_${game.status}`)}</span>
         <span className="absolute inset-x-0 bottom-0 bg-brand/95 px-1 py-1.5 text-center text-[9px] font-bold leading-tight text-highlight sm:text-[10px]">{game.sport}</span>
       </span>
       <span data-game-info="" className="block min-w-0 flex-1 space-y-1">

@@ -53,3 +53,5 @@
 .actions :global(a span) { color: inherit; }
 
 .desktopCta { display: none; }
+
+.mobileStatus { display: none; }

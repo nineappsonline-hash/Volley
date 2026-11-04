@@ -280,7 +280,7 @@ export function MemberDiscoveryCards({ search = "", memberId, hasAcademy, prefer
         </div>}
         content={interactive && guestQuery ? <GuestGameList games={gameItems.map(item => item.game)} /> : interactive && profile ? <DashboardGameList games={gameItems.map(item => item.game)} profile={profile} /> : undefined}
         live={interactive}
-        title={interactive ? (sportFilter === "all" ? (ar ? "الماتشات الحالية" : "Current games") : `${selectedSportLabel} · ${ar ? "الماتشات الحالية" : "Current games"}`) : (ar ? "مقترح ليك" : "Recommended for you")}
+        title={interactive ? (sportFilter === "all" ? (ar ? "الماتشات المتاحة" : "Available Games") : `${selectedSportLabel} · ${ar ? "الماتشات المتاحة" : "Available Games"}`) : (ar ? "مقترح ليك" : "Recommended for you")}
         tone="games"
         description={ar ? "انزل الملعب وقابل لاعبين وشارك في الماتش الجاي." : "Hit the court, meet new players, and make your next move."}
         action={gameJoined ? (ar ? "اكتشف المزيد من الماتشات" : "Discover more games") : (ar ? "دور على ماتش" : "Find games")}
