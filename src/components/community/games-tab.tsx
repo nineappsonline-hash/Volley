@@ -360,7 +360,7 @@ function GameCard({
                 variant="outline"
                 size="sm"
                 onClick={handleLeave}
-                disabled={leave.isPending || leaveBlocked}
+                disabled={leave.isPending || (!mine?.is_waitlisted && leaveBlocked)}
                 title={leaveBlocked ? t("games_leave_blocked") : undefined}
               >
                 {t("community_leave")}
@@ -373,9 +373,11 @@ function GameCard({
                 <Plus className="me-1 h-3.5 w-3.5" />
                 {t("community_join")}
               </Button>
-            ) : null)}
+            ) : <Button variant="outline" size="sm" onClick={handleJoin} disabled={(game.waitlist_count ?? 0) >= 2}>
+              {(game.waitlist_count ?? 0) >= 2 ? (lang === "ar" ? "قائمة الانتظار مكتملة" : "Waiting list full") : (lang === "ar" ? "انضم لقائمة الانتظار" : "Join waiting list")}
+            </Button>)}
 
-          {isOrganizer && mine?.pay_status === "unpaid" && (
+          {mine && !mine.is_waitlisted && mine.pay_status === "unpaid" && (
             <Button size="sm" onClick={() => setPayOpen("pay")}>
               <Wallet className="me-1 h-3.5 w-3.5" />
               {t("games_share_pay_now")}

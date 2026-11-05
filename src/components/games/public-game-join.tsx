@@ -16,7 +16,7 @@ export function PublicGameJoin({ game, inviteCode, returnTo }: {
   inviteCode?: string;
   returnTo?: string;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -26,7 +26,6 @@ export function PublicGameJoin({ game, inviteCode, returnTo }: {
   const destination = returnTo ?? (inviteCode ? `/games?join=${encodeURIComponent(inviteCode)}` : `${pathname}${params.size ? `?${params}` : ""}`);
   const full = game.status === "full" || (game.max_players != null && (game.participants_count ?? game.joined ?? 0) >= game.max_players);
   async function join() {
-    if (full) return;
     trackBusinessEvent("join_game_click", {sport:game.sport,governorate:game.governorate,area:game.area,country:game.country});
     rememberGameJoin(game.id);
     setBusy(true);
@@ -47,7 +46,7 @@ export function PublicGameJoin({ game, inviteCode, returnTo }: {
     finally { setBusy(false); }
   }
   return <>
-    <Button className="w-full" disabled={busy || full} onClick={() => void join()}>{t(full ? "community_game_full" : "community_join")}</Button>
+    <Button className="w-full" disabled={busy} onClick={() => void join()}>{full ? (lang === "ar" ? "انضم لقائمة الانتظار" : "Join waiting list") : t("community_join")}</Button>
     <JoinGameDialog open={paymentOpen} onOpenChange={setPaymentOpen} game={game} inviteCode={inviteCode} mode={mode} onSuccess={() => { router.refresh(); }} />
   </>;
 }

@@ -148,7 +148,7 @@ export function MyUpcomingGames({
                     </div>
                     <div className="flex flex-1 flex-col p-3">
                     <div className="flex flex-wrap items-center gap-2">
-                      {false && row.is_waitlisted && <Badge variant="secondary">{ar ? "قائمة الانتظار" : "Waitlisted"}</Badge>}
+                      {row.is_waitlisted && <Badge variant="secondary">{ar ? "قائمة الانتظار" : "Waitlisted"}</Badge>}
                       {tone === "due" && <Badge className="gap-1 bg-attention-100 text-warning-ink ">
                         <Wallet className="h-3 w-3" />{t("dash_share_due_badge")}
                       </Badge>}
@@ -212,7 +212,7 @@ export function MyUpcomingGames({
               <Badge className={cn("border-0", STATUS_STYLES[game.status] ?? "")}>
                 {t(`community_status_${game.status}` as keyof Dict)}
               </Badge>
-              {false && selected?.is_waitlisted && (
+              {selected?.is_waitlisted && (
                 <Badge variant="secondary" className="bg-white/15 text-white hover:bg-white/15">
                   {ar ? "قائمة الانتظار" : "Waitlisted"}
                 </Badge>
@@ -294,7 +294,7 @@ export function MyUpcomingGames({
                     <span className="h-2 w-2 shrink-0 rounded-full bg-primary/60" />
                     <span className="truncate">{player.player_name}</span>
                   </span>
-                  {false && player.is_waitlisted && <Badge variant="secondary">{ar ? "قائمة الانتظار" : "Waitlisted"}</Badge>}
+                  {player.is_waitlisted && <Badge variant="secondary">{ar ? "قائمة الانتظار" : "Waitlisted"}</Badge>}
                 </li>)}</ul>}
               </QueryState>
             </section>

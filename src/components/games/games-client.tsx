@@ -228,7 +228,7 @@ export function GameCard({
   ].filter(Boolean);
 
   return (
-    <GameCardShell initialExpanded={focus === game.id} layout="list" game={game} joined={joined} hideActionsWhenExpanded>
+    <GameCardShell initialExpanded={focus === game.id} layout="list" game={game} joined={joined} waitlisted={mine?.is_waitlisted} hideActionsWhenExpanded>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="truncate text-base">{game.title}</CardTitle>
@@ -250,7 +250,7 @@ export function GameCard({
                 {t("games_share_pending")}
               </Badge>
             )}
-            {false && (
+            {mine?.is_waitlisted && (
               <Badge variant="secondary" className="gap-1 text-[10px]">
                 <Clock className="h-3 w-3" />
                 {t("games_on_waitlist")}
@@ -408,14 +408,14 @@ export function GameCard({
                 variant="outline"
                 size="sm"
                 onClick={() => setLeaveConfirmOpen(true)}
-                disabled={leave.isPending || leaveBlocked}
+                disabled={leave.isPending || (!mine?.is_waitlisted && leaveBlocked)}
                 title={leaveBlocked ? t("games_leave_blocked") : undefined}
               >
                 {t("community_leave")}
               </Button>
             ) : full ? (
-              <Button variant="outline" size="sm" disabled>
-                {lang === "ar" ? "ممتلئ" : "Full"}
+              <Button variant="outline" size="sm" onClick={handleJoin} disabled={(game.waitlist_count ?? 0) >= 2}>
+                {(game.waitlist_count ?? 0) >= 2 ? (lang === "ar" ? "قائمة الانتظار مكتملة" : "Waiting list full") : (lang === "ar" ? "انضم لقائمة الانتظار" : "Join waiting list")}
               </Button>
             ) : (
               <Button size="lg" onClick={handleJoin} className="h-12 w-full gap-2 rounded-xl px-8 text-base font-extrabold shadow-lg shadow-primary/30 ring-2 ring-primary/15 [&_svg]:size-5 sm:w-auto">
@@ -425,7 +425,7 @@ export function GameCard({
             ))}
 
 
-          {isOrganizer && mine?.pay_status === "unpaid" && (
+          {mine && !mine.is_waitlisted && mine.pay_status === "unpaid" && (
             <Button size="sm" onClick={() => setPayOpen("pay")}>
               <Wallet className="me-1 h-3.5 w-3.5" />
               {t("games_share_pay_now")}
