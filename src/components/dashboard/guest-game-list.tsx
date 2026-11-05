@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import styles from "./member-home.module.css";
 import { usePathname, useSearchParams } from "next/navigation";
 import { GameCardShell } from "@/components/games/game-card-shell";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ export function GuestGameList({ games }: { games: FriendlyGameWithDetails[] }) {
   const params = useSearchParams();
   const { lang, t } = useI18n();
   const ar = lang === "ar";
-  return <div className="flex flex-col gap-3">{games.map(game => {
+  return <div className={`flex flex-col gap-3 ${styles.desktopGames}`}>{games.map(game => {
     const next = new URLSearchParams(params.toString()); next.set("focus", game.id);
     const returnTo = `${pathname}?${next}#game-${game.id}`;
     return <div key={game.id} id={`game-${game.id}`} className="scroll-mt-20"><GameCardShell layout="list" game={game} joined={false} initialExpanded={params.get("focus") === game.id}>

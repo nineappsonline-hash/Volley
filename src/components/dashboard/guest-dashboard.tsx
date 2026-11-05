@@ -19,6 +19,8 @@ export function GuestDashboard({ games }: { games: FriendlyGameWithDetails[]; di
     return () => { window.clearInterval(timer); window.removeEventListener("focus", refresh); };
   }, [router]);
   return <MemberHomeHeader onSearchChange={setSearch} guest selectedSport={sport} onSportChange={setSport}>
+    <section id="activity" className="min-w-0 scroll-mt-24">
     <MemberDiscoveryCards search={search} memberId="" hasAcademy={false} mode="games" interactive sportFilter={sport} focusGameId={params.get("focus") ?? undefined} guestQuery={{ data: games, isPending: false, isError: false, refetch: () => router.refresh() }} />
+    </section>
   </MemberHomeHeader>;
 }

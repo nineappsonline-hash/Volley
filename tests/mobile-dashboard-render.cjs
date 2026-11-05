@@ -83,3 +83,22 @@ try {
  global.document = originalDocument;
 }
 console.log('PASS: shared search typing, clear/reset and form submission update results without navigating away');
+
+// Guests must use the same full-width results region and photo-card grid as members.
+mocks['next/navigation'].useRouter = () => ({ refresh() {} });
+mocks['./member-discovery-cards'] = { MemberDiscoveryCards: () => React.createElement('div', { 'data-guest-results': true }) };
+const { GuestDashboard } = load('src/components/dashboard/guest-dashboard.tsx');
+const guestDashboard = renderToStaticMarkup(React.createElement(GuestDashboard, { games: [] }));
+assert.match(guestDashboard, /<section id="activity" class="min-w-0 scroll-mt-24"><div data-guest-results="true"/);
+mocks['@/components/shared/directions-links'] = { DirectionsLinks: () => null };
+const { GuestGameList } = load('src/components/dashboard/guest-game-list.tsx');
+const guestCards = renderToStaticMarkup(React.createElement(GuestGameList, { games: [{
+ id: 'guest-grid', title: 'Guest volleyball', sport: 'Volleyball', game_date: '2099-01-01',
+ start_time: '18:00', status: 'open', max_players: 12, participants_count: 4, share_price: 100,
+ is_public: true, playground: { name: 'Gateway' },
+}] }));
+assert.match(guestCards, /class="flex flex-col gap-3 desktopGames"/);
+assert.ok(guestCards.includes('data-game-overview=""'));
+assert.ok(guestCards.includes('Guest volleyball'));
+assert.ok(guestCards.includes('data-game-photo=""'));
+console.log('PASS: guest discovery spans the dashboard grid and uses shared responsive photo-card styling');
