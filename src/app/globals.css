@@ -479,3 +479,9 @@ html.dark [data-sonner-toaster] {
 }
 
 html.dark .bg-primary { color: #241033; }
+
+/* Semantic badges need dark tints when their ink switches to pastel at night. */
+html.dark .bg-warning-light { background-color: #3d2b14; }
+html.dark .bg-success-light { background-color: #143b2a; }
+html.dark .bg-info-light { background-color: #172f49; }
+html.dark .bg-error-light { background-color: #442127; }
