@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props) {
       description: shared?.text?.split("\\n")[0] || `
       Join a ${game.sport.toLowerCase()} game in ${location}. View schedule, fee and registration on Playza.`,
       url: path,
-      images: [{ url: `${SITE_URL}/og/game?code=${game.id}`, width: 1200, height: 630, alt: shared?.title || game.title }],
+      images: [{ url: `${SITE_URL}/og/game?code=${game.id}&v=4`, width: 1200, height: 630, alt: shared?.title || game.title }],
       type: "website",
       siteName: "Playza",
       locale: "en_US",
@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: Props) {
       title: shared?.title || `${game.title} — ${game.sport} game`,
       description: shared?.text?.split("\\n")[0] || `
       Join a ${game.sport.toLowerCase()} game in ${location}. View schedule, fee and registration on Playza.`,
-      images: [{ url: `${SITE_URL}/og/game?code=${game.id}`, alt: shared?.title || game.title }],
+      images: [{ url: `${SITE_URL}/og/game?code=${game.id}&v=4`, alt: shared?.title || game.title }],
     },
   };
 }

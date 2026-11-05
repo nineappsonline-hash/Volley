@@ -46,7 +46,7 @@ export const revalidate = 300; // refresh listing every 5 minutes
 
 type SP = Promise<{ sport?: string; join?: string; focus?: string }>;
 
-const GAME_OG_IMAGE = (code: string) => `${SITE_URL}/og/game?code=${encodeURIComponent(code)}&v=3`;
+const GAME_OG_IMAGE = (code: string) => `${SITE_URL}/og/game?code=${encodeURIComponent(code)}&v=4`;
 
 function gameMeta(game: Awaited<ReturnType<typeof getGameByInviteCode>>) {
   if (!game) return null;

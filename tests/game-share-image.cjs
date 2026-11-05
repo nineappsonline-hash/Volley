@@ -15,9 +15,15 @@ assert.equal(price({host_pays: false, share_price: 0}), 'Free to join');
 assert.equal(price({host_pays: true, share_price: 50}), 'Free — host covers the court');
 assert.equal(price({host_pays: false, share_price: 50}), 'EGP 50 per player');
 let game = null;
+modules['@/lib/social-image'] = load('src/lib/social-image.tsx');
 modules['@/lib/public-games'] = { getGameByInviteCode: async () => game };
 const {GET} = load('src/app/og/game/route.tsx');
 (async () => {
+  const website = fs.readFileSync('public/og-playza-v2.png');
+  assert.equal(website.readUInt32BE(16), 1200);
+  assert.equal(website.readUInt32BE(20), 630);
+  assert.ok(fs.readFileSync('src/lib/seo.ts', 'utf8').includes('/og-playza-v2.png'));
+  for (const file of ['src/app/games/page.tsx', 'src/app/games/[id]/page.tsx']) assert.ok(fs.readFileSync(file, 'utf8').includes('&v=4'));
   const sports = Object.values(modules['@/lib/sport-slugs'].SPORT_SLUGS);
   const images = new Map();
   for (const sport of [null, ...sports, 'Unknown Sport']) {

@@ -11,7 +11,7 @@ export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") ||
   "https://playza.nineapps.online";
 
-export const OG_IMAGE = "/og-playza-players.png";
+export const OG_IMAGE = "/og-playza-v2.png";
 
 /** Brand name in both languages. */
 export const BRAND = { en: "Playza", ar: "بلايزا Playza" } as const;
