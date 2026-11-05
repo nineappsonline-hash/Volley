@@ -37,11 +37,12 @@ for(lang of ['en','ar']){
  for(const host_pays of [true,false]){
   const html=renderToStaticMarkup(React.createElement(JoinGameDialog,{open:true,onOpenChange(){},mode:'join',game:{id:'g',title:'Full game',host_pays,status:'full',max_players:12,participants_count:12,share_price:100,waitlist_count:1}}));
   assert.ok(html.includes(lang==='en'?'Join waiting list':'انضم لقائمة الانتظار'));
-  assert.ok(html.includes(lang==='en'?'No payment now':'بدون دفع الآن'));
+  assert.ok(html.includes(lang==='en'?'manual refund':'استرداد المبلغ يدويًا'));
+  assert.ok(!html.includes(lang==='en'?'No payment now':'بدون دفع الآن'));
   assert.ok(html.includes('1/2'));assert.ok(!html.includes('CARD CHECKOUT'));assert.ok(!html.includes(lang==='en'?'Bring guests':'ضيوفك'));
-  assert.ok(!html.includes('disabled=""'),'one place remains');
+  assert.equal(html.includes('disabled=""'),!host_pays,'paid waiting list requires payment details');
  }
  const full=renderToStaticMarkup(React.createElement(JoinGameDialog,{open:true,onOpenChange(){},game:{id:'g',title:'Full game',status:'full',share_price:100,waitlist_count:2}}));
  assert.ok(full.includes('2/2'));assert.ok(full.includes('disabled=""'));
 }
-console.log('PASS: bilingual free/paid full-game waiting flow, no payment or guests, 1/2 available and 2/2 disabled');
+console.log('PASS: bilingual free/paid full-game waiting flow, payment required unless host-covered, no guests and 2/2 disabled');

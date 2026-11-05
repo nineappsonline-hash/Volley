@@ -4307,7 +4307,7 @@ export function useAllGamePayments() {
       const { data, error } = await supabase()
         .from("friendly_game_participants")
         .select(
-          "id, game_id, member_id, player_name, share_amount, pay_method, pay_receipt_url, pay_status, joined_at, game:friendly_games(title, sport, game_date, start_time, duration_hours, creator_name, status, location, area, playground:venues(name, area, governorate))"
+          "id, game_id, member_id, player_name, is_waitlisted, share_amount, pay_method, pay_receipt_url, pay_status, joined_at, game:friendly_games(title, sport, game_date, start_time, duration_hours, creator_name, status, location, area, playground:venues(name, area, governorate))"
         )
         .in("pay_status", ["unpaid", "pending", "approved", "rejected"])
         .order("joined_at", { ascending: false })
@@ -4318,6 +4318,7 @@ export function useAllGamePayments() {
         game_id: string;
         member_id: string;
         player_name: string | null;
+        is_waitlisted: boolean;
         share_amount: number | null;
         pay_method: string | null;
         pay_receipt_url: string | null;

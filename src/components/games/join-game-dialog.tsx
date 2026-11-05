@@ -142,15 +142,15 @@ export function JoinGameDialog({
     }
   };
 
+  const waiting = mode === "join" && (game.status === "full" || (game.max_players != null && game.participants_count != null && game.participants_count >= game.max_players));
   const amount = isRent
     ? (rentRemaining ?? 0)
     : game.host_pays
       ? mode === "pay"
         ? game.host_total ?? 0
         : 0
-      : (game.share_price ?? 0) * (mode === "join" ? 1 + guests.length : 1);
-  const waiting = mode === "join" && (game.status === "full" || (game.max_players != null && game.participants_count != null && game.participants_count >= game.max_players));
-  const isFree = (game.host_pays === true || waiting) && mode === "join";
+      : (game.share_price ?? 0) * (mode === "join" && !waiting ? 1 + guests.length : 1);
+  const isFree = game.host_pays === true && mode === "join";
   const busy = join.isPending || pay.isPending || rentPay.isPending;
 
   const noPlaces = waiting ? (game.waitlist_count ?? 0) >= 2 : mode === "join" && (game.status === "full" || (game.max_players != null && game.participants_count != null && game.participants_count + 1 + guests.length > game.max_players));
@@ -198,7 +198,7 @@ export function JoinGameDialog({
       } else {
         const added = await join.mutateAsync({
           gameId: game.id,
-          guests,
+          guests: waiting ? [] : guests,
           inviteCode,
           payMethod,
           payReceiptUrl: receiptUrl,
@@ -240,7 +240,7 @@ export function JoinGameDialog({
           </DialogTitle>
           <DialogDescription>
             {waiting
-              ? (lang === "ar" ? "قائمة الانتظار فيها مكانين فقط. مفيش دفع دلوقتي؛ هننقلك للماتش تلقائيًا لما مكان يفضى." : "Only 2 waiting places. No payment now; you move into the game automatically when a place opens.")
+              ? (lang === "ar" ? "قائمة الانتظار فيها مكانين فقط وبنفس نصيب اللاعب. الدفع لا يضمن مكانًا في الماتش؛ لو ما اتنقلتش للماتش، تواصل مع المنظّم لاسترداد المبلغ يدويًا." : "Only 2 waiting places, at the normal player price. Payment does not guarantee a player place. If you are not promoted, contact the organizer for a manual refund.")
               : isFree
               ? t("games_free_join_desc")
               : isRent
@@ -291,7 +291,7 @@ export function JoinGameDialog({
               </p>
               <p className="truncate text-sm font-semibold">{game.title}</p>
             </div>
-            {waiting ? <span className="text-sm font-semibold text-secondary">{lang === "ar" ? "بدون دفع الآن" : "No payment now"}</span> : isFree ? (
+            {isFree ? (
               <span className="shrink-0 text-lg font-extrabold text-success-ink">
                 {t("games_free_label")}
               </span>
@@ -457,7 +457,7 @@ export function JoinGameDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("common_cancel")}
           </Button>
-          {!isFree && payMethod === "kashier" ? <KashierButton target={{kind:isRent?"rent":"share",targetId:game.id,inviteCode,guests:mode==="join"?guests:undefined}} disabled={busy || noPlaces || !guestsValid || amount <= 0} /> : <Button onClick={submit} disabled={!canSubmit} className="gap-1">
+          {!isFree && payMethod === "kashier" ? <KashierButton target={{kind:isRent?"rent":"share",targetId:game.id,inviteCode,guests:mode==="join"&&!waiting?guests:undefined}} disabled={busy || noPlaces || !guestsValid || amount <= 0} /> : <Button onClick={submit} disabled={!canSubmit} className="gap-1">
             <Wallet className="h-4 w-4" />
             {busy
               ? t("common_saving")

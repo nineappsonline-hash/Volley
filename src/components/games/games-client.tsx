@@ -425,7 +425,7 @@ export function GameCard({
             ))}
 
 
-          {mine && !mine.is_waitlisted && mine.pay_status === "unpaid" && (
+          {mine && mine.pay_status === "unpaid" && (
             <Button size="sm" onClick={() => setPayOpen("pay")}>
               <Wallet className="me-1 h-3.5 w-3.5" />
               {t("games_share_pay_now")}

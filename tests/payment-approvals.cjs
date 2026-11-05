@@ -65,3 +65,36 @@ for(lang of ['en','ar']){
  assert.equal((html.match(new RegExp('>'+reject+'<','g'))||[]).length,8,'confirmed card rows retain Reject controls in both layouts');
 }
 console.log('PASS: confirmed Kashier payments are reviewable from All payments in both languages/layouts');
+
+// Mobile browsers block new windows opened after await. Receipt previews must
+// remain in-page and ignore a signed-URL response if the viewer was closed.
+(async()=>{
+ let slots=[],cursor=0,refs=[],refCursor=0,resolveReceipt;
+ const oldShares=mocks['@/lib/queries'].useAllGamePayments;
+ mocks['@/lib/queries'].useAllGamePayments=()=>query([{id:'receipt-share',game_id:'game',member_id:'payer',player_name:'Player',share_amount:100,pay_method:'instapay',joined_at:'2026-10-20T12:00:00Z',pay_status:'pending',pay_receipt_url:'payer/mobile.jpg',game}]);
+ mocks['@/lib/supabase/client']={createClient:()=>({storage:{from:bucket=>({createSignedUrl:async(path,expiry)=>{
+  assert.equal(bucket,'game-fee-receipts');assert.equal(path,'payer/mobile.jpg');assert.equal(expiry,600);
+  return new Promise(resolve=>{resolveReceipt=resolve});
+ }})}})};
+ mocks.react={...React,useEffect(){},useId:()=> 'receipt-test',useMemo:fn=>fn(),useRef:initial=>{const i=refCursor++;return refs[i]??=( {current:initial} );},useState:initial=>{const i=cursor++;if(!(i in slots))slots[i]=i===0?true:initial;return [slots[i],value=>{slots[i]=typeof value==='function'?value(slots[i]):value}];}};
+ cache.delete(path.resolve('src/components/super-admin/payment-approvals.tsx'));
+ const Component=load('src/components/super-admin/payment-approvals.tsx').PaymentApprovals;
+ const {Dialog}=load('src/components/ui/dialog.tsx');
+ const render=()=>{cursor=0;refCursor=0;return Component();};
+ lang='en';
+ let tree=render();
+ const view=find(tree,n=>typeof n.props?.onClick==='function'&&React.Children.toArray(n.props.children).includes(dictionary.en.super_admin_fee_view_receipt));
+ assert.ok(view);
+ let pending=view.props.onClick();
+ tree=render();assert.equal(find(tree,n=>n.type===Dialog).props.open,true);
+ assert.ok(find(tree,n=>n.props?.role==='status'));
+ resolveReceipt({data:{signedUrl:'https://example.test/private-receipt'},error:null});await pending;
+ tree=render();assert.equal(find(tree,n=>n.type==='img').props.src,'https://example.test/private-receipt');
+ const fullSize=find(tree,n=>n.type==='a'&&n.props.href==='https://example.test/private-receipt');assert.equal(fullSize.props.target,'_blank');
+ find(tree,n=>n.type===Dialog).props.onOpenChange(false);
+ pending=view.props.onClick();tree=render();find(tree,n=>n.type===Dialog).props.onOpenChange(false);
+ resolveReceipt({data:{signedUrl:'https://example.test/stale'},error:null});await pending;
+ tree=render();assert.equal(find(tree,n=>n.type===Dialog).props.open,false);
+ mocks['@/lib/queries'].useAllGamePayments=oldShares;
+ console.log('PASS: mobile receipt opens in-page before signing, displays signed image, offers direct full-size link and ignores closed-viewer responses');
+})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { CheckCircle2, ChevronDown, Eye, Receipt, XCircle } from "lucide-react";
 import { format } from "date-fns";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -107,6 +108,9 @@ export function PaymentApprovals() {
   const reviewSub = useReviewSubscription();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | PayStatus>("pending");
+  const [receiptPreview, setReceiptPreview] = useState<{ url: string | null; path: string } | null>(null);
+  const [receiptError, setReceiptError] = useState(false);
+  const receiptRequest = useRef(0);
   const [openingReceipt, setOpeningReceipt] = useState<string | null>(null);
 
   const memberName = (id: string) =>
@@ -136,7 +140,7 @@ export function PaymentApprovals() {
         kind: "share",
         memberId: p.member_id,
         playerName: p.player_name,
-        label: t("super_admin_payments_for_share"),
+        label: p.is_waitlisted ? copy("Waiting-list payment", "دفع قائمة الانتظار") : t("super_admin_payments_for_share"),
         detail: p.game?.title ?? copy("Game details unavailable", "تفاصيل الماتش غير متاحة"),
         context: [...gameContext(p.game, p.game_id), ...(p.player_name ? [{ label: copy("Player / paid place", "اللاعب / المكان المدفوع"), value: p.player_name }] : [])],
         amount: p.share_amount ?? 0,
@@ -245,17 +249,21 @@ export function PaymentApprovals() {
 
   const handleViewReceipt = async (record: PaymentRecord) => {
     if (!record.receiptUrl) return;
+    const request = ++receiptRequest.current;
+    setReceiptPreview({ url: null, path: record.receiptUrl });
+    setReceiptError(false);
     setOpeningReceipt(record.key);
     try {
       const { data, error } = await createClient().storage
         .from(record.bucket)
         .createSignedUrl(record.receiptUrl, 600);
       if (error) throw error;
-      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+      if (!data?.signedUrl) throw new Error("Receipt URL unavailable");
+      if (request === receiptRequest.current) setReceiptPreview({ url: data.signedUrl, path: record.receiptUrl });
     } catch {
-      toast.error(t("super_admin_payments_receipt_fail"));
+      if (request === receiptRequest.current) setReceiptError(true);
     } finally {
-      setOpeningReceipt(null);
+      if (request === receiptRequest.current) setOpeningReceipt(null);
     }
   };
 
@@ -428,6 +436,20 @@ export function PaymentApprovals() {
         )}
         </QueryState>
       </CardContent>
+      <Dialog open={receiptPreview !== null} onOpenChange={open => { if (!open) { ++receiptRequest.current; setReceiptPreview(null); setOpeningReceipt(null); } }}>
+        <DialogContent className="flex max-h-[90dvh] min-w-0 flex-col overflow-x-hidden rounded-2xl sm:max-w-3xl">
+          <DialogTitle className="pe-6">{t("super_admin_fee_view_receipt")}</DialogTitle>
+          <DialogDescription>{lang === "ar" ? "راجع الإيصال قبل اعتماد الدفع." : "Review the receipt before approving payment."}</DialogDescription>
+          <div className="min-h-40 min-w-0 overflow-auto rounded-xl border bg-muted/30">
+            {receiptError ? <p role="alert" className="p-5 text-sm text-error-ink">{t("super_admin_payments_receipt_fail")}</p> : !receiptPreview?.url ? <p role="status" className="p-5 text-sm text-muted-foreground">{lang === "ar" ? "جاري تحميل الإيصال…" : "Loading receipt…"}</p> : /\.pdf$/i.test(receiptPreview.path) ? <iframe src={receiptPreview.url} title={t("super_admin_fee_view_receipt")} className="h-[55dvh] w-full border-0" /> : (
+              // Receipt files use signed URLs from private storage.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={receiptPreview.url} alt={lang === "ar" ? "إيصال الدفع" : "Payment receipt"} className="mx-auto max-h-[60dvh] max-w-full object-contain" onError={() => setReceiptError(true)} />
+            )}
+          </div>
+          {receiptPreview?.url && <Button variant="outline" asChild><a href={receiptPreview.url} target="_blank" rel="noopener noreferrer">{lang === "ar" ? "افتح الإيصال بحجمه الكامل" : "Open full-size receipt"}</a></Button>}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
