@@ -4302,13 +4302,14 @@ type PaymentGameContext = {
 // admin payment approvals section.
 export function useAllGamePayments() {
   return useQuery({
-    queryKey: ["all-game-payments"],
+    queryKey: ["all-game-payments", "payer-groups"],
     queryFn: async () => {
       const { data, error } = await supabase()
         .from("friendly_game_participants")
         .select(
-          "id, game_id, member_id, player_name, is_waitlisted, share_amount, pay_method, pay_receipt_url, pay_status, joined_at, game:friendly_games(title, sport, game_date, start_time, duration_hours, creator_name, status, location, area, playground:venues(name, area, governorate))"
+          "id, game_id, member_id, player_name, sponsor_participant_id, is_waitlisted, share_amount, pay_method, pay_receipt_url, pay_status, joined_at, game:friendly_games(title, sport, game_date, start_time, duration_hours, creator_name, status, location, area, playground:venues(name, area, governorate))"
         )
+        .is("sponsor_participant_id", null)
         .in("pay_status", ["unpaid", "pending", "approved", "rejected"])
         .order("joined_at", { ascending: false })
         .limit(200);
@@ -4318,6 +4319,7 @@ export function useAllGamePayments() {
         game_id: string;
         member_id: string;
         player_name: string | null;
+        sponsor_participant_id: string | null;
         is_waitlisted: boolean;
         share_amount: number | null;
         pay_method: string | null;
@@ -4326,8 +4328,34 @@ export function useAllGamePayments() {
         joined_at: string;
         game: PaymentGameContext | PaymentGameContext[] | null;
       }[];
-      return rows.filter(r => r.pay_status !== "unpaid" || r.pay_method === "kashier").map((r) => ({
+      const payers = rows.filter(r => r.pay_status !== "unpaid" || r.pay_method === "kashier");
+      type GuestPayment = { id: string; player_name: string; share_amount: number | null; sponsor_participant_id: string };
+      const guestsByPayer = new Map<string, GuestPayment[]>();
+      // Fetch complete parties separately: self-referencing embeds are not
+      // supported consistently across PostgREST versions. Page below the API cap.
+      if (payers.length) {
+        const payerIds = payers.map(payer => payer.id);
+        const pageSize = 500;
+        for (let offset = 0; ; offset += pageSize) {
+          const { data: guestData, error: guestError } = await supabase()
+            .from("friendly_game_participants")
+            .select("id, player_name, share_amount, sponsor_participant_id")
+            .in("sponsor_participant_id", payerIds)
+            .order("id", { ascending: true })
+            .range(offset, offset + pageSize - 1);
+          if (guestError) throw guestError;
+          const guests = (guestData ?? []) as GuestPayment[];
+          for (const guest of guests) {
+            const party = guestsByPayer.get(guest.sponsor_participant_id) ?? [];
+            party.push(guest);
+            guestsByPayer.set(guest.sponsor_participant_id, party);
+          }
+          if (guests.length < pageSize) break;
+        }
+      }
+      return payers.map((r) => ({
         ...r,
+        guests: guestsByPayer.get(r.id) ?? [],
         game: Array.isArray(r.game) ? (r.game[0] ?? null) : r.game,
       }));
     },

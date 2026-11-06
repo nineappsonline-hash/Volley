@@ -66,6 +66,9 @@ interface PaymentRecord {
   bucket: "game-fee-receipts" | "subscription-receipts";
   status: PayStatus;
   orderId?: string;
+  payerName?: string;
+  payerShare?: number;
+  guests?: { id: string; player_name: string; share_amount: number | null }[];
 }
 
 export function PaymentApprovals() {
@@ -135,6 +138,8 @@ export function PaymentApprovals() {
     };
 
     for (const p of shares ?? []) {
+      if (p.sponsor_participant_id) continue;
+      const guests = p.guests ?? [];
       out.push({
         key: `share:${p.id}`,
         kind: "share",
@@ -143,7 +148,10 @@ export function PaymentApprovals() {
         label: p.is_waitlisted ? copy("Waiting-list payment", "دفع قائمة الانتظار") : t("super_admin_payments_for_share"),
         detail: p.game?.title ?? copy("Game details unavailable", "تفاصيل الماتش غير متاحة"),
         context: [...gameContext(p.game, p.game_id), ...(p.player_name ? [{ label: copy("Player / paid place", "اللاعب / المكان المدفوع"), value: p.player_name }] : [])],
-        amount: p.share_amount ?? 0,
+        payerName: (p.member_id ? members?.find(member => member.id === p.member_id)?.name : undefined) ?? p.player_name ?? copy("Payer", "صاحب الدفع"),
+        payerShare: Number(p.share_amount ?? 0),
+        guests,
+        amount: Number(p.share_amount ?? 0) + guests.reduce((sum, guest) => sum + Number(guest.share_amount ?? 0), 0),
         method: p.pay_method,
         createdAt: p.joined_at,
         receiptUrl: p.pay_receipt_url,
@@ -201,7 +209,7 @@ export function PaymentApprovals() {
       const order = cardOrders?.find(o => o.kind === record.kind && o.target_id === record.key.slice(record.key.indexOf(":") + 1));
       return { ...record, orderId: order?.id, status: paymentReviewStatus(record.status, record.method, order) };
     });
-  }, [shares, rents, subscriptions, cardOrders, t, lang, locale]);
+  }, [shares, rents, subscriptions, cardOrders, members, t, lang, locale]);
 
   const pendingCount = records.filter((r) => r.status === "pending" || r.status === "review_required").length;
 
@@ -455,13 +463,30 @@ export function PaymentApprovals() {
 }
 
 function PaymentPurpose({ record, language }: { record: PaymentRecord; language: string }) {
+  const ar = language === "ar";
+  const money = (amount: number) => formatMoneyShort(amount, language as "en" | "ar");
   return <div className="mt-2 min-w-0 space-y-2 text-xs">
-    <p className="whitespace-normal break-words text-sm font-semibold">{record.detail}</p>
-    <details className="group/purpose">
-      <summary className="flex w-fit cursor-pointer list-none items-center gap-1 rounded py-1 font-medium text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">{language === "ar" ? "تفاصيل الدفع" : "Payment details"}<ChevronDown className="h-3.5 w-3.5 transition-transform group-open/purpose:rotate-180 motion-reduce:transition-none" aria-hidden="true" /></summary>
-      <dl className="mt-1 space-y-1">{record.context.map(field => <div key={field.label} className="flex flex-wrap gap-x-2">
-      <dt className="text-muted-foreground">{field.label}:</dt><dd className="min-w-0 whitespace-normal break-words">{field.value}</dd>
-    </div>)}<div className="flex flex-wrap gap-x-2"><dt className="text-muted-foreground">{language === "ar" ? "مرجع الدفع" : "Payment reference"}:</dt><dd className="break-all font-mono text-[10px]">{record.key.slice(record.key.indexOf(":") + 1)}</dd></div></dl>
+    <p className="whitespace-normal break-words text-sm font-semibold leading-relaxed">{record.detail}</p>
+    {!!record.guests?.length && <p className="text-xs font-medium text-secondary">{1 + record.guests.length} {ar ? "لاعبين في دفعة واحدة" : "players in one payment"} · {record.guests.length} {ar ? "ضيوف" : "guests"}</p>}
+    <details className="group/purpose rounded-xl border bg-muted/20">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-3 py-2.5 font-semibold text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">{ar ? "تفاصيل الدفع" : "Payment details"}<ChevronDown className="h-4 w-4 shrink-0 transition-transform group-open/purpose:rotate-180 motion-reduce:transition-none" aria-hidden="true" /></summary>
+      <div className="space-y-4 border-t p-3 text-start">
+        <section className="space-y-2">
+          <h4 className="text-xs font-bold">{ar ? "تفاصيل الحجز" : "Booking details"}</h4>
+          <dl className="grid min-w-0 gap-2 sm:grid-cols-2">{record.context.map(field => <div key={field.label} className="min-w-0 rounded-lg bg-card p-2.5">
+            <dt className="text-[11px] text-muted-foreground">{field.label}</dt><dd className="mt-1 min-w-0 whitespace-normal break-words text-xs font-medium leading-relaxed">{field.value}</dd>
+          </div>)}</dl>
+        </section>
+        {record.payerShare != null && <section className="space-y-2">
+          <h4 className="text-xs font-bold">{ar ? "صاحب الدفع والضيوف" : "Payer & guests"}</h4>
+          <ul className="space-y-2">
+            <li className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-card p-2.5"><span className="min-w-0 break-words font-medium">{record.payerName}<span className="ms-1.5 text-[11px] text-muted-foreground">({ar ? "صاحب الدفع" : "Payer"})</span></span><strong className="whitespace-nowrap">{money(record.payerShare)}</strong></li>
+            {record.guests?.map((guest, index) => <li key={guest.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-card p-2.5"><span className="min-w-0 break-words font-medium">{guest.player_name}<span className="ms-1.5 text-[11px] text-muted-foreground">({ar ? "ضيف" : "Guest"} {index + 1})</span></span><strong className="whitespace-nowrap">{money(Number(guest.share_amount ?? 0))}</strong></li>)}
+          </ul>
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-accent px-3 py-2.5 text-accent-foreground"><span className="font-semibold">{ar ? "إجمالي الدفعة" : "Payment total"}</span><strong className="text-sm">{money(record.amount)}</strong></div>
+        </section>}
+        <div className="border-t pt-2"><p className="text-[11px] text-muted-foreground">{ar ? "مرجع الدفع" : "Payment reference"}</p><p dir="ltr" className="mt-1 break-all font-mono text-[10px] text-muted-foreground">{record.key.slice(record.key.indexOf(":") + 1)}</p></div>
+      </div>
     </details>
   </div>;
 }
