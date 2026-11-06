@@ -171,7 +171,70 @@
   --body-text: var(--foreground);
   --ink: hsl(var(--foreground));
 }
-:global(html.dark) .hero h1>span,
+:global(html.dark) .hero h1>span { color: var(--color-primary); }
 :global(html.dark) .nav a:hover { color: hsl(var(--secondary)); }
 :global(html.dark) .academyCard,
 :global(html.dark) .ownerPin { background: hsl(var(--card)); color: hsl(var(--foreground)); }
+
+/* Keep surfaces theme-aware without recoloring the artwork or brand panels. */
+:global(html.dark) .page {
+  --cream: hsl(var(--background));
+  color: hsl(var(--foreground));
+  background-image: none;
+}
+:global(html.dark) .page>main {
+  background-image: radial-gradient(ellipse at 0% 30%, #53238818, transparent 55%);
+  background-size: 100% 1200px;
+}
+:global(html.dark) .header,
+:global(html.dark) .footer {
+  background: hsl(var(--surface));
+  border-color: hsl(var(--border));
+}
+:global(html.dark) .hero {
+  background: linear-gradient(120deg, #241137, #351653);
+}
+:global(html.dark) .heroArt {
+  background: #21172f;
+  color: #f2ebff;
+  border: 1px solid #ffffff18;
+}
+:global(html.dark) .orbit {
+  background: radial-gradient(ellipse, #8250b326, transparent 67%);
+  border-color: #ffffff12;
+}
+:global(html.dark) .orbit:after { border-color: #ffffff18; }
+:global(html.dark) .locationTag,
+:global(html.dark) .motionButton {
+  background: hsl(var(--surface));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+/* SVGs share a stable drawing palette, independent of page surface tokens. */
+:global(html.dark) :is(.multiSportHero,.courtSvg,.beachScene) {
+  --color-background: #f7f3ff;
+  --color-purple-dark: #482078;
+}
+:global(html.dark) .primary,
+:global(html.dark) .primary:hover { color: #241033; }
+:global(html.dark) .page :is(a,button):focus-visible { outline-color: var(--color-primary); }
+:global(html.dark) .discoveryCard { border-color: hsl(var(--border)); }
+:global(html.dark) .courtCard { background: hsl(var(--card)); }
+:global(html.dark) .circleArrow { border-color: hsl(var(--border)); }
+:global(html.dark) .sportButtons button { border-color: hsl(var(--border)); }
+:global(html.dark) .sportButtons button[aria-pressed=true] {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+  border-color: hsl(var(--secondary));
+}
+:global(html.dark) .sportButtons button:hover { color: hsl(var(--foreground)); }
+:global(html.dark) :is(.stepTwo,.stepThree,.ownerBadge,.academySchedule,.academyQr,.sportPoster) {
+  color: #28114f;
+}
+:global(html.dark) .sticker { background: #632e99; color: white; border-color: #b88ce4; box-shadow: 4px 4px 0 #12091f; }
+:global(html.dark) :is(.sportTile,.ownerSection,.landingGameCards>article),
+:global(html.dark) .academyMgmt>.academyPanel {
+  background: linear-gradient(125deg, #301448, #512379);
+  border-color: #ffffff26;
+}
+:global(html.dark) .finalCta { background: #241137; color: #f6f0ff; }
