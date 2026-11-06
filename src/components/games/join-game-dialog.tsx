@@ -72,7 +72,6 @@ export function JoinGameDialog({
     participants_count?: number;
     max_players?: number;
     status?: string;
-    waitlist_count?: number;
     gender?: string; min_age?: number | null; max_age?: number | null;
   };
   inviteCode?: string | null;
@@ -142,18 +141,17 @@ export function JoinGameDialog({
     }
   };
 
-  const waiting = mode === "join" && (game.status === "full" || (game.max_players != null && game.participants_count != null && game.participants_count >= game.max_players));
   const amount = isRent
     ? (rentRemaining ?? 0)
     : game.host_pays
       ? mode === "pay"
         ? game.host_total ?? 0
         : 0
-      : (game.share_price ?? 0) * (mode === "join" && !waiting ? 1 + guests.length : 1);
+      : (game.share_price ?? 0) * (mode === "join" ? 1 + guests.length : 1);
   const isFree = game.host_pays === true && mode === "join";
   const busy = join.isPending || pay.isPending || rentPay.isPending;
 
-  const noPlaces = waiting ? (game.waitlist_count ?? 0) >= 2 : mode === "join" && (game.status === "full" || (game.max_players != null && game.participants_count != null && game.participants_count + 1 + guests.length > game.max_players));
+  const noPlaces = mode === "join" && (game.status === "full" || (game.max_players != null && game.participants_count != null && game.participants_count + 1 + guests.length > game.max_players));
 
   const submit = async () => {
     if (noPlaces) return;
@@ -161,12 +159,12 @@ export function JoinGameDialog({
       try {
         const added = await join.mutateAsync({
           gameId: game.id,
-          guests: waiting ? [] : guests,
+          guests,
           inviteCode,
           payMethod: null,
           payReceiptUrl: null,
         });
-        toast.success(added ? (lang === "ar" ? "انضمّيت لقائمة الانتظار" : "You joined the waiting list") : `${game.title} · ${t("community_joined")}`);
+        toast.success(`${game.title} · ${t("community_joined")}`);
         requestPushPrompt();
         onOpenChange(false);
         onSuccess?.();
@@ -196,14 +194,14 @@ export function JoinGameDialog({
         });
         toast.success(t("games_rent_submitted"));
       } else {
-        const added = await join.mutateAsync({
+        await join.mutateAsync({
           gameId: game.id,
-          guests: waiting ? [] : guests,
+          guests,
           inviteCode,
           payMethod,
           payReceiptUrl: receiptUrl,
         });
-        toast.success(added ? (lang === "ar" ? "انضمّيت لقائمة الانتظار" : "You joined the waiting list") : `${game.title} · ${t("community_joined")}`);
+        toast.success(`${game.title} · ${t("community_joined")}`);
         requestPushPrompt();
       }
       onOpenChange(false);
@@ -214,7 +212,7 @@ export function JoinGameDialog({
   };
 
   const guestsValid = guests.every(g => g.name.trim().length > 0 && g.name.trim().length <= 100 && (!game.gender || game.gender === "mixed" || g.gender === game.gender) && ((game.min_age == null && game.max_age == null) || (g.age !== "" && Number.isInteger(Number(g.age)) && Number(g.age) >= (game.min_age ?? 0) && Number(g.age) <= (game.max_age ?? 100))));
-  const canSubmit = !noPlaces && (waiting || guestsValid) && (isFree
+  const canSubmit = !noPlaces && guestsValid && (isFree
     ? !busy
     : !!payMethod &&
       payMethod !== "kashier" &&
@@ -232,16 +230,12 @@ export function JoinGameDialog({
               ? t("games_share_pay_title")
               : isRent
                 ? t("games_rent_title")
-                : waiting
-                  ? (lang === "ar" ? "قائمة انتظار الماتش" : "Game waiting list")
-                  : isFree
+                : isFree
                   ? t("games_free_join_title")
                   : t("games_share_join_title")}
           </DialogTitle>
           <DialogDescription>
-            {waiting
-              ? (lang === "ar" ? "قائمة الانتظار فيها مكانين فقط وبنفس نصيب اللاعب. الدفع لا يضمن مكانًا في الماتش؛ لو ما اتنقلتش للماتش، تواصل مع المنظّم لاسترداد المبلغ يدويًا." : "Only 2 waiting places, at the normal player price. Payment does not guarantee a player place. If you are not promoted, contact the organizer for a manual refund.")
-              : isFree
+            {isFree
               ? t("games_free_join_desc")
               : isRent
                 ? t("games_rent_desc")
@@ -250,8 +244,7 @@ export function JoinGameDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          {waiting && <p className="rounded-xl border bg-accent p-3 text-sm text-accent-foreground">{game.title} · {lang === "ar" ? "قائمة الانتظار" : "Waiting list"}: {game.waitlist_count ?? 0}/2{noPlaces ? (lang === "ar" ? " — مكتملة" : " — full") : ""}</p>}
-          {mode === "join" && !waiting && <section aria-label={lang === "ar" ? "ملخص الحجز" : "Booking summary"} className="space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
+          {mode === "join" && <section aria-label={lang === "ar" ? "ملخص الحجز" : "Booking summary"} className="space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
             <h3 className="text-base font-bold">{game.title}</h3>
             <div className="space-y-2 text-sm text-muted-foreground">
               {game.game_date && <p className="flex items-center gap-2"><CalendarDays className="h-4 w-4 shrink-0" />{game.game_date}{game.start_time ? ` · ${formatTime12h(game.start_time, lang)}` : ""}</p>}
@@ -266,7 +259,7 @@ export function JoinGameDialog({
             <p className="text-xs leading-relaxed text-muted-foreground">{t("community_leave_confirm_desc")}</p>
             {!isFree && <p className="text-xs leading-relaxed text-muted-foreground">{lang === "ar" ? "الدفع بالتحويل يحتاج إيصالًا ومراجعة. يتم تأكيد المكان عند إتمام الانضمام حسب التوفر." : "Bank and wallet transfers need a receipt and review. Your place is confirmed when joining completes, subject to availability."}</p>}
           </section>}
-          {mode === "join" && !waiting && <section className="space-y-3 rounded-lg border p-3">
+          {mode === "join" && <section className="space-y-3 rounded-lg border p-3">
             <h3 className="font-semibold">{lang === "ar" ? "ضيوفك" : "Bring guests"}</h3>
             <p className="text-xs text-muted-foreground">{isFree ? (lang === "ar" ? "المنظّم متكفّل بالتكلفة. كل ضيف بيتحسب مكان في الماتش." : "The host covers the cost. Each guest takes one player place.") : (lang === "ar" ? "إنت بتدفع عن نفسك وضيوفك. كل ضيف بيتحسب مكان في الماتش." : "You pay for yourself and your guests. Each guest takes one player place.")}</p>
             {guests.map((guest,index)=><div key={index} className="space-y-2 rounded border p-3">
@@ -457,13 +450,11 @@ export function JoinGameDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("common_cancel")}
           </Button>
-          {!isFree && payMethod === "kashier" ? <KashierButton target={{kind:isRent?"rent":"share",targetId:game.id,inviteCode,guests:mode==="join"&&!waiting?guests:undefined}} disabled={busy || noPlaces || !guestsValid || amount <= 0} /> : <Button onClick={submit} disabled={!canSubmit} className="gap-1">
+          {!isFree && payMethod === "kashier" ? <KashierButton target={{kind:isRent?"rent":"share",targetId:game.id,inviteCode,guests:mode==="join"?guests:undefined}} disabled={busy || noPlaces || !guestsValid || amount <= 0} /> : <Button onClick={submit} disabled={!canSubmit} className="gap-1">
             <Wallet className="h-4 w-4" />
             {busy
               ? t("common_saving")
-              : waiting
-                ? (lang === "ar" ? "انضم لقائمة الانتظار" : "Join waiting list")
-                : isFree
+              : isFree
                 ? t("games_free_join")
                 : isPay
                   ? t("games_share_pay_submit")

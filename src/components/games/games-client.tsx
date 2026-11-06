@@ -414,8 +414,8 @@ export function GameCard({
                 {t("community_leave")}
               </Button>
             ) : full ? (
-              <Button variant="outline" size="sm" onClick={handleJoin} disabled={(game.waitlist_count ?? 0) >= 2}>
-                {(game.waitlist_count ?? 0) >= 2 ? (lang === "ar" ? "قائمة الانتظار مكتملة" : "Waiting list full") : (lang === "ar" ? "انضم لقائمة الانتظار" : "Join waiting list")}
+              <Button variant="outline" size="sm" disabled>
+                {lang === "ar" ? "ممتلئ" : "Full"}
               </Button>
             ) : (
               <Button size="lg" onClick={handleJoin} className="h-12 w-full gap-2 rounded-xl px-8 text-base font-extrabold shadow-lg shadow-primary/30 ring-2 ring-primary/15 [&_svg]:size-5 sm:w-auto">
@@ -425,7 +425,7 @@ export function GameCard({
             ))}
 
 
-          {mine && mine.pay_status === "unpaid" && (
+          {mine && !mine.is_waitlisted && mine.pay_status === "unpaid" && (
             <Button size="sm" onClick={() => setPayOpen("pay")}>
               <Wallet className="me-1 h-3.5 w-3.5" />
               {t("games_share_pay_now")}
