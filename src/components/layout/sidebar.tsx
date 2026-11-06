@@ -65,6 +65,7 @@ const ownerItems = [
 ] as const;
 
 const superAdminItems = [
+  { href: "/admin/shop", key: "nav_shop", icon: Ticket },
   { href: "/admin?tab=Approvals", key: "nav_approvals", icon: ClipboardCheck },
   { href: "/admin", key: "super_admin_title", icon: Crown },
   { href: "/admin?tab=Members", key: "nav_members", icon: Users },
@@ -99,6 +100,7 @@ const memberItems = [
   { href: "/scouting", key: "nav_scouting", icon: Radar },
   { href: "/profile", key: "nav_profile", icon: Users },
   { href: "/upgrade", key: "nav_upgrade", icon: Crown },
+  { href: "/shop", key: "nav_shop", icon: Ticket },
   { href: "/marketplace", key: "nav_marketplace", icon: Ticket },
 ] as const;
 
@@ -159,7 +161,7 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
       group("My Playza", "بلايزا بتاعتي", ["/dashboard", "/profile", "/parent", "/games/beach-volleyball"]),
       group("My training & member pass", "تدريبي وكود الحضور", ["/profile#upcoming-training", "/profile#training-renewal", "/schedule", "/academy-bookings"]),
       ...(isCoach ? [group("Coaching tools", "أدوات التدريب", ["/coaches", "/coach-ai", "/insights"])] : []),
-      group("Find a place to play", "اكتشف مكان تلعب فيه", ["/academies", "/playgrounds", "/following", "/marketplace", "/dashboard/games", "/events"]),
+      group("Find a place to play", "اكتشف مكان تلعب فيه", ["/academies", "/playgrounds", "/following", "/marketplace", "/shop", "/dashboard/games", "/events"]),
       group("Community", "المجتمع", ["/community", "/leaderboard", "/scouting", "/dashboard/tournaments"]),
       group("Membership", "الاشتراك", ["/upgrade"]),
     ];
@@ -182,7 +184,7 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
         {group.items.map(({ href, key, icon: Icon }) => {
           const active =
             role === "super_admin"
-              ? pathname === "/admin" && (new URLSearchParams(href.split("?")[1]).get("tab") ?? "") === (searchParams.get("tab") ?? "")
+              ? pathname === href.split("?")[0] && (new URLSearchParams(href.split("?")[1]).get("tab") ?? "") === (searchParams.get("tab") ?? "")
               : pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`));
           return (
             <Link

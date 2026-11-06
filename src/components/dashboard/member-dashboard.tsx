@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useProfile } from "@/lib/queries";
 import type { Profile } from "@/lib/types";
 import { MemberDiscoveryCards } from "./member-discovery-cards";
+import { ShopShowcase } from "@/components/shop/shop-catalog";
 import { DesktopNextGame } from "./desktop-next-game";
 import styles from "./member-home.module.css";
 import { DashboardNavigation } from "./dashboard-navigation";
@@ -23,5 +24,6 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
         <MemberDiscoveryCards search={search} memberId={p.id} hasAcademy={!!p.academy_id} preferences={p} profile={p} focusGameId={params.get("focus") ?? undefined} mode="games" interactive sportFilter={selectedSport} />
       </section></div>
     </DashboardNavigation>
+    <ShopShowcase />
   </div>;
 }

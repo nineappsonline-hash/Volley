@@ -1690,6 +1690,7 @@ export const dictionary = {
     // ── Navigation ──
     nav_events: "Nearby Events",
     nav_upgrade: "Upgrade",
+    nav_shop: "Playza Shop",
     nav_marketplace: "Marketplace",
     nav_academies: "Find Academies",
     nav_following: "Following",
@@ -4701,6 +4702,7 @@ login_tenant_title: "تسجيل دخول إدارة الأكاديمية",
     // ── Navigation ──
     nav_events: "الفعاليات القريبة",
     nav_upgrade: "ترقية",
+    nav_shop: "متجر بلايزا",
     nav_marketplace: "السوق",
     nav_academies: "البحث عن الأكاديميات",
     nav_following: "المتابعات",

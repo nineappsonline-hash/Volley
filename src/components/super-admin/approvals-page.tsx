@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { COURT_REVIEW_FIELDS, type CourtReviewField } from "@/lib/court-review";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
@@ -58,6 +59,7 @@ export function ApprovalsPage() {
   return <div className="space-y-6">
     <PageHeader title={t("nav_approvals")} subtitle={t("approvals_description")} />
     <div className="flex flex-wrap gap-2">
+      <Button variant="outline" asChild><Link href="/admin/shop?tab=orders">{lang === "ar" ? "طلبات المتجر" : "Shop orders"}</Link></Button>
       <Button variant={section === "payments" ? "default" : "outline"} onClick={() => setSection("payments")}>{t("approvals_payments")}</Button>
       <Button variant={section === "playgrounds" ? "default" : "outline"} onClick={() => setSection("playgrounds")}>{t("nav_playgrounds")} {venues && <Badge variant="secondary" className="ms-2">{venues.length}</Badge>}</Button>
       <Button variant={section === "owners" ? "default" : "outline"} onClick={() => setSection("owners")}>{t("approvals_owners")} {ownerApplications && <Badge variant="secondary" className="ms-2">{ownerApplications.length}</Badge>}</Button>

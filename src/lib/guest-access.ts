@@ -1,5 +1,5 @@
 /** Exact browse routes only; personal and management routes stay protected. */
-export const GUEST_BROWSE_PATHS = ["/dashboard", "/dashboard/games", "/dashboard/tournaments", "/dashboard/academies", "/playgrounds"] as const;
+export const GUEST_BROWSE_PATHS = ["/shop", "/dashboard", "/dashboard/games", "/dashboard/tournaments", "/dashboard/academies", "/playgrounds"] as const;
 export function isGuestBrowsePath(path: string) { return (GUEST_BROWSE_PATHS as readonly string[]).includes(path); }
 
 /**
@@ -20,6 +20,7 @@ export function landingBrowsePath(href: string): string {
   // Absolute external links and auth/redirect helpers pass through untouched.
   if (href === "/" || /^\/(login|signup)(\?|\/|$)/.test(href)) return href;
   const url = new URL(href, "https://playza.invalid");
+  if (url.pathname === "/shop") return "/shop";
   const ar = url.pathname.startsWith("/ar/") ? "/ar" : "";
   const sportParam = url.searchParams.get("sport") ?? [...LANDING_SPORTS].find(s => href.includes(s));
   const sport = sportParam && LANDING_SPORTS.has(sportParam) ? sportParam : undefined;

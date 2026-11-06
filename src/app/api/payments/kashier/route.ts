@@ -3,7 +3,7 @@ import {z} from 'zod';
 import {createClient} from '@/lib/supabase/server';
 import {createAdminClient} from '@/lib/supabase/admin';
 import {kashierConfig,kashierHostedCheckoutUrl,kashierRequest} from '@/lib/payments/kashier';
-const schema=z.object({kind:z.enum(['academy','share','rent','subscription']),targetId:z.string().uuid().optional(),guests:z.array(z.object({name:z.string().trim().min(1).max(100),gender:z.enum(['','male','female']),age:z.string().regex(/^([0-9]{1,3})?$/)})).max(20).optional(),inviteCode:z.string().max(100).nullish(),planKind:z.enum(['member','academy']).optional(),plan:z.enum(['pro','plus','elite']).optional(),cycle:z.enum(['monthly','semi','yearly']).optional(),lang:z.enum(['en','ar']).default('en')});
+const schema=z.object({kind:z.enum(['academy','share','rent','subscription','shop']),targetId:z.string().uuid().optional(),guests:z.array(z.object({name:z.string().trim().min(1).max(100),gender:z.enum(['','male','female']),age:z.string().regex(/^([0-9]{1,3})?$/)})).max(20).optional(),inviteCode:z.string().max(100).nullish(),planKind:z.enum(['member','academy']).optional(),plan:z.enum(['pro','plus','elite']).optional(),cycle:z.enum(['monthly','semi','yearly']).optional(),lang:z.enum(['en','ar']).default('en')});
 export async function POST(request:Request){
  const origin=request.headers.get('origin');
  if(origin && origin!==new URL(request.url).origin)return NextResponse.json({error:'Invalid origin'},{status:403});

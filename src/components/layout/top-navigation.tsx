@@ -44,6 +44,7 @@ export function TopNavigation() {
         <Link href="/dashboard" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors">
           {copy("The sports", "الرياضات")}
         </Link>
+        <Link href="/shop" className="text-xs font-semibold text-secondary">{copy("Shop", "المتجر")}</Link>
       </nav>
       <div className="flex items-center gap-2">
         <LanguageToggle />
