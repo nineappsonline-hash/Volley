@@ -23,7 +23,6 @@ import { discoveryPath } from "@/lib/sport-discovery";
 import { ARCHERY_DESCRIPTION, BEACH_DESCRIPTION, TENNIS_DESCRIPTION, SportsHeroSceneCopy } from "@/lib/landing-content";
 import { SportCardArt } from "./sport-card-art";
 import { SportsHeroScene } from "./sports-hero-scene";
-import { BeachVolleyballGameCard } from "@/components/game/beach-volleyball-game-card";
 import styles from "./volleyball-landing.module.css";
 
 function Link({ href, ...props }: ComponentProps<typeof NextLink>) {
@@ -61,7 +60,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
   return <div className={styles.page} dir={dir} data-paused={paused}>
     <header className={styles.header}>
       <Link href="/" aria-label="Playza"><AppLogo className="w-24 sm:w-28" /></Link>
-      <nav className={styles.nav} aria-label={copy("Main navigation", "القائمة الرئيسية")}><Link href="/games">{copy("Join a game", "انضم لماتش")}</Link><Link href={courtsPath(lang)}>{copy("Find your court", "لاقي ملعبك")}</Link><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><Link href="/dashboard?sport=tennis">{copy("Tennis", "التنس")}</Link><Link href="/dashboard?sport=padel">{copy("Padel", "البادل")}</Link><Link href="/dashboard?sport=archery">{copy("Archery", "الرماية بالقوس")}</Link><Link href="/dashboard?sport=beach-volleyball">{copy("Beach volleyball", "الطائرة الشاطئية")}</Link><Link href="/dashboard">{copy("Play now", "العب دلوقتي")}</Link><Link href="/dashboard">{copy("The sports", "الرياضات")}</Link></nav>
+      <nav className={styles.nav} aria-label={copy("Main navigation", "القائمة الرئيسية")}><Link href="/games">{copy("Join a game", "انضم لماتش")}</Link><Link href={courtsPath(lang)}>{copy("Find your court", "لاقي ملعبك")}</Link><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><Link href="/dashboard?sport=tennis">{copy("Tennis", "التنس")}</Link><Link href="/dashboard?sport=padel">{copy("Padel", "البادل")}</Link><Link href="/dashboard?sport=archery">{copy("Archery", "الرماية بالقوس")}</Link><Link href="/dashboard?sport=beach-volleyball">{copy("Beach volleyball", "الطائرة الشاطئية")}</Link><Link href="/dashboard">{copy("Play now", "العب دلوقتي")}</Link><Link href="/dashboard">{copy("The sports", "الرياضات")}</Link><a href="#playza-shop">{copy("Playza Shop", "متجر بلايزا")}</a></nav>
       <div className={styles.headerActions}><LanguageToggle /><Link href="/login" className={styles.login}>{copy("Log in", "تسجيل الدخول")} <ArrowUpRight size={16} /></Link></div>
     </header>
 
@@ -155,9 +154,22 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
         </div>
       </section>
 
-      {process.env.NEXT_PUBLIC_BEACH_GAME_ENABLED !== "false" && <BeachVolleyballGameCard />}
-
-      <ShopShowcase />
+      <section id="playza-shop" aria-labelledby="playza-shop-title" className={styles.shopSection}>
+        <div className={styles.shopIntro}>
+          <div><p className={styles.eyebrow}>{copy("PLAYZA. ON AND OFF THE COURT.", "بلايزا. جوه وبره الملعب.")}</p>
+            <h2 id="playza-shop-title">{copy("Wear your game.", "خليك جاهز للّعب.")}</h2>
+            <p>{copy("Discover Playza products. Pick your color, find your fit, and make it yours.", "اكتشف منتجات بلايزا. اختار لونك ومقاسك، وخلّي ستايلك على مزاجك.")}</p>
+            <div className={styles.actions}><Link className={styles.primary} href="/shop">{copy("Explore the shop", "اكتشف المتجر")}<ArrowUpRight size={20} /></Link></div>
+            <ul className={styles.shopPerks}><li><Check size={16} />{copy("Colors & sizes", "ألوان ومقاسات")}</li><li><Check size={16} />{copy("Size guide", "دليل المقاسات")}</li><li><Check size={16} />{copy("Collection or EGP 90 delivery", "استلام أو توصيل بـ ٩٠ جنيه")}</li></ul>
+          </div>
+          <div className={styles.shopArt} aria-hidden="true">
+            <div className={styles.shopOrbit} /><span className={styles.shopSpark}>✳</span>
+            <svg className={styles.shopShirt} viewBox="0 0 360 360" fill="none"><ellipse cx="185" cy="322" rx="110" ry="15" fill="#140A24" fillOpacity=".3"/><path d="M125 65L65 95L30 170L90 198L108 158V302Q180 325 252 302V158L270 198L330 170L295 95L235 65Q225 105 180 108Q135 105 125 65Z" fill="#C8FF00" stroke="#31134D" strokeWidth="5" strokeLinejoin="round"/><path d="M125 65Q180 45 235 65Q225 105 180 108Q135 105 125 65Z" fill="#31134D"/><path d="M141 63Q180 57 219 63Q211 86 180 87Q149 86 141 63Z" fill="#8250B5"/><path d="M108 158L115 118M252 158L245 118M116 284Q180 300 244 284" stroke="#31134D" strokeOpacity=".25" strokeWidth="3"/><text x="180" y="190" textAnchor="middle" fill="#31134D" fontSize="36" fontWeight="900" fontStyle="italic">Playza</text><path d="M146 206H214" stroke="#31134D" strokeWidth="3" strokeLinecap="round"/></svg>
+            <span className={styles.shopArtLabel}>{copy("FIND YOUR COLOR", "اختار لونك")}</span><div className={styles.shopSwatches}><i /><i /><i /></div>
+          </div>
+        </div>
+        <ShopShowcase showTeaser={false} />
+      </section>
       <section className={styles.finalCta}><svg className={styles.ctaStar} viewBox="0 0 100 100" aria-hidden="true" focusable="false"><path d="M50 8V92M8 50H92M20 20L80 80M20 80L80 20" fill="none" stroke="currentColor" strokeWidth="12" /></svg><p className={styles.eyebrow}>{copy("LESS PLANNING. MORE PLAYING.", "كلام أقل. لعب أكتر.")}</p><h2>{copy("The court is calling.", "الملعب بيناديك.")}</h2><Link className={styles.primary} href={discoveryPath(lang)}>{copy("Find your next sport", "اكتشف لعبتك الجاية")}<ArrowUpRight size={20} /></Link><p>{copy("Tennis, padel, basketball, volleyball, beach volleyball or archery. Find your people and your next activity.", "تنس، بادل، كرة سلة، كرة طائرة، طائرة شاطئية أو رماية بالقوس. اختار لعبتك واتعرّف على ناس بتحبها.")}</p></section>
     </main>
 

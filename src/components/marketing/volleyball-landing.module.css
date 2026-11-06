@@ -238,3 +238,23 @@
   border-color: #ffffff26;
 }
 :global(html.dark) .finalCta { background: #241137; color: #f6f0ff; }
+
+/* Product collection replaces the interactive 3D game on the homepage. */
+.shopSection{max-width:1220px;margin:20px auto 70px;padding:40px 5%;scroll-margin-top:24px}
+.shopIntro{display:grid;grid-template-columns:1.1fr 1fr;align-items:center;gap:40px;padding:44px;border:1px solid #ffffff28;border-radius:32px;background:linear-gradient(125deg,#301448,#512379);color:#fff;overflow:hidden}
+.shopIntro h2{font-size:clamp(34px,4.5vw,58px);line-height:1.15;font-weight:850;letter-spacing:-.04em;margin:18px 0}
+.shopIntro p:not(.eyebrow){max-width:430px;color:#eee7ff;font-size:15px;line-height:1.9}
+.shopIntro .eyebrow{color:#c8ff00}.shopIntro .primary{color:#241033}
+.shopPerks{display:flex;gap:12px 18px;flex-wrap:wrap;margin-top:24px;padding:0;list-style:none;font-size:12px;color:#eee7ff}.shopPerks li{display:flex;align-items:center;gap:6px}.shopPerks svg{color:#c8ff00;flex-shrink:0}
+.shopArt{position:relative;min-width:0;aspect-ratio:1;display:grid;place-items:center;isolation:isolate}
+.shopShirt{width:100%;max-width:360px;filter:drop-shadow(0 24px 18px #140a2438);animation:shopFloat 7s ease-in-out infinite}
+.shopOrbit{position:absolute;inset:4%;border:1px dashed #ffffff38;border-radius:50%;background:radial-gradient(ellipse,#ba8cf425,transparent 65%);z-index:-1;animation:spin 65s linear infinite}
+.shopSpark{position:absolute;inset-inline-end:0;top:3%;font-size:54px;color:#c8ff00;animation:spin 30s linear infinite}
+.shopArtLabel{position:absolute;bottom:6%;inset-inline-start:0;padding:10px 14px;border-radius:12px;background:#21112f;color:#fff;font-size:10px;letter-spacing:.08em;font-weight:800;transform:rotate(-6deg)}
+.shopSwatches{position:absolute;bottom:4%;inset-inline-end:0;display:flex;gap:7px;padding:10px;border:1px solid #ffffff30;border-radius:100px;background:#ffffff12}.shopSwatches i{width:19px;height:19px;border-radius:50%;background:#c8ff00;border:2px solid #fff}.shopSwatches i:nth-child(2){background:#a655ef}.shopSwatches i:nth-child(3){background:#251135}
+@keyframes shopFloat{0%,100%{transform:translateY(0) rotate(-7deg)}50%{transform:translateY(-12px) rotate(3deg)}}
+@media(max-width:800px){.shopIntro{grid-template-columns:1fr;padding:28px;gap:20px}.shopArt{width:100%;max-width:350px;justify-self:center}.shopSection{padding-inline:5%;margin-bottom:40px}}
+@media(prefers-reduced-motion:reduce){.shopShirt,.shopOrbit,.shopSpark{animation:none!important}}
+
+.nav{gap:clamp(10px,1.3vw,22px)}
+@media(min-width:641px) and (max-width:1100px){.header{flex-wrap:wrap}.header .nav{order:3;width:100%;justify-content:center;flex-wrap:wrap}}

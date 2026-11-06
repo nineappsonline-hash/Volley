@@ -17,6 +17,7 @@ function load(file) {
     if (id === 'next/link') return { __esModule: true, default: ({ children, ...props }) => React.createElement('a', props, children) };
     if (id === '@/lib/i18n') return { useI18n: () => ({ lang, dir: lang === 'ar' ? 'rtl' : 'ltr', t:key=>dictionary[lang][key]??key }) };
     if (id === '@/components/shared/app-logo') return { AppLogo: () => React.createElement('span', null, 'Playza') };
+    if (id === '@/components/shop/shop-catalog') return { ShopShowcase: ({showTeaser}) => React.createElement('div', { 'data-shop-products': true, 'data-teaser': String(showTeaser) }) };
     if (id === '@/components/layout/language-toggle') return { LanguageToggle: () => null };
     if (id.startsWith('@/') || id.startsWith('.')) {
       const base = id.startsWith('@/') ? path.join(root, 'src', id.slice(2)) : path.resolve(path.dirname(file), id);
@@ -43,7 +44,7 @@ for (lang of ['en', 'ar']) {
   assert.ok(!html.includes(lang === 'ar' ? '>لاقي ملعب<' : 'Find a playground'));
   assert.ok(html.includes('heroJoin'));
   assert.match(html, /<a[^>]*class="[^"]*heroJoin[^"]*"[^>]*href="\/dashboard"/, 'hero game CTA opens the dashboard');
-  assert.ok(html.includes(lang === 'ar' ? 'الاقي ماتش ألعب فيه' : 'Find a Game'));
+  assert.ok(html.includes(lang === 'ar' ? 'شوف الماتش المناسب' : 'Find a Game'));
   assert.ok(html.includes('href="/sports/tennis"'));
   assert.ok(html.includes('id="padel"'));
   assert.ok(html.includes('id="basketball"'));
@@ -51,8 +52,14 @@ for (lang of ['en', 'ar']) {
   assert.ok(section, 'beach sport card must be present in server-rendered HTML');
   const sports = html.match(/<section id="sports"[\s\S]*?<\/section>/)?.[0];
   for (const id of ['padel','tennis','volleyball','basketball','beach-volleyball','archery']) assert.ok(sports.includes(`id="${id}"`));
-  assert.ok(html.indexOf('id="playground-owners"') < html.indexOf('id="beach-challenge"'));
-  assert.ok(html.indexOf('class="finalCta"') > html.indexOf('id="beach-challenge"'), 'the court is calling follows the 3D game');
+  assert.ok(!html.includes('id="beach-challenge"'), 'the 3D game is replaced');
+  assert.ok(html.includes('id="playza-shop"'));
+  assert.ok(html.includes('href="#playza-shop"'), 'top menu links to the shop section');
+  assert.ok(html.includes('href="/shop"'), 'shop CTA opens the product catalog');
+  assert.ok(html.includes('data-shop-products="true"'));
+  assert.ok(html.includes('data-teaser="false"'), 'featured products do not repeat the shop banner');
+  assert.ok(html.indexOf('id="playground-owners"') < html.indexOf('id="playza-shop"'));
+  assert.ok(html.indexOf('class="finalCta"') > html.indexOf('id="playza-shop"'), 'the court CTA follows the shop');
   assert.ok(section.includes(content.BEACH_DESCRIPTION[lang]));
 
   assert.ok(section.includes('href="/sports/beach-volleyball"'));
@@ -78,7 +85,7 @@ for (lang of ['en', 'ar']) {
   assert.ok(section.includes('Friday beach game'));
   assert.ok(section.includes('src="https://example.invalid/landing-court.jpg"'));
   assert.ok(section.includes('3/12'));
-  assert.ok(!section.includes('aria-expanded="false"'));
+  assert.ok(section.includes('aria-expanded="false"'), 'shared cards expose their collapsed details control');
   assert.ok(!section.includes('href="/dashboard?focus=paid"'));
   assert.ok(section.includes('Sand court'));
   assert.match(section, /datetime="2026-11-01"/i);
