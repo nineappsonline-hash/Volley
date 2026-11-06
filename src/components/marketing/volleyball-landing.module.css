@@ -186,10 +186,13 @@
   background-image: radial-gradient(ellipse at 0% 30%, #53238818, transparent 55%);
   background-size: 100% 1200px;
 }
-:global(html.dark) .header,
 :global(html.dark) .footer {
   background: hsl(var(--surface));
   border-color: hsl(var(--border));
+}
+:global(html.dark) .header {
+  background: transparent;
+  border-bottom-color: transparent;
 }
 :global(html.dark) .hero {
   background: linear-gradient(120deg, #241137, #351653);
