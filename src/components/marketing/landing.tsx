@@ -168,7 +168,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
           </div>
           <div className={styles.shopArt}>
             <div className={styles.shopOrbit} aria-hidden="true" /><span className={styles.shopSpark} aria-hidden="true">✳</span>
-            <div className={styles.shopPhotoStage}><Image key={shirtColor} className={styles.shopShirt} src={`/images/shop/sportswear-${shirtColor}.webp`} width={800} height={731} sizes="(max-width: 800px) 80vw, 420px" alt={copy(`${selectedShirt.en} long-sleeve sports T-shirt, front view`, `تيشيرت رياضي بأكمام طويلة باللون ${selectedShirt.ar} — من الأمام`)} /></div>
+            <div className={styles.shopPhotoStage}><Image key={shirtColor} className={styles.shopShirt} src={`/images/shop/sportswear-model-${shirtColor}.webp`} width={600} height={800} sizes="(max-width: 800px) 80vw, 420px" alt={copy(`${selectedShirt.en} Playza long-sleeve sports T-shirt worn by a model`, `عارض يرتدي تيشيرت بلايزا رياضي بأكمام طويلة باللون ${selectedShirt.ar}`)} /></div>
             <div className={styles.shopColorPicker} role="group" aria-label={copy("Preview T-shirt colors", "شوف ألوان التيشيرت")}>
               <p>{copy("Choose your color", "اختار لونك")} · {copy(selectedShirt.en, selectedShirt.ar)}</p>
               <div className={styles.shopSwatches}>{shirtColors.map(color => <button key={color.id} type="button" style={{ backgroundColor: color.hex }} aria-label={copy(color.en, color.ar)} aria-pressed={shirtColor === color.id} onClick={() => setShirtColor(color.id)} />)}</div>

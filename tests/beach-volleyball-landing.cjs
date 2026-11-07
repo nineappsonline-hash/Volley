@@ -55,7 +55,7 @@ for (lang of ['en', 'ar']) {
   assert.ok(!html.includes('id="beach-challenge"'), 'the 3D game is replaced');
   assert.ok(html.includes('id="playza-shop"'));
   assert.ok(html.includes(lang === 'ar' ? 'تسوّق ملابس رياضية.' : 'Shop Sportswear.'));
-  assert.ok(html.includes('sportswear-blue.webp'), 'shop uses the supplied T-shirt photograph');
+  assert.ok(html.includes('sportswear-model-blue.webp'), 'shop uses the supplied T-shirt photograph');
   for (const color of (lang === 'ar' ? ['أسود','أزرق','أبيض'] : ['Black','Blue','White'])) {
     assert.ok(html.includes(`aria-label="${color}"`), 'color preview has accessible controls');
   }

@@ -261,8 +261,8 @@
 
 /* Real sportswear photography with an interactive color preview. */
 .shopArt{display:flex;flex-direction:column;justify-content:center;gap:20px;aspect-ratio:auto;min-height:420px;padding-top:16px}
-.shopPhotoStage{width:100%;min-width:0;display:grid;place-items:center;border-radius:28px;background:radial-gradient(ellipse,#cbb9e044,transparent 70%)}
-.shopShirt{display:block;width:100%;max-width:400px;height:auto;aspect-ratio:800/731;object-fit:contain;filter:drop-shadow(0 18px 18px #140a2455);animation:shopPhotoFloat 7s ease-in-out infinite}
+.shopPhotoStage{width:100%;min-width:0;display:grid;place-items:center;border-radius:28px;overflow:hidden;background:radial-gradient(ellipse,#cbb9e044,transparent 70%)}
+.shopShirt{display:block;width:100%;max-width:400px;height:auto;aspect-ratio:3/4;object-fit:contain;filter:drop-shadow(0 18px 18px #140a2455);animation:shopPhotoFloat 7s ease-in-out infinite}
 .shopColorPicker{position:relative;z-index:1;display:grid;justify-items:center;gap:10px;padding:12px 20px;border:1px solid #ffffff30;border-radius:20px;background:#21112fcc}
 .shopIntro .shopColorPicker p{font-size:12px;line-height:1.5;color:#fff;margin:0}
 .shopSwatches{position:static;border:0;padding:2px;background:transparent;gap:14px}
