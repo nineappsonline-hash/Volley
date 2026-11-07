@@ -32,8 +32,15 @@ export function blankProduct(): ShopProduct {
     return { id: crypto.randomUUID(), name: '', name_ar: '', description: '', description_ar: '', price: 0, size_chart: [], published: false, variants: [] };
 }
 
-function sizeList(chart: SizeMeasurement[], rows: EditableVariant[]) {
+const STANDARD_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+
+function detectedSizes(chart: SizeMeasurement[], rows: EditableVariant[]) {
     return [...new Set([...chart.map(row => row.size.trim()), ...rows.map(row => row.size.trim())].filter(Boolean))];
+}
+
+function sizeList(chart: SizeMeasurement[], rows: EditableVariant[]) {
+    const detected = detectedSizes(chart, rows);
+    return [...STANDARD_SIZES, ...detected.filter(size => !STANDARD_SIZES.includes(size))];
 }
 
 function buildInitial(variants: ShopVariant[]) {
@@ -64,7 +71,7 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
     const [colors, setColors] = useState<ColorDraft[]>(initial.colors);
     const [rows, setRows] = useState<EditableVariant[]>(initial.rows);
     const [pending, setPending] = useState<string[]>([]);
-    const [selectedSizes, setSelectedSizes] = useState<Set<string>>(() => new Set(sizeList(initialProduct.size_chart, initial.rows)));
+    const [selectedSizes, setSelectedSizes] = useState<Set<string>>(() => new Set(detectedSizes(initialProduct.size_chart, initial.rows)));
     const [busy, setBusy] = useState(false);
     const text = (en: string, arabic: string) => ar ? arabic : en;
     const sizes = useMemo(() => sizeList(product.size_chart, rows), [product.size_chart, rows]);
@@ -136,6 +143,9 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
                 additions.push({ id: crypto.randomUUID(), product_id: product.id, color: color.color.trim(), color_ar: color.color_ar, color_hex: color.color_hex, size, images: [...color.images], stock: 0, active: true, color_id: color.id });
             }
         }
+        const missingMeasurements = chosenSizes.filter(size => !product.size_chart.some(row => row.size.trim() === size));
+        if (missingMeasurements.length)
+            setProduct(current => ({ ...current, size_chart: [...current.size_chart, ...missingMeasurements.map(size => ({ size, chest: 0, length: 0 }))] }));
         if (additions.length)
             setRows(prev => [...prev, ...additions]);
         toast.success(additions.length ? text(`Added ${additions.length} combinations.`, `تمت إضافة ${additions.length} اختيار.`) : text('All selected combinations already exist.', 'كل الاختيارات المحددة موجودة بالفعل.'));
@@ -287,6 +297,7 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
         <Button type="button" variant="outline" onClick={addColor}><Plus />{text('Add color', 'إضافة لون')}</Button>
 
         <h3 className="font-bold">{text('Sizes for new combinations', 'المقاسات للاختيارات الجديدة')}</h3>
+        <p className={styles.muted}>{text('Standard sizes are always available. Generating a size adds its measurement row so you can fill in chest and length.', 'المقاسات القياسية متاحة دائمًا. عند إنشاء مقاس تُضاف صف قياساته لتكتب عرض الصدر والطول.')}</p>
         <label className="!flex items-center gap-2">
             <input className="!w-4" type="checkbox" checked={sizes.length > 0 && sizes.every(size => selectedSizes.has(size))} onChange={e => setSelectedSizes(e.target.checked ? new Set(sizes) : new Set())}/>
             {text('Select all sizes', 'تحديد كل المقاسات')}
