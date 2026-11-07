@@ -23,7 +23,8 @@ function resolve(file){for(const ext of ['', '.tsx','.ts','.css'])if(fs.existsSy
 
 
 let values=[],cursor=0;
-mocks.react={...React,useState:initial=>{const index=cursor++;if(!(index in values))values[index]=initial;return [values[index],v=>{values[index]=typeof v==='function'?v(values[index]):v}];}};
+let lastEffect;
+mocks.react={...React,useEffect:fn=>{lastEffect=fn},useState:initial=>{const index=cursor++;if(!(index in values))values[index]=initial;return [values[index],v=>{values[index]=typeof v==='function'?v(values[index]):v}];}};
 const {ShopProductCard}=load('src/components/shop/shop-catalog.tsx');
 const {Dialog}=load('src/components/ui/dialog.tsx');
 const product={id:'p',name:'Playza Shirt',name_ar:'تيشيرت بلايزا',price:350,description:'Training shirt',description_ar:'تيشيرت تمرين',size_chart:[{size:'M',chest:50,length:70}],published:true,variants:[
@@ -49,4 +50,10 @@ const availableColor={...product,gender:'women',variants:[{...product.variants[0
 let availableTree=ShopProductCard({product:availableColor});
 assert.equal(find(availableTree,n=>n.type==='img').props.src,'/black-front.jpg','prefer a color with available stock');
 assert.ok(renderToStaticMarkup(availableTree).includes(lang==='ar'?'حريمي':'Women'));
+values=[];cursor=0;lang='en';
+let callback,cleared=false;
+global.window={matchMedia:()=>({matches:false}),setInterval:fn=>{callback=fn;return 7},clearInterval:id=>{cleared=id===7}};global.document={hidden:false};
+let slideshow=ShopProductCard({product});const cleanup=lastEffect();assert.equal(typeof callback,'function');callback();cursor=0;slideshow=ShopProductCard({product});assert.equal(find(slideshow,n=>n.type==='img').props.src,'/purple-back.jpg');
+cleanup();assert.ok(cleared,'timer is cleaned up');
+find(slideshow,n=>n.props?.['aria-label']==='Pause product slideshow').props.onClick();cursor=0;slideshow=ShopProductCard({product});callback=null;lastEffect();assert.equal(callback,null,'explicit pause stops the slideshow');
 console.log('PASS: bilingual color-specific galleries, photo reset, size selection/reset, correct checkout variant, sold-out size and size-chart dialog');

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Plus, Shirt, Pencil, Trash2 } from 'lucide-react';
+import { ExternalLink, Pencil, Plus, ReceiptText, Shirt, Trash2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useI18n } from '@/lib/i18n';
 import { formatMoney } from '@/lib/constants';
@@ -159,7 +159,7 @@ export function ShopAdmin() {
                 <p className={styles.muted}>{text('Product subtotal', 'قيمة المنتجات')}: {formatMoney(Number(order.unit_price) * order.quantity, lang)} · {text('Delivery', 'التوصيل')}: {formatMoney(Number(order.delivery_fee), lang)} · {order.pay_method ?? '—'}</p>
                 <p className="break-all font-mono text-[10px] text-muted-foreground">{order.id}</p>
                 <div className="flex flex-wrap gap-2">
-                    {order.receipt_url && <Button variant="outline" disabled={busy} onClick={() => void receipt(order)}>{text('View receipt', 'عرض الإيصال')}</Button>}
+                    {order.receipt_url && <Button variant="outline" className="gap-2" disabled={busy} onClick={() => void receipt(order)}><ReceiptText size={16}/>{text('View receipt', 'عرض الإيصال')}</Button>}
                     {order.status === 'pending_review' && <><Button disabled={busy} onClick={() => void review(order, 'approve')}>{text('Approve payment', 'اعتماد الدفع')}</Button><Button variant="outline" disabled={busy} onClick={() => void review(order, 'reject')}>{text('Reject', 'رفض')}</Button></>}
                     {order.pay_method === 'kashier' && cardOrders.data?.some(card => card.target_id === order.id) && order.status !== 'fulfilled' && <><Button disabled={busy} variant="outline" onClick={() => void reviewCard(order, true)}>{text('Review card · approve', 'مراجعة البطاقة · اعتماد')}</Button><Button disabled={busy} variant="outline" onClick={() => void reviewCard(order, false)}>{text('Review card · reject', 'مراجعة البطاقة · رفض')}</Button></>}
                     {order.status === 'paid' && <Button disabled={busy} onClick={() => void review(order, 'fulfill')}>{text('Mark delivered / collected', 'تأكيد التسليم / الاستلام')}</Button>}
@@ -173,7 +173,7 @@ export function ShopAdmin() {
                 <DialogTitle>{text('Payment receipt', 'إيصال الدفع')}</DialogTitle>
                 <DialogDescription>{text('Check the transfer before approving.', 'راجع التحويل قبل الاعتماد.')}</DialogDescription>
                 {preview && (preview.split('?')[0].toLowerCase().endsWith('.pdf') ? <iframe title="Receipt" src={preview} className="h-[55dvh] w-full"/> : <img src={preview} alt="Payment receipt" className="mx-auto max-h-[60dvh] max-w-full object-contain"/>)}
-                {preview && <a href={preview} target="_blank" rel="noopener noreferrer" className="text-sm text-secondary underline">{text('Open full-size receipt', 'افتح الإيصال بحجمه الكامل')}</a>}
+                {preview && <div className="flex justify-end"><Button asChild variant="outline" size="sm"><a href={preview} target="_blank" rel="noopener noreferrer"><ExternalLink size={15}/>{text('Open full-size receipt', 'افتح الإيصال بحجمه الكامل')}</a></Button></div>}
             </DialogContent>
         </Dialog>
     </div>;
