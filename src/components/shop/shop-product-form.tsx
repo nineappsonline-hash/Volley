@@ -289,7 +289,9 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
             <label className="sm:max-w-[12rem]">{text('Price (EGP)', 'السعر بالجنيه')}<input required type="number" min="0.01" step="0.01" value={product.price || ''} onChange={e => setProduct({ ...product, price: Number(e.target.value) })}/></label>
         </div>
 
-        <h3 className="font-bold">{text('Colors', 'الألوان')}</h3>
+        <div className={styles.editorGrid}>
+        <details className={styles.editorSection} open>
+        <summary>{text('Colors', 'الألوان')} <span>{colors.length}</span></summary>
         <p className={styles.muted}>{text('Pick a shade — names fill automatically. Tick colors, then generate combinations below.', 'اختار اللون ويتم ملء الاسم تلقائيًا. حدد الألوان ثم أنشئ الاختيارات بالأسفل.')}</p>
         <div className="grid gap-3">
             {colors.map(color => <div key={color.id} className={styles.variant}>
@@ -310,7 +312,9 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
         </div>
         <Button type="button" variant="outline" onClick={addColor}><Plus />{text('Add color', 'إضافة لون')}</Button>
 
-        <h3 className="font-bold">{text('Sizes and measurements · centimeters', 'المقاسات والقياسات · سنتيمتر')}</h3>
+        </details>
+        <details className={styles.editorSection}>
+        <summary>{text('Sizes & measurements (cm)', 'المقاسات والقياسات (سم)')} <span>{selectedSizes.size}</span></summary>
         <p className={styles.muted}>{text('Check the sizes you sell, then enter width and long for each one. Checked sizes are used when generating combinations.', 'حدد المقاسات المتاحة واكتب العرض والطول لكل مقاس. المقاسات المحددة هي التي تُستخدم عند إنشاء الاختيارات.')}</p>
         <label className="!flex items-center gap-2">
             <input className="!w-4" type="checkbox" checked={sizes.length > 0 && sizes.every(size => selectedSizes.has(size))} onChange={e => setSelectedSizes(e.target.checked ? new Set(sizes) : new Set())}/>
@@ -332,7 +336,7 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
                         <strong>{size}</strong>
                     </label>
                     <label>{text('Width (cm)', 'العرض (سم)')}<input type="number" min={0} value={measurement?.chest ?? ''} onChange={e => updateMeasurement(size, 'chest', e.target.value)}/></label>
-                    <label>{text('Long (cm)', 'الطول (سم)')}<input type="number" min={0} value={measurement?.length ?? ''} onChange={e => updateMeasurement(size, 'length', e.target.value)}/></label>
+                    <label>{text('Length (cm)', 'الطول (سم)')}<input type="number" min={0} value={measurement?.length ?? ''} onChange={e => updateMeasurement(size, 'length', e.target.value)}/></label>
                     <Button type="button" variant="ghost" onClick={() => removeSize(size)}><Trash2 size={14}/>{text('Remove', 'إزالة')}</Button>
                 </div>;
             })}
@@ -346,7 +350,9 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
         </div>
         <Button type="button" variant="outline" onClick={generate}>{text('Generate selected combinations', 'إنشاء الاختيارات المحددة')}</Button>
 
-        <h3 className="font-bold">{text('Stock and visibility', 'المخزون والظهور')}</h3>
+        </details>
+        <details className={styles.editorSection}>
+        <summary>{text('Stock & visibility', 'المخزون والظهور')} <span>{rows.length}</span></summary>
         {colors.map(color => {
             const variants = rows.filter(variant => variant.color_id === color.id);
             if (!variants.length)
@@ -370,7 +376,9 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
             </section>;
         })}
 
-        <h3 className="font-bold">{text('Photos', 'الصور')}</h3>
+        </details>
+        <details className={styles.editorSection} open>
+        <summary>{text('Photos', 'الصور')} <span>{photos.length}</span></summary>
         <p className={styles.muted}>{text('Upload photos, then tick each color that uses them. All sizes of a color share its photos.', 'ارفع الصور ثم حدد الألوان التي تستخدمها. كل مقاسات اللون تشترك في الصور.')}</p>
         <label>{text('Upload photos', 'ارفع الصور')}<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple disabled={busy} onChange={e => void upload(e.target.files)}/></label>
         <div className="grid gap-2 sm:grid-cols-3">
@@ -387,10 +395,14 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
             {!photos.length && <p className={styles.muted}>{text('No photos uploaded yet.', 'لم تُرفع صور بعد.')}</p>}
         </div>
 
+        </details>
+        </div>
+        <div className={styles.editorActions}>
         <label className="!flex items-center gap-2">
             <input className="!w-4" type="checkbox" checked={product.published} onChange={e => setProduct({ ...product, published: e.target.checked })}/>
             {text('Publish in the shop (photos and measurements required)', 'نشر في المتجر (الصور والقياسات مطلوبة)')}
         </label>
-        <Button type="submit" className="h-11" disabled={busy}>{busy ? text('Saving…', 'جاري الحفظ…') : text('Save product', 'حفظ المنتج')}</Button>
+        <Button type="submit" className="h-9 shrink-0" disabled={busy}>{busy ? text('Saving…', 'جاري الحفظ…') : text('Save product', 'حفظ المنتج')}</Button>
+        </div>
     </form>;
 }
