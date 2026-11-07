@@ -252,6 +252,10 @@ export function CreateGameDialog({
   const gamesBooked = gameCourt.court === 0 && !!selectedPlayground && !!date && !!time;
 
   const handleCreate = async () => {
+    if (!selectedPlayground) {
+      toast.error(lang === "ar" ? "اختار ملعبًا من الملاعب المسجلة على بلايزا." : "Select a playground listed on Playza.");
+      return;
+    }
     if (!Number.isInteger(Number(minPlayers)) || !Number.isInteger(Number(maxPlayers)) || Number(minPlayers) < 2 || Number(maxPlayers) < Number(minPlayers) || !Number.isFinite(durationHours) || durationHours <= 0 || durationHours > 24) {
       toast.error(lang === "ar" ? "راجع الحد الأدنى والأقصى للاعبين والمدة (أكتر من صفر ولحد 24 ساعة)." : "Check player limits and duration (greater than zero, up to 24 hours)."); return;
     }
@@ -282,7 +286,7 @@ export function CreateGameDialog({
       const id = await create.mutateAsync({
         title: title.trim(),
         sport,
-        playgroundId: playgroundId || null,
+        playgroundId: selectedPlayground.id,
         game_date: date,
         start_time: time,
         max_players: Number(maxPlayers),
@@ -369,6 +373,7 @@ export function CreateGameDialog({
   };
 
   const canSubmit =
+    !!selectedPlayground &&
     !!title.trim() &&
     !!sport &&
     !!date &&
@@ -475,6 +480,7 @@ export function CreateGameDialog({
               <LandPlot className="h-3.5 w-3.5 text-primary" />
               {t("games_playground")}
             </Label>
+            <p className="text-xs text-muted-foreground">{lang === "ar" ? "إنشاء الماتشات متاح فقط في الملاعب المسجلة على بلايزا." : "Games can only be created at playgrounds listed on Playza."}</p>
             <QueryState queries={[playgroundQuery]}>
             <PlaygroundLocationFilters
               venues={playgrounds ?? []}

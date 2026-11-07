@@ -3494,6 +3494,7 @@ export function useCreateFriendlyGame() {
       max_age?: number | null;
       hostPays?: boolean;
     }) => {
+      if (!input.playgroundId) throw new Error("Select a playground listed on Playza.");
       const { data, error } = await supabase().rpc("create_friendly_game", {
         p_title: input.title,
         p_sport: input.sport,

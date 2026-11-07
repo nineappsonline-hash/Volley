@@ -1,12 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, LandPlot, Search } from "lucide-react";
+import { LandPlot, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n";
 import type { Venue } from "@/lib/types";
 import { PlaygroundOptionCard } from "./playground-option-card";
-import { cn } from "@/lib/utils";
 
 /**
  * Playground chooser for a game. The parent dialog already narrows the list to
@@ -61,19 +60,6 @@ export function PlaygroundPicker({
       </div>
 
       <div className="max-h-60 overflow-auto rounded-lg border">
-        <button
-          type="button"
-          onClick={() => onChange("")}
-          className={cn(
-            "flex w-full items-center justify-between gap-2 px-3 py-2 text-start text-sm hover:bg-accent",
-            value === "" && "bg-accent",
-          )}
-        >
-          <span className="text-muted-foreground">
-            {t("games_playground_any")}
-          </span>
-          {value === "" && <Check className="h-4 w-4 shrink-0 opacity-70" />}
-        </button>
         {matches.length === 0 ? (
           <p className="px-3 py-4 text-center text-xs text-muted-foreground">
             {t("games_playground_empty")}

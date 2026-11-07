@@ -35,7 +35,6 @@ import {
   PlaygroundLocationFilters,
   type PlaygroundLocationSelection,
 } from "@/components/shared/playground-location-filters";
-import { MapPicker } from "@/components/shared/map-picker";
 import { PlaygroundTimeRange } from "@/components/shared/playground-time-range";
 import { useCreateFriendlyGame, useFriendlyGames, usePlaygrounds, usePayGameShare, usePayRentRemaining, useSportSettings } from "@/lib/queries";
 import { GameSharePayment } from "@/components/games/game-share-payment";
@@ -114,8 +113,6 @@ export function CreateGameDialog({
 
   const [title, setTitle] = useState("");
   const [sport, setSport] = useState("");
-  const [lat, setLat] = useState<number | null>(null);
-  const [lng, setLng] = useState<number | null>(null);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [toTime, setToTime] = useState("");
@@ -137,8 +134,6 @@ export function CreateGameDialog({
     if (open) {
       setTitle("");
       setSport("");
-      setLat(null);
-      setLng(null);
       setDate(addDaysInput(1));
       setTime("");
       setToTime("");
@@ -194,6 +189,10 @@ export function CreateGameDialog({
   };
 
   const handleCreate = async () => {
+    if (!selectedPlayground) {
+      toast.error(lang === "ar" ? "اختار ملعبًا من الملاعب المسجلة على بلايزا." : "Select a playground listed on Playza.");
+      return;
+    }
     if (!Number.isInteger(Number(minPlayers)) || !Number.isInteger(Number(maxPlayers)) || Number(minPlayers) < 2 || Number(maxPlayers) < Number(minPlayers) || !Number.isFinite(durationHours) || durationHours <= 0 || durationHours > 24) {
       toast.error(lang === "ar" ? "راجع الحد الأدنى والأقصى للاعبين والمدة (أكتر من صفر ولحد 24 ساعة)." : "Check player limits and duration (greater than zero, up to 24 hours)."); return;
     }
@@ -202,11 +201,9 @@ export function CreateGameDialog({
       const id = await create.mutateAsync({
         title: title.trim(),
         sport,
-        lat,
-        lng,
         game_date: date,
         start_time: time,
-        playgroundId: playgroundId || null,
+        playgroundId: selectedPlayground.id,
         max_players: Number(maxPlayers),
         min_players: Number(minPlayers),
         duration_hours: durationHours,
@@ -288,6 +285,7 @@ export function CreateGameDialog({
   };
 
   const canSubmit =
+    !!selectedPlayground &&
     !!title.trim() &&
     !!sport &&
     !!date &&
@@ -392,15 +390,7 @@ export function CreateGameDialog({
             </div>
           </div>
 
-          <MapPicker
-            lat={lat}
-            lng={lng}
-            onChange={(loc) => {
-              setLat(loc.lat);
-              setLng(loc.lng);
-            }}
-            hint={t("community_map_hint")}
-          />
+
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2"><Label>{lang === "ar" ? "الحد الأدنى للاعبين" : "Minimum players"}</Label><div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm font-bold">{minPlayers}</div></div>
@@ -416,6 +406,7 @@ export function CreateGameDialog({
             </div>
           </div>
           <div className="space-y-2"><Label htmlFor="community-playground">{lang === "ar" ? "الملعب" : "Playground"}</Label>
+            <p className="text-xs text-muted-foreground">{lang === "ar" ? "إنشاء الماتشات متاح فقط في الملاعب المسجلة على بلايزا." : "Games can only be created at playgrounds listed on Playza."}</p>
             <QueryState queries={[playgroundQuery]}>
             <PlaygroundLocationFilters
               venues={playgrounds ?? []}
