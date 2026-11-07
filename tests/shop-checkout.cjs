@@ -37,10 +37,11 @@ function find(node,test){if(!node||typeof node!=='object')return;if(test(node))r
 const render=()=>{cursor=0;return ShopCheckout()};
 (async()=>{
  lang='en';let tree=render();
+ assert.ok(renderToStaticMarkup(tree).includes('Fifth Settlement'));assert.ok(renderToStaticMarkup(tree).includes('Delivery anywhere in Egypt'));
  assert.ok(find(tree,n=>n.props?.src==='/selected-purple.jpg'),'summary shows the selected photo before payment');
  for(const [auto,value] of [['name','Buyer Name'],['tel','01012345678']])find(tree,n=>n.type==='input'&&n.props.autoComplete===auto).props.onChange({target:{value}});
  find(tree,n=>n.type==='input'&&n.props.type==='number').props.onChange({target:{value:'2'}});
- find(tree,n=>n.type==='select').props.onChange({target:{value:'delivery'}});
+ find(tree,n=>n.type==='input'&&n.props.name==='shop-fulfillment'&&n.props.value==='delivery').props.onChange();
  tree=render();find(tree,n=>n.type==='textarea').props.onChange({target:{value:'123 Cairo Egypt'}});tree=render();
  await find(tree,n=>n.type==='form').props.onSubmit({preventDefault(){}});
  assert.equal(submitted.p_variant,'purple-m');assert.equal(submitted.p_quantity,2);assert.equal(submitted.p_fulfillment,'delivery');assert.equal(submitted.p_address,'123 Cairo Egypt');

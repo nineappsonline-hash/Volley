@@ -153,7 +153,7 @@ export function ShopAdmin() {
                 <p className="font-semibold text-secondary">{order.status.replaceAll('_', ' ')}</p>
                 <div className="grid gap-2 text-sm sm:grid-cols-2">
                     <p>{order.customer_name} · {order.phone}</p>
-                    <p>{order.fulfillment === 'delivery' ? text('Delivery · EGP 90', 'توصيل · ٩٠ جنيه') : text('Collection', 'استلام')}</p>
+                    <p>{order.fulfillment === 'delivery' ? text('Delivery within Egypt · EGP 90', 'توصيل داخل مصر · ٩٠ جنيه') : text('Collection · Fifth Settlement, New Cairo', 'استلام · التجمع الخامس، القاهرة الجديدة')}</p>
                     {order.address && <p className="sm:col-span-2">{order.address}</p>}
                 </div>
                 <p className={styles.muted}>{text('Product subtotal', 'قيمة المنتجات')}: {formatMoney(Number(order.unit_price) * order.quantity, lang)} · {text('Delivery', 'التوصيل')}: {formatMoney(Number(order.delivery_fee), lang)} · {order.pay_method ?? '—'}</p>

@@ -16,7 +16,7 @@ Product stock is checked again on the server when ordering. If stock changes whi
 ## Orders and payment
 
 - Checkout reserves the selected variant/quantity for 30 minutes. Customer details, selected color/size, price and fees are snapshotted on the order.
-- Collection has no delivery fee. Delivery requires an address and adds **EGP 90 per order**, calculated on the server.
+- Collection is from Fifth Settlement, New Cairo, with no collection fee. Delivery is available anywhere in Egypt, requires an address and adds **EGP 90 per order**, calculated on the server.
 - Customers can use InstaPay, e-wallet transfers or the existing Kashier card checkout (Visa / Mastercard / Meeza). A transfer receipt must exist in private storage under the paying user's folder and cannot be reused for another shop order.
 - `/shop/orders` shows the customer's orders and lets them resume unexpired checkout. Customers cannot read other customers' orders or update payment status directly.
 - `/admin/shop?tab=orders` shows customer details, variant, quantity, total, fulfillment and receipt. Approve/reject transfer receipts there; mark paid orders delivered/collected after fulfillment. Card reviews reuse the existing authorized card-review endpoint and audit history; they do not charge or refund cards.
