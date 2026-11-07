@@ -10,6 +10,7 @@ import { useI18n } from '@/lib/i18n';
 import { formatMoney } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { productGenderLabel } from '@/lib/shop';
 import type { ShopProduct, ShopOrder } from '@/lib/shop';
 import { ShopProductForm, blankProduct } from './shop-product-form';
 import styles from './shop.module.css';
@@ -135,7 +136,7 @@ export function ShopAdmin() {
                         {photo ? <img src={photo} alt={ar ? entry.name_ar || entry.name : entry.name} /> : <div className={styles.adminPlaceholder}><Shirt size={40}/></div>}
                         <div className="grid min-w-0 gap-2 p-4">
                             <div className={styles.row}><h2 className="font-bold">{ar ? entry.name_ar || entry.name : entry.name}</h2><span className="rounded-full bg-accent px-2 py-1 text-xs text-accent-foreground">{entry.published ? text('Published','منشور') : text('Draft','مسودة')}</span></div>
-                            <p className="font-semibold text-secondary">{formatMoney(Number(entry.price), lang)}</p>
+                            <p className="font-semibold text-secondary">{formatMoney(Number(entry.price), lang)} · {productGenderLabel(entry.gender, lang)}</p>
                             <p className={styles.muted}>{text(`${entry.variants.filter(v => v.active).length} variants`, `${entry.variants.filter(v => v.active).length} اختيار`)}</p>
                             <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" disabled={busy} onClick={() => { setProduct({ ...entry }); }}><Pencil size={15}/>{text('Edit','تعديل')}</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => void deleteProduct(entry)}><Trash2 size={15}/>{text('Delete','حذف')}</Button></div>
                         </div>

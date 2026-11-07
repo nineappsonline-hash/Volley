@@ -44,4 +44,9 @@ for(lang of ['en','ar']){
  find(tree,n=>n.props?.['aria-label']===(lang==='ar'?'بنفسجي':'Purple')).props.onClick();tree=render();assert.equal(find(tree,n=>n.type==='img').props.src,'/purple-front.jpg');
  find(tree,n=>n.type==='button'&&React.Children.toArray(n.props.children).includes(lang==='ar'?'جدول المقاسات':'Size guide')).props.onClick();tree=render();assert.equal(find(tree,n=>n.type===Dialog).props.open,true);
 }
+values=[];cursor=0;
+const availableColor={...product,gender:'women',variants:[{...product.variants[0],stock:0},product.variants[1]]};
+let availableTree=ShopProductCard({product:availableColor});
+assert.equal(find(availableTree,n=>n.type==='img').props.src,'/black-front.jpg','prefer a color with available stock');
+assert.ok(renderToStaticMarkup(availableTree).includes(lang==='ar'?'حريمي':'Women'));
 console.log('PASS: bilingual color-specific galleries, photo reset, size selection/reset, correct checkout variant, sold-out size and size-chart dialog');

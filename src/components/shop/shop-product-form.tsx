@@ -29,7 +29,7 @@ type Props = {
 };
 
 export function blankProduct(): ShopProduct {
-    return { id: crypto.randomUUID(), name: '', name_ar: '', description: '', description_ar: '', price: 0, size_chart: [], published: false, variants: [] };
+    return { id: crypto.randomUUID(), name: '', name_ar: '', description: '', description_ar: '', price: 0, gender: 'unisex', size_chart: [], published: false, variants: [] };
 }
 
 const STANDARD_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
@@ -72,6 +72,8 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
     const [rows, setRows] = useState<EditableVariant[]>(initial.rows);
     const [pending, setPending] = useState<string[]>([]);
     const [customSize, setCustomSize] = useState('');
+    const [newStock, setNewStock] = useState(0);
+    const stockSection = useRef<HTMLDetailsElement>(null);
     const [selectedSizes, setSelectedSizes] = useState<Set<string>>(() => new Set(detectedSizes(initialProduct.size_chart, initial.rows)));
     const [busy, setBusy] = useState(false);
     const text = (en: string, arabic: string) => ar ? arabic : en;
@@ -151,12 +153,18 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
             for (const size of chosenSizes) {
                 if (rows.some(variant => variant.color_id === color.id && variant.size === size))
                     continue;
-                additions.push({ id: crypto.randomUUID(), product_id: product.id, color: color.color.trim(), color_ar: color.color_ar, color_hex: color.color_hex, size, images: [...color.images], stock: 0, active: true, color_id: color.id });
+                additions.push({ id: crypto.randomUUID(), product_id: product.id, color: color.color.trim(), color_ar: color.color_ar, color_hex: color.color_hex, size, images: [...color.images], stock: newStock, active: true, color_id: color.id });
             }
         }
-        if (additions.length)
-            setRows(prev => [...prev, ...additions]);
+        setRows(prev => [...prev.map(variant => chosenColors.some(color => color.id === variant.color_id) && chosenSizes.includes(variant.size) ? { ...variant, active: true } : variant), ...additions]);
+        if (stockSection.current) { stockSection.current.open = true; stockSection.current.scrollIntoView({ block: 'nearest' }); }
         toast.success(additions.length ? text(`Added ${additions.length} combinations.`, `تمت إضافة ${additions.length} اختيار.`) : text('All selected combinations already exist.', 'كل الاختيارات المحددة موجودة بالفعل.'));
+    }
+
+    function fillEmptyStock() {
+        if (newStock < 1) { toast.error(text('Enter a stock quantity above zero first.', 'أدخل كمية مخزون أكبر من صفر أولًا.')); return; }
+        setRows(list => list.map(row => row.stock === 0 && selectedSizes.has(row.size) && colors.some(color => color.id === row.color_id && color.checked) ? { ...row, stock: newStock, active: true } : row));
+        if (stockSection.current) stockSection.current.open = true;
     }
 
     function updateVariant(id: string, patch: Partial<EditableVariant>) {
@@ -253,6 +261,8 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
             toast.error(text('Each color name must be unique.', 'كل اسم لون يجب أن يكون مختلفًا.'));
             return;
         }
+        const missing = colors.filter(color => color.checked).some(color => [...selectedSizes].some(size => !rows.some(variant => variant.color_id === color.id && variant.size === size)));
+        if (missing) { toast.error(text('Generate the selected color/size combinations and enter their stock before saving.', 'أنشئ اختيارات الألوان والمقاسات المحددة وأدخل مخزونها قبل الحفظ.')); return; }
         setBusy(true);
         try {
             const payloadVariants = rows.map(variant => {
@@ -296,6 +306,7 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
             <label>{text('Name (Arabic)', 'الاسم بالعربية')}<input value={product.name_ar} onChange={e => setProduct({ ...product, name_ar: e.target.value })}/></label>
             <label>{text('Description (English)', 'الوصف بالإنجليزية')}<textarea value={product.description} onChange={e => setProduct({ ...product, description: e.target.value })}/></label>
             <label>{text('Description (Arabic)', 'الوصف بالعربية')}<textarea value={product.description_ar} onChange={e => setProduct({ ...product, description_ar: e.target.value })}/></label>
+            <label>{text('Gender', 'الفئة')}<select value={product.gender ?? 'unisex'} onChange={e => setProduct({ ...product, gender: e.target.value as ShopProduct['gender'] })}><option value="unisex">{text('Unisex', 'للجميع')}</option><option value="men">{text('Men', 'رجالي')}</option><option value="women">{text('Women', 'حريمي')}</option></select></label>
             <label className="sm:max-w-[12rem]">{text('Price (EGP)', 'السعر بالجنيه')}<input required type="number" min="0.01" step="0.01" value={product.price || ''} onChange={e => setProduct({ ...product, price: Number(e.target.value) })}/></label>
         </div>
 
@@ -361,11 +372,15 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
             } }}/></label>
             <Button type="button" variant="outline" onClick={addCustomSize}><Plus />{text('Add size', 'إضافة مقاس')}</Button>
         </div>
+        <label>{text('Stock quantity per color / size', 'كمية المخزون لكل لون / مقاس')}<input type="number" min={0} step={1} value={newStock} onChange={e => setNewStock(Math.max(0, Math.floor(Number(e.target.value) || 0)))}/></label>
+        <p className={styles.muted}>{text('Enter the actual quantity available for each new combination. Zero stock is shown as sold out. Existing positive stock is unchanged.', 'أدخل الكمية الفعلية المتاحة لكل اختيار جديد. المخزون صفر يظهر كغير متاح. المخزون الحالي الأكبر من صفر لا يتغير.')}</p>
         <Button type="button" variant="outline" onClick={generate}>{text('Generate selected combinations', 'إنشاء الاختيارات المحددة')}</Button>
+        <Button type="button" variant="outline" onClick={fillEmptyStock}>{text('Fill zero stock for selected sizes', 'إضافة مخزون للمقاسات المحددة ذات المخزون صفر')}</Button>
 
         </details>
-        <details className={styles.editorSection}>
+        <details ref={stockSection} className={styles.editorSection} open={rows.some(row => row.active && row.stock === 0)}>
         <summary>{text('Stock & visibility', 'المخزون والظهور')} <span>{rows.length}</span></summary>
+        <p className={styles.muted}>{text('Visible sizes need a stock quantity above zero to be purchased. Enabling a size alone does not add inventory.', 'المقاس الظاهر يحتاج مخزونًا أكبر من صفر ليكون متاحًا للشراء. تفعيل المقاس وحده لا يضيف مخزونًا.')}</p>
         {colors.map(color => {
             const variants = rows.filter(variant => variant.color_id === color.id);
             if (!variants.length)
@@ -378,7 +393,7 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
                 <div className="grid gap-2">
                     {variants.map(variant => <div key={variant.id} className="grid items-end gap-2 rounded-md border px-2 py-1 sm:grid-cols-[1fr_7rem_auto_auto]">
                         <strong>{variant.size}</strong>
-                        <label>{text('Stock', 'المخزون')}<input type="number" min={0} value={variant.stock} onChange={e => updateVariant(variant.id, { stock: Number(e.target.value) })}/></label>
+                        <label>{text('Stock', 'المخزون')}<input type="number" min={0} value={variant.stock} onChange={e => updateVariant(variant.id, { stock: Number(e.target.value) })}/>{variant.active && variant.stock === 0 && <span className="text-xs text-warning-ink">{text('Out of stock', 'نفد المخزون')}</span>}</label>
                         <label className="!flex items-center gap-2">
                             <input className="!w-4" type="checkbox" checked={variant.active} onChange={e => updateVariant(variant.id, { active: e.target.checked })}/>
                             {text('Visible', 'ظاهر')}

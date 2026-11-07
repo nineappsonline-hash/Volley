@@ -32,3 +32,7 @@ Product stock is checked again on the server when ordering. If stock changes whi
 `node tests/shop-checkout.cjs` checks delivery checkout, server-calculated pricing inputs, card checkout targets, order resumption and expired payment controls.
 
 The admin products tab lists every undeleted product automatically, including drafts. Use Edit on a card to open its editor or Delete to remove it from the shop. Color names are suggestions that can be edited in English and Arabic; duplicate names are flagged.
+
+Apply `supabase/migrations/20270121000000_shop_product_gender.sql` to enable Men, Women and Unisex product fields (existing products default to Unisex).
+
+Enabling a size does not create inventory. Enter the actual **Stock quantity per color / size** before generating combinations. For existing enabled sizes with zero inventory, use **Fill zero stock for selected sizes**, review Stock & visibility and save. This leaves existing positive stock untouched. Zero-stock sizes remain unavailable in the store.
