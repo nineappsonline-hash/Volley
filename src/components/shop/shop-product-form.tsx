@@ -40,7 +40,7 @@ function detectedSizes(chart: SizeMeasurement[], rows: EditableVariant[]) {
 
 function sizeList(chart: SizeMeasurement[], rows: EditableVariant[]) {
     const detected = detectedSizes(chart, rows);
-    return [...STANDARD_SIZES, ...detected.filter(size => !STANDARD_SIZES.includes(size))];
+    return [...STANDARD_SIZES, ...detected.filter(size => !STANDARD_SIZES.some(standard => standard.toLowerCase() === size.toLowerCase()))];
 }
 
 function buildInitial(variants: ShopVariant[]) {
@@ -71,6 +71,7 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
     const [colors, setColors] = useState<ColorDraft[]>(initial.colors);
     const [rows, setRows] = useState<EditableVariant[]>(initial.rows);
     const [pending, setPending] = useState<string[]>([]);
+    const [customSize, setCustomSize] = useState('');
     const [selectedSizes, setSelectedSizes] = useState<Set<string>>(() => new Set(detectedSizes(initialProduct.size_chart, initial.rows)));
     const [busy, setBusy] = useState(false);
     const text = (en: string, arabic: string) => ar ? arabic : en;
@@ -143,9 +144,6 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
                 additions.push({ id: crypto.randomUUID(), product_id: product.id, color: color.color.trim(), color_ar: color.color_ar, color_hex: color.color_hex, size, images: [...color.images], stock: 0, active: true, color_id: color.id });
             }
         }
-        const missingMeasurements = chosenSizes.filter(size => !product.size_chart.some(row => row.size.trim() === size));
-        if (missingMeasurements.length)
-            setProduct(current => ({ ...current, size_chart: [...current.size_chart, ...missingMeasurements.map(size => ({ size, chest: 0, length: 0 }))] }));
         if (additions.length)
             setRows(prev => [...prev, ...additions]);
         toast.success(additions.length ? text(`Added ${additions.length} combinations.`, `تمت إضافة ${additions.length} اختيار.`) : text('All selected combinations already exist.', 'كل الاختيارات المحددة موجودة بالفعل.'));
@@ -203,11 +201,39 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
         }
     }
 
-    function updateMeasurement(index: number, key: keyof SizeMeasurement, value: string) {
-        setProduct(current => ({
-            ...current,
-            size_chart: current.size_chart.map((measurement, row) => row === index ? { ...measurement, [key]: key === 'size' ? value : Number(value) } : measurement),
-        }));
+    function updateMeasurement(size: string, key: 'chest' | 'length', value: string) {
+        const amount = Number(value);
+        setProduct(current => {
+            const index = current.size_chart.findIndex(row => row.size.trim().toLowerCase() === size.toLowerCase());
+            if (index === -1)
+                return { ...current, size_chart: [...current.size_chart, { size, chest: 0, length: 0, [key]: amount }] };
+            return { ...current, size_chart: current.size_chart.map((row, position) => position === index ? { ...row, [key]: amount } : row) };
+        });
+    }
+
+    function addCustomSize() {
+        const size = customSize.trim();
+        if (!size)
+            return;
+        if (sizes.some(existing => existing.toLowerCase() === size.toLowerCase())) {
+            toast.error(text('This size already exists.', 'هذا المقاس موجود بالفعل.'));
+            return;
+        }
+        setProduct(current => ({ ...current, size_chart: [...current.size_chart, { size, chest: 0, length: 0 }] }));
+        setSelectedSizes(current => new Set([...current, size]));
+        setCustomSize('');
+    }
+
+    function removeSize(size: string) {
+        if (rows.some(variant => variant.size === size) && !window.confirm(text('Remove this size and hide its variants?', 'إزالة هذا المقاس وإخفاء اختياراته؟')))
+            return;
+        setProduct(current => ({ ...current, size_chart: current.size_chart.filter(row => row.size.trim().toLowerCase() !== size.toLowerCase()) }));
+        setRows(list => list.filter(variant => variant.size !== size));
+        setSelectedSizes(current => {
+            const next = new Set(current);
+            next.delete(size);
+            return next;
+        });
     }
 
     async function save(e: React.FormEvent) {
@@ -261,19 +287,6 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
         <label>{text('Description (Arabic)', 'الوصف بالعربية')}<textarea value={product.description_ar} onChange={e => setProduct({ ...product, description_ar: e.target.value })}/></label>
         <label>{text('Price (EGP)', 'السعر بالجنيه')}<input required type="number" min="0.01" step="0.01" value={product.price || ''} onChange={e => setProduct({ ...product, price: Number(e.target.value) })}/></label>
 
-        <h3 className="font-bold">{text('Size chart · centimeters', 'جدول المقاسات · سنتيمتر')}</h3>
-        <p className={styles.muted}>{text('Add each size with its chest width and length before publishing.', 'أضف كل مقاس مع عرض الصدر والطول قبل النشر.')}</p>
-        {product.size_chart.map((row, index) => <div key={index} className="grid grid-cols-3 gap-2">
-            {(['size', 'chest', 'length'] as const).map(key => <label key={key}>
-                {key === 'size' ? text('Size', 'المقاس') : key === 'chest' ? text('Chest width (cm)', 'عرض الصدر') : text('Length (cm)', 'الطول')}
-                <input required type={key === 'size' ? 'text' : 'number'} min={key === 'size' ? undefined : 1} value={row[key]} onChange={e => updateMeasurement(index, key, e.target.value)}/>
-            </label>)}
-            <button type="button" className="col-span-3 flex items-center gap-1 text-start text-xs text-secondary" onClick={() => setProduct({ ...product, size_chart: product.size_chart.filter((_, position) => position !== index) })}>
-                <Trash2 size={13}/>{text('Remove this size', 'إزالة المقاس')}
-            </button>
-        </div>)}
-        <Button type="button" variant="outline" onClick={() => setProduct({ ...product, size_chart: [...product.size_chart, { size: '', chest: 0, length: 0 }] })}>{text('Add size measurements', 'إضافة قياسات مقاس')}</Button>
-
         <h3 className="font-bold">{text('Colors', 'الألوان')}</h3>
         <p className={styles.muted}>{text('Add a color, tick it, then choose sizes below to generate every missing combination.', 'أضف لونًا وحدده ثم اختار المقاسات بالأسفل لإنشاء كل الاختيارات الناقصة.')}</p>
         <p className={styles.muted}>{text('Pick a shade in the square and the English and Arabic names update automatically.', 'اختار اللون من المربع ويتم تحديث الاسم بالإنجليزية والعربية تلقائيًا.')}</p>
@@ -296,24 +309,39 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
         </div>
         <Button type="button" variant="outline" onClick={addColor}><Plus />{text('Add color', 'إضافة لون')}</Button>
 
-        <h3 className="font-bold">{text('Sizes for new combinations', 'المقاسات للاختيارات الجديدة')}</h3>
-        <p className={styles.muted}>{text('Standard sizes are always available. Generating a size adds its measurement row so you can fill in chest and length.', 'المقاسات القياسية متاحة دائمًا. عند إنشاء مقاس تُضاف صف قياساته لتكتب عرض الصدر والطول.')}</p>
+        <h3 className="font-bold">{text('Sizes and measurements · centimeters', 'المقاسات والقياسات · سنتيمتر')}</h3>
+        <p className={styles.muted}>{text('Check the sizes you sell, then enter width and long for each one. Checked sizes are used when generating combinations.', 'حدد المقاسات المتاحة واكتب العرض والطول لكل مقاس. المقاسات المحددة هي التي تُستخدم عند إنشاء الاختيارات.')}</p>
         <label className="!flex items-center gap-2">
             <input className="!w-4" type="checkbox" checked={sizes.length > 0 && sizes.every(size => selectedSizes.has(size))} onChange={e => setSelectedSizes(e.target.checked ? new Set(sizes) : new Set())}/>
             {text('Select all sizes', 'تحديد كل المقاسات')}
         </label>
-        <div className="flex flex-wrap gap-2">
-            {sizes.length ? sizes.map(size => <label key={size} className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
-                <input type="checkbox" checked={selectedSizes.has(size)} onChange={e => setSelectedSizes(current => {
-                    const next = new Set(current);
-                    if (e.target.checked)
-                        next.add(size);
-                    else
-                        next.delete(size);
-                    return next;
-                })}/>
-                {size}
-            </label>) : <p className={styles.muted}>{text('Add size measurements first.', 'أضف قياسات المقاسات أولًا.')}</p>}
+        <div className="grid gap-2">
+            {sizes.map(size => {
+                const measurement = product.size_chart.find(row => row.size.trim().toLowerCase() === size.toLowerCase());
+                return <div key={size} className="grid items-end gap-2 rounded-lg border p-3 sm:grid-cols-[5rem_1fr_1fr_auto]">
+                    <label className="!flex items-center gap-2">
+                        <input className="!w-4" type="checkbox" checked={selectedSizes.has(size)} onChange={e => setSelectedSizes(current => {
+                            const next = new Set(current);
+                            if (e.target.checked)
+                                next.add(size);
+                            else
+                                next.delete(size);
+                            return next;
+                        })}/>
+                        <strong>{size}</strong>
+                    </label>
+                    <label>{text('Width (cm)', 'العرض (سم)')}<input type="number" min={0} value={measurement?.chest ?? ''} onChange={e => updateMeasurement(size, 'chest', e.target.value)}/></label>
+                    <label>{text('Long (cm)', 'الطول (سم)')}<input type="number" min={0} value={measurement?.length ?? ''} onChange={e => updateMeasurement(size, 'length', e.target.value)}/></label>
+                    <Button type="button" variant="ghost" onClick={() => removeSize(size)}><Trash2 size={14}/>{text('Remove', 'إزالة')}</Button>
+                </div>;
+            })}
+        </div>
+        <div className="flex flex-wrap items-end gap-2">
+            <label className="!max-w-xs">{text('Custom size', 'مقاس مخصص')}<input value={customSize} onChange={e => setCustomSize(e.target.value)} placeholder="3XL" onKeyDown={e => { if (e.key === 'Enter') {
+                e.preventDefault();
+                addCustomSize();
+            } }}/></label>
+            <Button type="button" variant="outline" onClick={addCustomSize}><Plus />{text('Add size', 'إضافة مقاس')}</Button>
         </div>
         <Button type="button" variant="outline" onClick={generate}>{text('Generate selected combinations', 'إنشاء الاختيارات المحددة')}</Button>
 
