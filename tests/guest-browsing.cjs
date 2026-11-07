@@ -15,10 +15,10 @@ const cache=new Map();
 function load(file){file=path.resolve(file);if(file.endsWith('.css'))return {default:new Proxy({},{get:(_,key)=>String(key)})};if(cache.has(file))return cache.get(file);const out={};cache.set(file,out);const code=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText;new Function('require','exports',code)(id=>{if(id in mocks)return mocks[id];if(id.startsWith('@/')||id.startsWith('.')){const base=id.startsWith('@/')?path.resolve('src',id.slice(2)):path.resolve(path.dirname(file),id);return load(['.ts','.tsx',''].map(x=>base+x).find(f=>fs.existsSync(f)&&fs.statSync(f).isFile()));}return require(id)},out);return out;}
 (async()=>{
  const {updateSession}=load('src/lib/supabase/middleware.ts');const {isGuestBrowsePath,landingBrowsePath}=load('src/lib/guest-access.ts');
- for(const dest of ['/shop','/dashboard','/dashboard/games?sport=tennis','/dashboard/tournaments','/dashboard/academies','/playgrounds','/academies','/games','/courts']){
+ for(const dest of ['/shop','/shop/checkout?variant=abc','/shop/orders','/dashboard','/dashboard/games?sport=tennis','/dashboard/tournaments','/dashboard/academies','/playgrounds','/academies','/games','/courts']){
   const response=await updateSession(new NextRequest('https://playza.test'+dest));assert.equal(response.status,200,dest);
  }
- for(const dest of ['/shop/checkout?variant=abc','/shop/orders','/dashboard/my-games?focus=game','/profile','/schedule','/members','/admin','/academy','/parent','/checkout','/complete-profile','/dashboard/games/edit']){
+ for(const dest of ['/dashboard/my-games?focus=game','/profile','/schedule','/members','/admin','/academy','/parent','/checkout','/complete-profile','/dashboard/games/edit']){
   const response=await updateSession(new NextRequest('https://playza.test'+dest));assert.equal(response.status,307,dest);const url=new URL(response.headers.get('location'));assert.equal(url.pathname,'/login');assert.equal(url.searchParams.get('redirectedFrom'),dest);
  }
  assert.equal(isGuestBrowsePath('/dashboard/my-games'),false);

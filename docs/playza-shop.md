@@ -36,3 +36,13 @@ The admin products tab lists every undeleted product automatically, including dr
 Apply `supabase/migrations/20270121000000_shop_product_gender.sql` to enable Men, Women and Unisex product fields (existing products default to Unisex).
 
 Enabling a size does not create inventory. Enter the actual **Stock quantity per color / size** before generating combinations. For existing enabled sizes with zero inventory, use **Fill zero stock for selected sizes**, review Stock & visibility and save. This leaves existing positive stock untouched. Zero-stock sizes remain unavailable in the store.
+
+## Guest checkout and order photographs
+
+Apply `supabase/migrations/20270122000000_shop_guest_checkout.sql`. Customers can then order without signing in, using InstaPay, e-wallet receipts or Kashier cards. No anonymous Auth configuration or guest account is needed. Member checkout remains available.
+
+Guest orders use a random, HttpOnly, Secure-in-production, SameSite=Lax browser cookie. Only a hash is stored with the order. The guest endpoints use server-only routines, do not expose this hash and check ownership before reading orders, accepting receipts or preparing/reconciling card payments. Customers should retain the browser/cookie to return to orders; signing in in the same browser also keeps those guest orders visible. Guest reservations are limited to three simultaneous unpaid orders per browser and ten orders per hour per server-provided IP hash. Guest orders retain the same server prices, EGP 90 delivery fee, 30-minute stock holds and admin approval workflow.
+
+The selected color's first product photo is snapshotted on each order, backfilled for existing orders and displayed in checkout and order history, including resumed orders.
+
+Validation: `node tests/shop-guest-api.cjs`, `node tests/shop-checkout.cjs`, `node tests/shop-orders.cjs` and the existing card-payment/webhook tests.

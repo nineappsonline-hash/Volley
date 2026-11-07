@@ -1,3 +1,4 @@
+import { ownsGuestShopPayment } from '@/lib/shop-guest';
 import {NextResponse} from 'next/server';
 import {createClient} from '@/lib/supabase/server';
 import {createAdminClient} from '@/lib/supabase/admin';
@@ -17,11 +18,10 @@ export async function POST(request:Request){
  const id=typeof body?.orderId==='string'?body.orderId.trim():'';
  if(!/^[0-9a-f-]{36}$/i.test(id))return NextResponse.json({error:'Invalid order'},{status:400});
  const supabase=createClient();const {data:{user}}=await supabase.auth.getUser();
- if(!user)return NextResponse.json({error:'Sign in first'},{status:401});
  const db=createAdminClient();
- const {data:order,error}=await db.from('kashier_orders').select('id,user_id,mode,status,amount,currency,expires_at,session_id,transaction_id').eq('id',id).maybeSingle();
+ const {data:order,error}=await db.from('kashier_orders').select('id,user_id,kind,target_id,mode,status,amount,currency,expires_at,session_id,transaction_id').eq('id',id).maybeSingle();
  if(error||!order||order.mode!==c.mode)return NextResponse.json({error:'Order not found'},{status:404});
- if(order.user_id!==user.id)return NextResponse.json({error:'Forbidden'},{status:403});
+ if((!user||order.user_id!==user.id)&&!await ownsGuestShopPayment(request,order))return NextResponse.json({error:'Forbidden'},{status:403});
  if(order.status==='paid'||order.status==='review_required')return NextResponse.json({status:order.status,paid:true,transaction_id:order.transaction_id});
  if(order.status!=='pending')return NextResponse.json({status:order.status});
  if(!order.session_id)return NextResponse.json({status:order.status});

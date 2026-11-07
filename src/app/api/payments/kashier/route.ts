@@ -1,3 +1,4 @@
+import { guestToken, guestHash, ownsGuestShopPayment } from '@/lib/shop-guest';
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
 import {createClient} from '@/lib/supabase/server';
@@ -7,14 +8,18 @@ const schema=z.object({kind:z.enum(['academy','share','rent','subscription','sho
 export async function POST(request:Request){
  const origin=request.headers.get('origin');
  if(origin && origin!==new URL(request.url).origin)return NextResponse.json({error:'Invalid origin'},{status:403});
- const {data:{user}}=await createClient().auth.getUser();if(!user)return NextResponse.json({error:'Sign in first'},{status:401});
+ const {data:{user}}=await createClient().auth.getUser();
  const input=schema.safeParse(await request.json().catch(()=>null));if(!input.success)return NextResponse.json({error:'Invalid payment request'},{status:400});
+ const token=guestToken(request);
+ const guest=!!token && input.data.kind==='shop' && await ownsGuestShopPayment(request,{kind:'shop',target_id:input.data.targetId,user_id:null});
+ if(!user&&!guest)return NextResponse.json({error:'Your checkout session is unavailable'},{status:401});
  try{
  const c=kashierConfig();const db=createAdminClient();
  const {error:expiryError}=await db.rpc('expire_kashier_holds');if(expiryError)throw expiryError;
+ const prepare=()=>guest?db.rpc('prepare_guest_shop_card',{p_guest_hash:guestHash(token!),p_order:input.data.targetId,p_mode:c.mode}):db.rpc('prepare_kashier_order',{p_user:user!.id,p_request:input.data,p_mode:c.mode});
  let prepared:any;
  try{
-  prepared=await db.rpc('prepare_kashier_order',{p_user:user.id,p_request:input.data,p_mode:c.mode});
+  prepared=await prepare();
  }catch(err:any){
   const msg=err?.message||String(err);
   return NextResponse.json({error:msg},{status:400});
@@ -32,7 +37,7 @@ export async function POST(request:Request){
   const {error:releaseError}=await db.rpc('expire_kashier_holds');if(releaseError)throw releaseError;
   let retry:any;
   try{
-   retry=await db.rpc('prepare_kashier_order',{p_user:user.id,p_request:input.data,p_mode:c.mode});
+   retry=await prepare();
   }catch(err:any){
    const msg=err?.message||String(err);
    return NextResponse.json({error:msg},{status:400});
@@ -46,7 +51,7 @@ export async function POST(request:Request){
  const serverWebhook=`${c.origin}/webhook`;
  let checkoutUrl:string;
  try{
-  const session=await kashierRequest('/v3/payment/sessions',{merchantId:c.merchantId,order:order.id,amount:Number(order.amount).toFixed(2),currency:'EGP',expireAt:expiresAt.toISOString(),paymentType:'credit',type:'one-time',maxFailureAttempts:3,allowedMethods:'card',defaultMethod:'card',manualCapture:false,enable3DS:true,retrieveSavedCard:false,display:input.data.lang,merchantRedirect,serverWebhook,failureRedirect:true,customer:{email:user.email,reference:user.id},description:'Playza payment'});
+  const session=await kashierRequest('/v3/payment/sessions',{merchantId:c.merchantId,order:order.id,amount:Number(order.amount).toFixed(2),currency:'EGP',expireAt:expiresAt.toISOString(),paymentType:'credit',type:'one-time',maxFailureAttempts:3,allowedMethods:'card',defaultMethod:'card',manualCapture:false,enable3DS:true,retrieveSavedCard:false,display:input.data.lang,merchantRedirect,serverWebhook,failureRedirect:true,customer:guest?{reference:order.target_id}:{email:user!.email,reference:user!.id},description:'Playza payment'});
   const sessionUrl=typeof session?.sessionUrl==='string'?session.sessionUrl:'';if(!sessionUrl)throw new Error('Kashier returned no checkout URL');
   const url=new URL(sessionUrl);if(url.protocol!=='https:'||!(url.hostname==='payments.kashier.io'||url.hostname.endsWith('.kashier.io')))throw new Error(`Untrusted checkout host: ${url.hostname}`);
   const sessionId=String(session?._id??session?.sessionId??url.pathname.split('/').filter(Boolean).pop()??'');if(!sessionId)throw new Error('Kashier returned no session id');
@@ -61,5 +66,5 @@ export async function POST(request:Request){
   checkoutUrl=hosted.toString();
  }
  return NextResponse.json({url:checkoutUrl});
- }catch(error){console.error('Kashier checkout failed',{userId:user.id,request:input.data,error});return NextResponse.json({error:'Could not open card checkout. Please retry later; do not pay again if your card was charged.'},{status:503});}
+ }catch(error){console.error('Kashier checkout failed',{userId:user?.id,request:input.data,error});return NextResponse.json({error:'Could not open card checkout. Please retry later; do not pay again if your card was charged.'},{status:503});}
 }

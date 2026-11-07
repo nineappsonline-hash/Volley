@@ -81,8 +81,6 @@ export async function updateSession(request: NextRequest) {
     "/upgrade",
     "/events",
     "/marketplace",
-    "/shop/checkout",
-    "/shop/orders",
     "/community",
     // NOTE: /academies is intentionally public — anonymous visitors can browse
     // the directory (join/rate require login inside the page). Keeping it here
