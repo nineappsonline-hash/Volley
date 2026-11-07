@@ -1,10 +1,10 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- Product photos use administrator-provided storage URLs. */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Plus, Shirt } from 'lucide-react';
+import { Plus, Shirt, Pencil, Trash2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useI18n } from '@/lib/i18n';
 import { formatMoney } from '@/lib/constants';
@@ -20,12 +20,14 @@ export function ShopAdmin() {
     const cache = useQueryClient();
     const params = useSearchParams();
     const [tab, setTab] = useState(params.get('tab') === 'orders' ? 'orders' : 'products');
-    const [selected, setSelected] = useState('');
     const [product, setProduct] = useState<ShopProduct | null>(null);
+    const editor = useRef<HTMLElement>(null);
+    const editingId = product?.id;
+    useEffect(() => { if (editingId) editor.current?.scrollIntoView({ block: 'start' }); }, [editingId]);
     const [busy, setBusy] = useState(false);
     const [preview, setPreview] = useState<string | null>(null);
     const catalog = useQuery({ queryKey: ['shop-admin-products'], queryFn: async () => {
-        const { data, error } = await createClient().from('shop_products').select('*,variants:shop_variants(*)').order('created_at', { ascending: false });
+        const { data, error } = await createClient().from('shop_products').select('*,variants:shop_variants(*)').is('deleted_at', null).order('created_at', { ascending: false });
         if (error)
             throw error;
         return data as ShopProduct[];
@@ -42,11 +44,18 @@ export function ShopAdmin() {
             throw error;
         return data as ShopOrder[];
     } });
-    useEffect(() => {
-        const found = catalog.data?.find(entry => entry.id === selected);
-        if (found)
-            setProduct({ ...found });
-    }, [selected, catalog.data]);
+    async function deleteProduct(entry: ShopProduct) {
+        if (busy || !window.confirm(ar ? `حذف «${entry.name_ar || entry.name}» من المتجر؟ ستبقى الطلبات السابقة محفوظة.` : `Delete “${entry.name}” from the shop? Existing orders will be preserved.`)) return;
+        setBusy(true);
+        try {
+            const { error } = await createClient().rpc('delete_shop_product', { p_product: entry.id });
+            if (error) throw error;
+            if (product?.id === entry.id) { setProduct(null); }
+            await Promise.all(['shop-admin-products', 'shop-products', 'shop-featured'].map(key => cache.invalidateQueries({ queryKey: [key] })));
+            toast.success(ar ? 'تم حذف المنتج' : 'Product deleted');
+        } catch (error) { toast.error((error as Error).message); }
+        finally { setBusy(false); }
+    }
     async function review(order: ShopOrder, action: string) {
         if (busy)
             return;
@@ -114,17 +123,27 @@ export function ShopAdmin() {
         </header>
         {tab === 'products' ? <>
             <div className="flex flex-wrap gap-3">
-                <select className="max-w-full rounded-lg border bg-card p-2" value={selected} onChange={e => setSelected(e.target.value)}>
-                    <option value="">{text('Select a product', 'اختار منتج')}</option>
-                    {catalog.data?.map(entry => <option key={entry.id} value={entry.id}>{entry.name} {entry.published ? '' : '(draft)'}</option>)}
-                </select>
-                <Button onClick={() => { setSelected(''); setProduct(blankProduct()); }}><Plus />{text('New product', 'منتج جديد')}</Button>
+                <Button onClick={() => { setProduct(blankProduct()); }}><Plus />{text('New product', 'منتج جديد')}</Button>
                 <Button variant="outline" onClick={() => catalog.refetch()}>{text('Refresh catalog', 'تحديث المنتجات')}</Button>
             </div>
-            {catalog.isError && <p role="alert">{text('Could not load catalog. Apply the shop migration first.', 'تعذر تحميل المنتجات. تأكد من تطبيق تحديث قاعدة البيانات.')}</p>}
-            {product
-                ? <ShopProductForm key={product.id} product={product} onSaved={id => setSelected(id)}/>
-                : <div className={`${styles.panel} text-center`}><Shirt className="mx-auto mb-4 h-10 w-10 text-secondary"/>{text('Create a product or select one to edit.', 'أنشئ منتجًا أو اختار منتج لتعديله.')}</div>}
+            {catalog.isError && <p role="alert">{text('Could not load catalog. Make sure the latest shop migrations are applied.', 'تعذر تحميل المنتجات. تأكد من تطبيق تحديث قاعدة البيانات.')}</p>}
+            {catalog.isPending && <p role="status">{text('Loading products…', 'جاري تحميل المنتجات…')}</p>}
+            <div className={styles.adminCatalog}>
+                {catalog.data?.map(entry => {
+                    const photo = entry.variants.flatMap(variant => variant.images)[0];
+                    return <article key={entry.id} className={styles.adminProduct}>
+                        {photo ? <img src={photo} alt={ar ? entry.name_ar || entry.name : entry.name} /> : <div className={styles.adminPlaceholder}><Shirt size={40}/></div>}
+                        <div className="grid min-w-0 gap-2 p-4">
+                            <div className={styles.row}><h2 className="font-bold">{ar ? entry.name_ar || entry.name : entry.name}</h2><span className="rounded-full bg-accent px-2 py-1 text-xs text-accent-foreground">{entry.published ? text('Published','منشور') : text('Draft','مسودة')}</span></div>
+                            <p className="font-semibold text-secondary">{formatMoney(Number(entry.price), lang)}</p>
+                            <p className={styles.muted}>{text(`${entry.variants.filter(v => v.active).length} variants`, `${entry.variants.filter(v => v.active).length} اختيار`)}</p>
+                            <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" disabled={busy} onClick={() => { setProduct({ ...entry }); }}><Pencil size={15}/>{text('Edit','تعديل')}</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => void deleteProduct(entry)}><Trash2 size={15}/>{text('Delete','حذف')}</Button></div>
+                        </div>
+                    </article>;
+                })}
+            </div>
+            {!catalog.isPending && !catalog.isError && !catalog.data?.length && <p className={styles.muted}>{text('No products yet. Add your first product.', 'لا توجد منتجات بعد. أضف أول منتج.')}</p>}
+            {product && <section ref={editor} className="grid scroll-mt-20 gap-3" aria-label={text('Product editor','تعديل المنتج')}><div className={styles.row}><h2 className="font-bold">{product.name || text('New product','منتج جديد')}</h2><Button variant="ghost" onClick={() => { setProduct(null); }}>{text('Close editor','إغلاق المحرر')}</Button></div><ShopProductForm key={product.id} product={product} onSaved={() => setProduct(null)}/></section>}
         </> : <div className="space-y-4">
             {orders.isError && <p role="alert">{text('Could not load orders.', 'تعذر تحميل الطلبات.')}</p>}
             {!orders.isPending && !orders.data?.length && <p>{text('No orders yet.', 'لا توجد طلبات بعد.')}</p>}

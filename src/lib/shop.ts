@@ -40,17 +40,23 @@ export function colorNames(hex: string) {
   const red = parseInt(full.slice(0, 2), 16) || 0;
   const green = parseInt(full.slice(2, 4), 16) || 0;
   const blue = parseInt(full.slice(4, 6), 16) || 0;
-  let closest = COLOR_NAMES[0];
-  let closestDistance = Infinity;
-  for (const named of COLOR_NAMES) {
-    const target = named.hex.replace('#', '');
-    const distance = (red - parseInt(target.slice(0, 2), 16)) ** 2 + (green - parseInt(target.slice(2, 4), 16)) ** 2 + (blue - parseInt(target.slice(4, 6), 16)) ** 2;
-    if (distance < closestDistance) {
-      closestDistance = distance;
-      closest = named;
-    }
-  }
-  return { color: closest.en, color_ar: closest.ar };
+  const exact = COLOR_NAMES.find(named => named.hex.toLowerCase() === `#${full.toLowerCase()}`);
+  if (exact) return { color: exact.en, color_ar: exact.ar };
+  const r = red / 255, g = green / 255, b = blue / 255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b), delta = max-min;
+  const light = (max+min)/2;
+  const named = (color: string, color_ar: string) => ({color,color_ar});
+  if (light < .10) return named('Black','أسود');
+  if (light > .94) return named('White','أبيض');
+  const saturation = delta === 0 ? 0 : delta/(1-Math.abs(2*light-1));
+  if (saturation < .14) return light < .3 ? named('Charcoal','فحمي') : light > .72 ? named('Light gray','رمادي فاتح') : named('Gray','رمادي');
+  let hue = delta === 0 ? 0 : max === r ? ((g-b)/delta)%6 : max === g ? (b-r)/delta+2 : (r-g)/delta+4;
+  hue = (hue*60+360)%360;
+  if (hue >= 15 && hue < 50 && light < .4) return named('Brown','بني');
+  if (hue >= 30 && hue < 60 && saturation < .55 && light > .6) return named('Beige','بيج');
+  if (hue >= 200 && hue < 260 && light < .3) return named('Navy','كحلي');
+  const base = hue < 15 || hue >= 345 ? named('Red','أحمر') : hue < 45 ? named('Orange','برتقالي') : hue < 65 ? named('Yellow','أصفر') : hue < 90 ? named('Lime','ليموني') : hue < 165 ? named('Green','أخضر') : hue < 185 ? named('Teal','أزرق مخضر') : hue < 205 ? named('Cyan','سماوي') : hue < 260 ? named('Blue','أزرق') : hue < 290 ? named('Purple','بنفسجي') : hue < 320 ? named('Magenta','أرجواني') : named('Pink','وردي');
+  return light < .28 ? named(`Dark ${base.color.toLowerCase()}`,`${base.color_ar} داكن`) : light > .73 ? named(`Light ${base.color.toLowerCase()}`,`${base.color_ar} فاتح`) : base;
 }
 export function shopTotal(price: number, quantity: number, fulfillment: string) {
   return Math.round((price * quantity + (fulfillment === 'delivery' ? SHOP_DELIVERY_FEE : 0)) * 100) / 100;

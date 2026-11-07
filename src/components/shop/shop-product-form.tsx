@@ -47,11 +47,11 @@ function buildInitial(variants: ShopVariant[]) {
     const colors: ColorDraft[] = [];
     const byColor = new Map<string, ColorDraft>();
     const rows = variants.map(variant => {
-        let draft = byColor.get(variant.color);
+        let draft = byColor.get(`${variant.color}|${variant.color_hex.toLowerCase()}`);
         if (!draft) {
             const automatic = colorNames(variant.color_hex);
             draft = { id: `color-${colors.length}`, color: variant.color || automatic.color, color_ar: variant.color_ar || automatic.color_ar, color_hex: variant.color_hex, checked: true, images: [] };
-            byColor.set(variant.color, draft);
+            byColor.set(`${variant.color}|${variant.color_hex.toLowerCase()}`, draft);
             colors.push(draft);
         }
         draft.images.push(...variant.images);
@@ -103,12 +103,22 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
     }
 
     function addColor() {
-        const color_hex = '#4c1d95';
-        setColors(list => [...list, { id: `new-${crypto.randomUUID()}`, ...colorNames(color_hex), color_hex, checked: true, images: [] }]);
+        const color_hex = ['#000000','#ffffff','#2563eb','#ef4444','#22c55e','#7c3aed'].find(hex => !colors.some(color => color.color_hex.toLowerCase() === hex)) ?? '#4c1d95';
+        setColors(list => [...list, { id: `new-${crypto.randomUUID()}`, ...uniqueColorName(color_hex), color_hex, checked: true, images: [] }]);
     }
 
+    function uniqueColorName(hex: string, excludingId?: string) {
+        const suggested = colorNames(hex);
+        const others = colors.filter(color => color.id !== excludingId);
+        let suffix = '', index = 1;
+        while (others.some(color => color.color.trim().toLowerCase() === `${suggested.color}${suffix}`.toLowerCase())) {
+            suffix = ` (${hex.toUpperCase()}${index > 1 ? ` · ${index}` : ''})`;
+            index++;
+        }
+        return { color: suggested.color + suffix, color_ar: suggested.color_ar + suffix };
+    }
     function pickColor(id: string, color_hex: string) {
-        updateColor(id, { color_hex, ...colorNames(color_hex) });
+        updateColor(id, { color_hex, ...uniqueColorName(color_hex, id) });
     }
 
     function removeColor(id: string) {
@@ -292,14 +302,17 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
         <div className={styles.editorGrid}>
         <details className={styles.editorSection} open>
         <summary>{text('Colors', 'الألوان')} <span>{colors.length}</span></summary>
-        <p className={styles.muted}>{text('Pick a shade — names fill automatically. Tick colors, then generate combinations below.', 'اختار اللون ويتم ملء الاسم تلقائيًا. حدد الألوان ثم أنشئ الاختيارات بالأسفل.')}</p>
+        <p className={styles.muted}>{text('Pick a shade, then check or edit its English and Arabic names. Each color needs a unique name.', 'اختار الدرجة وراجع أو عدّل اسم اللون بالعربي والإنجليزي. كل لون يحتاج اسمًا مختلفًا.')}</p>
         <div className="grid gap-3">
             {colors.map(color => <div key={color.id} className={styles.variant}>
                 <div className="flex flex-wrap items-center gap-4">
                     <input type="color" className={styles.swatch} value={color.color_hex} aria-label={text('Pick color', 'اختار اللون')} onChange={e => pickColor(color.id, e.target.value)}/>
                     <div className="min-w-0 flex-1">
-                        <strong className="block">{color.color}</strong>
-                        <span className={styles.muted}>{color.color_ar}</span>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          <label>{text('Color name (English)','اسم اللون بالإنجليزية')}<input required maxLength={60} value={color.color} onChange={e => updateColor(color.id, {color:e.target.value})}/></label>
+                          <label>{text('Color name (Arabic)','اسم اللون بالعربية')}<input maxLength={60} value={color.color_ar} onChange={e => updateColor(color.id, {color_ar:e.target.value})}/></label>
+                        </div>
+                        {colors.some(other => other.id !== color.id && other.color.trim().toLowerCase() === color.color.trim().toLowerCase()) && <p role="alert" className="text-xs text-error-ink">{text('Duplicate color name. Give this shade a different name.','اسم اللون مكرر. اختار اسمًا مختلفًا لهذه الدرجة.')}</p>}
                         <span className="block text-xs text-muted-foreground">{color.color_hex} · {text(`${color.images.length} photos assigned`, `${color.images.length} صورة مخصصة`)}</span>
                     </div>
                     <label className="!flex items-center gap-2">
