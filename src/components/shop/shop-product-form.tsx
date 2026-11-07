@@ -7,6 +7,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useI18n } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
+import { colorNames } from '@/lib/shop';
 import type { ShopProduct, ShopVariant, SizeMeasurement } from '@/lib/shop';
 import styles from './shop.module.css';
 
@@ -41,7 +42,8 @@ function buildInitial(variants: ShopVariant[]) {
     const rows = variants.map(variant => {
         let draft = byColor.get(variant.color);
         if (!draft) {
-            draft = { id: `color-${colors.length}`, color: variant.color, color_ar: variant.color_ar, color_hex: variant.color_hex, checked: true, images: [] };
+            const automatic = colorNames(variant.color_hex);
+            draft = { id: `color-${colors.length}`, color: variant.color || automatic.color, color_ar: variant.color_ar || automatic.color_ar, color_hex: variant.color_hex, checked: true, images: [] };
             byColor.set(variant.color, draft);
             colors.push(draft);
         }
@@ -93,7 +95,12 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
     }
 
     function addColor() {
-        setColors(list => [...list, { id: `new-${crypto.randomUUID()}`, color: '', color_ar: '', color_hex: '#4c1d95', checked: true, images: [] }]);
+        const color_hex = '#4c1d95';
+        setColors(list => [...list, { id: `new-${crypto.randomUUID()}`, ...colorNames(color_hex), color_hex, checked: true, images: [] }]);
+    }
+
+    function pickColor(id: string, color_hex: string) {
+        updateColor(id, { color_hex, ...colorNames(color_hex) });
     }
 
     function removeColor(id: string) {
@@ -259,20 +266,21 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
 
         <h3 className="font-bold">{text('Colors', 'الألوان')}</h3>
         <p className={styles.muted}>{text('Add a color, tick it, then choose sizes below to generate every missing combination.', 'أضف لونًا وحدده ثم اختار المقاسات بالأسفل لإنشاء كل الاختيارات الناقصة.')}</p>
+        <p className={styles.muted}>{text('Pick a shade in the square and the English and Arabic names update automatically.', 'اختار اللون من المربع ويتم تحديث الاسم بالإنجليزية والعربية تلقائيًا.')}</p>
         <div className="grid gap-3">
             {colors.map(color => <div key={color.id} className={styles.variant}>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="flex flex-wrap items-center gap-4">
+                    <input type="color" className={styles.swatch} value={color.color_hex} aria-label={text('Pick color', 'اختار اللون')} onChange={e => pickColor(color.id, e.target.value)}/>
+                    <div className="min-w-0 flex-1">
+                        <strong className="block">{color.color}</strong>
+                        <span className={styles.muted}>{color.color_ar}</span>
+                        <span className="block text-xs text-muted-foreground">{color.color_hex} · {text(`${color.images.length} photos assigned`, `${color.images.length} صورة مخصصة`)}</span>
+                    </div>
                     <label className="!flex items-center gap-2">
                         <input className="!w-4" type="checkbox" checked={color.checked} onChange={e => updateColor(color.id, { checked: e.target.checked })}/>
                         {text('Include this color', 'تضمين هذا اللون')}
                     </label>
-                    <div className="flex items-end justify-end">
-                        <Button type="button" variant="ghost" onClick={() => removeColor(color.id)}>{text('Hide / remove color', 'إخفاء / إزالة اللون')}</Button>
-                    </div>
-                    <label>{text('Color name', 'اسم اللون')}<input required value={color.color} onChange={e => updateColor(color.id, { color: e.target.value })}/></label>
-                    <label>{text('Color name (Arabic)', 'اسم اللون بالعربية')}<input value={color.color_ar} onChange={e => updateColor(color.id, { color_ar: e.target.value })}/></label>
-                    <label>{text('Swatch color', 'لون العينة')}<input type="color" value={color.color_hex} onChange={e => updateColor(color.id, { color_hex: e.target.value })}/></label>
-                    <p className={styles.muted}>{text(`${color.images.length} photos assigned`, `${color.images.length} صورة مخصصة`)}</p>
+                    <Button type="button" variant="ghost" onClick={() => removeColor(color.id)}>{text('Hide / remove color', 'إخفاء / إزالة اللون')}</Button>
                 </div>
             </div>)}
         </div>
@@ -307,7 +315,7 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
             return <section key={color.id} className={styles.variant}>
                 <div className={styles.row}>
                     <h4 className="font-bold">{color.color || text('Untitled color', 'لون بدون اسم')}</h4>
-                    {color.color_hex && <span className="h-5 w-5 rounded-full border" style={{ background: color.color_hex }}/>}
+                    {color.color_hex && <span className="h-5 w-5 rounded border" style={{ background: color.color_hex }}/>}
                 </div>
                 <div className="grid gap-2">
                     {variants.map(variant => <div key={variant.id} className="grid items-end gap-2 rounded-lg border p-3 sm:grid-cols-[1fr_7rem_auto_auto]">
