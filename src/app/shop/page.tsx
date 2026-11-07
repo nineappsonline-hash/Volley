@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { ShopCatalog } from '@/components/shop/shop-catalog';
-import { TopNavigation } from '@/components/layout/top-navigation';
 import { SITE_URL } from '@/lib/seo';
 
 const TITLE = 'Shop Playza Sportswear';
@@ -40,5 +39,5 @@ export const metadata: Metadata = {
 };
 
 export default function ShopPage() {
-  return <><TopNavigation /><ShopCatalog /></>;
+  return <ShopCatalog />;
 }
