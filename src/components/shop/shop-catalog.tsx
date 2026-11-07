@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { Shirt, Ruler, Pause, Play } from 'lucide-react';
+import { ArrowRight, MapPin, Pause, Play, Ruler, Shirt, Sparkles, Truck } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useI18n } from '@/lib/i18n';
 import { formatMoney } from '@/lib/constants';
@@ -12,13 +12,60 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/compone
 import { colorImages, productGenderLabel, type ShopProduct } from '@/lib/shop';
 import styles from './shop.module.css';
 import { ProductPhotoPreview } from './product-photo-preview';
+const GENDERS = [
+    { id: 'all', en: 'All', ar: 'الكل' },
+    { id: 'men', en: 'Men', ar: 'رجالي' },
+    { id: 'women', en: 'Women', ar: 'حريمي' },
+    { id: 'unisex', en: 'Unisex', ar: 'للجميع' },
+] as const;
+type GenderFilter = typeof GENDERS[number]['id'];
 export function ShopTeaser() { const { lang } = useI18n(); return <section className={styles.teaser} aria-label="Playza Shop"><div><h2>{lang === 'ar' ? 'متجر بلايزا' : 'Wear your Playza spirit.'}</h2><p>{lang === 'ar' ? 'منتجات بلايزا. اختار لونك ومقاسك، واستلم أو اطلب توصيل بـ ٩٠ جنيه.' : 'Playza products. Your color. Your size. Collection or EGP 90 delivery.'}</p></div><Link href="/shop">{lang === 'ar' ? 'تسوق منتجات بلايزا' : 'Shop Playza'} →</Link></section>; }
 export function ShopCatalog() {
     const { lang } = useI18n();
     const ar = lang === 'ar';
+    const [gender, setGender] = useState<GenderFilter>('all');
     const q = useQuery({ queryKey: ['shop-products'], refetchInterval:60000, queryFn: async () => { const { data, error } = await createClient().from('shop_products').select('*,variants:shop_variants(*)').eq('published', true).order('created_at', { ascending: false }); if (error)
             throw error; return data as ShopProduct[]; } });
-    return <main className={styles.shop}><header className={styles.heading}><div><h1>{ar ? 'متجر بلايزا' : 'Playza Shop'}</h1><p>{ar ? 'اختار منتجك ولونك ومقاسك. استلام من التجمع الخامس بالقاهرة الجديدة أو توصيل لأي مكان في مصر بـ ٩٠ جنيه.' : 'Choose your product, color and size. Collect in Fifth Settlement, New Cairo, or get delivery anywhere in Egypt for EGP 90.'}</p></div><Link href="/shop/orders" className="text-sm font-semibold text-secondary">{ar ? 'طلباتي' : 'My orders'} →</Link></header>{q.isPending ? <p role="status">{ar ? 'جاري تحميل المنتجات…' : 'Loading products…'}</p> : q.isError ? <p role="alert">{ar ? 'تعذر تحميل المنتجات. حاول مرة أخرى.' : 'Could not load the shop.'}<Button variant="link" onClick={() => q.refetch()}>{ar ? 'إعادة المحاولة' : 'Retry'}</Button></p> : !q.data?.length ? <div className={`${styles.panel} space-y-3 py-12 text-center`}><Shirt className="mx-auto h-12 w-12 text-secondary"/><h2 className="text-xl font-bold">{ar ? 'منتجات بلايزا قريبًا' : 'The Playza collection is coming'}</h2><p className={styles.muted}>{ar ? 'المنتجات هتظهر هنا بمجرد إضافتها من الإدارة.' : 'Products will appear here when the collection is published.'}</p></div> : <div className={styles.grid}>{q.data.map(p => <ShopProductCard key={p.id} product={p}/>)}</div>}</main>;
+    const products = q.data ?? [];
+    const genderOf = (product: ShopProduct) => product.gender ?? 'unisex';
+    const filtered = gender === 'all' ? products : products.filter(product => genderOf(product) === gender);
+    const countFor = (id: GenderFilter) => id === 'all' ? products.length : products.filter(product => genderOf(product) === id).length;
+    return <main className={styles.shop}>
+        <section className={styles.hero} aria-labelledby="shop-hero-title">
+            <div className={styles.heroCopy}>
+                <p className={styles.heroEyebrow}><Sparkles size={14}/>{ar ? 'متجر بلايزا · موسم جديد' : 'Playza Shop · New season'}</p>
+                <h1 id="shop-hero-title" className={styles.heroTitle}>{ar ? <>البس شغفك. <em>وامتلك الملعب.</em></> : <>Wear your game. <em>Own the court.</em></>}</h1>
+                <p className={styles.heroText}>{ar ? 'ملابس بلايزا الرياضية بألوانك المفضلة. اختار مقاسك ولونك، واستلم من التجمع الخامس أو وصّل لأي مكان في مصر.' : 'Premium Playza sportswear in the colors you love. Pick your fit and size, collect in New Cairo, or get it delivered anywhere in Egypt.'}</p>
+                <div className={styles.heroActions}>
+                    <a className={styles.heroPrimary} href="#shop-products">{ar ? 'تسوق الكولكشن' : 'Shop the collection'}<ArrowRight size={17}/></a>
+                    <Link className={styles.heroSecondary} href="/shop/orders">{ar ? 'طلباتي' : 'My orders'}</Link>
+                </div>
+                <ul className={styles.heroPerks}>
+                    <li><Ruler size={15}/>{ar ? 'مقاسات XS–XXXL' : 'Sizes XS–XXXL'}</li>
+                    <li><MapPin size={15}/>{ar ? 'استلام من التجمع الخامس' : 'Collection in New Cairo'}</li>
+                    <li><Truck size={15}/>{ar ? 'توصيل لكل مصر · ٩٠ جنيه' : 'Delivery across Egypt · EGP 90'}</li>
+                </ul>
+            </div>
+            <div className={styles.heroArt}>
+                <span className={styles.heroRing} aria-hidden="true"/>
+                <img src="/images/shop/sportswear-model-white.webp" alt={ar ? 'عارض يرتدي تيشيرت بلايزا الرياضي' : 'Model wearing a Playza sports T-shirt'} className={styles.heroImage}/>
+                <span className={`${styles.heroBadge} ${styles.heroBadgeTop}`}>{ar ? 'كولكشن جديد' : 'New drop'}</span>
+                <span className={`${styles.heroBadge} ${styles.heroBadgeBottom}`}>{ar ? 'بلايزا' : 'Playza'}</span>
+            </div>
+        </section>
+        <div className={styles.toolbar}>
+            <div className={styles.filterGroup}>
+                <span className={styles.filterLabel}>{ar ? 'تسوق حسب' : 'Shop by'}</span>
+                <div className={styles.filterChips} role="group" aria-label={ar ? 'فلترة حسب النوع' : 'Filter by gender'}>
+                    {GENDERS.map(option => <button key={option.id} type="button" className={styles.filterChip} aria-pressed={gender === option.id} onClick={() => setGender(option.id)}>{ar ? option.ar : option.en}<span>{countFor(option.id)}</span></button>)}
+                </div>
+            </div>
+            <p className={styles.filterCount} aria-live="polite">{ar ? `${filtered.length} قطعة` : `${filtered.length} ${filtered.length === 1 ? 'style' : 'styles'}`}</p>
+        </div>
+        <div id="shop-products" className="scroll-mt-24">
+            {q.isPending ? <p role="status">{ar ? 'جاري تحميل المنتجات…' : 'Loading products…'}</p> : q.isError ? <p role="alert">{ar ? 'تعذر تحميل المنتجات. حاول مرة أخرى.' : 'Could not load the shop.'}<Button variant="link" onClick={() => q.refetch()}>{ar ? 'إعادة المحاولة' : 'Retry'}</Button></p> : !products.length ? <div className={`${styles.panel} space-y-3 py-12 text-center`}><Shirt className="mx-auto h-12 w-12 text-secondary"/><h2 className="text-xl font-bold">{ar ? 'منتجات بلايزا قريبًا' : 'The Playza collection is coming'}</h2><p className={styles.muted}>{ar ? 'المنتجات هتظهر هنا بمجرد إضافتها من الإدارة.' : 'Products will appear here when the collection is published.'}</p></div> : !filtered.length ? <div className={`${styles.panel} space-y-3 py-12 text-center`}><Shirt className="mx-auto h-12 w-12 text-secondary"/><h2 className="text-xl font-bold">{ar ? 'لا توجد منتجات في هذا القسم بعد' : 'Nothing in this category yet'}</h2><p className={styles.muted}>{ar ? 'جرّب قسمًا آخر أو اعرض كل المنتجات.' : 'Try another category or browse the full collection.'}</p><Button variant="outline" onClick={() => setGender('all')}>{ar ? 'اعرض كل المنتجات' : 'Show all products'}</Button></div> : <div className={styles.grid}>{filtered.map(product => <ShopProductCard key={product.id} product={product}/>)}</div>}
+        </div>
+    </main>;
 }
 export function ShopProductCard({ product: p }: {
     product: ShopProduct;
