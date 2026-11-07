@@ -279,17 +279,18 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
         }
     }
 
-    return <form onSubmit={save} className={`${styles.panel} ${styles.fields}`}>
+    return <form onSubmit={save} className={`${styles.panel} ${styles.fields} ${styles.compact}`}>
         <h2 className="text-xl font-bold">{text('Product details', 'تفاصيل المنتج')}</h2>
-        <label>{text('Name (English)', 'الاسم بالإنجليزية')}<input required maxLength={120} value={product.name} onChange={e => setProduct({ ...product, name: e.target.value })}/></label>
-        <label>{text('Name (Arabic)', 'الاسم بالعربية')}<input value={product.name_ar} onChange={e => setProduct({ ...product, name_ar: e.target.value })}/></label>
-        <label>{text('Description (English)', 'الوصف بالإنجليزية')}<textarea value={product.description} onChange={e => setProduct({ ...product, description: e.target.value })}/></label>
-        <label>{text('Description (Arabic)', 'الوصف بالعربية')}<textarea value={product.description_ar} onChange={e => setProduct({ ...product, description_ar: e.target.value })}/></label>
-        <label>{text('Price (EGP)', 'السعر بالجنيه')}<input required type="number" min="0.01" step="0.01" value={product.price || ''} onChange={e => setProduct({ ...product, price: Number(e.target.value) })}/></label>
+        <div className="grid gap-2 sm:grid-cols-2">
+            <label>{text('Name (English)', 'الاسم بالإنجليزية')}<input required maxLength={120} value={product.name} onChange={e => setProduct({ ...product, name: e.target.value })}/></label>
+            <label>{text('Name (Arabic)', 'الاسم بالعربية')}<input value={product.name_ar} onChange={e => setProduct({ ...product, name_ar: e.target.value })}/></label>
+            <label>{text('Description (English)', 'الوصف بالإنجليزية')}<textarea value={product.description} onChange={e => setProduct({ ...product, description: e.target.value })}/></label>
+            <label>{text('Description (Arabic)', 'الوصف بالعربية')}<textarea value={product.description_ar} onChange={e => setProduct({ ...product, description_ar: e.target.value })}/></label>
+            <label className="sm:max-w-[12rem]">{text('Price (EGP)', 'السعر بالجنيه')}<input required type="number" min="0.01" step="0.01" value={product.price || ''} onChange={e => setProduct({ ...product, price: Number(e.target.value) })}/></label>
+        </div>
 
         <h3 className="font-bold">{text('Colors', 'الألوان')}</h3>
-        <p className={styles.muted}>{text('Add a color, tick it, then choose sizes below to generate every missing combination.', 'أضف لونًا وحدده ثم اختار المقاسات بالأسفل لإنشاء كل الاختيارات الناقصة.')}</p>
-        <p className={styles.muted}>{text('Pick a shade in the square and the English and Arabic names update automatically.', 'اختار اللون من المربع ويتم تحديث الاسم بالإنجليزية والعربية تلقائيًا.')}</p>
+        <p className={styles.muted}>{text('Pick a shade — names fill automatically. Tick colors, then generate combinations below.', 'اختار اللون ويتم ملء الاسم تلقائيًا. حدد الألوان ثم أنشئ الاختيارات بالأسفل.')}</p>
         <div className="grid gap-3">
             {colors.map(color => <div key={color.id} className={styles.variant}>
                 <div className="flex flex-wrap items-center gap-4">
@@ -318,7 +319,7 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
         <div className="grid gap-2">
             {sizes.map(size => {
                 const measurement = product.size_chart.find(row => row.size.trim().toLowerCase() === size.toLowerCase());
-                return <div key={size} className="grid items-end gap-2 rounded-lg border p-3 sm:grid-cols-[5rem_1fr_1fr_auto]">
+                return <div key={size} className="grid items-end gap-2 rounded-md border px-2 py-1 sm:grid-cols-[5rem_1fr_1fr_auto]">
                     <label className="!flex items-center gap-2">
                         <input className="!w-4" type="checkbox" checked={selectedSizes.has(size)} onChange={e => setSelectedSizes(current => {
                             const next = new Set(current);
@@ -346,7 +347,6 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
         <Button type="button" variant="outline" onClick={generate}>{text('Generate selected combinations', 'إنشاء الاختيارات المحددة')}</Button>
 
         <h3 className="font-bold">{text('Stock and visibility', 'المخزون والظهور')}</h3>
-        <p className={styles.muted}>{text('Each generated color/size combination can have its own stock and visibility.', 'كل لون ومقاس له مخزونه وظهوره الخاص.')}</p>
         {colors.map(color => {
             const variants = rows.filter(variant => variant.color_id === color.id);
             if (!variants.length)
@@ -357,7 +357,7 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
                     {color.color_hex && <span className="h-5 w-5 rounded border" style={{ background: color.color_hex }}/>}
                 </div>
                 <div className="grid gap-2">
-                    {variants.map(variant => <div key={variant.id} className="grid items-end gap-2 rounded-lg border p-3 sm:grid-cols-[1fr_7rem_auto_auto]">
+                    {variants.map(variant => <div key={variant.id} className="grid items-end gap-2 rounded-md border px-2 py-1 sm:grid-cols-[1fr_7rem_auto_auto]">
                         <strong>{variant.size}</strong>
                         <label>{text('Stock', 'المخزون')}<input type="number" min={0} value={variant.stock} onChange={e => updateVariant(variant.id, { stock: Number(e.target.value) })}/></label>
                         <label className="!flex items-center gap-2">
@@ -371,11 +371,11 @@ export function ShopProductForm({ product: initialProduct, onSaved }: Props) {
         })}
 
         <h3 className="font-bold">{text('Photos', 'الصور')}</h3>
-        <p className={styles.muted}>{text('Upload photos, then tick the colors that should use each photo. Every size of a color shares the same photos.', 'ارفع الصور ثم حدد الألوان التي تستخدم كل صورة. كل مقاسات اللون تستخدم نفس الصور.')}</p>
+        <p className={styles.muted}>{text('Upload photos, then tick each color that uses them. All sizes of a color share its photos.', 'ارفع الصور ثم حدد الألوان التي تستخدمها. كل مقاسات اللون تشترك في الصور.')}</p>
         <label>{text('Upload photos', 'ارفع الصور')}<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple disabled={busy} onChange={e => void upload(e.target.files)}/></label>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-2 sm:grid-cols-3">
             {photos.map(url => <div key={url} className={styles.variant}>
-                <img src={url} alt="" className="h-32 w-full rounded object-contain"/>
+                <img src={url} alt="" className="h-20 w-full rounded object-contain"/>
                 <div className="flex flex-wrap gap-2">
                     {colors.map(color => <label key={color.id} className="flex items-center gap-2 rounded-lg border px-2 py-1 text-xs">
                         <input type="checkbox" disabled={!color.color.trim()} checked={color.images.includes(url)} onChange={e => assignPhoto(url, color.id, e.target.checked)}/>
