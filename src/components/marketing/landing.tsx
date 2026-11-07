@@ -9,6 +9,7 @@ import { publicGamePath } from "@/lib/game-discovery";
 import type { PublicGame } from "@/lib/public-games";
 import { useState } from "react";
 import NextLink from "next/link";
+import Image from "next/image";
 import type { ComponentProps } from "react";
 import { landingBrowsePath } from "@/lib/guest-access";
 
@@ -54,6 +55,9 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
   const { lang, dir } = useI18n();
   const ar = lang === "ar";
   const [paused, setPaused] = useState(false);
+  const [shirtColor, setShirtColor] = useState("blue");
+  const shirtColors = [{ id: "black", en: "Black", ar: "أسود", hex: "#202027" }, { id: "blue", en: "Blue", ar: "أزرق", hex: "#345a9c" }, { id: "white", en: "White", ar: "أبيض", hex: "#f5f5f7" }];
+  const selectedShirt = shirtColors.find(color => color.id === shirtColor)!;
   const copy = (en: string, arabic: string) => ar ? arabic : en;
   const names = { archery:copy("Archery", "الرماية بالقوس"), basketball:copy("Basketball","كرة السلة"), padel: copy("Padel", "البادل"), volleyball: copy("Volleyball", "الكرة الطائرة"), "beach-volleyball": copy("Beach volleyball", "الطائرة الشاطئية"), tennis: copy("Tennis", "التنس") };
 
@@ -156,16 +160,20 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
 
       <section id="playza-shop" aria-labelledby="playza-shop-title" className={styles.shopSection}>
         <div className={styles.shopIntro}>
-          <div><p className={styles.eyebrow}>{copy("PLAYZA. ON AND OFF THE COURT.", "بلايزا. جوه وبره الملعب.")}</p>
-            <h2 id="playza-shop-title">{copy("Wear your game.", "خليك جاهز للّعب.")}</h2>
-            <p>{copy("Discover Playza products. Pick your color, find your fit, and make it yours.", "اكتشف منتجات بلايزا. اختار لونك ومقاسك، وخلّي ستايلك على مزاجك.")}</p>
-            <div className={styles.actions}><Link className={styles.primary} href="/shop">{copy("Explore the shop", "اكتشف المتجر")}<ArrowUpRight size={20} /></Link></div>
+          <div><p className={styles.eyebrow}>{copy("PLAYZA SPORTSWEAR SHOP", "متجر بلايزا للملابس الرياضية")}</p>
+            <h2 id="playza-shop-title">{copy("Shop Sportswear.", "تسوّق ملابس رياضية.")}</h2>
+            <p>{copy("Shop sports T-shirts for your next game or training session. Browse the collection, choose your color and size, and order online.", "اشتري تيشيرتات رياضية لماتشك أو تمرينك الجاي. شوف المجموعة، اختار لونك ومقاسك، واطلب أونلاين.")}</p>
+            <div className={styles.actions}><Link className={styles.primary} href="/shop">{copy("Shop Sportswear", "تسوّق الملابس الرياضية")}<ArrowUpRight size={20} /></Link></div>
             <ul className={styles.shopPerks}><li><Check size={16} />{copy("Colors & sizes", "ألوان ومقاسات")}</li><li><Check size={16} />{copy("Size guide", "دليل المقاسات")}</li><li><Check size={16} />{copy("Collection or EGP 90 delivery", "استلام أو توصيل بـ ٩٠ جنيه")}</li></ul>
           </div>
-          <div className={styles.shopArt} aria-hidden="true">
-            <div className={styles.shopOrbit} /><span className={styles.shopSpark}>✳</span>
-            <svg className={styles.shopShirt} viewBox="0 0 360 360" fill="none"><ellipse cx="185" cy="322" rx="110" ry="15" fill="#140A24" fillOpacity=".3"/><path d="M125 65L65 95L30 170L90 198L108 158V302Q180 325 252 302V158L270 198L330 170L295 95L235 65Q225 105 180 108Q135 105 125 65Z" fill="#C8FF00" stroke="#31134D" strokeWidth="5" strokeLinejoin="round"/><path d="M125 65Q180 45 235 65Q225 105 180 108Q135 105 125 65Z" fill="#31134D"/><path d="M141 63Q180 57 219 63Q211 86 180 87Q149 86 141 63Z" fill="#8250B5"/><path d="M108 158L115 118M252 158L245 118M116 284Q180 300 244 284" stroke="#31134D" strokeOpacity=".25" strokeWidth="3"/><text x="180" y="190" textAnchor="middle" fill="#31134D" fontSize="36" fontWeight="900" fontStyle="italic">Playza</text><path d="M146 206H214" stroke="#31134D" strokeWidth="3" strokeLinecap="round"/></svg>
-            <span className={styles.shopArtLabel}>{copy("FIND YOUR COLOR", "اختار لونك")}</span><div className={styles.shopSwatches}><i /><i /><i /></div>
+          <div className={styles.shopArt}>
+            <div className={styles.shopOrbit} aria-hidden="true" /><span className={styles.shopSpark} aria-hidden="true">✳</span>
+            <div className={styles.shopPhotoStage}><Image key={shirtColor} className={styles.shopShirt} src={`/images/shop/sportswear-${shirtColor}.webp`} width={800} height={731} sizes="(max-width: 800px) 80vw, 420px" alt={copy(`${selectedShirt.en} long-sleeve sports T-shirt, front view`, `تيشيرت رياضي بأكمام طويلة باللون ${selectedShirt.ar} — من الأمام`)} /></div>
+            <div className={styles.shopColorPicker} role="group" aria-label={copy("Preview T-shirt colors", "شوف ألوان التيشيرت")}>
+              <p>{copy("Choose your color", "اختار لونك")} · {copy(selectedShirt.en, selectedShirt.ar)}</p>
+              <div className={styles.shopSwatches}>{shirtColors.map(color => <button key={color.id} type="button" style={{ backgroundColor: color.hex }} aria-label={copy(color.en, color.ar)} aria-pressed={shirtColor === color.id} onClick={() => setShirtColor(color.id)} />)}</div>
+            </div>
+
           </div>
         </div>
         <ShopShowcase showTeaser={false} />

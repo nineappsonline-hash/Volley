@@ -54,6 +54,11 @@ for (lang of ['en', 'ar']) {
   for (const id of ['padel','tennis','volleyball','basketball','beach-volleyball','archery']) assert.ok(sports.includes(`id="${id}"`));
   assert.ok(!html.includes('id="beach-challenge"'), 'the 3D game is replaced');
   assert.ok(html.includes('id="playza-shop"'));
+  assert.ok(html.includes(lang === 'ar' ? 'تسوّق ملابس رياضية.' : 'Shop Sportswear.'));
+  assert.ok(html.includes('sportswear-blue.webp'), 'shop uses the supplied T-shirt photograph');
+  for (const color of (lang === 'ar' ? ['أسود','أزرق','أبيض'] : ['Black','Blue','White'])) {
+    assert.ok(html.includes(`aria-label="${color}"`), 'color preview has accessible controls');
+  }
   assert.ok(html.includes('href="#playza-shop"'), 'top menu links to the shop section');
   assert.ok(html.includes('href="/shop"'), 'shop CTA opens the product catalog');
   assert.ok(html.includes('data-shop-products="true"'));

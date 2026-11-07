@@ -258,3 +258,16 @@
 
 .nav{gap:clamp(10px,1.3vw,22px)}
 @media(min-width:641px) and (max-width:1100px){.header{flex-wrap:wrap}.header .nav{order:3;width:100%;justify-content:center;flex-wrap:wrap}}
+
+/* Real sportswear photography with an interactive color preview. */
+.shopArt{display:flex;flex-direction:column;justify-content:center;gap:20px;aspect-ratio:auto;min-height:420px;padding-top:16px}
+.shopPhotoStage{width:100%;min-width:0;display:grid;place-items:center;border-radius:28px;background:radial-gradient(ellipse,#cbb9e044,transparent 70%)}
+.shopShirt{display:block;width:100%;max-width:400px;height:auto;aspect-ratio:800/731;object-fit:contain;filter:drop-shadow(0 18px 18px #140a2455);animation:shopPhotoFloat 7s ease-in-out infinite}
+.shopColorPicker{position:relative;z-index:1;display:grid;justify-items:center;gap:10px;padding:12px 20px;border:1px solid #ffffff30;border-radius:20px;background:#21112fcc}
+.shopIntro .shopColorPicker p{font-size:12px;line-height:1.5;color:#fff;margin:0}
+.shopSwatches{position:static;border:0;padding:2px;background:transparent;gap:14px}
+.shopSwatches button{width:28px;height:28px;border:2px solid #ffffff70;border-radius:50%;cursor:pointer}
+.shopSwatches button[aria-pressed=true]{outline:2px solid #c8ff00;outline-offset:4px}
+@keyframes shopPhotoFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-8px) rotate(1deg)}}
+@media(max-width:800px){.shopArt{min-height:0;padding-top:0}.shopShirt{max-width:330px}.shopColorPicker{padding:12px 16px}}
+@media(prefers-reduced-motion:reduce){.shopShirt{animation:none!important}}
