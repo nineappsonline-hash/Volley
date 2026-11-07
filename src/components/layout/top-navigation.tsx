@@ -16,35 +16,16 @@ export function TopNavigation() {
       <Link href="/" aria-label="Playza">
         <AppLogo className="h-8 w-auto" />
       </Link>
-      <nav className="hidden sm:flex items-center gap-3" aria-label={copy("Main navigation", "القائمة الرئيسية")}>
-        <Link href="/games" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors">
+      <nav className="hidden sm:flex items-center gap-7" aria-label={copy("Main navigation", "القائمة الرئيسية")}>
+        <Link href="/games" className="text-lg font-semibold text-muted-foreground hover:text-primary transition-colors">
           {copy("Join a game", "انضم لماتش")}
         </Link>
-        <Link href="/courts" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors">
-          {copy("Find your court", "لاقي ملعبك")}
-        </Link>
-        <Link href="/academies" className="text-xs font-medium text-primary">
+        <Link href="/academies" className="text-lg font-semibold text-muted-foreground hover:text-primary transition-colors">
           {copy("Academies", "الأكاديميات")}
         </Link>
-        <Link href="/dashboard?sport=tennis" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors">
-          {copy("Tennis", "التنس")}
+        <Link href="/shop" className="text-lg font-semibold text-secondary hover:text-primary transition-colors">
+          {copy("Shop", "المتجر")}
         </Link>
-        <Link href="/dashboard?sport=padel" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors">
-          {copy("Padel", "البادل")}
-        </Link>
-        <Link href="/dashboard?sport=archery" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors">
-          {copy("Archery", "الرماية بالقوس")}
-        </Link>
-        <Link href="/dashboard?sport=beach-volleyball" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors">
-          {copy("Beach volleyball", "الطائرة الشاطئية")}
-        </Link>
-        <Link href="/dashboard" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors">
-          {copy("Play now", "العب دلوقتي")}
-        </Link>
-        <Link href="/dashboard" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors">
-          {copy("The sports", "الرياضات")}
-        </Link>
-        <Link href="/shop" className="text-xs font-semibold text-secondary">{copy("Shop", "المتجر")}</Link>
       </nav>
       <div className="flex items-center gap-2">
         <LanguageToggle />

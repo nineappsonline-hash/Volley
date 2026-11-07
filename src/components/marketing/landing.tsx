@@ -20,7 +20,6 @@ import { LanguageToggle } from "@/components/layout/language-toggle";
 import { useI18n } from "@/lib/i18n";
 import { academyManagementPath } from "@/lib/academy-management";
 import { listYourCourtPath } from "@/lib/list-your-court";
-import { courtsPath } from "@/lib/court-discovery";
 import { discoveryPath } from "@/lib/sport-discovery";
 import { ARCHERY_DESCRIPTION, BEACH_DESCRIPTION, TENNIS_DESCRIPTION, SportsHeroSceneCopy } from "@/lib/landing-content";
 import { SportCardArt } from "./sport-card-art";
@@ -65,7 +64,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
   return <div className={styles.page} dir={dir} data-paused={paused}>
     <header className={styles.header}>
       <Link href="/" aria-label="Playza"><AppLogo className="w-24 sm:w-28" /></Link>
-      <nav className={styles.nav} aria-label={copy("Main navigation", "القائمة الرئيسية")}><Link href="/games">{copy("Join a game", "انضم لماتش")}</Link><Link href={courtsPath(lang)}>{copy("Find your court", "لاقي ملعبك")}</Link><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><Link href="/dashboard?sport=tennis">{copy("Tennis", "التنس")}</Link><Link href="/dashboard?sport=padel">{copy("Padel", "البادل")}</Link><Link href="/dashboard?sport=archery">{copy("Archery", "الرماية بالقوس")}</Link><Link href="/dashboard?sport=beach-volleyball">{copy("Beach volleyball", "الطائرة الشاطئية")}</Link><Link href="/dashboard">{copy("Play now", "العب دلوقتي")}</Link><Link href="/dashboard">{copy("The sports", "الرياضات")}</Link><a href="#playza-shop">{copy("Playza Shop", "متجر بلايزا")}</a></nav>
+      <nav className={styles.nav} aria-label={copy("Main navigation", "القائمة الرئيسية")}><Link href="/games">{copy("Join a game", "انضم لماتش")}</Link><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><Link href="/shop">{copy("Shop", "المتجر")}</Link></nav>
       <div className={styles.headerActions}><LanguageToggle /><Link href="/login" className={styles.login}>{copy("Log in", "تسجيل الدخول")} <ArrowUpRight size={16} /></Link></div>
     </header>
 
