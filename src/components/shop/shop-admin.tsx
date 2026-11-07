@@ -15,6 +15,10 @@ import type { ShopProduct, ShopOrder } from '@/lib/shop';
 import { ShopProductForm, blankProduct } from './shop-product-form';
 import styles from './shop.module.css';
 
+function productImages(entry: ShopProduct) {
+    return [...new Set((entry.variants ?? []).flatMap(variant => variant.images ?? []))];
+}
+
 export function ShopAdmin() {
     const { lang } = useI18n();
     const ar = lang === 'ar';
@@ -117,6 +121,26 @@ export function ShopAdmin() {
         }
     }
     const text = (en: string, arabic: string) => ar ? arabic : en;
+    const statusLabel = (status: string) => {
+        const labels: Record<string, [string, string]> = {
+            awaiting_payment: ['Awaiting payment', 'في انتظار الدفع'],
+            pending_review: ['Payment review', 'مراجعة الدفع'],
+            paid: ['Paid', 'مدفوع'],
+            fulfilled: ['Fulfilled', 'تم التسليم'],
+            rejected: ['Rejected', 'مرفوض'],
+            expired: ['Expired', 'منتهي'],
+            review_required: ['Review required', 'يحتاج مراجعة'],
+        };
+        const label = labels[status];
+        return label ? text(label[0], label[1]) : status.replaceAll('_', ' ');
+    };
+    const paymentLabel = (method: string | null) => method === 'instapay'
+        ? 'InstaPay'
+        : method === 'e_wallet'
+            ? text('E-wallet', 'محفظة إلكترونية')
+            : method === 'kashier'
+                ? text('Card · Kashier', 'بطاقة · كاشير')
+                : text('No payment method', 'بدون طريقة دفع');
     return <div className={styles.admin}>
         <header className={styles.heading}>
             <div><h1>{text('Playza Shop management', 'إدارة متجر بلايزا')}</h1><p>{text('Products, color photos, sizes, stock and customer orders. Delivery is EGP 90.', 'المنتجات وصور الألوان والمقاسات والمخزون والطلبات. التوصيل ٩٠ جنيه.')}</p></div>
@@ -131,13 +155,24 @@ export function ShopAdmin() {
             {catalog.isPending && <p role="status">{text('Loading products…', 'جاري تحميل المنتجات…')}</p>}
             <div className={styles.adminCatalog}>
                 {catalog.data?.map(entry => {
-                    const photo = entry.variants.flatMap(variant => variant.images)[0];
+                    const images = productImages(entry);
+                    const active = (entry.variants ?? []).filter(variant => variant.active);
+                    const colors = new Set(active.map(variant => variant.color)).size;
+                    const sizes = [...new Set(active.map(variant => variant.size))];
+                    const stock = active.reduce((sum, variant) => sum + (Number(variant.stock) || 0), 0);
                     return <article key={entry.id} className={styles.adminProduct}>
-                        {photo ? <img src={photo} alt={ar ? entry.name_ar || entry.name : entry.name} /> : <div className={styles.adminPlaceholder}><Shirt size={40}/></div>}
-                        <div className="grid min-w-0 gap-2 p-4">
+                        {images.length ? <div className={styles.adminGallery} aria-label={text('Product photos', 'صور المنتج')}>
+                            {images.map((src, index) => <img key={src} src={src} alt={`${ar ? entry.name_ar || entry.name : entry.name} ${index + 1}`} loading="lazy" />)}
+                        </div> : <div className={styles.adminPlaceholder}><Shirt size={40}/></div>}
+                        <div className="grid min-w-0 gap-3 p-4">
                             <div className={styles.row}><h2 className="font-bold">{ar ? entry.name_ar || entry.name : entry.name}</h2><span className="rounded-full bg-accent px-2 py-1 text-xs text-accent-foreground">{entry.published ? text('Published','منشور') : text('Draft','مسودة')}</span></div>
                             <p className="font-semibold text-secondary">{formatMoney(Number(entry.price), lang)} · {productGenderLabel(entry.gender, lang)}</p>
-                            <p className={styles.muted}>{text(`${entry.variants.filter(v => v.active).length} variants`, `${entry.variants.filter(v => v.active).length} اختيار`)}</p>
+                            <dl className={styles.adminFacts}>
+                                <div><dt>{text('Colors', 'الألوان')}</dt><dd>{colors}</dd></div>
+                                <div><dt>{text('Active variants', 'الاختيارات النشطة')}</dt><dd>{active.length}</dd></div>
+                                <div><dt>{text('In stock', 'المخزون')}</dt><dd>{stock}</dd></div>
+                                <div><dt>{text('Sizes', 'المقاسات')}</dt><dd>{sizes.length ? sizes.join(' · ') : '—'}</dd></div>
+                            </dl>
                             <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" disabled={busy} onClick={() => { setProduct({ ...entry }); }}><Pencil size={15}/>{text('Edit','تعديل')}</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => void deleteProduct(entry)}><Trash2 size={15}/>{text('Delete','حذف')}</Button></div>
                         </div>
                     </article>;
@@ -149,22 +184,51 @@ export function ShopAdmin() {
             {orders.isError && <p role="alert">{text('Could not load orders.', 'تعذر تحميل الطلبات.')}</p>}
             {!orders.isPending && !orders.data?.length && <p>{text('No orders yet.', 'لا توجد طلبات بعد.')}</p>}
             {orders.data?.map(order => <article className={styles.order} key={order.id}>
-                <div className={styles.row}><h2 className="font-bold">{order.product_name} · {order.color} / {order.size} × {order.quantity}</h2><strong>{formatMoney(Number(order.total), lang)}</strong></div>
-                <p className="font-semibold text-secondary">{order.status.replaceAll('_', ' ')}</p>
-                <div className="grid gap-2 text-sm sm:grid-cols-2">
-                    <p>{order.customer_name} · {order.phone}</p>
-                    <p>{order.fulfillment === 'delivery' ? text('Delivery within Egypt · EGP 90', 'توصيل داخل مصر · ٩٠ جنيه') : text('Collection · Fifth Settlement, New Cairo', 'استلام · التجمع الخامس، القاهرة الجديدة')}</p>
-                    {order.address && <p className="sm:col-span-2">{order.address}</p>}
+                <div className={styles.orderTop}>
+                    {order.product_image ? <img src={order.product_image} alt={`${order.product_name} — ${order.color}`} className={styles.orderPhoto} loading="lazy"/> : <div className={styles.orderPhotoPlaceholder}><Shirt size={28}/></div>}
+                    <div className={styles.orderSummary}>
+                        <div className={styles.row}><h2 className="font-bold">{order.product_name}</h2><strong className="text-secondary">{formatMoney(Number(order.total), lang)}</strong></div>
+                        <p className={styles.muted}>{order.color} · {order.size} · {text('Qty', 'الكمية')} {order.quantity}</p>
+                        <div className={styles.orderTags}>
+                            <span className={styles.orderStatus} data-status={order.status}>{statusLabel(order.status)}</span>
+                            <span className={styles.orderChip}>{order.member_id ? text('Member', 'عضو') : text('Guest', 'زائر')}</span>
+                            <span className={styles.orderChip}>{paymentLabel(order.pay_method)}</span>
+                        </div>
+                    </div>
                 </div>
-                <p className={styles.muted}>{text('Product subtotal', 'قيمة المنتجات')}: {formatMoney(Number(order.unit_price) * order.quantity, lang)} · {text('Delivery', 'التوصيل')}: {formatMoney(Number(order.delivery_fee), lang)} · {order.pay_method ?? '—'}</p>
-                <p className="break-all font-mono text-[10px] text-muted-foreground">{order.id}</p>
-                <div className="flex flex-wrap gap-2">
+                <div className={styles.orderDetails}>
+                    <section>
+                        <h3>{text('Product', 'المنتج')}</h3>
+                        <div className={styles.orderField}><span>{text('Color / size', 'اللون / المقاس')}</span><strong>{order.color} / {order.size}</strong></div>
+                        <div className={styles.orderField}><span>{text('Quantity', 'الكمية')}</span><strong>{order.quantity}</strong></div>
+                        <div className={styles.orderField}><span>{text('Unit price', 'سعر الوحدة')}</span><strong>{formatMoney(Number(order.unit_price), lang)}</strong></div>
+                    </section>
+                    <section>
+                        <h3>{text('Buyer', 'المشتري')}</h3>
+                        <div className={styles.orderField}><span>{text('Name', 'الاسم')}</span><strong>{order.customer_name}</strong></div>
+                        <div className={styles.orderField}><span>{text('Phone', 'الهاتف')}</span><strong dir="ltr">{order.phone}</strong></div>
+                        <div className={styles.orderField}><span>{text('Payment', 'الدفع')}</span><strong>{paymentLabel(order.pay_method)}</strong></div>
+                    </section>
+                    <section>
+                        <h3>{text('Shipping', 'الشحن')}</h3>
+                        <div className={styles.orderField}><span>{text('Method', 'الطريقة')}</span><strong>{order.fulfillment === 'delivery' ? text('Delivery within Egypt', 'توصيل داخل مصر') : text('Collection · Fifth Settlement', 'استلام · التجمع الخامس')}</strong></div>
+                        <div className={styles.orderField}><span>{text('Fee', 'الرسوم')}</span><strong>{formatMoney(Number(order.delivery_fee), lang)}</strong></div>
+                        <div className={styles.orderField}><span>{text('Address', 'العنوان')}</span><strong>{order.address || (order.fulfillment === 'delivery' ? text('Not provided', 'غير متوفر') : text('Collection point', 'نقطة الاستلام'))}</strong></div>
+                    </section>
+                </div>
+                <div className={styles.orderTotals}>
+                    <span>{text('Product subtotal', 'قيمة المنتجات')}: {formatMoney(Number(order.unit_price) * order.quantity, lang)}</span>
+                    <span>{text('Delivery', 'التوصيل')}: {formatMoney(Number(order.delivery_fee), lang)}</span>
+                    <strong>{text('Total', 'الإجمالي')}: {formatMoney(Number(order.total), lang)}</strong>
+                </div>
+                <div className={styles.orderActions}>
                     {order.receipt_url && <Button variant="outline" className="gap-2" disabled={busy} onClick={() => void receipt(order)}><ReceiptText size={16}/>{text('View receipt', 'عرض الإيصال')}</Button>}
                     {order.status === 'pending_review' && <><Button disabled={busy} onClick={() => void review(order, 'approve')}>{text('Approve payment', 'اعتماد الدفع')}</Button><Button variant="outline" disabled={busy} onClick={() => void review(order, 'reject')}>{text('Reject', 'رفض')}</Button></>}
                     {order.pay_method === 'kashier' && cardOrders.data?.some(card => card.target_id === order.id) && order.status !== 'fulfilled' && <><Button disabled={busy} variant="outline" onClick={() => void reviewCard(order, true)}>{text('Review card · approve', 'مراجعة البطاقة · اعتماد')}</Button><Button disabled={busy} variant="outline" onClick={() => void reviewCard(order, false)}>{text('Review card · reject', 'مراجعة البطاقة · رفض')}</Button></>}
                     {order.status === 'paid' && <Button disabled={busy} onClick={() => void review(order, 'fulfill')}>{text('Mark delivered / collected', 'تأكيد التسليم / الاستلام')}</Button>}
                     {order.status === 'review_required' && <p className={styles.muted}>{text('Review the collected charge and arrange fulfillment or a manual refund.', 'راجع المبلغ المحصل ونسّق التسليم أو الاسترداد اليدوي.')}</p>}
                 </div>
+                <div className={styles.orderMeta}><span>{text('Order placed', 'تاريخ الطلب')}: {new Date(order.created_at).toLocaleDateString(ar ? 'ar-EG' : 'en-GB', { year: 'numeric', month: 'short', day: 'numeric' })}</span><span className="break-all font-mono">{order.id}</span></div>
             </article>)}
         </div>}
         <Dialog open={!!preview} onOpenChange={open => { if (!open)
