@@ -183,7 +183,7 @@ function GameCard({
   };
 
   return (
-    <GameCardShell game={game} joined={joined}>
+    <GameCardShell game={game} joined={joined} paymentPending={!!mine && mine.pay_status !== "approved"}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="truncate text-base">{game.title}</CardTitle>
@@ -477,7 +477,7 @@ function GameCard({
           </Button>
         </div>
       )}
-      {joined && <GameChat gameId={game.id} gameTitle={game.title} memberId={profile.id} />}
+      {mine?.pay_status === "approved" && <GameChat gameId={game.id} gameTitle={game.title} memberId={profile.id} />}
       </CardContent>
 
       <ReportDialog

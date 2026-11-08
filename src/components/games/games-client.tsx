@@ -228,7 +228,7 @@ export function GameCard({
   ].filter(Boolean);
 
   return (
-    <GameCardShell initialExpanded={focus === game.id} layout="list" game={game} joined={joined} waitlisted={mine?.is_waitlisted} hideActionsWhenExpanded>
+    <GameCardShell initialExpanded={focus === game.id} layout="list" game={game} joined={joined} paymentPending={!!mine && mine.pay_status !== "approved"} waitlisted={mine?.is_waitlisted} hideActionsWhenExpanded>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="truncate text-base">{game.title}</CardTitle>
@@ -274,7 +274,7 @@ export function GameCard({
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col gap-2">
-        <GameParticipantNames participants={game.participants ?? []} />
+        <GameParticipantNames participants={(game.participants ?? []).filter(p => !p.is_waitlisted && p.pay_status === "approved")} />
         {/* Venue, directions and sharing */}
         <div className="rounded-lg border bg-muted/30 p-2.5">
           <div className="flex items-center gap-2.5">
@@ -492,7 +492,7 @@ export function GameCard({
           </div>
         </div>
       <GameTeamsButton gameId={game.id} date={game.game_date} time={game.start_time} status={game.status} canManage={canEdit} />
-      {joined && (
+      {mine?.pay_status === "approved" && (
         <div className="flex flex-wrap items-center gap-2">
           <GameChat gameId={game.id} gameTitle={game.title} memberId={profile.id} isOrganizer={isOrganizer} />
           <div className="flex items-center gap-1.5 rounded-lg border bg-muted/30 px-2.5 py-1.5 text-xs text-muted-foreground">

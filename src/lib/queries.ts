@@ -3358,7 +3358,7 @@ export function useFriendlyGames(enabled = true) {
       const { data, error } = await supabase()
         .from("friendly_games")
         .select(
-          "id,creator_id,creator_name,creator_username,creator_nickname,sport,title,description,area,location,game_date,start_time,max_players,min_players,duration_hours,share_price,host_pays,host_total,booking_total,pricing_version,skill_level,is_public,status,created_at,lat,lng,recurrence,source_game_id,result_a,result_b,completed_by,completed_at,playground_id,court_number,invite_code,gender,min_age,max_age, participants:friendly_game_participants(id, sponsor_participant_id, member_id, role, player_name, is_waitlisted, share_amount, pay_status, joined_at, kickoff_remind_opt_in), rent_payments:friendly_game_rent_payments(amount, member_id, pay_status, created_at), playground:venues(name, country, area, governorate, address, lat, lng, location_link, photos, cover_url)"
+          "id,creation_payment_approved,creator_id,creator_name,creator_username,creator_nickname,sport,title,description,area,location,game_date,start_time,max_players,min_players,duration_hours,share_price,host_pays,host_total,booking_total,pricing_version,skill_level,is_public,status,created_at,lat,lng,recurrence,source_game_id,result_a,result_b,completed_by,completed_at,playground_id,court_number,invite_code,gender,min_age,max_age, participants:friendly_game_participants(id, sponsor_participant_id, member_id, role, player_name, is_waitlisted, share_amount, pay_status, joined_at, kickoff_remind_opt_in), rent_payments:friendly_game_rent_payments(amount, member_id, pay_status, created_at), playground:venues(name, country, area, governorate, address, lat, lng, location_link, photos, cover_url)"
         )
         .neq("status", "cancelled")
         .gte("game_date", today)
@@ -3371,7 +3371,7 @@ export function useFriendlyGames(enabled = true) {
         .filter((g) => !hidden.has(g.creator_id))
         .map((g) => {
           const participants = (g.participants ?? []) as FriendlyGameParticipant[];
-          const active = participants.filter((p) => !p.is_waitlisted);
+          const active = participants.filter((p) => !p.is_waitlisted && p.pay_status === "approved");
           const waitlisted = participants.filter((p) => p.is_waitlisted);
           return {
             ...g,
@@ -3400,7 +3400,7 @@ export function useUpcomingGameParticipants(gameId: string | null, memberId: str
     queryFn: async () => {
       const { data, error } = await supabase().from("friendly_game_participants")
         .select("id, player_name, role, is_waitlisted")
-        .eq("game_id", gameId!)
+        .eq("game_id", gameId!).eq("pay_status", "approved").eq("is_waitlisted", false)
         .order("player_name");
       if (error) throw error;
       return data ?? [];
@@ -3417,7 +3417,7 @@ export function useMyUpcomingGames(memberId: string) {
     queryFn: async () => {
       const { data, error } = await supabase().from("friendly_game_participants")
         .select("id, is_waitlisted, pay_status, game:friendly_games!inner(id, playground_id, creator_id, title, sport, game_date, start_time, status, invite_code, area, location, duration_hours, description, max_players, min_players, lat, lng, is_public, share_price, host_pays, playground:venues(name, country, area, governorate, address, lat, lng, location_link, photos, cover_url))")
-        .eq("member_id", memberId)
+        .eq("member_id", memberId).eq("pay_status", "approved")
         .gte("game.game_date", new Date().toISOString().slice(0, 10))
         .in("game.status", ["open", "full"]);
       if (error) throw error;

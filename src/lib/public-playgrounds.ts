@@ -136,7 +136,7 @@ export async function getPublicPlaygroundGames(
       .from("friendly_games")
       .select("id, title, game_date, start_time, duration_hours, court_number, invite_code")
       .eq("playground_id", venueId)
-      .eq("is_public", true)
+      .eq("is_public", true).eq("creation_payment_approved",true)
       .neq("status", "cancelled")
       .neq("status", "completed")
       .gte("game_date", todayISO())

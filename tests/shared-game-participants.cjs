@@ -10,20 +10,20 @@ let requestedCode;
 let selected;
 let excluded;
 let noStoreCalls = 0;
-const sample = {id:'game',title:'Game',status:'open',participants:[{id:'a',player_name:'Alice',is_waitlisted:false},{id:'b',player_name:'Bob',is_waitlisted:true}],playground:null};
+const sample = {id:'game',title:'Game',status:'open',participants:[{id:'a',player_name:'Alice',is_waitlisted:false,pay_status:'approved'},{id:'b',player_name:'Bob',is_waitlisted:true,pay_status:'pending'}],playground:null};
 const api = {};
 new Function('exports','noStore','getAdmin',js)(api,() => noStoreCalls++,() => ({from:() => ({
-  select(columns){selected=columns;return this;},eq(key,value){assert.equal(key,'invite_code');requestedCode=value;return this;},
+  select(columns){selected=columns;return this;},eq(key,value){if(key==='creation_payment_approved'){assert.equal(value,true);return this;}assert.equal(key,'invite_code');requestedCode=value;return this;},
   neq(key,value){excluded=[key,value];return this;},limit(){return this;},
   async single(){return requestedCode==='VALID' ? {data:sample,error:null} : {data:null,error:new Error('missing')};}
 })}));
 (async () => {
   const game = await api.getGameByInviteCode(' valid ');
-  assert.deepEqual(game.participants,sample.participants);
+  assert.deepEqual(game.participants,[{id:'a',player_name:'Alice',is_waitlisted:false}]);
   assert.equal(game.joined,1);
   assert.deepEqual(excluded,['status','cancelled']);
-  assert.match(selected,/friendly_game_participants\(id, player_name, is_waitlisted\)/);
-  assert.doesNotMatch(selected,/member_id|pay_status|pay_receipt|email/);
+  assert.match(selected,/friendly_game_participants\(id, player_name, is_waitlisted,pay_status\)/);
+  assert.doesNotMatch(selected,/member_id|pay_receipt|email/);
   assert.equal(await api.getGameByInviteCode('invalid'),null);
   assert.equal(noStoreCalls,2);
   console.log('PASS: invite-scoped participant names, waitlist counts, invalid codes, minimal fields, and uncached reads');

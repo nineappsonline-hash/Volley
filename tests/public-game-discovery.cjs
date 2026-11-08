@@ -7,13 +7,13 @@ const { renderToStaticMarkup } = require('react-dom/server');
 const root = path.resolve(__dirname, '..');
 const id = '00000000-0000-0000-0000-000000000001';
 const privateId = '00000000-0000-0000-0000-000000000002';
-const game = { id, title: 'New Cairo volleyball', description: 'A real public game', sport: 'Volleyball', area: 'New Cairo', location: null, game_date: '2099-10-19', start_time: '20:00:00', max_players: 12, min_players: 6, status: 'open', skill_level: 'intermediate', gender: 'mixed', share_price: 145, host_pays: false, host_total: null, creator_name: 'Organizer', duration_hours: 2, min_age: 18, max_age: null, joined: 1, playground: { id: 'court', name: 'Court A', area: 'New Cairo', governorate: 'Cairo', country: 'Egypt', address: 'Venue entrance', cover_url: null, location_link: null } };
+const game = { creation_payment_approved:true, id, title: 'New Cairo volleyball', description: 'A real public game', sport: 'Volleyball', area: 'New Cairo', location: null, game_date: '2099-10-19', start_time: '20:00:00', max_players: 12, min_players: 6, status: 'open', skill_level: 'intermediate', gender: 'mixed', share_price: 145, host_pays: false, host_total: null, creator_name: 'Organizer', duration_hours: 2, min_age: 18, max_age: null, joined: 1, playground: { id: 'court', name: 'Court A', area: 'New Cairo', governorate: 'Cairo', country: 'Egypt', address: 'Venue entrance', cover_url: null, location_link: null } };
 let queryCount = 0;
 let requestedColumns = '';
 const db = { from(table) {
   assert.equal(table, 'friendly_games'); queryCount++;
   let rows = [
-    { ...game, is_public: true, participants: [{ is_waitlisted: false }, { is_waitlisted: true }] },
+    { ...game, is_public: true, participants: [{ is_waitlisted: false, pay_status:"approved" }, { is_waitlisted: true, pay_status:"pending" }] },
     { ...game, id: privateId, is_public: false },
     { ...game, id: '00000000-0000-0000-0000-000000000003', sport: 'Football', is_public: true },
   ];

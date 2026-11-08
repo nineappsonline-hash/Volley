@@ -8,7 +8,7 @@ const {fetchMyGames}=exportsObject;
 (async()=>{
  const requests=[];
  const created=Array.from({length:101},(_,i)=>({id:'created-'+i,creator_id:'member',game_date:'2025-01-01',start_time:'18:00',status:i?'completed':'cancelled',participants:[]}));
- const joined=[created[0],{id:'joined-private',game_date:'2027-01-01',start_time:'18:00',is_public:false,status:'full',participants:[{member_id:'member',is_waitlisted:true},{member_id:'another',is_waitlisted:false}]}];
+ const joined=[created[0],{id:'joined-private',game_date:'2027-01-01',start_time:'18:00',is_public:false,status:'full',participants:[{member_id:'member',is_waitlisted:true},{member_id:'another',is_waitlisted:false,pay_status:'approved'},{member_id:'pending',is_waitlisted:false,pay_status:'pending'}]}];
  let fail=false;
  const client=createClient('https://example.supabase.co','test-key',{global:{fetch:async(input)=>{
   const url=new URL(String(input));requests.push(url);

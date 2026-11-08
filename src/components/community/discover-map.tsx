@@ -89,7 +89,7 @@ export default function DiscoverMap({ profile }: { profile: Profile }) {
   }, [points]);
 
   const joinedGameIds = useMemo(
-    () => new Set((myParticipants ?? []).map((p) => p.game_id)),
+    () => new Set((myParticipants ?? []).filter(p=>p.pay_status === "approved").map((p) => p.game_id)),
     [myParticipants]
   );
   const isOrganizer = (game: FriendlyGameWithDetails, p: FriendlyGameParticipant[]) =>

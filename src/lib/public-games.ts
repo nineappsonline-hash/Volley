@@ -66,12 +66,12 @@ export const getPublicGame = cache(async (id: string): Promise<PublicGameDetail 
      max_players, min_players, status, skill_level, gender, share_price, host_pays, host_total, booking_total,
      creator_name, duration_hours, min_age, max_age,
      playground:venues(id, name, area, governorate, address, country, location_link, cover_url),
-     participants:friendly_game_participants(is_waitlisted)`
-  ).eq("id", id).eq("is_public", true).in("sport", [...ACTIVE_SPORTS]).maybeSingle();
+     participants:friendly_game_participants(is_waitlisted,pay_status)`
+  ).eq("id", id).eq("is_public", true).eq("creation_payment_approved", true).in("sport", [...ACTIVE_SPORTS]).maybeSingle();
   if (error || !data) return null;
   const { participants, playground, ...game } = data;
   return { ...game, playground: Array.isArray(playground) ? playground[0] ?? null : playground,
-    joined: (participants ?? []).filter((p: { is_waitlisted: boolean }) => !p.is_waitlisted).length,
+    joined: (participants ?? []).filter((p: { is_waitlisted: boolean; pay_status?: string }) => !p.is_waitlisted && p.pay_status === "approved").length,
   } as PublicGameDetail;
 });
 
@@ -82,7 +82,7 @@ export async function getPublicGameIds(): Promise<string[]> {
   const ids: string[] = [];
   for (let offset = 0; ; offset += 1000) {
     const { data, error } = await admin.from("friendly_games").select("id")
-      .eq("is_public", true).in("sport", [...ACTIVE_SPORTS]).in("status", ["open", "full"]).gte("game_date", todayISO())
+      .eq("is_public", true).eq("creation_payment_approved", true).in("sport", [...ACTIVE_SPORTS]).in("status", ["open", "full"]).gte("game_date", todayISO())
       .order("id").range(offset, offset + 999);
     if (error) break;
     ids.push(...(data ?? []).map(g => g.id));
@@ -133,9 +133,9 @@ export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
       `id, title, description, sport, area, location, game_date, start_time,
        max_players, min_players, status, skill_level, gender, share_price, host_pays, host_total, booking_total,
        creator_name, duration_hours, min_age, max_age, playground:venues(name, area, governorate, country, location_link, cover_url, photos),
-       participants:friendly_game_participants(is_waitlisted)`
+       participants:friendly_game_participants(is_waitlisted,pay_status)`
     )
-    .eq("is_public", true)
+    .eq("is_public", true).eq("creation_payment_approved", true)
     .in("sport", [...ACTIVE_SPORTS])
     .neq("status", "cancelled")
     .neq("status", "completed")
@@ -150,13 +150,13 @@ export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
     const { data, error } = await query;
     if (error) return [];
     return (data ?? []).map((g: Record<string, unknown>) => {
-      const parts = g.participants as { is_waitlisted?: boolean; count?: number }[] | null;
+      const parts = g.participants as { is_waitlisted?: boolean; count?: number; pay_status?: string }[] | null;
       const { participants: _participants, ...publicRow } = g as unknown as PublicGame & { participants?: unknown };
       const row = g as unknown as PublicGame & { playground: PublicGame["playground"] };
       return {
         ...publicRow,
         playground: Array.isArray(g.playground) ? (g.playground[0] ?? null) : row.playground,
-        joined: parts?.[0]?.count != null ? Number(parts[0].count) : (parts ?? []).filter(p => !p.is_waitlisted).length,
+        joined: (parts ?? []).filter(p => !p.is_waitlisted && p.pay_status === "approved").length,
       };
     });
   } catch {
@@ -194,7 +194,7 @@ export type SharedGameMeta = {
   photos: string[] | null;
   lat: number | null;
   lng: number | null;
-  participants: { id: string; player_name: string; is_waitlisted: boolean }[];
+  participants: { id: string; player_name: string; is_waitlisted: boolean; pay_status?: string }[];
 };
 
 export async function getGameByInviteCode(code: string): Promise<SharedGameMeta | null> {
@@ -208,9 +208,9 @@ export async function getGameByInviteCode(code: string): Promise<SharedGameMeta 
         `id, title, description, sport, gender, area, location, lat, lng, game_date, start_time, duration_hours,
          max_players, status, share_price, host_pays, host_total, booking_total, is_public, creator_name,
          playground:venues(name, area, governorate, location_link, cover_url, photos),
-         participants:friendly_game_participants(id, player_name, is_waitlisted)`
+         participants:friendly_game_participants(id, player_name, is_waitlisted,pay_status)`
       )
-      .eq("invite_code", code.trim().toUpperCase())
+      .eq("invite_code", code.trim().toUpperCase()).eq("creation_payment_approved",true)
       .neq("status", "cancelled")
       .limit(1)
       .single();
@@ -239,8 +239,8 @@ export async function getGameByInviteCode(code: string): Promise<SharedGameMeta 
       start_time: data.start_time,
       duration_hours: data.duration_hours,
       max_players: data.max_players,
-      joined: (row.participants ?? []).filter(p => !p.is_waitlisted).length,
-      participants: row.participants ?? [],
+      joined: (row.participants ?? []).filter(p => !p.is_waitlisted && p.pay_status === "approved").length,
+      participants: (row.participants ?? []).filter(p=>p.pay_status==="approved").map(({pay_status,...participant})=>participant),
       share_price: data.share_price,
       host_pays: data.host_pays,
       host_total: data.host_total,
@@ -268,7 +268,7 @@ export async function getPublicGameSports(): Promise<string[]> {
     const { data, error } = await admin
       .from("friendly_games")
       .select("sport")
-      .eq("is_public", true)
+      .eq("is_public", true).eq("creation_payment_approved", true)
       .in("sport", [...ACTIVE_SPORTS])
       .neq("status", "cancelled")
       .neq("status", "completed")

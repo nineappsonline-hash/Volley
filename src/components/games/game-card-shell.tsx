@@ -19,7 +19,7 @@ import { gameBookingPayment } from "@/lib/game-costs";
 import type { FriendlyGameWithDetails } from "@/lib/types";
 
 /** Compact overview shared by the games directory and community feed. */
-export function GameCardShell({ game, joined, waitlisted, children, detailsHref, initialExpanded = false, layout = "card", hideActionsWhenExpanded = false }: { detailsHref?: string; initialExpanded?: boolean; layout?: "card" | "list"; game: FriendlyGameWithDetails; joined: boolean; waitlisted?: boolean; children?: ReactNode; hideActionsWhenExpanded?: boolean }) {
+export function GameCardShell({ game, joined, waitlisted, paymentPending = false, children, detailsHref, initialExpanded = false, layout = "card", hideActionsWhenExpanded = false }: { detailsHref?: string; initialExpanded?: boolean; layout?: "card" | "list"; game: FriendlyGameWithDetails; joined: boolean; waitlisted?: boolean; paymentPending?: boolean; children?: ReactNode; hideActionsWhenExpanded?: boolean }) {
   const { lang, locale, t } = useI18n();
   const ar = lang === "ar";
   const [expanded, setExpanded] = useState(initialExpanded);
@@ -27,8 +27,10 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
   useEffect(() => {
     if (expanded && !detailsHref) trackView("game_view", game.id, {sport:game.sport,area:game.area,country:game.playground?.country,governorate:game.playground?.governorate});
   }, [expanded,detailsHref,game.id,game.sport,game.area,game.playground?.country,game.playground?.governorate]);
-  const players = (game.participants ?? []).filter(p => !p.is_waitlisted);
-  const slots = Math.max(0, game.max_players - game.participants_count);
+  const pendingCreation = (game as FriendlyGameWithDetails & {creation_payment_approved?:boolean}).creation_payment_approved === false;
+  const awaitingPayment = paymentPending || pendingCreation;
+  const players = (game.participants ?? []).filter(p => !p.is_waitlisted && p.pay_status === "approved");
+  const slots = game.status === "full" ? 0 : Math.max(0, game.max_players - game.participants_count);
   const percent = Math.min(100, Math.max(0, game.participants_count / Math.max(1, game.max_players) * 100));
   const sport = sportToSlug(game.sport);
   const theme = sport === "football" ? "from-brand to-brand-900"
@@ -56,10 +58,10 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
         <span className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1 text-xs"><span className="flex flex-wrap items-center gap-x-2 gap-y-0.5"><time className="block" dateTime={game.game_date}>{format(new Date(`${game.game_date}T00:00:00`), "EEE, d MMM", { locale })}</time><span className="block text-muted-foreground">{formatTime12h(game.start_time, lang)}</span></span><span className="text-end"><strong className={`block text-sm ${styles.price}`}>{game.host_pays ? (ar ? "مجاني" : "Free") : game.share_price == null ? "—" : formatMoney(game.share_price, lang)}</strong><span className="text-[10px] text-muted-foreground">{ar ? "لكل لاعب" : "per player"}</span></span></span>
         <span className="flex flex-wrap items-center justify-between gap-1 text-[10px] text-muted-foreground"><span>{game.participants_count}/{game.max_players} {ar ? "لاعب" : "players"}</span><span>{slots ? (ar ? `${slots} أماكن متاحة` : `${slots} spots left`) : (ar ? "مكتمل" : "Full")}</span></span>
         <span className="block h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: "hsl(var(--playza-lime) / 0.2)" }} aria-hidden="true"><span className="block h-full rounded-full" style={{ width: `${percent}%`, backgroundColor: "var(--color-primary)" }} /></span>
-        <span className="flex flex-wrap gap-1.5 text-[10px]"><span className="rounded bg-muted px-1.5 py-0.5 font-medium">{t(`community_status_${game.status}`)}</span>{joined && <span className="rounded bg-primary/15 px-1.5 py-0.5 font-semibold">{waitlisted ? (ar ? "قائمة الانتظار" : "On the waitlist") : (ar ? "أنت مشارك" : "You're participating")}</span>}{!game.is_public && <span className="rounded bg-muted px-1.5 py-0.5">{ar ? "خاص" : "Private"}</span>}{booking?.confirmed && <span className="rounded bg-muted px-1.5 py-0.5">{ar ? "الحجز مؤكد" : "Booking confirmed"}</span>}</span>
+        <span className="flex flex-wrap gap-1.5 text-[10px]"><span className="rounded bg-muted px-1.5 py-0.5 font-medium">{t(`community_status_${game.status}`)}</span>{joined && <span className="rounded bg-primary/15 px-1.5 py-0.5 font-semibold">{waitlisted ? (ar ? "قائمة الانتظار" : "On the waitlist") : (awaitingPayment ? (ar ? "بانتظار اعتماد الدفع" : "Awaiting payment approval") : (ar ? "أنت مشارك" : "You're participating"))}</span>}{pendingCreation && <span className="rounded bg-accent px-1.5 py-0.5 text-accent-foreground">{ar ? "الماتش بانتظار اعتماد دفع المنظم" : "Game awaiting organizer payment approval"}</span>}{!game.is_public && <span className="rounded bg-muted px-1.5 py-0.5">{ar ? "خاص" : "Private"}</span>}{booking?.confirmed && <span className="rounded bg-muted px-1.5 py-0.5">{ar ? "الحجز مؤكد" : "Booking confirmed"}</span>}</span>
         <span className="sr-only">{detailsHref ? (ar ? "عرض تفاصيل الماتش" : "View game details") : (ar ? "التفاصيل والمشاركة" : "Details & participation")}</span>
       </span>
-      <span className={styles.desktopCta}>{expanded ? (ar ? "إخفاء التفاصيل" : "Hide details") : waitlisted ? (ar ? "قائمة الانتظار" : "On waiting list") : joined ? (ar ? "عرض الحجز" : "View Booking") : (ar ? "انضم للماتش" : "Join Game")} <ArrowUpRight size={17} aria-hidden="true" /></span>
+      <span className={styles.desktopCta}>{expanded ? (ar ? "إخفاء التفاصيل" : "Hide details") : waitlisted ? (ar ? "قائمة الانتظار" : "On waiting list") : paymentPending ? (ar ? "عرض الدفع" : "View payment") : joined ? (ar ? "عرض الحجز" : "View Booking") : (ar ? "انضم للماتش" : "Join Game")} <ArrowUpRight size={17} aria-hidden="true" /></span>
   </>;
   if (layout === "list") return <article data-game-overview="" className="overflow-hidden rounded-xl border border-border bg-card text-card-foreground transition-shadow hover:shadow-sm">
     <div className={`${styles.surface} sm:grid sm:grid-cols-[minmax(0,1fr)_auto]`}>
@@ -100,8 +102,8 @@ export function GameCardShell({ game, joined, waitlisted, children, detailsHref,
         {players.length > 0 && <p className="mt-2 truncate text-xs text-muted-foreground">{players.slice(0,3).map(p=>p.player_name).join(" · ")}{players.length > 3 ? ` +${players.length - 3}` : ""}</p>}
       </div>
       <div className="flex flex-wrap gap-1.5 text-[11px]">
-        {joined && <span className="rounded-md bg-primary/10 px-2 py-1 font-medium text-primary">{waitlisted ? (ar ? "قائمة الانتظار" : "On the waitlist") : (ar ? "أنت مشارك" : "You're participating")}</span>}
-        {!game.is_public && <span className="rounded-md bg-muted px-2 py-1">{ar ? "خاص" : "Private"}</span>}
+        {joined && <span className="rounded-md bg-primary/10 px-2 py-1 font-medium text-primary">{waitlisted ? (ar ? "قائمة الانتظار" : "On the waitlist") : (awaitingPayment ? (ar ? "بانتظار اعتماد الدفع" : "Awaiting payment approval") : (ar ? "أنت مشارك" : "You're participating"))}</span>}
+        {pendingCreation && <span className="rounded bg-accent px-1.5 py-0.5 text-accent-foreground">{ar ? "الماتش بانتظار اعتماد دفع المنظم" : "Game awaiting organizer payment approval"}</span>}{!game.is_public && <span className="rounded-md bg-muted px-2 py-1">{ar ? "خاص" : "Private"}</span>}
         {booking?.confirmed && game.status !== "completed" && <span className="rounded-md bg-muted px-2 py-1">{ar ? "الحجز مؤكد" : "Booking confirmed"}</span>}
       </div>
       <div className={`${styles.actions} flex flex-wrap items-start gap-2`}>
