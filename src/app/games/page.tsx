@@ -102,8 +102,8 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
   if (sportParam && (!sport || !isActiveSport(sport))) notFound();
 
   const title = sport
-    ? `Find ${sport} Players & Games in Egypt | Playza`
-    : "Find Sports Games & People to Play With in Egypt | Playza";
+    ? `Find ${sport} Players & Games in Egypt`
+    : "Find Sports Games & People to Play With in Egypt";
   const description = sport
     ? `Find ${sport.toLowerCase()} players and games in Egypt. Join friendly ${sport.toLowerCase()} matches — no team needed. Check dates, locations, spots and price on Playza.`
     : "Looking for people to play sports with in Egypt? Join volleyball, basketball, padel, tennis and beach volleyball games, meet players and find your next match on Playza.";

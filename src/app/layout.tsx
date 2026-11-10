@@ -129,6 +129,12 @@ export default function RootLayout({
           href="/llms.txt"
         />
         <link rel="describedby" type="text/markdown" href="/llms.txt" />
+        <link
+          rel="alternate"
+          type="text/markdown"
+          title="Playza full reference for AI assistants"
+          href="/llms-full.txt"
+        />
       </head>
       <body className="font-sans">
         <Script

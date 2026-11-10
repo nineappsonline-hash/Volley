@@ -54,6 +54,7 @@ const courts = [
     'next/link': { __esModule: true, default: ({ children, ...props }) => React.createElement('a', props, children) },
     'next/navigation': { notFound: () => { throw Error('NOT_FOUND'); } },
     '@/components/shared/app-logo': { AppLogo: () => null },
+    '@/components/academies/academy-share': { ShareMenu: () => null },
     '@/lib/public-playgrounds': { getPublicCourtDirectory: async () => courts },
     '@/lib/sport-discovery': discovery,
     '@/lib/sport-slugs': slugs,

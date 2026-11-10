@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AppLogo } from "@/components/shared/app-logo";
-import { SITE_URL, OG_IMAGE, jsonLdStringify, breadcrumbsJsonLd } from "@/lib/seo";
+import {
+  SITE_URL,
+  OG_IMAGE,
+  jsonLdStringify,
+  breadcrumbsJsonLd,
+  faqPageJsonLd,
+  landingFaqItems,
+} from "@/lib/seo";
 
 const title = "حجز ملاعب بادل وكرة طائرة | Padel & Volley";
 const description = "عاوز تلعب بادل أو volley؟ اكتشف مباريات Playza، اختار الرياضة والمنطقة، وراجع الملعب والميعاد وتكلفة المشاركة قبل الانضمام. دليلك لحجز الملاعب واللعب مع ناس جديدة.";
@@ -12,7 +19,7 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title, description, images: [OG_IMAGE] },
 };
 
-const questions = [
+const questions: [string, string][] = [
   ["عاوز العب بادل، أبدأ إزاي؟", "افتح مباريات البادل، وشوف المواعيد والأماكن المتاحة. اختار مباراة مناسبة، وسجّل دخولك لمراجعة تفاصيل المشاركة والدفع. لو مفيش مباراة مناسبة، تقدر تنشئ لعبة وتختار من الملاعب المتاحة داخل حسابك."],
   ["عايز ألعب كرة طائرة ومش معايا فريق كامل؟", "مش لازم تبدأ بفريق كامل. شوف ماتشات الكرة الطائرة وعدد الأماكن واللاعبين، وبعدها اختار الماتش اللي يناسبك. الانضمام مرتبط بالأماكن المتاحة وشروط كل لعبة."],
   ["إزاي أعرف تكلفة حجز ملاعب بادل؟", "التكلفة بتختلف حسب الملعب ومدة اللعب وطريقة توزيع المبلغ. راجع تكلفة المشاركة وتفاصيل الدفع داخل اللعبة قبل ما تنضم؛ الأسعار والتوافر بيتحددوا لكل لعبة."],
@@ -26,6 +33,7 @@ export default function BookCourtsPage() {
       "@context": "https://schema.org", "@graph": [
         { "@type": "WebPage", "@id": `${SITE_URL}/book-courts#page`, url: `${SITE_URL}/book-courts`, name: title, description, inLanguage: "ar-EG", about: [{ "@type": "Thing", name: "Padel", alternateName: "بادل" }, { "@type": "Thing", name: "Volleyball", alternateName: ["volley", "كرة طائرة"] }] },
         breadcrumbsJsonLd([{ name: "Playza", url: SITE_URL }, { name: "حجز ملاعب", url: `${SITE_URL}/book-courts` }]),
+        faqPageJsonLd(landingFaqItems(questions)),
       ],
     }) }} />
     <header className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-6"><Link href="/" aria-label="Playza"><AppLogo /></Link><Link href="/games" className="text-sm font-semibold text-primary">شوف المباريات المتاحة</Link></header>

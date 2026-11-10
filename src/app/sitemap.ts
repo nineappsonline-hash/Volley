@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { SITE_URL } from "@/lib/seo";
 import { getPublicGameIds, getPublicGameSports, getPublicTournamentSports } from "@/lib/public-games";
 import { getPublicCourtDirectory } from "@/lib/public-playgrounds";
+import { getPublicTeams } from "@/lib/public-sport-academies";
 import { courtsLocationPath, locationSlugsWithInventory } from "@/lib/court-locations";
 import { DISCOVERY_SPORTS, discoveryPath } from "@/lib/sport-discovery";
 import { listYourCourtPath } from "@/lib/list-your-court";
@@ -32,6 +33,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${SITE_URL}/academies`,
       changeFrequency: "daily",
       priority: 0.9,
+    },
+    {
+      url: `${SITE_URL}/shop`,
+      changeFrequency: "weekly",
+      priority: 0.7,
     },
     {
       url: `${SITE_URL}/solutions/volleyball`,
@@ -113,6 +119,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getPublicTournamentSports(),
     getPublicGameIds(),
     courtLocationEntries(),
+    trainingEntries(),
   ]);
   const academyPages = results[0].status === "fulfilled" ? results[0].value : [];
   const playgroundPages = results[1].status === "fulfilled" ? results[1].value : [];
@@ -121,13 +128,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const gamePages: MetadataRoute.Sitemap = (results[4].status === "fulfilled" ? results[4].value : []).map(id => ({ url: `${SITE_URL}${publicGamePath(id)}`, changeFrequency: "daily", priority: 0.8 }));
   // Sport + location pages, only for combinations with real court inventory.
   const locationPages: MetadataRoute.Sitemap = results[5].status === "fulfilled" ? results[5].value : [];
+  // Public training programs and teams linked from the academy directory.
+  const trainingPages: MetadataRoute.Sitemap = results[6].status === "fulfilled" ? results[6].value : [];
   const sportPages: MetadataRoute.Sitemap = [
     ...gameSports.map(sport => `/games?sport=${encodeURIComponent(sportToSlug(sport))}`),
     ...tournamentSports.map(sport => `/tournaments?sport=${encodeURIComponent(sportToSlug(sport))}`),
   ].map(path => ({ url: `${SITE_URL}${path}`, changeFrequency: "daily", priority: 0.7 }));
 
   // Avoid duplicate URLs when sports use equivalent spellings or slugs.
-  return [...new Map([...staticPages, ...academyPages, ...playgroundPages, ...sportPages, ...gamePages, ...locationPages].map(page => [page.url, page])).values()];
+  return [...new Map([...staticPages, ...academyPages, ...playgroundPages, ...sportPages, ...gamePages, ...locationPages, ...trainingPages].map(page => [page.url, page])).values()];
 }
 async function academyEntries(): Promise<MetadataRoute.Sitemap> {
   const admin = createAdminClient();
@@ -153,6 +162,15 @@ async function academyEntries(): Promise<MetadataRoute.Sitemap> {
     if (!data || data.length < batchSize) break;
   }
   return pages;
+}
+
+async function trainingEntries(): Promise<MetadataRoute.Sitemap> {
+  const teams = await getPublicTeams();
+  return [...new Set(teams.map(team => team.id))].map(id => ({
+    url: `${SITE_URL}/training/${encodeURIComponent(id)}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
+  }));
 }
 
 async function playgroundEntries(): Promise<MetadataRoute.Sitemap> {

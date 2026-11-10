@@ -11,7 +11,7 @@ import {
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Frequently Asked Questions — Playza",
+  title: "Frequently Asked Questions",
   description:
     "Answers to your questions about Playza: accounts, member and academy subscriptions, friendly matches and tournaments, attendance and payments, and data security.",
   keywords: [

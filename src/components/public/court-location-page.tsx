@@ -65,7 +65,7 @@ export async function CourtLocationPage({
             <Link href="/login">{copy("Log in", "تسجيل الدخول")}</Link>
           </div>
           <ShareMenu
-            target={{ url: `${SITE_URL}/courts?sport=${sportSlug}`, title: "${sport.name} courts in ${place}", text: `${sport.name} courts in ${place}` }}
+            target={{ url: `${SITE_URL}${href}`, title: `${sport.name} courts in ${place}`, text: `${sport.name} courts in ${place}` }}
             label={lang === "ar" ? "مشاركة" : "Share"}
             align="end"
           />

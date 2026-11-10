@@ -25,6 +25,7 @@ const mocks={
  '@/lib/game-discovery':{publicGamePath:id=>`/games/${id}`},
  '@/lib/list-your-court':{listYourCourtPath:lang=>`${lang==='ar'?'/ar':''}/list-your-court`},
  '@/lib/public-playgrounds':{getPublicCourtDirectory:async()=>[{id:'c1',name:'Court 1',area:'New Cairo',sport:{name:'Padel'}},{id:'c2',name:'Court 2',area:'New Cairo',sport:{name:'Football'}}]},
+ '@/lib/public-sport-academies':{getPublicTeams:async()=>[{id:'program-1'},{id:'team-2'},{id:'program-1'}]},
  '@/lib/court-locations':{courtsLocationPath:(lang,sport,location)=>`${lang==='ar'?'/ar':''}/courts/${sport}/${location}`,locationSlugsWithInventory:(courts,sport)=>courts.filter(c=>c.sport.name===sport).map(()=> 'new-cairo').filter((v,i,a)=>a.indexOf(v)===i)},
  '@/lib/public-games':{getPublicGameIds:async()=>{if(failGames)throw Error('offline');return ['public-game'];},getPublicGameSports:async()=>{if(failGames)throw Error('offline');return ['Football','football'];},getPublicTournamentSports:async()=>['Padel']},
  '@/lib/supabase/admin':{createAdminClient:()=>{if(failAcademies)throw Error('unavailable');return {from:()=>({select(){return this;},in(){return this;},eq(k,v){assert.equal(k,'is_public');assert.equal(v,true);return this;},not(){return this;},order(){return this;},range:async(a,b)=>({data:rows.slice(a,b+1),error:null})})};}},
@@ -39,6 +40,8 @@ new Function('exports','require',ts.transpileModule(fs.readFileSync(path.join(__
  assert.equal(pages.filter(p=>p.url.includes('/guides')).length,20);
  assert.equal(pages.filter(p=>p.url.includes('/play/')).length,4);
  assert.ok(pages.some(p=>p.url.endsWith('/games/public-game')));
+ assert.ok(pages.some(p=>p.url==='https://playza.life/shop'));
+ assert.equal(pages.filter(p=>p.url.includes('/training/')).length,2);
  for(const page of discoveryPages){
    assert.ok(pages.some(p=>p.url===page.alternates.languages.en));
    assert.ok(pages.some(p=>p.url===page.alternates.languages['ar-EG']));

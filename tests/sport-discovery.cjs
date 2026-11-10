@@ -85,5 +85,24 @@ const page = load('src/components/public/sport-discovery-page.tsx', {
   }
   const llms = await load('src/app/llms.txt/route.ts').GET().text();
   for (const sport of DISCOVERY_SPORTS) assert.ok(llms.includes(`/sports/${sport.slug}`));
-  console.log('PASS: featured sports including archery in both languages, SSR content, canonicals, language links, FAQ data, unknown slugs, real listings, escaped content and crawler access');
+  assert.ok(llms.includes('/shop'));
+  assert.ok(llms.includes('/llms-full.txt'));
+  modules['@/lib/academy-management'] = load('src/lib/academy-management.ts');
+  const full = await load('src/app/llms-full.txt/route.ts').GET().text();
+  for (const sport of DISCOVERY_SPORTS) {
+    assert.ok(full.includes(sport.advice.en));
+    assert.ok(full.includes(sport.advice.ar));
+  }
+  for (const guide of modules['@/lib/guides'].ALL_GUIDES) {
+    assert.ok(full.includes(guide.en.title));
+    assert.ok(full.includes(guide.ar.title));
+  }
+  for (const guide of modules['@/lib/local-games'].LOCAL_GAME_GUIDES) {
+    assert.ok(full.includes(guide.en.title));
+    assert.ok(full.includes(guide.ar.title));
+  }
+  assert.ok(full.includes('Sports Academy Management Software in Egypt'));
+  assert.ok(full.includes('برنامج إدارة الأكاديميات الرياضية في مصر'));
+  assert.ok(!discoveryMetadata('en', DISCOVERY_SPORTS[0]).title.includes('Playza'));
+  console.log('PASS: featured sports including archery in both languages, SSR content, canonicals, language links, FAQ data, unknown slugs, real listings, escaped content, AI discovery files and crawler access');
 })().catch(error => { console.error(error); process.exitCode = 1; });

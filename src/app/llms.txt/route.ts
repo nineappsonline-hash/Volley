@@ -23,6 +23,7 @@ export function GET() {
 - [Games](${SITE_URL}/games): Upcoming public activities with dates, places and participation costs.
 - [Academies](${SITE_URL}/academies): Public academy directory; each academy page describes its published location and sports.
 - [Tournaments](${SITE_URL}/tournaments): Tournament discovery for free and paid accounts.
+- [Shop](${SITE_URL}/shop): Official Playza sportswear in sizes XS–XXXL, with New Cairo collection or delivery across Egypt.
 - [Court booking guide](${SITE_URL}/book-courts)
 - [Frequently asked questions](${SITE_URL}/faq)
 
@@ -52,6 +53,10 @@ ${sports}
 - Tournament access does not require a premium subscription. Tournament management remains restricted to authorized academy administrators and platform administrators.
 - [Academy management solutions](${SITE_URL}/solutions): Information for academy owners.
 - [Sitemap](${SITE_URL}/sitemap.xml): Public discovery pages.
+
+## Optional
+
+- [Full reference for AI assistants](${SITE_URL}/llms-full.txt): Complete editorial content from the sports discovery pages, guides, New Cairo game guides and academy-management pages in English and Arabic.
 `;
   return new Response(body, { headers: {
     "Content-Type": "text/markdown; charset=utf-8",
