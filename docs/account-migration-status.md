@@ -1,6 +1,6 @@
 # Playza account migration — 24 October 2026
 
-> Domain follow-up (10 November 2026): the production primary domain is now `https://playza.life`. Requests to the previous host permanently redirect there. References below describe the 24 October hosting cutover.
+> Domain follow-up (10 November 2026): the application canonical domain is configured as `https://playza.life`, but the new domain is not reachable yet. The previous host already permanently redirects there. See the DNS blocker below; the account cutover described here is separate from domain readiness.
 
 ## Current state
 
@@ -68,3 +68,20 @@ The public login starts Google OAuth against the new project, with the correct c
 The exported Google secret was an opaque 64-character value, and its destination representation differs. Its presence was previously checked but its usability was not verified. Initially, aggregate records showed no successful Google login on the destination after cutover. The user subsequently saved the actual Google Cloud client secret directly in the destination project's Google provider settings. Read-only verification confirmed that the secret changed, Google remains enabled, the client ID is unchanged and the canonical site URL is correct. The destination now records a successful Google sign-in at 11:11 UTC (14:11 Cairo) on 25 October 2026. No credentials or personal account records were printed during verification.
 
 The callback now requires a verified user before redirecting to a protected destination, prevents caching of authentication redirects and maps failures to safe expired/cancelled/provider categories. Login shows bilingual failure guidance and removes provider error fragments without rendering raw descriptions. Mocked callback tests cover code exchange, profile completion, destination preservation, missing sessions and failed/expired/cancelled callbacks. Successful provider authentication is now observed, and the user confirmed that Google sign-in works again.
+
+
+## Domain migration readiness — 10 November 2026
+
+Application migration is committed in `8704d09` and pushed to `main`. Canonical URLs, sitemap defaults, social images, welcome-email links and payment URL defaults use `https://playza.life`. The previous host and `www.playza.life` have permanent redirects to the apex domain.
+
+**Blocking: public DNS is not ready.** Google Public DNS returns `NXDOMAIN` (status 3) for both apex and www A queries and for the apex NS query. Local HTTPS requests also fail name resolution. This shows no public nameserver delegation at verification time; it does not establish whether registration is complete. A live request to `https://playza.nineapps.online/sports/volleyball?migration=check` returns HTTP 308 with the path and query preserved at the new domain. Until DNS is fixed, users following that redirect cannot reach the app.
+
+Remaining operational steps:
+
+1. Confirm domain registration and activate nameservers at the registrar. Add `playza.life` and `www.playza.life` to the existing Vercel `playza` project in scope `9apps`, then configure the exact DNS records Vercel displays. Verify both domains and HTTPS certificate issuance.
+2. Confirm deployed `NEXT_PUBLIC_SITE_URL` and `KASHIER_SITE_URL` use `https://playza.life`; redeploy if environment values change. Repository defaults alone do not verify production environment values.
+3. Confirm Supabase Auth Site URL is `https://playza.life` and its redirect allowlist permits the app callback on the new domain. Review Google OAuth authorized origins if used; retain the existing Supabase provider callback. Test actual login, password reset and email links after DNS resolves.
+4. Confirm Kashier return URLs and webhook configuration point to the new domain, including `https://playza.life/webhook`. Confirm deployed notification functions use the updated email links. These hosted settings were not verified in this follow-up.
+5. Run `node scripts/check-discovery.mjs https://playza.life --all-sports`, verify old-domain redirects, and submit the new sitemap in Search Console and Bing Webmaster Tools. Review analytics domain settings.
+
+Validation in this follow-up: sitemap, welcome-email and court-rent-info-dialog tests pass. The academy-share test fails because its expected URL omits existing UTM parameters; public-game-discovery fails while reading an undefined mocked `index` value. These failures were observed without changing their implementation or tests. Full production discovery checks remain blocked by DNS. The unrelated local game-guests migration was left untouched.
