@@ -1,5 +1,4 @@
 "use client";
-import { ShopShowcase } from "@/components/shop/shop-catalog";
 import { ProductPhotoPreview } from "@/components/shop/product-photo-preview";
 
 import { CourtOwnerBenefits } from "@/components/auth/court-owner-benefits";
@@ -176,7 +175,6 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
 
           </div>
         </div>
-        <ShopShowcase showTeaser={false} />
       </section>
       <section className={styles.finalCta}><svg className={styles.ctaStar} viewBox="0 0 100 100" aria-hidden="true" focusable="false"><path d="M50 8V92M8 50H92M20 20L80 80M20 80L80 20" fill="none" stroke="currentColor" strokeWidth="12" /></svg><p className={styles.eyebrow}>{copy("LESS PLANNING. MORE PLAYING.", "كلام أقل. لعب أكتر.")}</p><h2>{copy("The court is calling.", "الملعب بيناديك.")}</h2><Link className={styles.primary} href={discoveryPath(lang)}>{copy("Find your next sport", "اكتشف لعبتك الجاية")}<ArrowUpRight size={20} /></Link><p>{copy("Tennis, padel, basketball, volleyball, beach volleyball or archery. Find your people and your next activity.", "تنس، بادل، كرة سلة، كرة طائرة، طائرة شاطئية أو رماية بالقوس. اختار لعبتك واتعرّف على ناس بتحبها.")}</p></section>
     </main>

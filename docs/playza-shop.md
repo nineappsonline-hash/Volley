@@ -1,6 +1,6 @@
 # Playza Shop
 
-The public shop lives at `/shop`, with featured products on the homepage and member dashboard. The existing training-session marketplace is unchanged.
+The public shop lives at `/shop`, which is the only place that lists product cards. The homepage and member dashboard link to the shop without rendering the product grid. The existing training-session marketplace is unchanged.
 
 ## Activate and add products
 

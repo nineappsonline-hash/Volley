@@ -17,7 +17,6 @@ function load(file) {
     if (id === 'next/link') return { __esModule: true, default: ({ children, ...props }) => React.createElement('a', props, children) };
     if (id === '@/lib/i18n') return { useI18n: () => ({ lang, dir: lang === 'ar' ? 'rtl' : 'ltr', t:key=>dictionary[lang][key]??key }) };
     if (id === '@/components/shared/app-logo') return { AppLogo: () => React.createElement('span', null, 'Playza') };
-    if (id === '@/components/shop/shop-catalog') return { ShopShowcase: ({showTeaser}) => React.createElement('div', { 'data-shop-products': true, 'data-teaser': String(showTeaser) }) };
     if (id === '@/components/layout/language-toggle') return { LanguageToggle: () => null };
     if (id.startsWith('@/') || id.startsWith('.')) {
       const base = id.startsWith('@/') ? path.join(root, 'src', id.slice(2)) : path.resolve(path.dirname(file), id);
@@ -59,10 +58,9 @@ for (lang of ['en', 'ar']) {
   for (const color of (lang === 'ar' ? ['أسود','أزرق','أبيض'] : ['Black','Blue','White'])) {
     assert.ok(html.includes(`aria-label="${color}"`), 'color preview has accessible controls');
   }
-  assert.ok(html.includes('href="#playza-shop"'), 'top menu links to the shop section');
+  assert.ok(html.includes(lang === 'ar' ? '>المتجر<' : '>Shop<'), 'top menu links to the shop');
   assert.ok(html.includes('href="/shop"'), 'shop CTA opens the product catalog');
-  assert.ok(html.includes('data-shop-products="true"'));
-  assert.ok(html.includes('data-teaser="false"'), 'featured products do not repeat the shop banner');
+  assert.ok(!html.includes('data-shop-products'), 'product cards live only inside the shop');
   assert.ok(html.indexOf('id="playground-owners"') < html.indexOf('id="playza-shop"'));
   assert.ok(html.indexOf('class="finalCta"') > html.indexOf('id="playza-shop"'), 'the court CTA follows the shop');
   assert.ok(section.includes(content.BEACH_DESCRIPTION[lang]));
