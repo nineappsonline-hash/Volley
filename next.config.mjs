@@ -2,11 +2,25 @@
 const nextConfig = {
   reactStrictMode: true,
   async redirects() {
-    return ["football", "basketball", "padel", "swimming"].map(sport => ({
-      source: `/solutions/${sport}`,
-      destination: "/solutions",
-      permanent: true,
-    }));
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "playza.nineapps.online" }],
+        destination: "https://playza.life/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.playza.life" }],
+        destination: "https://playza.life/:path*",
+        permanent: true,
+      },
+      ...["football", "basketball", "padel", "swimming"].map(sport => ({
+        source: `/solutions/${sport}`,
+        destination: "/solutions",
+        permanent: true,
+      })),
+    ];
   },
 };
 

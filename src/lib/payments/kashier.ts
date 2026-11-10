@@ -4,7 +4,7 @@ export function kashierConfig() {
  const apiKey=process.env.KASHIER_API_KEY, secret=process.env.KASHIER_SECRET_KEY, merchantId=process.env.KASHIER_MERCHANT_ID;
  const mode=process.env.KASHIER_MODE;
  if(!apiKey||!secret||!merchantId||(mode!=='live'&&mode!=='test')) throw new Error('Card payments are not configured');
- const origin=process.env.KASHIER_SITE_URL ?? 'https://playza.nineapps.online';
+ const origin=process.env.KASHIER_SITE_URL ?? 'https://playza.life';
  if(new URL(origin).protocol!=='https:') throw new Error('Payment site must use HTTPS');
  return {apiKey,secret,merchantId,mode,origin,api:mode==='live'?'https://api.kashier.io':'https://test-api.kashier.io'};
 }

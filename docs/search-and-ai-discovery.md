@@ -1,6 +1,6 @@
 # Cairo search and AI discovery
 
-Primary domain: https://playza.nineapps.online
+Primary domain: https://playza.life
 Target audience: people looking to play or train in Cairo. English and Egyptian Arabic.
 
 ## Implemented
@@ -25,12 +25,12 @@ Target audience: people looking to play or train in Cairo. English and Egyptian 
 
 ## Release and verify
 
-1. Deploy the reviewed changes to the primary domain. Keep `NEXT_PUBLIC_SITE_URL=https://playza.nineapps.online`; use one canonical domain and permanent redirects if another domain is introduced.
-2. Run `node scripts/check-discovery.mjs https://playza.nineapps.online --all-sports`. For a local production server, use `http://localhost:3000`; canonicals should still reference the public domain.
+1. Deploy the reviewed changes to the primary domain. Keep `NEXT_PUBLIC_SITE_URL=https://playza.life`; use one canonical domain and permanent redirects if another domain is introduced.
+2. Run `node scripts/check-discovery.mjs https://playza.life --all-sports`. For a local production server, use `http://localhost:3000`; canonicals should still reference the public domain.
 3. Test `/sports/padel` and `/ar/sports/padel` in Search Console URL Inspection. Check the rendered HTML, canonical selection, mobile usability, robots status and indexing eligibility. Use Google's Rich Results Test for supported structured data; valid FAQ markup does not guarantee FAQ rich results.
 4. Verify the domain in Google Search Console. For URL-prefix HTML verification, set `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` to the public meta tag's content value and redeploy. Domain-level verification instead requires the supplied DNS TXT record.
 5. Verify/import the site in Bing Webmaster Tools. For HTML verification, set `NEXT_PUBLIC_BING_SITE_VERIFICATION` to the public `msvalidate.01` content value and redeploy.
-6. Submit `https://playza.nineapps.online/sitemap.xml` in both consoles. Request indexing for the homepage, both sport directories and the strongest active sport pages. Submission is a discovery signal, not confirmation of indexing.
+6. Submit `https://playza.life/sitemap.xml` in both consoles. Request indexing for the homepage, both sport directories and the strongest active sport pages. Submission is a discovery signal, not confirmation of indexing.
 7. Review Vercel/CDN firewall and bot logs. A local user-agent test does not prove access from real crawler IPs. Allow legitimate published crawler ranges if logs show challenges or blocks; do not disable security globally.
 
 Search-console credentials, verification values and DNS access are not included in this repository. No indexing submission or live deployment is implied by passing local tests.

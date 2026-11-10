@@ -56,7 +56,7 @@ export async function createSocialImage(game: PreviewGame | null) {
           <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-end", columnGap: 7, color: PLAYZA.lime, fontSize: 32 }}>{words("هنلعب إيه النهاردة؟")}</div>
           <div style={{ display: "flex", gap: 10, marginTop: 6 }}>{["Games", "Academies", "Tournaments"].map(label => <span key={label} style={{ border: "1px solid #ffffff35", borderRadius: 24, padding: "8px 15px", fontSize: 17 }}>{label}</span>)}</div>
         </div>}
-        <div style={{ display: "flex", marginTop: "auto", paddingTop: 15, fontSize: 16, color: "#CDBAE5" }}>playza.nineapps.online</div>
+        <div style={{ display: "flex", marginTop: "auto", paddingTop: 15, fontSize: 16, color: "#CDBAE5" }}>playza.life</div>
       </div>
       <div style={{ display: "flex", position: "absolute", right: 30, top: 30, bottom: 30, width: 342, flexDirection: "column", alignItems: "center", justifyContent: "space-between", borderRadius: 30, background: PLAYZA.lime, padding: "28px 24px", color: "#35116B", overflow: "hidden" }}>
         <div style={{ display: "flex", fontSize: 16, letterSpacing: 3, fontWeight: 700 }}>{game ? "MAKE YOUR MOVE" : "LET’S PLAY"}</div>

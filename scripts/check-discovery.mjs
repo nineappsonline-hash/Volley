@@ -1,10 +1,10 @@
 // Read-only checks against a running preview or production deployment.
-// Usage: node scripts/check-discovery.mjs https://playza.nineapps.online
+// Usage: node scripts/check-discovery.mjs https://playza.life
 // Add --all-sports to check every sport URL in the sitemap.
 import assert from 'node:assert/strict';
 
 const origin = new URL(process.argv[2] || 'http://localhost:3000').origin;
-const expectedOrigin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, '') || 'https://playza.nineapps.online';
+const expectedOrigin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, '') || 'https://playza.life';
 async function get(path, agent = 'PlayzaDiscoveryCheck/1.0') {
   const response = await fetch(`${origin}${path}`, { headers: { 'User-Agent': agent }, redirect: 'manual', signal: AbortSignal.timeout(30000) });
   assert.equal(response.status, 200, `${path}: expected 200, got ${response.status}`);

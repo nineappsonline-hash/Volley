@@ -88,7 +88,7 @@ function load(file) {
   assert.equal(event.offers.price, 145);
   assert.equal(event.offers.priceCurrency, 'EGP');
   assert.equal(Date.parse(event.endDate) - Date.parse(event.startDate), 7200000);
-  assert.equal(event.url, `https://playza.nineapps.online/games/${id}`);
+  assert.equal(event.url, `https://playza.life/games/${id}`);
   assert.equal(event.location.address.addressLocality, 'New Cairo');
   assert.equal(seo.publicGameEvent({ ...game, host_pays: true }).offers.price, 0);
   assert.equal(seo.publicGameEvent({ ...game, share_price: null }).offers, undefined);

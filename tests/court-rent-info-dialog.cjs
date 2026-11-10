@@ -27,7 +27,7 @@ for (const name of ['Dialog','DialogContent','DialogHeader','DialogTitle','Dialo
  mocks['@/components/ui/dialog'][name] = ({children,...props}) => React.createElement('div', {...props, open:undefined, onOpenChange:undefined}, children);
 }
 const {CourtRentInfoDialog} = load('src/components/games/court-rent-info-dialog.tsx');
-const url='https://playza.nineapps.online/games?join='+ 'LONGCODE'.repeat(50);
+const url='https://playza.life/games?join='+ 'LONGCODE'.repeat(50);
 for(lang of ['en','ar']) {
  const html=renderToStaticMarkup(React.createElement(CourtRentInfoDialog,{open:true,onOpenChange(){},shareLink:url}));
  assert.ok(html.includes('value="'+url+'"'));

@@ -1,5 +1,7 @@
 # Playza account migration — 24 October 2026
 
+> Domain follow-up (10 November 2026): the production primary domain is now `https://playza.life`. Requests to the previous host permanently redirect there. References below describe the 24 October hosting cutover.
+
 ## Current state
 
 **The Vercel and Supabase cutovers are complete.** `https://playza.nineapps.online` now runs in the new Vercel account and uses the new Supabase project, including existing accounts, application records and uploaded files. No paid account/team transfer was used.

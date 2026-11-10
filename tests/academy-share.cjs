@@ -60,10 +60,10 @@ const { academyShareLink, programShareLink, academyShareText } = load(
 );
 
 // --- links are absolute so they survive pasting into another app -----------
-assert.equal(academyShareLink('maadi-swim'), 'https://playza.nineapps.online/a/maadi-swim');
+assert.equal(academyShareLink('maadi-swim'), 'https://playza.life/a/maadi-swim');
 assert.equal(
   programShareLink('maadi-swim', 'plan-123'),
-  'https://playza.nineapps.online/a/maadi-swim#training-plan-123'
+  'https://playza.life/a/maadi-swim#training-plan-123'
 );
 console.log('PASS: academy and plan links are absolute and deep-link to the plan anchor');
 

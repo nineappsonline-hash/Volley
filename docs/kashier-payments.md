@@ -14,13 +14,13 @@ recurring card charges. Existing InstaPay and e-wallet options remain available.
    - `KASHIER_MODE=live`
    - `KASHIER_MERCHANT_ID=MID-49632-761`
    - `KASHIER_API_KEY` and `KASHIER_SECRET_KEY` from the live Kashier account
-   - `KASHIER_SITE_URL=https://playza.nineapps.online`
+   - `KASHIER_SITE_URL=https://playza.life`
    - `SUPABASE_SERVICE_ROLE_KEY` (already required by other server features)
    Do not prefix secrets with `NEXT_PUBLIC_`. The supplied credentials are saved
    only in ignored `.env.local`; deployment does not upload that file. When
    entering a secret in a hosting UI, use its raw value, including any `$`.
 3. Deploy the app. Kashier sessions use the server webhook
-   `https://playza.nineapps.online/webhook`. This URL accepts POST, not a browser
+   `https://playza.life/webhook`. This URL accepts POST, not a browser
    GET. Keep Kashier's dashboard webhook at that URL if configured; duplicate
    deliveries are safe.
    The route first tries the Payment Sessions API. If that API is blocked (for

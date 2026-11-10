@@ -1,4 +1,4 @@
-const SITE = "https://playza.nineapps.online";
+const SITE = "https://playza.life";
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 
 /** Shared by signup notifications and the admin's welcome-email action. */

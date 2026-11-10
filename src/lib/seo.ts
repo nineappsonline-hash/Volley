@@ -9,7 +9,7 @@
  */
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") ||
-  "https://playza.nineapps.online";
+  "https://playza.life";
 
 export const OG_IMAGE = "/og-playza-v2.png";
 
