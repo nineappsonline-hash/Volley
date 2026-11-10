@@ -8,6 +8,10 @@ function siteUrl(value){const seo={};new Function('exports','process',seoCode)(s
 assert.equal(siteUrl(undefined),'https://playza.life');
 assert.equal(siteUrl('  '),'https://playza.life');
 assert.equal(siteUrl(' https://playza.life/// '),'https://playza.life');
+assert.equal(siteUrl('https://playza.nineapps.online'),'https://playza.life');
+assert.equal(siteUrl(' http://PLAYZA.NINEAPPS.ONLINE/// '),'https://playza.life');
+assert.equal(siteUrl('https://preview.example.com/'),'https://preview.example.com');
+assert.equal(siteUrl('http://localhost:3000/'),'http://localhost:3000');
 let failAcademies=false,failGames=false;
 const rows=Array.from({length:1001},(_,i)=>({id:String(i),slug:'academy-'+i}));
 const mocks={

@@ -7,9 +7,12 @@
  * alternateLocale. Structured data follows schema.org so Google, Bing and
  * WhatsApp/Telegram link previews can render rich results.
  */
-export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") ||
-  "https://playza.life";
+const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "");
+// Older deployments may still have the retired domain in their environment.
+// Keep generated share links and canonicals on the migrated production domain.
+export const SITE_URL = !configuredSiteUrl || /^https?:\/\/playza\.nineapps\.online$/i.test(configuredSiteUrl)
+  ? "https://playza.life"
+  : configuredSiteUrl;
 
 export const OG_IMAGE = "/og-playza-v2.png";
 
