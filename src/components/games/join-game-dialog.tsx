@@ -446,11 +446,11 @@ export function JoinGameDialog({
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="gap-3 sm:gap-2">
+          <Button variant="outline" size="lg" className="h-12 w-full text-base sm:w-auto" onClick={() => onOpenChange(false)}>
             {t("common_cancel")}
           </Button>
-          {!isFree && payMethod === "kashier" ? <KashierButton target={{kind:isRent?"rent":"share",targetId:game.id,inviteCode,guests:mode==="join"?guests:undefined}} disabled={busy || noPlaces || !guestsValid || amount <= 0} /> : <Button onClick={submit} disabled={!canSubmit} className="gap-1">
+          {!isFree && payMethod === "kashier" ? <KashierButton target={{kind:isRent?"rent":"share",targetId:game.id,inviteCode,guests:mode==="join"?guests:undefined}} disabled={busy || noPlaces || !guestsValid || amount <= 0} /> : <Button size="lg" onClick={submit} disabled={!canSubmit} className="h-12 w-full gap-1 text-base sm:w-auto">
             <Wallet className="h-4 w-4" />
             {busy
               ? t("common_saving")
@@ -460,10 +460,7 @@ export function JoinGameDialog({
                   ? t("games_share_pay_submit")
                   : isRent
                     ? t("games_rent_submit_button")
-                    : t("games_share_pay_join").replace(
-                        "{amount}",
-                        formatMoney(amount, lang)
-                      )}
+                    : t("games_share_pay_join")}
           </Button>}
         </DialogFooter>
       </DialogContent>
