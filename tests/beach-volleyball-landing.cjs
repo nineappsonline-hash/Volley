@@ -47,10 +47,14 @@ for (lang of ['en', 'ar']) {
   assert.ok(html.includes('href="/sports/tennis"'));
   assert.ok(html.includes('id="padel"'));
   assert.ok(html.includes('id="basketball"'));
+  assert.ok(html.includes(content.VOLLEYBALL_DESCRIPTION[lang]));
+  assert.ok(html.includes(content.BASKETBALL_DESCRIPTION[lang]));
   assert.ok(html.includes(content.TENNIS_DESCRIPTION[lang]));
   assert.ok(section, 'beach sport card must be present in server-rendered HTML');
   const sports = html.match(/<section id="sports"[\s\S]*?<\/section>/)?.[0];
-  for (const id of ['padel','tennis','volleyball','basketball','beach-volleyball','archery']) assert.ok(sports.includes(`id="${id}"`));
+  for (const id of ['volleyball','basketball','padel','tennis','beach-volleyball','archery']) assert.ok(sports.includes(`id="${id}"`));
+  assert.ok(sports.indexOf('id="volleyball"') < sports.indexOf('id="padel"'), 'volleyball is prioritized above padel');
+  assert.ok(sports.indexOf('id="basketball"') < sports.indexOf('id="padel"'), 'basketball is prioritized above padel');
   assert.ok(!html.includes('id="beach-challenge"'), 'the 3D game is replaced');
   assert.ok(html.includes('id="playza-shop"'));
   assert.ok(html.includes(lang === 'ar' ? 'تسوّق ملابس رياضية.' : 'Shop Sportswear.'));
@@ -103,9 +107,16 @@ for (lang of ['en', 'ar']) {
   assert.ok(empty.includes(lang === 'ar' ? 'شوف المواعيد المتاحة' : 'Check the games page'));
   assert.ok(!empty.includes('Friday beach game'));
 }
+assert.match(content.LANDING_TITLE, /Volleyball & Basketball/);
+assert.match(content.LANDING_DESCRIPTION, /volleyball or basketball/i);
+assert.ok(content.LANDING_KEYWORDS.slice(0, 2).every(keyword => /volleyball|basketball/.test(keyword)), 'landing keywords lead with volleyball and basketball');
 const metadata = content.landingPageJsonLd(seo.SITE_URL);
+assert.equal(metadata.hasPart.find(part => part.url.endsWith("/#volleyball")).description, content.VOLLEYBALL_DESCRIPTION.en);
+assert.equal(metadata.hasPart.find(part => part.url.endsWith("/#basketball")).description, content.BASKETBALL_DESCRIPTION.en);
 assert.equal(metadata.hasPart.find(part => part.url.endsWith("/#beach-volleyball")).description, content.BEACH_DESCRIPTION.en);
 assert.equal(metadata.hasPart.find(part => part.url.endsWith("/#beach-volleyball")).url, `${seo.SITE_URL}/#beach-volleyball`);
+assert.ok(metadata.about.some(topic => topic.name === 'Volleyball'));
+assert.ok(metadata.about.some(topic => topic.name === 'Basketball'));
 assert.ok(metadata.about.some(topic => topic.name === 'Beach Volleyball'));
 assert.equal(JSON.parse(seo.jsonLdStringify(metadata)).name, content.LANDING_TITLE);
 const sitemap = fs.readFileSync(path.join(root, 'src/app/sitemap.ts'), 'utf8');

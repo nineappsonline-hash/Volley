@@ -1,6 +1,14 @@
 /** Public copy shared by visible content and homepage search metadata. */
-export const LANDING_TITLE = "Playza | Find Sports Players, Join Games & Discover Academies";
-export const LANDING_DESCRIPTION = "Looking for people to play sports with in Egypt? Join volleyball, basketball, padel, tennis and beach volleyball games, meet players and discover sports academies on Playza.";
+export const LANDING_TITLE = "Playza | Find Volleyball & Basketball Games in Egypt";
+export const LANDING_DESCRIPTION = "Looking for volleyball or basketball games in Egypt? Join friendly matches, meet players, compare level, location and price, and play your next game with Playza.";
+export const VOLLEYBALL_DESCRIPTION = {
+  en: "Find volleyball games in Egypt and join a friendly match that fits your level. Check the court, date, price and spots left, then meet your next teammates on Playza.",
+  ar: "لاقي ماتشات كرة طائرة في مصر وانضم لماتش ودي يناسب مستواك. راجع الملعب والميعاد والسعر والأماكن المتاحة، واتعرّف على زمايلك الجداد على بلايزا.",
+} as const;
+export const BASKETBALL_DESCRIPTION = {
+  en: "Looking for basketball games in Egypt? Join pickup matches, compare the level and location, and check the final price before you hit the court with Playza.",
+  ar: "بتدور على ماتشات كرة سلة في مصر؟ انضم لماتشات بيك أب، وقارن المستوى والمكان، وراجع السعر النهائي قبل ما تنزل الملعب مع بلايزا.",
+} as const;
 export const BEACH_DESCRIPTION = {
   en: "Discover beach volleyball in Egypt with Playza. Explore sand-court games, find people to play with, and discover academies that match your next move.",
   ar: "العب كرة طائرة شاطئية مع بلايزا. شوف الماتشات على الرمل، واتعرّف على ناس تلعب معاهم، ولاقي أكاديمية تتمرن فيها.",
@@ -17,15 +25,19 @@ export function landingPageJsonLd(siteUrl: string): Record<string, unknown> {
     description: LANDING_DESCRIPTION,
     inLanguage: ["en", "ar-EG"],
     about: [
-      { "@type": "Thing", name: "Volleyball" },
+      { "@type": "Thing", name: "Volleyball", alternateName: "الكرة الطائرة" },
+      { "@type": "Thing", name: "Basketball", alternateName: "كرة السلة" },
       { "@type": "Thing", name: "Beach Volleyball", alternateName: "الكرة الطائرة الشاطئية" },
+      { "@type": "Thing", name: "Padel" },
       { "@type": "Thing", name: "Tennis" },
       { "@type": "Thing", name: "Archery", alternateName: "الرماية بالقوس" },
     ],
     hasPart: [
+      { "@type": "WebPageElement", "@id": `${siteUrl}/#volleyball`, name: "Volleyball games in Egypt", description: VOLLEYBALL_DESCRIPTION.en, url: `${siteUrl}/#volleyball` },
+      { "@type": "WebPageElement", "@id": `${siteUrl}/#basketball`, name: "Basketball games in Egypt", description: BASKETBALL_DESCRIPTION.en, url: `${siteUrl}/#basketball` },
+      { "@type": "WebPageElement", "@id": `${siteUrl}/#beach-volleyball`, name: "Beach volleyball. Same rally. New rhythm.", description: BEACH_DESCRIPTION.en, url: `${siteUrl}/#beach-volleyball` },
       { "@type": "WebPageElement", "@id": `${siteUrl}/#tennis`, name: "Tennis in Egypt", description: TENNIS_DESCRIPTION.en, url: `${siteUrl}/#tennis` },
       { "@type": "WebPageElement", "@id": `${siteUrl}/#archery`, name: "Archery in Egypt", description: ARCHERY_DESCRIPTION.en, url: `${siteUrl}/#archery` },
-      { "@type": "WebPageElement", "@id": `${siteUrl}/#beach-volleyball`, name: "Beach volleyball. Same rally. New rhythm.", description: BEACH_DESCRIPTION.en, url: `${siteUrl}/#beach-volleyball` },
     ],
   };
 }
@@ -33,16 +45,16 @@ export function landingPageJsonLd(siteUrl: string): Record<string, unknown> {
 /** Copy for the homepage hero illustration and its three featured sports. */
 export const SportsHeroSceneCopy = {
   en: {
-    eyebrow: "FIND PLAYERS. JOIN GAMES.",
-    intro: "Looking for people to play sports with in Egypt? Join volleyball, basketball, padel, tennis or beach volleyball games, meet new players, and discover sports academies near you.",
+    eyebrow: "VOLLEYBALL & BASKETBALL GAMES.",
+    intro: "Looking for a volleyball or basketball game in Egypt? Join friendly matches near you, meet new players, and discover sports academies on Playza.",
     note: "Play with others. Make new friends.",
-    artLabel: "Illustration of people playing sports together",
+    artLabel: "Illustration of people playing volleyball and basketball together",
   },
   ar: {
     eyebrow: "",
-    intro: "عاوز تلعب ومش لاقي ناس؟ انضم لماتشات كرة الطائرة، وكرة السلة، والبادل، والتنس، والطائرة الشاطئية، واتعرف على لاعبين جدد، واكتشف أكاديميات رياضية قريبة منك.",
+    intro: "بتدور على ماتش كرة طائرة أو كرة سلة في مصر؟ انضم لماتشات ودية قريبة منك، واتعرّف على لاعبين جدد، واكتشف أكاديميات رياضية على بلايزا.",
     note: "العب مع ناس. اتعرف على صحاب جدد.",
-    artLabel: "رسم لناس بيعبوا رياضة مع بعض",
+    artLabel: "رسم لناس بيعبوا كرة طائرة وكرة سلة مع بعض",
   },
 } as const;
 
@@ -57,21 +69,21 @@ export const TENNIS_DESCRIPTION = {
 } as const;
 
 export const LANDING_KEYWORDS = [
-  "find people to play sports with egypt",
-  "join sports games cairo",
-  "find sports partners cairo",
+  "volleyball games egypt",
+  "basketball games egypt",
   "volleyball games cairo",
   "basketball games cairo",
-  "padel partners cairo",
-  "tennis partners cairo",
-  "beach volleyball games cairo",
-  "sports academies cairo",
-  "sports activities egypt",
-  "ماتشات رياضية مصر",
-  "ناس تلعب مع بعض",
-  "جروبات رياضية القاهرة",
+  "find volleyball players cairo",
+  "find basketball players cairo",
+  "join volleyball game egypt",
+  "join basketball game egypt",
+  "pickup basketball games cairo",
+  "volleyball near me",
+  "basketball near me",
+  "ماتشات كرة طائرة مصر",
+  "ماتشات كرة سلة مصر",
   "ماتشات طائرة القاهرة",
   "ماتشات باسكت القاهرة",
-  "شريك بادل",
-  "أكاديميات رياضية مصر",
+  "ناس تلعب طائرة",
+  "ناس تلعب باسكت",
 ];

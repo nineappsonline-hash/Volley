@@ -103,10 +103,11 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
 
   const title = sport
     ? `Find ${sport} Players & Games in Egypt`
-    : "Find Sports Games & People to Play With in Egypt";
+    : "Volleyball & Basketball Games in Egypt";
   const description = sport
     ? `Find ${sport.toLowerCase()} players and games in Egypt. Join friendly ${sport.toLowerCase()} matches — no team needed. Check dates, locations, spots and price on Playza.`
-    : "Looking for people to play sports with in Egypt? Join volleyball, basketball, padel, tennis and beach volleyball games, meet players and find your next match on Playza.";
+    : "Browse upcoming volleyball and basketball games in Egypt. Compare dates, locations, spots left and price, then join other players on Playza.";
+  const canonical = sport ? `/games?sport=${sportToSlug(sport)}` : "/games";
 
   return {
     title,
@@ -114,26 +115,25 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
     keywords: sport
       ? [`find ${sport.toLowerCase()} players`, `${sport.toLowerCase()} games egypt`, "join sports games", "find sports partners"]
       : [
-          "find people to play sports with egypt",
-          "join sports games cairo",
-          "find sports partners cairo",
+          "volleyball games egypt",
+          "basketball games egypt",
           "volleyball games cairo",
           "basketball games cairo",
-          "padel games cairo",
-          "tennis partners cairo",
-          "beach volleyball games cairo",
-          "ماتشات رياضية مصر",
-          "عاوز ناس ألعب معاهم",
-          "جروبات رياضية القاهرة",
-          "ماتشات طائرة",
-          "ماتشات باسكت",
-          "شريك بادل",
+          "find volleyball players cairo",
+          "find basketball players cairo",
+          "join volleyball game egypt",
+          "join basketball game egypt",
+          "pickup basketball games cairo",
+          "ماتشات كرة طائرة مصر",
+          "ماتشات كرة سلة مصر",
+          "ماتشات طائرة القاهرة",
+          "ماتشات باسكت القاهرة",
         ],
-    alternates: { canonical: sport ? `/games?sport=${sportToSlug(sport)}` : "/games" },
+    alternates: { canonical },
     openGraph: {
       title,
       description,
-      url: `${SITE_URL}/games`,
+      url: `${SITE_URL}${canonical}`,
       siteName: "Playza",
       images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
       locale: "en_US",
@@ -205,8 +205,8 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
 
       <PublicListHero
         emoji="🎮"
-        title={sport ? `Find ${sport} Players & Games` : "Find People to Play Sports With in Egypt"}
-        subtitle="Looking for people to play with? Join upcoming friendly games — volleyball, basketball, padel, tennis and beach volleyball. See who’s playing and join."
+        title={sport ? `Find ${sport} Players & Games` : "Find Volleyball & Basketball Games"}
+        subtitle="Looking for a volleyball or basketball game in Egypt? Join upcoming friendly matches, or explore padel, tennis and beach volleyball. See who’s playing and join."
         note="Sign up free and join any open game. No team needed for most games."
         ctaHref={`/signup?redirectedFrom=${encodeURIComponent(sport ? `/games?sport=${sportToSlug(sport)}` : "/games")}`}
         ctaLabel="Find a Game"
