@@ -108,7 +108,7 @@ for(lang of ['en','ar']){
  assert.ok(personal.includes(lang==='en'?'You haven’t created':'لسه ما أنشأتش'));
  personalGames=[{id:'past',title:'Past completed',status:'completed',game_date:'2020-01-01',start_time:'18:00'},{id:'future',title:'Future joined',status:'full',game_date:'2099-01-01',start_time:'18:00'},{id:'cancelled',title:'Cancelled created',status:'cancelled',game_date:'2099-01-01',start_time:'18:00'}];
  personal=renderToStaticMarkup(React.createElement(MyGamesClient,{profile:{id:'member'}}));
- assert.ok(personal.includes('Past completed'));assert.ok(personal.includes('Cancelled created'));assert.ok(personal.indexOf('Future joined') < personal.indexOf('Past completed'));
+ assert.ok(personal.includes('Past completed'));assert.ok(!personal.includes('Cancelled created'));assert.ok(personal.indexOf('Future joined') < personal.indexOf('Past completed'));
 }
 console.log('PASS: check-in and My games lead the bilingual menu; personal games show empty, upcoming, past and cancelled states with shared cards');
 

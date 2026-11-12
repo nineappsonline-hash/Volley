@@ -14,7 +14,7 @@ export function MyGamesClient({ profile }: { profile: Profile }) {
   const ar = lang === "ar";
   useRealtime(["friendly_games", "friendly_game_participants"]);
   const today = cairoNow().slice(0, 10);
-  const games = query.data ?? [];
+  const games = (query.data ?? []).filter(game => game.status !== "cancelled");
   const upcoming = games.filter(game => ["open", "full"].includes(game.status) && game.game_date >= today).sort((a,b) => `${a.game_date} ${a.start_time}`.localeCompare(`${b.game_date} ${b.start_time}`));
   const upcomingIds = new Set(upcoming.map(game => game.id));
   const history = games.filter(game => !upcomingIds.has(game.id)).sort((a, b) => Number(a.status === "cancelled") - Number(b.status === "cancelled") || `${b.game_date} ${b.start_time}`.localeCompare(`${a.game_date} ${a.start_time}`));

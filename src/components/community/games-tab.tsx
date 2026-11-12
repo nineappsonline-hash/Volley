@@ -526,6 +526,7 @@ export function GamesTab({ profile }: { profile: Profile }) {
   const filtered = useMemo(() => {
     const q = areaFilter.trim();
     const list = (games ?? []).filter((g) => {
+      if (g.status === "cancelled") return false;
       if (sportFilter !== "all" && g.sport !== sportFilter) return false;
       if (onlyMatches && !gameMatchesProfile(g, profile)) return false;
       if (!q) return true;

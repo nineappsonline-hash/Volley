@@ -19,7 +19,7 @@ export async function fetchMyGames(client: SupabaseClient, memberId: string): Pr
   };
   const [created, joined] = await Promise.all([load(false), load(true)]);
   const unique = new Map([...created, ...joined].map(game => [game.id, game]));
-  return [...unique.values()].map(game => {
+  return [...unique.values()].filter(game => game.status !== "cancelled").map(game => {
     const participants = game.participants ?? [];
     return { ...game, participants, participants_count: participants.filter(p => !p.is_waitlisted && p.pay_status === "approved").length, waitlist_count: participants.filter(p => p.is_waitlisted).length, rent_payments: game.rent_payments ?? [] };
   }).sort((a, b) => Number(a.status === "cancelled") - Number(b.status === "cancelled") || `${b.game_date} ${b.start_time}`.localeCompare(`${a.game_date} ${a.start_time}`));
