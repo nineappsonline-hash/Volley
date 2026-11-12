@@ -17,7 +17,7 @@ export function MyGamesClient({ profile }: { profile: Profile }) {
   const games = query.data ?? [];
   const upcoming = games.filter(game => ["open", "full"].includes(game.status) && game.game_date >= today).sort((a,b) => `${a.game_date} ${a.start_time}`.localeCompare(`${b.game_date} ${b.start_time}`));
   const upcomingIds = new Set(upcoming.map(game => game.id));
-  const history = games.filter(game => !upcomingIds.has(game.id));
+  const history = games.filter(game => !upcomingIds.has(game.id)).sort((a, b) => Number(a.status === "cancelled") - Number(b.status === "cancelled") || `${b.game_date} ${b.start_time}`.localeCompare(`${a.game_date} ${a.start_time}`));
   return <div className="mx-auto max-w-6xl space-y-6">
     <header><h1 className="text-2xl font-extrabold">{ar ? "ماتشاتي" : "My games"}</h1><p className="mt-2 text-sm text-muted-foreground">{ar ? "كل الماتشات اللي أنشأتها أو انضمّيت ليها، بما فيها الماتشات السابقة." : "All games you created or joined, including past games."}</p></header>
     <QueryState queries={[query]}>
