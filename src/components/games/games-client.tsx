@@ -744,7 +744,6 @@ export function GamesClient({ profile }: { profile: Profile }) {
   const filtered = useMemo(() => {
     const mineIds = new Set((myParticipants ?? []).map((p) => p.game_id));
     const list = (games ?? []).filter((g) => {
-      if (g.status === "cancelled") return false;
       if (!isActiveSport(g.sport) && g.creator_id !== profile.id && !mineIds.has(g.id)) return false;
       if (countryFilter && normalizeCountry(g.playground?.country ?? "") !== normalizeCountry(countryFilter)) return false;
       if (sportFilter !== "all" && g.sport !== sportFilter) return false;

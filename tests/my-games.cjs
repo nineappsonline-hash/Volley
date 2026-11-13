@@ -21,7 +21,7 @@ const {fetchMyGames}=exportsObject;
   return new Response(JSON.stringify((isJoined?joined:created).slice(offset,offset+limit)),{status:200,headers:{'Content-Type':'application/json'}});
  }},auth:{persistSession:false,autoRefreshToken:false}});
  const games=await fetchMyGames(client,'member');
- assert.equal(games.length,101);assert.equal(games[0].id,'joined-private');assert.equal(games[0].participants_count,1);assert.equal(games[0].waitlist_count,1);assert.ok(!games.some(g=>g.status==='cancelled'));assert.ok(games.some(g=>g.id==='created-100'));assert.equal(games.filter(g=>g.id==='created-0').length,0);assert.equal(requests.length,3);
+ assert.equal(games.length,102);assert.equal(games[0].id,'joined-private');assert.equal(games[0].participants_count,1);assert.equal(games[0].waitlist_count,1);assert.ok(games.some(g=>g.status==='cancelled'));assert.ok(games.some(g=>g.id==='created-100'));assert.equal(games.filter(g=>g.id==='created-0').length,1);assert.equal(requests.length,3);
  fail=true;await assert.rejects(fetchMyGames(client,'member'));
  console.log('PASS: personal history queries only created/joined games, pages past 100 rows, preserves private/waitlisted/past/cancelled games and full rosters, deduplicates and propagates errors');
 })().catch(e=>{console.error(e);process.exit(1)});
