@@ -12,7 +12,7 @@ import { GameSharePayment } from "@/components/games/game-share-payment";
 import { Topbar } from "@/components/layout/topbar";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Calendar, MapPin, Users, Building2 } from "lucide-react";
+import { Calendar, MapPin, Users, Building2, ArrowUpRight, Trophy } from "lucide-react";
 
 export function TrainingDetail({
   program,
@@ -118,120 +118,59 @@ export function TrainingDetail({
       ) : (
         <Topbar role="member" name="" username="" guest />
       )}
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex items-start gap-4">
-            <AcademyLogo
-              academyId={academy.id}
-              name={academy.name}
-              logoUrl={academy.logo_url}
-            />
-            <div className="min-w-0 flex-1">
-              <Link
-                href={`/a/${academy.slug}`}
-                className="text-sm font-semibold text-primary hover:underline truncate block"
-              >
-                {academy.name}
-              </Link>
-              <h1 className="text-2xl font-bold mt-0.5">{source.name}</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                {sport} · {gender} · {age}
-              </p>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="flex items-center gap-3 rounded-xl border bg-muted/30 p-3">
-              <Users className="h-4 w-4" />
-              <span>{gender}</span>
-            </div>
-            <div className="flex items-center gap-3 rounded-xl border bg-muted/30 p-3">
-              <Calendar className="h-4 w-4" />
-              <span>{age}</span>
-            </div>
-            <div className="flex items-center gap-3 rounded-xl border bg-muted/30 p-3">
-              <Building2 className="h-4 w-4" />
-              <span>
-                {[venue.governorate, venue.area].filter(Boolean).join(" · ")}
-              </span>
-            </div>
-            <div className="flex items-center gap-3 rounded-xl border bg-muted/30 p-3">
-              <MapPin className="h-4 w-4" />
-              <span>{venue.address || venue.name}</span>
-            </div>
-          </div>
-          {venue.location_link && (
-            <a
-              href={venue.location_link}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 font-medium text-primary hover:underline"
-            >
-              <MapPin className="h-4 w-4" />
-              {t("directions")}
-            </a>
-          )}
-        </CardContent>
-      </Card>
+      <div className="mb-5 mt-6 text-sm font-semibold text-[#6739d4]"><Link href="/academies" className="hover:underline">{ar ? "الأكاديميات" : "Academies"}</Link><span className="mx-2 text-[#716c7d]">/</span><Link href={`/a/${academy.slug}`} className="hover:underline">{academy.name}</Link></div>
+      <section className="relative mb-6 overflow-hidden rounded-[28px] bg-[#201438] px-6 py-9 text-white sm:px-10 sm:py-12">
+        <div className="pointer-events-none absolute -bottom-24 -end-14 h-72 w-72 rounded-full bg-[#6739d4]/60" aria-hidden="true" />
+        <div className="relative z-10 max-w-3xl">
+          <div className="mb-6 flex items-center gap-3"><div className="rounded-xl bg-white p-1.5"><AcademyLogo academyId={academy.id} name={academy.name} logoUrl={academy.logo_url} /></div><Link href={`/a/${academy.slug}`} className="text-sm font-semibold text-[#d5ff4b] hover:underline">{academy.name}</Link></div>
+          <span className="inline-flex rounded-full bg-[#d5ff4b] px-4 py-1.5 text-xs font-extrabold uppercase tracking-widest text-[#201438]">{sport || (ar ? "تدريب رياضي" : "Sports training")}</span>
+          <h1 className="mt-6 max-w-2xl break-words text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl">{source.name}</h1>
+          <p className="mt-4 text-sm text-[#d6cfe8] sm:text-base">{ar ? "ابدأ تدريبك، طور مستواك، والعب مع ناس شبهك." : "Train harder. Play smarter. Find your people."}</p>
+          <div className="mt-7 flex flex-wrap gap-2">{[gender,age,[venue.area,venue.governorate].filter(Boolean).join(" · ")].filter(Boolean).map(value=><span key={value} className="rounded-full bg-white/15 px-4 py-2 text-xs font-semibold text-white">{value}</span>)}</div>
+        </div>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">
-            {ar ? "خطط الاشتراك والمشاركة" : "Participation plans"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-xl border p-4">
-            <h3 className="font-semibold">{ar ? "اشتراك شهري" : "Monthly plan"}</h3>
-            <p className="text-lg font-bold">{formatMoney(monthlyPrice, lang)}</p>
-            <p className="text-sm text-muted-foreground">
-              {monthlySessions} {ar ? "حصة شهرياً" : "sessions per month"}
-            </p>
-            {program ? (
-              <Button
-                disabled={busy}
-                className="w-full"
-                onClick={() => reserve("monthly")}
-              >
-                {ar ? "احجز الاشتراك الشهري" : "Book monthly plan"}
-              </Button>
-            ) : (
-              <span className="text-xs text-muted-foreground">
-                {ar ? "غير متاح للحجز المباشر" : "Not bookable directly"}
-              </span>
-            )}
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="space-y-5">
+          <section className="rounded-[24px] border border-[#e9e5f1] bg-white p-6 shadow-sm sm:p-8">
+            <p className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6739d4]">{ar ? "تفاصيل التدريب" : "TRAINING DETAILS"}</p>
+            <h2 className="mt-3 text-2xl font-extrabold text-[#211a30]">{ar ? "كل اللي محتاج تعرفه" : "Everything you need to know"}</h2>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              {[
+                {label:ar?"الرياضة":"Sport",value:sport||"—",icon:Trophy},
+                {label:ar?"المجموعة":"Group",value:gender,icon:Users},
+                {label:ar?"السن":"Age group",value:age,icon:Calendar},
+                {label:ar?"المنطقة":"Area",value:[venue.governorate,venue.area].filter(Boolean).join(" · ")||"—",icon:Building2},
+              ].map(item=><div key={item.label} className="rounded-2xl bg-[#f7f6fb] p-4"><div className="flex items-center gap-2 text-xs font-bold text-[#6739d4]"><item.icon size={15}/>{item.label}</div><p className="mt-2 break-words text-sm font-bold text-[#211a30]">{item.value}</p></div>)}
+            </div>
+          </section>
+          <section className="rounded-[24px] border border-[#e9e5f1] bg-white p-6 shadow-sm sm:p-8">
+            <p className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6739d4]">{ar?"مكان التدريب":"TRAINING LOCATION"}</p>
+            <h2 className="mt-3 break-words text-xl font-extrabold text-[#211a30]">{venue.name || (ar?"الملعب":"Training venue")}</h2>
+            <p className="mt-2 flex items-start gap-2 text-sm leading-6 text-[#716c7d]"><MapPin className="mt-1 h-4 w-4 shrink-0"/>{[venue.address,venue.area,venue.governorate].filter(Boolean).join(" · ")||"—"}</p>
+            {venue.location_link && <a href={venue.location_link} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#6739d4]/25 bg-[#eee8ff] px-5 py-3 text-sm font-extrabold text-[#6739d4] hover:bg-[#e3d9ff]"><MapPin size={17}/>{t("directions")}<ArrowUpRight size={16}/></a>}
+          </section>
+        </div>
+        <section className="rounded-[24px] border border-[#e9e5f1] bg-white p-5 shadow-sm sm:p-6">
+          <p className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6739d4]">{ar?"اختار خطتك":"CHOOSE YOUR PLAN"}</p>
+          <h2 className="mt-3 text-2xl font-extrabold text-[#211a30]">{ar?"ابدأ تدريبك معانا":"Start playing with us"}</h2>
+          <div className="mt-6 space-y-4">
+            <div className="rounded-[18px] bg-[#eee8ff] p-5">
+              <span className="inline-flex rounded-full bg-[#d5ff4b] px-3 py-1 text-xs font-extrabold text-[#211a30]">{ar?"أفضل قيمة":"BEST VALUE"}</span>
+              <h3 className="mt-4 font-extrabold text-[#211a30]">{ar?"اشتراك شهري":"Monthly membership"}</h3>
+              <p className="mt-2 text-2xl font-extrabold text-[#6739d4]">{formatMoney(monthlyPrice,lang)}</p>
+              <p className="mt-1 text-sm text-[#716c7d]">{monthlySessions} {ar?"حصة شهريًا":"sessions per month"}</p>
+              {program?<Button disabled={busy} onClick={()=>reserve("monthly")} className="mt-4 min-h-12 w-full rounded-xl bg-[#6739d4] font-bold text-white hover:bg-[#5029ad]">{ar?"احجز الاشتراك الشهري":"Book monthly plan"}<ArrowUpRight size={16}/></Button>:<p className="mt-4 text-xs text-[#716c7d]">{ar?"غير متاح للحجز المباشر":"Not bookable directly"}</p>}
+            </div>
+            <div className="rounded-[18px] border border-[#e9e5f1] bg-[#f7f6fb] p-5">
+              <h3 className="font-extrabold text-[#211a30]">{ar?"حصة تجريبية واحدة":"Single trial session"}</h3>
+              <p className="mt-2 text-2xl font-extrabold text-[#6739d4]">{formatMoney(trialPrice,lang)}</p>
+              <p className="mt-1 text-sm text-[#716c7d]">{ar?"جرب حصة واحدة قبل الاشتراك":"Try one session before joining"}</p>
+              {program?<Button disabled={busy} onClick={()=>toast.info(ar?"اختر موعداً من صفحة الأكاديمية للحجز التجريبي":"Select a session time from the academy page for trial booking")} className="mt-4 min-h-12 w-full rounded-xl bg-[#d5ff4b] font-bold text-[#211a30] hover:bg-[#c7ef40]">{ar?"احجز حصة تجريبية":"Book trial session"}<ArrowUpRight size={16}/></Button>:<p className="mt-4 text-xs text-[#716c7d]">{ar?"غير متاح للحجز المباشر":"Not bookable directly"}</p>}
+            </div>
           </div>
-          <div className="rounded-xl border p-4">
-            <h3 className="font-semibold">
-              {ar ? "حصة تجريبية واحدة" : "Single trial session"}
-            </h3>
-            <p className="text-lg font-bold">{formatMoney(trialPrice, lang)}</p>
-            <p className="text-sm text-muted-foreground">
-              {ar ? "جلسة واحدة للتجربة" : "One session to try"}
-            </p>
-            {program ? (
-              <Button
-                disabled={busy}
-                className="w-full"
-                onClick={() => {
-                  toast.info(
-                    ar
-                      ? "اختر موعداً من صفحة الأكاديمية للحجز التجريبي"
-                      : "Select a session time from the academy page for trial booking"
-                  );
-                }}
-              >
-                {ar ? "احجز حصة تجريبية" : "Book trial session"}
-              </Button>
-            ) : (
-              <span className="text-xs text-muted-foreground">
-                {ar ? "غير متاح للحجز المباشر" : "Not bookable directly"}
-              </span>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+        </section>
+      </div>
 
       {reserved && (
         <div className="mt-6">
