@@ -109,7 +109,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
             <div className={styles.sportTileArt} aria-hidden="true"><SportCardArt sport={item} /></div>
             <h3 id={`${item}-title`}>{names[item]}</h3>
             <p>{item === "archery" ? ARCHERY_DESCRIPTION[lang] : item === "tennis" ? TENNIS_DESCRIPTION[lang] : item === "beach-volleyball" ? BEACH_DESCRIPTION[lang] : item === "padel" ? copy("Find padel courts and games in Egypt. Choose your location, level and time for your next rally.", "اكتشف ملاعب وماتشات البادل في مصر. اختار المكان والمستوى والوقت لماتشك الجاي.") : item === "basketball" ? BASKETBALL_DESCRIPTION[lang] : VOLLEYBALL_DESCRIPTION[lang]}</p>
-            <Link className={styles.textLink} href={`/dashboard?sport=${item}`}>{item === "archery" ? copy("Explore archery", "اكتشف الرماية بالقوس") : copy("Find games", "شوف الماتشات")}<ArrowUpRight size={18} aria-hidden="true" /></Link>
+            <Link className={styles.textLink} href={item === "archery" ? "/games" : `/sports/${item}` }>{item === "archery" ? copy("Explore archery", "اكتشف الرماية بالقوس") : copy("Find games", "شوف الماتشات")}<ArrowUpRight size={18} aria-hidden="true" /></Link>
           </article>)}
         </div>
       </section>
