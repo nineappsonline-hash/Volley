@@ -65,6 +65,7 @@ import {
   useAllAcademies,
   useCommunityMembers,
   useContactMessages,
+  useSuperAdminStats,
   useConvertToPaid,
   useExtendTrial,
   useReports,
@@ -88,6 +89,7 @@ export function SuperAdminDashboard() {
   const { data: reports, isLoading: reportsLoading } = useReports();
   const { data: contactMessages, isLoading: messagesLoading } = useContactMessages(200);
   const { data: members } = useCommunityMembers();
+  const { data: platformStats, isLoading: platformStatsLoading } = useSuperAdminStats();
   const resolve = useResolveReport();
   const setAcademyPlan = useSetAcademyPlan();
   const [editing, setEditing] = useState<Academy | null>(null);
@@ -217,15 +219,15 @@ export function SuperAdminDashboard() {
         )}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {[
-            { label: lang === "ar" ? "كل الأكاديميات" : "All academies", value: isLoading || academiesError ? "—" : stats.total, href: "/admin?tab=Academies" },
-            { label: lang === "ar" ? "اشتراكات مدفوعة" : "Paid academies", value: isLoading ? "—" : stats.paid, href: "/admin?tab=Academies" },
-            { label: lang === "ar" ? "تجارب نشطة" : "Active trials", value: isLoading ? "—" : stats.activeTrials, href: "/admin?tab=Academies" },
-            { label: lang === "ar" ? "تجارب منتهية" : "Expired trials", value: isLoading ? "—" : stats.expiredTrials, href: "/admin?tab=Academies" },
+            { label: lang === "ar" ? "إجمالي المستخدمين" : "Total players & accounts", value: platformStatsLoading || !platformStats ? "—" : platformStats.members.total, href: "/admin?tab=Members", detail: lang === "ar" ? "عرض المستخدمين" : "Explore players" },
+            { label: lang === "ar" ? "المباريات المفتوحة" : "Open games", value: platformStatsLoading || !platformStats ? "—" : (platformStats.games.by_status.find(item => item.status === "open")?.count ?? 0), href: "/admin?tab=Friendly%20games", detail: lang === "ar" ? "عرض المباريات" : "Explore games" },
+            { label: lang === "ar" ? "إجمالي الأكاديميات" : "Total academies", value: isLoading || academiesError ? "—" : stats.total, href: "/admin?tab=Academies", detail: lang === "ar" ? "عرض الأكاديميات" : "Explore academies" },
+            { label: lang === "ar" ? "البلاغات المفتوحة" : "Open reports", value: reportsLoading ? "—" : openReports, href: "#admin-reports", detail: lang === "ar" ? "تحتاج مراجعة" : "Needs review" },
           ].map((item) => (
             <Link key={item.label} href={item.href} className="group min-w-0 rounded-[14px] border border-[#eeecf3] bg-white p-5 shadow-sm transition-colors hover:border-[#6739d4]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6739d4]">
               <p className="text-xs font-semibold leading-5 text-muted-foreground sm:text-sm">{item.label}</p>
               <p className="mt-3 text-2xl font-extrabold tabular-nums sm:text-3xl">{item.value}</p>
-              <p className="mt-2 text-xs font-semibold text-brand">{lang === "ar" ? "عرض التفاصيل ←" : "View details →"}</p>
+              <p className="mt-2 text-xs font-semibold text-[#6739d4]">{item.detail} →</p>
             </Link>
           ))}
         </div>
@@ -269,7 +271,7 @@ export function SuperAdminDashboard() {
         </Link>)}
       </nav>
 
-      <PlatformAnalytics />
+      <PlatformAnalytics showSummary={false} />
 
       {/* Academies table */}
       {isLoading ? (
