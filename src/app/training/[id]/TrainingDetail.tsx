@@ -192,7 +192,7 @@ export function TrainingDetail({
               <h4 className="text-lg font-extrabold text-[#211a30]">{ar ? "تم إرسال بيانات الدفع" : "Payment details submitted"}</h4>
               <p className="mt-2 text-sm leading-7 text-[#4f5c3e]">{ar ? "تم استلام بيانات الدفع للمراجعة. الحجز مش مؤكد لحد ما يتم اعتماد الدفع." : "Your payment details are awaiting review. The booking is not confirmed until payment is approved."}</p>
               <div className="mt-5 flex flex-wrap gap-3">
-                <Link href="/dashboard/academies" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#6739d4] px-5 py-3 text-sm font-bold text-white hover:bg-[#5029ad]">{ar ? "متابعة اشتراكاتي" : "View my academy subscriptions"}<ArrowUpRight size={16}/></Link>
+                <Link href="/academy-bookings" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#6739d4] px-5 py-3 text-sm font-bold text-white hover:bg-[#5029ad]">{ar ? "متابعة اشتراكاتي" : "View my academy subscriptions"}<ArrowUpRight size={16}/></Link>
                 <Link href={`/a/${academy.slug}`} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[#6739d4]/25 bg-white px-5 py-3 text-sm font-bold text-[#6739d4] hover:bg-[#eee8ff]">{ar ? "الرجوع للأكاديمية" : "Back to academy"}</Link>
               </div>
             </div>
