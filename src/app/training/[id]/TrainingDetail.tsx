@@ -10,7 +10,7 @@ import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/constants";
 import { GameSharePayment } from "@/components/games/game-share-payment";
 import { Topbar } from "@/components/layout/topbar";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Calendar, MapPin, Users, Building2, ArrowUpRight, Trophy } from "lucide-react";
 
@@ -29,6 +29,8 @@ export function TrainingDetail({
   const ar = lang === "ar";
   const [busy, setBusy] = useState(false);
   const [reserved, setReserved] = useState<any>(null);
+  const paymentRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (reserved) paymentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [reserved]);
 
   const source = program ?? team;
   const academy = source?.academy ?? {
@@ -82,6 +84,7 @@ export function TrainingDetail({
       toast.error(ar ? "هذا النوع غير متاح للحجز." : "This type cannot be booked.");
       return;
     }
+    if (busy || reserved) return;
     setBusy(true);
     try {
       const supabase = createClient();
@@ -164,7 +167,7 @@ export function TrainingDetail({
               <h3 className="mt-4 font-extrabold text-[#211a30]">{ar?"اشتراك شهري":"Monthly membership"}</h3>
               <p className="mt-2 text-2xl font-extrabold text-[#6739d4]">{formatMoney(monthlyPrice,lang)}</p>
               <p className="mt-1 text-sm text-[#716c7d]">{monthlySessions} {ar?"حصة شهريًا":"sessions per month"}</p>
-              {program?<Button disabled={busy} onClick={()=>reserve("monthly")} className="mt-4 min-h-12 w-full rounded-xl bg-[#6739d4] font-bold text-white hover:bg-[#5029ad]">{ar?"احجز الاشتراك الشهري":"Book monthly plan"}<ArrowUpRight size={16}/></Button>:<p className="mt-4 text-xs text-[#716c7d]">{ar?"غير متاح للحجز المباشر":"Not bookable directly"}</p>}
+              {program?<Button disabled={busy || !!reserved} onClick={()=>reserve("monthly")} className="mt-4 min-h-12 w-full rounded-xl bg-[#6739d4] font-bold text-white hover:bg-[#5029ad]">{ar?"احجز الاشتراك الشهري":"Book monthly plan"}<ArrowUpRight size={16}/></Button>:<p className="mt-4 text-xs text-[#716c7d]">{ar?"غير متاح للحجز المباشر":"Not bookable directly"}</p>}
             </div>
             <div className="rounded-[18px] border border-[#e9e5f1] bg-[#f7f6fb] p-5">
               <h3 className="font-extrabold text-[#211a30]">{ar?"حصة تجريبية واحدة":"Single trial session"}</h3>
@@ -177,8 +180,9 @@ export function TrainingDetail({
       </div>
 
       {reserved && (
-        <div className="mt-6">
-          <h3 className="font-semibold mb-3">
+        <div ref={paymentRef} className="mt-7 scroll-mt-24 rounded-[24px] border border-[#e9e5f1] bg-white p-5 shadow-sm sm:p-8" role="region" aria-label={ar ? "تفاصيل الحجز والدفع" : "Booking and payment"}>
+          <div className="mb-5 rounded-xl bg-[#eee8ff] p-4 text-sm font-semibold text-[#211a30]">{ar ? "تم إنشاء طلب الحجز. راجع المبلغ وأكمل الدفع لتأكيد الطلب." : "Your reservation request is created. Review the amount and complete payment to confirm."}</div>
+          <h3 className="mb-4 text-xl font-extrabold text-[#211a30]">
             {ar ? "تفاصيل الحجز والدفع" : "Booking & payment"}
           </h3>
           <GameSharePayment
