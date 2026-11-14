@@ -144,7 +144,13 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
     items: paths.map(path => catalog.find(item => item.href === path)!),
   });
   const groups = role === "super_admin"
-    ? [{ label: lang === "ar" ? "إدارة المنصة" : "Platform management", items: superAdminItems }]
+    ? [
+      group("Overview", "نظرة عامة", ["/admin"]),
+      group("People", "المستخدمون", ["/admin?tab=Members"]),
+      group("Operations", "العمليات", ["/admin?tab=Friendly%20games", "/admin?tab=Tournaments"]),
+      group("Business", "إدارة النشاط", ["/admin?tab=Academies", "/admin?tab=Playgrounds", "/admin/shop"]),
+      group("Support & approvals", "الدعم والموافقات", ["/admin?tab=Approvals", "/admin?tab=Messages"]),
+    ]
     : role === "playground_owner" ? [
       group("My playgrounds", "الملاعب بتاعتي", ["/playgrounds"]),
     ]
@@ -167,7 +173,7 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
     ];
 
   return (
-    <div className="playza-navigation flex h-full min-h-0 flex-col gap-4 p-4">
+    <div className={cn("playza-navigation flex h-full min-h-0 flex-col gap-4 p-4", role === "super_admin" && "bg-[#211438] text-white")}>
       <Link onClick={onNavigate} href={role === "super_admin" ? "/admin" : role === "playground_owner" ? "/playgrounds" : "/dashboard"} className="flex flex-col items-start gap-1 px-2 pt-2">
         <AppLogo />
         <div className="flex flex-col">
@@ -178,9 +184,9 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
         </div>
       </Link>
 
-      <nav aria-label={lang === "ar" ? "القائمة الرئيسية" : "Main navigation"} className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain">
+      <nav aria-label={lang === "ar" ? "القائمة الرئيسية" : "Main navigation"} className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain">
         {groups.map(group => <div key={group.label}>
-          <p className="mb-1 px-3 text-xs font-semibold text-muted-foreground">{group.label}</p>
+          <p className={cn("mb-1 px-3 text-xs font-semibold text-muted-foreground", role === "super_admin" && "text-[#C5B7DD]")}>{group.label}</p>
         {group.items.map(({ href, key, icon: Icon }) => {
           const active =
             role === "super_admin"
@@ -195,14 +201,14 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
               className={cn(
                 "group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-brand flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-all",
                 active
-                  ? "border-s-4 border-highlight bg-secondary text-white shadow-sm"
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  ? role === "super_admin" ? "border-s-4 border-[#C7F36B] bg-white/15 text-white shadow-sm" : "border-s-4 border-highlight bg-secondary text-white shadow-sm"
+                  : role === "super_admin" ? "text-[#E0D5EE] hover:bg-white/10 hover:text-white" : "text-muted-foreground hover:bg-accent hover:text-foreground"
               )}
             >
               <Icon
                 className={cn(
                   "h-4 w-4 transition-transform group-hover:scale-110",
-                  active && "text-white"
+                  active && (role === "super_admin" ? "text-[#C7F36B]" : "text-white")
                 )}
               />
               <span className="min-w-0 flex-1 truncate">
@@ -227,7 +233,7 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
         }
       />
 
-      <div className="rounded-lg border bg-muted/40 p-3 text-xs text-muted-foreground">
+      <div className={cn("rounded-lg border bg-muted/40 p-3 text-xs text-muted-foreground", role === "super_admin" && "border-white/15 bg-white/10 text-[#E0D5EE]")}>
         <p className="font-semibold text-foreground">{name}</p>
         <div className="mt-0.5 flex items-center gap-1.5">
           <span>
