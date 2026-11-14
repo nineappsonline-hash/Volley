@@ -224,7 +224,7 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
         {games.length === 0 ? (
           <EmptyState sport={sport} />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {[...games].sort((a, b) => Number(b.id === focus) - Number(a.id === focus)).map((g) => {
               const place = [
                 g.playground?.name,
@@ -238,26 +238,28 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
                 <article
                   key={g.id}
                   id={`game-${g.id}`}
-                  className="flex flex-col rounded-xl border bg-card p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"
+                  className="group flex flex-col overflow-hidden rounded-[22px] border border-border/70 bg-card shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl focus-within:ring-2 focus-within:ring-primary"
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="relative flex min-h-28 items-start justify-between gap-3 bg-gradient-to-br from-secondary via-secondary to-primary p-5 text-white">
                     <div>
-                      <h2 className="text-lg font-bold"><Link href={publicGamePath(g.id)} className="hover:underline underline-offset-4">{g.title}</Link></h2>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
+                      <p className="mb-2 text-xs font-extrabold uppercase tracking-widest text-white/80">{g.sport}</p>
+                      <h2 className="text-lg font-extrabold leading-snug"><Link href={publicGamePath(g.id)} className="hover:underline underline-offset-4">{g.title}</Link></h2>
+                      <p className="mt-1 text-xs text-white/80">
                         {g.sport}
                         {g.skill_level ? ` · ${SKILL_EN[g.skill_level] ?? g.skill_level}` : ""}
                       </p>
                     </div>
                     <span
-                      className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-bold ${
-                        full ? "bg-muted text-muted-foreground" : "bg-success-ink/10 text-success-ink"
+                      className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-extrabold ${
+                        full ? "bg-white/20 text-white" : "bg-primary text-primary-foreground"
                       }`}
                     >
                       {full ? "Full" : `${g.max_players - g.joined} spots left`}
                     </span>
                   </div>
 
-                  <dl className="mt-3 space-y-1.5 text-sm text-muted-foreground">
+                  <div className="flex flex-1 flex-col p-5">
+                  <dl className="space-y-2.5 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                       <CalendarDays className="h-3.5 w-3.5 shrink-0" />
                       <dt className="sr-only">Date</dt>
@@ -292,11 +294,16 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
                     )}
                   </dl>
 
+                  <div className="mt-4" aria-label={`${g.joined} of ${g.max_players} players joined`}>
+                    <div className="mb-2 flex items-center justify-between text-xs font-semibold"><span>{g.joined}/{g.max_players} players</span><span className="text-muted-foreground">{full ? "Full" : `${g.max_players - g.joined} spots left`}</span></div>
+                    <div className="h-2 overflow-hidden rounded-full bg-primary/15"><div className="h-full rounded-full bg-secondary transition-all" style={{ width: `${Math.min(100, Math.max(0, g.joined / Math.max(1, g.max_players) * 100))}%` }} /></div>
+                  </div>
                   <div className="mt-4"><SignedInGameParticipantNames gameId={g.id} /></div>
                   <div className="mt-auto pt-4">
-                    <Link href={publicGamePath(g.id)} className="mb-3 inline-block text-sm font-semibold underline underline-offset-4">View full game details</Link>
+                    <Link href={publicGamePath(g.id)} className="mb-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-extrabold text-primary-foreground transition-colors hover:bg-primary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">View game details →</Link>
                     <PlayerJoiningGuide skillLevel={g.skill_level} />
                     <PublicGameJoin game={g} returnTo={publicGamePath(g.id)} />
+                  </div>
                   </div>
                 </article>
               );
