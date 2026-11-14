@@ -282,7 +282,7 @@ export function SuperAdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="rounded-xl border">
+            <div className="max-w-full overflow-x-auto rounded-xl border">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
@@ -510,6 +510,7 @@ export function SuperAdminDashboard() {
       </Reveal>
 
       {/* Community moderation */}
+      <div id="admin-reports" className="scroll-mt-24" />
       <Reveal index={6}>
       <Card className="overflow-hidden rounded-2xl">
         <CardHeader className="relative mb-4 overflow-hidden bg-gradient-to-br from-brand to-brand-900 py-5 text-white">
@@ -532,7 +533,7 @@ export function SuperAdminDashboard() {
               icon={Flag}
             />
           ) : (
-            <div className="rounded-xl border">
+            <div className="max-w-full overflow-x-auto rounded-xl border">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
