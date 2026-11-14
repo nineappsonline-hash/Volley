@@ -158,6 +158,7 @@ export function MessagesPage() {
               icon={Mail}
             />
           ) : (
+            <>
             <div className="space-y-3 md:hidden">
               {filtered.map((m) => {
                 const isExpanded = expanded.has(m.id);
@@ -277,6 +278,7 @@ export function MessagesPage() {
                 </TableBody>
               </Table>
             </div>
+            </>
           )}
         </CardContent>
       </Card>
