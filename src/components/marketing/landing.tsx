@@ -71,9 +71,9 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}><span />{SportsHeroSceneCopy[lang].eyebrow}</p>
-          <h1>{copy("Find Volleyball", "لاقي ماتش")}<br />{copy("& Basketball Games", "كرة طائرة أو سلة")}<br /><span>{copy("Near You", "قريب منك")}<svg viewBox="0 0 400 25" aria-hidden="true"><path d="M5 18Q190-7 395 12M30 23Q210 6 365 18" /></svg></span></h1>
+          <h1>{copy("Find a game.", "لاقي ماتش.")}<br />{copy("Find your people.", "والعب مع ناس شبهك.")}<br /><span>{copy("Start playing.", "يلا نلعب.")}<svg viewBox="0 0 400 25" aria-hidden="true"><path d="M5 18Q190-7 395 12M30 23Q210 6 365 18" /></svg></span></h1>
           <p className={styles.intro}>{SportsHeroSceneCopy[lang].intro}</p>
-          <div className={styles.actions}><NextLink className={`${styles.primary} ${styles.heroJoin}`} href="/dashboard">{copy("Find a Game", "شوف الماتش المناسب")}<ArrowUpRight size={24} /></NextLink></div>
+          <div className={styles.actions}><NextLink className={`${styles.primary} ${styles.heroJoin}`} href="/games">{copy("Explore upcoming games", "شوف الماتشات الجاية")}<ArrowUpRight size={24} /></NextLink><Link href="/academies" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-current px-5 py-3 text-sm font-bold transition-opacity hover:opacity-75">{copy("Explore academies", "اكتشف الأكاديميات")}<ArrowUpRight size={18} /></Link></div>
           <p className={styles.heroNote}><Volleyball size={17} />{SportsHeroSceneCopy[lang].note}</p>
         </div>
         <div className={styles.heroArt}>
@@ -92,12 +92,12 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
       <section id="upcoming-games" aria-labelledby="upcoming-games-title" className={styles.upcomingGames}>
         <div className={styles.sectionHeading}>
           <p className={styles.eyebrow}>{copy("MEET YOUR NEXT TEAMMATES", "اتعرّف على زمايلك في الماتش الجاي")}</p>
-          <h2 id="upcoming-games-title">{copy("Find a game. Join the people.", "لاقي ماتش. وانضم للعبة.")}</h2>
+          <h2 id="upcoming-games-title">{copy("Your next match awaits.", "ماتشك الجاي مستنيك.")}</h2>
           <p>{copy("Browse upcoming games for volleyball, basketball, padel, tennis and beach volleyball in Egypt. See location, spots left and price, then join other players.", "شوف الماتشات الجاية لكرة الطائرة، وكرة السلة، والبادل، والتنس، والطائرة الشاطئية في مصر. شوف المكان، والأماكن المتاحة، والسعر، وانضم للاعبين.")}</p>
         </div>
-        {upcomingGames.length > 0 ? <div className={`flex flex-col gap-3 text-start ${styles.landingGameCards}`}>
+        {upcomingGames.length > 0 ? <div className={`grid grid-cols-1 gap-5 text-start md:grid-cols-2 xl:grid-cols-3 ${styles.landingGameCards}`}>
           {upcomingGames.map(game => <GameCardShell key={game.id} layout="list" game={guestGameCard(game)} joined={false} detailsHref={publicGamePath(game.id)} />)}
-        </div> : <p className={styles.gamesEmpty}>{copy("Check the games page for the latest availability. You can also create an account and organize a game with your friends.", "شوف المواعيد المتاحة في صفحة الماتشات، أو اعمل حساب ونظّم ماتش مع صحابك.")}</p>}
+        </div> : <div className="rounded-3xl border border-secondary/15 bg-secondary/5 px-6 py-9 text-center"><p className="mx-auto max-w-xl text-base font-semibold text-secondary">{copy("No upcoming games right now. Explore the sports or join Playza to hear when new matches open.", "مفيش ماتشات متاحة دلوقتي. اكتشف الرياضات أو انضم لبلايزا عشان تعرف أول ما ماتشات جديدة تنزل.")}</p><div className="mt-5 flex flex-wrap justify-center gap-3"><Link href="/sports/volleyball" className="inline-flex min-h-11 items-center rounded-xl bg-primary px-5 py-2 font-bold text-primary-foreground">{copy("Explore volleyball", "اكتشف الكرة الطائرة")}</Link><Link href="/register" className="inline-flex min-h-11 items-center rounded-xl border border-secondary/30 px-5 py-2 font-bold text-secondary">{copy("Join Playza", "انضم لبلايزا")}</Link></div></div>}
         <div className={styles.actions}><Link href="/games" className={styles.primary}>{copy("Browse all upcoming games", "شوف كل الماتشات الجاية")}<ArrowUpRight size={20} aria-hidden="true" /></Link></div>
       </section>
 
