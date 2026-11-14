@@ -193,7 +193,6 @@ export function SuperAdminDashboard() {
   if (tab) {
     return (
       <div className="space-y-6">
-        <PageHeader title={t("super_admin_title")} subtitle={t("super_admin_subtitle")} />
         <PlatformRecords />
       </div>
     );
@@ -201,15 +200,12 @@ export function SuperAdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("super_admin_title")} subtitle={t("super_admin_subtitle")} />
-
-      {/* Mobile-first operations hub: live academy and moderation counts. */}
-      <section aria-label={lang === "ar" ? "مركز متابعة المنصة" : "Platform command center"} className="space-y-4">
+      {/* Figma Command Center: compact heading, white KPI tiles, and task queue. */}
+      <section aria-label={lang === "ar" ? "مركز متابعة المنصة" : "Platform command center"} className="space-y-6 rounded-2xl bg-[#f7f6fb] p-4 text-[#211a30] sm:p-6 lg:p-9">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-brand">{lang === "ar" ? "مركز القيادة" : "COMMAND CENTER"}</p>
-            <h2 className="mt-1 text-xl font-extrabold sm:text-2xl">{lang === "ar" ? "متابعة المنصة" : "Platform overview"}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{lang === "ar" ? "أهم الأرقام والمهام في مكان واحد" : "Key numbers and tasks in one place"}</p>
+            <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{lang === "ar" ? "أهلاً بيك في Playza" : "Welcome to Playza"}</h1>
+            <p className="mt-2 text-sm text-[#716c7d]">{lang === "ar" ? "دي أهم الأرقام والمهام اللي محتاجة متابعتك." : "Here is what needs your attention across Playza."}</p>
           </div>
           <span className="rounded-full border bg-card px-3 py-1.5 text-xs text-muted-foreground">{lang === "ar" ? "البيانات الحالية" : "Current data"}</span>
         </div>
@@ -219,35 +215,35 @@ export function SuperAdminDashboard() {
             <Button type="button" size="sm" variant="outline" onClick={() => void refetchAcademies()}>{lang === "ar" ? "إعادة المحاولة" : "Retry"}</Button>
           </div>
         )}
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {[
             { label: lang === "ar" ? "كل الأكاديميات" : "All academies", value: isLoading || academiesError ? "—" : stats.total, href: "/admin?tab=Academies" },
             { label: lang === "ar" ? "اشتراكات مدفوعة" : "Paid academies", value: isLoading ? "—" : stats.paid, href: "/admin?tab=Academies" },
             { label: lang === "ar" ? "تجارب نشطة" : "Active trials", value: isLoading ? "—" : stats.activeTrials, href: "/admin?tab=Academies" },
             { label: lang === "ar" ? "تجارب منتهية" : "Expired trials", value: isLoading ? "—" : stats.expiredTrials, href: "/admin?tab=Academies" },
           ].map((item) => (
-            <Link key={item.label} href={item.href} className="group min-w-0 rounded-2xl border bg-card p-3 shadow-sm transition-colors hover:border-brand/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:p-5">
+            <Link key={item.label} href={item.href} className="group min-w-0 rounded-[14px] border border-[#eeecf3] bg-white p-5 shadow-sm transition-colors hover:border-[#6739d4]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6739d4]">
               <p className="text-xs font-semibold leading-5 text-muted-foreground sm:text-sm">{item.label}</p>
               <p className="mt-3 text-2xl font-extrabold tabular-nums sm:text-3xl">{item.value}</p>
               <p className="mt-2 text-xs font-semibold text-brand">{lang === "ar" ? "عرض التفاصيل ←" : "View details →"}</p>
             </Link>
           ))}
         </div>
-        <div className="rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
+        <div className="rounded-[14px] border border-[#eeecf3] bg-white p-4 shadow-sm sm:p-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <div>
               <h3 className="text-base font-bold sm:text-lg">{lang === "ar" ? "تحتاج متابعتك" : "Needs your attention"}</h3>
               <p className="text-xs text-muted-foreground">{lang === "ar" ? "اختصارات مباشرة للمهام الإدارية" : "Quick access to administrative work queues"}</p>
             </div>
           </div>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             {[
               { label: lang === "ar" ? "مراجعة المدفوعات" : "Review payments", href: "#admin-payments", icon: CreditCard },
               { label: lang === "ar" ? "طلبات الموافقة" : "Approval requests", href: "/admin?tab=Approvals", icon: CheckCircle2 },
               { label: lang === "ar" ? "رسائل الدعم" : "Support messages", href: "/admin?tab=Messages", icon: Megaphone, count: messagesLoading ? null : unreadRecentMessages },
               { label: lang === "ar" ? "بلاغات المجتمع" : "Community reports", href: "#admin-reports", icon: Flag, count: reportsLoading ? null : openReports },
             ].map(({ label, href, icon: Icon, count }) => (
-              <Link key={href} href={href} className="flex min-h-14 items-center gap-3 rounded-xl border bg-background px-3 py-3 transition-colors hover:border-brand/40 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+              <Link key={href} href={href} className="flex min-h-16 items-center gap-3 rounded-xl border border-[#eeecf3] bg-[#faf9fd] px-4 py-3 transition-colors hover:border-[#6739d4]/40 hover:bg-[#f1edfa] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6739d4]">
                 <span className="rounded-lg bg-brand/10 p-2 text-brand"><Icon className="h-4 w-4" aria-hidden="true" /></span>
                 <span className="min-w-0 flex-1 text-sm font-semibold">{label}</span>
                 {typeof count === "number" && count > 0 && <Badge variant="destructive" className="shrink-0 tabular-nums" title={href.includes("Messages") ? (lang === "ar" ? "غير مقروءة ضمن آخر 200 رسالة" : "Unread among latest 200 messages") : undefined}>{count}</Badge>}
