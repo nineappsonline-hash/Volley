@@ -1,228 +1,76 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { Search } from "lucide-react";
-import { Building2, Calendar, MapPin, Navigation, Users, Volleyball } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ArrowUpRight, CalendarDays, MapPin, Search, SlidersHorizontal, Users } from "lucide-react";
 import { AcademyLogo } from "@/components/academies/academy-logo";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SportIcon } from "@/components/marketing/sport-icons";
 import { useI18n } from "@/lib/i18n";
-import { localizeCountry } from "@/lib/locations";
 import type { PublicTeamDirectoryEntry } from "@/lib/types";
 
-function locationText(
-  team: PublicTeamDirectoryEntry,
-  lang: string
-): string {
-  const source = team.venue ?? team.academy;
-  const country = source.country ? localizeCountry(source.country, lang) : "";
-  return [source.area, source.governorate, country].filter(Boolean).join(", ");
-}
-
-export function AcademyTeamsSection({
-  teams,
-}: {
-  teams: PublicTeamDirectoryEntry[];
-}) {
-  const { t, lang } = useI18n();
+export function AcademyTeamsSection({ teams }: { teams: PublicTeamDirectoryEntry[] }) {
+  const { lang, t } = useI18n();
   const ar = lang === "ar";
-  const [selectedSport, setSelectedSport] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [query, setQuery] = useState("");
+  const [sport, setSport] = useState("all");
+  const [area, setArea] = useState("all");
+  const [ageGroup, setAgeGroup] = useState("all");
+  const sports = useMemo(() => [...new Set(teams.map(team => team.sport?.name ?? t("directory_teams_other_sport")))].sort(), [teams, t]);
+  const areas = useMemo(() => [...new Set(teams.map(team => team.venue?.area || team.academy.area || team.venue?.governorate || team.academy.governorate).filter((value): value is string => Boolean(value)))].sort(), [teams]);
+  const filtered = useMemo(() => teams.filter(team => {
+    const selectedArea = team.venue?.area || team.academy.area || team.venue?.governorate || team.academy.governorate;
+    const matchesAge = ageGroup === "all" || (ageGroup === "kids" ? (team.min_age ?? 0) < 13 : ageGroup === "teens" ? (team.min_age ?? 0) <= 18 && (team.max_age ?? 99) >= 13 : (team.max_age ?? 99) >= 18);
+    return (sport === "all" || (team.sport?.name ?? t("directory_teams_other_sport")) === sport)
+      && (area === "all" || selectedArea === area)
+      && matchesAge
+      && [team.name, team.academy.name, team.sport?.name, team.venue?.name, team.venue?.address, team.venue?.area, team.venue?.governorate, team.academy.area, team.academy.governorate].some(value => value?.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+  }), [teams, sport, area, ageGroup, query, t]);
 
-  const sports = Array.from(
-    new Set(teams.map((team) => team.sport?.name ?? t("directory_teams_other_sport")))
-  ).sort((a, b) => a.localeCompare(b, lang));
+  const selectClass = "min-h-11 min-w-0 rounded-xl border border-[#e8e2f1] bg-[#f0ecfa] px-4 text-sm font-semibold text-[#5d35c5] outline-none focus-visible:ring-2 focus-visible:ring-[#5d35c5]";
+  return <section aria-labelledby="academy-teams-heading" className="bg-[#f7f5fc] px-4 pb-20 pt-12 text-[#19132e] sm:px-6 sm:pt-16">
+    <div className="mx-auto max-w-7xl">
+      <p className="text-xs font-extrabold uppercase tracking-[.2em] text-[#5d35c5]">{ar ? "اكتشف مستواك الجاي" : "DISCOVER YOUR NEXT LEVEL"}</p>
+      <h1 id="academy-teams-heading" className="mt-4 text-3xl font-extrabold tracking-tight sm:text-5xl">{ar ? "لاقي الأكاديمية المناسبة ليك." : "Find the right academy."}</h1>
+      <p className="mt-4 max-w-2xl text-base text-[#706b80] sm:text-lg">{ar ? "تدريب مميز، مدربين شاطرين، وناس بتحب نفس رياضتك." : "Great training. Great coaches. Your kind of game."}</p>
 
-
-  return (
-    <section
-      aria-labelledby="academy-teams-heading"
-      className="mx-auto max-w-5xl px-6 pb-14"
-    >
-      <h2 id="academy-teams-heading" className="text-xl font-extrabold">
-        {t("directory_teams_title")}
-      </h2>
-      <p className="mt-1 text-sm text-muted-foreground">
-        {t("directory_teams_subtitle")}
-      </p>
-
-      {teams.length > 0 && (
-        <label className="mt-5 flex min-h-12 items-center gap-3 rounded-xl border bg-background px-4 shadow-sm focus-within:ring-2 focus-within:ring-primary/30">
-          <Search className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <span className="sr-only">{ar ? "ابحث عن أكاديمية أو فريق أو منطقة" : "Search academies, teams or areas"}</span>
-          <input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder={ar ? "ابحث عن أكاديمية أو فريق أو منطقة..." : "Search academy, team or area..."} className="w-full min-w-0 bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground" />
+      <div className="mt-9 flex flex-col gap-3 rounded-[22px] border border-[#e8e2f1] bg-white p-4 shadow-[0_16px_45px_-30px_rgba(50,27,98,.25)] lg:flex-row lg:items-center">
+        <label className="flex min-h-12 flex-1 items-center gap-3 rounded-xl bg-[#f7f5fc] px-4 focus-within:ring-2 focus-within:ring-[#5d35c5]/30">
+          <Search size={19} className="shrink-0 text-[#706b80]" aria-hidden="true" />
+          <span className="sr-only">{ar ? "بحث عن أكاديمية أو منطقة" : "Search academy or location"}</span>
+          <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder={ar ? "اسم الأكاديمية أو الرياضة أو المنطقة" : "Academy, sport or location"} className="w-full min-w-0 bg-transparent py-3 text-sm outline-none placeholder:text-[#706b80]" />
         </label>
-      )}
-      {teams.length === 0 ? (
-        <p className="py-10 text-center text-sm text-muted-foreground">
-          {t("directory_teams_empty")}
-        </p>
-      ) : (
-        <>
-          <div className="mt-6 mb-4">
-            <Tabs value={selectedSport} onValueChange={setSelectedSport}>
-              <TabsList className="flex h-auto w-full flex-wrap justify-start gap-2 bg-transparent p-0">
-                <TabsTrigger value="all" className="min-h-10 rounded-full border px-4">
-                  {ar ? "كل الرياضات" : "All sports"}
-                </TabsTrigger>
-                {sports.map((sport) => (
-                  <TabsTrigger key={sport} value={sport} className="flex min-h-10 items-center gap-2 rounded-full border px-4">
-                    <span className="w-5 h-5 shrink-0">
-                      <SportIcon id={sport.toLowerCase()} size={14} />
-                    </span>
-                    {sport}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              {sports.map((sport) => (
-                <TabsContent key={sport} value={sport}>
-                  <SportTeams sport={sport} teams={teams} lang={lang} t={t} query={searchQuery} />
-                </TabsContent>
-              ))}
-              <TabsContent value="all">
-                <SportTeams sport={null} teams={teams} lang={lang} t={t} query={searchQuery} />
-              </TabsContent>
-            </Tabs>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:flex">
+          <label className="sr-only" htmlFor="academy-sport">{ar ? "الرياضة" : "Sport"}</label>
+          <select id="academy-sport" className={selectClass} value={sport} onChange={e => setSport(e.target.value)}><option value="all">{ar ? "كل الرياضات" : "All sports"}</option>{sports.map(value => <option key={value} value={value}>{value}</option>)}</select>
+          <label className="sr-only" htmlFor="academy-area">{ar ? "المنطقة" : "Area"}</label>
+          <select id="academy-area" className={selectClass} value={area} onChange={e => setArea(e.target.value)}><option value="all">{ar ? "كل المناطق" : "All locations"}</option>{areas.map(value => <option key={value} value={value}>{value}</option>)}</select>
+          <label className="sr-only" htmlFor="academy-age">{ar ? "الفئة العمرية" : "Age group"}</label>
+          <select id="academy-age" className={selectClass} value={ageGroup} onChange={e => setAgeGroup(e.target.value)}><option value="all">{ar ? "كل الأعمار" : "All ages"}</option><option value="kids">{ar ? "أطفال" : "Kids"}</option><option value="teens">{ar ? "ناشئين" : "Teens"}</option><option value="adults">{ar ? "كبار" : "Adults"}</option></select>
+        </div>
+        <div className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#5d35c5] px-5 text-sm font-bold text-white"><SlidersHorizontal size={16} />{ar ? `${filtered.length} نتيجة` : `${filtered.length} results`}</div>
+      </div>
+
+      <div className="mb-6 mt-12 flex items-center justify-between gap-3">
+        <div><p className="text-xs font-bold tracking-[.16em] text-[#5d35c5]">{ar ? "الأكاديميات والفرق" : "ACADEMIES & TEAMS"}</p><h2 className="mt-2 text-2xl font-extrabold sm:text-3xl">{ar ? "اكتشف برامج التدريب" : "Explore training programs"}</h2></div>
+      </div>
+      {filtered.length === 0 ? <div className="rounded-3xl border border-[#e8e2f1] bg-white px-6 py-14 text-center text-[#706b80]">{teams.length === 0 ? t("directory_teams_empty") : ar ? "مفيش نتائج مطابقة. جرّب تغير الفلاتر." : "No matches. Try adjusting your filters."}</div> :
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{filtered.map(team => {
+        const location = [team.venue?.area || team.academy.area, team.venue?.governorate || team.academy.governorate].filter(Boolean).join(" · ");
+        const age = team.min_age != null && team.max_age != null ? `${team.min_age}–${team.max_age}` : team.min_age != null ? `${team.min_age}+` : team.max_age != null ? `≤ ${team.max_age}` : null;
+        return <article key={team.id} className="group flex min-w-0 flex-col overflow-hidden rounded-[24px] border border-[#e8e2f1] bg-white p-3 shadow-[0_12px_38px_-28px_rgba(46,23,99,.32)] transition-all hover:-translate-y-1 hover:shadow-[0_22px_50px_-24px_rgba(46,23,99,.3)]">
+          <div className="relative flex h-44 items-start justify-between overflow-hidden rounded-2xl bg-[#e8e2ff] p-5">
+            <div className="absolute -bottom-16 -end-8 h-56 w-56 rounded-full bg-[#c8b8f9]/60" aria-hidden="true" />
+            <div className="relative z-10"><p className="text-xs font-extrabold uppercase tracking-wider text-[#5d35c5]">{team.sport?.name ?? t("directory_teams_other_sport")}</p><p className="mt-5 max-w-[180px] text-xl font-extrabold leading-tight text-[#19132e]">{team.name}</p></div>
+            <div className="relative z-10 rounded-full bg-white/60 p-5 text-[#5d35c5]"><SportIcon id={(team.sport?.name ?? "").toLowerCase()} size={44} /></div>
           </div>
-        </>
-      )}
-    </section>
-  );
-}
-
-function SportTeams({
-  sport,
-  teams,
-  lang,
-  t,
-  query,
-}: {
-  sport: string | null;
-  teams: PublicTeamDirectoryEntry[];
-  lang: string;
-  t: ReturnType<typeof useI18n>["t"];
-  query: string;
-}) {
-  const filtered =
-    sport === null
-      ? teams
-      : teams.filter(
-          (team) => (team.sport?.name ?? t("directory_teams_other_sport")) === sport
-        );
-
-  const needle = query.trim().toLocaleLowerCase();
-  const matching = needle ? filtered.filter((team) => [team.name, team.academy.name, team.sport?.name, team.venue?.name, team.venue?.address, team.venue?.area, team.venue?.governorate, team.academy.area, team.academy.governorate].some((value) => value?.toLocaleLowerCase().includes(needle))) : filtered;
-
-  if (matching.length === 0) {
-    return (
-      <p className="py-10 text-center text-sm text-muted-foreground">
-        {sport === null
-          ? t("directory_teams_empty")
-          : t("directory_teams_empty")}
-      </p>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {matching.map((team) => {
-        const location = locationText(team, lang);
-        const source = team.venue ?? team.academy;
-        const age =
-          team.min_age != null && team.max_age != null
-            ? t("teams_age_range_value")
-                .replace("{from}", String(team.min_age))
-                .replace("{to}", String(team.max_age))
-            : team.min_age != null
-              ? `${team.min_age}+`
-              : team.max_age != null
-                ? `≤ ${team.max_age}`
-                : t("directory_teams_age_unknown");
-        return (
-          <div key={team.id} className="min-w-0">
-            <Card className="relative flex h-full flex-col transition-shadow hover:shadow-md">
-              <CardContent className="flex flex-1 flex-col gap-3 p-4 relative pb-6">
-              <div className="flex items-start gap-3">
-                <AcademyLogo
-                  academyId={team.academy.id}
-                  name={team.academy.name}
-                  logoUrl={team.academy.logo_url}
-                />
-                <div className="min-w-0 flex-1">
-                  <Link
-                    href={`/a/${team.academy.slug}`}
-                    className="block text-sm font-semibold text-primary hover:underline truncate"
-                  >
-                    {team.academy.name}
-                  </Link>
-                  <p className="mt-0.5 truncate text-xs font-bold text-muted-foreground uppercase tracking-tighter">
-                    {team.sport?.name ?? t("directory_teams_other_sport")}
-                  </p>
-                  <p className="mt-0.5 truncate text-base font-bold">{team.name}</p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-1.5">
-                <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                  <Users className="h-3 w-3" />
-                  {t(`teams_gender_${team.gender}`)}
-                </Badge>
-                <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {age}
-                </Badge>
-              </div>
-
-              <div className="space-y-1.5 text-xs text-muted-foreground">
-                {(source.governorate || source.area) && (
-                  <p className="flex items-start gap-1.5">
-                    <Building2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    <span>
-                      {source.governorate && source.area
-                        ? `${source.governorate} - ${source.area}`
-                        : source.governorate || source.area}
-                    </span>
-                  </p>
-                )}
-                <p className="flex items-start gap-1.5">
-                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                  <span>
-                    {team.venue && (
-                      <span className="font-medium text-foreground">
-                        {team.venue.name}
-                      </span>
-                    )}
-                    {team.venue?.address && (
-                      <span className="block mt-0.5">{team.venue.address}</span>
-                    )}
-                    {!team.venue && location && <span>{location}</span>}
-                  </span>
-                </p>
-                {team.venue?.location_link && (
-                  <a
-                    href={team.venue.location_link}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
-                  >
-                    <Navigation className="h-3.5 w-3.5" />
-                    {t("directions")}
-                  </a>
-                )}
-              </div>
-              <Link href={`/training/${team.id}`} className="mt-auto inline-flex min-h-10 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90">{lang === "ar" ? "تفاصيل التدريب" : "Training details"}</Link>
-              <div className="absolute bottom-2 right-2 flex items-center justify-center overflow-hidden rounded-xl border bg-white p-1.5 shadow-sm">
-                <Volleyball className="h-6 w-6 text-slate-500" />
-              </div>
-            </CardContent>
-            </Card>
+          <div className="flex flex-1 flex-col px-3 pb-3 pt-4">
+            <div className="flex items-center gap-3"><AcademyLogo academyId={team.academy.id} name={team.academy.name} logoUrl={team.academy.logo_url} /><div className="min-w-0"><Link href={`/a/${team.academy.slug}`} className="block truncate text-lg font-extrabold text-[#19132e] hover:text-[#5d35c5]">{team.academy.name}</Link><p className="mt-1 text-sm text-[#706b80]">{team.name}</p></div></div>
+            <div className="mt-4 flex flex-wrap gap-2">{age && <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f0ecfa] px-3 py-1.5 text-xs font-semibold text-[#5d35c5]"><CalendarDays size={13} />{age}</span>}<span className="inline-flex items-center gap-1.5 rounded-full bg-[#f0ecfa] px-3 py-1.5 text-xs font-semibold text-[#5d35c5]"><Users size={13} />{t(`teams_gender_${team.gender}`)}</span></div>
+            {location && <p className="mt-4 flex items-center gap-2 text-sm text-[#706b80]"><MapPin size={16} className="shrink-0" />{location}</p>}
+            <Link href={`/training/${team.id}`} className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#5d35c5] px-4 text-sm font-bold text-white transition-colors hover:bg-[#4925a5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5d35c5]">{ar ? "شوف تفاصيل التدريب" : "View training details"}<ArrowUpRight size={17} /></Link>
           </div>
-          );
-      })}
+        </article>;
+      })}</div>}
     </div>
-  );
+  </section>;
 }
-
