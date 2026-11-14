@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PageHeader } from "@/components/shared/page-header";
 import { createClient } from "@/lib/supabase/client";
 import { useAllAcademies, usePlaygroundOwnerApprovals } from "@/lib/queries";
 import { useI18n } from "@/lib/i18n";
@@ -57,8 +56,8 @@ export function ApprovalsPage() {
     onError: error => toast.error(errorMessage(error, t("common_error"))),
   });
   return <div className="space-y-6 rounded-2xl bg-[#f7f6fb] p-3 sm:p-6">
-    <header className="rounded-[14px] border border-[#eeecf3] bg-white p-5 sm:p-6"><p className="text-xs font-bold uppercase tracking-widest text-[#6739d4]">PLAYZA / ADMIN</p><h1 className="mt-2 text-2xl font-extrabold tracking-tight text-[#211a30] sm:text-3xl">{t("nav_approvals")}</h1><p className="mt-2 text-sm text-[#716c7d]">{t("approvals_description")}</p></header>
-    <div role="group" aria-label={lang === "ar" ? "أقسام الموافقات" : "Approval sections"} className="flex max-w-full flex-wrap gap-2 rounded-[14px] border border-[#eeecf3] bg-white p-3">
+    <header className="rounded-[14px] border border-[#eeecf3] bg-white p-5 sm:p-6"><p className="text-xs font-bold uppercase tracking-widest text-[#6739d4]">PLAYZA / ADMIN</p><h1 className="mt-2 text-2xl font-extrabold tracking-tight text-[#211a30] sm:text-3xl">{t("nav_approvals")}</h1><p className="mt-2 text-sm leading-relaxed text-[#716c7d]">{t("approvals_description")}</p></header>
+    <div role="group" aria-label={lang === "ar" ? "أقسام الموافقات" : "Approval sections"} className="flex max-w-full flex-wrap gap-2 rounded-[14px] border border-[#eeecf3] bg-white p-3 shadow-sm">
       <Button className="min-h-11" variant="outline" asChild><Link href="/admin/shop?tab=orders">{lang === "ar" ? "طلبات المتجر" : "Shop orders"}</Link></Button>
       <Button className="min-h-11" variant={section === "payments" ? "default" : "outline"} onClick={() => setSection("payments")}>{t("approvals_payments")}</Button>
       <Button className="min-h-11" variant={section === "playgrounds" ? "default" : "outline"} onClick={() => setSection("playgrounds")}>{t("nav_playgrounds")} {venues && <Badge variant="secondary" className="ms-2">{venues.length}</Badge>}</Button>
@@ -72,7 +71,7 @@ export function ApprovalsPage() {
       {isLoading && <p>{t("common_loading")}</p>}
       {error && <p role="alert" className="text-destructive">{errorMessage(error, t("common_error"))}</p>}
       {!isLoading && !error && venues?.length === 0 && <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">{t("approvals_empty")}</p>}
-      {venues?.map(venue => <Card key={venue.id} className="rounded-[14px] border-[#eeecf3] bg-white shadow-sm">
+      {venues?.map(venue => <Card key={venue.id} className="rounded-[14px] border-[#eeecf3] bg-white shadow-sm transition-shadow hover:shadow-md">
         <CardHeader><CardTitle className="break-words">{venue.name}</CardTitle><p className="text-sm text-muted-foreground">{academies?.find(a => a.id === venue.academy_id)?.name ?? "—"} · {venue.sport?.name ?? "—"}</p></CardHeader>
         <CardContent className="space-y-4">
           <div><p className="text-xs text-muted-foreground">{lang === "ar" ? "عنوان الملعب" : "Court address"}</p><p className="mt-1 break-words">{venue.address || (lang === "ar" ? "مطلوب — لم يتم تقديمه" : "Required — not provided")}</p></div>
