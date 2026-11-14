@@ -260,24 +260,6 @@ export function SuperAdminDashboard() {
         </Link>)}
       </nav>
 
-      <Reveal>
-        <div className="grid gap-4 min-[420px]:grid-cols-2 lg:grid-cols-4">
-          {[
-            { label: t("super_admin_all_academies"), value: stats.total, icon: Crown, color: "from-brand to-brand-900" },
-            { label: t("super_admin_active"), value: stats.paid, icon: CheckCircle2, color: "from-brand to-brand-900" },
-            { label: t("super_admin_trial"), value: stats.activeTrials, icon: CalendarClock, color: "from-orange-900 to-amber-800" },
-            { label: t("super_admin_expired"), value: stats.expiredTrials, icon: ShieldAlert, color: "from-rose-900 to-red-800" },
-          ].map(({ label, value, icon: Icon }) => <Card key={label} className="relative isolate overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm">
-            <Icon aria-hidden="true" className="absolute -bottom-4 -end-3 -z-10 h-28 w-28 -rotate-12 text-muted-foreground/10" strokeWidth={1} />
-            <CardContent className="space-y-3 p-5">
-              <Icon aria-hidden="true" className="h-6 w-6 text-foreground" />
-              <p className="text-sm font-medium text-muted-foreground">{label}</p>
-              <p className="text-3xl font-extrabold tabular-nums">{isLoading ? "—" : value}</p>
-            </CardContent>
-          </Card>)}
-        </div>
-      </Reveal>
-
       <PlatformAnalytics />
 
       {/* Academies table */}
@@ -461,6 +443,7 @@ export function SuperAdminDashboard() {
       )}
 
       {/* Payment approvals */}
+      <div id="admin-payments" className="scroll-mt-24" />
       <Reveal index={2}>
       <PaymentApprovals />
       <AcademyTrainingPaymentApprovals />
