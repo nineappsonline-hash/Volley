@@ -43,7 +43,7 @@ export function TrainingDetail({
     address: source?.venue_address || source?.venue?.address,
     governorate: source?.venue_governorate || source?.venue?.governorate,
     area: source?.venue_area || source?.venue?.area,
-    location_link: source?.venue?.location_link,
+    location_link: source?.venue_location_link || source?.location_link || source?.venue?.location_link,
   };
   const gender =
     source?.gender === "male"
