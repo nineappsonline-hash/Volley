@@ -81,10 +81,10 @@ export function SuperAdminDashboard() {
   const money = (v: number) => formatMoneyShort(v, lang);
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab");
-  const { data: academies, isLoading } = useAllAcademies();
+  const { data: academies, isLoading, isError: academiesError, refetch: refetchAcademies } = useAllAcademies();
   const extendTrial = useExtendTrial();
   const convertToPaid = useConvertToPaid();
-  const { data: reports } = useReports();
+  const { data: reports, isLoading: reportsLoading } = useReports();
   const { data: members } = useCommunityMembers();
   const resolve = useResolveReport();
   const setAcademyPlan = useSetAcademyPlan();
@@ -116,6 +116,8 @@ export function SuperAdminDashboard() {
     const paid = list.filter((a) => !a.is_trial);
     return { total, trials: trials.length, activeTrials: activeTrials.length, expiredTrials: expiredTrials.length, paid: paid.length };
   }, [academies]);
+
+  const openReports = (reports ?? []).filter((report) => report.status === "open").length;
 
   const handleExtend = async (academyId: string, days: number) => {
     try {
@@ -197,7 +199,7 @@ export function SuperAdminDashboard() {
     <div className="space-y-6">
       <PageHeader title={t("super_admin_title")} subtitle={t("super_admin_subtitle")} />
 
-      {/* Mobile-first operations hub: real academy/report counts only. */}
+      {/* Mobile-first operations hub: live academy and moderation counts. */}
       <section aria-label={lang === "ar" ? "مركز متابعة المنصة" : "Platform command center"} className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -207,9 +209,15 @@ export function SuperAdminDashboard() {
           </div>
           <span className="rounded-full border bg-card px-3 py-1.5 text-xs text-muted-foreground">{lang === "ar" ? "البيانات الحالية" : "Current data"}</span>
         </div>
+        {academiesError && (
+          <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm">
+            <span>{lang === "ar" ? "تعذر تحميل إحصائيات الأكاديميات. حاول مرة أخرى." : "Academy statistics could not be loaded. Please try again."}</span>
+            <Button type="button" size="sm" variant="outline" onClick={() => void refetchAcademies()}>{lang === "ar" ? "إعادة المحاولة" : "Retry"}</Button>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           {[
-            { label: lang === "ar" ? "كل الأكاديميات" : "All academies", value: isLoading ? "—" : stats.total, href: "/admin?tab=Academies" },
+            { label: lang === "ar" ? "كل الأكاديميات" : "All academies", value: isLoading || academiesError ? "—" : stats.total, href: "/admin?tab=Academies" },
             { label: lang === "ar" ? "اشتراكات مدفوعة" : "Paid academies", value: isLoading ? "—" : stats.paid, href: "/admin?tab=Academies" },
             { label: lang === "ar" ? "تجارب نشطة" : "Active trials", value: isLoading ? "—" : stats.activeTrials, href: "/admin?tab=Academies" },
             { label: lang === "ar" ? "تجارب منتهية" : "Expired trials", value: isLoading ? "—" : stats.expiredTrials, href: "/admin?tab=Academies" },
@@ -233,11 +241,12 @@ export function SuperAdminDashboard() {
               { label: lang === "ar" ? "مراجعة المدفوعات" : "Review payments", href: "#admin-payments", icon: CreditCard },
               { label: lang === "ar" ? "طلبات الموافقة" : "Approval requests", href: "/admin?tab=Approvals", icon: CheckCircle2 },
               { label: lang === "ar" ? "رسائل الدعم" : "Support messages", href: "/admin?tab=Messages", icon: Megaphone },
-              { label: lang === "ar" ? "بلاغات المجتمع" : "Community reports", href: "#admin-reports", icon: Flag },
-            ].map(({ label, href, icon: Icon }) => (
+              { label: lang === "ar" ? "بلاغات المجتمع" : "Community reports", href: "#admin-reports", icon: Flag, count: reportsLoading ? null : openReports },
+            ].map(({ label, href, icon: Icon, count }) => (
               <Link key={href} href={href} className="flex min-h-14 items-center gap-3 rounded-xl border bg-background px-3 py-3 transition-colors hover:border-brand/40 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
                 <span className="rounded-lg bg-brand/10 p-2 text-brand"><Icon className="h-4 w-4" aria-hidden="true" /></span>
                 <span className="min-w-0 flex-1 text-sm font-semibold">{label}</span>
+                {typeof count === "number" && count > 0 && <Badge variant="destructive" className="shrink-0 tabular-nums">{count}</Badge>}
                 <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground rtl:-scale-x-100" aria-hidden="true" />
               </Link>
             ))}
