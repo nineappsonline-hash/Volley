@@ -58,12 +58,12 @@ export function ApprovalsPage() {
   });
   return <div className="space-y-6">
     <PageHeader title={t("nav_approvals")} subtitle={t("approvals_description")} />
-    <div className="flex flex-wrap gap-2">
-      <Button variant="outline" asChild><Link href="/admin/shop?tab=orders">{lang === "ar" ? "طلبات المتجر" : "Shop orders"}</Link></Button>
-      <Button variant={section === "payments" ? "default" : "outline"} onClick={() => setSection("payments")}>{t("approvals_payments")}</Button>
-      <Button variant={section === "playgrounds" ? "default" : "outline"} onClick={() => setSection("playgrounds")}>{t("nav_playgrounds")} {venues && <Badge variant="secondary" className="ms-2">{venues.length}</Badge>}</Button>
-      <Button variant={section === "owners" ? "default" : "outline"} onClick={() => setSection("owners")}>{t("approvals_owners")} {ownerApplications && <Badge variant="secondary" className="ms-2">{ownerApplications.length}</Badge>}</Button>
-      <Button variant={section === "payouts" ? "secondary" : "outline"} onClick={()=>setSection("payouts")}>{lang === "ar" ? "مستحقات الملاعب" : "Court payouts"}</Button>
+    <div role="group" aria-label={lang === "ar" ? "أقسام الموافقات" : "Approval sections"} className="flex max-w-full flex-wrap gap-2">
+      <Button className="min-h-11" variant="outline" asChild><Link href="/admin/shop?tab=orders">{lang === "ar" ? "طلبات المتجر" : "Shop orders"}</Link></Button>
+      <Button className="min-h-11" variant={section === "payments" ? "default" : "outline"} onClick={() => setSection("payments")}>{t("approvals_payments")}</Button>
+      <Button className="min-h-11" variant={section === "playgrounds" ? "default" : "outline"} onClick={() => setSection("playgrounds")}>{t("nav_playgrounds")} {venues && <Badge variant="secondary" className="ms-2">{venues.length}</Badge>}</Button>
+      <Button className="min-h-11" variant={section === "owners" ? "default" : "outline"} onClick={() => setSection("owners")}>{t("approvals_owners")} {ownerApplications && <Badge variant="secondary" className="ms-2">{ownerApplications.length}</Badge>}</Button>
+      <Button className="min-h-11" variant={section === "payouts" ? "secondary" : "outline"} onClick={()=>setSection("payouts")}>{lang === "ar" ? "مستحقات الملاعب" : "Court payouts"}</Button>
     </div>
     {section === "payouts" ? <CourtPayouts admin /> : section === "owners" ? (
       <OwnerApprovals />
@@ -73,7 +73,7 @@ export function ApprovalsPage() {
       {error && <p role="alert" className="text-destructive">{errorMessage(error, t("common_error"))}</p>}
       {!isLoading && !error && venues?.length === 0 && <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">{t("approvals_empty")}</p>}
       {venues?.map(venue => <Card key={venue.id}>
-        <CardHeader><CardTitle>{venue.name}</CardTitle><p className="text-sm text-muted-foreground">{academies?.find(a => a.id === venue.academy_id)?.name ?? "—"} · {venue.sport?.name ?? "—"}</p></CardHeader>
+        <CardHeader><CardTitle className="break-words">{venue.name}</CardTitle><p className="text-sm text-muted-foreground">{academies?.find(a => a.id === venue.academy_id)?.name ?? "—"} · {venue.sport?.name ?? "—"}</p></CardHeader>
         <CardContent className="space-y-4">
           <div><p className="text-xs text-muted-foreground">{lang === "ar" ? "عنوان الملعب" : "Court address"}</p><p className="mt-1 break-words">{venue.address || (lang === "ar" ? "مطلوب — لم يتم تقديمه" : "Required — not provided")}</p></div>
           <dl className="grid gap-3 text-sm sm:grid-cols-3">
