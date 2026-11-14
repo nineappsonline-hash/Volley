@@ -160,104 +160,49 @@ export default async function PublicAcademyPage({
   ];
 
   return (
-    <main className="min-h-screen bg-muted/20 pb-[calc(6rem+env(safe-area-inset-bottom))]">
+    <main className="min-h-screen bg-[#f7f5fc] pb-[calc(6rem+env(safe-area-inset-bottom))]">
       <AnalyticsView event="academy_view" id={academy.id} context={{country:academy.country,governorate:academy.governorate,area:academy.area,sports:(sports??[]).map(s=>s.name)}} />
       <AcademyNavigation />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@graph": jsonLd }) }}
       />
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b bg-gradient-to-br from-brand via-brand to-interactive-800 py-8 text-white sm:py-12">
-        <div className="pointer-events-none absolute -top-24 start-1/2 h-72 w-[32rem] -translate-x-1/2 rounded-full bg-white/15 blur-3xl rtl:translate-x-1/2" />
-        <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-4 px-6 text-center">
-          {academy.cover_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={academy.cover_url}
-              alt={academy.name}
-              className="h-40 w-full max-w-xl rounded-2xl border border-white/20 object-cover shadow-lg sm:h-56"
-            />
-          )}
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
-            <AcademyLogo academyId={academy.id} name={academy.name} logoUrl={academy.logo_url} />
-          </div>
-          <h1 className="text-3xl font-extrabold sm:text-4xl">{academy.name}</h1>
-          {academy.description && (
-            <p className="max-w-xl text-sm text-white/85 sm:text-base">
-              {academy.description}
-            </p>
-          )}
-          {(academy.country || academy.governorate) && (
-            <p className="flex items-center justify-center gap-1.5 text-sm text-white/85">
-              <MapPin className="h-4 w-4" />
-              {[academy.area, academy.governorate, academy.country]
-                .filter(Boolean)
-                .join(", ")}
-            </p>
-          )}
-          {ratingCount > 0 && (
-            <div className="flex items-center gap-2 text-sm text-white/90">
-              <span className="flex items-center gap-0.5" dir="ltr">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star
-                    key={i}
-                    className={`h-4 w-4 ${
-                      i <= Math.round(avgRating)
-                        ? "fill-attention-300 text-attention-300"
-                        : "text-white/40"
-                    }`}
-                  />
-                ))}
-              </span>
-              <span>
-                {avgRating.toFixed(1)} ·{" "}
-                <LangLabel
-                  en={(dictionary.en.directory_reviews as string).replace(
-                    "{n}",
-                    String(ratingCount)
-                  )}
-                  ar={(dictionary.ar.directory_reviews as string).replace(
-                    "{n}",
-                    String(ratingCount)
-                  )}
-                />
-              </span>
+      {/* Premium academy profile inspired by Figma academy details screens. */}
+      <section className="bg-[#f7f5fc] px-4 pb-4 pt-8 sm:px-6 sm:pt-12">
+        <div className="mx-auto max-w-6xl">
+          <Link href="/academies" className="mb-5 inline-flex text-sm font-semibold text-[#706b80] hover:text-[#5d35c5]"><LangLabel en="← All academies" ar="← كل الأكاديميات" /></Link>
+          <div className="relative overflow-hidden rounded-[26px] bg-[#e9e1ff] px-6 py-9 sm:px-10 sm:py-12">
+            <div className="pointer-events-none absolute -bottom-28 -end-20 h-80 w-80 rounded-full bg-[#c8b8f9]/70" aria-hidden="true" />
+            <div className="relative z-10 flex flex-col gap-7 md:flex-row md:items-center md:justify-between">
+              <div className="max-w-2xl">
+                <div className="mb-5 flex items-center gap-4">
+                  <div className="rounded-2xl bg-white p-2 shadow-sm"><AcademyLogo academyId={academy.id} name={academy.name} logoUrl={academy.logo_url} /></div>
+                  <p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#5d35c5]"><LangLabel en="SPORTS ACADEMY" ar="أكاديمية رياضية" /></p>
+                </div>
+                <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-[#1d1631] sm:text-5xl">{academy.name}</h1>
+                {academy.description && <p className="mt-5 max-w-xl whitespace-pre-line text-sm leading-relaxed text-[#625b74] sm:text-base">{academy.description}</p>}
+                {(academy.area || academy.governorate || academy.country) && <p className="mt-5 flex items-center gap-2 text-sm font-medium text-[#5d35c5]"><MapPin className="h-4 w-4 shrink-0" />{[academy.area, academy.governorate, academy.country].filter(Boolean).join(", ")}</p>}
+                {ratingCount > 0 && <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-[#5d35c5]"><Star className="h-4 w-4 fill-current" />{avgRating.toFixed(1)} · {ratingCount} <LangLabel en="ratings" ar="تقييم" /></p>}
+              </div>
+              {academy.cover_url ? <div className="w-full shrink-0 overflow-hidden rounded-[22px] border-4 border-white/60 shadow-xl md:w-[38%]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={academy.cover_url} alt={academy.name} className="aspect-[4/3] w-full object-cover" />
+              </div> : <div className="hidden aspect-[4/3] w-[32%] shrink-0 items-center justify-center rounded-[22px] bg-[#c8b8f9]/60 text-[#5d35c5] md:flex"><Trophy size={92} strokeWidth={1.3} /></div>}
             </div>
-          )}
-          <div className="mt-1 flex flex-wrap items-center justify-center gap-3">
-            <a
-              href="#groups"
-              className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-2.5 text-sm font-bold text-brand shadow-lg transition-transform hover:scale-105"
-            >
-              <Trophy className="h-4 w-4" />
-              <LangLabel
-                en="Explore groups & prices"
-                ar="استكشف المجموعات والأسعار"
-              />
-            </a>
-            <JoinAcademyButton
-              academyId={academy.id}
-              analytics={{country:academy.country,governorate:academy.governorate,area:academy.area,sports:(sports??[]).map(s=>s.name)}}
-              className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-transform hover:scale-105"
-            />
-            <FollowAcademyButton
-              academyId={academy.id}
-              showCount
-              className="border border-white/40 bg-white/10 px-6 py-2.5 text-white hover:bg-white/20 hover:text-white"
-            />
-            <AcademyShareButton
-              academy={{
-                name: academy.name,
-                slug,
-                area: academy.area,
-                governorate: academy.governorate,
-              }}
-              variant="outline"
-              size="lg"
-              align="start"
-              className="border border-white/40 bg-white/10 px-6 py-2.5 text-white hover:bg-white/20 hover:text-white"
-            />
+          </div>
+          <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_350px]">
+            <div className="rounded-[22px] border border-[#e8e2f1] bg-white p-6 sm:p-8">
+              <h2 className="text-2xl font-extrabold text-[#1d1631]"><LangLabel en="About the academy" ar="عن الأكاديمية" /></h2>
+              <p className="mt-4 whitespace-pre-line text-sm leading-7 text-[#706b80] sm:text-base">{academy.description || <LangLabel en="Explore the academy's available sports, training groups and schedules below." ar="اكتشف الرياضات والمجموعات ومواعيد التدريب المتاحة تحت." />}</p>
+              {(sports ?? []).length > 0 && <><p className="mb-3 mt-7 text-xs font-extrabold uppercase tracking-widest text-[#5d35c5]"><LangLabel en="PROGRAMS" ar="البرامج الرياضية" /></p><div className="grid gap-3 sm:grid-cols-2">{(sports ?? []).map(sport => <div key={sport.id} className="rounded-xl bg-[#f7f5fc] px-5 py-5 text-base font-bold text-[#1d1631]">{sport.name}</div>)}</div></>}
+            </div>
+            <aside className="flex flex-col gap-4 rounded-[22px] border border-[#e8e2f1] bg-white p-6 sm:p-7">
+              <h2 className="text-xl font-extrabold text-[#1d1631]"><LangLabel en="Ready to get started?" ar="جاهز تبدأ؟" /></h2>
+              <p className="text-sm leading-6 text-[#706b80]"><LangLabel en="Explore available training groups, schedules and prices." ar="شوف مجموعات التدريب والمواعيد والأسعار المتاحة." /></p>
+              <a href="#groups" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#5d35c5] px-5 py-3 text-sm font-bold text-white hover:bg-[#4925a5]"><Trophy size={17} /><LangLabel en="Explore training groups" ar="شوف مجموعات التدريب" /></a>
+              <JoinAcademyButton academyId={academy.id} analytics={{country:academy.country,governorate:academy.governorate,area:academy.area,sports:(sports??[]).map(s=>s.name)}} className="min-h-12 rounded-xl bg-[#d8fc55] px-5 py-3 text-sm font-bold text-[#1d1631]" />
+              <div className="flex flex-wrap gap-2"><FollowAcademyButton academyId={academy.id} showCount /><AcademyShareButton academy={{name:academy.name,slug,area:academy.area,governorate:academy.governorate}} variant="outline" size="lg" align="start" /></div>
+            </aside>
           </div>
         </div>
       </section>
