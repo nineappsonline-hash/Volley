@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Search } from "lucide-react";
 import { Building2, Calendar, MapPin, Navigation, Users, Volleyball } from "lucide-react";
 import { AcademyLogo } from "@/components/academies/academy-logo";
 import { Badge } from "@/components/ui/badge";
@@ -29,17 +30,12 @@ export function AcademyTeamsSection({
   const { t, lang } = useI18n();
   const ar = lang === "ar";
   const [selectedSport, setSelectedSport] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const sports = Array.from(
     new Set(teams.map((team) => team.sport?.name ?? t("directory_teams_other_sport")))
   ).sort((a, b) => a.localeCompare(b, lang));
 
-  const filteredTeams =
-    selectedSport === "all"
-      ? teams
-      : teams.filter(
-          (team) => (team.sport?.name ?? t("directory_teams_other_sport")) === selectedSport
-        );
 
   return (
     <section
@@ -53,6 +49,13 @@ export function AcademyTeamsSection({
         {t("directory_teams_subtitle")}
       </p>
 
+      {teams.length > 0 && (
+        <label className="mt-5 flex min-h-12 items-center gap-3 rounded-xl border bg-background px-4 shadow-sm focus-within:ring-2 focus-within:ring-primary/30">
+          <Search className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <span className="sr-only">{ar ? "ابحث عن أكاديمية أو فريق أو منطقة" : "Search academies, teams or areas"}</span>
+          <input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder={ar ? "ابحث عن أكاديمية أو فريق أو منطقة..." : "Search academy, team or area..."} className="w-full min-w-0 bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground" />
+        </label>
+      )}
       {teams.length === 0 ? (
         <p className="py-10 text-center text-sm text-muted-foreground">
           {t("directory_teams_empty")}
@@ -61,12 +64,12 @@ export function AcademyTeamsSection({
         <>
           <div className="mt-6 mb-4">
             <Tabs value={selectedSport} onValueChange={setSelectedSport}>
-              <TabsList className="w-full flex gap-2 overflow-x-auto pb-1">
-                <TabsTrigger value="all" className="px-4">
+              <TabsList className="flex h-auto w-full flex-wrap justify-start gap-2 bg-transparent p-0">
+                <TabsTrigger value="all" className="min-h-10 rounded-full border px-4">
                   {ar ? "كل الرياضات" : "All sports"}
                 </TabsTrigger>
                 {sports.map((sport) => (
-                  <TabsTrigger key={sport} value={sport} className="flex items-center gap-2 px-4">
+                  <TabsTrigger key={sport} value={sport} className="flex min-h-10 items-center gap-2 rounded-full border px-4">
                     <span className="w-5 h-5 shrink-0">
                       <SportIcon id={sport.toLowerCase()} size={14} />
                     </span>
@@ -76,11 +79,11 @@ export function AcademyTeamsSection({
               </TabsList>
               {sports.map((sport) => (
                 <TabsContent key={sport} value={sport}>
-                  <SportTeams sport={sport} teams={teams} lang={lang} t={t} />
+                  <SportTeams sport={sport} teams={teams} lang={lang} t={t} query={searchQuery} />
                 </TabsContent>
               ))}
               <TabsContent value="all">
-                <SportTeams sport={null} teams={teams} lang={lang} t={t} />
+                <SportTeams sport={null} teams={teams} lang={lang} t={t} query={searchQuery} />
               </TabsContent>
             </Tabs>
           </div>
@@ -95,11 +98,13 @@ function SportTeams({
   teams,
   lang,
   t,
+  query,
 }: {
   sport: string | null;
   teams: PublicTeamDirectoryEntry[];
   lang: string;
   t: ReturnType<typeof useI18n>["t"];
+  query: string;
 }) {
   const filtered =
     sport === null
@@ -108,7 +113,10 @@ function SportTeams({
           (team) => (team.sport?.name ?? t("directory_teams_other_sport")) === sport
         );
 
-  if (filtered.length === 0) {
+  const needle = query.trim().toLocaleLowerCase();
+  const matching = needle ? filtered.filter((team) => [team.name, team.academy.name, team.sport?.name, team.venue?.name, team.venue?.address, team.venue?.area, team.venue?.governorate, team.academy.area, team.academy.governorate].some((value) => value?.toLocaleLowerCase().includes(needle))) : filtered;
+
+  if (matching.length === 0) {
     return (
       <p className="py-10 text-center text-sm text-muted-foreground">
         {sport === null
@@ -120,7 +128,7 @@ function SportTeams({
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {filtered.map((team) => {
+      {matching.map((team) => {
         const location = locationText(team, lang);
         const source = team.venue ?? team.academy;
         const age =
@@ -134,8 +142,8 @@ function SportTeams({
                 ? `≤ ${team.max_age}`
                 : t("directory_teams_age_unknown");
         return (
-          <Link key={team.id} href={`/training/${team.id}`} className="block">
-            <Card className="flex flex-col relative">
+          <div key={team.id} className="min-w-0">
+            <Card className="relative flex h-full flex-col transition-shadow hover:shadow-md">
               <CardContent className="flex flex-1 flex-col gap-3 p-4 relative pb-6">
               <div className="flex items-start gap-3">
                 <AcademyLogo
@@ -205,12 +213,13 @@ function SportTeams({
                   </a>
                 )}
               </div>
+              <Link href={`/training/${team.id}`} className="mt-auto inline-flex min-h-10 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90">{lang === "ar" ? "تفاصيل التدريب" : "Training details"}</Link>
               <div className="absolute bottom-2 right-2 flex items-center justify-center overflow-hidden rounded-xl border bg-white p-1.5 shadow-sm">
                 <Volleyball className="h-6 w-6 text-slate-500" />
               </div>
             </CardContent>
             </Card>
-          </Link>
+          </div>
           );
       })}
     </div>
