@@ -41,7 +41,7 @@ import type { ContactMessage } from "@/lib/types";
 type Filter = "all" | "unread";
 
 export function MessagesPage() {
-  const { t, locale } = useI18n();
+  const { t, locale, lang } = useI18n();
   const { data: messages, isLoading } = useContactMessages(200);
   const markRead = useMarkContactRead();
   useRealtime(["contact_messages"]);
@@ -108,7 +108,7 @@ export function MessagesPage() {
       />
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
+        <CardHeader className="flex flex-col items-stretch justify-between gap-3 pb-3 sm:flex-row sm:items-center">
           <CardTitle className="flex items-center gap-2 text-base">
             <Inbox className="h-4 w-4 text-primary" />
             {t("messages_title")}
@@ -116,14 +116,14 @@ export function MessagesPage() {
               <Badge variant="destructive">{unread} {t("messages_unread")}</Badge>
             )}
           </CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center rounded-lg border bg-muted/40 p-0.5">
               {(["all", "unread"] as Filter[]).map((f) => (
                 <button
                   key={f}
                   type="button"
                   onClick={() => setFilter(f)}
-                  className={`rounded-md px-3 py-1 text-xs font-semibold transition-colors ${
+                  className={`min-h-10 rounded-md px-3 py-2 text-xs font-semibold transition-colors ${
                     filter === f
                       ? "bg-background text-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
@@ -141,7 +141,7 @@ export function MessagesPage() {
               size="sm"
               onClick={markAll}
               disabled={unread === 0 || markRead.isPending}
-              className="gap-1"
+              className="min-h-10 gap-1"
             >
               <CheckCheck className="h-3.5 w-3.5" />
               {t("messages_mark_all")}
@@ -158,7 +158,32 @@ export function MessagesPage() {
               icon={Mail}
             />
           ) : (
-            <div className="rounded-xl border">
+            <div className="space-y-3 md:hidden">
+              {filtered.map((m) => {
+                const isExpanded = expanded.has(m.id);
+                return (
+                  <article key={m.id} className={`min-w-0 rounded-xl border p-4 shadow-sm ${m.is_read ? "bg-card" : "border-primary/30 bg-primary/5"}`}>
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="break-words text-sm font-bold">{m.name}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{format(new Date(m.created_at), "MMM d, yyyy · HH:mm", { locale })}</p>
+                      </div>
+                      {!m.is_read && <Badge variant="secondary">{lang === "ar" ? "جديدة" : "Unread"}</Badge>}
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+                      <a href={`tel:${m.phone}`} dir="ltr" className="break-all text-primary underline-offset-2 hover:underline">{m.phone}</a>
+                      {m.email && <a href={`mailto:${m.email}`} dir="ltr" className="break-all text-primary underline-offset-2 hover:underline">{m.email}</a>}
+                    </div>
+                    <button type="button" aria-expanded={isExpanded} onClick={() => toggleExpanded(m.id)} className="mt-3 w-full rounded-lg bg-muted/40 p-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                      <span className={isExpanded ? "whitespace-pre-wrap break-words" : "line-clamp-3 break-words"}>{m.message}</span>
+                      <span className="mt-2 block text-xs font-semibold text-primary">{isExpanded ? (lang === "ar" ? "عرض أقل" : "Show less") : (lang === "ar" ? "عرض الرسالة" : "Read message")}</span>
+                    </button>
+                    {!m.is_read && <Button type="button" variant="outline" className="mt-3 min-h-11 w-full gap-2" onClick={() => markOne(m.id)} disabled={markRead.isPending}><CheckCheck className="h-4 w-4" />{t("messages_mark_read")}</Button>}
+                  </article>
+                );
+              })}
+            </div>
+            <div className="hidden max-w-full overflow-x-auto rounded-xl border md:block">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
