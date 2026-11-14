@@ -302,7 +302,7 @@ export async function getPublicGameSports(): Promise<string[]> {
       .gte("game_date", todayISO())
       .limit(1000);
     if (error) return [];
-    return [...new Set((data ?? []).filter(isUpcomingGame).map((r: { sport: string }) => r.sport))].sort();
+    return [...new Set((data ?? []).filter((game) => isUpcomingGame(game)).map((r: { sport: string }) => r.sport))].sort();
   } catch {
     return [];
   }
