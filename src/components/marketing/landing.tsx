@@ -138,7 +138,10 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
           <p className="text-sm font-semibold text-white">{copy("FOR ACADEMY OWNERS", "لأصحاب الأكاديميات")}</p>
           <h2 id="academy-management-title" className="mt-3 text-2xl font-bold text-primary sm:text-3xl">{copy("Run your sports academy with Playza.", "نظّم أكاديميتك مع بلايزا.")}</h2>
           <p className="mt-4 max-w-3xl leading-relaxed text-muted-foreground">{copy("Manage players, subscriptions, training schedules, QR attendance and session finances in one Arabic and English application built for sports academies in Egypt.", "نظّم اللاعبين والاشتراكات وجداول التدريب والحضور عبر QR ومالية الجلسات في تطبيق واحد بالعربية والإنجليزية للأكاديميات الرياضية في مصر.")}</p>
-          <Link className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 font-semibold text-primary-foreground hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" href={academyManagementPath(lang)}>{copy("Explore academy management", "اكتشف إدارة الأكاديميات")}<ArrowUpRight size={18} aria-hidden="true" /></Link>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <Link className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-5 py-3 font-semibold text-primary-foreground hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" href="/academies">{copy("Find an academy", "دور على أكاديمية")}<ArrowUpRight size={18} aria-hidden="true" /></Link>
+            <Link className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/30 px-5 py-3 font-semibold text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white" href={academyManagementPath(lang)}>{copy("Manage your academy", "إدارة أكاديميتك")}<ArrowUpRight size={18} aria-hidden="true" /></Link>
+          </div>
           </div>
           <div className={styles.academyVisual} aria-hidden="true">
             <div className={styles.academyOrbit} />
