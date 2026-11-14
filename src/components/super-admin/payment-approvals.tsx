@@ -287,7 +287,7 @@ export function PaymentApprovals() {
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base">
-          <button type="button" aria-expanded={expanded} aria-controls={contentId} onClick={() => setExpanded(!expanded)} className="flex w-full items-center gap-2 rounded text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <button type="button" aria-expanded={expanded} aria-controls={contentId} onClick={() => setExpanded(!expanded)} className="flex min-h-11 w-full items-center gap-2 rounded text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <Receipt className="h-4 w-4 text-primary" />
           {t("super_admin_payments_title")}
           {pendingCount > 0 && <Badge variant="warning">{pendingCount}</Badge>}
@@ -297,14 +297,14 @@ export function PaymentApprovals() {
       </CardHeader>
       <CardContent id={contentId} hidden={!expanded} className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="inline-flex min-h-9 h-auto max-w-full flex-wrap items-center justify-start rounded-lg bg-muted p-1 text-muted-foreground">
+          <div className="flex min-h-11 h-auto w-full flex-wrap items-center justify-start gap-1 rounded-lg bg-muted p-1 text-muted-foreground sm:w-auto">
             {(["all", "share", "rent", "subscription"] as TypeFilter[]).map((f) => (
               <button
                 key={f}
                 type="button"
                 onClick={() => setTypeFilter(f)}
                 className={[
-                  "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-semibold transition-all",
+                  "inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold transition-all",
                   typeFilter === f
                     ? "bg-card text-foreground shadow-sm"
                     : "hover:bg-card/50",
@@ -327,7 +327,7 @@ export function PaymentApprovals() {
             value={statusFilter}
             onValueChange={(v) => setStatusFilter(v as "all" | PayStatus)}
           >
-            <SelectTrigger className="w-44">
+            <SelectTrigger className="w-full sm:w-44">
               <SelectValue placeholder={t("super_admin_payments_status")} />
             </SelectTrigger>
             <SelectContent>
@@ -370,15 +370,15 @@ export function PaymentApprovals() {
                   <strong>{money(r.amount)}</strong>
                 </div>
                 <p className="text-xs text-muted-foreground">{format(new Date(r.createdAt), "MMM d, yyyy · h:mm a", { locale })}{r.method && <> · {t(`game_fee_method_${r.method}` as any)}</>}</p>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
                   {cardNote(r)}
-                  {r.receiptUrl && <Button variant="outline" className="h-auto min-h-11 whitespace-normal" disabled={openingReceipt !== null} onClick={() => handleViewReceipt(r)}><Eye className="me-1 h-4 w-4 shrink-0" />{t("super_admin_fee_view_receipt")}</Button>}
+                  {r.receiptUrl && <Button variant="outline" className="h-auto min-h-11 w-full whitespace-normal sm:w-auto" disabled={openingReceipt !== null} onClick={() => handleViewReceipt(r)}><Eye className="me-1 h-4 w-4 shrink-0" />{t("super_admin_fee_view_receipt")}</Button>}
                   {actions(r)}
                 </div>
               </article>
             ))}
           </div>
-          <div className="hidden rounded-xl border md:block">
+          <div className="hidden max-w-full overflow-x-auto rounded-xl border md:block">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
