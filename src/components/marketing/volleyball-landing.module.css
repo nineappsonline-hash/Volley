@@ -271,3 +271,59 @@
 @keyframes shopPhotoFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-8px) rotate(1deg)}}
 @media(max-width:800px){.shopArt{min-height:0;padding-top:0}.shopShirt{max-width:330px}.shopColorPicker{padding:12px 16px}}
 @media(prefers-reduced-motion:reduce){.shopShirt{animation:none!important}}
+
+
+/* Compact homepage hero — approved Figma iteration */
+@media (min-width: 901px) {
+  .hero {
+    min-height: 0;
+    padding-top: 32px;
+    padding-bottom: 42px;
+    gap: 28px;
+  }
+  .hero h1 {
+    font-size: clamp(40px, 4.2vw, 62px);
+    margin: 12px 0 18px;
+    line-height: 1.08;
+  }
+  .heroArt {
+    width: min(100%, 400px);
+    justify-self: center;
+  }
+  .heroJoin {
+    min-height: 50px;
+    padding: 12px 22px;
+    font-size: 16px;
+  }
+}
+@media (min-width: 641px) and (max-width: 900px) {
+  .hero { min-height: 0; padding-top: 28px; padding-bottom: 40px; }
+  .hero h1 { font-size: clamp(36px, 5vw, 48px); margin: 12px 0 16px; }
+  .heroArt { width: min(100%, 340px); justify-self: center; }
+}
+@media (max-width: 640px) {
+  .hero {
+    min-height: 0;
+    padding-top: 20px;
+    padding-bottom: 30px;
+    gap: 0;
+  }
+  .hero h1 {
+    font-size: clamp(34px, 9vw, 43px);
+    margin: 12px 0 16px;
+    line-height: 1.12;
+  }
+  .intro { line-height: 1.6; }
+  .heroArt {
+    width: min(72%, 260px);
+    margin: 8px auto 0;
+    aspect-ratio: 1 / 1;
+  }
+  .heroCopy .heroJoin {
+    min-height: 48px;
+    padding: 12px 18px;
+    font-size: 15px;
+  }
+  .heroNote { margin-top: 12px; }
+  .scrollHint { display: none; }
+}
