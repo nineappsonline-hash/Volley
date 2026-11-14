@@ -72,7 +72,7 @@ function toChartPoints(
   }));
 }
 
-export function PlatformAnalytics() {
+export function PlatformAnalytics({ showSummary = true }: { showSummary?: boolean }) {
   const { t, lang, locale } = useI18n();
   const { data: stats, isLoading } = useSuperAdminStats();
 
@@ -165,7 +165,7 @@ export function PlatformAnalytics() {
   return (
     <div className="space-y-6">
       {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      {showSummary && <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Card>
           <CardContent className="p-4">
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -224,8 +224,9 @@ export function PlatformAnalytics() {
             </p>
           </CardContent>
         </Card>
-      </div>
+      </div>}
 
+      <div className="rounded-[14px] border border-[#eeecf3] bg-white p-5"><h2 className="text-lg font-extrabold text-[#211a30]">{lang === "ar" ? "تحليلات المنصة" : "Platform analytics"}</h2><p className="mt-1 text-sm text-[#716c7d]">{lang === "ar" ? "مؤشرات النمو والنشاط والمدفوعات" : "Growth, activity and payment trends"}</p></div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {/* Members by month */}
         <Card>
