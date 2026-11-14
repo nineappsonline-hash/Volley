@@ -286,7 +286,7 @@ export function SuperAdminDashboard() {
         <Reveal index={1}>
         <Card className="overflow-hidden rounded-2xl">
           <CardHeader className="relative mb-4 overflow-hidden border-b border-[#eeecf3] bg-white py-5 text-[#211a30]">
-            <Sparkles aria-hidden="true" className="pointer-events-none absolute -end-2 top-1 h-24 w-24 text-white/10" />
+            <Sparkles aria-hidden="true" className="pointer-events-none absolute -end-2 top-1 h-24 w-24 text-[#6739d4]/10" />
           <CardTitle className="relative flex flex-wrap items-center gap-2 text-base">
               <Crown className="h-6 w-6 text-[#6739d4]" />
               {t("super_admin_all_academies")}
@@ -464,8 +464,8 @@ export function SuperAdminDashboard() {
       {/* Broadcast to all users */}
       <Reveal index={5}>
       <Card className="overflow-hidden rounded-2xl">
-        <CardHeader className="relative mb-4 overflow-hidden bg-gradient-to-br from-brand to-brand-900 py-5 text-white">
-          <Sparkles aria-hidden="true" className="pointer-events-none absolute -end-2 top-1 h-24 w-24 text-white/10" />
+        <CardHeader className="relative mb-4 overflow-hidden border-b border-[#eeecf3] bg-white py-5 text-[#211a30]">
+          <Sparkles aria-hidden="true" className="pointer-events-none absolute -end-2 top-1 h-24 w-24 text-[#6739d4]/10" />
           <CardTitle className="relative flex flex-wrap items-center gap-2 text-base">
             <Megaphone className="h-6 w-6 text-brand-200" />
             {t("super_admin_broadcast")}
@@ -524,8 +524,8 @@ export function SuperAdminDashboard() {
       <div id="admin-reports" className="scroll-mt-24" />
       <Reveal index={6}>
       <Card className="overflow-hidden rounded-2xl">
-        <CardHeader className="relative mb-4 overflow-hidden bg-gradient-to-br from-brand to-brand-900 py-5 text-white">
-          <Sparkles aria-hidden="true" className="pointer-events-none absolute -end-2 top-1 h-24 w-24 text-white/10" />
+        <CardHeader className="relative mb-4 overflow-hidden border-b border-[#eeecf3] bg-white py-5 text-[#211a30]">
+          <Sparkles aria-hidden="true" className="pointer-events-none absolute -end-2 top-1 h-24 w-24 text-[#6739d4]/10" />
           <CardTitle className="relative flex flex-wrap items-center gap-2 text-base">
             <ShieldAlert className="h-6 w-6 text-orange-200" />
             {t("moderation_title")}
