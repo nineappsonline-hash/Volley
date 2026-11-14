@@ -254,19 +254,18 @@ export function SuperAdminDashboard() {
         </div>
       </section>
 
-      <nav aria-label={lang === "ar" ? "إدارة المنصة" : "Platform management"} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <nav aria-label={lang === "ar" ? "إدارة المنصة" : "Platform management"} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {[
-          { tab: "Members", title: t("sa_records_members"), icon: Users, color: "from-brand to-brand-900" },
-          { tab: "Academies", title: t("sa_records_academies"), icon: Building2, color: "from-brand to-brand-900" },
-          { tab: "Friendly games", title: t("sa_records_games"), icon: LandPlot, color: "from-brand to-brand-900" },
-          { tab: "Tournaments", title: t("sa_records_tournaments"), icon: Trophy, color: "from-brand to-brand-900" },
-          { tab: "Approvals", title: t("nav_approvals"), icon: CheckCircle2, color: "from-brand to-brand-900" },
-          { tab: "Messages", title: lang === "ar" ? "الرسائل" : "Messages", icon: Megaphone, color: "from-brand to-brand-900" },
-        ].map(({ tab: destination, title, icon: Icon, color }) => <Link key={destination} href={`/admin?tab=${encodeURIComponent(destination)}`} className={`group relative isolate flex min-h-28 items-center gap-4 overflow-hidden rounded-2xl bg-gradient-to-br ${color} p-5 text-white shadow-sm transition-shadow hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`}>
-          <Icon aria-hidden="true" className="absolute -bottom-4 end-7 -z-10 h-24 w-24 -rotate-12 text-white/15" strokeWidth={1} />
-          <span className="rounded-xl border border-white/20 bg-white/10 p-3"><Icon aria-hidden="true" className="h-6 w-6" /></span>
-          <span className="flex-1 text-base font-bold">{title}</span>
-          <ArrowUpRight aria-hidden="true" className="h-5 w-5 rtl:-scale-x-100" />
+          { tab: "Members", title: t("sa_records_members"), icon: Users },
+          { tab: "Academies", title: t("sa_records_academies"), icon: Building2 },
+          { tab: "Friendly games", title: t("sa_records_games"), icon: LandPlot },
+          { tab: "Tournaments", title: t("sa_records_tournaments"), icon: Trophy },
+          { tab: "Approvals", title: t("nav_approvals"), icon: CheckCircle2 },
+          { tab: "Messages", title: lang === "ar" ? "الرسائل" : "Messages", icon: Megaphone },
+        ].map(({ tab: destination, title, icon: Icon }) => <Link key={destination} href={`/admin?tab=${encodeURIComponent(destination)}`} className="group flex min-h-20 items-center gap-3 rounded-[14px] border border-[#eeecf3] bg-white p-4 text-[#211a30] shadow-sm transition-colors hover:border-[#6739d4]/40 hover:bg-[#faf9fd] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6739d4]">
+          <span className="rounded-xl bg-[#f1edfa] p-3 text-[#6739d4]"><Icon aria-hidden="true" className="h-5 w-5" /></span>
+          <span className="flex-1 text-sm font-bold">{title}</span>
+          <ArrowUpRight aria-hidden="true" className="h-4 w-4 text-[#6739d4] rtl:-scale-x-100" />
         </Link>)}
       </nav>
 
@@ -284,10 +283,10 @@ export function SuperAdminDashboard() {
       ) : (
         <Reveal index={1}>
         <Card className="overflow-hidden rounded-2xl">
-          <CardHeader className="relative mb-4 overflow-hidden bg-gradient-to-br from-brand to-brand-900 py-5 text-white">
+          <CardHeader className="relative mb-4 overflow-hidden border-b border-[#eeecf3] bg-white py-5 text-[#211a30]">
             <Sparkles aria-hidden="true" className="pointer-events-none absolute -end-2 top-1 h-24 w-24 text-white/10" />
           <CardTitle className="relative flex flex-wrap items-center gap-2 text-base">
-              <Crown className="h-6 w-6 text-amber-200" />
+              <Crown className="h-6 w-6 text-[#6739d4]" />
               {t("super_admin_all_academies")}
             </CardTitle>
           </CardHeader>
