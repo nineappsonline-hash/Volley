@@ -284,11 +284,11 @@ export function PaymentApprovals() {
   </>;
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Card className="overflow-hidden rounded-[14px] border-[#eeecf3] bg-white shadow-sm">
+      <CardHeader className="border-b border-[#eeecf3] bg-[#faf9fd] pb-3">
         <CardTitle className="text-base">
           <button type="button" aria-expanded={expanded} aria-controls={contentId} onClick={() => setExpanded(!expanded)} className="flex min-h-11 w-full items-center gap-2 rounded text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <Receipt className="h-4 w-4 text-primary" />
+          <Receipt className="h-5 w-5 text-[#6739d4]" />
           {t("super_admin_payments_title")}
           {pendingCount > 0 && <Badge variant="warning">{pendingCount}</Badge>}
           <ChevronDown className={`ms-auto h-4 w-4 shrink-0 transition-transform motion-reduce:transition-none ${expanded ? "rotate-180" : ""}`} aria-hidden="true" />
@@ -297,7 +297,7 @@ export function PaymentApprovals() {
       </CardHeader>
       <CardContent id={contentId} hidden={!expanded} className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex min-h-11 h-auto w-full flex-wrap items-center justify-start gap-1 rounded-lg bg-muted p-1 text-muted-foreground sm:w-auto">
+          <div className="flex min-h-11 h-auto w-full flex-wrap items-center justify-start gap-1 rounded-lg border border-[#eeecf3] bg-[#f7f6fb] p-1 text-[#716c7d] sm:w-auto">
             {(["all", "share", "rent", "subscription"] as TypeFilter[]).map((f) => (
               <button
                 key={f}
