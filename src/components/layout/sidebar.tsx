@@ -11,7 +11,6 @@ import {
   BrainCircuit,
   Building2,
   CalendarDays,
-  Activity,
   Flag,
   Receipt,
   ClipboardCheck,
@@ -197,7 +196,7 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
         {group.items.map(({ href, key, icon: Icon }) => {
           const active =
             role === "super_admin"
-              ? pathname === href.split(/[?#]/)[0] && (href.includes("?tab=") ? new URLSearchParams(href.split("?")[1]).get("tab") === searchParams.get("tab") : !searchParams.get("tab") && (href === "/admin" ? !pathname.includes("/shop") : false))
+              ? pathname === href.split(/[?#]/)[0] && (href.includes("?tab=") ? new URLSearchParams(href.split("?")[1]).get("tab") === searchParams.get("tab") : !searchParams.get("tab") && (href === "/admin" ? pathname === "/admin" : href === "/admin/shop" ? pathname === "/admin/shop" : false))
               : pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`));
           return (
             <Link
