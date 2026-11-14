@@ -28,7 +28,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/shared/empty-state";
-import { PageHeader } from "@/components/shared/page-header";
 import { useI18n } from "@/lib/i18n";
 import {
   useContactMessages,
@@ -101,13 +100,10 @@ export function MessagesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={t("messages_title")}
-        subtitle={t("messages_subtitle")}
-      />
+    <div className="space-y-6 rounded-2xl bg-[#f7f6fb] p-3 sm:p-6">
+      <header className="rounded-[14px] border border-[#eeecf3] bg-white p-5 sm:p-6"><p className="text-xs font-bold uppercase tracking-widest text-[#6739d4]">PLAYZA / ADMIN</p><h1 className="mt-2 text-2xl font-extrabold tracking-tight text-[#211a30] sm:text-3xl">{t("messages_title")}</h1><p className="mt-2 text-sm text-[#716c7d]">{t("messages_subtitle")}</p></header>
 
-      <Card>
+      <Card className="rounded-[14px] border-[#eeecf3] bg-white shadow-sm">
         <CardHeader className="flex flex-col items-stretch justify-between gap-3 pb-3 sm:flex-row sm:items-center">
           <CardTitle className="flex items-center gap-2 text-base">
             <Inbox className="h-4 w-4 text-primary" />
