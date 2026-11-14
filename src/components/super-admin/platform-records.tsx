@@ -923,6 +923,9 @@ export function PlatformRecords() {
     [t("sa_records_participants")]: data.tournament_participants.filter(r => r.tournament_id === selected.id).map(r => ({ id: r.id, member: data.profiles.find(p => p.id === r.member_id)?.name ?? r.member_id })),
     [t("sa_records_matches")]: data.tournament_matches.filter(r => r.tournament_id === selected.id).sort((a, b) => (a.slot ?? 0) - (b.slot ?? 0)).map(r => ({ id: r.id, round: r.round_name, matchup: `${data.tournament_teams.find(x => x.id === r.team_a_id)?.name ?? "TBD"} vs ${data.tournament_teams.find(x => x.id === r.team_b_id)?.name ?? "TBD"}`, score: r.score_a != null ? `${r.score_a} – ${r.score_b}` : "—", status: r.status })),
   } : {}) : {};
+  const colorful = tab === "Members" || tab === "Friendly games";
+  const recordColor = "from-brand to-brand-900";
+  const RecordIcon = tab === "Members" ? Users : Trophy;
   const recordMetrics = [
     { label: lang === "ar" ? "اللاعبون" : "Players", value: data.profiles.length, tab: "Members" },
     { label: lang === "ar" ? "الأكاديميات" : "Academies", value: data.academies.length, tab: "Academies" },
