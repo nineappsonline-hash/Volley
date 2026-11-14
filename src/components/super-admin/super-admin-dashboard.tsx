@@ -271,7 +271,7 @@ export function SuperAdminDashboard() {
         </Link>)}
       </nav>
 
-      <PlatformAnalytics showSummary={false} />
+      <div id="admin-analytics" className="scroll-mt-24"><PlatformAnalytics showSummary={false} /></div>
 
       {/* Academies table */}
       {isLoading ? (
@@ -457,7 +457,7 @@ export function SuperAdminDashboard() {
       <div id="admin-payments" className="scroll-mt-24" />
       <Reveal index={2}>
       <PaymentApprovals />
-      <AcademyTrainingPaymentApprovals />
+      <div id="admin-subscriptions" className="scroll-mt-24"><AcademyTrainingPaymentApprovals /></div>
       </Reveal>
 
 
