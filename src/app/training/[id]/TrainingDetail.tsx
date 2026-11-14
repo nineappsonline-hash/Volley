@@ -45,6 +45,10 @@ export function TrainingDetail({
     area: source?.venue_area || source?.venue?.area,
     location_link: source?.venue_location_link || source?.location_link || source?.venue?.location_link,
   };
+  const locationUrl = venue.location_link ||
+    (venue.lat != null && venue.lng != null
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${venue.lat},${venue.lng}`)}`
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([venue.name, venue.address, venue.area, venue.governorate].filter(Boolean).join(", ") || academy.name)}`);
   const gender =
     source?.gender === "male"
       ? ar
@@ -148,7 +152,7 @@ export function TrainingDetail({
             <p className="text-xs font-extrabold uppercase tracking-[.16em] text-[#6739d4]">{ar?"مكان التدريب":"TRAINING LOCATION"}</p>
             <h2 className="mt-3 break-words text-xl font-extrabold text-[#211a30]">{venue.name || (ar?"الملعب":"Training venue")}</h2>
             <p className="mt-2 flex items-start gap-2 text-sm leading-6 text-[#716c7d]"><MapPin className="mt-1 h-4 w-4 shrink-0"/>{[venue.address,venue.area,venue.governorate].filter(Boolean).join(" · ")||"—"}</p>
-            {venue.location_link && <a href={venue.location_link} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#6739d4]/25 bg-[#eee8ff] px-5 py-3 text-sm font-extrabold text-[#6739d4] hover:bg-[#e3d9ff]"><MapPin size={17}/>{t("directions")}<ArrowUpRight size={16}/></a>}
+            <a href={locationUrl} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#6739d4]/25 bg-[#eee8ff] px-5 py-3 text-sm font-extrabold text-[#6739d4] hover:bg-[#e3d9ff]"><MapPin size={17}/>{t("directions")}<ArrowUpRight size={16}/></a>
           </section>
         </div>
         <section className="rounded-[24px] border border-[#e9e5f1] bg-white p-5 shadow-sm sm:p-6">
