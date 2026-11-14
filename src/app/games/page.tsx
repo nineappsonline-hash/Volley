@@ -349,15 +349,26 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
 
 function EmptyState({ sport }: { sport?: string }) {
   return (
-    <div className="rounded-xl border bg-muted/30 p-10 text-center">
-      <Volleyball className="mx-auto h-10 w-10 text-primary/40" />
-      <p className="mt-4 font-semibold">
+    <section aria-labelledby="empty-games-title" className="rounded-3xl border border-border bg-card px-6 py-12 text-center shadow-sm sm:px-12">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15">
+        <Volleyball className="h-9 w-9 text-secondary" aria-hidden="true" />
+      </div>
+      <h2 id="empty-games-title" className="mt-5 text-2xl font-extrabold text-foreground">
         {sport ? `No open ${sport} games right now` : "No open games right now"}
+      </h2>
+      <p className="mx-auto mt-3 max-w-lg text-sm leading-7 text-muted-foreground sm:text-base">
+        New games are added by organizers. Explore another sport, or join Playza to organize a game with your friends.
       </p>
-      <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-        Games appear here as soon as players publish them. Be the first to post a game in
-        your area — sign up and start.
-      </p>
-    </div>
+      <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+        {sport && (
+          <Button asChild variant="outline" size="lg">
+            <Link href="/games">Explore all sports</Link>
+          </Button>
+        )}
+        <Button asChild size="lg">
+          <Link href="/signup?redirectedFrom=%2Fdashboard%2Fgames">Join Playza</Link>
+        </Button>
+      </div>
+    </section>
   );
 }
