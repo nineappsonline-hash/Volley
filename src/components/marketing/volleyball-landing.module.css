@@ -327,3 +327,14 @@
   .heroNote { margin-top: 12px; }
   .scrollHint { display: none; }
 }
+
+
+/* Compact homepage navigation */
+.header { padding-top: 10px; padding-bottom: 10px; gap: 16px; }
+.nav { font-size: 15px; gap: 22px; }
+.headerActions { gap: 12px; }
+.login { font-size: 12px; gap: 7px; }
+@media (max-width: 640px) {
+  .header { padding-top: 8px; padding-bottom: 8px; gap: 10px; }
+  .headerActions { gap: 8px; }
+}
