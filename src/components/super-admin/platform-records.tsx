@@ -923,17 +923,29 @@ export function PlatformRecords() {
     [t("sa_records_participants")]: data.tournament_participants.filter(r => r.tournament_id === selected.id).map(r => ({ id: r.id, member: data.profiles.find(p => p.id === r.member_id)?.name ?? r.member_id })),
     [t("sa_records_matches")]: data.tournament_matches.filter(r => r.tournament_id === selected.id).sort((a, b) => (a.slot ?? 0) - (b.slot ?? 0)).map(r => ({ id: r.id, round: r.round_name, matchup: `${data.tournament_teams.find(x => x.id === r.team_a_id)?.name ?? "TBD"} vs ${data.tournament_teams.find(x => x.id === r.team_b_id)?.name ?? "TBD"}`, score: r.score_a != null ? `${r.score_a} – ${r.score_b}` : "—", status: r.status })),
   } : {}) : {};
-  const colorful = tab === "Members" || tab === "Friendly games";
-  const recordColor = tab === "Members" ? "from-brand to-brand-900" : "from-brand to-brand-900";
-  const RecordIcon = tab === "Members" ? Users : Trophy;
-  return <Card className="overflow-hidden rounded-2xl">
-    {colorful && <div className={`relative isolate overflow-hidden bg-gradient-to-br ${recordColor} px-5 py-6 text-white sm:px-6`}>
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10"><RecordIcon className="absolute -bottom-4 end-8 h-36 w-36 -rotate-12 text-white/15" strokeWidth={1} /><Sparkles className="absolute top-4 end-5 h-7 w-7 text-amber-200/50" /><div className="absolute -top-20 -end-12 h-64 w-64 rounded-full border-[24px] border-white/10" /></div>
-      <span aria-hidden="true" className="inline-flex rounded-xl border border-white/20 bg-white/10 p-2"><RecordIcon className="h-6 w-6" /></span>
-      <h2 className="mt-3 text-2xl font-extrabold">{tab === "Members" ? t("sa_records_members") : t("sa_records_games")}</h2>
-      <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/90">{tab === "Members" ? (lang === "ar" ? "تابع حسابات اللاعبين والأكاديميات والاشتراكات من مكان واحد." : "Manage player accounts, academy connections, and subscriptions in one place.") : (lang === "ar" ? "تابع الماتشات واللاعبين والحجوزات والمدفوعات." : "Keep track of games, players, bookings, and payments.")}</p>
-    </div>}
-    <CardHeader><CardTitle>{t("sa_records_title")}</CardTitle><p className="text-sm text-muted-foreground">{t("sa_records_counts").replace("{accounts}", String(data.profiles.length)).replace("{academies}", String(data.academies.length)).replace("{games}", String(data.friendly_games.length)).replace("{playgrounds}", String(data.venues.length))}</p></CardHeader>
+  const recordMetrics = [
+    { label: lang === "ar" ? "اللاعبون" : "Players", value: data.profiles.length, tab: "Members" },
+    { label: lang === "ar" ? "الأكاديميات" : "Academies", value: data.academies.length, tab: "Academies" },
+    { label: lang === "ar" ? "المباريات" : "Games", value: data.friendly_games.length, tab: "Friendly games" },
+    { label: lang === "ar" ? "الملاعب" : "Playgrounds", value: data.venues.length, tab: "Playgrounds" },
+  ];
+  return <div className="space-y-5 rounded-2xl bg-[#f7f6fb] p-3 text-[#211a30] sm:p-6">
+    <header className="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-widest text-[#6739d4]">PLAYZA / ADMIN</p>
+        <h1 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">{tabs.find(item => item.value === tab)?.label ?? t("sa_records_title")}</h1>
+        <p className="mt-1 text-sm text-[#716c7d]">{lang === "ar" ? "إدارة بيانات المنصة والبحث فيها من مكان واحد." : "Explore and manage live platform records in one place."}</p>
+      </div>
+    </header>
+    <section aria-label={lang === "ar" ? "إحصائيات المنصة" : "Platform metrics"} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {recordMetrics.map(metric => <button key={metric.tab} type="button" onClick={() => router.push(`/admin?tab=${encodeURIComponent(metric.tab)}`, { scroll: false })} className="rounded-[14px] border border-[#eeecf3] bg-white p-4 text-start shadow-sm transition-colors hover:border-[#6739d4]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6739d4]">
+        <span className="block text-xs font-semibold text-[#716c7d]">{metric.label}</span>
+        <strong className="mt-2 block text-2xl font-extrabold tabular-nums sm:text-3xl">{metric.value.toLocaleString(lang === "ar" ? "ar-EG" : "en-US")}</strong>
+        <span className="mt-2 block text-xs font-semibold text-[#6739d4]">{lang === "ar" ? "عرض التفاصيل" : "View records"} →</span>
+      </button>)}
+    </section>
+    <Card className="overflow-hidden rounded-[14px] border-[#eeecf3] bg-white shadow-sm">
+      <CardHeader><CardTitle className="text-lg">{t("sa_records_title")}</CardTitle><p className="text-sm text-muted-foreground">{t("sa_records_counts").replace("{accounts}", String(data.profiles.length)).replace("{academies}", String(data.academies.length)).replace("{games}", String(data.friendly_games.length)).replace("{playgrounds}", String(data.venues.length))}</p></CardHeader>
     <CardContent className="space-y-4">
       {error && <p role="alert" className="text-sm text-destructive">{lang === "ar" ? "مقدرناش نحدّث البيانات. المعروض دلوقتي آخر بيانات اتحمّلت بنجاح. جرّب زر التحديث." : "Could not refresh. Showing the last successfully loaded records. Try the refresh button."}</p>}
       {dataUpdatedAt > 0 && <p className="text-xs text-muted-foreground">{lang === "ar" ? "آخر تحديث" : "Last updated"}: <time dateTime={new Date(dataUpdatedAt).toISOString()}>{new Date(dataUpdatedAt).toLocaleTimeString(lang === "ar" ? "ar-EG" : "en-GB")}</time></p>}
@@ -1311,7 +1323,7 @@ export function PlatformRecords() {
       </form>}</DialogContent></Dialog>
       <Dialog open={!!deletingVenue} onOpenChange={open => !busy && !open && setDeletingVenue(null)}><DialogContent><DialogHeader><DialogTitle>{t("sa_delete_playground_title")}</DialogTitle><DialogDescription>{t("sa_delete_playground_body").replace("{name}", deletingVenue?.name ?? "")}</DialogDescription></DialogHeader><Input aria-label={t("sa_playground_name")} value={confirmation} onChange={e => setConfirmation(e.target.value)} /><Button variant="destructive" disabled={busy || confirmation !== deletingVenue?.name} onClick={() => act({ action: "delete_venue", id: deletingVenue!.id, confirmation })}>{busy ? t("sa_deleting") : t("sa_permanently_delete")}</Button></DialogContent></Dialog>
     </CardContent>
-  </Card>;
+  </Card></div>;
 }
 
 function SportCombobox({
