@@ -170,7 +170,7 @@ export function TrainingDetail({
               <h3 className="font-extrabold text-[#211a30]">{ar?"حصة تجريبية واحدة":"Single trial session"}</h3>
               <p className="mt-2 text-2xl font-extrabold text-[#6739d4]">{formatMoney(trialPrice,lang)}</p>
               <p className="mt-1 text-sm text-[#716c7d]">{ar?"جرب حصة واحدة قبل الاشتراك":"Try one session before joining"}</p>
-              {program?<Button disabled={busy} onClick={()=>toast.info(ar?"اختر موعداً من صفحة الأكاديمية للحجز التجريبي":"Select a session time from the academy page for trial booking")} className="mt-4 min-h-12 w-full rounded-xl bg-[#d5ff4b] font-bold text-[#211a30] hover:bg-[#c7ef40]">{ar?"احجز حصة تجريبية":"Book trial session"}<ArrowUpRight size={16}/></Button>:<p className="mt-4 text-xs text-[#716c7d]">{ar?"غير متاح للحجز المباشر":"Not bookable directly"}</p>}
+              {program?<Link href={`/a/${academy.slug}#training-${programId}`} className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#d5ff4b] px-4 py-3 text-center text-sm font-bold text-[#211a30] hover:bg-[#c7ef40]">{ar?"اختار موعد الحصة التجريبية":"Choose a trial session time"}<ArrowUpRight size={16}/></Link>:<p className="mt-4 text-xs text-[#716c7d]">{ar?"غير متاح للحجز المباشر":"Not bookable directly"}</p>}
             </div>
           </div>
         </section>
