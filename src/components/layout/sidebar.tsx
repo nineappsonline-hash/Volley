@@ -11,6 +11,9 @@ import {
   BrainCircuit,
   Building2,
   CalendarDays,
+  Activity,
+  Flag,
+  Receipt,
   ClipboardCheck,
   CreditCard,
   Crown,
@@ -65,15 +68,19 @@ const ownerItems = [
 ] as const;
 
 const superAdminItems = [
-  { href: "/admin/shop", key: "nav_shop", icon: Ticket },
-  { href: "/admin?tab=Approvals", key: "nav_approvals", icon: ClipboardCheck },
-  { href: "/admin", key: "super_admin_title", icon: Crown },
-  { href: "/admin?tab=Members", key: "nav_members", icon: Users },
-  { href: "/admin?tab=Academies", key: "nav_academies", icon: Building2 },
-  { href: "/admin?tab=Messages", key: "nav_messages", icon: Mail },
-  { href: "/admin?tab=Friendly%20games", key: "nav_games", icon: Volleyball },
-  { href: "/admin?tab=Tournaments", key: "nav_tournaments", icon: Trophy },
-  { href: "/admin?tab=Playgrounds", key: "nav_playgrounds", icon: LandPlot },
+  { href: "/admin", key: "super_admin_title", icon: LayoutDashboard, labelEn: "Dashboard", labelAr: "لوحة التحكم" },
+  { href: "/admin#admin-analytics", key: "nav_analytics", icon: BarChart3, labelEn: "Analytics", labelAr: "التحليلات" },
+  { href: "/admin?tab=Friendly%20games", key: "nav_games", icon: Volleyball, labelEn: "Games", labelAr: "المباريات" },
+  { href: "/admin?tab=Tournaments", key: "nav_tournaments", icon: Trophy, labelEn: "Tournaments", labelAr: "البطولات" },
+  { href: "/admin?tab=Members", key: "nav_members", icon: Users, labelEn: "Players", labelAr: "اللاعبون" },
+  { href: "/admin?tab=Academies", key: "nav_academies", icon: Building2, labelEn: "Academies", labelAr: "الأكاديميات" },
+  { href: "/admin?tab=Playgrounds", key: "nav_playgrounds", icon: LandPlot, labelEn: "Playgrounds", labelAr: "الملاعب" },
+  { href: "/admin/shop", key: "nav_shop", icon: Ticket, labelEn: "Shop", labelAr: "المتجر" },
+  { href: "/admin#admin-payments", key: "nav_costs", icon: CreditCard, labelEn: "Payments", labelAr: "المدفوعات" },
+  { href: "/admin#admin-subscriptions", key: "nav_upgrade", icon: Receipt, labelEn: "Subscriptions", labelAr: "الاشتراكات" },
+  { href: "/admin?tab=Approvals", key: "nav_approvals", icon: ClipboardCheck, labelEn: "Approvals", labelAr: "الموافقات" },
+  { href: "/admin?tab=Messages", key: "nav_messages", icon: Mail, labelEn: "Messages", labelAr: "الرسائل" },
+  { href: "/admin#admin-reports", key: "nav_reports", icon: Flag, labelEn: "Reports", labelAr: "البلاغات" },
 ] as const;
 
 const academyItems = [
@@ -145,11 +152,11 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
   });
   const groups = role === "super_admin"
     ? [
-      group("Overview", "نظرة عامة", ["/admin"]),
-      group("People", "المستخدمون", ["/admin?tab=Members"]),
-      group("Operations", "العمليات", ["/admin?tab=Friendly%20games", "/admin?tab=Tournaments"]),
-      group("Business", "إدارة النشاط", ["/admin?tab=Academies", "/admin?tab=Playgrounds", "/admin/shop"]),
-      group("Support & approvals", "الدعم والموافقات", ["/admin?tab=Approvals", "/admin?tab=Messages"]),
+      group("OVERVIEW", "نظرة عامة", ["/admin", "/admin#admin-analytics"]),
+      group("OPERATIONS", "العمليات", ["/admin?tab=Friendly%20games", "/admin?tab=Tournaments", "/admin?tab=Members"]),
+      group("BUSINESS", "إدارة النشاط", ["/admin?tab=Academies", "/admin?tab=Playgrounds", "/admin/shop"]),
+      group("FINANCE", "الماليات", ["/admin#admin-payments", "/admin#admin-subscriptions"]),
+      group("SUPPORT", "الدعم", ["/admin?tab=Approvals", "/admin?tab=Messages", "/admin#admin-reports"]),
     ]
     : role === "playground_owner" ? [
       group("My playgrounds", "الملاعب بتاعتي", ["/playgrounds"]),
@@ -173,7 +180,7 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
     ];
 
   return (
-    <div className={cn("playza-navigation flex h-full min-h-0 flex-col gap-4 p-4", role === "super_admin" && "bg-[#211438] text-white")}>
+    <div className={cn("playza-navigation flex h-full min-h-0 flex-col gap-4 p-3", role === "super_admin" && "bg-[#211438] text-white")}>
       <Link onClick={onNavigate} href={role === "super_admin" ? "/admin" : role === "playground_owner" ? "/playgrounds" : "/dashboard"} className="flex flex-col items-start gap-1 px-2 pt-2">
         <AppLogo />
         <div className="flex flex-col">
@@ -186,11 +193,11 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
 
       <nav aria-label={lang === "ar" ? "القائمة الرئيسية" : "Main navigation"} className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain">
         {groups.map(group => <div key={group.label}>
-          <p className={cn("mb-1 px-3 text-xs font-semibold text-muted-foreground", role === "super_admin" && "text-[#C5B7DD]")}>{group.label}</p>
+          <p className={cn("mb-2 px-3 text-xs font-semibold text-muted-foreground", role === "super_admin" && "text-[#B9A8D0] uppercase tracking-[0.12em] text-[10px]")}>{group.label}</p>
         {group.items.map(({ href, key, icon: Icon }) => {
           const active =
             role === "super_admin"
-              ? pathname === href.split("?")[0] && (new URLSearchParams(href.split("?")[1]).get("tab") ?? "") === (searchParams.get("tab") ?? "")
+              ? pathname === href.split(/[?#]/)[0] && (href.includes("?tab=") ? new URLSearchParams(href.split("?")[1]).get("tab") === searchParams.get("tab") : !searchParams.get("tab") && (href === "/admin" ? !pathname.includes("/shop") : false))
               : pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`));
           return (
             <Link
@@ -201,8 +208,8 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
               className={cn(
                 "group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-brand flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-all",
                 active
-                  ? role === "super_admin" ? "border-s-4 border-[#C7F36B] bg-white/15 text-white shadow-sm" : "border-s-4 border-highlight bg-secondary text-white shadow-sm"
-                  : role === "super_admin" ? "text-[#E0D5EE] hover:bg-white/10 hover:text-white" : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  ? role === "super_admin" ? "bg-[#493070] text-[#C7F36B] shadow-sm" : "border-s-4 border-highlight bg-secondary text-white shadow-sm"
+                  : role === "super_admin" ? "text-white/90 hover:bg-[#493070]/70 hover:text-[#C7F36B]" : "text-muted-foreground hover:bg-accent hover:text-foreground"
               )}
             >
               <Icon
@@ -212,7 +219,7 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
                 )}
               />
               <span className="min-w-0 flex-1 truncate">
-                {role === "member" && memberLabels[href] ? memberLabels[href][lang === "ar" ? 1 : 0] : href === "/academy" ? (lang === "ar" ? "إدارة الأكاديمية" : "Academy workspace") : href === "/academy-bookings" ? (lang === "ar" ? "حجوزات الأكاديميات" : "Academy bookings") : href === "/profile" && role === "member" ? (lang === "ar" ? "ملفي وعيلتي" : "My profile & family") : t(key)}
+                {role === "super_admin" ? (lang === "ar" ? (superAdminItems.find(item => item.href === href)?.labelAr ?? t(key)) : (superAdminItems.find(item => item.href === href)?.labelEn ?? t(key))) : role === "member" && memberLabels[href] ? memberLabels[href][lang === "ar" ? 1 : 0] : href === "/academy" ? (lang === "ar" ? "إدارة الأكاديمية" : "Academy workspace") : href === "/academy-bookings" ? (lang === "ar" ? "حجوزات الأكاديميات" : "Academy bookings") : href === "/profile" && role === "member" ? (lang === "ar" ? "ملفي وعيلتي" : "My profile & family") : t(key)}
               </span>
               {href === "/admin?tab=Messages" && role === "super_admin" && <MessagesUnreadBadge />}
             </Link>
