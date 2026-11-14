@@ -109,7 +109,34 @@ export type PublicTournament = {
   academy: { name: string; slug: string | null; area: string | null; governorate: string | null } | null;
 };
 
-const todayISO = () => new Date().toISOString().slice(0, 10);
+// Public games currently operate in Egypt. Use the venue market's calendar day
+// rather than UTC, which can show yesterday's games around midnight Cairo time.
+const CAIRO_TIME_ZONE = "Africa/Cairo";
+const cairoDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: CAIRO_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+const cairoTimeFormatter = new Intl.DateTimeFormat("en-GB", {
+  timeZone: CAIRO_TIME_ZONE,
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+const todayISO = (now = new Date()) => {
+  const parts = cairoDateFormatter.formatToParts(now);
+  const value = (type: string) => parts.find(part => part.type === type)?.value ?? "";
+  return `${value("year")}-${value("month")}-${value("day")}`;
+};
+
+function isUpcomingGame(game: Pick<PublicGame, "game_date" | "start_time">, now = new Date()): boolean {
+  const today = todayISO(now);
+  if (game.game_date > today) return true;
+  if (game.game_date < today) return false;
+  // Database start_time is HH:mm:ss; compare only HH:mm in Cairo local time.
+  return game.start_time.slice(0, 5) >= cairoTimeFormatter.format(now);
+}
 
 function getAdmin() {
   try {
@@ -149,7 +176,7 @@ export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
   try {
     const { data, error } = await query;
     if (error) return [];
-    return (data ?? []).map((g: Record<string, unknown>) => {
+    return (data ?? []).filter(g => isUpcomingGame(g)).map((g: Record<string, unknown>) => {
       const parts = g.participants as { is_waitlisted?: boolean; count?: number; pay_status?: string }[] | null;
       const { participants: _participants, ...publicRow } = g as unknown as PublicGame & { participants?: unknown };
       const row = g as unknown as PublicGame & { playground: PublicGame["playground"] };
@@ -275,7 +302,7 @@ export async function getPublicGameSports(): Promise<string[]> {
       .gte("game_date", todayISO())
       .limit(1000);
     if (error) return [];
-    return [...new Set((data ?? []).map((r: { sport: string }) => r.sport))].sort();
+    return [...new Set((data ?? []).filter(isUpcomingGame).map((r: { sport: string }) => r.sport))].sort();
   } catch {
     return [];
   }
