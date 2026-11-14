@@ -42,7 +42,7 @@ function ProgramCard({program:p,index}:{program:TrainingProgram;index:number}) {
  const [busy,setBusy]=useState(false);const [choice,setChoice]=useState("");const [reserved,setReserved]=useState<TrainingBooking|null>(null);
  const [expanded,setExpanded]=useState(false);
  useEffect(()=>{if(expanded)trackView("academy_view",p.academy_id,{sport:p.sport,governorate:p.venue_governorate,area:p.venue_area});},[expanded,p.academy_id,p.sport,p.venue_governorate,p.venue_area]);
- useEffect(()=>{const reveal=()=>{if(window.location.hash===`#training-${p.id}`)setExpanded(true);};reveal();window.addEventListener("hashchange",reveal);return()=>window.removeEventListener("hashchange",reveal);},[p.id]);
+ useEffect(()=>{const reveal=()=>{if(window.location.hash===`#training-${p.id}`){setExpanded(true);window.requestAnimationFrame(()=>document.getElementById(`training-${p.id}`)?.scrollIntoView({behavior:"smooth",block:"start"}));}};reveal();window.addEventListener("hashchange",reveal);return()=>window.removeEventListener("hashchange",reveal);},[p.id]);
 
  const available=p.slots.filter(s=>s.seats_left>0);const monthly=available.slice(0,p.monthly_sessions);
  const reserve=async(kind:"monthly"|"trial")=>{
