@@ -64,6 +64,7 @@ import { formatMoneyShort } from "@/lib/constants";
 import {
   useAllAcademies,
   useCommunityMembers,
+  useContactMessages,
   useConvertToPaid,
   useExtendTrial,
   useReports,
@@ -85,6 +86,7 @@ export function SuperAdminDashboard() {
   const extendTrial = useExtendTrial();
   const convertToPaid = useConvertToPaid();
   const { data: reports, isLoading: reportsLoading } = useReports();
+  const { data: contactMessages, isLoading: messagesLoading } = useContactMessages(200);
   const { data: members } = useCommunityMembers();
   const resolve = useResolveReport();
   const setAcademyPlan = useSetAcademyPlan();
@@ -118,6 +120,8 @@ export function SuperAdminDashboard() {
   }, [academies]);
 
   const openReports = (reports ?? []).filter((report) => report.status === "open").length;
+  // Inbox hook fetches up to 200 latest messages: this is a visible-list count, not a global total.
+  const unreadRecentMessages = (contactMessages ?? []).filter((message) => !message.is_read).length;
 
   const handleExtend = async (academyId: string, days: number) => {
     try {
@@ -240,13 +244,13 @@ export function SuperAdminDashboard() {
             {[
               { label: lang === "ar" ? "مراجعة المدفوعات" : "Review payments", href: "#admin-payments", icon: CreditCard },
               { label: lang === "ar" ? "طلبات الموافقة" : "Approval requests", href: "/admin?tab=Approvals", icon: CheckCircle2 },
-              { label: lang === "ar" ? "رسائل الدعم" : "Support messages", href: "/admin?tab=Messages", icon: Megaphone },
+              { label: lang === "ar" ? "رسائل الدعم" : "Support messages", href: "/admin?tab=Messages", icon: Megaphone, count: messagesLoading ? null : unreadRecentMessages },
               { label: lang === "ar" ? "بلاغات المجتمع" : "Community reports", href: "#admin-reports", icon: Flag, count: reportsLoading ? null : openReports },
             ].map(({ label, href, icon: Icon, count }) => (
               <Link key={href} href={href} className="flex min-h-14 items-center gap-3 rounded-xl border bg-background px-3 py-3 transition-colors hover:border-brand/40 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
                 <span className="rounded-lg bg-brand/10 p-2 text-brand"><Icon className="h-4 w-4" aria-hidden="true" /></span>
                 <span className="min-w-0 flex-1 text-sm font-semibold">{label}</span>
-                {typeof count === "number" && count > 0 && <Badge variant="destructive" className="shrink-0 tabular-nums">{count}</Badge>}
+                {typeof count === "number" && count > 0 && <Badge variant="destructive" className="shrink-0 tabular-nums" title={href.includes("Messages") ? (lang === "ar" ? "غير مقروءة ضمن آخر 200 رسالة" : "Unread among latest 200 messages") : undefined}>{count}</Badge>}
                 <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground rtl:-scale-x-100" aria-hidden="true" />
               </Link>
             ))}
