@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import {
   CalendarClock,
+  CreditCard,
   CheckCircle2,
   Crown,
   ExternalLink,
