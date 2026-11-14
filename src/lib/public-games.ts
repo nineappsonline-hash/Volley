@@ -294,7 +294,7 @@ export async function getPublicGameSports(): Promise<string[]> {
   try {
     const { data, error } = await admin
       .from("friendly_games")
-      .select("sport")
+      .select("sport, game_date, start_time")
       .eq("is_public", true).eq("creation_payment_approved", true)
       .in("sport", [...ACTIVE_SPORTS])
       .neq("status", "cancelled")
