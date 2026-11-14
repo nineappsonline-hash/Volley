@@ -37,6 +37,21 @@ const loadTraining = cache(async (id: string): Promise<TrainingData> => {
     if (!team) notFound();
   }
 
+  // Resolve the actual linked playground, not only the catalog's flattened venue fields.
+  // Catalog RPC responses may omit location_link even when the playground has one.
+  const linkedVenueId = program?.venue_id ?? team?.venue_id ?? team?.venue?.id;
+  if (linkedVenueId) {
+    const { data: linkedVenue } = await client
+      .from("venues")
+      .select("id, name, address, area, governorate, location_link, lat, lng")
+      .eq("id", linkedVenueId)
+      .maybeSingle();
+    if (linkedVenue) {
+      const destination = program ?? team;
+      destination.venue = { ...(destination.venue ?? {}), ...linkedVenue };
+    }
+  }
+
   return { program, team, isProgram };
 });
 
