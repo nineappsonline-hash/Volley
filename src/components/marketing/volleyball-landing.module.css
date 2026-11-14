@@ -338,3 +338,15 @@
   .header { padding-top: 8px; padding-bottom: 8px; gap: 10px; }
   .headerActions { gap: 8px; }
 }
+
+
+/* Faster sport discovery: compact responsive cards */
+@media (min-width: 901px) {
+  .sportsCards { gap: 18px; }
+  .sportTile { padding-bottom: 18px; }
+}
+@media (max-width: 640px) {
+  .combinedSports { padding-top: 42px; padding-bottom: 42px; }
+  .sportsCards { gap: 14px; }
+  .sportTileArt { max-height: 175px; }
+}
