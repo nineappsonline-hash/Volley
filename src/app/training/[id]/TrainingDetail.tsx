@@ -29,6 +29,7 @@ export function TrainingDetail({
   const ar = lang === "ar";
   const [busy, setBusy] = useState(false);
   const [reserved, setReserved] = useState<any>(null);
+  const [paymentSubmitted, setPaymentSubmitted] = useState(false);
   const paymentRef = useRef<HTMLDivElement>(null);
   useEffect(() => { if (reserved) paymentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [reserved]);
 
@@ -101,6 +102,7 @@ export function TrainingDetail({
         .eq("id", id)
         .single();
       if (readError) throw readError;
+      setPaymentSubmitted(false);
       setReserved(data);
     } catch (error: any) {
       toast.error(error.message || (ar ? "تعذر الحجز" : "Booking failed"));
@@ -185,7 +187,13 @@ export function TrainingDetail({
           <h3 className="mb-4 text-xl font-extrabold text-[#211a30]">
             {ar ? "تفاصيل الحجز والدفع" : "Booking & payment"}
           </h3>
-          <GameSharePayment
+          {paymentSubmitted ? (
+            <div role="status" className="rounded-2xl border border-[#d9e9bd] bg-[#f4ffe5] p-6">
+              <h4 className="text-lg font-extrabold text-[#211a30]">{ar ? "تم إرسال بيانات الدفع" : "Payment details submitted"}</h4>
+              <p className="mt-2 text-sm leading-7 text-[#4f5c3e]">{ar ? "تم استلام بيانات الدفع للمراجعة. الحجز مش مؤكد لحد ما يتم اعتماد الدفع." : "Your payment details are awaiting review. The booking is not confirmed until payment is approved."}</p>
+              <Link href={`/a/${academy.slug}`} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#6739d4] px-5 py-3 text-sm font-bold text-white hover:bg-[#5029ad]">{ar ? "الرجوع للأكاديمية" : "Back to academy"}<ArrowUpRight size={16}/></Link>
+            </div>
+          ) : <GameSharePayment
             amount={reserved.amount}
             label={reserved.details?.program || source.name}
             submitting={busy}
@@ -204,6 +212,7 @@ export function TrainingDetail({
                   }
                 );
                 if (error) throw error;
+                setPaymentSubmitted(true);
                 toast.success(
                   ar ? "تم إرسال الدفع للمراجعة" : "Payment submitted for review"
                 );
@@ -223,7 +232,7 @@ export function TrainingDetail({
                 ? "ادفع برفع الإيصال للمراجعة من المشرف العام."
                 : "Pay by uploading receipt for super admin review."
             }
-          />
+          />}
         </div>
       )}
     </div>
