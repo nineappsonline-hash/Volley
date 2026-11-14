@@ -361,13 +361,17 @@ function MemberDetails({ member: selectedMember, data, initialTab = "overview" }
     ...(member.member_plan === "premium" ? { "Premium expires": member.premium_expires_at?.slice(0, 10) ?? t("sa_no_expiry") } : {}),
   };
   const panelClass = "m-0 space-y-4 data-[state=inactive]:hidden";
-  return <Tabs value={activeTab} onValueChange={value => { setActiveTab(value); if (scrollRef.current) scrollRef.current.scrollTop = 0; }} dir={ar ? "rtl" : "ltr"} className="flex min-h-0 flex-1 flex-col">
+  return <Tabs value={activeTab} onValueChange={value => { setActiveTab(value); if (scrollRef.current) scrollRef.current.scrollTop = 0; }} dir={ar ? "rtl" : "ltr"} className="flex min-h-0 min-w-0 flex-1 flex-col">
     <div className="shrink-0 space-y-4 border-b bg-muted/20 px-4 pb-4 sm:px-6">
       <div className="flex items-center gap-3">
         <ProfileAvatar name={member.name ?? ""} url={member.avatar_url} avatarId={member.avatar_id} className="h-12 w-12 shrink-0 sm:h-14 sm:w-14" />
         <div className="min-w-0 flex-1">
           <p className="break-words font-semibold">{member.name}</p>
           <p className="truncate text-xs text-muted-foreground">{member.username ? `@${member.username} · ` : ""}{data.academies.find(a => a.id === member.academy_id)?.name ?? t("sa_independent")}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+            {member.phone && <a className="inline-flex min-h-9 items-center rounded-lg border bg-background px-3 font-semibold text-primary hover:bg-accent" href={`tel:${member.phone}`} dir="ltr">{ar ? "اتصال" : "Call"}</a>}
+            {(member.account_email || member.email) && <a className="inline-flex min-h-9 items-center rounded-lg border bg-background px-3 font-semibold text-primary hover:bg-accent" href={`mailto:${member.account_email || member.email}`}>{ar ? "إيميل" : "Email"}</a>}
+          </div>
           <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
             <span className={cn("rounded-full border px-2 py-0.5", blocked ? "border-destructive/30 bg-destructive/10 text-destructive" : "bg-background")}>{blocked ? t("sa_blocked") : member.is_active ? t("sa_active") : t("sa_inactive")}</span>
             <span className="rounded-full border bg-background px-2 py-0.5">{member.member_plan === "premium" ? t("sa_premium") : t("sa_free")}</span>
@@ -375,14 +379,14 @@ function MemberDetails({ member: selectedMember, data, initialTab = "overview" }
           </div>
         </div>
       </div>
-      <TabsList aria-label={ar ? "أقسام تفاصيل العضو" : "Member details sections"} className="grid w-full max-w-none grid-cols-3 gap-1 sm:grid-cols-5">
+      <TabsList aria-label={ar ? "أقسام تفاصيل العضو" : "Member details sections"} className="flex h-auto w-full max-w-full justify-start gap-1 overflow-x-auto rounded-lg p-1">
         {[
           ["overview", ar ? "نظرة عامة" : "Overview"],
           ["academies", ar ? "الأكاديميات" : "Academies"],
           ["payments", ar ? "المدفوعات" : "Payments"],
           ["family", ar ? "العائلة" : "Family"],
           ["activity", ar ? "النشاط" : "Activity"],
-        ].map(([value, label]) => <TabsTrigger key={value} value={value} className="min-h-11 min-w-0 px-2 text-xs sm:text-sm">{label}</TabsTrigger>)}
+        ].map(([value, label]) => <TabsTrigger key={value} value={value} className="min-h-11 shrink-0 whitespace-nowrap px-3 text-xs sm:flex-1 sm:text-sm">{label}</TabsTrigger>)}
       </TabsList>
     </div>
     <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6">
