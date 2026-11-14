@@ -104,16 +104,16 @@ export function MessagesPage() {
       <header className="rounded-[14px] border border-[#eeecf3] bg-white p-5 sm:p-6"><p className="text-xs font-bold uppercase tracking-widest text-[#6739d4]">PLAYZA / ADMIN</p><h1 className="mt-2 text-2xl font-extrabold tracking-tight text-[#211a30] sm:text-3xl">{t("messages_title")}</h1><p className="mt-2 text-sm text-[#716c7d]">{t("messages_subtitle")}</p></header>
 
       <Card className="rounded-[14px] border-[#eeecf3] bg-white shadow-sm">
-        <CardHeader className="flex flex-col items-stretch justify-between gap-3 pb-3 sm:flex-row sm:items-center">
+        <CardHeader className="flex flex-col items-stretch justify-between gap-3 border-b border-[#eeecf3] bg-[#faf9fd] pb-4 sm:flex-row sm:items-center">
           <CardTitle className="flex items-center gap-2 text-base">
-            <Inbox className="h-4 w-4 text-primary" />
+            <Inbox className="h-4 w-4 text-[#6739d4]" />
             {t("messages_title")}
             {unread > 0 && (
               <Badge variant="destructive">{unread} {t("messages_unread")}</Badge>
             )}
           </CardTitle>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center rounded-lg border bg-muted/40 p-0.5">
+            <div className="flex items-center rounded-lg border border-[#eeecf3] bg-[#f7f6fb] p-0.5">
               {(["all", "unread"] as Filter[]).map((f) => (
                 <button
                   key={f}
@@ -121,7 +121,7 @@ export function MessagesPage() {
                   onClick={() => setFilter(f)}
                   className={`min-h-10 rounded-md px-3 py-2 text-xs font-semibold transition-colors ${
                     filter === f
-                      ? "bg-background text-foreground shadow-sm"
+                      ? "bg-white text-[#211a30] shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -159,7 +159,7 @@ export function MessagesPage() {
               {filtered.map((m) => {
                 const isExpanded = expanded.has(m.id);
                 return (
-                  <article key={m.id} className={`min-w-0 rounded-xl border p-4 shadow-sm ${m.is_read ? "bg-card" : "border-primary/30 bg-primary/5"}`}>
+                  <article key={m.id} className={`min-w-0 rounded-[14px] border p-4 shadow-sm ${m.is_read ? "border-[#eeecf3] bg-white" : "border-[#c9b5f2] bg-[#f6f1ff]"}`}>
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <p className="break-words text-sm font-bold">{m.name}</p>
@@ -171,7 +171,7 @@ export function MessagesPage() {
                       <a href={`tel:${m.phone}`} dir="ltr" className="break-all text-primary underline-offset-2 hover:underline">{m.phone}</a>
                       {m.email && <a href={`mailto:${m.email}`} dir="ltr" className="break-all text-primary underline-offset-2 hover:underline">{m.email}</a>}
                     </div>
-                    <button type="button" aria-expanded={isExpanded} onClick={() => toggleExpanded(m.id)} className="mt-3 w-full rounded-lg bg-muted/40 p-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                    <button type="button" aria-expanded={isExpanded} onClick={() => toggleExpanded(m.id)} className="mt-3 w-full rounded-lg bg-white/80 p-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                       <span className={isExpanded ? "whitespace-pre-wrap break-words" : "line-clamp-3 break-words"}>{m.message}</span>
                       <span className="mt-2 block text-xs font-semibold text-primary">{isExpanded ? (lang === "ar" ? "عرض أقل" : "Show less") : (lang === "ar" ? "عرض الرسالة" : "Read message")}</span>
                     </button>
@@ -180,10 +180,10 @@ export function MessagesPage() {
                 );
               })}
             </div>
-            <div className="hidden max-w-full overflow-x-auto rounded-xl border md:block">
+            <div className="hidden max-w-full overflow-x-auto rounded-xl border border-[#eeecf3] md:block">
               <Table>
                 <TableHeader>
-                  <TableRow className="hover:bg-transparent">
+                  <TableRow className="bg-[#faf9fd] hover:bg-[#faf9fd]">
                     <TableHead>{t("messages_sender")}</TableHead>
                     <TableHead>{t("messages_message")}</TableHead>
                     <TableHead className="hidden sm:table-cell">{t("messages_received")}</TableHead>
@@ -196,7 +196,7 @@ export function MessagesPage() {
                     return (
                       <TableRow
                         key={m.id}
-                        className={m.is_read ? undefined : "bg-primary/5"}
+                        className={m.is_read ? undefined : "bg-[#f6f1ff]"}
                       >
                         <TableCell className="align-top">
                           <div className="flex min-w-0 items-start gap-2">
