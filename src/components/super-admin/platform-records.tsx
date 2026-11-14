@@ -288,7 +288,7 @@ function AcademyMemberRow({ member }: { member: Row }) {
   </details>;
 }
 function AcademyDetails({ academy, data }: { academy: Row; data: Records }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const people = data.profiles.filter(row => row.academy_id === academy.id);
   const members = people.filter(row => row.role === "member");
   const admins = people.filter(row => row.role === "admin");
@@ -298,14 +298,23 @@ function AcademyDetails({ academy, data }: { academy: Row; data: Records }) {
   const planName = ({ starter: t("sa_free"), plus: t("sa_free"), elite: t("sa_premium") } as Record<string, string>)[academy.plan] ?? t("sa_not_set");
   const date = (value: string | null | undefined) => value ? new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : t("sa_not_set");
   const trialExpired = academy.trial_ends_at && new Date(academy.trial_ends_at) < new Date();
-  return <div className="space-y-5">
-    <AcademyTrainingManager academyId={academy.id} />
-    <div className="flex flex-wrap gap-2 text-xs">{[planName, academy.is_trial ? trialExpired ? t("sa_trial_expired") : t("sa_trial") : t("sa_non_trial"), academy.is_public ? t("sa_public_listing") : t("sa_private_listing")].map(label => <span key={label} className="rounded-full bg-muted px-3 py-1 font-medium">{label}</span>)}</div>
+  return <div className="min-w-0 space-y-5">
+    <div className="rounded-xl border bg-muted/30 p-3 sm:p-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{lang === "ar" ? "ملف الأكاديمية" : "Academy profile"}</p>
+      <p className="mt-1 break-words text-lg font-bold">{academy.name}</p>
+      <nav aria-label={lang === "ar" ? "أقسام ملف الأكاديمية" : "Academy profile sections"} className="mt-3 flex flex-wrap gap-2">
+        <a className="inline-flex min-h-10 items-center rounded-lg border bg-background px-3 text-xs font-semibold hover:bg-accent" href="#academy-summary">{lang === "ar" ? "الملخص" : "Summary"}</a>
+        <a className="inline-flex min-h-10 items-center rounded-lg border bg-background px-3 text-xs font-semibold hover:bg-accent" href="#academy-team">{t("sa_academy_admins")}</a>
+        <a className="inline-flex min-h-10 items-center rounded-lg border bg-background px-3 text-xs font-semibold hover:bg-accent" href="#academy-training">{lang === "ar" ? "إدارة التدريبات" : "Training management"}</a>
+      </nav>
+    </div>
+    <div id="academy-summary" className="flex scroll-mt-6 flex-wrap gap-2 text-xs">{[planName, academy.is_trial ? trialExpired ? t("sa_trial_expired") : t("sa_trial") : t("sa_non_trial"), academy.is_public ? t("sa_public_listing") : t("sa_private_listing")].map(label => <span key={label} className="rounded-full bg-muted px-3 py-1 font-medium">{label}</span>)}</div>
     {academy.description && <p className="whitespace-pre-wrap break-words text-sm text-muted-foreground">{academy.description}</p>}
     <dl className="grid grid-cols-1 gap-2 text-center sm:grid-cols-3">{[{ k: t("sa_members"), v: members.length }, { k: t("sa_branches"), v: branches.length }, { k: t("sa_playgrounds"), v: venues.length }].map(({ k, v }) => <div key={k} className="rounded-lg border p-3"><dt className="text-xs text-muted-foreground">{k}</dt><dd className="mt-1 text-xl font-semibold">{v}</dd></div>)}</dl>
     <section className="space-y-2"><h3 className="text-sm font-semibold">{t("sa_location")}</h3><Details row={{ Country: academy.country || t("sa_not_provided"), Governorate: academy.governorate || t("sa_not_provided"), "City / area": academy.area || t("sa_not_provided"), Address: academy.address || t("sa_not_provided") }} /></section>
     <section className="space-y-2"><h3 className="text-sm font-semibold">{t("sa_subscription_settings")}</h3><Details row={{ "Academy plan": planName, Created: date(academy.created_at), ...(academy.is_trial ? { "Trial ends": date(academy.trial_ends_at) } : {}), "Session bookings": academy.session_booking_enabled ? t("sa_enabled") : t("sa_inactive"), ...(academy.session_booking_enabled ? { "Platform fee": `${academy.platform_fee_percent ?? 5}%` } : {}) }} /></section>
-    <section className="space-y-2"><h3 className="text-sm font-semibold">{t("sa_academy_admins")}</h3>{admins.length ? admins.map(admin => <div key={admin.id} className="rounded-lg border p-3 text-sm"><p className="font-medium">{admin.name}</p><p className="break-all text-muted-foreground">{admin.email}</p>{admin.phone && <p className="text-muted-foreground" dir="ltr">{admin.phone}</p>}</div>) : <p className="text-sm text-muted-foreground">{t("sa_no_admin")}</p>}</section>
+    <section id="academy-team" className="scroll-mt-6 space-y-2"><h3 className="text-sm font-semibold">{t("sa_academy_admins")}</h3>{admins.length ? admins.map(admin => <div key={admin.id} className="rounded-lg border p-3 text-sm"><p className="font-medium">{admin.name}</p><p className="break-all text-muted-foreground">{admin.email}</p>{admin.phone && <p className="text-muted-foreground" dir="ltr">{admin.phone}</p>}</div>) : <p className="text-sm text-muted-foreground">{t("sa_no_admin")}</p>}</section>
+    <section id="academy-training" className="scroll-mt-6 space-y-2 rounded-xl border p-3 sm:p-4"><h3 className="text-base font-semibold">{lang === "ar" ? "إدارة التدريبات" : "Training management"}</h3><AcademyTrainingManager academyId={academy.id} /></section>
     <details className="rounded-lg border p-3"><summary className="cursor-pointer text-sm font-semibold">{t("sa_members")} ({members.length})</summary><div className="mt-3 space-y-2">{members.length ? members.map(member => <AcademyMemberRow key={member.id} member={member} />) : <p className="text-sm text-muted-foreground">{t("sa_no_members")}</p>}</div></details>
     {[
       { label: t("sa_branches"), rows: branches, fields: (row: Row) => ({ Address: row.address || t("sa_not_provided"), Location: [row.country, row.governorate, row.area].filter(Boolean).join(" · ") || t("sa_not_provided"), Phone: row.phone || t("sa_not_provided"), "Main branch": row.is_main ? t("sa_active") : t("sa_inactive") }) },
