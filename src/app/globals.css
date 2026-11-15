@@ -519,3 +519,48 @@ html.dark .super-admin-light :is(.text-slate-500, .text-slate-600, .text-gray-50
   color: #716c7d;
 }
 html.dark .super-admin-light .text-primary { color: #6739d4; }
+
+
+/* Super Admin dark appearance: genuine dark surfaces with high-contrast text.
+   Overrides the Figma light-only fixed utility colors when dark is selected. */
+html.dark .super-admin-light {
+  color-scheme: dark;
+  --background: 260 28% 8%;
+  --surface: 260 24% 13%;
+  --foreground: 260 25% 95%;
+  --body-text: var(--foreground);
+  --card: 260 24% 13%;
+  --card-foreground: var(--foreground);
+  --popover: 260 24% 13%;
+  --popover-foreground: var(--foreground);
+  --muted: 260 20% 19%;
+  --muted-foreground: 260 14% 75%;
+  --accent: 268 30% 24%;
+  --accent-foreground: 270 90% 88%;
+  --border: 260 18% 32%;
+  --ring: 270 85% 78%;
+  color: #f5f1fb;
+  background-color: #15101e;
+}
+html.dark .super-admin-light :is(
+  .bg-white, .bg-slate-50, .bg-gray-50,
+  [class*="bg-[#f7f6fb]"], [class*="bg-[#faf9fd]"],
+  [class*="bg-[#f1edfa]"], [class*="bg-[#eee7ff]"],
+  [class*="bg-[#e6dcff]"]
+) { background-color: #211a2d !important; }
+html.dark .super-admin-light :is(
+  [class*="text-[#211a30]"], [class*="text-[#211438]"],
+  [class*="text-[#716c7d]"], [class*="text-[#5129ac]"]
+) { color: #f5f1fb !important; }
+html.dark .super-admin-light :is(
+  [class*="border-[#eeecf3]"], [class*="border-[#6739d4]"]
+) { border-color: #4d405e !important; }
+html.dark .super-admin-light :is(
+  [class*="bg-[#f7f6fb]"], [class*="bg-[#faf9fd]"]
+) { background-color: #15101e !important; }
+html.dark .super-admin-light :is(
+  [class*="text-[#6739d4]"], .text-primary
+) { color: #b69aff !important; }
+html.dark .super-admin-light :is(
+  [class*="hover:bg-[#faf9fd]"]:hover, [class*="hover:bg-[#f1edfa]"]:hover
+) { background-color: #30263e !important; }
