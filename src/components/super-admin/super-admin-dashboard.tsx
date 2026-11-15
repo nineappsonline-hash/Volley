@@ -203,13 +203,13 @@ export function SuperAdminDashboard() {
   return (
     <div className="space-y-6 rounded-2xl bg-[#f7f6fb] p-3 text-[#211a30] sm:p-5">
       {/* Figma Command Center: compact heading, white KPI tiles, and task queue. */}
-      <section aria-label={lang === "ar" ? "مركز متابعة المنصة" : "Platform command center"} className="space-y-6 rounded-2xl !bg-[#f7f6fb] p-4 !text-[#211a30] sm:p-6 lg:p-9">
+      <section aria-label={lang === "ar" ? "مركز متابعة المنصة" : "Platform command center"} className="space-y-6 rounded-2xl bg-[#f7f6fb] p-4 text-[#211a30] sm:p-6 lg:p-9">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{lang === "ar" ? "أهلاً بيك في Playza" : "Welcome to Playza"}</h1>
             <p className="mt-2 text-sm text-[#716c7d]">{lang === "ar" ? "دي أهم الأرقام والمهام اللي محتاجة متابعتك." : "Here is what needs your attention across Playza."}</p>
           </div>
-          <span className="rounded-full border border-[#eeecf3] !bg-white px-3 py-1.5 text-xs !text-[#716c7d]">{lang === "ar" ? "البيانات الحالية" : "Current data"}</span>
+          <span className="rounded-full border bg-card px-3 py-1.5 text-xs text-muted-foreground">{lang === "ar" ? "البيانات الحالية" : "Current data"}</span>
         </div>
         {academiesError && (
           <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm">
@@ -225,8 +225,8 @@ export function SuperAdminDashboard() {
             { label: lang === "ar" ? "البلاغات المفتوحة" : "Open reports", value: reportsLoading ? "—" : openReports, href: "#admin-reports", detail: lang === "ar" ? "تحتاج مراجعة" : "Needs review" },
           ].map((item) => (
             <Link key={item.label} href={item.href} className="group min-w-0 rounded-[14px] border border-[#eeecf3] !bg-white p-5 !text-[#211a30] shadow-sm transition-colors hover:border-[#6739d4]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6739d4]">
-              <p className="text-xs font-semibold leading-5 !text-[#716c7d] sm:text-sm">{item.label}</p>
-              <p className="mt-3 text-2xl font-extrabold tabular-nums !text-[#211a30] sm:text-3xl">{item.value}</p>
+              <p className="text-xs font-semibold leading-5 text-muted-foreground sm:text-sm">{item.label}</p>
+              <p className="mt-3 text-2xl font-extrabold tabular-nums sm:text-3xl">{item.value}</p>
               <p className="mt-2 text-xs font-semibold text-[#6739d4]">{item.detail} →</p>
             </Link>
           ))}
@@ -234,8 +234,8 @@ export function SuperAdminDashboard() {
         <div className="rounded-[14px] border border-[#eeecf3] !bg-white p-4 !text-[#211a30] shadow-sm sm:p-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h3 className="text-base font-bold !text-[#211a30] sm:text-lg">{lang === "ar" ? "تحتاج متابعتك" : "Needs your attention"}</h3>
-              <p className="text-xs !text-[#716c7d]">{lang === "ar" ? "اختصارات مباشرة للمهام الإدارية" : "Quick access to administrative work queues"}</p>
+              <h3 className="text-base font-bold sm:text-lg">{lang === "ar" ? "تحتاج متابعتك" : "Needs your attention"}</h3>
+              <p className="text-xs text-muted-foreground">{lang === "ar" ? "اختصارات مباشرة للمهام الإدارية" : "Quick access to administrative work queues"}</p>
             </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -245,9 +245,9 @@ export function SuperAdminDashboard() {
               { label: lang === "ar" ? "رسائل الدعم" : "Support messages", href: "/admin?tab=Messages", icon: Megaphone, count: messagesLoading ? null : unreadRecentMessages },
               { label: lang === "ar" ? "بلاغات المجتمع" : "Community reports", href: "#admin-reports", icon: Flag, count: reportsLoading ? null : openReports },
             ].map(({ label, href, icon: Icon, count }) => (
-              <Link key={href} href={href} className="flex min-h-16 items-center gap-3 rounded-xl border border-[#eeecf3] !bg-[#faf9fd] px-4 py-3 !text-[#211a30] transition-colors hover:border-[#6739d4]/40 hover:bg-[#f1edfa] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6739d4]">
+              <Link key={href} href={href} className="flex min-h-16 items-center gap-3 rounded-xl border border-[#eeecf3] bg-[#faf9fd] px-4 py-3 transition-colors hover:border-[#6739d4]/40 hover:bg-[#f1edfa] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6739d4]">
                 <span className="rounded-lg bg-brand/10 p-2 text-brand"><Icon className="h-4 w-4" aria-hidden="true" /></span>
-                <span className="min-w-0 flex-1 text-sm font-semibold !text-[#211a30]">{label}</span>
+                <span className="min-w-0 flex-1 text-sm font-semibold">{label}</span>
                 {typeof count === "number" && count > 0 && <Badge variant="destructive" className="shrink-0 tabular-nums" title={href.includes("Messages") ? (lang === "ar" ? "غير مقروءة ضمن آخر 200 رسالة" : "Unread among latest 200 messages") : undefined}>{count}</Badge>}
                 <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground rtl:-scale-x-100" aria-hidden="true" />
               </Link>
@@ -264,9 +264,9 @@ export function SuperAdminDashboard() {
           { tab: "Tournaments", title: t("sa_records_tournaments"), icon: Trophy },
           { tab: "Approvals", title: t("nav_approvals"), icon: CheckCircle2 },
           { tab: "Messages", title: lang === "ar" ? "الرسائل" : "Messages", icon: Megaphone },
-        ].map(({ tab: destination, title, icon: Icon }) => <Link key={destination} href={`/admin?tab=${encodeURIComponent(destination)}`} className="group flex min-h-20 items-center gap-3 rounded-[14px] border border-[#eeecf3] !bg-white p-4 !text-[#211a30]" shadow-sm transition-colors hover:border-[#6739d4]/40 hover:bg-[#faf9fd] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6739d4]">
+        ].map(({ tab: destination, title, icon: Icon }) => <Link key={destination} href={`/admin?tab=${encodeURIComponent(destination)}`} className="group flex min-h-20 items-center gap-3 rounded-[14px] border border-[#eeecf3] !bg-white p-4 !text-[#211a30] shadow-sm transition-colors hover:border-[#6739d4]/40 hover:bg-[#faf9fd] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6739d4]">
           <span className="rounded-xl bg-[#f1edfa] p-3 text-[#6739d4]"><Icon aria-hidden="true" className="h-5 w-5" /></span>
-          <span className="flex-1 text-sm font-bold !text-[#211a30]">{title}</span>
+          <span className="flex-1 text-sm font-bold">{title}</span>
           <ArrowUpRight aria-hidden="true" className="h-4 w-4 text-[#6739d4] rtl:-scale-x-100" />
         </Link>)}
       </nav>
