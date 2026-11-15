@@ -487,8 +487,8 @@ html.dark .bg-info-light { background-color: #172f49; }
 html.dark .bg-error-light { background-color: #442127; }
 
 
-/* Super Admin is a deliberately light Figma workspace, regardless of the
-   user's site-wide dark-mode preference. Keep the sidebar/topbar untouched. */
+/* Super Admin: isolated semantic theme. Light mode follows Figma;
+   dark mode uses true dark surfaces and legible light typography. */
 .super-admin-light {
   color-scheme: light;
   --background: 270 33% 98%;
@@ -506,23 +506,9 @@ html.dark .bg-error-light { background-color: #442127; }
   --border: 260 22% 91%;
   --ring: 264 65% 53%;
   color: #211a30;
-  background-color: #f7f6fb;
+  background: #f7f6fb;
   border-radius: 16px;
 }
-html.dark .super-admin-light :is(.bg-white, .bg-slate-50, .bg-gray-50) {
-  background-color: #fff;
-}
-html.dark .super-admin-light :is(.text-slate-900, .text-gray-900, .text-purple-800, .text-purple-900) {
-  color: #211a30;
-}
-html.dark .super-admin-light :is(.text-slate-500, .text-slate-600, .text-gray-500, .text-gray-600) {
-  color: #716c7d;
-}
-html.dark .super-admin-light .text-primary { color: #6739d4; }
-
-
-/* Super Admin dark appearance: genuine dark surfaces with high-contrast text.
-   Overrides the Figma light-only fixed utility colors when dark is selected. */
 html.dark .super-admin-light {
   color-scheme: dark;
   --background: 260 28% 8%;
@@ -540,27 +526,37 @@ html.dark .super-admin-light {
   --border: 260 18% 32%;
   --ring: 270 85% 78%;
   color: #f5f1fb;
-  background-color: #15101e;
+  background: #15101e;
 }
+/* Tailwind arbitrary color utilities use literal class names such as
+   bg-[#f7f6fb] and !bg-white. Attribute selectors match both, unlike
+   selectors for plain .bg-white alone. Scope to Super Admin only. */
 html.dark .super-admin-light :is(
-  .bg-white, .bg-slate-50, .bg-gray-50,
-  [class*="bg-[#f7f6fb]"], [class*="bg-[#faf9fd]"],
-  [class*="bg-[#f1edfa]"], [class*="bg-[#eee7ff]"],
-  [class*="bg-[#e6dcff]"]
+  [class*="bg-white"], [class*="bg-slate-50"], [class*="bg-gray-50"],
+  [class*="bg-[#"], [class*="bg-purple-50"], [class*="bg-purple-100"]
 ) { background-color: #211a2d !important; }
 html.dark .super-admin-light :is(
-  [class*="text-[#211a30]"], [class*="text-[#211438]"],
-  [class*="text-[#716c7d]"], [class*="text-[#5129ac]"]
+  [class*="text-[#"], .text-slate-900, .text-gray-900,
+  .text-purple-800, .text-purple-900, .text-primary
 ) { color: #f5f1fb !important; }
 html.dark .super-admin-light :is(
-  [class*="border-[#eeecf3]"], [class*="border-[#6739d4]"]
+  [class*="text-[#716c7d]"], [class*="text-[#b4afc0]"],
+  .text-slate-500, .text-slate-600, .text-gray-500, .text-gray-600
+) { color: #c2b8cf !important; }
+html.dark .super-admin-light :is(
+  [class*="text-[#6739d4]"], [class*="text-[#5129ac]"],
+  [class*="text-[#493070]"]
+) { color: #b69aff !important; }
+html.dark .super-admin-light :is(
+  [class*="border-[#"], .border-white
 ) { border-color: #4d405e !important; }
 html.dark .super-admin-light :is(
   [class*="bg-[#f7f6fb]"], [class*="bg-[#faf9fd]"]
 ) { background-color: #15101e !important; }
 html.dark .super-admin-light :is(
-  [class*="text-[#6739d4]"], .text-primary
-) { color: #b69aff !important; }
-html.dark .super-admin-light :is(
-  [class*="hover:bg-[#faf9fd]"]:hover, [class*="hover:bg-[#f1edfa]"]:hover
+  [class*="hover:bg-[#"]:hover, [class*="hover:bg-white"]:hover
 ) { background-color: #30263e !important; }
+/* Native fields, charts and tables inherit readable dark tokens. */
+html.dark .super-admin-light :is(input, textarea, select) {
+  color: #f5f1fb;
+}
