@@ -485,3 +485,37 @@ html.dark .bg-warning-light { background-color: #3d2b14; }
 html.dark .bg-success-light { background-color: #143b2a; }
 html.dark .bg-info-light { background-color: #172f49; }
 html.dark .bg-error-light { background-color: #442127; }
+
+
+/* Super Admin is a deliberately light Figma workspace, regardless of the
+   user's site-wide dark-mode preference. Keep the sidebar/topbar untouched. */
+.super-admin-light {
+  color-scheme: light;
+  --background: 270 33% 98%;
+  --surface: 0 0% 100%;
+  --foreground: 259 29% 15%;
+  --body-text: var(--foreground);
+  --card: 0 0% 100%;
+  --card-foreground: var(--foreground);
+  --popover: 0 0% 100%;
+  --popover-foreground: var(--foreground);
+  --muted: 270 22% 96%;
+  --muted-foreground: 262 8% 45%;
+  --accent: 264 64% 94%;
+  --accent-foreground: 263 65% 36%;
+  --border: 260 22% 91%;
+  --ring: 264 65% 53%;
+  color: #211a30;
+  background-color: #f7f6fb;
+  border-radius: 16px;
+}
+html.dark .super-admin-light :is(.bg-white, .bg-slate-50, .bg-gray-50) {
+  background-color: #fff;
+}
+html.dark .super-admin-light :is(.text-slate-900, .text-gray-900, .text-purple-800, .text-purple-900) {
+  color: #211a30;
+}
+html.dark .super-admin-light :is(.text-slate-500, .text-slate-600, .text-gray-500, .text-gray-600) {
+  color: #716c7d;
+}
+html.dark .super-admin-light .text-primary { color: #6739d4; }
