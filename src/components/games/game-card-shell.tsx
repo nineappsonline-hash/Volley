@@ -72,23 +72,21 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
     {!detailsHref && <div id={detailsId} hidden={!expanded} className={`${styles.details} border-t border-border bg-card text-card-foreground pt-2`}>{children}</div>}
   </article>;
   return <article className={`group/card self-start overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-lg hover:shadow-primary/10 ${game.status === "completed" ? "border-emerald-500/50" : game.status === "open" ? "border-blue-400/60 ring-1 ring-blue-400/15" : "border-border"}`}>
-    <div className={`relative isolate min-h-48 overflow-hidden bg-gradient-to-br ${theme} px-5 pb-5 pt-4 text-white`}>
-      {/* User venue photos can be hosted outside the configured image domains. */}
+    <div className={`relative isolate flex min-h-40 items-end gap-3 overflow-hidden bg-gradient-to-br ${theme} px-4 pb-4 pt-12 text-white`}>
+      <GameCardBackground sport={game.sport} />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {photo && <img src={photo} alt="" loading="lazy" className="absolute inset-0 -z-20 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} />}
-      {photo && <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-slate-950/15" />}
-      <div aria-hidden="true" className="pointer-events-none absolute -end-7 -top-12 h-44 w-44 rounded-full border-[18px] border-white/10" />
-      <div aria-hidden="true" className="pointer-events-none absolute end-4 top-12 rotate-12 text-white/20">{SportIcon({ id: sport, size: 80 })}</div>
-      {!photo && <GameCardBackground sport={game.sport} />}
+      {photo && <img src={photo} alt="" loading="lazy" className="absolute inset-0 -z-10 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} />}
+      {photo && <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-slate-950/95 via-slate-950/30 to-slate-950/10" />}
       {game.status === "completed" && <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-emerald-900/55" />}
-      <div className="relative flex flex-wrap items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-white"><Trophy className="h-4 w-4" />{game.sport}</span>
-        <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold text-white shadow-sm ${statusStyle}`}>{game.status === "completed" && <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />}{game.status === "full" ? (lang === "ar" ? "محجوز بالكامل" : "FULLY BOOKED") : t(`community_status_${game.status}`)}</span>
-      </div>
-      <h3 className="relative mt-4 line-clamp-2 min-h-12 text-lg font-bold leading-6 text-white">{game.title}</h3>
-      <div className="relative mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-white/90">
-        <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-white"/>{format(new Date(`${game.game_date}T00:00:00`), "EEE, d MMM", { locale })}</span>
-        <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-white"/>{formatTime12h(game.start_time, lang)}</span>
+      <span className={`absolute end-3 top-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold text-white shadow-sm ${statusStyle}`}>
+        {game.status === "completed" ? <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> : game.status === "open" ? <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden="true" /> : null}
+        {game.status === "full" ? (ar ? "محجوز بالكامل" : "FULLY BOOKED") : t(`community_status_${game.status}`)}
+      </span>
+      <span aria-hidden="true" className="relative shrink-0 rounded-xl border border-white/20 bg-white/10 p-2">{SportIcon({ id: sport, size: 32 })}</span>
+      <div className="relative min-w-0">
+        <p className="text-sm font-bold">{game.sport}</p>
+        <p className="mt-1 text-base font-semibold">{game.playground?.name || game.location || game.area || game.title}</p>
+        <p className="mt-1 text-xs text-white/90">{format(new Date(`${game.game_date}T00:00:00`), "EEE, d MMM", { locale })} · {formatTime12h(game.start_time, lang)}</p>
       </div>
     </div>
     <div className={`${styles.surface} space-y-4 p-5`}>
