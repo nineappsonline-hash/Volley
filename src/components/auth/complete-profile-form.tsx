@@ -41,15 +41,20 @@ export function CompleteProfileForm() {
         data: { user },
       } = await createClient().auth.getUser();
       if (!user) throw new Error("no session");
-      const { error } = await createClient()
+      const { data: updatedProfile, error } = await createClient()
         .from("profiles")
         .update({
           phone: phone.trim(),
           gender,
           birth_date: birthDate,
         })
-        .eq("id", user.id);
+        .eq("id", user.id)
+        .select("id, phone, gender, birth_date")
+        .maybeSingle();
       if (error) throw error;
+      if (!updatedProfile || !updatedProfile.phone || !updatedProfile.gender || !updatedProfile.birth_date) {
+        throw new Error("Profile changes were not saved");
+      }
       void confirmPendingSignup();
       const next = authDestination(searchParams.get("next"));
       router.push(next);
