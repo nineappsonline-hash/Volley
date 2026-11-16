@@ -109,6 +109,37 @@ export async function updateSession(request: NextRequest) {
     return redirectWithCookies(url);
   }
 
+  // Require existing members with incomplete profiles to finish onboarding on
+  // their next page visit, not only immediately after Google OAuth.
+  // Skip API and auth endpoints to avoid interfering with callbacks and requests.
+  if (
+    user &&
+    !pathname.startsWith("/api/") &&
+    !pathname.startsWith("/auth/") &&
+    pathname !== "/complete-profile" &&
+    !pathname.startsWith("/complete-profile/") &&
+    !isAuthPage &&
+    request.method === "GET" &&
+    request.headers.get("accept")?.includes("text/html")
+  ) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, phone, gender, birth_date")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (
+      profile?.role === "member" &&
+      (!profile.phone || !profile.gender || !profile.birth_date)
+    ) {
+      const url = request.nextUrl.clone();
+      const destination = pathname + request.nextUrl.search;
+      url.pathname = "/complete-profile";
+      url.search = "";
+      url.searchParams.set("next", authDestination(destination));
+      return redirectWithCookies(url);
+    }
+  }
+
   // Platform access uses a verified Auth email, never a profile role.
   if (user && (pathname === "/admin" || pathname.startsWith("/admin/")) && !isPlatformAdmin(user)) {
     const url = request.nextUrl.clone();
