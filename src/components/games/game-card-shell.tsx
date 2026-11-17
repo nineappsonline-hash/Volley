@@ -11,7 +11,6 @@ import { format } from "date-fns";
 import { ArrowUpRight, CalendarDays, ChevronDown, Clock, MapPin, Trophy, Users, CheckCircle2 } from "lucide-react";
 import { sportToSlug } from "@/lib/sport-slugs";
 import { SportIcon } from "@/components/marketing/sport-icons";
-import { venueCardPhoto } from "@/lib/venue-media";
 import { GameCardBackground } from "./game-card-background";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney, formatTime12h } from "@/lib/constants";
@@ -37,7 +36,6 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
     : sport === "basketball" ? "from-brand to-brand-900"
     : sport === "tennis" || sport === "padel" ? "from-brand to-brand-900"
     : "from-brand to-brand-900";
-  const photo = venueCardPhoto(game.playground?.photos, game.playground?.cover_url);
   const booking = gameBookingPayment(game);
   const statusStyle = game.status === "completed" ? "border-emerald-200/40 bg-emerald-700" : game.status === "open" ? "border-blue-200/40 bg-blue-600" : game.status === "full" ? "border-red-400/60 bg-red-700 ring-2 ring-red-400/70" : "border-red-200/40 bg-red-700";
   const Indicator = detailsHref ? ArrowUpRight : ChevronDown;
@@ -46,9 +44,7 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
   const share = <GameShareActions compact game={{...game,joined:game.participants_count,place:[game.playground?.name,game.playground?.area??game.area,game.playground?.governorate].filter(Boolean).join(", ")||game.location||""}} />;
   const overview = <>
       <span data-game-photo="" className="relative isolate block h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand">
-        {!photo && <span className="absolute inset-0 flex items-center justify-center text-white/30" aria-hidden="true">{SportIcon({ id: sport, size: 48 })}</span>}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        {photo && <img src={photo} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} />}
+        <span className="absolute inset-0 flex items-center justify-center text-white/70" aria-hidden="true">{SportIcon({ id: sport, size: 48 })}</span>
         <span className={styles.mobileStatus}>{game.status === "open" ? (slots <= 2 ? (ar ? "قرب يكتمل" : "Almost Full") : (ar ? "متاح" : "Open")) : t(`community_status_${game.status}`)}</span>
         <span className="absolute inset-x-0 bottom-0 bg-brand/95 px-1 py-1.5 text-center text-[9px] font-bold leading-tight text-highlight sm:text-[10px]">{game.sport}</span>
       </span>
@@ -74,9 +70,6 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
   return <article className={`group/card self-start overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-lg hover:shadow-primary/10 ${game.status === "completed" ? "border-emerald-500/50" : game.status === "open" ? "border-blue-400/60 ring-1 ring-blue-400/15" : "border-border"}`}>
     <div className={`relative isolate flex min-h-40 items-end gap-3 overflow-hidden bg-gradient-to-br ${theme} px-4 pb-4 pt-12 text-white`}>
       <GameCardBackground sport={game.sport} />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      {photo && <img src={photo} alt="" loading="lazy" className="absolute inset-0 -z-10 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} />}
-      {photo && <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-slate-950/95 via-slate-950/30 to-slate-950/10" />}
       {game.status === "completed" && <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-emerald-900/55" />}
       <span className={`absolute end-3 top-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold text-white shadow-sm ${statusStyle}`}>
         {game.status === "completed" ? <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> : game.status === "open" ? <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden="true" /> : null}
