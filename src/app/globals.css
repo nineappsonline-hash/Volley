@@ -534,3 +534,33 @@ body:has(.playza-super-admin) :is(.text-black, .text-gray-900, .text-slate-900) 
 body:has(.playza-super-admin) .text-primary {
   color: hsl(var(--playza-lime));
 }
+
+/* Super Admin contrast fixes: controls must remain legible on dark surfaces. */
+body:has(.playza-super-admin) {
+  --primary: var(--playza-lime);
+  --primary-hover: var(--playza-lime-hover);
+  --ring: var(--playza-lime);
+}
+body:has(.playza-super-admin) :is(button, a, [role="button"]):not(:disabled) {
+  text-decoration-color: currentColor;
+}
+body:has(.playza-super-admin) :is(button, [role="button"]):focus-visible {
+  outline: 2px solid hsl(var(--playza-lime));
+  outline-offset: 2px;
+}
+body:has(.playza-super-admin) :is(.text-brand, .text-brand-600, .text-brand-700, .text-purple-700, .text-purple-800) {
+  color: hsl(var(--playza-lime));
+}
+body:has(.playza-super-admin) :is(.border-brand, .border-brand-600) {
+  border-color: hsl(var(--playza-purple-500) / .75);
+}
+body:has(.playza-super-admin) :is(.bg-background, .bg-card, .bg-popover, .bg-muted) {
+  color: hsl(var(--foreground));
+}
+body:has(.playza-super-admin) :is([data-radix-popper-content-wrapper], [role="dialog"], [role="listbox"], [role="menu"]) {
+  color: hsl(var(--foreground));
+}
+body:has(.playza-super-admin) :is(input, textarea, select)::placeholder {
+  color: hsl(var(--muted-foreground));
+  opacity: 1;
+}
