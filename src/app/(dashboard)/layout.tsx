@@ -43,7 +43,7 @@ export default async function DashboardLayout({
   const { academy, isCoach, hasAcademyWorkspace } = await loadTopbarContext(profile);
 
   return (
-    <div className="min-h-screen bg-background pb-[env(safe-area-inset-bottom)]">
+    <div className={`${profile.role === "super_admin" ? "playza-super-admin" : ""} min-h-screen bg-background pb-[env(safe-area-inset-bottom)]`}>
       {profile.role !== "member" && <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 border-e bg-brand lg:block">
         <Sidebar role={profile.role} name={profile.name} memberPlan={profile.member_plan} isCoach={isCoach} hasAcademyWorkspace={hasAcademyWorkspace} />
       </aside>}
