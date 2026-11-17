@@ -129,6 +129,7 @@ export async function updateSession(request: NextRequest) {
       .maybeSingle();
     if (
       profile?.role === "member" &&
+      !isPlatformAdmin(user) &&
       (!profile.phone || !profile.gender || !profile.birth_date)
     ) {
       const url = request.nextUrl.clone();
