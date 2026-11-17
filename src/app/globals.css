@@ -485,3 +485,52 @@ html.dark .bg-warning-light { background-color: #3d2b14; }
 html.dark .bg-success-light { background-color: #143b2a; }
 html.dark .bg-info-light { background-color: #172f49; }
 html.dark .bg-error-light { background-color: #442127; }
+
+
+/* Super Admin is permanently dark, independent of device preferences.
+   :has() also themes Radix portals mounted directly under body. */
+body:has(.playza-super-admin) {
+  color-scheme: dark;
+  --background: 255 28% 7%;
+  --surface: 254 24% 12%;
+  --foreground: 250 25% 96%;
+  --body-text: 250 25% 96%;
+  --text-primary: 250 25% 96%;
+  --text-secondary: 250 13% 73%;
+  --card: 254 24% 12%;
+  --card-foreground: 250 25% 96%;
+  --popover: 254 24% 14%;
+  --popover-foreground: 250 25% 96%;
+  --muted: 254 20% 19%;
+  --muted-foreground: 250 13% 73%;
+  --accent: 262 44% 26%;
+  --accent-foreground: 250 25% 98%;
+  --border: 255 17% 29%;
+  --input: 255 17% 29%;
+  --primary-foreground: 255 28% 7%;
+  --secondary-foreground: 0 0% 100%;
+  --success-ink: 155 68% 70%;
+  --warning-ink: 38 90% 75%;
+  --info-ink: 205 95% 75%;
+  --error-ink: 0 90% 78%;
+  background: hsl(var(--background));
+  background-image: none;
+  color: hsl(var(--foreground));
+}
+body:has(.playza-super-admin) .playza-super-admin {
+  color-scheme: dark;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+body:has(.playza-super-admin) :is(input, textarea, select) {
+  color-scheme: dark;
+}
+body:has(.playza-super-admin) :is(.bg-white, .bg-slate-50, .bg-gray-50) {
+  background-color: hsl(var(--card));
+}
+body:has(.playza-super-admin) :is(.text-black, .text-gray-900, .text-slate-900) {
+  color: hsl(var(--foreground));
+}
+body:has(.playza-super-admin) .text-primary {
+  color: hsl(var(--playza-lime));
+}
