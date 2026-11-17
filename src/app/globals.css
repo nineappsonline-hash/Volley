@@ -564,3 +564,132 @@ body:has(.playza-super-admin) :is(input, textarea, select)::placeholder {
   color: hsl(var(--muted-foreground));
   opacity: 1;
 }
+
+/* Playza Super Admin — premium dark surfaces inspired by the approved Figma
+   desktop/mobile frames. Scoped to this role to protect the player UI. */
+body:has(.playza-super-admin) {
+  --background: 260 29% 6%;
+  --surface: 257 25% 11%;
+  --card: 257 25% 11%;
+  --popover: 257 24% 13%;
+  --muted: 260 20% 17%;
+  --accent: 268 37% 23%;
+  --border: 264 19% 24%;
+  --input: 264 19% 26%;
+  --foreground: 255 40% 97%;
+  --muted-foreground: 254 15% 72%;
+  --radius: 0.875rem;
+}
+.playza-super-admin {
+  background: #0d0b14;
+  min-height: 100vh;
+}
+.playza-super-admin > aside {
+  background: #181027;
+  border-color: #332548;
+  box-shadow: 12px 0 48px rgba(0, 0, 0, .12);
+}
+.playza-super-admin .playza-navigation {
+  gap: 1.15rem;
+}
+.playza-super-admin .playza-navigation nav {
+  scrollbar-width: thin;
+  scrollbar-color: #443356 transparent;
+}
+.playza-super-admin .playza-navigation nav > div {
+  padding-bottom: .55rem;
+  border-bottom: 1px solid rgba(200, 175, 230, .09);
+}
+.playza-super-admin .playza-navigation nav > div > p {
+  color: #a99bbd;
+  font-size: .66rem;
+  font-weight: 800;
+  letter-spacing: .095em;
+  text-transform: uppercase;
+  margin-bottom: .6rem;
+}
+.playza-super-admin .playza-navigation nav a {
+  border-radius: .75rem;
+  min-height: 42px;
+  border-inline-start-width: 0;
+  color: #d8d1e5;
+  transition: background-color .18s ease, color .18s ease, transform .18s ease;
+}
+.playza-super-admin .playza-navigation nav a:hover {
+  background: #302143;
+  color: #fff;
+}
+.playza-super-admin .playza-navigation nav a[aria-current="page"] {
+  color: hsl(var(--playza-lime));
+  background: linear-gradient(100deg, #4b2679, #342047);
+  box-shadow: inset 3px 0 0 hsl(var(--playza-lime) / .9);
+}
+.playza-super-admin main {
+  max-width: 1440px;
+}
+.playza-super-admin main :is(.rounded-lg, .rounded-xl, .rounded-2xl) {
+  border-radius: .9rem;
+}
+.playza-super-admin main :is(.bg-card, .bg-background, .bg-muted) {
+  background-image: none;
+}
+.playza-super-admin main :is([class*="shadow"], .border.bg-card) {
+  box-shadow: 0 10px 34px rgba(0, 0, 0, .12);
+}
+.playza-super-admin main :is(.bg-white, .bg-slate-50, .bg-gray-50, .bg-zinc-50) {
+  background-color: hsl(var(--card));
+}
+.playza-super-admin main :is(.text-slate-600, .text-slate-500, .text-gray-600, .text-gray-500) {
+  color: hsl(var(--muted-foreground));
+}
+.playza-super-admin main :is(.text-slate-900, .text-gray-900, .text-zinc-900, .text-black) {
+  color: hsl(var(--foreground));
+}
+.playza-super-admin main :is(.border-slate-200, .border-gray-200, .border-zinc-200) {
+  border-color: hsl(var(--border));
+}
+.playza-super-admin main :is(button, a, input, select, textarea) {
+  transition-duration: .18s;
+}
+.playza-super-admin main :is(input, select, textarea) {
+  background-color: hsl(var(--card));
+  border-color: hsl(var(--input));
+  color: hsl(var(--foreground));
+}
+.playza-super-admin main :is(table, [role="table"]) {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.playza-super-admin main thead {
+  background: #292239;
+}
+.playza-super-admin main tbody tr {
+  border-color: hsl(var(--border));
+}
+.playza-super-admin main tbody tr:hover {
+  background-color: rgba(141, 85, 200, .09);
+}
+.playza-super-admin main :is(.bg-primary, button.bg-primary) {
+  color: #100d19;
+}
+.playza-super-admin main :is(.text-brand, .text-brand-600, .text-brand-700) {
+  color: hsl(var(--playza-lime));
+}
+@media (max-width: 1023px) {
+  .playza-super-admin main {
+    padding-inline: 1rem;
+    padding-top: 1.25rem;
+  }
+  .playza-super-admin main :is(table, [role="table"]) {
+    min-width: 580px;
+  }
+  .playza-super-admin main :is(.overflow-x-auto, [data-radix-scroll-area-viewport]) {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .playza-super-admin * {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
