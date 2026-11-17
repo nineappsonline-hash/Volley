@@ -144,7 +144,12 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
     items: paths.map(path => catalog.find(item => item.href === path)!),
   });
   const groups = role === "super_admin"
-    ? [{ label: lang === "ar" ? "إدارة المنصة" : "Platform management", items: superAdminItems }]
+    ? [
+      group("Overview", "نظرة عامة", ["/admin"]),
+      group("Operations", "العمليات", ["/admin?tab=Friendly%20games", "/admin?tab=Tournaments", "/admin?tab=Members"]),
+      group("Business", "إدارة الأعمال", ["/admin?tab=Academies", "/admin?tab=Playgrounds", "/admin/shop"]),
+      group("Reviews & support", "المراجعات والدعم", ["/admin?tab=Approvals", "/admin?tab=Messages"]),
+    ]
     : role === "playground_owner" ? [
       group("My playgrounds", "الملاعب بتاعتي", ["/playgrounds"]),
     ]
@@ -202,7 +207,7 @@ export function Sidebar({ guest = false, role, name, memberPlan, isCoach, hasAca
               <Icon
                 className={cn(
                   "h-4 w-4 transition-transform group-hover:scale-110",
-                  active && "text-white"
+                  active && (role === "super_admin" ? "text-primary" : "text-white")
                 )}
               />
               <span className="min-w-0 flex-1 truncate">
