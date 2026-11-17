@@ -67,7 +67,7 @@ export const getPublicGame = cache(async (id: string): Promise<PublicGameDetail 
      creator_name, duration_hours, min_age, max_age,
      playground:venues(id, name, area, governorate, address, country, location_link, cover_url),
      participants:friendly_game_participants(is_waitlisted,pay_status)`
-  ).eq("id", id).eq("is_public", true).eq("creation_payment_approved", true).in("sport", [...ACTIVE_SPORTS]).maybeSingle();
+  ).eq("id", id).eq("is_public", true).in("sport", [...ACTIVE_SPORTS]).maybeSingle();
   if (error || !data) return null;
   const { participants, playground, ...game } = data;
   return { ...game, playground: Array.isArray(playground) ? playground[0] ?? null : playground,
