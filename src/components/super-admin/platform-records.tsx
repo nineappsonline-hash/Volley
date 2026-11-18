@@ -108,11 +108,15 @@ const STATUS_LABELS: Record<string, keyof Dict> = {
 };
 
 const GAME_STATUS_STYLES: Record<string, string> = {
-  open: "bg-positive-100 text-success-ink ",
-  full: "bg-attention-100 text-warning-ink ",
-  completed: "bg-success/15 text-success-ink",
-  cancelled: "bg-negative-100 text-error-ink ",
+  open: "border border-emerald-400/40 bg-emerald-400/15 text-emerald-200",
+  full: "border border-amber-400/40 bg-amber-400/15 text-amber-200",
+  completed: "border border-teal-400/40 bg-teal-400/15 text-teal-200",
+  cancelled: "border border-rose-400/40 bg-rose-400/15 text-rose-200",
 };
+const GAME_VISIBILITY_STYLES = {
+  private: "border border-violet-400/50 bg-violet-400/20 text-violet-100",
+  public: "border border-sky-400/35 bg-sky-400/10 text-sky-100",
+} as const;
 
 /** Deletion confirmation phrase: account email, else member email, else the
  * family member's name (children have no login or email). */
@@ -657,7 +661,7 @@ function GameDetails({ game, data }: { game: Row; data: Records }) {
     <div className="flex flex-wrap gap-2 text-xs">
       <span className="rounded-full bg-muted px-3 py-1 font-medium">{game.sport}</span>
       <span className={`rounded-full px-3 py-1 font-medium ${statusStyle}`}>{status}</span>
-      <span className="rounded-full bg-muted px-3 py-1 font-medium">{game.is_public === false ? t("games_private") : t("games_public")}</span>
+      <span className={`rounded-full px-3 py-1 font-medium ${game.is_public === false ? GAME_VISIBILITY_STYLES.private : GAME_VISIBILITY_STYLES.public}`}>{game.is_public === false ? t("games_private") : t("games_public")}</span>
       {game.host_pays && <span className="rounded-full bg-muted px-3 py-1 font-medium">{t("games_host_pays_badge")}</span>}
       {game.recurrence && <span className="rounded-full bg-muted px-3 py-1 font-medium">{t("community_weekly")}</span>}
     </div>
@@ -1094,7 +1098,7 @@ export function PlatformRecords() {
                 {tab === "Members" ? (row.email ? <p className="mt-1 break-all text-sm text-muted-foreground">{row.email}</p> : <p className="mt-1 text-xs text-muted-foreground">{t("sa_no_login")}</p>) : tab === "Friendly games" ? <div className="mt-3 space-y-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${GAME_STATUS_STYLES[row.status] ?? "bg-muted text-muted-foreground"}`}>{t(`community_status_${row.status}` as keyof Dict)}</span>
-                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${row.is_public === false ? "bg-attention-100 text-warning-ink" : "bg-muted text-muted-foreground"}`}>{row.is_public === false ? t("games_private") : t("games_public")}</span>
+                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${row.is_public === false ? GAME_VISIBILITY_STYLES.private : GAME_VISIBILITY_STYLES.public}`}>{row.is_public === false ? t("games_private") : t("games_public")}</span>
                   </div>
                   <dl className="space-y-2.5 border-t border-border/60 pt-3 text-sm">
                     <div className="flex items-start gap-2.5"><CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" /><div><dt className="text-xs text-muted-foreground">{lang === "ar" ? "اليوم والتاريخ" : "Day & date"}</dt><dd className="mt-0.5 font-medium">{row.game_date ? new Intl.DateTimeFormat(lang, { weekday: "short", month: "short", day: "numeric" }).format(new Date(`${row.game_date}T00:00:00`)) : "—"}</dd></div></div>
