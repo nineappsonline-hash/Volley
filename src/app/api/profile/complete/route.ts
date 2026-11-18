@@ -26,11 +26,29 @@ export async function POST(request: Request) {
     const admin = createAdminClient();
     const { data: profile, error: lookupError } = await admin.from("profiles")
       .select("id, role").eq("id", user.id).maybeSingle();
-    if (lookupError || !profile) {
-      console.error("Complete profile lookup failed", lookupError?.code, lookupError?.message);
+    if (lookupError) {
+      console.error("Complete profile lookup failed", lookupError.code, lookupError.message);
       return NextResponse.json({ error: "Unable to load your profile." }, { status: 500 });
     }
-    if (profile.role !== "member") return NextResponse.json({ error: "Profile completion is only for members." }, { status: 403 });
+    // OAuth accounts can exist in Auth without a matching public.profiles row.
+    // Restore only genuine member accounts; never manufacture an admin profile.
+    if (!profile) {
+      if (user.app_metadata?.role && user.app_metadata.role !== "member") {
+        return NextResponse.json({ error: "This account requires administrator support." }, { status: 403 });
+      }
+      const name = String(user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split("@")[0] || "Player").slice(0, 100);
+      const { error: createError } = await admin.from("profiles").insert({
+        id: user.id, email: user.email, role: "member", name,
+        phone, gender, birth_date: birthDate, join_date: new Date().toISOString().slice(0, 10),
+        is_active: true,
+      });
+      if (createError && createError.code !== "23505") {
+        console.error("Complete profile creation failed", createError.code, createError.message);
+        return NextResponse.json({ error: "Couldn't create your profile. Please try again." }, { status: 500 });
+      }
+    } else if (profile.role !== "member") {
+      return NextResponse.json({ error: "Profile completion is only for members." }, { status: 403 });
+    }
 
     const { data: updated, error } = await admin.from("profiles")
       .update({ phone, gender, birth_date: birthDate })
