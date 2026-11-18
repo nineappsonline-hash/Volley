@@ -20,7 +20,6 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { authDestination } from "@/lib/auth-redirect";
-import { createClient } from "@/lib/supabase/client";
 
 export function CompleteProfileForm() {
   const { t } = useI18n();
@@ -37,30 +36,22 @@ export function CompleteProfileForm() {
     if (!canSubmit) return;
     setLoading(true);
     try {
-      const {
-        data: { user },
-      } = await createClient().auth.getUser();
-      if (!user) throw new Error("no session");
-      const { data: updatedProfile, error } = await createClient()
-        .from("profiles")
-        .update({
-          phone: phone.trim(),
-          gender,
-          birth_date: birthDate,
-        })
-        .eq("id", user.id)
-        .select("id, phone, gender, birth_date")
-        .maybeSingle();
-      if (error) throw error;
-      if (!updatedProfile || !updatedProfile.phone || !updatedProfile.gender || !updatedProfile.birth_date) {
-        throw new Error("Profile changes were not saved");
+      const response = await fetch("/api/profile/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ phone: phone.trim(), gender, birth_date: birthDate }),
+      });
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.error || "Unable to save profile");
       }
       void confirmPendingSignup();
       const next = authDestination(searchParams.get("next"));
       router.push(next);
       router.refresh();
-    } catch {
-      toast.error(t("complete_profile_error"));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("complete_profile_error"));
       setLoading(false);
     }
   };
