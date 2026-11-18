@@ -12,8 +12,8 @@ export async function POST(request: Request) {
     const phone = typeof body?.phone === "string" ? body.phone.trim() : "";
     const gender = body?.gender;
     const birthDate = body?.birth_date;
-    if (!/^\\+?[0-9\\s()-]{8,20}$/.test(phone) || !["male", "female"].includes(gender) ||
-        typeof birthDate !== "string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(birthDate)) {
+    if (!/^\+?[0-9\s()-]{8,20}$/.test(phone) || !["male", "female"].includes(gender) ||
+        typeof birthDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
       return NextResponse.json({ error: "Please check your phone, gender and date of birth." }, { status: 400 });
     }
     const birth = new Date(birthDate + "T00:00:00Z");
