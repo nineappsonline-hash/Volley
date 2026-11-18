@@ -210,7 +210,7 @@ export async function getGameByInviteCode(code: string): Promise<SharedGameMeta 
          playground:venues(name, area, governorate, location_link, cover_url, photos),
          participants:friendly_game_participants(id, player_name, is_waitlisted,pay_status)`
       )
-      .eq("invite_code", code.trim().toUpperCase()).eq("creation_payment_approved",true)
+      .eq("invite_code", code.trim().toUpperCase())
       .neq("status", "cancelled")
       .limit(1)
       .single();
