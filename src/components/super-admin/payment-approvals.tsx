@@ -110,7 +110,7 @@ export function PaymentApprovals() {
   const reviewRent = useReviewRentPayment();
   const reviewSub = useReviewSubscription();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
-  const [statusFilter, setStatusFilter] = useState<"all" | PayStatus>("pending");
+  const [statusFilter, setStatusFilter] = useState<"all" | PayStatus>("all");
   const [receiptPreview, setReceiptPreview] = useState<{ url: string | null; path: string } | null>(null);
   const [receiptError, setReceiptError] = useState(false);
   const receiptRequest = useRef(0);
@@ -296,6 +296,43 @@ export function PaymentApprovals() {
         </CardTitle>
       </CardHeader>
       <CardContent id={contentId} hidden={!expanded} className="space-y-3">
+        <section className="space-y-3 rounded-xl border border-border bg-card p-3 sm:p-4" aria-label={lang === "ar" ? "سجل عمليات كاشير" : "Kashier order ledger"}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 className="text-sm font-bold text-foreground">{lang === "ar" ? "سجل عمليات Kashier" : "Kashier payment orders"}</h3>
+              <p className="text-xs text-muted-foreground">{lang === "ar" ? "كل طلبات الدفع، حتى لو الحجز مش ظاهر في قائمة الموافقات. حالة Pending مش دليل على وصول المبلغ." : "All checkout orders, including those without a visible booking. Pending does not prove funds were received."}</p>
+            </div>
+            <Badge variant="secondary">{cardOrders?.length ?? 0}</Badge>
+          </div>
+          {cardOrdersQuery.isError ? (
+            <p className="text-sm text-destructive">{lang === "ar" ? "تعذر تحميل سجل كاشير. راجع صلاحيات الحساب واتصال قاعدة البيانات." : "Could not load Kashier orders. Check account access and database connectivity."}</p>
+          ) : cardOrdersQuery.isLoading ? (
+            <p className="text-sm text-muted-foreground">{lang === "ar" ? "جار تحميل العمليات…" : "Loading orders…"}</p>
+          ) : !cardOrders?.length ? (
+            <p className="text-sm text-muted-foreground">{lang === "ar" ? "لا توجد طلبات كاشير في السجل المتاح." : "No Kashier orders in the available ledger."}</p>
+          ) : (
+            <div className="max-h-[380px] overflow-auto rounded-lg border border-border">
+              <table className="w-full min-w-[760px] text-start text-xs">
+                <thead className="sticky top-0 bg-muted text-muted-foreground">
+                  <tr>{(lang === "ar" ? ["التاريخ", "النوع", "المبلغ", "حالة الطلب", "رقم العملية", "رقم الطلب"] : ["Date", "Kind", "Amount", "Order status", "Transaction", "Order ID"]).map(label => <th key={label} className="px-3 py-3 text-start font-semibold">{label}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {cardOrders.map(order => (
+                    <tr key={order.id} className="border-t border-border hover:bg-muted/40">
+                      <td className="whitespace-nowrap px-3 py-3">{new Date(order.created_at).toLocaleString(lang === "ar" ? "ar-EG" : "en-GB")}</td>
+                      <td className="px-3 py-3">{order.kind}</td>
+                      <td className="whitespace-nowrap px-3 py-3 font-semibold">{order.amount} {order.currency}</td>
+                      <td className="px-3 py-3"><span className={order.status === "paid" ? "text-emerald-300" : order.status === "review_required" ? "text-amber-300" : "text-sky-200"}>{order.status === "paid" ? (lang === "ar" ? "مدفوع ومؤكد" : "Paid") : order.status === "review_required" ? (lang === "ar" ? "دفع مؤكد — مراجعة" : "Paid — review") : (lang === "ar" ? "بانتظار التأكيد" : "Pending verification")}</span></td>
+                      <td className="font-mono px-3 py-3">{order.transaction_id ?? "—"}</td>
+                      <td className="font-mono px-3 py-3">{order.id}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="inline-flex min-h-9 h-auto max-w-full flex-wrap items-center justify-start rounded-lg bg-muted p-1 text-muted-foreground">
             {(["all", "share", "rent", "subscription"] as TypeFilter[]).map((f) => (
