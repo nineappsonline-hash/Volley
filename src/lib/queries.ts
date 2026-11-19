@@ -4752,10 +4752,10 @@ export function useCardPaymentOrders() {
     refetchInterval: 30000,
     queryFn: async () => {
       const { data, error } = await supabase().from("kashier_orders")
-        .select("id,kind,target_id,status,details,created_at")
+        .select("id,kind,target_id,user_id,status,details,amount,currency,mode,transaction_id,paid_at,created_at")
         .order("created_at", { ascending: false }).limit(1000);
       if (error) throw error;
-      return (data ?? []) as { id: string; kind: string; target_id: string; status: string; details: { admin_review?: string }; created_at: string }[];
+      return (data ?? []) as { id: string; kind: string; target_id: string; user_id: string | null; status: string; details: { admin_review?: string }; amount: number; currency: string; mode: string; transaction_id: string | null; paid_at: string | null; created_at: string }[];
     },
   });
 }
