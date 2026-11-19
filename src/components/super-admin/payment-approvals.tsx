@@ -109,6 +109,7 @@ export function PaymentApprovals() {
   const reviewShare = useReviewParticipantShare();
   const reviewRent = useReviewRentPayment();
   const reviewSub = useReviewSubscription();
+  const [paymentTab, setPaymentTab] = useState<"approvals" | "kashier">("approvals");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | PayStatus>("all");
   const [receiptPreview, setReceiptPreview] = useState<{ url: string | null; path: string } | null>(null);
@@ -296,6 +297,15 @@ export function PaymentApprovals() {
         </CardTitle>
       </CardHeader>
       <CardContent id={contentId} hidden={!expanded} className="space-y-3">
+        <div role="tablist" aria-label={lang === "ar" ? "أقسام المدفوعات" : "Payment sections"} className="grid grid-cols-2 gap-2 rounded-xl border border-border bg-muted/40 p-1.5">
+          <button type="button" role="tab" aria-selected={paymentTab === "approvals"} onClick={() => setPaymentTab("approvals")} className={`min-w-0 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${paymentTab === "approvals" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-card hover:text-foreground"}`}>
+            {lang === "ar" ? "موافقات المدفوعات" : "Payment approvals"}
+          </button>
+          <button type="button" role="tab" aria-selected={paymentTab === "kashier"} onClick={() => setPaymentTab("kashier")} className={`flex min-w-0 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${paymentTab === "kashier" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-card hover:text-foreground"}`}>
+            <span>Kashier</span><span className="rounded-full bg-background/20 px-2 py-0.5 text-xs">{cardOrders?.length ?? 0}</span>
+          </button>
+        </div>
+        {paymentTab === "kashier" && (
         <section className="space-y-3 rounded-xl border border-border bg-card p-3 sm:p-4" aria-label={lang === "ar" ? "سجل عمليات كاشير" : "Kashier order ledger"}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
@@ -361,7 +371,9 @@ export function PaymentApprovals() {
             </>
           )}
         </section>
+        )}
 
+        {paymentTab === "approvals" && (<>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="inline-flex min-h-9 h-auto max-w-full flex-wrap items-center justify-start rounded-lg bg-muted p-1 text-muted-foreground">
             {(["all", "share", "rent", "subscription"] as TypeFilter[]).map((f) => (
@@ -509,6 +521,7 @@ export function PaymentApprovals() {
           </>
         )}
         </QueryState>
+        </>)}
       </CardContent>
       <Dialog open={receiptPreview !== null} onOpenChange={open => { if (!open) { ++receiptRequest.current; setReceiptPreview(null); setOpeningReceipt(null); } }}>
         <DialogContent className="flex max-h-[90dvh] min-w-0 flex-col overflow-x-hidden rounded-2xl sm:max-w-3xl">
