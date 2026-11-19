@@ -133,11 +133,13 @@ export function AdminGameEditor({ game, onClose }: { game: Game; onClose: () => 
             setBusy(true);
             try {
               const changes: Record<string, unknown> = {};
+              if (!String(draft.title ?? "").trim()) {
+                throw new Error(ar ? "اسم الماتش مطلوب." : "Game name is required.");
+              }
               for (const [key, , , type] of fields) {
                 const value = draft[key];
                 changes[key] = value === "" || value == null ? null : type === "number" ? Number(value) : value;
               }
-              changes.status = String(draft.status ?? "open");
               for (const key of ["description", "playground_id", "skill_level", "gender", "recurrence"]) changes[key] = draft[key] || null;
               changes.is_public = !!draft.is_public;
               changes.host_pays = !!draft.host_pays;
@@ -156,6 +158,12 @@ export function AdminGameEditor({ game, onClose }: { game: Game; onClose: () => 
           }}
         >
           <fieldset disabled={busy} className="space-y-4">
+            <Section icon={ListOrdered} title={ar ? "بيانات الماتش" : "Game details"}>
+              <Field label={ar ? "اسم الماتش" : "Game name"} required>
+                {input("title", "text", { required: true })}
+              </Field>
+            </Section>
+
             <Section icon={ListOrdered} title={ar ? "الحالة" : "Status"}>
               <div className="grid gap-4 sm:grid-cols-3">
                 <Field label={ar ? "حالة الماتش" : "Game status"} required>
