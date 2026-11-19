@@ -311,25 +311,54 @@ export function PaymentApprovals() {
           ) : !cardOrders?.length ? (
             <p className="text-sm text-muted-foreground">{lang === "ar" ? "لا توجد طلبات كاشير في السجل المتاح." : "No Kashier orders in the available ledger."}</p>
           ) : (
-            <div className="max-h-[380px] overflow-auto rounded-lg border border-border">
-              <table className="w-full min-w-[760px] text-start text-xs">
-                <thead className="sticky top-0 bg-muted text-muted-foreground">
-                  <tr>{(lang === "ar" ? ["التاريخ", "النوع", "المبلغ", "حالة الطلب", "رقم العملية", "رقم الطلب"] : ["Date", "Kind", "Amount", "Order status", "Transaction", "Order ID"]).map(label => <th key={label} className="px-3 py-3 text-start font-semibold">{label}</th>)}</tr>
-                </thead>
-                <tbody>
-                  {cardOrders.map(order => (
-                    <tr key={order.id} className="border-t border-border hover:bg-muted/40">
-                      <td className="whitespace-nowrap px-3 py-3">{new Date(order.created_at).toLocaleString(lang === "ar" ? "ar-EG" : "en-GB")}</td>
-                      <td className="px-3 py-3">{order.kind}</td>
-                      <td className="whitespace-nowrap px-3 py-3 font-semibold">{order.amount} {order.currency}</td>
-                      <td className="px-3 py-3"><span className={order.status === "paid" ? "text-emerald-300" : order.status === "review_required" ? "text-amber-300" : "text-sky-200"}>{order.status === "paid" ? (lang === "ar" ? "مدفوع ومؤكد" : "Paid") : order.status === "review_required" ? (lang === "ar" ? "دفع مؤكد — مراجعة" : "Paid — review") : (lang === "ar" ? "بانتظار التأكيد" : "Pending verification")}</span></td>
-                      <td className="font-mono px-3 py-3">{order.transaction_id ?? "—"}</td>
-                      <td className="font-mono px-3 py-3">{order.id}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <>
+              <div className="space-y-2 md:hidden">
+                {cardOrders.map(order => {
+                  const paid = order.status === "paid";
+                  const review = order.status === "review_required";
+                  return (
+                    <details key={order.id} className="group min-w-0 rounded-xl border border-border bg-muted/35 p-3">
+                      <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-base font-bold text-foreground">{order.amount} {order.currency}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">{order.kind} · {new Date(order.created_at).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-GB")}</p>
+                          </div>
+                          <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${paid ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200" : review ? "border-amber-400/30 bg-amber-400/10 text-amber-200" : "border-sky-400/30 bg-sky-400/10 text-sky-200"}`}>
+                            {paid ? (lang === "ar" ? "مدفوع" : "Paid") : review ? (lang === "ar" ? "يحتاج مراجعة" : "Review") : (lang === "ar" ? "بانتظار التحقق" : "Pending")}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-xs font-medium text-primary group-open:hidden">{lang === "ar" ? "عرض التفاصيل +" : "View details +"}</p>
+                      </summary>
+                      <dl className="mt-3 grid min-w-0 gap-2 border-t border-border pt-3 text-xs">
+                        <div><dt className="text-muted-foreground">{lang === "ar" ? "رقم العملية" : "Transaction"}</dt><dd className="mt-1 break-all font-mono text-foreground">{order.transaction_id ?? "—"}</dd></div>
+                        <div><dt className="text-muted-foreground">{lang === "ar" ? "رقم الطلب" : "Order ID"}</dt><dd className="mt-1 break-all font-mono text-foreground">{order.id}</dd></div>
+                        <div><dt className="text-muted-foreground">{lang === "ar" ? "التاريخ" : "Date"}</dt><dd className="mt-1 text-foreground">{new Date(order.created_at).toLocaleString(lang === "ar" ? "ar-EG" : "en-GB")}</dd></div>
+                      </dl>
+                    </details>
+                  );
+                })}
+              </div>
+              <div className="hidden max-h-[380px] overflow-auto rounded-lg border border-border md:block">
+                <table className="w-full min-w-[760px] text-start text-xs">
+                  <thead className="sticky top-0 bg-muted text-muted-foreground">
+                    <tr>{(lang === "ar" ? ["التاريخ", "النوع", "المبلغ", "حالة الطلب", "رقم العملية", "رقم الطلب"] : ["Date", "Kind", "Amount", "Order status", "Transaction", "Order ID"]).map(label => <th key={label} className="px-3 py-3 text-start font-semibold">{label}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {cardOrders.map(order => (
+                      <tr key={order.id} className="border-t border-border hover:bg-muted/40">
+                        <td className="whitespace-nowrap px-3 py-3">{new Date(order.created_at).toLocaleString(lang === "ar" ? "ar-EG" : "en-GB")}</td>
+                        <td className="px-3 py-3">{order.kind}</td>
+                        <td className="whitespace-nowrap px-3 py-3 font-semibold">{order.amount} {order.currency}</td>
+                        <td className="px-3 py-3"><span className={order.status === "paid" ? "text-emerald-300" : order.status === "review_required" ? "text-amber-300" : "text-sky-200"}>{order.status === "paid" ? (lang === "ar" ? "مدفوع ومؤكد" : "Paid") : order.status === "review_required" ? (lang === "ar" ? "دفع مؤكد — مراجعة" : "Paid — review") : (lang === "ar" ? "بانتظار التأكيد" : "Pending verification")}</span></td>
+                        <td className="font-mono px-3 py-3">{order.transaction_id ?? "—"}</td>
+                        <td className="font-mono px-3 py-3">{order.id}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </section>
 
