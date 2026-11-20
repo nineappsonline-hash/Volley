@@ -45,7 +45,7 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
   const venuePhoto = venueCardPhoto(game.playground?.photos, game.playground?.cover_url);
   const share = <GameShareActions compact game={{...game,joined:game.participants_count,place:[game.playground?.name,game.playground?.area??game.area,game.playground?.governorate].filter(Boolean).join(", ")||game.location||""}} />;
   const overview = <>
-      <span data-game-photo="" className="relative isolate block h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand">
+      <span data-game-photo="" className="relative isolate block h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand" style={venuePhoto ? { backgroundImage: `linear-gradient(130deg, rgba(67,33,107,.3), rgba(67,33,107,.1)), url("${venuePhoto.replace(/"/g, "%22")}")`, backgroundPosition: "center", backgroundSize: "cover" } : undefined}>
         <span className="absolute inset-0 flex items-center justify-center text-white/70" aria-hidden="true">{SportIcon({ id: sport, size: 48 })}</span>
         <span className={styles.mobileStatus}>{game.status === "open" ? (slots <= 2 ? (ar ? "قرب يكتمل" : "Almost Full") : (ar ? "متاح" : "Open")) : t(`community_status_${game.status}`)}</span>
         <span className="absolute inset-x-0 bottom-0 bg-brand/95 px-1 py-1.5 text-center text-[9px] font-bold leading-tight text-highlight sm:text-[10px]">{game.sport}</span>
