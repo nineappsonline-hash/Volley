@@ -212,7 +212,12 @@ export function PaymentApprovals() {
     });
   }, [shares, rents, subscriptions, cardOrders, members, t, lang, locale]);
 
-  const pendingCount = records.filter((r) => r.status === "pending" || r.status === "review_required").length;
+  // Unverified Kashier checkouts are not safe to approve.
+  const priorityRecords = useMemo(() => records.filter(r =>
+    (r.status === "pending" && r.method !== "kashier") ||
+    (r.status === "review_required" && r.method === "kashier" && !!r.orderId)
+  ).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()), [records]);
+  const pendingCount = priorityRecords.length;
 
   const filtered = useMemo(
     () =>
@@ -279,12 +284,46 @@ export function PaymentApprovals() {
   const statusLabel = (status: PayStatus) => status === "awaiting_payment" ? (lang === "ar" ? "بانتظار الدفع بالبطاقة" : "Awaiting card payment") : status === "review_required" ? (lang === "ar" ? "تم الدفع — يحتاج مراجعة" : "Paid — needs review") : t(status === "pending" ? "super_admin_payments_pending" : status === "approved" ? "super_admin_payments_approved" : "super_admin_payments_rejected");
   const statusBadge = (status: PayStatus) => <Badge variant={status === "approved" ? "success" : status === "rejected" ? "destructive" : "warning"}>{statusLabel(status)}</Badge>;
   const cardNote = (r: PaymentRecord) => r.method === "kashier" ? <span className="text-xs text-muted-foreground">{lang === "ar" ? "قرار الإدارة لا يخصم أو يُعيد أي مبلغ من كاشير." : "Admin review does not charge or refund Kashier payments."}</span> : null;
-  const actions = (r: PaymentRecord) => (r.method === "kashier" ? !!r.orderId : r.status === "pending") && <>
+  const actions = (r: PaymentRecord) => (r.method === "kashier" ? !!r.orderId && r.status === "review_required" : r.status === "pending") && <>
     {r.status !== "approved" && <Button variant="outline" size="sm" disabled={cardBusy || reviewShare.isPending || reviewRent.isPending || reviewSub.isPending} onClick={() => void handleApproveReject(r, true)}><CheckCircle2 className="me-1 h-3 w-3" />{t("super_admin_fee_approve")}</Button>}
     {r.status !== "rejected" && <Button variant="outline" size="sm" disabled={cardBusy || reviewShare.isPending || reviewRent.isPending || reviewSub.isPending} onClick={() => void handleApproveReject(r, false)}><XCircle className="me-1 h-3 w-3" />{t("super_admin_fee_reject")}</Button>}
   </>;
 
   return (
+    <div className="space-y-4">
+      <section aria-label={lang === "ar" ? "مدفوعات تحتاج موافقة" : "Payments needing approval"} className="rounded-2xl border border-primary/35 bg-card p-3 shadow-sm sm:p-5">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Receipt className="h-5 w-5 text-primary" />
+            <h2 className="text-base font-bold text-foreground">{lang === "ar" ? "مدفوعات تحتاج موافقة" : "Needs approval"}</h2>
+            <Badge variant="warning">{pendingCount}</Badge>
+          </div>
+          <Button type="button" variant="outline" size="sm" disabled={cardBusy} onClick={() => void reloadPayments()}>{lang === "ar" ? "تحديث" : "Refresh"}</Button>
+        </div>
+        <p className="mb-3 text-xs text-muted-foreground">{lang === "ar" ? "المعاملات التي تحتاج قرارًا من الإدارة تظهر هنا تلقائيًا. معاملات كاشير غير المؤكدة لا يمكن اعتمادها من هذه القائمة." : "Payments needing an admin decision appear here automatically. Unverified Kashier checkouts cannot be approved here."}</p>
+        {sharesQuery.isLoading || rentsQuery.isLoading || subscriptionsQuery.isLoading || cardOrdersQuery.isLoading ? (
+          <p className="py-4 text-sm text-muted-foreground">{lang === "ar" ? "جارٍ تحميل المدفوعات…" : "Loading payments…"}</p>
+        ) : priorityRecords.length === 0 ? (
+          <p className="rounded-xl border border-border bg-muted/30 px-4 py-5 text-sm text-muted-foreground">{lang === "ar" ? "مفيش مدفوعات محتاجة موافقة حاليًا." : "No payments need approval right now."}</p>
+        ) : (
+          <div className="space-y-2">
+            {priorityRecords.map(r => (
+              <article key={r.key} className="flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-muted/20 p-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0 space-y-1">
+                  <div className="flex flex-wrap items-center gap-2"><span className="font-semibold text-foreground">{r.detail}</span>{statusBadge(r.status)}</div>
+                  <p className="text-sm text-muted-foreground">{r.label} · {(r.memberId ? memberName(r.memberId) : undefined) ?? r.playerName ?? "—"}</p>
+                  <p className="text-xs text-muted-foreground">{format(new Date(r.createdAt), "MMM d, yyyy · h:mm a", { locale })}{r.method && <> · {r.method}</>}</p>
+                  {r.receiptUrl && <Button type="button" variant="ghost" size="sm" disabled={openingReceipt !== null} onClick={() => void handleViewReceipt(r)}><Eye className="me-1 h-4 w-4" />{t("super_admin_fee_view_receipt")}</Button>}
+                </div>
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  <strong className="me-auto text-base text-foreground sm:me-3">{money(r.amount)}</strong>
+                  {actions(r)}
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base">
@@ -538,6 +577,7 @@ export function PaymentApprovals() {
         </DialogContent>
       </Dialog>
     </Card>
+    </div>
   );
 }
 
