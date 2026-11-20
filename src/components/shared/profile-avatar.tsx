@@ -31,14 +31,17 @@ export function ProfileAvatar({
     return data.publicUrl;
   }, [url]);
 
-  const src = useMemo(() => {
-    if (url) return undefined;
-    if (avatarSrc(avatarId)) return avatarSrc(avatarId);
-    // Stable assigned character for older profiles without an avatar selection.
+  const defaultSrc = useMemo(() => {
     let hash = 0;
     for (const char of name || "Playza") hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
     return avatarSrc(`char-${String((hash % AVATAR_COUNT) + 1).padStart(2, "0")}`);
-  }, [url, avatarId, name]);
+  }, [name]);
+
+  const src = useMemo(() => {
+    if (url) return undefined;
+    if (avatarSrc(avatarId)) return avatarSrc(avatarId);
+    return defaultSrc;
+  }, [url, avatarId, defaultSrc]);
 
   return (
     <Avatar className={cn("[container-type:inline-size]", className)}>
@@ -51,7 +54,7 @@ export function ProfileAvatar({
         />
       ) : (
         <AvatarFallback className={fallbackClassName}>
-          <span aria-hidden="true">●</span>
+          <img src={defaultSrc} alt="" className="h-full w-full object-cover" />
         </AvatarFallback>
       )}
     </Avatar>
