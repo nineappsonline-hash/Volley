@@ -651,17 +651,17 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
 
         {cropFile && <AvatarCropDialog file={cropFile} busy={uploadingAvatar} onClose={() => setCropFile(null)} onSave={saveCroppedAvatar} />}
         <Dialog open={avatarPickerOpen} onOpenChange={(open) => { setAvatarPickerOpen(open); if (!open) setAvatarDraft(null); }}>
-          <DialogContent className="max-w-md space-y-4">
+          <DialogContent className="w-[calc(100vw-1.5rem)] max-w-3xl max-h-[90dvh] overflow-y-auto space-y-5 p-5 sm:p-7">
             <DialogHeader>
               <DialogTitle>{t("avatar_presets_title")}</DialogTitle>
               <DialogDescription>{t("avatar_presets_subtitle")}</DialogDescription>
             </DialogHeader>
             {avatarDraft && (
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div className="flex justify-center">
-                  <ProfileAvatar name={p.name} avatarId={avatarDraft} className="h-24 w-24" />
+                  <ProfileAvatar name={p.name} avatarId={avatarDraft} className="h-28 w-28 sm:h-36 sm:w-36 ring-4 ring-primary/25 shadow-lg" />
                 </div>
-                <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
+                <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 sm:gap-4 lg:grid-cols-5">
                   {AVATAR_GALLERY.map((a) => (
                     <button
                       key={a.id}
@@ -669,7 +669,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                       aria-label={a.id}
                       aria-pressed={avatarDraft === a.id}
                       onClick={() => setAvatarDraft(a.id)}
-                      className={`relative h-12 w-12 overflow-hidden rounded-full border-2 bg-background sm:h-14 sm:w-14 ${
+                      className={`group relative aspect-square w-full overflow-hidden rounded-2xl border-2 bg-muted/40 p-1 transition-all hover:scale-[1.03] hover:border-primary hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
                         avatarDraft === a.id
                           ? "border-primary ring-2 ring-primary/30"
                           : "border-border"
@@ -679,8 +679,8 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
                         src={a.src}
                         alt={a.id}
                         fill
-                        sizes="56px"
-                        className="object-cover"
+                        sizes="(max-width: 640px) 28vw, 130px"
+                        className="rounded-xl object-contain"
                       />
                     </button>
                   ))}
