@@ -25,7 +25,7 @@
 .desktopGames :global([data-game-overview])>div:first-child{display:block;background:hsl(var(--card));color:hsl(var(--foreground))}
 .desktopGames :global([data-game-overview])>div:first-child>div[aria-hidden="true"]{display:none}
 .desktopGames :global([data-game-summary]){display:flex;flex-direction:column;padding:0;gap:0}
-.desktopGames :global([data-game-photo]){width:100%;height:138px;border-radius:0;background:linear-gradient(130deg,#43216b99,#43216b22),url('/images/playza-dashboard-sports.webp') center/cover}
+.desktopGames :global([data-game-photo]){width:100%;height:138px;border-radius:0;background-color:#35116b;background-image:linear-gradient(130deg,#43216b99,#43216b22),url('/images/playza-dashboard-sports.webp');background-position:center;background-size:cover}
 .desktopGames :global([data-game-photo])>span:first-child{display:none}
 .desktopGames :global([data-game-photo])>span:last-child{inset-inline:auto;inset-inline-start:12px;bottom:auto;top:12px;border-radius:20px;padding:5px 10px;background:#caff32;color:#28113f;font-size:10px}
 .desktopGames :global([data-game-summary])>[data-game-info]{width:100%;padding:12px;display:block}
@@ -240,3 +240,6 @@
     color: #e3c6ff;
   }
 }
+
+/* The dashboard thumbnail uses the linked venue photo when one is available. */
+.desktopGames :global([data-game-photo][style*="background-image"]){background-position:center!important;background-size:cover!important}
