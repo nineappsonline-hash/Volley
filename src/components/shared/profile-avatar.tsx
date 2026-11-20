@@ -3,8 +3,8 @@
 import { useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase/client";
-import { avatarSrc } from "@/lib/avatars";
-import { cn, initials } from "@/lib/utils";
+import { avatarSrc, AVATAR_COUNT } from "@/lib/avatars";
+import { cn } from "@/lib/utils";
 
 interface ProfileAvatarProps {
   name: string;
@@ -33,8 +33,12 @@ export function ProfileAvatar({
 
   const src = useMemo(() => {
     if (url) return undefined;
-    return avatarSrc(avatarId);
-  }, [url, avatarId]);
+    if (avatarSrc(avatarId)) return avatarSrc(avatarId);
+    // Stable assigned character for older profiles without an avatar selection.
+    let hash = 0;
+    for (const char of name || "Playza") hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+    return avatarSrc(`char-${String((hash % AVATAR_COUNT) + 1).padStart(2, "0")}`);
+  }, [url, avatarId, name]);
 
   return (
     <Avatar className={cn("[container-type:inline-size]", className)}>
@@ -47,7 +51,7 @@ export function ProfileAvatar({
         />
       ) : (
         <AvatarFallback className={fallbackClassName}>
-          {initials(name) || "U"}
+          <span aria-hidden="true">●</span>
         </AvatarFallback>
       )}
     </Avatar>
