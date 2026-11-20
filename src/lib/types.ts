@@ -408,6 +408,8 @@ export interface Profile {
   avatar_url: string | null;
   // Preset emoji avatar shown when no photo is uploaded (see @/lib/avatars).
   avatar_id: string | null;
+  /** True when the user explicitly chose a character or uploaded a photo. */
+  avatar_is_custom: boolean;
   join_date: string | null;
   membership_type: MembershipType;
   subscription_sessions: number;
