@@ -433,7 +433,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
       });
       if (error) throw error;
       uploaded = true;
-      await updateProfile.mutateAsync({ id: p.id, avatar_url: path });
+      await updateProfile.mutateAsync({ id: p.id, avatar_url: path, avatar_is_custom: true });
       setCropFile(null);
       toast.success(t("profile_saved"));
       if (p.avatar_url?.startsWith(`${p.id}/`)) {
@@ -451,7 +451,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
     if (!avatarDraft) return;
     setAvatarPickerOpen(false);
     try {
-      await updateProfile.mutateAsync({ id: p.id, avatar_id: avatarDraft, avatar_url: null });
+      await updateProfile.mutateAsync({ id: p.id, avatar_id: avatarDraft, avatar_url: null, avatar_is_custom: true });
       toast.success(t("profile_saved"));
     } catch {
       toast.error(t("common_error"));
