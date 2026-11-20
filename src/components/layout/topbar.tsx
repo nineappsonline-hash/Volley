@@ -119,7 +119,7 @@ export function Topbar({ guest = false, role, navigationRole = role, name, usern
               aria-label={lang === "ar" ? "قائمة الحساب" : "Account menu"}
               className="gap-2 rounded-full pe-1 ps-1 sm:pe-2"
             >
-              <ProfileAvatar name={name} url={avatarUrl} avatarId={avatarId} className="h-7 w-7" />
+              <ProfileAvatar name={name} url={avatarUrl} avatarId={avatarId} className="!flex !h-9 !w-9 shrink-0 rounded-full border-2 border-purple-300 bg-purple-100 shadow-sm" fallbackClassName="!flex !h-full !w-full bg-purple-700 text-sm font-bold text-white" />
               <span className="hidden text-sm font-medium sm:inline">
                 {name.split(" ")[0]}
               </span>
