@@ -238,7 +238,7 @@ function VenueDetails({ venue, data }: { venue: Row; data: Records }) {
             type="button"
             variant="outline"
             size="icon"
-            className="h-7 w-7 shrink-0"
+            className="h-10 w-10 shrink-0 ring-1 ring-primary/20"
             aria-label={t("cal_copy")}
             onClick={copyLink}
           >
