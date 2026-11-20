@@ -307,6 +307,7 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
   const [cropFile, setCropFile] = useState<File | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
+  const [avatarChoiceOpen, setAvatarChoiceOpen] = useState(false);
   const [avatarDraft, setAvatarDraft] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const updateProfile = useUpdateOwnProfile();
@@ -511,38 +512,18 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
               <div className="relative">
-                <ProfileAvatar
-                  name={p.name}
-                  url={p.avatar_url}
-                  avatarId={p.avatar_id}
-                  className="h-16 w-16"
-                  fallbackClassName="text-lg"
-                />
-                <div className="absolute -bottom-1 -end-1 flex gap-1">
-                  <button
-                    type="button"
-                    aria-label={t("avatar_change")}
-                    onClick={() => avatarInputRef.current?.click()}
-                    className="flex h-7 w-7 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm transition-colors hover:text-foreground"
-                  >
-                    {uploadingAvatar ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Camera className="h-3.5 w-3.5" />
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={t("avatar_pick_preset")}
-                    onClick={() => {
-                      setAvatarDraft(avatarSlot(p.avatar_id) ?? randomAvatarId());
-                      setAvatarPickerOpen(true);
-                    }}
-                    className="flex h-7 w-7 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm transition-colors hover:text-foreground"
-                  >
-                    <SmilePlus className="h-3.5 w-3.5" />
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  aria-label="Change Avatar"
+                  disabled={uploadingAvatar}
+                  onClick={() => setAvatarChoiceOpen(true)}
+                  className="group relative block h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-2 border-primary/25 shadow-md transition hover:border-primary hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary sm:h-28 sm:w-28"
+                >
+                  <ProfileAvatar name={p.name} url={p.avatar_url} avatarId={p.avatar_id} className="h-full w-full rounded-2xl" />
+                  <span className="absolute inset-x-0 bottom-0 bg-black/75 px-1 py-2 text-center text-[11px] font-bold text-white sm:text-xs">
+                    {uploadingAvatar ? "Uploading..." : "Change Avatar"}
+                  </span>
+                </button>
                 <input
                   ref={avatarInputRef}
                   type="file"
@@ -650,6 +631,25 @@ function MemberProfile({ serverProfile }: { serverProfile: Profile }) {
         </Card>
 
         {cropFile && <AvatarCropDialog file={cropFile} busy={uploadingAvatar} onClose={() => setCropFile(null)} onSave={saveCroppedAvatar} />}
+        <Dialog open={avatarChoiceOpen} onOpenChange={setAvatarChoiceOpen}>
+          <DialogContent className="w-[calc(100vw-1.5rem)] max-w-sm rounded-2xl p-6">
+            <DialogHeader>
+              <DialogTitle>Change Avatar</DialogTitle>
+              <DialogDescription>Choose a Playza character or upload your own photo.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-3">
+              <Button className="h-14 justify-start gap-3 text-base" onClick={() => {
+                setAvatarChoiceOpen(false);
+                setAvatarDraft(avatarSlot(p.avatar_id) ?? randomAvatarId());
+                setAvatarPickerOpen(true);
+              }}><SmilePlus className="h-5 w-5" /> Choose Avatar</Button>
+              <Button variant="outline" className="h-14 justify-start gap-3 text-base" onClick={() => {
+                setAvatarChoiceOpen(false);
+                avatarInputRef.current?.click();
+              }}><Camera className="h-5 w-5" /> Upload Photo</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
         <Dialog open={avatarPickerOpen} onOpenChange={(open) => { setAvatarPickerOpen(open); if (!open) setAvatarDraft(null); }}>
           <DialogContent className="w-[calc(100vw-1.5rem)] max-w-3xl max-h-[90dvh] overflow-y-auto space-y-5 p-5 sm:p-7">
             <DialogHeader>
