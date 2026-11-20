@@ -282,7 +282,14 @@ export function PaymentApprovals() {
   };
 
   const statusLabel = (status: PayStatus) => status === "awaiting_payment" ? (lang === "ar" ? "بانتظار الدفع بالبطاقة" : "Awaiting card payment") : status === "review_required" ? (lang === "ar" ? "تم الدفع — يحتاج مراجعة" : "Paid — needs review") : t(status === "pending" ? "super_admin_payments_pending" : status === "approved" ? "super_admin_payments_approved" : "super_admin_payments_rejected");
-  const statusBadge = (status: PayStatus) => <Badge variant="outline" className={status === "approved" ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-800 dark:border-emerald-400/50 dark:bg-emerald-400/15 dark:text-emerald-200" : status === "rejected" ? "border-red-500/50 bg-red-500/15 text-red-800 dark:border-red-400/50 dark:bg-red-400/15 dark:text-red-200" : "border-amber-500/50 bg-amber-500/15 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/15 dark:text-amber-200"}>{statusLabel(status)}</Badge>;
+  const statusBadge = (status: PayStatus) => {
+    const palette = status === "approved"
+      ? { color: "#F0FFF6", backgroundColor: "#166534", borderColor: "#4ADE80" }
+      : status === "rejected"
+        ? { color: "#FFF1F2", backgroundColor: "#991B1B", borderColor: "#F87171" }
+        : { color: "#FFF8E7", backgroundColor: "#92400E", borderColor: "#FBBF24" };
+    return <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold leading-none" style={palette}>{statusLabel(status)}</span>;
+  };
   const cardNote = (r: PaymentRecord) => r.method === "kashier" ? <span className="text-xs text-muted-foreground">{lang === "ar" ? "قرار الإدارة لا يخصم أو يُعيد أي مبلغ من كاشير." : "Admin review does not charge or refund Kashier payments."}</span> : null;
   const actions = (r: PaymentRecord) => (r.method === "kashier" ? !!r.orderId && r.status === "review_required" : r.status === "pending") && <>
     {r.status !== "approved" && <Button variant="outline" size="sm" disabled={cardBusy || reviewShare.isPending || reviewRent.isPending || reviewSub.isPending} onClick={() => void handleApproveReject(r, true)}><CheckCircle2 className="me-1 h-3 w-3" />{t("super_admin_fee_approve")}</Button>}
@@ -296,7 +303,7 @@ export function PaymentApprovals() {
           <div className="flex items-center gap-2">
             <Receipt className="h-5 w-5 text-primary" />
             <h2 className="text-base font-bold text-foreground">{lang === "ar" ? "مدفوعات تحتاج موافقة" : "Needs approval"}</h2>
-            <Badge variant="outline" className="border-amber-500/50 bg-amber-500/15 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/15 dark:text-amber-200">{pendingCount}</Badge>
+            <span className="inline-flex min-w-7 items-center justify-center rounded-full border px-2 py-1 text-xs font-bold leading-none" style={{ color: "#FFFFFF", backgroundColor: "#92400E", borderColor: "#FBBF24" }}>{pendingCount}</span>
           </div>
           <Button type="button" variant="outline" size="sm" disabled={cardBusy} onClick={() => void reloadPayments()}>{lang === "ar" ? "تحديث" : "Refresh"}</Button>
         </div>
@@ -330,7 +337,7 @@ export function PaymentApprovals() {
           <button type="button" aria-expanded={expanded} aria-controls={contentId} onClick={() => setExpanded(!expanded)} className="flex w-full items-center gap-2 rounded text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <Receipt className="h-4 w-4 text-primary" />
           {t("super_admin_payments_title")}
-          {pendingCount > 0 && <Badge variant="outline" className="border-amber-500/50 bg-amber-500/15 text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/15 dark:text-amber-200">{pendingCount}</Badge>}
+          {pendingCount > 0 && <span className="inline-flex min-w-7 items-center justify-center rounded-full border px-2 py-1 text-xs font-bold leading-none" style={{ color: "#FFFFFF", backgroundColor: "#92400E", borderColor: "#FBBF24" }}>{pendingCount}</span>}
           <ChevronDown className={`ms-auto h-4 w-4 shrink-0 transition-transform motion-reduce:transition-none ${expanded ? "rotate-180" : ""}`} aria-hidden="true" />
           </button>
         </CardTitle>
