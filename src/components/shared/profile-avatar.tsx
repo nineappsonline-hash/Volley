@@ -45,18 +45,10 @@ export function ProfileAvatar({
 
   return (
     <Avatar className={cn("[container-type:inline-size]", className)}>
-      {src || uploadedSrc ? (
-        <AvatarImage
-          src={src ?? uploadedSrc}
-          alt={name}
-          title={name}
-          loading="lazy"
-        />
-      ) : (
-        <AvatarFallback className={fallbackClassName}>
-          <img src={defaultSrc} alt="" className="h-full w-full object-cover" />
-        </AvatarFallback>
-      )}
+      {(src || uploadedSrc) && <AvatarImage src={src ?? uploadedSrc} alt={name} title={name} loading="eager" />}
+      <AvatarFallback delayMs={0} className={cn("overflow-hidden bg-purple-100", fallbackClassName)}>
+        <img src={defaultSrc} alt="" className="h-full w-full object-cover" />
+      </AvatarFallback>
     </Avatar>
   );
 }
