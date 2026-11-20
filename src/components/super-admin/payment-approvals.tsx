@@ -287,7 +287,7 @@ export function PaymentApprovals() {
       ? { color: "#F0FFF6", backgroundColor: "#166534", borderColor: "#4ADE80" }
       : status === "rejected"
         ? { color: "#FFF1F2", backgroundColor: "#991B1B", borderColor: "#F87171" }
-        : { color: "#FFF8E7", backgroundColor: "#92400E", borderColor: "#FBBF24" };
+        : { color: "#FFFFFF", backgroundColor: "#1D4ED8", borderColor: "#60A5FA" };
     return <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold leading-none" style={palette}>{statusLabel(status)}</span>;
   };
   const cardNote = (r: PaymentRecord) => r.method === "kashier" ? <span className="text-xs text-muted-foreground">{lang === "ar" ? "قرار الإدارة لا يخصم أو يُعيد أي مبلغ من كاشير." : "Admin review does not charge or refund Kashier payments."}</span> : null;
@@ -303,7 +303,7 @@ export function PaymentApprovals() {
           <div className="flex items-center gap-2">
             <Receipt className="h-5 w-5 text-primary" />
             <h2 className="text-base font-bold text-foreground">{lang === "ar" ? "مدفوعات تحتاج موافقة" : "Needs approval"}</h2>
-            <span className="inline-flex min-w-7 items-center justify-center rounded-full border px-2 py-1 text-xs font-bold leading-none" style={{ color: "#FFFFFF", backgroundColor: "#92400E", borderColor: "#FBBF24" }}>{pendingCount}</span>
+            <span className="inline-flex min-w-7 items-center justify-center rounded-full border px-2 py-1 text-xs font-bold leading-none" style={{ color: "#FFFFFF", backgroundColor: "#1D4ED8", borderColor: "#60A5FA" }}>{pendingCount}</span>
           </div>
           <Button type="button" variant="outline" size="sm" disabled={cardBusy} onClick={() => void reloadPayments()}>{lang === "ar" ? "تحديث" : "Refresh"}</Button>
         </div>
@@ -337,7 +337,7 @@ export function PaymentApprovals() {
           <button type="button" aria-expanded={expanded} aria-controls={contentId} onClick={() => setExpanded(!expanded)} className="flex w-full items-center gap-2 rounded text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <Receipt className="h-4 w-4 text-primary" />
           {t("super_admin_payments_title")}
-          {pendingCount > 0 && <span className="inline-flex min-w-7 items-center justify-center rounded-full border px-2 py-1 text-xs font-bold leading-none" style={{ color: "#FFFFFF", backgroundColor: "#92400E", borderColor: "#FBBF24" }}>{pendingCount}</span>}
+          {pendingCount > 0 && <span className="inline-flex min-w-7 items-center justify-center rounded-full border px-2 py-1 text-xs font-bold leading-none" style={{ color: "#FFFFFF", backgroundColor: "#1D4ED8", borderColor: "#60A5FA" }}>{pendingCount}</span>}
           <ChevronDown className={`ms-auto h-4 w-4 shrink-0 transition-transform motion-reduce:transition-none ${expanded ? "rotate-180" : ""}`} aria-hidden="true" />
           </button>
         </CardTitle>
