@@ -13,7 +13,7 @@ export const AVATAR_PREFIX = "char";
 
 export function avatarSrc(avatarId: string | null | undefined = ""): string | undefined {
   const slot = avatarSlot(avatarId);
-  return slot ? `/images/avatars/${slot}.png` : undefined;
+  return slot ? `/images/avatars/${slot}.svg` : undefined;
 }
 
 // Loose match for arbitrary id strings while keeping the type-predicate
@@ -43,5 +43,5 @@ export function randomAvatarId(): string {
 export const AVATAR_GALLERY: readonly { id: string; src: string }[] =
   Array.from({ length: AVATAR_COUNT }, (_, i) => {
     const id = `${AVATAR_PREFIX}-${String(i + 1).padStart(2, "0")}`;
-    return { id, src: `/images/avatars/${id}.png` };
+    return { id, src: `/images/avatars/${id}.svg` };
   });
