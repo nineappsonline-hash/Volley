@@ -112,6 +112,9 @@ export function PaymentApprovals() {
   const [paymentTab, setPaymentTab] = useState<"approvals" | "kashier">("approvals");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | PayStatus>("all");
+  const [approvalPage, setApprovalPage] = useState(1);
+  const [kashierPage, setKashierPage] = useState(1);
+  const pageSize = 10;
   const [receiptPreview, setReceiptPreview] = useState<{ url: string | null; path: string } | null>(null);
   const [receiptError, setReceiptError] = useState(false);
   const receiptRequest = useRef(0);
@@ -227,6 +230,28 @@ export function PaymentApprovals() {
           (statusFilter === "all" || r.status === statusFilter),
       ),
     [records, typeFilter, statusFilter],
+  );
+
+
+  const sortedFiltered = useMemo(() => [...filtered].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()), [filtered]);
+  const approvalPageCount = Math.max(1, Math.ceil(sortedFiltered.length / pageSize));
+  const currentApprovalPage = Math.min(approvalPage, approvalPageCount);
+  const visibleApprovals = sortedFiltered.slice((currentApprovalPage - 1) * pageSize, currentApprovalPage * pageSize);
+  const sortedKashier = useMemo(() => [...(cardOrders ?? [])].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()), [cardOrders]);
+  const kashierPageCount = Math.max(1, Math.ceil(sortedKashier.length / pageSize));
+  const currentKashierPage = Math.min(kashierPage, kashierPageCount);
+  const visibleKashier = sortedKashier.slice((currentKashierPage - 1) * pageSize, currentKashierPage * pageSize);
+  const pagination = (page: number, totalPages: number, totalItems: number, change: (page: number) => void) => totalItems > pageSize && (
+    <nav aria-label={lang === "ar" ? "صفحات المدفوعات" : "Payment pages"} className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
+      <span className="text-xs text-muted-foreground">
+        {lang === "ar" ? "عرض" : "Showing"} {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalItems)} {lang === "ar" ? "من" : "of"} {totalItems}
+      </span>
+      <div className="flex items-center gap-2">
+        <Button type="button" variant="outline" size="sm" disabled={page <= 1} onClick={() => change(page - 1)}>{lang === "ar" ? "السابق" : "Previous"}</Button>
+        <span className="min-w-16 text-center text-xs font-semibold text-foreground">{page} / {totalPages}</span>
+        <Button type="button" variant="outline" size="sm" disabled={page >= totalPages} onClick={() => change(page + 1)}>{lang === "ar" ? "التالي" : "Next"}</Button>
+      </div>
+    </nav>
   );
 
   const handleApproveReject = async (
@@ -369,7 +394,7 @@ export function PaymentApprovals() {
           ) : (
             <>
               <div className="space-y-2 md:hidden">
-                {cardOrders.map(order => {
+                {visibleKashier.map(order => {
                   const paid = order.status === "paid";
                   const review = order.status === "review_required";
                   return (
@@ -401,7 +426,7 @@ export function PaymentApprovals() {
                     <tr>{(lang === "ar" ? ["التاريخ", "النوع", "المبلغ", "حالة الطلب", "رقم العملية", "رقم الطلب"] : ["Date", "Kind", "Amount", "Order status", "Transaction", "Order ID"]).map(label => <th key={label} className="px-3 py-3 text-start font-semibold">{label}</th>)}</tr>
                   </thead>
                   <tbody>
-                    {cardOrders.map(order => (
+                    {visibleKashier.map(order => (
                       <tr key={order.id} className="border-t border-border hover:bg-muted/40">
                         <td className="whitespace-nowrap px-3 py-3">{new Date(order.created_at).toLocaleString(lang === "ar" ? "ar-EG" : "en-GB")}</td>
                         <td className="px-3 py-3">{order.kind}</td>
@@ -414,6 +439,7 @@ export function PaymentApprovals() {
                   </tbody>
                 </table>
               </div>
+              {pagination(currentKashierPage, kashierPageCount, sortedKashier.length, setKashierPage)}
             </>
           )}
         </section>
@@ -426,7 +452,7 @@ export function PaymentApprovals() {
               <button
                 key={f}
                 type="button"
-                onClick={() => setTypeFilter(f)}
+                onClick={() => { setTypeFilter(f); setApprovalPage(1); }}
                 className={[
                   "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-semibold transition-all",
                   typeFilter === f
@@ -449,7 +475,7 @@ export function PaymentApprovals() {
           <Button variant="outline" size="sm" disabled={cardBusy} onClick={() => void refreshCards()}>{lang === "ar" ? "تحديث مدفوعات كاشير" : "Refresh Kashier payments"}</Button>
           <Select
             value={statusFilter}
-            onValueChange={(v) => setStatusFilter(v as "all" | PayStatus)}
+            onValueChange={(v) => { setStatusFilter(v as "all" | PayStatus); setApprovalPage(1); }}
           >
             <SelectTrigger className="w-44">
               <SelectValue placeholder={t("super_admin_payments_status")} />
@@ -482,7 +508,7 @@ export function PaymentApprovals() {
         ) : (
           <>
           <div className="space-y-3 md:hidden">
-            {filtered.map(r => (
+            {visibleApprovals.map(r => (
               <article key={r.key} className="min-w-0 space-y-3 rounded-xl border p-3">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <h3 className="min-w-0 break-words font-semibold">{r.label}</h3>
@@ -515,7 +541,7 @@ export function PaymentApprovals() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((r) => {
+                {visibleApprovals.map((r) => {
                   const name = r.memberId ? memberName(r.memberId) : undefined;
                   const handle = r.memberId ? memberHandle(r.memberId) : undefined;
                   return (
@@ -567,6 +593,7 @@ export function PaymentApprovals() {
           </>
         )}
         </QueryState>
+        {pagination(currentApprovalPage, approvalPageCount, sortedFiltered.length, setApprovalPage)}
         </>)}
       </CardContent>
       <Dialog open={receiptPreview !== null} onOpenChange={open => { if (!open) { ++receiptRequest.current; setReceiptPreview(null); setOpeningReceipt(null); } }}>
