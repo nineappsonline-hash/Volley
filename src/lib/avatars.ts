@@ -1,6 +1,6 @@
 // Character avatar gallery. profiles.avatar_id stores a slot id — "char-01"
-// up to "char-20" — which maps to a bundled original SVG mascot at
-// /images/avatars/char-NN.svg (flat-vector, game-style, consistent design
+// up to "char-20" — which maps to a bundled 3D cartoon PNG avatar at
+// /images/avatars/char-NN.png (3D cartoon, game-style, consistent design
 // system). A random one is assigned on row creation by the SQL helper
 // public.random_avatar_id(); this module resolves ids to asset paths and
 // mints new random ones client-side for the picker.
@@ -13,7 +13,7 @@ export const AVATAR_PREFIX = "char";
 
 export function avatarSrc(avatarId: string | null | undefined = ""): string | undefined {
   const slot = avatarSlot(avatarId);
-  return slot ? `/images/avatars/${slot}.svg` : undefined;
+  return slot ? `/images/avatars/${slot}.png` : undefined;
 }
 
 // Loose match for arbitrary id strings while keeping the type-predicate
@@ -43,5 +43,5 @@ export function randomAvatarId(): string {
 export const AVATAR_GALLERY: readonly { id: string; src: string }[] =
   Array.from({ length: AVATAR_COUNT }, (_, i) => {
     const id = `${AVATAR_PREFIX}-${String(i + 1).padStart(2, "0")}`;
-    return { id, src: `/images/avatars/${id}.svg` };
+    return { id, src: `/images/avatars/${id}.png` };
   });
