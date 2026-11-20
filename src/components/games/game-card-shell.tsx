@@ -71,14 +71,14 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
   </article>;
   return <article className={`group/card self-start overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-lg hover:shadow-primary/10 ${game.status === "completed" ? "border-emerald-500/50" : game.status === "open" ? "border-blue-400/60 ring-1 ring-blue-400/15" : "border-border"}`}>
     <div className={`relative isolate flex min-h-40 items-end gap-3 overflow-hidden bg-gradient-to-br ${theme} px-4 pb-4 pt-12 text-white`}>
-      {venuePhoto ? (<><img src={venuePhoto} alt="" aria-hidden="true" className="absolute inset-0 -z-10 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} /><div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-[#170c2e]/95 via-[#170c2e]/60 to-[#170c2e]/30" /></>) : <GameCardBackground sport={game.sport} />}
-      {game.status === "completed" && <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-emerald-900/55" />}
-      <span className={`absolute end-3 top-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold text-white shadow-sm ${statusStyle}`}>
+      {venuePhoto ? (<><img src={venuePhoto} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} /><div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-[#170c2e]/95 via-[#170c2e]/60 to-[#170c2e]/30" /></>) : <GameCardBackground sport={game.sport} />}
+      {game.status === "completed" && <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[2] bg-emerald-900/55" />}
+      <span className={`absolute end-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold text-white shadow-sm ${statusStyle}`}>
         {game.status === "completed" ? <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> : game.status === "open" ? <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden="true" /> : null}
         {game.status === "full" ? (ar ? "محجوز بالكامل" : "FULLY BOOKED") : t(`community_status_${game.status}`)}
       </span>
-      <span aria-hidden="true" className="relative shrink-0 rounded-xl border border-white/20 bg-white/10 p-2">{SportIcon({ id: sport, size: 32 })}</span>
-      <div className="relative min-w-0">
+      <span aria-hidden="true" className="relative z-10 shrink-0 rounded-xl border border-white/20 bg-white/10 p-2">{SportIcon({ id: sport, size: 32 })}</span>
+      <div className="relative z-10 min-w-0">
         <p className="text-sm font-bold">{game.sport}</p>
         <p className="mt-1 text-base font-semibold">{game.playground?.name || game.location || game.area || game.title}</p>
         <p className="mt-1 text-xs text-white/90">{format(new Date(`${game.game_date}T00:00:00`), "EEE, d MMM", { locale })} · {formatTime12h(game.start_time, lang)}</p>
