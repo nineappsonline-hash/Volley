@@ -20,7 +20,7 @@
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  opacity: .65;
+  opacity: 1;
 }
 .art::after {
   content: "";
