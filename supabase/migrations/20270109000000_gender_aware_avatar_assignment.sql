@@ -51,7 +51,8 @@ BEGIN
        AND NEW.avatar_url IS NOT NULL THEN
       NEW.avatar_is_custom := true;
     ELSIF NEW.avatar_id IS DISTINCT FROM OLD.avatar_id
-       AND NEW.gender IS NOT DISTINCT FROM OLD.gender THEN
+       AND NEW.gender IS NOT DISTINCT FROM OLD.gender
+       AND (OLD.avatar_id IS NOT NULL OR NEW.avatar_is_custom IS TRUE) THEN
       NEW.avatar_is_custom := true;
     ELSIF NEW.gender IS DISTINCT FROM OLD.gender
        AND OLD.avatar_is_custom IS FALSE
