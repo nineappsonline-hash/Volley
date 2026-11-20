@@ -63,7 +63,7 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
   </>;
   if (layout === "list") return <article data-game-overview="" className="overflow-hidden rounded-xl border border-border bg-card text-card-foreground transition-shadow hover:shadow-sm">
     <div className={`${styles.surface} sm:grid sm:grid-cols-[minmax(0,1fr)_auto]`}>
-    <div className={styles.art} aria-hidden="true"><GameCardBackground sport={game.sport} /></div>
+    <div className={styles.art} aria-hidden="true">{venuePhoto ? <><img src={venuePhoto} alt="" className="absolute inset-0 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} /><div className="absolute inset-0 bg-gradient-to-r from-[#251044]/90 via-[#251044]/65 to-[#251044]/40" /></> : <GameCardBackground sport={game.sport} />}</div>
     {detailsHref ? <Link href={detailsHref} data-game-summary="" className={overviewClass}>{overview}</Link> : <button type="button" aria-expanded={expanded} aria-controls={detailsId} onClick={() => setExpanded(!expanded)} data-game-summary="" className={overviewClass}>{overview}</button>}
     {(!hideActionsWhenExpanded || !expanded) && <div className={`${styles.content} ${styles.actions} flex flex-wrap items-start justify-end gap-2 px-3 pb-2 sm:items-end sm:py-3 sm:ps-0`}>{directions && <GoogleMapsDirectionsButton compact href={directions} />}{share}</div>}
     </div>
