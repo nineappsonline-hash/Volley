@@ -60,6 +60,7 @@ export async function getSession(): Promise<SessionData | null> {
     guardian_id: null,
     avatar_url: null,
     avatar_id: null,
+    avatar_is_custom: false,
     join_date: null,
     membership_type: "full",
     subscription_sessions: 0,
