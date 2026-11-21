@@ -357,3 +357,19 @@ export async function getPublicTournamentSports(): Promise<string[]> {
     return [];
   }
 }
+
+/** Public game roster: confirmed player display names only; no contact details. */
+export async function getPublicGameParticipantNames(gameId: string): Promise<{ id: string; player_name: string; is_waitlisted: boolean }[]> {
+  if (!/^[0-9a-f-]{36}$/i.test(gameId)) return [];
+  const admin = getAdmin();
+  if (!admin) return [];
+  const { data: game, error: gameError } = await admin.from("friendly_games")
+    .select("id").eq("id", gameId).eq("is_public", true).maybeSingle();
+  if (gameError || !game) return [];
+  const { data, error } = await admin.from("friendly_game_participants")
+    .select("id, player_name, is_waitlisted")
+    .eq("game_id", gameId).eq("pay_status", "approved").eq("is_waitlisted", false)
+    .order("player_name").limit(100);
+  if (error) return [];
+  return (data ?? []).map(p => ({ id: p.id, player_name: p.player_name, is_waitlisted: false }));
+}
