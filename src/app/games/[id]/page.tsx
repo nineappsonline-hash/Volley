@@ -1,7 +1,7 @@
 import { SharedGamePage } from "@/components/games/shared-game-page";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPublicGame, getPublicGames } from "@/lib/public-games";
+import { getPublicGame, getPublicGames, getPublicGameParticipantNames } from "@/lib/public-games";
 import { gamePlace, publicGamePath, publicGameMetadata, publicGameEvent } from "@/lib/game-discovery";
 import { SITE_URL, breadcrumbsJsonLd, jsonLdStringify, BRAND } from "@/lib/seo";
 import { gameSharingTarget } from "@/lib/game-share";
@@ -47,6 +47,7 @@ export async function generateMetadata({ params }: Props) {
 export default async function PublicGamePage({ params }: Props) {
   const game = await getPublicGame((await params).id);
   if (!game) notFound();
+  const publicParticipants = await getPublicGameParticipantNames(game.id);
   const related = (await getPublicGames(game.sport)).filter(g => g.id !== game.id).slice(0, 4);
   const path = publicGamePath(game.id);
   const event = publicGameEvent(game);
@@ -69,7 +70,7 @@ export default async function PublicGamePage({ params }: Props) {
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@context": "https://schema.org", "@graph": [
       ...(event ? [event] : []), breadcrumbsJsonLd([{ name: "Home", url: SITE_URL }, { name: "Games", url: `${SITE_URL}/games` }, { name: game.title, url: `${SITE_URL}${path}` }]),
     ] }) }} />
-    <SharedGamePage game={sharedGame} />
+    <SharedGamePage game={sharedGame} publicParticipants={publicParticipants} />
     {related.length > 0 && <nav aria-label="Related upcoming games" className="mx-auto max-w-3xl px-5 py-8">
       <h2 className="text-lg font-semibold">More {game.sport} games on Playza</h2>
       <ul className="mt-3 space-y-2">
