@@ -10,10 +10,10 @@ import { cn } from "@/lib/utils";
 
 type Player = { member_id?: string | null; sponsor_participant_id?: string | null; id: string; player_name: string; is_waitlisted: boolean };
 
-export function GameParticipantNames({ participants }: { participants: Player[] }) {
+export function GameParticipantNames({ participants, defaultOpen = false }: { participants: Player[]; defaultOpen?: boolean }) {
   const { lang } = useI18n();
   const ar = lang === "ar";
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const heading = ar ? "المشاركون" : "Participants";
   const count = participants.length;
   return (
