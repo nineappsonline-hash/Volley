@@ -50,7 +50,7 @@ export function SharedGamePage({ game, inviteCode, publicParticipants }: { game:
             <DirectionsLinks locationLink={game.location_link} lat={game.lat} lng={game.lng} query={game.map_label} />
             <div className={styles.share}><GameShareActions compact game={{ ...game, invite_code: inviteCode, place: game.map_label }} /></div>
           </div>
-          <div className={styles.participants}>{inviteCode ? <GameParticipantNames participants={game.participants} /> : publicParticipants ? <GameParticipantNames participants={publicParticipants} /> : <SignedInGameParticipantNames gameId={game.id} publicCount={game.joined} />}</div>
+          <div className={styles.participants}>{inviteCode ? <GameParticipantNames defaultOpen participants={game.participants.filter(p => !p.is_waitlisted)} /> : publicParticipants ? <GameParticipantNames participants={publicParticipants} /> : <SignedInGameParticipantNames gameId={game.id} publicCount={game.joined} />}</div>
           {!gameIsJoinable(game) && <p role="status">{game.status === "cancelled" ? (ar ? "الماتش اتلغى" : "Cancelled") : game.status === "completed" ? (ar ? "الماتش خلص" : "Completed") : (ar ? "الماتش بدأ أو ميعاده فات" : "This game has started or ended")}</p>}
           {gameIsJoinable(game) && <PublicGameJoin game={game} inviteCode={inviteCode} returnTo={inviteCode ? undefined : publicGamePath(game.id)} />}
         </>}
