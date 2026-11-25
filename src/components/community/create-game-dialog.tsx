@@ -134,7 +134,7 @@ export function CreateGameDialog({
     if (open) {
       setTitle("");
       setSport("");
-      setDate(addDaysInput(1));
+      setDate(addDaysInput(0));
       setTime("");
       setToTime("");
       setMaxPlayers("12");
@@ -197,6 +197,10 @@ export function CreateGameDialog({
       toast.error(lang === "ar" ? "راجع الحد الأدنى والأقصى للاعبين والمدة (أكتر من صفر ولحد 24 ساعة)." : "Check player limits and duration (greater than zero, up to 24 hours)."); return;
     }
     if (!title.trim() || !sport || !date || !time || !toTime) return;
+    if (new Date(`${date}T${time}`).getTime() <= Date.now()) {
+      toast.error(lang === "ar" ? "اختار ميعاد بداية لسه مجاش." : "Choose a start time in the future.");
+      return;
+    }
     try {
       const id = await create.mutateAsync({
         title: title.trim(),
@@ -430,7 +434,7 @@ export function CreateGameDialog({
               busyForDate={busyForDate}
               selectedDate={date || undefined}
               onSelectDate={handleDateChange}
-              minDate={addDaysInput(1)}
+              minDate={addDaysInput(0)}
             />
           )}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -439,7 +443,7 @@ export function CreateGameDialog({
               <Input
                 type="date"
                 dir="ltr"
-                min={addDaysInput(1)}
+                min={addDaysInput(0)}
                 value={date}
                 onChange={(e) => handleDateChange(e.target.value)}
               />
