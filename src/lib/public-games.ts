@@ -112,7 +112,7 @@ export type PublicTournament = {
   academy: { name: string; slug: string | null; area: string | null; governorate: string | null } | null;
 };
 
-const todayISO = () => new Date().toISOString().slice(0, 10);
+const todayISO = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Cairo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 
 function getAdmin() {
   try {
@@ -161,7 +161,7 @@ export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
         playground: Array.isArray(g.playground) ? (g.playground[0] ?? null) : row.playground,
         joined: (parts ?? []).filter(p => !p.is_waitlisted && p.pay_status === "approved").length,
       };
-    });
+    }).filter(game => gameIsJoinable(game));
   } catch {
     return [];
   }
