@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { trackPageView, trackView, trackCompletion, storageGet, storageSet, type AnalyticsContext, type BusinessEvent } from "@/lib/analytics/events";
-import { confirmPendingSignup, confirmPendingGameRegistration } from "@/lib/analytics/registrations";
+import { confirmPendingSignup, confirmPendingGameRegistration, confirmPendingOwnerVenueSubmission } from "@/lib/analytics/registrations";
 import { createClient } from "@/lib/supabase/client";
 
 export function BusinessAnalytics() {
@@ -11,7 +11,8 @@ export function BusinessAnalytics() {
   useEffect(()=>{
     void confirmPendingSignup();
     void confirmPendingGameRegistration();
-    const check=()=>{void confirmPendingSignup();void confirmPendingGameRegistration();};
+    void confirmPendingOwnerVenueSubmission();
+    const check=()=>{void confirmPendingSignup();void confirmPendingGameRegistration();void confirmPendingOwnerVenueSubmission();};
     const onVisible=()=>{if(document.visibilityState==="visible")check();};
     window.addEventListener("focus",check);
     document.addEventListener("visibilitychange",onVisible);
