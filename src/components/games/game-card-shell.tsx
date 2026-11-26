@@ -44,7 +44,8 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
   const overviewClass = `${styles.content} flex w-full items-start gap-3 p-3 text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:gap-3`;
   const directions = googleDirectionsUrl(game.playground?.location_link);
   const venuePhoto = venueCardPhoto(game.playground?.photos, game.playground?.cover_url);
-  const optimizeLandingPhoto = deferPhotoLoading && !!venuePhoto?.startsWith("https://jqysnlkykznwdonicwsm.supabase.co/storage/v1/object/public/");
+  const optimizeVenuePhoto = !!venuePhoto?.startsWith("https://jqysnlkykznwdonicwsm.supabase.co/storage/v1/object/public/");
+  const optimizeLandingPhoto = deferPhotoLoading && optimizeVenuePhoto;
   const share = <GameShareActions compact game={{...game,joined:game.participants_count,place:[game.playground?.name,game.playground?.area??game.area,game.playground?.governorate].filter(Boolean).join(", ")||game.location||""}} />;
   const overview = <>
       <span data-game-photo="" className="relative isolate block h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand" style={venuePhoto && !deferPhotoLoading ? { backgroundImage: `linear-gradient(130deg, rgba(67,33,107,.3), rgba(67,33,107,.1)), url("${venuePhoto.replace(/"/g, "%22")}")`, backgroundPosition: "center", backgroundSize: "cover" } : undefined}>
@@ -74,7 +75,7 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
   </article>;
   return <article className={`group/card self-start overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-lg hover:shadow-primary/10 ${game.status === "completed" ? "border-emerald-500/50" : game.status === "open" ? "border-blue-400/60 ring-1 ring-blue-400/15" : "border-border"}`}>
     <div className={`relative isolate flex min-h-40 items-end gap-3 overflow-hidden bg-gradient-to-br ${theme} px-4 pb-4 pt-12 text-white`}>
-      {venuePhoto ? (<><img src={venuePhoto} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} /><div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-[#170c2e]/95 via-[#170c2e]/60 to-[#170c2e]/30" /></>) : <GameCardBackground sport={game.sport} />}
+      {venuePhoto ? (<>{optimizeVenuePhoto ? <Image src={venuePhoto} alt="" fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px" quality={70} loading="lazy" className="pointer-events-none absolute inset-0 z-0 object-cover" onError={event => { event.currentTarget.style.display = "none"; }} /> : <img src={venuePhoto} alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} />}<div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-[#170c2e]/95 via-[#170c2e]/60 to-[#170c2e]/30" /></>) : <GameCardBackground sport={game.sport} />}
       {game.status === "completed" && <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[2] bg-emerald-900/55" />}
       <span className={`absolute end-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold text-white shadow-sm ${statusStyle}`}>
         {game.status === "completed" ? <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> : game.status === "open" ? <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden="true" /> : null}
