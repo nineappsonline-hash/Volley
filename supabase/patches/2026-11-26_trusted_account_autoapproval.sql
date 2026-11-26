@@ -14,6 +14,7 @@ CREATE OR REPLACE FUNCTION public.autoapprove_trusted_game_payment()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 BEGIN
  IF NEW.member_id IS NOT NULL
+ AND auth.uid()=NEW.member_id
  AND public.is_trusted_auto_approval_account(NEW.member_id)
  AND NEW.pay_status='pending'
  AND NEW.pay_method IN ('instapay','e_wallet')
