@@ -306,7 +306,14 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
           </div>
         )}
 
-        <nav aria-label="Games in New Cairo" className="mt-10 flex flex-wrap gap-4">{LOCAL_GAME_GUIDES.map(guide => <Link key={guide.slug} href={localGamePath("en", guide.slug)} className="font-semibold underline underline-offset-4">{guide.en.title}</Link>)}</nav>
+        <nav aria-label="Games in New Cairo" className="mt-10 rounded-xl border bg-card p-5">
+          <h2 className="text-lg font-bold">Find players and games in New Cairo · دور على ماتشات في التجمع</h2>
+          <p className="mt-2 text-sm text-muted-foreground">Explore upcoming games and real previous matches by sport and area.</p>
+          <div className="mt-4 flex flex-wrap gap-3">{LOCAL_GAME_GUIDES.map(guide => <div key={guide.slug} className="flex flex-wrap gap-2">
+            <Link href={localGamePath("en", guide.slug)} className="rounded-lg border px-3 py-2 font-semibold underline underline-offset-4">{guide.en.title}</Link>
+            <Link href={localGamePath("ar", guide.slug)} lang="ar" dir="rtl" className="rounded-lg border px-3 py-2 font-semibold underline underline-offset-4">{guide.ar.title}</Link>
+          </div>)}</div>
+        </nav>
 
         {sport && playerGuidesForSport(sportToSlug(sport)).length > 0 && (
           <nav aria-label={`${sport} guides`} className="mt-6 flex flex-wrap gap-4">
