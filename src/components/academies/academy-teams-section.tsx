@@ -6,7 +6,7 @@ import { Building2, Calendar, MapPin, Navigation, Users, Volleyball } from "luci
 import { AcademyLogoDisplay } from "@/components/academies/academy-logo-display";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SportIcon } from "@/components/marketing/sport-icons";
 import { useI18n } from "@/lib/i18n";
 import { localizeCountry } from "@/lib/locations";
@@ -34,6 +34,12 @@ export function AcademyTeamsSection({
     new Set(teams.map((team) => team.sport?.name ?? t("directory_teams_other_sport")))
   ).sort((a, b) => a.localeCompare(b, lang));
 
+  const filteredTeams =
+    selectedSport === "all"
+      ? teams
+      : teams.filter(
+          (team) => (team.sport?.name ?? t("directory_teams_other_sport")) === selectedSport
+        );
 
   return (
     <section
@@ -54,25 +60,29 @@ export function AcademyTeamsSection({
       ) : (
         <>
           <div className="mt-6 mb-4">
-            <div className="inline-flex min-h-9 h-auto w-full max-w-full flex-wrap items-center justify-start gap-2 overflow-x-auto rounded-lg bg-muted p-1 pb-1 text-muted-foreground" role="group" aria-label={ar ? "تصفية الفرق حسب الرياضة" : "Filter teams by sport"}>
-              {[{ value: "all", label: ar ? "كل الرياضات" : "All sports" }, ...sports.map(sport => ({ value: sport, label: sport }))].map(item => (
-                <button
-                  key={item.value}
-                  type="button"
-                  aria-pressed={selectedSport === item.value}
-                  onClick={() => setSelectedSport(item.value)}
-                  className={`inline-flex min-h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 py-1 text-sm font-semibold ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${selectedSport === item.value ? "bg-accent text-accent-foreground shadow-sm" : "hover:bg-accent/60"}`}
-                >
-                  {item.value !== "all" && (
-                    <span className="w-5 h-5 shrink-0"><SportIcon id={item.value.toLowerCase()} size={14} /></span>
-                  )}
-                  {item.label}
-                </button>
+            <Tabs value={selectedSport} onValueChange={setSelectedSport}>
+              <TabsList className="w-full flex gap-2 overflow-x-auto pb-1">
+                <TabsTrigger value="all" className="px-4">
+                  {ar ? "كل الرياضات" : "All sports"}
+                </TabsTrigger>
+                {sports.map((sport) => (
+                  <TabsTrigger key={sport} value={sport} className="flex items-center gap-2 px-4">
+                    <span className="w-5 h-5 shrink-0">
+                      <SportIcon id={sport.toLowerCase()} size={14} />
+                    </span>
+                    {sport}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              {sports.map((sport) => (
+                <TabsContent key={sport} value={sport}>
+                  <SportTeams sport={sport} teams={teams} lang={lang} t={t} />
+                </TabsContent>
               ))}
-            </div>
-            <div className="mt-2">
-              <SportTeams sport={selectedSport === "all" ? null : selectedSport} teams={teams} lang={lang} t={t} />
-            </div>
+              <TabsContent value="all">
+                <SportTeams sport={null} teams={teams} lang={lang} t={t} />
+              </TabsContent>
+            </Tabs>
           </div>
         </>
       )}
