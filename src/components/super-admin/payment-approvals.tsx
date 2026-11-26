@@ -344,6 +344,7 @@ export function PaymentApprovals() {
                 <div className="min-w-0 space-y-1">
                   <div className="flex flex-wrap items-center gap-2"><span className="font-semibold text-foreground">{r.detail}</span>{statusBadge(r.status)}</div>
                   <p className="text-sm text-muted-foreground">{r.label} · {(r.memberId ? memberName(r.memberId) : undefined) ?? r.playerName ?? "—"}</p>
+                  <PaymentGuestSummary record={r} language={lang} />
                   <p className="text-xs text-muted-foreground">{format(new Date(r.createdAt), "MMM d, yyyy · h:mm a", { locale })}{r.method && <> · {r.method}</>}</p>
                   {r.receiptUrl && <Button type="button" variant="ghost" size="sm" disabled={openingReceipt !== null} onClick={() => void handleViewReceipt(r)}><Eye className="me-1 h-4 w-4" />{t("super_admin_fee_view_receipt")}</Button>}
                 </div>
@@ -620,7 +621,7 @@ function PaymentPurpose({ record, language }: { record: PaymentRecord; language:
   const money = (amount: number) => formatMoneyShort(amount, language as "en" | "ar");
   return <div className="mt-2 min-w-0 space-y-2 text-xs">
     <p className="whitespace-normal break-words text-sm font-semibold leading-relaxed">{record.detail}</p>
-    {!!record.guests?.length && <p className="text-xs font-medium text-secondary">{1 + record.guests.length} {ar ? "لاعبين في دفعة واحدة" : "players in one payment"} · {record.guests.length} {ar ? "ضيوف" : "guests"}</p>}
+    <PaymentGuestSummary record={record} language={language} />
     <details className="group/purpose rounded-xl border bg-muted/20">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-3 py-2.5 font-semibold text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">{ar ? "تفاصيل الدفع" : "Payment details"}<ChevronDown className="h-4 w-4 shrink-0 transition-transform group-open/purpose:rotate-180 motion-reduce:transition-none" aria-hidden="true" /></summary>
       <div className="space-y-4 border-t p-3 text-start">
@@ -642,4 +643,16 @@ function PaymentPurpose({ record, language }: { record: PaymentRecord; language:
       </div>
     </details>
   </div>;
+}
+
+function PaymentGuestSummary({ record, language }: { record: PaymentRecord; language: string }) {
+  const guests = record.guests ?? [];
+  if (record.kind !== "share" || !guests.length) return null;
+  const ar = language === "ar";
+  return <section className="min-w-0 space-y-2 rounded-lg border border-primary/30 bg-card p-2.5 text-sm text-foreground">
+    <p className="font-semibold">{ar ? "عدد الضيوف" : "Guests"}: {guests.length} <span className="font-normal text-muted-foreground">· {ar ? "إجمالي اللاعبين" : "Total players"}: {guests.length + 1}</span></p>
+    <ul className="flex flex-wrap gap-1.5" aria-label={ar ? "أسماء الضيوف" : "Guest names"}>
+      {guests.map(guest => <li key={guest.id} className="max-w-full break-words rounded-md border border-border bg-muted px-2 py-1 text-xs font-medium text-foreground">{guest.player_name || (ar ? "اسم غير مسجل" : "Name not recorded")}</li>)}
+    </ul>
+  </section>;
 }
