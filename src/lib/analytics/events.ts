@@ -2,7 +2,7 @@
 import { COUNTRIES, COUNTRIES_AR, STATES_BY_COUNTRY, CITIES_BY_STATE } from "@/lib/locations";
 
 export const GA_MEASUREMENT_ID = "G-XJPEX3WY2B";
-export type BusinessEvent = "game_view" | "join_game_click" | "game_registration_completed" | "player_signup_completed" | "academy_view" | "academy_registration_click" | "academy_registration_completed" | "venue_registration_started" | "venue_registration_completed" | "academy_owner_registration_started" | "academy_owner_registration_completed" | "share_game" | "invite_players_click" | "share_academy" | "share_venue" | "share_sports_page";
+export type BusinessEvent = "game_view" | "join_game_click" | "game_registration_completed" | "game_booking_confirmed" | "player_signup_completed" | "academy_view" | "academy_registration_click" | "academy_registration_completed" | "venue_registration_started" | "venue_registration_completed" | "academy_owner_registration_started" | "academy_owner_registration_completed" | "share_game" | "invite_players_click" | "share_academy" | "share_venue" | "share_sports_page";
 export type AnalyticsContext = { sport?: string | null; sports?: string[]; country?: string | null; governorate?: string | null; city?: string | null; area?: string | null; registration_type?: "academy_membership" | "training_reservation"; method?: "email" | "google"; share_method?: string; game_status?: string; };
 type Params = Record<string, string | number | boolean>;
 type AnalyticsWindow = Window & { dataLayer?: unknown[]; gtag?: (...args: unknown[]) => void; navigator: Navigator & { globalPrivacyControl?: boolean }; playzaGaConfigured?: boolean; playzaGaQueue?: unknown[][]; playzaAnalyticsConsent?: "granted" | "denied" };
@@ -37,7 +37,7 @@ export function analyticsContext(input: AnalyticsContext = {}): Params {
 /** Do not transmit arbitrary slugs, redirect URLs, invite tokens, payment IDs or query strings. */
 export function safePath(path: string): string {
   const parts = path.split(/[?#]/)[0].split("/").filter(Boolean);
-  const fixed = new Set(["ar","dashboard","games","my-games","academies","signup","owner","tenant","login","auth","continue","callback","complete-profile","onboarding","sports","guides","tournaments","playgrounds","academy-management","academy-bookings","payment-result","checkout","plans","tennis","padel","basketball","volleyball","beach-volleyball","archery","faq","solutions","list-your-court","book-courts","courts","football","swimming","update-password","forgot-password","volleyball-cairo","join-volleyball-without-team","beach-volleyball-beginners"]);
+  const fixed = new Set(["ar","dashboard","games","my-games","academies","signup","owner","tenant","login","auth","continue","callback","complete-profile","onboarding","sports","guides","tournaments","playgrounds","academy-management","academy-bookings","payment-result","checkout","plans","tennis","padel","basketball","volleyball","beach-volleyball","archery","faq","solutions","list-your-court","book-courts","courts","football","swimming","update-password","forgot-password","volleyball-cairo","join-volleyball-without-team","beach-volleyball-beginners","play","for-courts","new-cairo","nasr-city","maadi","heliopolis","6th-of-october","sheikh-zayed","list-your-court"]);
   return "/" + parts.map((p,i) => fixed.has(p) ? p : i === 0 && p === "a" ? "a" : "detail").join("/");
 }
 // Only operational campaign identifiers are accepted. Raw search terms/content are never sent.
