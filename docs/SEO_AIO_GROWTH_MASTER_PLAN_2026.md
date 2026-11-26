@@ -160,5 +160,16 @@ Automated daily audits for sitemap HTTP 200, malformed JSON-LD, game indexabilit
 - [ ] Complete accurate owner onboarding conversion content/screenshots, marketing variants and paid-vs-organic measurement.
 - [ ] Record successful release state and first post-deploy crawl measurements.
 
+## Phase 3 implementation ledger — venue-owner search intent (2026-11-26)
+
+- [x] Add original differentiated pages for padel, volleyball and basketball court owners, in Arabic and English (6 indexable routes).
+- [x] Include each page in the sitemap with self-canonical and bilingual hreflang alternates.
+- [x] Include factual service information, transparent registration process, sport-specific questions, no unverifiable traffic/booking promises, and direct owner signup CTA.
+- [x] Link the three categories from the existing /list-your-court funnel page in both languages; cross-link related sport owner pages.
+- [ ] Validate all six production URLs return HTTP 200, contain correct HTML lang/hreflang, structured data, CTA and indexable canonical.
+- [ ] Verify owner signup → submission → approved court journey and GA4 funnel in production using safely marked test data.
+- [ ] Review existing analytics taxonomies for owner signup and complete owner conversion attribution.
+- [ ] Compare with competitors' verified positions and prioritize page changes from Search Console metrics.
+
 ## 15. Release discipline
 Every phase: source review → implementation PR/commit → typecheck/build → route and regression smoke tests → production deploy → production check → analytics/SEO monitor → mark complete. **Never mark a phase fully done when only the code has been committed.**
