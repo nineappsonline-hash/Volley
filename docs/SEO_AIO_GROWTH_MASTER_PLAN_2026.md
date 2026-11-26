@@ -203,7 +203,8 @@ Automated daily audits for sitemap HTTP 200, malformed JSON-LD, game indexabilit
 - [x] Retain game-join intent through delayed card/manual approval for up to 30 days and dedupe completion events using local SHA-256 fingerprints (no game ID or member ID is sent to GA4).
 - [x] Recheck verified confirmation on page return, focus, visibility and auth changes in addition to payment-result success.
 - [ ] Validate actual GA4 DebugView and consent opt-outs on production; inspect one test pending → approved flow without a real card charge.
-- [ ] Add validated venue submission and approved venue events only with backend confirmation; the current owner signup completion event measures an account, not an approved court.
+- [x] Add separate `venue_listing_submitted` and `venue_listing_approved` conversion events after querying the authenticated owner's actual venue rows and approval status. Retain intent for delayed approvals; no member IDs or venue IDs are sent to GA4.
+- [ ] Verify the owner venue tracking query is permitted by production RLS and records the real signup→submission→approval journey in GA4 DebugView.
 - [ ] Configure GA4 key event `game_booking_confirmed` in the connected Google Analytics property where authorized; GSC alone does not expose GA4 management.
 - [ ] Compare organic landing → join click → joined seat → approved seat with Search Console queries, without storing PII.
 
