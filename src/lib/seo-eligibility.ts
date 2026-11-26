@@ -11,11 +11,10 @@ import type { PublicGame } from "@/lib/public-games";
  *   window is what gameIsJoinable models (status open/full, scheduled start in
  *   the future). A single upcoming game justifies an indexable page; the gate
  *   is usefulness, not volume.
- * - Completed, cancelled or past games keep their page accessible (no blanket
- *   redirects to /games) — the event record, venue and player count are real
- *   information — but they must not advertise a registration they cannot take
- *   or appear as upcoming events in structured data, so we serve
- *   noindex,follow until the page loses even navigational value.
+ * - Completed/past public games remain indexable as genuinely useful history
+ *   and navigation to fresh games, with clear expiry labels and no misleading
+ *   upcoming-event structured data.
+ * - Cancelled games stay accessible but noindex,follow.
  * - Removed/private/invalid games already return 404 via getPublicGame().
  * - Directories and filter combinations stay out of this policy: filters are
  *   discovered through the canonical /games, /academies and /sports routes.
@@ -51,17 +50,22 @@ export function gameLifecycle(
   return game.status === "full" ? "upcoming-full" : "upcoming-open";
 }
 
-/** Indexable only while joining is possible; everything else stays accessible but noindex. */
+/**
+ * An archived, public game remains useful as an honest record and as a gateway
+ * to upcoming games in the same sport. Do not remove it from indexing just
+ * because the game date passed. Cancelled games remain non-indexable.
+ * Pages must clearly state the event is over and link to live alternatives.
+ */
 export function gameRobots(
   game: Pick<PublicGame, "status" | "game_date" | "start_time">,
-  now = new Date(),
+  _now = new Date(),
 ): { index: boolean; follow: boolean } {
-  return gameIsJoinable(game, now) ? { index: true, follow: true } : { index: false, follow: true };
+  return { index: game.status !== "cancelled", follow: true };
 }
 
 /**
- * Structured-data gate: expired pages must not present themselves as upcoming
- * events. Cancelled future games stay eligible with EventCancelled status.
+ * Archived games are navigation/history pages, not upcoming events.
+ * Cancelled events keep their cancellation markup while they are in the future.
  */
 export function gameEventMarkupEligible(game: PublicGame, now = new Date()): boolean {
   return gameIsJoinable(game, now) || game.status === "cancelled";
