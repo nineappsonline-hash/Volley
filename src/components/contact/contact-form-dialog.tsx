@@ -43,9 +43,9 @@ const schema = (t: (k: any) => string) =>
 
 type FormValues = z.infer<ReturnType<typeof schema>>;
 
-export function ContactFormDialog({ trigger }: { trigger: ReactNode }) {
+export function ContactFormDialog({ trigger, initialOpen = false }: { trigger?: ReactNode; initialOpen?: boolean }) {
   const { t } = useI18n();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initialOpen);
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
 
@@ -90,7 +90,7 @@ export function ContactFormDialog({ trigger }: { trigger: ReactNode }) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
       <DialogContent className="sm:max-w-md">
         {sent ? (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
