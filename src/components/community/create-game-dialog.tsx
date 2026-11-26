@@ -216,7 +216,7 @@ export function CreateGameDialog({
         is_public: isPublic,
         recurrence: recurrence === "weekly" ? "weekly" : null,
       });
-      let amount = 25;
+      let amount = 20;
       let remaining = 0;
       try {
         const { data: part } = await createClient()
