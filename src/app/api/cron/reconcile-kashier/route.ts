@@ -16,10 +16,20 @@ export async function GET(request: Request) {
   }
   try {
     const db = createAdminClient();
+    const mode = kashierConfig().mode;
+    const { count, error: countError } = await db.from("kashier_orders")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending").eq("mode", mode);
+    if (countError) throw countError;
+    // Rotate through pages so a long-lived pending checkout cannot starve
+    // older payments of periodic reconciliation.
+    const pageCount = Math.max(1, Math.ceil((count ?? 0) / 24));
+    const page = Math.floor(Date.now() / 3_600_000) % pageCount;
+    const offset = page * 24;
     const { data: orders, error } = await db.from("kashier_orders")
       .select("id,session_id,mode,amount,currency")
-      .eq("status", "pending").eq("mode", kashierConfig().mode)
-      .order("created_at", { ascending: false }).limit(24);
+      .eq("status", "pending").eq("mode", mode)
+      .order("created_at", { ascending: false }).range(offset, offset + 23);
     if (error) throw error;
     let confirmed = 0, unverified = 0, errors = 0;
     for (let i = 0; i < (orders ?? []).length; i += 4) {
