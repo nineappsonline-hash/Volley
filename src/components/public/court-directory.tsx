@@ -8,6 +8,8 @@ import { findDiscoverySport, discoveryPath, type DiscoveryLanguage } from "@/lib
 import { sportToSlug } from "@/lib/sport-slugs";
 import { formatMoney } from "@/lib/constants";
 import { SITE_URL, jsonLdStringify, breadcrumbsJsonLd } from "@/lib/seo";
+import { courtsLocationPath, locationLabel, locationSlugsWithInventory } from "@/lib/court-locations";
+import { listYourCourtPath } from "@/lib/list-your-court";
 
 export async function CourtDirectory({ lang, slug }: { lang: DiscoveryLanguage; slug?: string }) {
   const selected = slug ? findDiscoverySport(slug) : undefined;
@@ -15,6 +17,7 @@ export async function CourtDirectory({ lang, slug }: { lang: DiscoveryLanguage; 
   const all = await getPublicCourtDirectory();
   const courts = selected ? all.filter(c => c.sport?.name.toLowerCase() === selected.name.toLowerCase()) : all;
   const sports = [...new Set(all.flatMap(c => c.sport ? [c.sport.name] : []))];
+  const regions = selected ? locationSlugsWithInventory(courts, selected.name) : [];
   const ar = lang === "ar";
   const copy = (en: string, arabic: string) => ar ? arabic : en;
   const metadata = courtDirectoryMetadata(lang, slug);
@@ -35,6 +38,13 @@ export async function CourtDirectory({ lang, slug }: { lang: DiscoveryLanguage; 
       <nav aria-label={copy("Filter by sport", "اختار الرياضة")} className="flex flex-wrap gap-2">
         {[{ name: copy("All sports", "كل الرياضات"), slug: undefined }, ...sports.map(name => ({ name: ar ? findDiscoverySport(sportToSlug(name))?.arabic ?? name : name, slug: sportToSlug(name) }))].map(item => <Link key={item.slug ?? "all"} href={courtsPath(lang, item.slug)} aria-current={item.slug === slug ? "page" : undefined} className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${item.slug === slug ? "border-brand bg-accent text-accent-foreground" : "bg-card hover:bg-accent"}`}>{item.name}</Link>)}
       </nav>
+      {selected && regions.length > 0 && <section aria-labelledby="courts-by-area" className="rounded-2xl border bg-card p-5">
+        <h2 id="courts-by-area" className="text-lg font-bold">{copy(`${selected.name} courts by area`, `ملاعب ${selected.arabic} حسب المنطقة`)}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{copy("Choose an area with real published courts to compare locations, rental prices and individual venues.", "اختار منطقة فيها ملاعب منشورة فعلًا، وقارن العناوين والأسعار وتفاصيل الملاعب.")}</p>
+        <nav aria-label={copy("Court locations", "مناطق الملاعب")} className="mt-4 flex flex-wrap gap-2">
+          {regions.map(region => <Link key={region} href={courtsLocationPath(lang, selected.slug, region)} className="rounded-lg border bg-background px-4 py-2 text-sm font-semibold underline-offset-4 hover:underline hover:bg-accent">{locationLabel(lang, region)}</Link>)}
+        </nav>
+      </section>}
       <p className="text-sm text-muted-foreground">{copy("Prices shown are final full-court booking prices for one hour. Open a court to check dates, duration and availability.", "الأسعار المعروضة هي أسعار حجز الملعب بالكامل لمدة ساعة. افتح صفحة الملعب لمراجعة المواعيد والمدة والإتاحة.")}</p>
       {courts.length ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{courts.map(c => <article key={c.id} className="overflow-hidden rounded-2xl border bg-card shadow-sm">
         <Link href={`/p/${encodeURIComponent(c.id)}`} aria-label={c.name} className="flex h-32 items-center justify-center overflow-hidden bg-muted">
@@ -51,7 +61,7 @@ export async function CourtDirectory({ lang, slug }: { lang: DiscoveryLanguage; 
           <Link href={`/p/${encodeURIComponent(c.id)}`} className="inline-flex min-h-9 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold hover:bg-accent">{copy("Court details & booking", "تفاصيل الملعب والحجز")}<ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" /></Link>
         </div>
       </article>)}</div> : <p className="rounded-2xl border bg-card p-5 text-muted-foreground">{copy("No published courts are available to display for this selection. Explore the other sports or check public games.", "مفيش ملاعب منشورة متاحة للعرض بالاختيار ده. اكتشف الرياضات التانية أو راجع الماتشات العامة.")}</p>}
-      <div className="flex flex-wrap gap-4 border-t pt-5 text-sm font-semibold"><Link href={slug ? discoveryPath(lang, slug) : discoveryPath(lang)}>{copy("Playing & training guide", "دليل اللعب والتدريب")}</Link><Link href={slug ? `/games?sport=${encodeURIComponent(slug)}` : "/games"}>{copy("Find a game", "لاقي ماتش")}</Link><Link href="/academies">{copy("Explore academies", "اكتشف الأكاديميات")}</Link></div>
+      <div className="flex flex-wrap gap-4 border-t pt-5 text-sm font-semibold"><Link href={slug ? discoveryPath(lang, slug) : discoveryPath(lang)}>{copy("Playing & training guide", "دليل اللعب والتدريب")}</Link><Link href={slug ? `/games?sport=${encodeURIComponent(slug)}` : "/games"}>{copy("Find a game", "لاقي ماتش")}</Link><Link href="/academies">{copy("Explore academies", "اكتشف الأكاديميات")}</Link><Link href={listYourCourtPath(lang)}>{copy("Own a court? List it for free", "عندك ملعب؟ ضيفه مجانًا")}</Link></div>
     </div>
   </main>;
 }
