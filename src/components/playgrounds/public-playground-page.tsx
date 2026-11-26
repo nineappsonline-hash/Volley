@@ -20,7 +20,11 @@ import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { useCurrentProfile } from "@/lib/queries";
 import { ShareMenu } from "@/components/academies/academy-share";
-import { CreateGameDialog } from "@/components/games/create-game-dialog";
+import dynamic from "next/dynamic";
+
+// Court booking dialog pulls in game creation, billing and venue pickers.
+// Do not hydrate that bundle for visitors merely reading a court listing.
+const CreateGameDialog = dynamic(() => import("@/components/games/create-game-dialog").then(mod => mod.CreateGameDialog), { ssr: false });
 import { PlaygroundAvailabilityCalendar } from "@/components/shared/playground-availability-calendar";
 import { venueCardPhoto } from "@/lib/venue-media";
 import { playgroundShareLink, playgroundShareText } from "@/lib/playground-share";
