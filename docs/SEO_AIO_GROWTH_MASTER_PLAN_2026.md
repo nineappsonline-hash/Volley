@@ -218,7 +218,9 @@ Automated daily audits for sitemap HTTP 200, malformed JSON-LD, game indexabilit
 - [x] Prioritize the visible hero image on public venue detail with eager/high-priority load and fixed dimensions; keep lower gallery thumbnails lazy with fixed dimensions.
 - [x] Avoid lazy loading the first visible photo on the public game share/detail page; reserve its intrinsic size.
 - [ ] Check production build, dynamic chunk loading and payment/booking dialog opening on mobile; never claim verified user journey without a real browser session.
-- [ ] Read Lighthouse lab results and prioritized crawl issues for the new audit; make next performance changes from actual lab bottlenecks.
+- [x] Read completed OpenSEO crawl: 50 of 137 discovered URLs checked (87 omitted by plan/page limit); no critical issues in fetched issue report, 1 missing H1, 4 thin-content notices, 14 long descriptions, 9 long titles. Fix academy H1 and highest-priority owner snippets.
+- [ ] Run a measured Lighthouse baseline when sufficient OpenSEO Lighthouse credits are available. All 20 requested device runs failed with `INSUFFICIENT_CREDITS` (no performance, LCP, CLS or INP numbers can be claimed).
+- [ ] Prioritize actual performance bottlenecks after valid Lighthouse/CrUX measurements.
 - [ ] Compare before/after Core Web Vitals under equivalent mobile conditions and watch game-join and owner-registration conversion for regressions.
 - [ ] Fix remaining confirmed render-blocking fonts/JavaScript/images based on measured priority, without breaking consent or accessibility.
 
