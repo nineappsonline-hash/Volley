@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Building2, Calendar, MapPin, Navigation, Users, Volleyball } from "lucide-react";
-import { AcademyLogo } from "@/components/academies/academy-logo";
+import { AcademyLogoDisplay } from "@/components/academies/academy-logo-display";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -138,8 +138,7 @@ function SportTeams({
             <Card className="flex flex-col relative">
               <CardContent className="flex flex-1 flex-col gap-3 p-4 relative pb-6">
               <div className="flex items-start gap-3">
-                <AcademyLogo
-                  academyId={team.academy.id}
+                <AcademyLogoDisplay
                   name={team.academy.name}
                   logoUrl={team.academy.logo_url}
                 />
