@@ -13,6 +13,7 @@ import { DISCOVERY_SPORTS, discoveryPath } from "@/lib/sport-discovery";
 import { listYourCourtPath } from "@/lib/list-your-court";
 import { OWNER_SPORTS, ownerSportPath, type OwnerSportSlug } from "@/lib/owner-sport-pages";
 import { sportToSlug } from "@/lib/sport-slugs";
+import { courtsPath } from "@/lib/court-discovery";
 
 export const revalidate = 3600; // refresh at most hourly
 
@@ -82,7 +83,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  for (const sport of [undefined, "tennis", "volleyball", "beach-volleyball"]) {
+  for (const sport of [undefined]) {
     const suffix = sport ? `?sport=${sport}` : "";
     for (const lang of ["en", "ar"]) staticPages.push({
       url: `${SITE_URL}${lang === "ar" ? "/ar" : ""}/courts${suffix}`,
@@ -225,6 +226,22 @@ async function playgroundEntries(): Promise<MetadataRoute.Sitemap> {
 async function courtLocationEntries(): Promise<MetadataRoute.Sitemap> {
   const courts = await getPublicCourtDirectory();
   const pages: MetadataRoute.Sitemap = [];
+  // Only index sport-filtered court directories when a real approved court is listed.
+  // The former fixed list omitted basketball/padel even when Google was already
+  // discovering those result pages. Empty-sport combinations are not created.
+  for (const sport of DISCOVERY_SPORTS) {
+    if (!courts.some(court => court.sport?.name.toLowerCase() === sport.name.toLowerCase())) continue;
+    for (const lang of ["en", "ar"] as const) pages.push({
+      url: `${SITE_URL}${courtsPath(lang, sport.slug)}`,
+      changeFrequency: "weekly",
+      priority: 0.75,
+      alternates: { languages: {
+        en: `${SITE_URL}${courtsPath("en", sport.slug)}`,
+        "ar-EG": `${SITE_URL}${courtsPath("ar", sport.slug)}`,
+        "x-default": `${SITE_URL}${courtsPath("en", sport.slug)}`,
+      } },
+    });
+  }
   for (const sport of DISCOVERY_SPORTS) {
     for (const location of locationSlugsWithInventory(courts, sport.name)) {
       for (const lang of ["en", "ar"] as const) pages.push({
