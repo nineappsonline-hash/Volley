@@ -5,6 +5,7 @@ import { missingCourtSubmissionFields } from "@/lib/court-submission";
 import { COURT_REVIEW_FIELDS } from "@/lib/court-review";
 import { useEffect, useRef, useState } from "react";
 import { RegistrationStart } from "@/components/analytics/business-analytics";
+import { rememberOwnerVenueSubmission } from "@/lib/analytics/registrations";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -209,6 +210,9 @@ export function OwnerSignupForm() {
         },
         destination
       );
+      // Submission intent is not itself a conversion. Analytics verifies the
+      // authenticated account's actual court rows and review status later.
+      if (venues.length > 0) rememberOwnerVenueSubmission();
       if (session) {
         toast.success(t("signup_success"));
         pendingNav.current = () => {
