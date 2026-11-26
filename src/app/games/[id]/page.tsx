@@ -2,7 +2,8 @@ import { SharedGamePage } from "@/components/games/shared-game-page";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicGame, getPublicGames, getPublicGameParticipantNames } from "@/lib/public-games";
-import { gamePlace, publicGamePath, publicGameMetadata, publicGameEvent, gameIsJoinable } from "@/lib/game-discovery";
+import { gamePlace, publicGamePath, publicGameMetadata, publicGameEvent } from "@/lib/game-discovery";
+import { gameLifecycle } from "@/lib/seo-eligibility";
 import { SITE_URL, breadcrumbsJsonLd, jsonLdStringify } from "@/lib/seo";
 import { LOCAL_GAME_GUIDES, isNewCairo, localGamePath } from "@/lib/local-games";
 
@@ -32,11 +33,16 @@ export default async function PublicGamePage({ params }: Props) {
   const sameArea = upcoming.filter(g => {
     const target = (game.playground?.area || game.area || "").trim().toLowerCase();
     const candidate = (g.playground?.area || g.area || "").trim().toLowerCase();
-    return target && candidate === target;
+    // Match New Cairo spellings consistently (Tagamoa, Fifth Settlement, etc.).
+    if (isNewCairo(target)) return isNewCairo(candidate);
+    return Boolean(target) && candidate === target;
   });
   const related = [...sameArea, ...upcoming.filter(g => !sameArea.some(a => a.id === g.id))].slice(0, 4);
-  const isPast = !gameIsJoinable(game) && game.status !== "cancelled";
-  const localGuide = isNewCairo(game.playground?.area ?? game.area)
+  // A sold-out future game is not a past event. Keep that distinction in the
+  // indexable page and never invite signups for a completed game.
+  const isPast = gameLifecycle(game) === "past";
+  const isLocalNewCairo = isNewCairo(game.playground?.area ?? game.area);
+  const localGuide = isLocalNewCairo
     ? LOCAL_GAME_GUIDES.find(guide => guide.sport.toLowerCase() === game.sport.toLowerCase())
     : undefined;
   const path = publicGamePath(game.id);
@@ -67,9 +73,13 @@ export default async function PublicGamePage({ params }: Props) {
       <div className="mt-4 flex flex-wrap gap-3">
         <Link href="/games" className="rounded-lg bg-primary px-4 py-2 font-semibold text-primary-foreground">Browse upcoming games</Link>
         <Link href={`/games?sport=${encodeURIComponent(game.sport.toLowerCase().replaceAll(" ", "-"))}`} className="rounded-lg border px-4 py-2 font-semibold text-foreground">More {game.sport} games</Link>
+        {isLocalNewCairo && <Link href="/ar/play/new-cairo" className="rounded-lg border px-4 py-2 font-semibold text-foreground">ماتشات في التجمع والقاهرة الجديدة</Link>}
         {localGuide && <Link href={localGamePath("ar", localGuide.slug)} className="rounded-lg border px-4 py-2 font-semibold text-foreground">ماتشات {game.sport} في التجمع</Link>}
       </div>
     </section>}
+    {isLocalNewCairo && !isPast && <nav aria-label="More games in New Cairo" className="mx-auto max-w-3xl px-5 pt-6">
+      <Link href="/ar/play/new-cairo" className="font-semibold text-primary underline underline-offset-4">اكتشف كل ماتشات التجمع والقاهرة الجديدة</Link>
+    </nav>}
     {related.length > 0 && <nav aria-label="Related upcoming games" className="mx-auto max-w-3xl px-5 py-8">
       <h2 className="text-lg font-semibold">More {game.sport} games on Playza</h2>
       <ul className="mt-3 space-y-2">
