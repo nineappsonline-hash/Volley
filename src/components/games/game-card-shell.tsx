@@ -19,7 +19,7 @@ import { gameBookingPayment } from "@/lib/game-costs";
 import type { FriendlyGameWithDetails } from "@/lib/types";
 
 /** Compact overview shared by the games directory and community feed. */
-export function GameCardShell({ game, joined, waitlisted, paymentPending = false, children, detailsHref, initialExpanded = false, layout = "card", hideActionsWhenExpanded = false }: { detailsHref?: string; initialExpanded?: boolean; layout?: "card" | "list"; game: FriendlyGameWithDetails; joined: boolean; waitlisted?: boolean; paymentPending?: boolean; children?: ReactNode; hideActionsWhenExpanded?: boolean }) {
+export function GameCardShell({ game, joined, waitlisted, paymentPending = false, children, detailsHref, initialExpanded = false, layout = "card", hideActionsWhenExpanded = false, deferPhotoLoading = false }: { detailsHref?: string; initialExpanded?: boolean; layout?: "card" | "list"; deferPhotoLoading?: boolean; game: FriendlyGameWithDetails; joined: boolean; waitlisted?: boolean; paymentPending?: boolean; children?: ReactNode; hideActionsWhenExpanded?: boolean }) {
   const { lang, locale, t } = useI18n();
   const ar = lang === "ar";
   const [expanded, setExpanded] = useState(initialExpanded);
@@ -45,7 +45,8 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
   const venuePhoto = venueCardPhoto(game.playground?.photos, game.playground?.cover_url);
   const share = <GameShareActions compact game={{...game,joined:game.participants_count,place:[game.playground?.name,game.playground?.area??game.area,game.playground?.governorate].filter(Boolean).join(", ")||game.location||""}} />;
   const overview = <>
-      <span data-game-photo="" className="relative isolate block h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand" style={venuePhoto ? { backgroundImage: `linear-gradient(130deg, rgba(67,33,107,.3), rgba(67,33,107,.1)), url("${venuePhoto.replace(/"/g, "%22")}")`, backgroundPosition: "center", backgroundSize: "cover" } : undefined}>
+      <span data-game-photo="" className="relative isolate block h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand" style={venuePhoto && !deferPhotoLoading ? { backgroundImage: `linear-gradient(130deg, rgba(67,33,107,.3), rgba(67,33,107,.1)), url("${venuePhoto.replace(/"/g, "%22")}")`, backgroundPosition: "center", backgroundSize: "cover" } : undefined}>
+        {deferPhotoLoading && venuePhoto && <><img src={venuePhoto} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} /><span aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-[#43216b]/30 to-[#43216b]/10" /></>}
         <span className="absolute inset-0 flex items-center justify-center text-white/70" aria-hidden="true">{SportIcon({ id: sport, size: 48 })}</span>
         <span className={styles.mobileStatus}>{game.status === "open" ? (slots <= 2 ? (ar ? "قرب يكتمل" : "Almost Full") : (ar ? "متاح" : "Open")) : t(`community_status_${game.status}`)}</span>
         <span className="absolute inset-x-0 bottom-0 bg-brand/95 px-1 py-1.5 text-center text-[9px] font-bold leading-tight text-highlight sm:text-[10px]">{game.sport}</span>
@@ -63,7 +64,7 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
   </>;
   if (layout === "list") return <article data-game-overview="" className="overflow-hidden rounded-xl border border-border bg-card text-card-foreground transition-shadow hover:shadow-sm">
     <div className={`${styles.surface} sm:grid sm:grid-cols-[minmax(0,1fr)_auto]`}>
-    <div className={styles.art} aria-hidden="true">{venuePhoto ? <><img src={venuePhoto} alt="" className="absolute inset-0 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} /><div className="absolute inset-0 bg-gradient-to-r from-[#251044]/90 via-[#251044]/65 to-[#251044]/40" /></> : <GameCardBackground sport={game.sport} />}</div>
+    <div className={styles.art} aria-hidden="true">{venuePhoto ? <><img src={venuePhoto} alt="" loading={deferPhotoLoading ? "lazy" : "eager"} decoding="async" className="absolute inset-0 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} /><div className="absolute inset-0 bg-gradient-to-r from-[#251044]/90 via-[#251044]/65 to-[#251044]/40" /></> : <GameCardBackground sport={game.sport} />}</div>
     {detailsHref ? <Link href={detailsHref} data-game-summary="" className={overviewClass}>{overview}</Link> : <button type="button" aria-expanded={expanded} aria-controls={detailsId} onClick={() => setExpanded(!expanded)} data-game-summary="" className={overviewClass}>{overview}</button>}
     {(!hideActionsWhenExpanded || !expanded) && <div className={`${styles.content} ${styles.actions} flex flex-wrap items-start justify-end gap-2 px-3 pb-2 sm:items-end sm:py-3 sm:ps-0`}>{directions && <GoogleMapsDirectionsButton compact href={directions} />}{share}</div>}
     </div>
