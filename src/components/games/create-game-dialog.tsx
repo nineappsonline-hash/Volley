@@ -305,7 +305,7 @@ export function CreateGameDialog({
         max_age: max,
         hostPays,
       });
-      let amount = 25;
+      let amount = 20;
       let remaining = 0;
       try {
         const { data: part } = await createClient()
