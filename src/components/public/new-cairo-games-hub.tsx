@@ -40,16 +40,17 @@ export async function NewCairoGamesHub({ lang }: { lang: LocalLanguage }) {
   const courts = [...new Map(courtGroups.flat().filter(c => isNewCairo(c.area)).map(c => [c.id, c])).values()];
   const pagePath = newCairoGamesPath(lang);
   const meta = newCairoGamesMeta(lang);
+  const pageTitle = ar ? "ماتشات في التجمع والقاهرة الجديدة | العب مع ناس جديدة" : "Find Sports Games in New Cairo & Tagamoa | Playza";
   return <main lang={lang} dir={ar ? "rtl" : "ltr"} className="min-h-screen bg-background pb-16">
     <header className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-6"><Link href="/" aria-label="Playza"><AppLogo /></Link><Link href={newCairoGamesPath(ar ? "en" : "ar")} hrefLang={ar ? "en" : "ar-EG"} className="text-sm font-semibold underline">{ar ? "English" : "العربية"}</Link></header>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@context": "https://schema.org", "@graph": [
-      { "@type": "CollectionPage", name: meta.title, description: meta.description, url: `${SITE_URL}${pagePath}`, inLanguage: ar ? "ar-EG" : "en", mainEntity: { "@type": "ItemList", numberOfItems: upcoming.length, itemListElement: upcoming.map((g, i) => ({ "@type": "ListItem", position: i + 1, name: g.title, url: `${SITE_URL}${publicGamePath(g.id)}` })) } },
+      { "@type": "CollectionPage", name: pageTitle, description: meta.description, url: `${SITE_URL}${pagePath}`, inLanguage: ar ? "ar-EG" : "en", mainEntity: { "@type": "ItemList", numberOfItems: upcoming.length, itemListElement: upcoming.map((g, i) => ({ "@type": "ListItem", position: i + 1, name: g.title, url: `${SITE_URL}${publicGamePath(g.id)}` })) } },
       breadcrumbsJsonLd([{ name: copy("Home", "الرئيسية"), url: SITE_URL }, { name: copy("Games", "الماتشات"), url: `${SITE_URL}/games` }, { name: copy("New Cairo games", "ماتشات القاهرة الجديدة"), url: `${SITE_URL}${pagePath}` }]),
     ] }) }} />
     <div className="mx-auto max-w-5xl space-y-10 px-5">
       <section className="rounded-3xl bg-brand p-7 text-white sm:p-11">
         <p className="text-sm font-semibold text-highlight">Playza · {copy("New Cairo · Tagamoa", "القاهرة الجديدة · التجمع")}</p>
-        <h1 className="mt-3 text-3xl font-bold text-white sm:text-5xl">{meta.title}</h1>
+        <h1 className="mt-3 text-3xl font-bold text-white sm:text-5xl">{pageTitle}</h1>
         <p className="mt-5 max-w-3xl text-lg leading-relaxed text-white/90">{meta.description}</p>
         <a href="#upcoming-local-games" className="mt-6 inline-flex rounded-xl bg-white px-5 py-3 font-bold text-brand">{copy("See available games", "شوف الماتشات الجاية")}</a>
       </section>
