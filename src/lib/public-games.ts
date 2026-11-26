@@ -67,7 +67,7 @@ export const getPublicGame = cache(async (id: string): Promise<PublicGameDetail 
      max_players, min_players, status, skill_level, gender, share_price, host_pays, host_total, booking_total,
      creator_name, duration_hours, min_age, max_age,
      playground:venues(id, name, area, governorate, address, country, location_link, cover_url),
-     participants:friendly_game_participants(is_waitlisted,pay_status)`
+     participants:friendly_game_participants(count)`
   ).eq("id", id).eq("is_public", true).eq("creation_payment_approved", true)
     .in("sport", [...ACTIVE_SPORTS])
     // Embedded left-joined seats affect the count, not whether a public game exists.
@@ -77,7 +77,7 @@ export const getPublicGame = cache(async (id: string): Promise<PublicGameDetail 
   if (error || !data) return null;
   const { participants, playground, ...game } = data;
   return { ...game, playground: Array.isArray(playground) ? playground[0] ?? null : playground,
-    joined: (participants ?? []).filter((p: { is_waitlisted: boolean; pay_status?: string }) => !p.is_waitlisted && p.pay_status === "approved").length,
+    joined: Number((participants as { count: number }[] | null)?.[0]?.count ?? 0),
   } as PublicGameDetail;
 });
 
@@ -147,7 +147,7 @@ export async function getPublicGames(sport?: string, maxRows = 100): Promise<Pub
       `id, title, description, sport, area, location, game_date, start_time,
        max_players, min_players, status, skill_level, gender, share_price, host_pays, host_total, booking_total,
        creator_name, duration_hours, min_age, max_age, playground:venues(name, area, governorate, country, location_link, cover_url, photos),
-       participants:friendly_game_participants(is_waitlisted,pay_status)`
+       participants:friendly_game_participants(count)`
     )
     .eq("is_public", true).eq("creation_payment_approved", true)
     .in("sport", [...ACTIVE_SPORTS])
@@ -169,13 +169,13 @@ export async function getPublicGames(sport?: string, maxRows = 100): Promise<Pub
     const { data, error } = await query;
     if (error) return [];
     return (data ?? []).map((g: Record<string, unknown>) => {
-      const parts = g.participants as { is_waitlisted?: boolean; pay_status?: string }[] | null;
+      const parts = g.participants as { count?: number }[] | null;
       const { participants: _participants, ...publicRow } = g as unknown as PublicGame & { participants?: unknown };
       const row = g as unknown as PublicGame & { playground: PublicGame["playground"] };
       return {
         ...publicRow,
         playground: Array.isArray(g.playground) ? (g.playground[0] ?? null) : row.playground,
-        joined: (parts ?? []).filter(p => !p.is_waitlisted && p.pay_status === "approved").length,
+        joined: Number(parts?.[0]?.count ?? 0),
       };
     }).filter(game => gameIsJoinable(game));
   } catch {
