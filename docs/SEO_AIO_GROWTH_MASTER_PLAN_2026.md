@@ -208,5 +208,19 @@ Automated daily audits for sitemap HTTP 200, malformed JSON-LD, game indexabilit
 - [ ] Configure GA4 key event `game_booking_confirmed` in the connected Google Analytics property where authorized; GSC alone does not expose GA4 management.
 - [ ] Compare organic landing → join click → joined seat → approved seat with Search Console queries, without storing PII.
 
+## Phase 7 implementation ledger — mobile performance and booking-entry UX (2026-11-26)
+
+**Audit baseline:** OpenSEO full crawl + Lighthouse requested for `https://playza.life/`, audit `e5918996-1021-4c12-befe-78acc5b08627` (50 crawl pages, up to 10 representative pages across mobile and desktop). Record performance scores and LCP/CLS/INP when the run completes; do **not** claim measured speed uplift before comparable before/after tests.
+
+- [x] Split the ~19.5k-source-character public-game join/payment dialog into an on-demand Next.js dynamic chunk; render only once a player opens the dialog.
+- [x] Split the ~28k-source-character court game/booking dialog into an on-demand chunk; render only after the owner/player chooses to book.
+- [x] Add explicit intrinsic dimensions and asynchronous decode for court directory and local court photo cards; keep offscreen cards lazy-loaded.
+- [x] Prioritize the visible hero image on public venue detail with eager/high-priority load and fixed dimensions; keep lower gallery thumbnails lazy with fixed dimensions.
+- [x] Avoid lazy loading the first visible photo on the public game share/detail page; reserve its intrinsic size.
+- [ ] Check production build, dynamic chunk loading and payment/booking dialog opening on mobile; never claim verified user journey without a real browser session.
+- [ ] Read Lighthouse lab results and prioritized crawl issues for the new audit; make next performance changes from actual lab bottlenecks.
+- [ ] Compare before/after Core Web Vitals under equivalent mobile conditions and watch game-join and owner-registration conversion for regressions.
+- [ ] Fix remaining confirmed render-blocking fonts/JavaScript/images based on measured priority, without breaking consent or accessibility.
+
 ## 15. Release discipline
 Every phase: source review → implementation PR/commit → typecheck/build → route and regression smoke tests → production deploy → production check → analytics/SEO monitor → mark complete. **Never mark a phase fully done when only the code has been committed.**
