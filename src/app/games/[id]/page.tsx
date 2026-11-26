@@ -3,44 +3,23 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicGame, getPublicGames, getPublicGameParticipantNames } from "@/lib/public-games";
 import { gamePlace, publicGamePath, publicGameMetadata, publicGameEvent } from "@/lib/game-discovery";
-import { SITE_URL, breadcrumbsJsonLd, jsonLdStringify, BRAND } from "@/lib/seo";
-import { gameSharingTarget } from "@/lib/game-share";
+import { SITE_URL, breadcrumbsJsonLd, jsonLdStringify } from "@/lib/seo";
+
 
 type Props = { params: Promise<{ id: string }> };
 export const dynamic = "force-dynamic";
 
+// Every public game uses the same lifecycle-based canonical, robots and social metadata.
+// In particular, ended games must be noindex even if a shared link still opens.
 export async function generateMetadata({ params }: Props) {
   const game = await getPublicGame((await params).id);
   if (!game) notFound();
-  const path = publicGamePath(game.id);
-  const sharedGame = {
-    ...game,
-    is_public: true,
-    place: game.playground?.name || game.area || (game as any)?.governorate || "",
-  } as const;
-  const shared = gameSharingTarget(sharedGame, SITE_URL, "en");
-  const location = shared?.text?.match(/ in ([^.]+)/)?.[1] || game.playground?.name || game.area || (game as any)?.governorate || "";
+  const metadata = publicGameMetadata(game);
+  const preview = `${SITE_URL}/og/game?code=${game.id}&v=4`;
   return {
-    title: shared?.title || `${game.title} — ${game.sport} game`,
-    description: shared?.text?.split("\\n")[0] || `
-    Join a ${game.sport.toLowerCase()} game in ${location}. View schedule, fee and registration on Playza.`,
-    openGraph: {
-      title: shared?.title || `${game.title} — ${game.sport} game`,
-      description: shared?.text?.split("\\n")[0] || `
-      Join a ${game.sport.toLowerCase()} game in ${location}. View schedule, fee and registration on Playza.`,
-      url: path,
-      images: [{ url: `${SITE_URL}/og/game?code=${game.id}&v=4`, width: 1200, height: 630, alt: shared?.title || game.title }],
-      type: "website",
-      siteName: "Playza",
-      locale: "en_US",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: shared?.title || `${game.title} — ${game.sport} game`,
-      description: shared?.text?.split("\\n")[0] || `
-      Join a ${game.sport.toLowerCase()} game in ${location}. View schedule, fee and registration on Playza.`,
-      images: [{ url: `${SITE_URL}/og/game?code=${game.id}&v=4`, alt: shared?.title || game.title }],
-    },
+    ...metadata,
+    openGraph: { ...metadata.openGraph, siteName: "Playza", locale: "en_US", images: [{ url: preview, width: 1200, height: 630, alt: game.title }] },
+    twitter: { ...metadata.twitter, images: [{ url: preview, alt: game.title }] },
   };
 }
 
@@ -63,7 +42,7 @@ export default async function PublicGamePage({ params }: Props) {
     host_pays: game.host_pays ?? false,
     host_total: game.host_total ?? null,
     is_public: true,
-    // Public IDs expose counts only; names retain their existing sign-in checks.
+    // The server passes approved names separately; no phone or other participant data leaks.
     participants: [],
   };
   return <>
