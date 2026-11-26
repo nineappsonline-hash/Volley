@@ -189,6 +189,7 @@ Automated daily audits for sitemap HTTP 200, malformed JSON-LD, game indexabilit
 - [x] Refresh bilingual filtered court-directory search titles/descriptions to highlight actual inventory, locations, rental pricing and booking details.
 - [x] Add SSR navigation from sport-filtered court directories to sport×area pages only for localities with real approved court listings, avoiding empty programmatic pages.
 - [x] Cross-link court discovery to owner registration, with accurate free-listing proposition.
+- [x] Replace hardcoded tennis/volleyball-only court filters in XML sitemap with sport filters that actually have approved court inventory (including basketball and padel when available).
 - [ ] Recheck production HTML/metadata, local links and sitemap with a live crawl.
 - [ ] Measure new clicks/CTR after Google recrawls; compare identical page/query windows.
 - [ ] Inspect actual owner signup flow and attribution tracking after arriving from directory.
