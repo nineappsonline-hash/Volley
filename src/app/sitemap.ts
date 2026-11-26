@@ -11,6 +11,7 @@ import { getPublicTeams } from "@/lib/public-sport-academies";
 import { courtsLocationPath, locationSlugsWithInventory } from "@/lib/court-locations";
 import { DISCOVERY_SPORTS, discoveryPath } from "@/lib/sport-discovery";
 import { listYourCourtPath } from "@/lib/list-your-court";
+import { OWNER_SPORTS, ownerSportPath, type OwnerSportSlug } from "@/lib/owner-sport-pages";
 import { sportToSlug } from "@/lib/sport-slugs";
 
 export const revalidate = 3600; // refresh at most hourly
@@ -101,6 +102,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: "monthly", priority: 0.9,
     alternates: { languages: { en: `${SITE_URL}${listYourCourtPath("en")}`, "ar-EG": `${SITE_URL}${listYourCourtPath("ar")}`, "x-default": `${SITE_URL}${listYourCourtPath("en")}` } },
   });
+
+  // Distinct commercial landing pages for owners of real supported sports courts.
+  // These explain different sport-specific workflows; they do not pretend a
+  // particular venue, booking slot or customer volume exists.
+  for (const sport of Object.keys(OWNER_SPORTS) as OwnerSportSlug[]) {
+    for (const lang of ["en", "ar"] as const) staticPages.push({
+      url: `${SITE_URL}${ownerSportPath(lang, sport)}`,
+      changeFrequency: "monthly",
+      priority: 0.75,
+      alternates: { languages: {
+        en: `${SITE_URL}${ownerSportPath("en", sport)}`,
+        "ar-EG": `${SITE_URL}${ownerSportPath("ar", sport)}`,
+        "x-default": `${SITE_URL}${ownerSportPath("en", sport)}`,
+      } },
+    });
+  }
 
   for (const slug of [undefined, ...ALL_GUIDES.map(g => g.slug)]) {
     for (const lang of ["en", "ar"] as const) staticPages.push({ url: `${SITE_URL}${guidePath(lang, slug)}`, changeFrequency: "monthly", priority: 0.8, alternates: { languages: { en: `${SITE_URL}${guidePath("en", slug)}`, "ar-EG": `${SITE_URL}${guidePath("ar", slug)}` } } });
