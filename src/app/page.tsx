@@ -45,14 +45,15 @@ export default async function HomePage() {
   // to the homepage TTFB for signed-out visitors.
   const [authResult, publicGames] = await Promise.all([
     supabase.auth.getUser(),
-    getPublicGames(undefined, 20),
+    getPublicGames(),
   ]);
 
   if (authResult.data.user) redirect("/dashboard");
 
-  // Usually 20 rows suffice for the three nearest joinable games. If not,
-  // retry the full window so fully booked games never hide later open games.
-  const upcomingGames = (publicGames.length >= 3 ? publicGames : await getPublicGames()).slice(0, 3);
+  // One bounded, ordered query also covers pages with fewer than three joinable
+  // games. Avoid a second sequential Supabase round trip in the common case
+  // where most of the next 20 games are full or already started.
+  const upcomingGames = publicGames.slice(0, 3);
 
   const jsonLd = [
     organizationJsonLd(),
