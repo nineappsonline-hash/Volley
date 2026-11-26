@@ -119,11 +119,14 @@ Automated daily audits for sitemap HTTP 200, malformed JSON-LD, game indexabilit
 
 - [x] Confirm public game page used a standalone `generateMetadata` that omitted central lifecycle robots + canonical; replace with shared helper preserving OG preview.
 - [x] Use Cairo-aware joinability for dynamic game sitemap IDs (not only date equality).
+- [x] Filter same-day expired games from public listing cards, use Cairo-local calendar day.
+- [x] Mark shared `?join=` game URLs `noindex,follow`, retaining their share previews.
 - [ ] Inspect verified HTTP response and redirect behavior for retired domain, www, canonical and sitemap (external domain/DNS access required if misconfigured).
 - [ ] Test public/private/ended/full game live metadata, structured data and all sitemap entries on deployed build.
 - [ ] Establish GSC/Bing search-performance baseline with permitted access.
 - [ ] Inventory current landing pages and compare intent-to-URL mapping, then launch player/owner phase.
-- [ ] Verify status of production deploy and record commit.
+- [x] Verify Vercel production build READY for SEO phase-1 source commit `21e40c88b588ab5faa374d89491b7e34012e4be2` (deployment `dpl_9RrFCXwKfj3qDoXkrDvsdGzMRaHR`).
+- [ ] Validate actual live HTTP metadata / robots / sitemap / redirects in production: external fetch was inconclusive due to runtime network access; validate with browser or crawl tool.
 
 ### External references (not a basis for invented ranking statistics)
 - Google Search Central: AI features — https://developers.google.com/search/docs/appearance/ai-features
