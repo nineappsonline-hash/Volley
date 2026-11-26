@@ -31,8 +31,8 @@ Definitions:
 **Gate:** an auditable baseline sheet with dates, source, screenshot/test URL, impact, owner, severity. Do not invent volume/ranking stats before connecting GSC or keyword data.
 
 ## 2. Technical SEO repair — P0 (first implementation phase)
-- **2.1 Public games:** unify `/games/[id]` metadata with centralized `gameRobots`; canonical absolute URL, unique title, meaningful date/location/price, social share image; expired/cancelled noindex, private 404; eligible upcoming public games index/follow. Full/sold-out events must not be represented as joinable; review current policy and event Offer availability.
-- **2.2 Sitemap parity:** only include public, approved, applicable sport, future games; omit same-day expired games using Cairo timezone; verify sitemap emits only 200 + indexable canonical pages. Dynamic pages cannot have metadata saying noindex but remain in XML. Remove parameter URLs with duplicate content or give them canonical to clean route.
+- **2.1 Public games:** unify `/games/[id]` metadata with centralized `gameRobots`; canonical absolute URL, unique title, meaningful date/location/price, social share image; past published public games index/follow as discovery archives; cancelled noindex, private 404; eligible upcoming public games index/follow. Full/sold-out events must not be represented as joinable; review current policy and event Offer availability.
+- **2.2 Sitemap parity:** include public, approved, applicable-sport games whether upcoming or historic; omit cancelled/private/unapproved; verify sitemap emits only 200 + indexable canonical pages. Dynamic pages cannot have metadata saying noindex but remain in XML. Remove parameter URLs with duplicate content or give them canonical to clean route.
 - **2.3 Redirects/host:** enforce HTTPS, `www` decision, 301 old `playza.nineapps.online` → `playza.life` preserving path/query where valid; verify actual infra responses rather than assume domain routing.
 - **2.4 Robots:** public crawlers can access useful landing pages; private/account/payment/API endpoints excluded; ensure Googlebot/OAI-SearchBot/PerplexityBot allowed for public content if policy permits. No disallow that prevents a crawler seeing a required noindex.
 - **2.5 International:** audit Arabic/English self-canonicals, bidirectional hreflang `ar-EG` and `en`, x-default; avoid home-page automatic language redirects of Googlebot, ensure server-rendered meaningful language.
@@ -118,8 +118,8 @@ Automated daily audits for sitemap HTTP 200, malformed JSON-LD, game indexabilit
 ## 14. Phase-1 implementation ledger
 
 - [x] Confirm public game page used a standalone `generateMetadata` that omitted central lifecycle robots + canonical; replace with shared helper preserving OG preview.
-- [x] Use Cairo-aware joinability for dynamic game sitemap IDs (not only date equality).
-- [x] Filter same-day expired games from public listing cards, use Cairo-local calendar day.
+- [x] Strategy amendment (2026-11-26): approved archived games remain indexable in the dynamic sitemap, even after their dates have passed.
+- [x] Filter expired games from upcoming listings (but retain their indexable archived pages).
 - [x] Mark shared `?join=` game URLs `noindex,follow`, retaining their share previews.
 - [ ] Inspect verified HTTP response and redirect behavior for retired domain, www, canonical and sitemap (external domain/DNS access required if misconfigured).
 - [ ] Test public/private/ended/full game live metadata, structured data and all sitemap entries on deployed build.
@@ -135,6 +135,17 @@ Automated daily audits for sitemap HTTP 200, malformed JSON-LD, game indexabilit
 - Courty — https://www.courty.io/ and https://www.courty.io/partners/
 - Matchena — https://matchena.com/en/help
 - OpenSports pickup groups — https://opensports.net/blog/meetup-for-sports-how-to-create-and-join-pickup-sports-groups
+
+## 14A. Historical game discovery SEO amendment — 2026-11-26
+
+**Decision:** Keep published, genuine games indexable after finishing, since short-lived games often expire before Google indexes them. History pages link to new games.
+
+- Only real public, approved games using supported sports appear in the historical sitemap; never private, cancelled, deleted or unapproved games.
+- Completed pages have an unambiguous finished-game message, real date/sport/location, and prominent links to future games from the same sport and preferably area.
+- Do not advertise a past game as upcoming or give it an active join button. Keep archived event structured data omitted.
+- Keep the archive canonical stable. The sitemap includes old and upcoming approved game URLs.
+- Monitor archive quality in Search Console; indexing is permission, not guaranteed ranking. Improve duplicate/thin archives and split large sitemaps before XML limits.
+- Test actual completed, future, cancelled, private and invite URL robots/metadata and related-game navigation.
 
 ## 15. Release discipline
 Every phase: source review → implementation PR/commit → typecheck/build → route and regression smoke tests → production deploy → production check → analytics/SEO monitor → mark complete. **Never mark a phase fully done when only the code has been committed.**
