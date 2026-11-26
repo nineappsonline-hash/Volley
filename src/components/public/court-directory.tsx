@@ -51,7 +51,7 @@ export async function CourtDirectory({ lang, slug }: { lang: DiscoveryLanguage; 
           {c.cover_url || c.photos[0] ? (
             // Venue photos can come from user-provided hosts.
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={c.cover_url || c.photos[0]} alt={c.name} loading="lazy" className="h-full w-full object-cover" />
+            <img src={c.cover_url || c.photos[0]} alt={c.name} width={480} height={270} loading="lazy" decoding="async" className="h-full w-full object-cover" />
           ) : <LandPlot className="h-10 w-10 text-muted-foreground" aria-hidden="true" />}
         </Link>
         <div className="space-y-3 p-4"><p className="text-xs font-semibold text-muted-foreground">{ar ? findDiscoverySport(sportToSlug(c.sport?.name ?? ""))?.arabic ?? c.sport?.name : c.sport?.name}</p><h2 className="text-base font-bold"><Link href={`/p/${encodeURIComponent(c.id)}`}>{c.name}</Link></h2>
