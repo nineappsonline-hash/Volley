@@ -182,5 +182,17 @@ Automated daily audits for sitemap HTTP 200, malformed JSON-LD, game indexabilit
 - [ ] Test production HTTP responses and crawlable HTML across archived, private, owner and sport pages; run booking/signup regression checks.
 - [ ] Prioritize additional neighborhoods/owner sport routes only when verified game/court inventory or differentiated service evidence exists.
 
+## Phase 5 implementation ledger — court directory search/conversion (2026-11-26)
+
+**Evidence:** GSC /courts?sport=basketball had 38 impressions and 0 clicks, avg position 14.9 in the recent baseline. GSC inspection confirmed indexed, allowed and self-canonical. Small sample; not evidence of any guaranteed uplift.
+
+- [x] Refresh bilingual filtered court-directory search titles/descriptions to highlight actual inventory, locations, rental pricing and booking details.
+- [x] Add SSR navigation from sport-filtered court directories to sport×area pages only for localities with real approved court listings, avoiding empty programmatic pages.
+- [x] Cross-link court discovery to owner registration, with accurate free-listing proposition.
+- [ ] Recheck production HTML/metadata, local links and sitemap with a live crawl.
+- [ ] Measure new clicks/CTR after Google recrawls; compare identical page/query windows.
+- [ ] Inspect actual owner signup flow and attribution tracking after arriving from directory.
+- [ ] Evaluate mobile court-card image LCP and direct booking conversion via performance tools.
+
 ## 15. Release discipline
 Every phase: source review → implementation PR/commit → typecheck/build → route and regression smoke tests → production deploy → production check → analytics/SEO monitor → mark complete. **Never mark a phase fully done when only the code has been committed.**
