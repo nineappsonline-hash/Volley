@@ -39,8 +39,9 @@ export const metadata: Metadata = {
 };
 
 export default async function AcademiesPage() {
-  const teams = await getPublicTeams();
-  const session = await getSession();
+  // Public team discovery and session lookup are independent network requests.
+  // Running them together avoids adding their wait times on public visits.
+  const [teams, session] = await Promise.all([getPublicTeams(), getSession()]);
   const t = dictionary.ar;
 
   const topbar = session ? (
