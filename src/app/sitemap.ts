@@ -125,7 +125,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const playgroundPages = results[1].status === "fulfilled" ? results[1].value : [];
   const gameSports = results[2].status === "fulfilled" ? results[2].value : [];
   const tournamentSports = results[3].status === "fulfilled" ? results[3].value : [];
-  const gamePages: MetadataRoute.Sitemap = (results[4].status === "fulfilled" ? results[4].value : []).map(id => ({ url: `${SITE_URL}${publicGamePath(id)}`, changeFrequency: "daily", priority: 0.8 }));
+  // Include approved historic games: their stable pages answer past-event searches
+  // and redirect interest to new games. Never list cancelled or private games.
+  const gamePages: MetadataRoute.Sitemap = (results[4].status === "fulfilled" ? results[4].value : []).map(id => ({ url: `${SITE_URL}${publicGamePath(id)}`, changeFrequency: "weekly", priority: 0.7 }));
   // Sport + location pages, only for combinations with real court inventory.
   const locationPages: MetadataRoute.Sitemap = results[5].status === "fulfilled" ? results[5].value : [];
   // Public training programs and teams linked from the academy directory.
