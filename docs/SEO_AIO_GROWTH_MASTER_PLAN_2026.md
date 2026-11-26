@@ -171,5 +171,16 @@ Automated daily audits for sitemap HTTP 200, malformed JSON-LD, game indexabilit
 - [ ] Review existing analytics taxonomies for owner signup and complete owner conversion attribution.
 - [x] Bind verified Search Console property to a new Playza OpenSEO project and document source-backed performance by page/query.\n- [ ] Compare with competitors' verified positions and prioritize page changes from Search Console metrics.
 
+## Phase 4 implementation ledger — GSC-driven sport page optimization (2026-11-26)
+
+- [x] Verify five key public URLs are indexed in Google and use the intended canonical: English/Arabic volleyball, English owner landing, Arabic beach-volleyball local hub, filtered basketball courts.
+- [x] Inspect newly created venue owner URLs: Google has not discovered tested examples yet; allow for crawl lag, do not report them as indexed.
+- [x] Improve volleyball title/description to speak to individual game-join intent; repair unnatural Arabic sports snippets (volleyball, basketball, padel, beach volleyball).
+- [x] Add honest archived-games sections to sport discovery pages, linking visitors to genuine past games and current joining options without making past games bookable.
+- [x] Save inspection evidence in docs/SEO_INDEXING_SPORT_CTR_2026-11-26.md.
+- [ ] Re-run Search Console performance after Google recrawls to measure CTR, clicks and ranking shifts without assuming a guaranteed uplift.
+- [ ] Test production HTTP responses and crawlable HTML across archived, private, owner and sport pages; run booking/signup regression checks.
+- [ ] Prioritize additional neighborhoods/owner sport routes only when verified game/court inventory or differentiated service evidence exists.
+
 ## 15. Release discipline
 Every phase: source review → implementation PR/commit → typecheck/build → route and regression smoke tests → production deploy → production check → analytics/SEO monitor → mark complete. **Never mark a phase fully done when only the code has been committed.**
