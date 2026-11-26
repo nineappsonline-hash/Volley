@@ -131,7 +131,7 @@ function getAdmin() {
 }
 
 /** Upcoming public friendly games, optionally filtered by sport. */
-export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
+export async function getPublicGames(sport?: string, maxRows = 100): Promise<PublicGame[]> {
   noStore();
   if (sport && !isActiveSport(sport)) return [];
   const admin = getAdmin();
@@ -151,7 +151,7 @@ export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
     .gte("game_date", todayISO())
     .order("game_date")
     .order("start_time")
-    .limit(100);
+    .limit(Math.max(1, Math.min(100, Math.trunc(maxRows))));
 
   if (sport) query = query.eq("sport", sport);
 
