@@ -12,7 +12,6 @@ import {
   jsonLdStringify,
 } from "@/lib/seo";
 import { Topbar } from "@/components/layout/topbar";
-import { GuestAcademiesTopbar } from "@/components/academies/guest-academies-topbar";
 import { createClient } from "@/lib/supabase/server";
 
 export const revalidate = 3600;
@@ -57,7 +56,7 @@ export default async function AcademiesPage() {
       hasAcademyWorkspace={false}
     />
   ) : (
-    <GuestAcademiesTopbar />
+    <Topbar role="member" name="" username="" guest />
   );
 
   const publicAcademies = [
