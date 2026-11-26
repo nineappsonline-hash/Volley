@@ -47,7 +47,7 @@ export default async function HomePage() {
   // A present cookie is NEVER trusted as authentication: Supabase getUser()
   // still validates it before any dashboard redirect.
   const hasSessionCookie = cookies().getAll().some(({ name }) =>
-    /^sb-[a-z0-9_-]+-auth-token(?:\\.\\d+)?$/i.test(name)
+    /^sb-[a-z0-9_-]+-auth-token(?:\.\d+)?$/i.test(name)
   );
   const [user, publicGames] = await Promise.all([
     hasSessionCookie
