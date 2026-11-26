@@ -133,6 +133,11 @@ export function PublicPlaygroundPage({
             <img
               src={thumbnail}
               alt={venue.name}
+              width={800}
+              height={448}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
               className="h-40 w-full max-w-xl rounded-2xl border border-white/20 object-cover shadow-lg sm:h-56"
             />
           )}
@@ -290,7 +295,7 @@ export function PublicPlaygroundPage({
               {photos.map((url) => (
                 <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="overflow-hidden rounded-xl border">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt={venue.name} loading="lazy" className="aspect-[4/3] w-full object-cover" />
+                  <img src={url} alt={venue.name} width={480} height={360} loading="lazy" decoding="async" className="aspect-[4/3] w-full object-cover" />
                 </a>
               ))}
             </div>
@@ -357,7 +362,7 @@ export function PublicPlaygroundPage({
         </section>
       </div>
 
-      {profile && (
+      {profile && bookOpen && (
         <CreateGameDialog
           open={bookOpen}
           onOpenChange={setBookOpen}
