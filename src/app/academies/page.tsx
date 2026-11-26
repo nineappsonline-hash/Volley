@@ -19,7 +19,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   // The root layout template appends the Playza brand once.
   title: "Find Sports Teams & Academies in Egypt",
-  description: "Discover sports teams and academies in Egypt for kids and adults. Find volleyball, basketball, tennis, padel and training near you by sport, gender, age, and location.",
+  description: "Find sports teams and academies in Egypt. Explore volleyball, basketball, tennis and padel training by sport, age and location on Playza.",
   keywords: [
     "sports teams egypt", "sports academies egypt", "volleyball teams cairo", "basketball teams cairo", "tennis academy cairo",
     "padel academy cairo", "sports training for kids and adults",
@@ -99,6 +99,10 @@ export default async function AcademiesPage() {
         }}
       />
       {topbar}
+      <section className="mx-auto max-w-5xl px-6 pt-9 pb-5">
+        <h1 className="text-3xl font-extrabold">Sports Teams &amp; Academies in Egypt</h1>
+        <p className="mt-3 max-w-3xl leading-relaxed text-muted-foreground">Explore published sports academies and teams by sport and location. Compare available training options and open each academy for details before registering.</p>
+      </section>
       <AcademyTeamsSection teams={teams} />
       <section
         aria-label="Academy guides"
