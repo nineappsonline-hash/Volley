@@ -190,7 +190,7 @@ Automated daily audits for sitemap HTTP 200, malformed JSON-LD, game indexabilit
 - [x] Add SSR navigation from sport-filtered court directories to sport×area pages only for localities with real approved court listings, avoiding empty programmatic pages.
 - [x] Cross-link court discovery to owner registration, with accurate free-listing proposition.
 - [x] Replace hardcoded tennis/volleyball-only court filters in XML sitemap with sport filters that actually have approved court inventory (including basketball and padel when available).
-- [ ] Recheck production HTML/metadata, local links and sitemap with a live crawl.
+- [x] Verify Vercel deployment `dpl_CChp9Pj3oyBLem76y2TrZuippWyM` succeeded (READY) with release commit `1f009d9169fd042cab9ad1a65aff084463133fbb`.\n- [ ] Recheck production HTML/metadata, local links and sitemap with a live crawl (network fetch unsuccessful in this tool runtime).
 - [ ] Measure new clicks/CTR after Google recrawls; compare identical page/query windows.
 - [ ] Inspect actual owner signup flow and attribution tracking after arriving from directory.
 - [ ] Evaluate mobile court-card image LCP and direct booking conversion via performance tools.
