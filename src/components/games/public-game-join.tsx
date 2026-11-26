@@ -6,7 +6,11 @@ import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { JoinGameDialog } from "./join-game-dialog";
+import dynamic from "next/dynamic";
+
+// The full payment and guest-registration flow is only needed after the player
+// actually opens the dialog. Keep it out of the initial public game bundle.
+const JoinGameDialog = dynamic(() => import("./join-game-dialog").then(mod => mod.JoinGameDialog), { ssr: false });
 import { createClient } from "@/lib/supabase/client";
 import { authLink } from "@/lib/auth-redirect";
 import { useI18n } from "@/lib/i18n";
@@ -48,6 +52,6 @@ export function PublicGameJoin({ game, inviteCode, returnTo }: {
   }
   return <>
     <Button className="w-full" disabled={busy || full} onClick={() => void join()}>{t(full ? "community_game_full" : "community_join")}</Button>
-    <JoinGameDialog open={paymentOpen} onOpenChange={setPaymentOpen} game={game} inviteCode={inviteCode} mode={mode} onSuccess={() => { router.refresh(); }} />
+    {paymentOpen && <JoinGameDialog open={paymentOpen} onOpenChange={setPaymentOpen} game={game} inviteCode={inviteCode} mode={mode} onSuccess={() => { router.refresh(); }} />}
   </>;
 }
