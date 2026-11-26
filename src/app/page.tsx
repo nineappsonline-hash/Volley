@@ -41,13 +41,16 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Fetch public games in parallel with auth rather than adding both latencies
+  // to the homepage TTFB for signed-out visitors.
+  const [authResult, publicGames] = await Promise.all([
+    supabase.auth.getUser(),
+    getPublicGames(),
+  ]);
 
-  if (user) redirect("/dashboard");
+  if (authResult.data.user) redirect("/dashboard");
 
-  const upcomingGames = (await getPublicGames()).slice(0, 3);
+  const upcomingGames = publicGames.slice(0, 3);
 
   const jsonLd = [
     organizationJsonLd(),
