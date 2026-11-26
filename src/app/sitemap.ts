@@ -123,6 +123,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const slug of [undefined, ...ALL_GUIDES.map(g => g.slug)]) {
     for (const lang of ["en", "ar"] as const) staticPages.push({ url: `${SITE_URL}${guidePath(lang, slug)}`, changeFrequency: "monthly", priority: 0.8, alternates: { languages: { en: `${SITE_URL}${guidePath("en", slug)}`, "ar-EG": `${SITE_URL}${guidePath("ar", slug)}` } } });
   }
+  // City-wide New Cairo game hub: combines verified volleyball and beach
+  // volleyball listings/archives, distinct from each sport-specific guide.
+  for (const lang of ["en", "ar"] as const) staticPages.push({
+    url: `${SITE_URL}${lang === "ar" ? "/ar" : ""}/play/new-cairo`,
+    changeFrequency: "daily", priority: 0.85,
+    alternates: { languages: {
+      en: `${SITE_URL}/play/new-cairo`,
+      "ar-EG": `${SITE_URL}/ar/play/new-cairo`,
+      "x-default": `${SITE_URL}/play/new-cairo`,
+    } },
+  });
   for (const guide of LOCAL_GAME_GUIDES) {
     for (const lang of ["en", "ar"] as const) staticPages.push({
       url: `${SITE_URL}${localGamePath(lang, guide.slug)}`, changeFrequency: "daily", priority: 0.8,
