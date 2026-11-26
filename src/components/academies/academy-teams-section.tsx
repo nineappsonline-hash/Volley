@@ -134,7 +134,7 @@ function SportTeams({
                 ? `≤ ${team.max_age}`
                 : t("directory_teams_age_unknown");
         return (
-          <Link key={team.id} href={`/training/${team.id}`} className="block">
+          <div key={team.id} className="block">
             <Card className="flex flex-col relative">
               <CardContent className="flex flex-1 flex-col gap-3 p-4 relative pb-6">
               <div className="flex items-start gap-3">
@@ -145,14 +145,14 @@ function SportTeams({
                 <div className="min-w-0 flex-1">
                   <Link
                     href={`/a/${team.academy.slug}`}
-                    className="block text-sm font-semibold text-primary hover:underline truncate"
+                    className="relative z-10 block text-sm font-semibold text-primary hover:underline truncate"
                   >
                     {team.academy.name}
                   </Link>
                   <p className="mt-0.5 truncate text-xs font-bold text-muted-foreground uppercase tracking-tighter">
                     {team.sport?.name ?? t("directory_teams_other_sport")}
                   </p>
-                  <p className="mt-0.5 truncate text-base font-bold">{team.name}</p>
+                  <p className="mt-0.5 truncate text-base font-bold"><Link href={`/training/${team.id}`} className="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{team.name}</Link></p>
                 </div>
               </div>
 
@@ -197,7 +197,7 @@ function SportTeams({
                     href={team.venue.location_link}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+                    className="relative z-10 inline-flex items-center gap-1 font-medium text-primary hover:underline"
                   >
                     <Navigation className="h-3.5 w-3.5" />
                     {t("directions")}
@@ -209,7 +209,7 @@ function SportTeams({
               </div>
             </CardContent>
             </Card>
-          </Link>
+          </div>
           );
       })}
     </div>
