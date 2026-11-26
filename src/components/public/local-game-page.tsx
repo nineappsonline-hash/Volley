@@ -2,7 +2,7 @@ import { GameAlertFollow } from "@/components/games/game-alert-follow";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppLogo } from "@/components/shared/app-logo";
-import { getPublicGames } from "@/lib/public-games";
+import { getPublicGames, getRecentPublicGames } from "@/lib/public-games";
 import { getPublicCourtDirectory } from "@/lib/public-playgrounds";
 import { LOCAL_GAME_GUIDES, findLocalGuide, isNewCairo, localGamePath, matchesLocalGame, type LocalLanguage } from "@/lib/local-games";
 import { publicGamePath, gamePlace } from "@/lib/game-discovery";
@@ -16,8 +16,13 @@ export async function LocalGamePage({ lang, slug }: { lang: LocalLanguage; slug:
   if (!guide) notFound();
   const ar = lang === "ar";
   const copy = guide[lang];
-  const [games, courts] = await Promise.all([getPublicGames(guide.sport), getPublicCourtDirectory(guide.sport)]);
+  const [games, courts, archive] = await Promise.all([
+    getPublicGames(guide.sport),
+    getPublicCourtDirectory(guide.sport),
+    getRecentPublicGames(guide.sport, 60),
+  ]);
   const localGames = games.filter(game => matchesLocalGame(game, guide));
+  const historicGames = archive.filter(game => matchesLocalGame(game, guide)).slice(0, 8);
   const localCourts = courts.filter(court => isNewCairo(court.area));
   return <main lang={lang} dir={ar ? "rtl" : "ltr"} className="min-h-screen bg-background pb-16">
     <header className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-6"><Link href="/" aria-label="Playza"><AppLogo /></Link><Link href={localGamePath(ar ? "en" : "ar", slug)} hrefLang={ar ? "en" : "ar-EG"} lang={ar ? "en" : "ar"} className="underline underline-offset-4">{ar ? "English" : "العربية"}</Link></header>
@@ -30,6 +35,15 @@ export async function LocalGamePage({ lang, slug }: { lang: LocalLanguage; slug:
       <section id="local-upcoming-games" aria-labelledby="local-games-title" className="scroll-mt-8"><h2 id="local-games-title" className="text-2xl font-bold">{ar ? "الماتشات الجاية في القاهرة الجديدة" : "Upcoming games in New Cairo"}</h2>
         {localGames.length ? <div className="mt-5 grid gap-4 sm:grid-cols-2">{localGames.map(game => <article key={game.id} className="space-y-3 rounded-2xl border bg-card p-5"><h3 className="text-xl font-bold"><Link href={publicGamePath(game.id)}>{game.title}</Link></h3><p><time dateTime={game.game_date}>{game.game_date}</time> · {formatTime12h(game.start_time, lang)} · {ar ? "بتوقيت القاهرة" : "Cairo time"}</p><p>{gamePlace(game)}</p><p>{ar ? game.host_pays || game.share_price === 0 ? "مجاني" : game.share_price == null ? "التكلفة لم تتحدد بعد" : `${game.share_price} جنيه لكل لاعب` : gameSharePrice(game)}</p><Link className={linkStyle} href={publicGamePath(game.id)}>{ar ? "تفاصيل الماتش والانضمام" : "Game details & joining"}</Link></article>)}</div> : <p className="mt-5 rounded-xl border p-5 leading-relaxed">{ar ? "مفيش ماتشات منشورة جاية لهذه الرياضة في القاهرة الجديدة حاليًا. راجع الملاعب والدليل هنا، أو شوف كل الماتشات لمواعيد وأماكن تانية. التوفر بيتغير حسب المنظم." : "No upcoming public games for this sport in New Cairo are listed right now. Use the court and preparation information below, or browse all games for other dates and locations. Availability changes with organizers' schedules."}</p>}
       </section>
+      {historicGames.length > 0 && <section aria-labelledby="local-past-games-title" className="rounded-2xl border border-border bg-card p-6">
+        <h2 id="local-past-games-title" className="text-2xl font-bold">{ar ? "ماتشات سابقة في التجمع" : "Previous games in New Cairo"}</h2>
+        <p className="mt-2 text-muted-foreground">{ar ? "الماتشات دي انتهت ومش متاحة للحجز؛ تقدر تشوف أمثلة حقيقية للألعاب اللي اتنظمت، وبعدها تختار ماتش من القائمة الجاية فوق." : "These games have ended and cannot be booked. Browse real previously published games, then join one of the upcoming games listed above."}</p>
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2">{historicGames.map(game => <li key={game.id} className="rounded-xl border border-border bg-background p-4">
+          <Link href={publicGamePath(game.id)} className="font-semibold underline underline-offset-4">{game.title}</Link>
+          <p className="mt-2 text-sm text-muted-foreground"><time dateTime={game.game_date}>{game.game_date}</time> · {gamePlace(game)}</p>
+          <p className="mt-1 text-xs font-semibold">{ar ? "انتهى الماتش — شوف الألعاب الجديدة فوق" : "Finished — see upcoming games above"}</p>
+        </li>)}</ul>
+      </section>}
       {localCourts.length > 0 && <section><h2 className="text-2xl font-bold">{ar ? "ملاعب منشورة في القاهرة الجديدة" : "Published courts in New Cairo"}</h2><p className="mt-3 text-muted-foreground">{ar ? "صفحة الملعب للتعرف على المكان؛ وجود ملعب لا يعني توفر ماتش أو حجز في ميعاد معين." : "Court profiles describe the venue; a listed court does not guarantee an organized game or an available booking."}</p><div className="mt-5 grid gap-4 sm:grid-cols-2">{localCourts.map(court => <article key={court.id} className="rounded-xl border p-5"><h3 className="font-bold"><Link href={`/p/${court.id}`} className="underline underline-offset-4">{court.name}</Link></h3><p className="mt-2 text-sm">{[court.address, court.area, court.governorate].filter(Boolean).join(", ")}</p></article>)}</div></section>}
       <GameAlertFollow language={lang} sport={guide.sport} returnTo={localGamePath(lang, slug)} />
       {copy.sections.map(([heading, body]) => <section key={heading}><h2 className="text-2xl font-bold">{heading}</h2><p className="mt-4 max-w-4xl leading-relaxed text-muted-foreground">{body}</p></section>)}
