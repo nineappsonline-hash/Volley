@@ -6,12 +6,16 @@ import { OG_IMAGE, SITE_URL } from "@/lib/seo";
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import Script from "next/script";
+import { Alexandria, Manrope } from "next/font/google";
 import { Providers } from "@/providers/providers";
 import { ScrollToTop } from "@/components/shared/scroll-to-top";
 import { AppBackground } from "@/components/shared/app-background";
 import { ContactWidget } from "@/components/contact/contact-widget";
 import { htmlLocaleForPath, publicPathMatcherSource } from "@/lib/html-lang";
 import "./globals.css";
+
+const alexandriaFont = Alexandria({ subsets: ["arabic", "latin"], display: "swap", variable: "--font-alexandria" });
+const manropeFont = Manrope({ subsets: ["latin"], display: "swap", variable: "--font-manrope" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -92,7 +96,7 @@ export default function RootLayout({
   const pathname = headers().get("x-playza-path") ?? "/";
   const { lang, dir } = htmlLocaleForPath(pathname);
   return (
-    <html lang={lang} dir={dir} suppressHydrationWarning>
+    <html lang={lang} dir={dir} className={`${alexandriaFont.variable} ${manropeFont.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: automaticThemeScript }} />
         <script
@@ -104,17 +108,6 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `try{if("scrollRestoration" in history){history.scrollRestoration="manual";}var H=location.hash||"";var authish=false,recovery=false;if(H){var h=H.slice(1);var rh=h.indexOf("type=recovery")>-1;authish=rh||h.indexOf("access_token=")>-1||h.indexOf("token_hash=")>-1;recovery=rh||h.indexOf("token_hash=")>-1;}var S=location.search||"";if(!authish&&S){recovery=S.indexOf("type=recovery")>-1||S.indexOf("token_hash=")>-1;authish=recovery;}if(authish){if(recovery&&location.pathname!=="/auth/update-password"){location.replace("/auth/update-password"+S+H);}}else if(H){history.replaceState(null,"",location.pathname+location.search);}window.scrollTo(0,0);}catch(e){}`,
           }}
-        />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        {/* eslint-disable-next-line @next/next/no-page-custom-font -- App Router: loading Google Fonts in the root layout is the supported pattern */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet"
         />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <link
