@@ -50,12 +50,18 @@ export async function confirmGameRegistration(gameId:string): Promise<void> {
     const {data:game,error:gameError}=await client.from("friendly_games").select("sport,area,playground:venues(country,governorate,area)").eq("id",gameId).maybeSingle();
     if(gameError||!game)return;
     const venue=Array.isArray(game.playground)?game.playground[0]:game.playground;
-    await trackCompletion("game_registration_completed",`${user.id}:${gameId}`,{sport:game.sport,...venue,city:venue?.area??game.area});
-    storageRemove(GAME);
+    const context:AnalyticsContext={sport:game.sport,...venue,city:venue?.area??game.area};
+    await trackCompletion("game_registration_completed",`${user.id}:${gameId}`,context);
+    if(seat.pay_status==="approved"){
+      // This conversion is emitted only after the authenticated player's seat
+      // is approved in the database, not on receipt upload or checkout redirect.
+      await trackCompletion("game_booking_confirmed",`${user.id}:${gameId}`,context);
+      storageRemove(GAME);
+    }
   }catch { /* Read-only analytics cannot affect registration. */ }
 }
 export async function confirmPendingGameRegistration(): Promise<void> {
-  try {const p=JSON.parse(storageGet(GAME)??"null");if(p&&Date.now()-p.started<86400000)await confirmGameRegistration(p.gameId);}catch{ /* Optional. */ }
+  try {const p=JSON.parse(storageGet(GAME)??"null");if(p&&Date.now()-p.started<30*86400000)await confirmGameRegistration(p.gameId);}catch{ /* Optional. */ }
 }
 export async function academyContext(id:string):Promise<AnalyticsContext> {
   try {
