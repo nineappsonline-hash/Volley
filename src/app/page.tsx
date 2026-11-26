@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LandingPage } from "@/components/marketing/landing";
 import { createClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
 import {
   OG_IMAGE,
   SITE_URL,
@@ -40,15 +41,22 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const supabase = createClient();
-  // Fetch public games in parallel with auth rather than adding both latencies
-  // to the homepage TTFB for signed-out visitors.
-  const [authResult, publicGames] = await Promise.all([
-    supabase.auth.getUser(),
+  // The server auth client reads Supabase's session only from its cookies.
+  // An anonymous visitor without an auth-token cookie cannot have a server
+  // session; avoid a redundant Auth API request on every public landing hit.
+  // A present cookie is NEVER trusted as authentication: Supabase getUser()
+  // still validates it before any dashboard redirect.
+  const hasSessionCookie = cookies().getAll().some(({ name }) =>
+    /^sb-[a-z0-9_-]+-auth-token(?:\\.\\d+)?$/i.test(name)
+  );
+  const [user, publicGames] = await Promise.all([
+    hasSessionCookie
+      ? createClient().auth.getUser().then(({ data }) => data.user)
+      : Promise.resolve(null),
     getPublicGames(),
   ]);
 
-  if (authResult.data.user) redirect("/dashboard");
+  if (user) redirect("/dashboard");
 
   // One bounded, ordered query also covers pages with fewer than three joinable
   // games. Avoid a second sequential Supabase round trip in the common case
