@@ -259,8 +259,8 @@ export function PaymentApprovals() {
     approve: boolean,
   ) => {
     if (record.method === "kashier" && !window.confirm(lang === "ar"
-      ? (approve ? "تأكيد الموافقة يدويًا؟ تحقق من استلام المبلغ في كاشير أولًا. لن يتم خصم أي مبلغ." : "رفض سجل الدفع؟ هذا لا يُعيد المبلغ للبطاقة. أي استرداد يتم من كاشير بشكل منفصل.")
-      : (approve ? "Approve manually? Verify receipt of funds in Kashier first. This will not charge the card." : "Reject this payment record? This does not refund the card. Any refund must be handled separately in Kashier."))) return;
+      ? (approve ? "تأكيد استلام الدفعة يدويًا؟ لازم تكون راجعت المبلغ ورقم العملية في لوحة Kashier بنفسك. هيتم تأكيد حجز اللاعب وكل ضيوفه، ومش هيتم خصم أي مبلغ إضافي." : "رفض سجل الدفع؟ هذا لا يُعيد المبلغ للبطاقة. أي استرداد يتم من كاشير بشكل منفصل.")
+      : (approve ? "Confirm card payment manually? You must have verified the amount and transaction in Kashier. This confirms the payer and all their guests without charging again." : "Reject this payment record? This does not refund the card. Any refund must be handled separately in Kashier."))) return;
     try {
       if (record.method === "kashier") {
         setCardBusy(true);
@@ -316,7 +316,7 @@ export function PaymentApprovals() {
     return <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold leading-none" style={palette}>{statusLabel(status)}</span>;
   };
   const cardNote = (r: PaymentRecord) => r.method === "kashier" ? <span className="text-xs text-muted-foreground">{lang === "ar" ? "قرار الإدارة لا يخصم أو يُعيد أي مبلغ من كاشير." : "Admin review does not charge or refund Kashier payments."}</span> : null;
-  const actions = (r: PaymentRecord) => (r.method === "kashier" ? !!r.orderId && r.status === "review_required" : r.status === "pending") && <>
+  const actions = (r: PaymentRecord) => (r.method === "kashier" ? !!r.orderId && (r.status === "review_required" || r.status === "awaiting_payment") : r.status === "pending") && <>
     {r.status !== "approved" && <Button variant="outline" size="sm" disabled={cardBusy || reviewShare.isPending || reviewRent.isPending || reviewSub.isPending} onClick={() => void handleApproveReject(r, true)}><CheckCircle2 className="me-1 h-3 w-3" />{t("super_admin_fee_approve")}</Button>}
     {r.status !== "rejected" && <Button variant="outline" size="sm" disabled={cardBusy || reviewShare.isPending || reviewRent.isPending || reviewSub.isPending} onClick={() => void handleApproveReject(r, false)}><XCircle className="me-1 h-3 w-3" />{t("super_admin_fee_reject")}</Button>}
   </>;
