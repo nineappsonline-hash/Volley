@@ -8,7 +8,7 @@ import { SportIcon } from "@/components/marketing/sport-icons";
 import { AppLogo } from "@/components/shared/app-logo";
 import { getPublicCourtDirectory } from "@/lib/public-playgrounds";
 import { courtsPath } from "@/lib/court-discovery";
-import { getPublicGames } from "@/lib/public-games";
+import { getPublicGames, getRecentPublicGames } from "@/lib/public-games";
 import { getCairoSportAcademies } from "@/lib/public-sport-academies";
 import { DISCOVERY_SPORTS, discoveryPath, findDiscoverySport, type DiscoveryLanguage } from "@/lib/sport-discovery";
 import { courtsLocationPath, locationLabel, locationSlugsWithInventory } from "@/lib/court-locations";
@@ -65,10 +65,11 @@ export async function SportDiscoveryPage({ slug, lang }: { slug: string; lang: D
   const gamesUrl = bookableSport ? `/games?sport=${sport.slug}` : "/games";
   const volleyball = slug === "volleyball" || slug === "beach-volleyball";
   const showCourts = volleyball || slug === "tennis";
-  const [games, academies, publicCourts] = await Promise.all([getPublicGames(sport.name), getCairoSportAcademies(sport.name), showCourts ? getPublicCourtDirectory(sport.name) : Promise.resolve([])]);
+  const [games, academies, publicCourts, archived] = await Promise.all([getPublicGames(sport.name), getCairoSportAcademies(sport.name), showCourts ? getPublicCourtDirectory(sport.name) : Promise.resolve([]), bookableSport ? getRecentPublicGames(sport.name, 16) : Promise.resolve([])]);
   const courts = publicCourts.filter(c => ["cairo", "القاهرة"].includes(c.governorate?.trim().toLowerCase() ?? ""));
   const locationSlugs = showCourts ? locationSlugsWithInventory(courts, sport.name) : [];
   const cairoGames = games.filter(game => ["cairo", "القاهرة"].includes(game.playground?.governorate?.trim().toLowerCase() ?? ""));
+  const archivedCairoGames = archived.filter(game => ["cairo", "القاهرة"].includes(game.playground?.governorate?.trim().toLowerCase() ?? "")).slice(0, 6);
   const questions: [string, string][] = ar ? [
     [`إزاي ألاقي ${name} في القاهرة؟`, "ابدأ بالماتشات والأكاديميات المنشورة على Playza. راجع عنوان المكان والمنطقة والميعاد ومستوى المشاركين. لو مفيش إعلان مناسب حاليًا، تقدر تتابع الأكاديميات أو تنظم نشاط من حسابك؛ توفر الأنشطة مش مضمون في كل منطقة."],
     ["ينفع أبدأ لوحدي أو كمبتدئ؟", "راجع مستوى النشاط وشروط السن قبل الانضمام. بعض الماتشات بتقبل لاعبين أفراد، والأكاديميات بتوضح مجموعات التدريب. اسأل المنظم لو الإعلان مش موضح هل النشاط مناسب للمبتدئين."],
@@ -145,6 +146,16 @@ export async function SportDiscoveryPage({ slug, lang }: { slug: string; lang: D
           <Link href={publicGamePath(game.id)} className="inline-block text-sm font-semibold text-primary underline underline-offset-4">{ar ? "تفاصيل المشاركة" : "View participation details"}</Link>
         </article>)}</div> : <p className="rounded-2xl border p-5 text-muted-foreground">{ar ? "مفيش أنشطة قادمة متاحة للعرض هنا حاليًا. تقدر تراجع صفحة الماتشات أو تنظم نشاط وتشارك رابطه مع أصحابك." : "No upcoming activities are available to display here right now. Check the games page or organize an activity and share it with friends."}</p>}
       </section>
+      {archivedCairoGames.length > 0 && <section className="space-y-4" aria-labelledby="past-sport-games">
+        <h2 id="past-sport-games" className="text-2xl font-bold">{ar ? `ماتشات ${name} سابقة في القاهرة` : `Previous ${sport.name} games in Cairo`}</h2>
+        <p className="text-sm leading-relaxed text-muted-foreground">{ar ? "الماتشات دي انتهت بالفعل ومش متاحة للحجز. تقدر تراجع تفاصيلها وتكتشف من خلالها ألعاب جديدة من نفس الرياضة." : "These genuine public games have finished and cannot be booked. Review their details and use their links to discover upcoming games."}</p>
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{archivedCairoGames.map(game => <li key={game.id} className="rounded-xl border bg-card p-4">
+          <Link className="font-semibold underline underline-offset-4" href={publicGamePath(game.id)}>{game.title}</Link>
+          <p className="mt-2 text-sm text-muted-foreground"><time dateTime={game.game_date}>{game.game_date}</time> · {[game.playground?.area ?? game.area, game.playground?.governorate].filter(Boolean).join("، ")}</p>
+          <p className="mt-2 text-xs font-semibold">{ar ? "انتهى الماتش" : "Completed game"}</p>
+        </li>)}</ul>
+        <Link className={linkStyle} href={gamesUrl}>{ar ? "شوف الماتشات الجاية" : "Find upcoming games"}</Link>
+      </section>}
       <section className="space-y-4"><h2 className="text-2xl font-bold">{ar ? "قبل ما تشارك" : "Before you join"}</h2>{questions.map(([q, a]) => <article key={q} className="rounded-2xl border p-5"><h3 className="font-bold">{q}</h3><p className="mt-2 leading-relaxed text-muted-foreground">{a}</p></article>)}</section>
       <nav className="flex flex-wrap gap-3 border-t pt-6" aria-label={ar ? "خطوتك الجاية" : "Next steps"}><Link className={linkStyle} href={`/tournaments?sport=${slug}`}>{ar ? `بطولات ${name}` : `${name} tournaments`}</Link><Link className={linkStyle} href="/signup">{ar ? "اعمل حساب مجاني" : "Create a free account"}</Link><Link className={linkStyle} href={discoveryPath(lang)}>{ar ? "اكتشف باقي الرياضات" : "Explore other sports"}</Link></nav>
     </div>
