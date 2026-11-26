@@ -195,5 +195,17 @@ Automated daily audits for sitemap HTTP 200, malformed JSON-LD, game indexabilit
 - [ ] Inspect actual owner signup flow and attribution tracking after arriving from directory.
 - [ ] Evaluate mobile court-card image LCP and direct booking conversion via performance tools.
 
+## Phase 6 implementation ledger — verified booking attribution
+
+- [x] Preserve privacy-safe sport/location owner and player landing paths in analytics attribution (unknown path segments are redacted).
+- [x] Add `game_booking_confirmed` conversion, emitted only when the authenticated participant's stored seat is `approved` and not waitlisted.
+- [x] Keep `game_registration_completed` separate from paid/approved booking success; pending payment is not a confirmed conversion.
+- [x] Retain game-join intent through delayed card/manual approval for up to 30 days and dedupe completion events using local SHA-256 fingerprints (no game ID or member ID is sent to GA4).
+- [x] Recheck verified confirmation on page return, focus, visibility and auth changes in addition to payment-result success.
+- [ ] Validate actual GA4 DebugView and consent opt-outs on production; inspect one test pending → approved flow without a real card charge.
+- [ ] Add validated venue submission and approved venue events only with backend confirmation; the current owner signup completion event measures an account, not an approved court.
+- [ ] Configure GA4 key event `game_booking_confirmed` in the connected Google Analytics property where authorized; GSC alone does not expose GA4 management.
+- [ ] Compare organic landing → join click → joined seat → approved seat with Search Console queries, without storing PII.
+
 ## 15. Release discipline
 Every phase: source review → implementation PR/commit → typecheck/build → route and regression smoke tests → production deploy → production check → analytics/SEO monitor → mark complete. **Never mark a phase fully done when only the code has been committed.**
