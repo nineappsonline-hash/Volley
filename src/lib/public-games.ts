@@ -174,6 +174,42 @@ export async function getPublicGames(sport?: string): Promise<PublicGame[]> {
 }
 
 /**
+ * Historical game cards for evergreen sport/location discovery pages.
+ * Only approved public games are included. Returned records contain no player
+ * identities or invitation codes. The final Cairo-time check also catches
+ * games that started earlier today.
+ */
+export async function getRecentPublicGames(sport: string, maxResults = 12): Promise<PublicGame[]> {
+  noStore();
+  if (!isActiveSport(sport)) return [];
+  const admin = getAdmin();
+  if (!admin) return [];
+  try {
+    const { data, error } = await admin.from("friendly_games")
+      .select(`id, title, description, sport, area, location, game_date, start_time,
+        max_players, min_players, status, skill_level, gender, share_price, host_pays, host_total, booking_total,
+        creator_name, duration_hours, min_age, max_age,
+        playground:venues(name, area, governorate, country, location_link, cover_url, photos)`)
+      .eq("sport", sport)
+      .eq("is_public", true)
+      .eq("creation_payment_approved", true)
+      .neq("status", "cancelled")
+      .lte("game_date", todayISO())
+      .order("game_date", { ascending: false })
+      .order("start_time", { ascending: false })
+      .limit(150);
+    if (error) return [];
+    const now = new Date();
+    return (data ?? []).map((g: Record<string, unknown>) => {
+      const row = g as unknown as PublicGame;
+      return { ...row, playground: Array.isArray(g.playground) ? g.playground[0] ?? null : row.playground, joined: 0 };
+    }).filter(game => !gameIsJoinable(game, now)).slice(0, Math.max(1, Math.min(maxResults, 30)));
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Server-only lookup of a single game by its shareable invite code.
  * Powers the rich link preview (metadata + OG image) for shared game links.
  */
