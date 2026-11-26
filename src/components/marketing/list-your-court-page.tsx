@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BadgeCheck, Percent, Search, Image as ImageIcon, CalendarCheck, Clock, LayoutGrid, Languages, ArrowUpRight } from "lucide-react";
 import { LIST_YOUR_COURT, listYourCourtPath } from "@/lib/list-your-court";
 import { academyManagementPath } from "@/lib/academy-management";
+import { OWNER_SPORTS, ownerSportPath, type OwnerSportSlug } from "@/lib/owner-sport-pages";
 import { SITE_URL, breadcrumbsJsonLd, jsonLdStringify } from "@/lib/seo";
 
 const icons = [BadgeCheck, Percent, Search, ImageIcon, CalendarCheck, Clock, LayoutGrid, Languages];
@@ -93,6 +94,13 @@ export function ListYourCourtPage({ lang }: { lang: "en" | "ar" }) {
               <Link key={sport.slug} href={`/courts?sport=${sport.slug}`} className="rounded-lg border px-3 py-2 text-sm text-brand hover:bg-accent">{ar ? sport.ar : sport.en}</Link>
             ))}
           </div>
+        </div>
+      </section>
+      <section className="mx-auto max-w-6xl px-6 pb-12" aria-labelledby="owner-by-sport">
+        <h2 id="owner-by-sport" className="text-2xl font-bold">{ar ? "حلول تسجيل وإدارة الملاعب حسب الرياضة" : "Court listing by sport"}</h2>
+        <p className="mt-3 max-w-3xl text-muted-foreground">{ar ? "اختار نوع ملعبك وشوف تفاصيل التسجيل والمواعيد والحجوزات المناسبة للرياضة بتاعتك." : "Choose your court type for specific registration, scheduling and booking details."}</p>
+        <div className="mt-5 grid gap-4 sm:grid-cols-3">
+          {(Object.keys(OWNER_SPORTS) as OwnerSportSlug[]).map(sport => <Link key={sport} href={ownerSportPath(lang, sport)} className="block rounded-xl border bg-card p-5 font-semibold underline-offset-4 hover:underline hover:bg-accent">{OWNER_SPORTS[sport][lang].title}</Link>)}
         </div>
       </section>
       <section className="mx-auto max-w-4xl px-6 pb-10">
