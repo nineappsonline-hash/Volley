@@ -15,7 +15,7 @@ export const newCairoGamesPath = (lang: LocalLanguage) =>
 
 export const newCairoGamesMeta = (lang: LocalLanguage): Metadata => {
   const ar = lang === "ar";
-  const title = ar ? "ماتشات في التجمع والقاهرة الجديدة | العب مع ناس جديدة" : "Find Sports Games in New Cairo & Tagamoa | Playza";
+  const title = ar ? "ماتشات في التجمع والقاهرة الجديدة | العب مع ناس جديدة" : "Find Sports Games in New Cairo & Tagamoa";
   const description = ar
     ? "دور على ناس تلعب معاها في التجمع والقاهرة الجديدة. شوف ماتشات الطائرة والطائرة الشاطئية المنشورة، والمواعيد والأسعار، وألعاب سابقة وروابط الملاعب."
     : "Find people to play with in New Cairo and Tagamoa. Browse real published volleyball and beach volleyball games, dates, prices, previous games and courts.";
@@ -40,7 +40,7 @@ export async function NewCairoGamesHub({ lang }: { lang: LocalLanguage }) {
   const courts = [...new Map(courtGroups.flat().filter(c => isNewCairo(c.area)).map(c => [c.id, c])).values()];
   const pagePath = newCairoGamesPath(lang);
   const meta = newCairoGamesMeta(lang);
-  const pageTitle = ar ? "ماتشات في التجمع والقاهرة الجديدة | العب مع ناس جديدة" : "Find Sports Games in New Cairo & Tagamoa | Playza";
+  const pageTitle = ar ? "ماتشات في التجمع والقاهرة الجديدة | العب مع ناس جديدة" : "Find Sports Games in New Cairo & Tagamoa";
   return <main lang={lang} dir={ar ? "rtl" : "ltr"} className="min-h-screen bg-background pb-16">
     <header className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-6"><Link href="/" aria-label="Playza"><AppLogo /></Link><Link href={newCairoGamesPath(ar ? "en" : "ar")} hrefLang={ar ? "en" : "ar-EG"} className="text-sm font-semibold underline">{ar ? "English" : "العربية"}</Link></header>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@context": "https://schema.org", "@graph": [
