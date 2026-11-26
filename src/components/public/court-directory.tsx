@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { MapPin, LandPlot, ArrowUpRight } from "lucide-react";
 import { AppLogo } from "@/components/shared/app-logo";
@@ -47,11 +48,13 @@ export async function CourtDirectory({ lang, slug }: { lang: DiscoveryLanguage; 
       </section>}
       <p className="text-sm text-muted-foreground">{copy("Prices shown are final full-court booking prices for one hour. Open a court to check dates, duration and availability.", "الأسعار المعروضة هي أسعار حجز الملعب بالكامل لمدة ساعة. افتح صفحة الملعب لمراجعة المواعيد والمدة والإتاحة.")}</p>
       {courts.length ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{courts.map(c => <article key={c.id} className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-        <Link href={`/p/${encodeURIComponent(c.id)}`} aria-label={c.name} className="flex h-32 items-center justify-center overflow-hidden bg-muted">
+        <Link href={`/p/${encodeURIComponent(c.id)}`} aria-label={c.name} className="relative flex h-32 items-center justify-center overflow-hidden bg-muted">
           {c.cover_url || c.photos[0] ? (
-            // Venue photos can come from user-provided hosts.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={c.cover_url || c.photos[0]} alt={c.name} width={480} height={270} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+            // Only proxy trusted Playza storage through Next Image. Other
+            // user-provided hosts retain the original image behavior.
+            (c.cover_url || c.photos[0]).startsWith("https://jqysnlkykznwdonicwsm.supabase.co/storage/v1/object/public/")
+              ? <Image src={(c.cover_url || c.photos[0])!} alt={c.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" quality={70} loading="lazy" className="object-cover" />
+              : <img src={c.cover_url || c.photos[0]} alt={c.name} width={480} height={270} loading="lazy" decoding="async" className="h-full w-full object-cover" />
           ) : <LandPlot className="h-10 w-10 text-muted-foreground" aria-hidden="true" />}
         </Link>
         <div className="space-y-3 p-4"><p className="text-xs font-semibold text-muted-foreground">{ar ? findDiscoverySport(sportToSlug(c.sport?.name ?? ""))?.arabic ?? c.sport?.name : c.sport?.name}</p><h2 className="text-base font-bold"><Link href={`/p/${encodeURIComponent(c.id)}`}>{c.name}</Link></h2>
