@@ -62,9 +62,9 @@ export async function verifiedCardTransaction(order: CardOrder): Promise<string 
       tx?.isReversed === true || tx?.isVoided === true) {
     throw new Error("Kashier transaction verification mismatch");
   }
-  // Some Kashier transaction responses omit amount; only confirm when the
-  // amount is explicitly present and equal to our immutable order amount.
-  if (amountInPiastres(tx?.amount ?? tx?.order?.amount) !== amountInPiastres(order.amount)) {
+  // Some transaction-detail responses omit amount. The captured amount from
+  // the merchant-scoped order reconciliation response is an allowed fallback.
+  if (amountInPiastres(tx?.amount ?? tx?.order?.amount ?? gatewayOrder.totalCapturedAmount ?? gatewayOrder.amount) !== amountInPiastres(order.amount)) {
     throw new Error("Kashier transaction amount mismatch");
   }
   return transactionId;
