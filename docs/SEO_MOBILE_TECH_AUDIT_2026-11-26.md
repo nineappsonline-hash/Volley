@@ -28,3 +28,6 @@ OpenSEO attempted 20 Lighthouse runs on mobile/desktop sample pages; all **20 fa
 - Browser-test opening both modal dialogs, player join/payment and court booking (staging/test orders only; no actual charge).
 - Re-run Lighthouse with funded credits or alternative lab tooling and compare consistent mobile settings.
 - Expand crawl page cap only when needed; prioritize orphan/deep pages and actual page conversion.
+
+## GA4 attribution integration check
+OpenSEO project `Playza` has a working Search Console connection. The connected Google account exposed only GA4 properties named **ZAIT AND FILTERS**, **ZAIT & FILTERS** and **BraveX**, not a clearly identifiable Playza property. Do not bind another project's GA4 property to Playza. The site's configured frontend measurement ID is `G-XJPEX3WY2B`, but access to its corresponding GA4 property has not been confirmed in OpenSEO. To measure organic booking/owner conversions, connect the correct GA4 property through the OpenSEO integration with authorized account access, then verify measurement ID and custom key events.
