@@ -85,11 +85,11 @@
   h1 { font-weight: 800; }
   h2, h3, h4 { font-weight: 700; }
   button, nav, label { font-weight: 600; }
-  html[lang="en"] body { font-family: "Manrope", sans-serif; }
+  html[lang="en"] body { font-family: var(--font-manrope), "Manrope", sans-serif; }
   /* Alexandria for Arabic pages, including Arabic sections in the English UI. */
   [dir="rtl"] body,
   [dir="rtl"] {
-    font-family: "Alexandria", ui-sans-serif, system-ui, -apple-system,
+    font-family: var(--font-alexandria), "Alexandria", ui-sans-serif, system-ui, -apple-system,
       "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
   :lang(ar) :is(h1, h2, h3, h4) {
