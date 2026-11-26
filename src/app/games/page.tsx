@@ -78,7 +78,9 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
         title: meta.title,
         description: meta.description,
         alternates: { canonical: game.is_public ? publicGamePath(game.id) : joinUrl },
-        robots: { index: game.is_public, follow: game.is_public },
+        // Shared invite URLs are alternate views of a game; never index them as duplicate pages.
+        // Public games use /games/[id] as the sole indexable canonical.
+        robots: { index: false, follow: true },
         openGraph: {
           title: meta.title,
           description: meta.description,
