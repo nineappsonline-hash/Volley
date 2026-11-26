@@ -32,7 +32,7 @@ export function SharedGamePage({ game, inviteCode, publicParticipants }: { game:
           {game && <span className={styles.thumb}>
             {!photo && <span className={styles.thumbFallback} aria-hidden="true">{game.sport}</span>}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {photo && <img src={photo} alt="" loading="lazy" onError={event => { event.currentTarget.style.display = "none"; }} />}
+            {photo && <img src={photo} alt="" width={144} height={144} loading="eager" decoding="async" onError={event => { event.currentTarget.style.display = "none"; }} />}
             <span className={styles.thumbLabel}>{game.sport}</span>
           </span>}
           <CardTitle><h1 className="break-words text-2xl font-extrabold">{game?.title ?? t("games_invite_invalid")}</h1></CardTitle>
