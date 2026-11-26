@@ -1,31 +1,71 @@
 import { amountInPiastres, kashierConfig, kashierRequest } from "./kashier";
 
-type CardOrder = { id: string; session_id: string | null; mode: string; amount: number | string; currency: string };
+export type CardOrder = { id: string; session_id: string | null; mode: string; amount: number | string; currency: string };
+const successful = /^(PAID|SUCCESS|SUCCEEDED|CAPTURED|APPROVED)$/i;
 
-// Bind every read to our merchant, order, amount and currency. Redirect flags
-// and a session's status alone are never proof that this order was collected.
+// A captured gateway payment is required. A redirect, authorization, or
+// "pending" payment is never sufficient evidence of collected funds.
 export async function verifiedCardTransaction(order: CardOrder): Promise<string | null> {
   const config = kashierConfig();
-  if (!order.session_id || order.mode !== config.mode) return null;
-  let response: any;
-  try {
-    response = await kashierRequest(`/v3/payment/sessions/${encodeURIComponent(order.session_id)}/payment`, undefined, { timeoutMs: 8000 });
-  } catch {
-    // Some sessions are unavailable through the merchant read but are retained
-    // by the checkout session resource. Both are documented Kashier endpoints.
-    response = await kashierRequest(`/v3/payment/sessions/${encodeURIComponent(order.session_id)}`, undefined, { timeoutMs: 8000 });
+  if (order.mode !== config.mode) return null;
+  if (order.session_id) {
+    try {
+      const response: any = await kashierRequest(`/v3/payment/sessions/${encodeURIComponent(order.session_id)}/payment`, undefined, { timeoutMs: 7000 });
+      const session = response?.data ?? response;
+      const params = session?.paymentParams ?? session;
+      if (String(session?.merchantId) !== config.merchantId ||
+          String(params?.merchantOrderId ?? params?.order) !== order.id ||
+          params?.currency !== order.currency ||
+          amountInPiastres(params?.amount) !== amountInPiastres(order.amount)) {
+        throw new Error("Payment verification mismatch");
+      }
+      if (!successful.test(String(session?.status ?? ""))) return null;
+      const transaction = session.transactionId ?? session.lastTransactionId ??
+        session.history?.find((h: any) => successful.test(String(h?.status)) && h?.transactionId)?.transactionId;
+      if (typeof transaction === "string" && transaction.trim()) return transaction;
+    } catch (error) {
+      // A second merchant-authenticated lookup by the exact order reference
+      // covers hosted-checkout fallbacks and unavailable session endpoints.
+      if (error instanceof Error && error.message === "Payment verification mismatch") throw error;
+    }
   }
-  const session = response?.data ?? response;
-  const params = session?.paymentParams ?? session;
-  if (String(session?.merchantId) !== config.merchantId ||
-      String(params?.merchantOrderId ?? params?.order) !== order.id ||
-      params?.currency !== order.currency ||
-      amountInPiastres(params?.amount) !== amountInPiastres(order.amount)) {
-    throw new Error("Payment verification mismatch");
+
+  // Kashier's order lookup also works for legacy signed hosted checkouts,
+  // which have no session_id. The search is partial, so require exact ID.
+  const response: any = await kashierRequest(
+    `/v3/payment/orders?search=${encodeURIComponent(order.id)}&limit=20`,
+    undefined, { timeoutMs: 8000 }
+  );
+  const rows = response?.data;
+  if (!Array.isArray(rows)) throw new Error("Unexpected Kashier order lookup response");
+  const matching = rows.filter((r: any) => r?.merchantOrderId === order.id);
+  if (matching.length !== 1) return null;
+  const gatewayOrder = matching[0];
+  if (String(gatewayOrder.status).toUpperCase() !== "CAPTURED") return null;
+  const paidTransactions = (Array.isArray(gatewayOrder.transactions) ? gatewayOrder.transactions : []).filter((tx: any) =>
+    /^(pay|capture)$/i.test(String(tx?.operation ?? "")) &&
+    successful.test(String(tx?.status ?? "")) &&
+    /^(00|0|APPROVED)$/i.test(String(tx?.transactionResponseCode ?? "")) &&
+    typeof tx?.transactionId === "string" && tx.transactionId.trim()
+  );
+  if (paidTransactions.length !== 1) return null;
+  const transactionId = paidTransactions[0].transactionId as string;
+  // Verify the captured transaction's exact order, amount and currency.
+  const details: any = await kashierRequest(
+    `/v2/aggregator/transactions/${encodeURIComponent(transactionId)}`, undefined, { timeoutMs: 8000 }
+  );
+  const tx = details?.body ?? details?.data ?? details;
+  const reference = tx?.merchantOrderId ?? tx?.order?.orderReference;
+  if (String(reference) !== order.id ||
+      String(tx?.currency) !== order.currency ||
+      !successful.test(String(tx?.status ?? tx?.paymentStatus ?? "")) ||
+      tx?.isReversed === true || tx?.isVoided === true) {
+    throw new Error("Kashier transaction verification mismatch");
   }
-  if (!/^(PAID|SUCCESS|SUCCEEDED|CAPTURED|APPROVED)$/i.test(String(session?.status ?? ""))) return null;
-  // AUTHORIZED alone is intentionally excluded: capture must have succeeded.
-  const transaction = session.transactionId ?? session.lastTransactionId ??
-    session.history?.find((h: any) => /^(PAID|SUCCESS|SUCCEEDED|CAPTURED|APPROVED)$/i.test(String(h?.status)) && h?.transactionId)?.transactionId;
-  return typeof transaction === "string" && transaction.trim() ? transaction : null;
+  // Some Kashier transaction responses omit amount; only confirm when the
+  // amount is explicitly present and equal to our immutable order amount.
+  if (amountInPiastres(tx?.amount ?? tx?.order?.amount) !== amountInPiastres(order.amount)) {
+    throw new Error("Kashier transaction amount mismatch");
+  }
+  return transactionId;
 }
