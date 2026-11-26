@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { PublicGame, PublicGameDetail } from "@/lib/public-games";
 import { SITE_URL, OG_IMAGE } from "@/lib/seo";
 import { gameSharePrice } from "@/lib/game-share";
-import { cairoGameStart, gameIsJoinable, gameRobots, gameEventMarkupEligible } from "@/lib/seo-eligibility";
+import { cairoGameStart, gameIsJoinable, gameRobots, gameEventMarkupEligible, gameLifecycle } from "@/lib/seo-eligibility";
 export { cairoGameStart, gameIsJoinable } from "@/lib/seo-eligibility";
 
 export const publicGamePath = (id: string) => `/games/${encodeURIComponent(id)}`;
@@ -11,8 +11,14 @@ export const gamePlace = (game: PublicGame) => [game.playground?.name, game.play
 export function publicGameMetadata(game: PublicGameDetail, now = new Date()): Metadata {
   // Unique per game: the user-facing title carries the event, and the scheduled
   // date keeps same-day games distinguishable in search results.
+  const archived = gameLifecycle(game, now) === "past";
+  const cancelled = game.status === "cancelled";
   const title = `${game.title} — ${game.game_date}`;
-  const description = `${game.sport} on ${game.game_date} at ${game.start_time.slice(0, 5)} (Cairo time). ${gamePlace(game)}. ${gameSharePrice(game)}. Review the level and joining requirements on Playza.`;
+  const description = archived
+    ? `This ${game.sport} game in ${gamePlace(game)} took place on ${game.game_date}. Explore upcoming ${game.sport} games and join other players on Playza; this past game cannot be booked.`
+    : cancelled
+      ? `This ${game.sport} game in ${gamePlace(game)} was cancelled. Find other upcoming games on Playza.`
+      : `${game.sport} on ${game.game_date} at ${game.start_time.slice(0, 5)} (Cairo time). ${gamePlace(game)}. ${gameSharePrice(game)}. Review the level and joining requirements on Playza.`;
   const url = `${SITE_URL}${publicGamePath(game.id)}`;
   // Indexability comes from the centralized eligibility policy (seo-eligibility.ts):
   // indexable while joining is possible, noindex,follow afterwards.
