@@ -96,7 +96,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
           <p>{copy("Browse upcoming games for volleyball, basketball, padel, tennis and beach volleyball in Egypt. See location, spots left and price, then join other players.", "شوف الماتشات الجاية لكرة الطائرة، وكرة السلة، والبادل، والتنس، والطائرة الشاطئية في مصر. شوف المكان، والأماكن المتاحة، والسعر، وانضم للاعبين.")}</p>
         </div>
         {upcomingGames.length > 0 ? <div className={`flex flex-col gap-3 text-start ${styles.landingGameCards}`}>
-          {upcomingGames.map(game => <GameCardShell key={game.id} layout="list" game={guestGameCard(game)} joined={false} detailsHref={publicGamePath(game.id)} />)}
+          {upcomingGames.map(game => <GameCardShell key={game.id} layout="list" deferPhotoLoading game={guestGameCard(game)} joined={false} detailsHref={publicGamePath(game.id)} />)}
         </div> : <p className={styles.gamesEmpty}>{copy("Check the games page for the latest availability. You can also create an account and organize a game with your friends.", "شوف المواعيد المتاحة في صفحة الماتشات، أو اعمل حساب ونظّم ماتش مع صحابك.")}</p>}
         <div className={styles.actions}><Link href="/games" className={styles.primary}>{copy("Browse all upcoming games", "شوف كل الماتشات الجاية")}<ArrowUpRight size={20} aria-hidden="true" /></Link></div>
       </section>
