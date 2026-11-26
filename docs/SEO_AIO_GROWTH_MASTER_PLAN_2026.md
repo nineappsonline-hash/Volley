@@ -123,7 +123,7 @@ Automated daily audits for sitemap HTTP 200, malformed JSON-LD, game indexabilit
 - [x] Mark shared `?join=` game URLs `noindex,follow`, retaining their share previews.
 - [ ] Inspect verified HTTP response and redirect behavior for retired domain, www, canonical and sitemap (external domain/DNS access required if misconfigured).
 - [ ] Test public/private/ended/full game live metadata, structured data and all sitemap entries on deployed build.
-- [ ] Establish GSC/Bing search-performance baseline with permitted access.
+- [x] Bind verified playza.life Google Search Console via OpenSEO and record baseline in docs/SEO_GSC_BASELINE_2026-11-26.md (18 clicks, 355 impressions for requested 28-day period, data returned for 14 dates). Bing remains unverified.
 - [ ] Inventory current landing pages and compare intent-to-URL mapping, then launch player/owner phase.
 - [x] Verify Vercel production build READY for SEO phase-1 source commit `21e40c88b588ab5faa374d89491b7e34012e4be2` (deployment `dpl_9RrFCXwKfj3qDoXkrDvsdGzMRaHR`).
 - [ ] Validate actual live HTTP metadata / robots / sitemap / redirects in production: external fetch was inconclusive due to runtime network access; validate with browser or crawl tool.
@@ -166,10 +166,10 @@ Automated daily audits for sitemap HTTP 200, malformed JSON-LD, game indexabilit
 - [x] Include each page in the sitemap with self-canonical and bilingual hreflang alternates.
 - [x] Include factual service information, transparent registration process, sport-specific questions, no unverifiable traffic/booking promises, and direct owner signup CTA.
 - [x] Link the three categories from the existing /list-your-court funnel page in both languages; cross-link related sport owner pages.
-- [ ] Validate all six production URLs return HTTP 200, contain correct HTML lang/hreflang, structured data, CTA and indexable canonical.
+- [x] Vercel production build passed and deployment dpl_GgLEUWuTzpu3giXzrBAqtRdUFJPe reported READY for all six sport-owner routes.\n- [ ] Validate all six production URLs return HTTP 200, contain correct HTML lang/hreflang, structured data, CTA and indexable canonical (external HTTP fetch from this runtime was not available).
 - [ ] Verify owner signup → submission → approved court journey and GA4 funnel in production using safely marked test data.
 - [ ] Review existing analytics taxonomies for owner signup and complete owner conversion attribution.
-- [ ] Compare with competitors' verified positions and prioritize page changes from Search Console metrics.
+- [x] Bind verified Search Console property to a new Playza OpenSEO project and document source-backed performance by page/query.\n- [ ] Compare with competitors' verified positions and prioritize page changes from Search Console metrics.
 
 ## 15. Release discipline
 Every phase: source review → implementation PR/commit → typecheck/build → route and regression smoke tests → production deploy → production check → analytics/SEO monitor → mark complete. **Never mark a phase fully done when only the code has been committed.**
