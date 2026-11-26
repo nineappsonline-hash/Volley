@@ -147,5 +147,17 @@ Automated daily audits for sitemap HTTP 200, malformed JSON-LD, game indexabilit
 - Monitor archive quality in Search Console; indexing is permission, not guaranteed ranking. Improve duplicate/thin archives and split large sitemaps before XML limits.
 - Test actual completed, future, cancelled, private and invite URL robots/metadata and related-game navigation.
 
+## Phase 2 implementation ledger — local search and archived-game conversion
+
+- [x] Add privacy-safe public historical game lookup limited to approved, noncancelled entries for valid sports.
+- [x] Update New Cairo evergreen sport/location pages to show real archived matches separately from upcoming games, with explicit expired state and no registration promise.
+- [x] Link past New Cairo game detail pages to their Arabic evergreen local sport pages, while preserving upcoming-game CTAs.
+- [x] Remove the unsupported Arabic claim that Playza already reaches millions of players from the venue-owner registration landing.
+- [ ] Verify the deployed pages and crawlable HTML on production; inspect sample old game, sport/local archive, /ar/list-your-court, and sitemap.
+- [ ] Expand to basketball and padel location pages after confirming real matching inventory; avoid empty location doorway pages.
+- [ ] Implement consent-aware funnel tracking and establish Search Console baseline; external account data still required.
+- [ ] Complete accurate owner onboarding conversion content/screenshots, marketing variants and paid-vs-organic measurement.
+- [ ] Record successful release state and first post-deploy crawl measurements.
+
 ## 15. Release discipline
 Every phase: source review → implementation PR/commit → typecheck/build → route and regression smoke tests → production deploy → production check → analytics/SEO monitor → mark complete. **Never mark a phase fully done when only the code has been committed.**
