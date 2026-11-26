@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getPublicGame, getPublicGames, getPublicGameParticipantNames } from "@/lib/public-games";
 import { gamePlace, publicGamePath, publicGameMetadata, publicGameEvent, gameIsJoinable } from "@/lib/game-discovery";
 import { SITE_URL, breadcrumbsJsonLd, jsonLdStringify } from "@/lib/seo";
+import { LOCAL_GAME_GUIDES, isNewCairo, localGamePath } from "@/lib/local-games";
 
 
 type Props = { params: Promise<{ id: string }> };
@@ -35,6 +36,9 @@ export default async function PublicGamePage({ params }: Props) {
   });
   const related = [...sameArea, ...upcoming.filter(g => !sameArea.some(a => a.id === g.id))].slice(0, 4);
   const isPast = !gameIsJoinable(game) && game.status !== "cancelled";
+  const localGuide = isNewCairo(game.playground?.area ?? game.area)
+    ? LOCAL_GAME_GUIDES.find(guide => guide.sport.toLowerCase() === game.sport.toLowerCase())
+    : undefined;
   const path = publicGamePath(game.id);
   const event = publicGameEvent(game);
   const sharedGame = {
@@ -63,6 +67,7 @@ export default async function PublicGamePage({ params }: Props) {
       <div className="mt-4 flex flex-wrap gap-3">
         <Link href="/games" className="rounded-lg bg-primary px-4 py-2 font-semibold text-primary-foreground">Browse upcoming games</Link>
         <Link href={`/games?sport=${encodeURIComponent(game.sport.toLowerCase().replaceAll(" ", "-"))}`} className="rounded-lg border px-4 py-2 font-semibold text-foreground">More {game.sport} games</Link>
+        {localGuide && <Link href={localGamePath("ar", localGuide.slug)} className="rounded-lg border px-4 py-2 font-semibold text-foreground">ماتشات {game.sport} في التجمع</Link>}
       </div>
     </section>}
     {related.length > 0 && <nav aria-label="Related upcoming games" className="mx-auto max-w-3xl px-5 py-8">
