@@ -2,17 +2,38 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { trackPageView, trackView, trackCompletion, storageGet, storageSet, type AnalyticsContext, type BusinessEvent } from "@/lib/analytics/events";
-import { confirmPendingSignup, confirmPendingGameRegistration, confirmPendingOwnerVenueSubmission } from "@/lib/analytics/registrations";
+// Conversion verification is uncommon on ordinary page views. Avoid shipping
+// the registration + Supabase queries in the initial shared analytics bundle.
+const PENDING_CONVERSIONS = [
+  "playza:ga4:signup:v1",
+  "playza:ga4:game-intent:v1",
+  "playza:ga4:owner-venue-intent:v1",
+] as const;
+
+function checkPendingConversions(): void {
+  try {
+    if (!PENDING_CONVERSIONS.some(key => localStorage.getItem(key))) return;
+  } catch {
+    return;
+  }
+  void import("@/lib/analytics/registrations")
+    .then(async ({ confirmPendingSignup, confirmPendingGameRegistration, confirmPendingOwnerVenueSubmission }) => {
+      await Promise.allSettled([
+        confirmPendingSignup(),
+        confirmPendingGameRegistration(),
+        confirmPendingOwnerVenueSubmission(),
+      ]);
+    })
+    .catch(() => { /* Analytics must never block navigation or sign-in. */ });
+}
 import { createClient } from "@/lib/supabase/client";
 
 export function BusinessAnalytics() {
   const pathname=usePathname();const previous=useRef<string>();
   useEffect(()=>{if(previous.current!==pathname){previous.current=pathname;trackPageView();}},[pathname]);
   useEffect(()=>{
-    void confirmPendingSignup();
-    void confirmPendingGameRegistration();
-    void confirmPendingOwnerVenueSubmission();
-    const check=()=>{void confirmPendingSignup();void confirmPendingGameRegistration();void confirmPendingOwnerVenueSubmission();};
+    checkPendingConversions();
+    const check = checkPendingConversions;
     const onVisible=()=>{if(document.visibilityState==="visible")check();};
     window.addEventListener("focus",check);
     document.addEventListener("visibilitychange",onVisible);
