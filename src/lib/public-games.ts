@@ -76,19 +76,25 @@ export const getPublicGame = cache(async (id: string): Promise<PublicGameDetail 
   } as PublicGameDetail;
 });
 
-/** Paginated sitemap IDs: upcoming public games only, never invitation URLs. */
+/**
+ * Paginated sitemap IDs include current AND past public games.
+ * Historic URLs can earn stable search visibility long after a short game
+ * expires, then lead players to newly scheduled games.
+ * Cancelled, private, and never-approved games are excluded.
+ */
 export async function getPublicGameIds(): Promise<string[]> {
   const admin = getAdmin();
   if (!admin) return [];
   const ids: string[] = [];
   for (let offset = 0; ; offset += 1000) {
-    const { data, error } = await admin.from("friendly_games").select("id,game_date,start_time,status")
-      .eq("is_public", true).eq("creation_payment_approved", true).in("sport", [...ACTIVE_SPORTS]).in("status", ["open", "full"]).gte("game_date", todayISO())
+    const { data, error } = await admin.from("friendly_games").select("id")
+      .eq("is_public", true)
+      .eq("creation_payment_approved", true)
+      .in("sport", [...ACTIVE_SPORTS])
+      .neq("status", "cancelled")
       .order("id").range(offset, offset + 999);
     if (error) break;
-    // A game earlier today is no longer joinable and must not be in the sitemap.
-    const now = new Date();
-    ids.push(...(data ?? []).filter(g => gameIsJoinable(g, now)).map(g => g.id));
+    ids.push(...(data ?? []).map(game => game.id));
     if (!data || data.length < 1000) break;
   }
   return ids;
