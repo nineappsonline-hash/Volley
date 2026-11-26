@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { AppLogo } from "@/components/shared/app-logo";
 import { GameAlertFollow } from "@/components/games/game-alert-follow";
@@ -12,7 +13,7 @@ import { SITE_URL, breadcrumbsJsonLd, jsonLdStringify } from "@/lib/seo";
 export const newCairoGamesPath = (lang: LocalLanguage) =>
   `${lang === "ar" ? "/ar" : ""}/play/new-cairo`;
 
-export const newCairoGamesMeta = (lang: LocalLanguage) => {
+export const newCairoGamesMeta = (lang: LocalLanguage): Metadata => {
   const ar = lang === "ar";
   const title = ar ? "ماتشات في التجمع والقاهرة الجديدة | العب مع ناس جديدة" : "Find Sports Games in New Cairo & Tagamoa | Playza";
   const description = ar
