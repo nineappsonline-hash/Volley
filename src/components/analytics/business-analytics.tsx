@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { trackPageView, trackView, trackCompletion, storageGet, storageSet, type AnalyticsContext, type BusinessEvent } from "@/lib/analytics/events";
-import { confirmPendingSignup } from "@/lib/analytics/registrations";
+import { confirmPendingSignup, confirmPendingGameRegistration } from "@/lib/analytics/registrations";
 import { createClient } from "@/lib/supabase/client";
 
 export function BusinessAnalytics() {
@@ -10,8 +10,13 @@ export function BusinessAnalytics() {
   useEffect(()=>{if(previous.current!==pathname){previous.current=pathname;trackPageView();}},[pathname]);
   useEffect(()=>{
     void confirmPendingSignup();
-    const {data:{subscription}}=createClient().auth.onAuthStateChange(()=>{setTimeout(()=>void confirmPendingSignup(),0);});
-    return()=>subscription.unsubscribe();
+    void confirmPendingGameRegistration();
+    const check=()=>{void confirmPendingSignup();void confirmPendingGameRegistration();};
+    const onVisible=()=>{if(document.visibilityState==="visible")check();};
+    window.addEventListener("focus",check);
+    document.addEventListener("visibilitychange",onVisible);
+    const {data:{subscription}}=createClient().auth.onAuthStateChange(()=>{setTimeout(check,0);});
+    return()=>{subscription.unsubscribe();window.removeEventListener("focus",check);document.removeEventListener("visibilitychange",onVisible);};
   },[]);
   return null;
 }
