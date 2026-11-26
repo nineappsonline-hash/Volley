@@ -152,6 +152,7 @@ Automated daily audits for sitemap HTTP 200, malformed JSON-LD, game indexabilit
 - [x] Add privacy-safe public historical game lookup limited to approved, noncancelled entries for valid sports.
 - [x] Update New Cairo evergreen sport/location pages to show real archived matches separately from upcoming games, with explicit expired state and no registration promise.
 - [x] Link past New Cairo game detail pages to their Arabic evergreen local sport pages, while preserving upcoming-game CTAs.
+- [x] Add visible bilingual New Cairo hub navigation to /games so visitors and crawlers can discover both English and Arabic pages.
 - [x] Remove the unsupported Arabic claim that Playza already reaches millions of players from the venue-owner registration landing.
 - [ ] Verify the deployed pages and crawlable HTML on production; inspect sample old game, sport/local archive, /ar/list-your-court, and sitemap.
 - [ ] Expand to basketball and padel location pages after confirming real matching inventory; avoid empty location doorway pages.
