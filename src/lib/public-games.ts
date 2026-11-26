@@ -2,6 +2,7 @@ import { ACTIVE_SPORTS, isActiveSport } from "@/lib/active-sports";
 import { cache } from "react";
 import { unstable_noStore as noStore } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { gameIsJoinable } from "@/lib/seo-eligibility";
 
 /**
  * Server-only public reads for the SEO landing pages (/games, /tournaments).
@@ -81,11 +82,13 @@ export async function getPublicGameIds(): Promise<string[]> {
   if (!admin) return [];
   const ids: string[] = [];
   for (let offset = 0; ; offset += 1000) {
-    const { data, error } = await admin.from("friendly_games").select("id")
+    const { data, error } = await admin.from("friendly_games").select("id,game_date,start_time,status")
       .eq("is_public", true).eq("creation_payment_approved", true).in("sport", [...ACTIVE_SPORTS]).in("status", ["open", "full"]).gte("game_date", todayISO())
       .order("id").range(offset, offset + 999);
     if (error) break;
-    ids.push(...(data ?? []).map(g => g.id));
+    // A game earlier today is no longer joinable and must not be in the sitemap.
+    const now = new Date();
+    ids.push(...(data ?? []).filter(g => gameIsJoinable(g, now)).map(g => g.id));
     if (!data || data.length < 1000) break;
   }
   return ids;
