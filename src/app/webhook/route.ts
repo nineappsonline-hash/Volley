@@ -7,7 +7,7 @@ export async function POST(request:Request){
  const raw=await request.text();if(raw.length>65536)return new Response(null,{status:413});
  const event=JSON.parse(raw);const c=kashierConfig();const data=event?.data;
  if(!data||!verifyKashierSignature(data,request.headers.get('x-kashier-signature'),c.apiKey)){console.warn('Kashier webhook rejected: invalid signature or payload');return new Response(null,{status:401});}
- const successful=['pay','capture'].includes(String(event.event).toLowerCase()) && /^(SUCCESS|PAID|CAPTURED)$/i.test(String(data.status)) && String(data.method).toLowerCase()==='card' && /^(00|0)$/.test(String(data.transactionResponseCode));
+ const successful=['pay','capture'].includes(String(event.event).toLowerCase()) && /^(SUCCESS|PAID|CAPTURED)$/i.test(String(data.status)) && String(data.method).toLowerCase()==='card' && /^(00|0|APPROVED)$/.test(String(data.transactionResponseCode));
  if(!successful){console.info('Kashier webhook ignored non-captured event',{event:event.event,status:data.status,method:data.method,responseCode:data.transactionResponseCode,orderId:data.merchantOrderId});return new Response(null,{status:200});}
  if(!/^[0-9a-f-]{36}$/i.test(data.merchantOrderId))return new Response(null,{status:400});
  if(typeof data.transactionId!=='string'||!data.transactionId.trim())return new Response(null,{status:400});
