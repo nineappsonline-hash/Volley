@@ -149,6 +149,11 @@ export async function getPublicGames(sport?: string, maxRows = 100): Promise<Pub
     .neq("status", "cancelled")
     .neq("status", "completed")
     .gte("game_date", todayISO())
+    // Restrict the embedded left-joined roster, never the parent games.
+    // Only approved, non-waitlisted seats contribute to the public joined count.
+    // PostgREST filters on a non-inner embed preserve games with zero seats.
+    .eq("participants.pay_status", "approved")
+    .eq("participants.is_waitlisted", false)
     .order("game_date")
     .order("start_time")
     .limit(Math.max(1, Math.min(100, Math.trunc(maxRows))));
@@ -159,7 +164,7 @@ export async function getPublicGames(sport?: string, maxRows = 100): Promise<Pub
     const { data, error } = await query;
     if (error) return [];
     return (data ?? []).map((g: Record<string, unknown>) => {
-      const parts = g.participants as { is_waitlisted?: boolean; count?: number; pay_status?: string }[] | null;
+      const parts = g.participants as { is_waitlisted?: boolean; pay_status?: string }[] | null;
       const { participants: _participants, ...publicRow } = g as unknown as PublicGame & { participants?: unknown };
       const row = g as unknown as PublicGame & { playground: PublicGame["playground"] };
       return {
