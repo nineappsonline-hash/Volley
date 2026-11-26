@@ -1,0 +1,137 @@
+# Playza — SEO + AIO Growth Master Plan
+**Version:** 1.0 · **Baseline date:** 2026-11-26 · **Market:** Egypt · **Owners:** Product / Engineering / Growth
+**Status:** Implementation started. Source of truth for the phased backlog.
+
+## 0. Outcomes and guardrails
+
+### North-star outcomes
+1. **Players:** increase *confirmed game joins attributed to non-brand organic discovery*, not vanity pageviews.
+2. **Venues:** increase *approved venue listings and first bookings attributable to organic discovery*.
+3. **AIO:** improve *accurate, cited recommendations of Playza for local sports discovery and court-owner listing*, measured on repeatable prompts.
+4. **Reliability:** never advertise cancelled/expired games as joinable, private games publicly, unverified availability, fabricated reviews or metrics, or overstate venues/markets supported.
+
+### Scope
+Egypt-first (Cairo / New Cairo first; other areas only when verified inventory exists). Primary verticals: volleyball, beach volleyball, basketball, padel, tennis. Two distinct intents: **join a game / find people**, **list a court / manage bookings**. Academy/tournament pages support discovery but should not distract from the primary funnels.
+
+### Success attribution
+Definitions:
+- Organic player conversion = first session landing on an eligible public page with organic referrer/UTM, followed by verified participant payment approval or host-paid confirmed participation (attribution within agreed window).
+- Organic venue conversion = first organic session / owner registration → complete venue submission → approved listing → first successful booking.
+- Avoid recording names/emails, payment references or other PII in GA4 events; use aggregated IDs and consent-aware analytics.
+- AI citation = accessible URL cited in independently repeated answer, not merely brand mention or model's unverifiable assertion.
+
+**Constraints:** no mass doorway pages, no unverified search-volume claims, no indexable low-value filter duplicates; apply consent and privacy requirements; preserve application behavior and pricing; test production before claiming done.
+
+## 1. Audit and baseline — P0
+**1.1** Record GSC domain property for `playza.life`, verification status, sitemap ingestion, coverage, indexing anomalies, performance by page/query/device/country, and canonical decisions. Capture 28-day and 3-month trends. Inspect at least 15 canonical URLs (home, /games, 3 live games, 2 expired games, /sports/volleyball, local pages, court pages, owner pages, private game).
+**1.2** Bing Webmaster Tools setup + sitemap submission and status.
+**1.3** GA4/GTM verification: correct consent, event firing, no duplicate pageview, events below; exclude administrators/test payments. Baseline organic landing → game view → join → approved; owner landing → signup → application → approval → first booking.
+**1.4** Crawl with a JS-capable crawler, including responsive 360px/768px/desktop; status, redirects, canonical, robots, headings, lazy load, internal linking, hreflang, orphan pages, non-200 in sitemap, pagination, query duplicates. Compare crawler rendered output to raw HTML.
+**1.5** Core Web Vitals (CrUX if available; Lighthouse lab): mobile LCP/INP/CLS, CDN caching, image size, fonts, JS/hydration and third parties. Save baseline evidence.
+**Gate:** an auditable baseline sheet with dates, source, screenshot/test URL, impact, owner, severity. Do not invent volume/ranking stats before connecting GSC or keyword data.
+
+## 2. Technical SEO repair — P0 (first implementation phase)
+- **2.1 Public games:** unify `/games/[id]` metadata with centralized `gameRobots`; canonical absolute URL, unique title, meaningful date/location/price, social share image; expired/cancelled noindex, private 404; eligible upcoming public games index/follow. Full/sold-out events must not be represented as joinable; review current policy and event Offer availability.
+- **2.2 Sitemap parity:** only include public, approved, applicable sport, future games; omit same-day expired games using Cairo timezone; verify sitemap emits only 200 + indexable canonical pages. Dynamic pages cannot have metadata saying noindex but remain in XML. Remove parameter URLs with duplicate content or give them canonical to clean route.
+- **2.3 Redirects/host:** enforce HTTPS, `www` decision, 301 old `playza.nineapps.online` → `playza.life` preserving path/query where valid; verify actual infra responses rather than assume domain routing.
+- **2.4 Robots:** public crawlers can access useful landing pages; private/account/payment/API endpoints excluded; ensure Googlebot/OAI-SearchBot/PerplexityBot allowed for public content if policy permits. No disallow that prevents a crawler seeing a required noindex.
+- **2.5 International:** audit Arabic/English self-canonicals, bidirectional hreflang `ar-EG` and `en`, x-default; avoid home-page automatic language redirects of Googlebot, ensure server-rendered meaningful language.
+- **2.6 Structured data:** validate Event/ SportsEvent (real event time, actual venue, currency, status, availability), SportsActivityLocation (real venue), Organization, Breadcrumb; don't mark a court's rental price as a player's game price. Follow Google's structured data policies; rich results aren't guaranteed.
+- **2.7 Technical hygiene:** 404/410 for deleted, redirect chains, security/caching of public listing vs auth, crawl budget, OG images, image alt/size, mobile usability, accessible navigational links.
+**Gate:** smoke test 200/404, canonical, robots, sitemap, JSON-LD and SSR across >15 representative URLs; no regression in join or owner submission.
+
+## 3. Keyword and competitor evidence — P0–P1
+**Competitor cohorts:** local court platforms (Courty, Matchena, E7GZ, Riadi — revalidate relevant pages), organized pickup games (Footy Addicts, OpenSports), racket sports (Playtomic), and indirect competition (Facebook/WhatsApp/Reddit communities). Track *intent, page types, CTA, indexable inventory, location granularity, title/heading patterns, owner proposition, internal links, structured data and content freshness*. Do not copy their prose.
+**Keywords:** research 5–8 seeds in Egyptian Arabic, transliterated colloquial Arabic, English; segment by player, court booking, owner onboarding, informational, branded, place/sport/time. Pull monthly volume/KD/CPC where source supports them; 28-day GSC actual queries; 3–6-month seasonality and locale. Maintain one primary intent/URL per cluster and a cannibalization map. Examples:
+- player: `ماتشات طايرة في التجمع`, `ناس تلعب طايرة القاهرة`, `جروبات كرة طائرة`, `volleyball games new cairo`, `pickup basketball cairo`, `find padel partner cairo`;
+- courts: `ملاعب بادل التجمع`, `حجز ملعب طايرة القاهرة`, `volleyball court new cairo`;
+- owners: `إضافة ملعب على موقع حجز`, `برنامج إدارة ملاعب`, `تسويق ملاعب بادل`, `sports court booking software Egypt`.
+**Gate:** evidence-backed keyword matrix: query, audience, intent, locality, proposed URL, volume, KD, rank, priority, confidence/source and last checked. No published keyword volume without verified data.
+
+## 4. Player acquisition landing pages — P0–P1
+**Reuse before creating:** `/games`, `/sports/[sport]`, `/play/[slug]`, `/ar/play/[slug]`; add stable `/find-players` and `/ar/find-players` only if genuinely distinct from /games. 301/consolidate duplicate destinations.
+**Default experience:** short above-the-fold answer + real game cards, date/time in Africa/Cairo, actual venue map, difficulty, price, available spots and direct join CTA. Explanation of joining solo vs renting a court, verified FAQ, group/host trust policy, linked nearby games. If none available, useful alternatives + user opt-in to notifications, not fabricated availability.
+**Priority rollout:** Volleyball New Cairo (existing inventory) → Beach Volleyball New Cairo → Basketball and Padel where actual games exist. No sport × city page until inventory or substantial original evergreen value; prune thin pages.
+**Game details:** public share URL, stable canonical; breadcrumbs to sport/local page and venue; event data matches product; related *upcoming* games; noindex after expiry, retained for users without incorrect event promise. Keep private invites out of indexing.
+**Gate:** 3 representative player journeys (anon, signed in, shared link) working mobile/desktop, events recorded, clear next action on empty inventory.
+
+## 5. Venue owner acquisition — P0–P1
+Expand existing bilingual `/list-your-court` and `/ar/list-your-court` instead of duplicating. Show verified pricing/fees, no-fee listing, explain rental payout vs platform per-player service fee as implemented, how approval works, actual screenshots of owner dashboard, required fields, booking availability, who manages cancellation and payment status, FAQ with accurate terms, case studies only with consent and real data.
+Create focused commercial pages for `padel court booking/management`, `volleyball court management`, `basketball court management`, and `sports venue booking system Egypt` only with differentiated copy/specific workflow/screenshots; link to owner registration and track every funnel stage.
+**Gate:** owner signup from public landing, form completion, admin approval, venue published, first booking; no inflated 'millions of players' claim, zero fictitious social proof.
+
+## 6. Local inventory and internal linking — P1
+- Derive sports × locality pages only from approved venues and active game inventory, not synthetic combinations; use canonical clean lowercase Latin slugs and explicit Arabic alternates.
+- Standard geographic hierarchy with breadcrumb: sports → region → venue → active games; games link back to venue and sport/location.
+- Locality aliases: Fifth Settlement/Tagamoa/New Cairo/التجمع/القاهرة الجديدة map to normalized location IDs; never create near-duplicate indexable pages for spelling variations.
+- Enrich venue pages with opening hours, price per rental period, correct sport, photos, directions, accessibility, policy, true available booking slots; don't expose owner private contacts without consent.
+- Google Business Profile should belong to actual eligible businesses/venues; never fabricate local Playza branches or maps listings.
+**Gate:** inventory-backed routing, internal links, coverage audit and >90% correct data on sampled records.
+
+## 7. Content and editorial — P1
+Publish high-intent pages first (not generic mass articles). Calendar:
+- Week 1–2: volleyball/new cairo hub, join-solo FAQ, owner landing improvements.
+- Week 3–4: volleyball & beach-volleyball guides, owner onboarding walkthrough, booking-vs-joining.
+- Weeks 5–8: basketball/padel discovery if active, beginner suitability, partner-finding, court-marketing guide, scheduling/cancellation guide.
+- Weeks 9–12: localized venue comparisons with real data, owner success story only if verifiable, internal link optimization.
+**Editorial QA:** field expert or organizer reviews accuracy; author/date/update stamp, fact sources, concise Egyptian Arabic and competent English, no invented prices, no scraped competitor content, no programmatic thin pages, no self-generated fake reviews. Link from articles to live products and the next conversion action.
+
+## 8. AIO/AI discovery — P1
+- Primary foundation: indexed, factual, crawlable text pages with clear Q&A and live data, stable organization identity, transparent policies, appropriate schema, internal links, external citations. `llms.txt` is optional / non-ranking guarantee.
+- Correct actual coverage countries, venues, opening hours, prices and current game state; remove unsupported audience counts.
+- Create 25–40 repeatable Arabic/English prompts (player-join, court availability, owner listings). Record answer, source URLs, accuracy, citation appearance, prompt date and platform; repeated non-personalized runs, trend rather than single-sample promises.
+- Earn legitimate citations from actual partner venues, local sports publications, club/community directories, academy sites; no link schemes, fake profiles or paid links passing as editorial.
+- Monitor AI Overviews/Search Console where available and Bing/Copilot/ChatGPT citation presence; distinguish generative answer from Search rankings.
+**Gate:** cited-source corpus and reproducible monitoring, no fabricated 'AI ranking' guarantee.
+
+## 9. Analytics and technical instrumentation — P0–P1
+Event taxonomy (minimum):
+`organic_landing`, `view_game`, `join_started`, `payment_started`, `payment_confirmed`, `join_confirmed`, `view_venue`, `owner_signup_started`, `owner_signup_completed`, `venue_submitted`, `venue_approved`, `first_venue_booking`.
+Tag `sport`, `location_slug`, `page_type`, `auth_state`, `payment_method` (not payment identifiers), `traffic_source`, funnel/session ID respecting privacy. Ensure server-side confirmations are source of truth, events deduplicated, no PII in analytics. GSC + GA4 + Supabase aggregate dashboard by sport/locality, compare weekly cohorts; owner leads have distinct funnel from players.
+**Gate:** one real sandbox/test journey and one observed production journey verified in GA4 debug view and backend counts without charging a real card for tests.
+
+## 10. Performance and accessibility — P1
+Measure mobile lab and field Core Web Vitals and fix high-impact LCP images, font loading, oversized JavaScript, waterfall, cache headers, fetch waterfalls, hydration and third-party cost. Validate 360px/768px/desktop, keyboard support, headings, links, RTL, contrast, alt text, lazy images below fold. Do not trade conversion reliability for Lighthouse.
+**Gate:** no UX regression, improvement documented with repeatable before/after conditions and CWV when field data available.
+
+## 11. Authority and distribution — P1–P2
+Onboard verified partner venues with co-branded backlinks from their official sites, real events/community coverage, useful local guides, opt-in WhatsApp sharing and social cards, creator/organizer referral paths. Acquire backlinks by editorial merit, no purchased manipulative links. Track linking domains, relevant referral traffic and venue owner leads.
+
+## 12. Monitoring, alerting and operations — P0 ongoing
+Automated daily audits for sitemap HTTP 200, malformed JSON-LD, game indexability drift, 404/500 spike, empty live-game inventory, locale/canonical mismatch, payment/booking funnel errors. Weekly crawl/URL sample, GSC report, organic conversions; monthly keyword, competitor and AIO prompt refresh. Document rollback by commit; only publish validated pages, maintain release log.
+
+## 13. Phases / milestones / exit checks
+
+| Phase | Workstream | Target window | Exit check |
+|---|---|---|---|
+| P0-A | Audit + metadata/sitemap/indexing/host | Weeks 1–2 | 15 URL matrix passes; production build + 404/robots checks |
+| P0-B | GSC/Bing/GA4 baseline + event taxonomy | Weeks 1–2 | dashboard of player and owner funnels, no PII |
+| P1-A | Join-game pages and local volleyball hub | Weeks 2–4 | live inventory + links + mobile join tests |
+| P1-B | Owner conversion pages and proof | Weeks 3–5 | owner signup/submission/approval journey |
+| P1-C | Local venue schema + inventory pages | Weeks 4–7 | eligible region routes, no thin duplicates |
+| P1-D | Editorial, AIO Q&A, schema testing | Weeks 5–10 | factual source checks, prompt baseline |
+| P2-A | Outreach, digital PR, community links | Weeks 7–12 | real partner citations/referrals |
+| P2-B | Content iteration, CWV, CRO and scaling | Weeks 8–12+ | improved tracked funnel metrics |
+
+**Dependencies:** GSC property + authorized analytics data access (for real baselines), representative actual venues and game inventory; review owner terms/pricing, no automation of external Google properties without authorized integration. Improvements that can be safely made in code proceed independently.
+
+## 14. Phase-1 implementation ledger
+
+- [x] Confirm public game page used a standalone `generateMetadata` that omitted central lifecycle robots + canonical; replace with shared helper preserving OG preview.
+- [x] Use Cairo-aware joinability for dynamic game sitemap IDs (not only date equality).
+- [ ] Inspect verified HTTP response and redirect behavior for retired domain, www, canonical and sitemap (external domain/DNS access required if misconfigured).
+- [ ] Test public/private/ended/full game live metadata, structured data and all sitemap entries on deployed build.
+- [ ] Establish GSC/Bing search-performance baseline with permitted access.
+- [ ] Inventory current landing pages and compare intent-to-URL mapping, then launch player/owner phase.
+- [ ] Verify status of production deploy and record commit.
+
+### External references (not a basis for invented ranking statistics)
+- Google Search Central: AI features — https://developers.google.com/search/docs/appearance/ai-features
+- Google Search Central: Event markup — https://developers.google.com/search/docs/appearance/structured-data/event
+- Google structured-data rules — https://developers.google.com/search/docs/appearance/structured-data/sd-policies
+- Courty — https://www.courty.io/ and https://www.courty.io/partners/
+- Matchena — https://matchena.com/en/help
+- OpenSports pickup groups — https://opensports.net/blog/meetup-for-sports-how-to-create-and-join-pickup-sports-groups
+
+## 15. Release discipline
+Every phase: source review → implementation PR/commit → typecheck/build → route and regression smoke tests → production deploy → production check → analytics/SEO monitor → mark complete. **Never mark a phase fully done when only the code has been committed.**
