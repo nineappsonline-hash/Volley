@@ -8,19 +8,21 @@ function load(file,mocks){const out={};new Function('require','exports',ts.trans
  assert.equal(paymentReviewStatus('approved','kashier',{status:'paid',details:{admin_review:'rejected'}}),'rejected');
  assert.equal(paymentReviewStatus('pending','instapay'),'pending');
  const order={id:'order',session_id:'session',mode:'live',amount:75,currency:'EGP'};
- let fail=false,calls=[],session={merchantId:'merchant',merchantOrderId:'order',amount:'75.00',currency:'EGP',status:'PAID',transactionId:'tx'};
+ let calls=[],session={merchantId:'merchant',merchantOrderId:'order',amount:'75.00',currency:'EGP',status:'PAID',transactionId:'tx'};
  const config={mode:'live',merchantId:'merchant'};
+ let orderSearch={data:[{merchantOrderId:'order',status:'CAPTURED',totalCapturedAmount:'75',transactions:[{operation:'pay',status:'SUCCESS',transactionResponseCode:'00',transactionId:'tx-order'}]}]};
+ let details={body:{merchantOrderId:'order',amount:'75',currency:'EGP',status:'SUCCESS',isReversed:false,isVoided:false}};
  const {verifiedCardTransaction}=load('src/lib/payments/reconcile.ts',{'./kashier':{
-  kashierConfig:()=>config, amountInPiastres:v=>Number(v)*100,
-  kashierRequest:async path=>{calls.push(path);if(fail&&path.endsWith('/payment'))throw Error('missing');return {data:session};}
+  kashierConfig:()=>config, amountInPiastres:v=>v==null?null:Number(v)*100,
+  kashierRequest:async path=>{calls.push(path);if(path.startsWith('/v3/payment/orders'))return orderSearch;if(path.startsWith('/v2/aggregator/transactions'))return details;return {data:session};}
  }});
  assert.equal(await verifiedCardTransaction(order),'tx');
- for(const status of ['PENDING','AUTHORIZED','FAILED','EXPIRED','REFUNDED']){session.status=status;assert.equal(await verifiedCardTransaction(order),null);}
+ for(const status of ['PENDING','AUTHORIZED','FAILED','EXPIRED','REFUNDED']){session.status=status;assert.equal(await verifiedCardTransaction(order),'tx-order');}
  session.status='PAID';
  for(const field of ['merchantId','merchantOrderId','amount','currency']){const old=session[field];session[field]='wrong';await assert.rejects(verifiedCardTransaction(order),/mismatch/);session[field]=old;}
- delete session.transactionId;assert.equal(await verifiedCardTransaction(order),null);
- session.lastTransactionId='fallback-tx';session.paymentParams={order:'order',amount:'75',currency:'EGP'};fail=true;
- assert.equal(await verifiedCardTransaction(order),'fallback-tx');assert.ok(calls.at(-1).endsWith('/session'));
+ assert.equal(await verifiedCardTransaction({...order,session_id:null}),'tx-order');
+ details.body.amount='30';await assert.rejects(verifiedCardTransaction({...order,session_id:null}),/amount mismatch/);details.body.amount='75';
+ orderSearch.data[0].status='AUTHORIZED';assert.equal(await verifiedCardTransaction({...order,session_id:null}),null);orderSearch.data[0].status='CAPTURED';
  assert.equal(await verifiedCardTransaction({...order,mode:'test'}),null);
  let allowed=true,user={id:'actor'},rpcError=false,settles=0,reviews=0,proof='tx';
  const apiClient={auth:{getUser:async()=>({data:{user}})},rpc:async()=>({data:allowed})};
