@@ -14,7 +14,7 @@ export const LIST_YOUR_COURT = {
   en: {
     title: "List Your Sports Court for Free in Egypt",
     description:
-      "List your sports court on Playza for free. Reach players searching for padel, tennis, basketball, volleyball and beach volleyball courts, manage bookings and keep the full rental price with no commission deducted.",
+      "List your sports court on Playza for free. Show prices and booking hours, reach players in Egypt and keep the full rental price without commission.",
     eyebrow: "FOR VENUE OWNERS",
     heading: "List your court for free. Keep the full rental price.",
     intro:
@@ -57,7 +57,7 @@ export const LIST_YOUR_COURT = {
   ar: {
     title: "ضيف ملعبك على بلايزا مجانًا ومن غير عمولة",
     description:
-      "سجّل ملعبك الرياضي على بلايزا مجانًا. وصّل للاعبين اللي بيدوروا على ملاعب بادل وتنس وباسكت وطايرة وطايرة شاطئية، وأدر حجوزاتك واحصل على قيمة الإيجار كاملة من غير خصم عمولة.",
+      "ضيف ملعبك على بلايزا مجانًا. اعرض الأسعار والمواعيد للاعبين في مصر، وتابع حجوزاتك من لوحة إدارة واحدة، من غير خصم عمولة على إيجار الملعب.",
     eyebrow: "لأصحاب الملاعب",
     heading: "ضيف ملعبك مجانًا واحصل على قيمة الإيجار كاملة.",
     intro:
