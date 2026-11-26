@@ -224,6 +224,9 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
           current={sport}
           allLabel="All sports"
         />
+        <nav aria-label="Find local games" className="mb-7 flex justify-center">
+          <Link href="/play/new-cairo" className="rounded-xl border bg-card px-5 py-3 text-sm font-semibold text-primary underline underline-offset-4 hover:bg-accent">Find games and players in New Cairo (Tagamoa)</Link>
+        </nav>
 
         {games.length === 0 ? (
           <EmptyState sport={sport} />
