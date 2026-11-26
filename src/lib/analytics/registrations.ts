@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import { allowed, analyticsContext, storageGet, storageSet, storageRemove, trackBusinessEvent, trackCompletion, type AnalyticsContext } from "./events";
 const PENDING = "playza:ga4:signup:v1";
 const GAME = "playza:ga4:game-intent:v1";
+const OWNER_VENUE = "playza:ga4:owner-venue-intent:v1";
 type SignupKind = "player" | "venue" | "academy_owner";
 type PendingSignup = {kind:SignupKind; method:"email"|"google"; started:number; context:AnalyticsContext; userId?:string};
 export function startSignup(kind:SignupKind, method:"email"|"google", context:AnalyticsContext = {}): void {
@@ -12,6 +13,37 @@ export function startSignup(kind:SignupKind, method:"email"|"google", context:An
   storageSet(PENDING,{kind,method,started:Date.now(),context:{...analyticsContext(intent),...analyticsContext(context)}});
 }
 export function cancelSignup(): void { storageRemove(PENDING); }
+/**
+ * An owner may register an account without submitting a court. Store only a
+ * local submission intent after signup was accepted, then verify actual venue
+ * rows from the signed-in user's database before sending conversion events.
+ */
+export function rememberOwnerVenueSubmission(): void {
+  storageSet(OWNER_VENUE, { started: Date.now() });
+}
+export async function confirmPendingOwnerVenueSubmission(): Promise<void> {
+  if (!allowed()) return;
+  try {
+    const pending: { started: number } | null = JSON.parse(storageGet(OWNER_VENUE) ?? "null");
+    if (!pending) return;
+    if (!Number.isFinite(pending.started) || Date.now() - pending.started > 30 * 86400000) {
+      storageRemove(OWNER_VENUE);
+      return;
+    }
+    const client = createClient();
+    const { data: { user }, error: authError } = await client.auth.getUser();
+    if (authError || !user) return;
+    const { data: venues, error } = await client.from("venues")
+      .select("id,approval_status").eq("owner_profile_id", user.id).limit(30);
+    if (error || !venues?.length) return;
+    await trackCompletion("venue_listing_submitted", user.id);
+    if (venues.some(v => v.approval_status === "approved")) {
+      await trackCompletion("venue_listing_approved", user.id);
+      storageRemove(OWNER_VENUE);
+    }
+  } catch { /* Tracking must never interfere with venue registration. */ }
+}
+
 export function rememberSignupUser(userId:string): void {
   try { const pending=JSON.parse(storageGet(PENDING)??"null"); if(pending) storageSet(PENDING,{...pending,userId}); } catch { /* Optional tracking. */ }
 }
