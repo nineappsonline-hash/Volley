@@ -187,7 +187,7 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
     {
       "@context": "https://schema.org",
       "@type": "ItemList",
-      name: "Upcoming friendly games in Egypt",
+      name: sport ? `Upcoming ${sport} games in Egypt` : "Upcoming friendly games in Egypt",
       numberOfItems: games.length,
       itemListElement: games.slice(0, 20).map((g, i) => ({
         "@type": "ListItem",
@@ -208,7 +208,9 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
       <PublicListHero
         emoji="🎮"
         title={sport ? `Find ${sport} Players & Games` : "Find Volleyball & Basketball Games"}
-        subtitle="Looking for a volleyball or basketball game in Egypt? Join upcoming friendly matches, or explore padel, tennis and beach volleyball. See who’s playing and join."
+        subtitle={sport
+          ? `Looking for ${sport.toLowerCase()} games in Egypt? Compare published match dates, locations, player spots and cost before joining. No team needed for many friendly games.`
+          : "Looking for a volleyball or basketball game in Egypt? Join upcoming friendly matches, or explore padel, tennis and beach volleyball. See who’s playing and join."}
         note="Sign up free and join any open game. No team needed for most games."
         ctaHref={`/signup?redirectedFrom=${encodeURIComponent(sport ? `/games?sport=${sportToSlug(sport)}` : "/games")}`}
         ctaLabel="Find a Game"
@@ -367,6 +369,10 @@ function EmptyState({ sport }: { sport?: string }) {
         Games appear here as soon as players publish them. Be the first to post a game in
         your area — sign up and start.
       </p>
+      {sport && <nav className="mt-5 flex flex-wrap justify-center gap-3" aria-label={`Other ways to find ${sport} activities`}>
+        <Link href={`/sports/${sportToSlug(sport)}`} className="rounded-lg border bg-card px-4 py-2 text-sm font-semibold text-primary hover:bg-accent">Explore {sport} activities and past games</Link>
+        <Link href={`/courts?sport=${sportToSlug(sport)}`} className="rounded-lg border bg-card px-4 py-2 text-sm font-semibold text-primary hover:bg-accent">Find {sport} courts</Link>
+      </nav>}
     </div>
   );
 }
