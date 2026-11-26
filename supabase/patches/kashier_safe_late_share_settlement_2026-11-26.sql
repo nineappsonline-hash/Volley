@@ -1,4 +1,4 @@
--- Applied in production. Allows verified late Kashier share payments to confirm still-upcoming games when the reserved party still exists, while other payment kinds retain expiry safeguards.
+-- Applied in production. Safe late share reconciliation and recording proof after a manual merchant confirmation.
 CREATE OR REPLACE FUNCTION public.settle_kashier_order(p_order uuid, p_transaction text, p_amount numeric, p_currency text)
  RETURNS void
  LANGUAGE plpgsql
@@ -11,6 +11,13 @@ BEGIN
  SELECT * INTO o FROM kashier_orders WHERE id=p_order FOR UPDATE;
  IF NOT FOUND OR o.amount IS DISTINCT FROM p_amount OR o.currency IS DISTINCT FROM p_currency OR nullif(p_transaction,'') IS NULL THEN RAISE EXCEPTION 'Payment mismatch'; END IF;
  IF o.status IN ('paid','review_required') THEN
+  -- A manually approved share can receive a late, independently verified
+  -- gateway transaction. Record proof and finalize without charging again.
+  IF o.status='review_required' AND o.transaction_id IS NULL
+     AND o.kind='share' AND o.details->>'admin_review'='approved' THEN
+    UPDATE public.kashier_orders SET status='paid',transaction_id=p_transaction,paid_at=now() WHERE id=o.id;
+    RETURN;
+  END IF;
   IF o.transaction_id IS DISTINCT FROM p_transaction THEN RAISE EXCEPTION 'Transaction mismatch'; END IF;
   RETURN;
  END IF;
