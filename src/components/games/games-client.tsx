@@ -256,17 +256,18 @@ export function GameCard({
           <GameParticipantNames
             participants={(game.participants ?? []).filter(p => !p.is_waitlisted && p.pay_status === "approved")}
             defaultOpen
+            premium
           />
           <div className="grid grid-cols-3 gap-2">
             {canEdit && <Button type="button" variant="outline" size="sm" onClick={() => setEditOpen(true)}
-              className="h-10 gap-1 rounded-lg border-[#8f6aaa] bg-[#301a47] px-2 text-xs font-bold text-white hover:bg-[#492866] hover:text-white">
+              className="h-11 gap-1.5 rounded-xl border-[#caff00] bg-[#caff00] px-2 text-sm font-extrabold text-[#180b25] hover:bg-[#e2ff70] hover:text-[#180b25] disabled:opacity-50">
               <Pencil className="h-4 w-4" />{lang === "ar" ? "تعديل" : "Edit"}
             </Button>}
             {(canEdit || joined) && <Button type="button" variant="outline" size="sm"
               disabled={canEdit ? (!canCancelGame || !["open", "full"].includes(game.status) || cancelGame.isPending) : (leave.isPending || (!mine?.is_waitlisted && leaveBlocked))}
               title={canEdit && !canCancelGame ? t("games_edit_cancel_blocked") : !canEdit && leaveBlocked ? t("games_leave_blocked") : undefined}
               onClick={() => canEdit ? setCancelGameConfirmOpen(true) : setLeaveConfirmOpen(true)}
-              className="h-10 gap-1 rounded-lg border-[#c16f83] bg-[#3b1d30] px-2 text-xs font-bold text-[#ffe0e7] hover:bg-[#59293d] hover:text-white">
+              className="h-11 gap-1.5 rounded-xl border-[#f1769c] bg-[#852741] px-2 text-sm font-extrabold text-white hover:bg-[#ab3956] hover:text-white disabled:cursor-not-allowed disabled:opacity-45">
               <Trash2 className="h-4 w-4" />{lang === "ar" ? "إلغاء" : "Cancel"}
             </Button>}
             <Button type="button" variant="outline" size="sm" onClick={() => setReportOpen(true)}
