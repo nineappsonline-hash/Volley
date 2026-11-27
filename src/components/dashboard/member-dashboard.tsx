@@ -10,6 +10,7 @@ import { ShopTeaser } from "@/components/shop/shop-catalog";
 import { DesktopNextGame } from "./desktop-next-game";
 import styles from "./member-home.module.css";
 import { DashboardNavigation } from "./dashboard-navigation";
+import { PlayzaFooter } from "@/components/shared/playza-footer";
 
 export function MemberDashboard({ profile }: { profile: Profile }) {
   const { data: ownProfile } = useProfile(profile.id);
@@ -25,5 +26,6 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
       </section></div>
     </DashboardNavigation>
     <ShopTeaser />
+    <PlayzaFooter />
   </div>;
 }
