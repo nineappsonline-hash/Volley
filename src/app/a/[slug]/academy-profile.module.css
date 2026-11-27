@@ -165,3 +165,35 @@
     object-position:center bottom!important;
   }
 }
+
+
+/* Crisp replacement photo: no image-baked text. Advantages and pictograms are
+   independent vector/text UI and stay sharp at every viewport/device pixel ratio. */
+@media(min-width:751px){
+ .hero{min-height:395px;}
+ .heroPhoto{
+   object-fit:cover!important;
+   object-position:50% 42%!important;
+   width:63%!important;
+   height:100%!important;
+ }
+ .heroHighlights{
+   display:flex!important;
+   position:absolute!important;
+   left:max(25px,calc((100vw - 1390px)/2))!important;
+   bottom:20px!important;
+   z-index:3!important;
+   max-width:min(455px,43vw)!important;
+   padding:12px 13px!important;
+   border-radius:14px;
+   background:rgba(25,8,43,.78);
+   backdrop-filter:blur(10px);
+   border:1px solid rgba(255,255,255,.28);
+ }
+ .heroHighlights span{min-width:0!important;flex:1 1 0;padding:0 12px;line-height:1.5;text-align:center;color:#fff}
+ .heroHighlights svg{height:21px;width:21px;stroke-width:2;color:#caff00}
+}
+@media(max-width:750px){
+ .heroPhoto{object-fit:cover!important;object-position:40% 35%!important;}
+ .heroHighlights{display:none!important}
+}
