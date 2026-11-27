@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, MapPin, Pause, Play, Ruler, Shirt, Sparkles, Truck } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, ShoppingBag, MapPin, Pause, Play, Ruler, Shirt, Sparkles, Truck } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useI18n } from '@/lib/i18n';
 import { formatMoney } from '@/lib/constants';
@@ -19,7 +19,27 @@ const GENDERS = [
     { id: 'unisex', en: 'Unisex', ar: 'للجميع' },
 ] as const;
 type GenderFilter = typeof GENDERS[number]['id'];
-export function ShopTeaser() { const { lang } = useI18n(); return <section className={styles.teaser} aria-label="Playza Shop"><div><h2>{lang === 'ar' ? 'متجر بلايزا' : 'Wear your Playza spirit.'}</h2><p>{lang === 'ar' ? 'منتجات بلايزا. اختار لونك ومقاسك، واستلم أو اطلب توصيل بـ ٩٠ جنيه.' : 'Playza products. Your color. Your size. Collection or EGP 90 delivery.'}</p></div><Link href="/shop">{lang === 'ar' ? 'تسوق منتجات بلايزا' : 'Shop Playza'} →</Link></section>; }
+export function ShopTeaser() {
+    const { lang } = useI18n();
+    const ar = lang === 'ar';
+    return (
+        <section className={styles.teaser} aria-label={ar ? "متجر بلايزا" : "Playza Shop"}>
+            <div className={styles.teaserCopy}>
+                <h2>{ar ? <>البس روح <em>بلايزا</em>.</> : <>Wear your <em>Playza</em> spirit.</>}</h2>
+                <span className={styles.teaserStroke} aria-hidden="true" />
+                <p>{ar ? "منتجات بلايزا. لونك المفضل. مقاسك المناسب." : "Playza products. Your color. Your size."}</p>
+                <Link href="/shop" className={styles.teaserCta}>
+                    <ShoppingBag size={21} aria-hidden="true" />
+                    <span>{ar ? "تسوق بلايزا" : "Shop Playza"}</span>
+                    <ArrowUpRight size={20} aria-hidden="true" />
+                </Link>
+            </div>
+            <div className={styles.teaserArtwork} aria-hidden="true">
+                <span className={styles.teaserProducts} />
+            </div>
+        </section>
+    );
+}
 export function ShopCatalog() {
     const { lang } = useI18n();
     const ar = lang === 'ar';
