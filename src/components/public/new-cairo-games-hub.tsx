@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { VolleyballWhatsAppGroup } from "@/components/public/volleyball-whatsapp-group";
-import { GameAlertFollow } from "@/components/games/game-alert-follow";
 import { getPublicGames, getRecentPublicGames } from "@/lib/public-games";
 import { getPublicCourtDirectory } from "@/lib/public-playgrounds";
 import { isNewCairo, type LocalLanguage } from "@/lib/local-games";
@@ -50,21 +49,21 @@ export async function NewCairoGamesHub({ lang }: { lang: LocalLanguage }) {
       breadcrumbsJsonLd([{ name: copy("Home", "الرئيسية"), url: SITE_URL }, { name: copy("Games", "الماتشات"), url: `${SITE_URL}/games` }, { name: pageTitle, url: `${SITE_URL}${pagePath}` }]),
     ] }) }} />
     <LocalHero lang={lang} badge={copy("Fifth Settlement", "التجمع الخامس")} title={pageTitle}
-      description={copy("Find your next game, meet new players and book your spot in New Cairo.", "العب مع ناس جديدة في التجمع. اختار ماتشك واحجز مكانك.")}
+      description={copy("Find a game. Book your spot. Let’s play.", "اختار ماتشك واحجز مكانك في ثواني.")}
       gamesCount={upcoming.length} />
     <div className={styles.shell}>
       <section id="local-games" className={styles.section} aria-labelledby="local-games-heading">
         <LocalSectionHeading id="local-games-heading" kicker="" title={copy("Upcoming games", "الماتشات القادمة")}
           aside={<Link className={styles.textArrow} href="/games">{copy("All games", "كل الماتشات")} <ArrowUpRight size={17}/></Link>} />
         <LocalGameCards lang={lang} games={upcoming}/>
-        <div className={styles.waRow}><VolleyballWhatsAppGroup lang={lang} theme="dark"/></div>
+        <div className={styles.waRow}><VolleyballWhatsAppGroup lang={lang} theme="dark" compact/></div>
       </section>
       {(courts.length > 0) && <section className={styles.section} aria-labelledby="local-courts-heading">
         <LocalSectionHeading id="local-courts-heading" kicker="" title={copy("Courts in New Cairo", "ملاعب في التجمع")}/>
         <LocalCourts lang={lang} courts={courts} />
       </section>}
       {past.length>0 && <section className={styles.section} aria-label={copy("Previous games", "الماتشات السابقة")}><LocalArchive lang={lang} games={past}/></section>}
-      <div className={styles.alertBox}><GameAlertFollow language={lang} sport="Volleyball" returnTo={pagePath}/></div>
+
     </div>
   </main>;
 }
