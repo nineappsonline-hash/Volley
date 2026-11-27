@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, CalendarDays, Clock3, MapPin, Search, Trophy, Volleyball, LandPlot, GraduationCap, UsersRound, Plus } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { AppLogo } from "@/components/shared/app-logo";
 import { publicGamePath } from "@/lib/game-discovery";
 import { sportToSlug } from "@/lib/sport-slugs";
 import { formatTime12h } from "@/lib/constants";
@@ -15,7 +16,7 @@ import styles from "./directory-experience.module.css";
 type Kind = "games" | "courts" | "academies" | "tournaments";
 type Props =
   | { kind: "games"; games: PublicGame[]; selectedSport?: string; availableSports?: string[] }
-  | { kind: "courts"; courts: PublicCourt[]; selectedSport?: string; availableSports?: string[] }
+  | { kind: "courts"; courts: PublicCourt[]; selectedSport?: string; availableSports?: string[]; langOverride?: "ar" | "en" }
   | { kind: "academies"; teams: PublicTeamDirectoryEntry[] }
   | { kind: "tournaments"; tournaments: PublicTournament[]; selectedSport?: string; availableSports?: string[] };
 
@@ -46,7 +47,8 @@ const nav = [
 ] as const;
 
 export function DirectoryExperience(props: Props) {
-  const { lang } = useI18n();
+  const { lang: storedLang } = useI18n();
+  const lang = props.kind === "courts" && props.langOverride === "ar" ? "ar" : storedLang;
   const ar = lang === "ar";
   const kind = props.kind;
   const copy = (en: string, arabic: string) => ar ? arabic : en;
@@ -69,7 +71,7 @@ export function DirectoryExperience(props: Props) {
 
   return <main className={styles.page} lang={lang} dir={ar ? "rtl" : "ltr"}>
     <header className={styles.header}><div className={styles.headerInner}>
-      <Link href="/" className={styles.logo} aria-label="Playza">Playza<b>P</b></Link>
+      <Link href="/" className={styles.logo} aria-label="Playza"><AppLogo className="w-28" /></Link>
       <nav className={styles.navigation} aria-label={copy("Main navigation", "القائمة الرئيسية")}>
         {nav.map(item => <Link href={item.href} key={item.href} aria-current={item.href === `/${kind}` ? "page" : undefined}>{item[lang]}</Link>)}
       </nav>
