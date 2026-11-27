@@ -8,6 +8,7 @@ import { useI18n } from "@/lib/i18n";
 import { QueryState } from "@/components/shared/query-state";
 import { cn } from "@/lib/utils";
 import premiumStyles from "./game-participant-names.module.css";
+import { ProfileAvatar } from "@/components/shared/profile-avatar";
 
 type Player = { member_id?: string | null; sponsor_participant_id?: string | null; id: string; player_name: string; is_waitlisted: boolean };
 
@@ -47,7 +48,7 @@ export function GameParticipantNames({ participants, defaultOpen = false, premiu
             <ul className={premium ? premiumStyles.playerGrid : "flex flex-wrap gap-2"}>
               {[...participants].sort((a, b) => a.player_name.localeCompare(b.player_name, lang)).map((player) => (
                 <li key={player.id} className={premium ? premiumStyles.player : "rounded-md bg-background px-2 py-1 text-sm"}>
-                  {premium && <span aria-hidden="true" className={premiumStyles.avatar}>{(player.player_name.trim().charAt(0) || "?").toLocaleUpperCase(lang)}</span>}
+                  {premium && <ProfileAvatar name={player.player_name} className={premiumStyles.avatar} />}
                   <span className={premium ? premiumStyles.playerName : ""} dir="auto">{player.player_name}</span>{(player.member_id === null || player.sponsor_participant_id) && <span className={premium ? premiumStyles.guest : "ms-1 text-xs text-muted-foreground"}>{premium ? (ar ? "ضيف" : "Guest") : `(${ar ? "ضيف" : "Guest"})`}</span>}
                   {player.is_waitlisted && (
                     <span className={premium ? premiumStyles.guest : "ms-1 text-xs text-muted-foreground"}>
