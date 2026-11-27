@@ -88,23 +88,23 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
     const openDetails = (label: ReactNode) => detailsHref
       ? <Link href={detailsHref} className={styles.cinematicJoin}>{label}<ArrowUpRight size={18} aria-hidden="true" /></Link>
       : <button type="button" onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-controls={detailsId} className={styles.cinematicJoin}>{expanded ? (ar ? "إخفاء التفاصيل" : "Hide details") : label}<ArrowUpRight size={18} aria-hidden="true" /></button>;
-    return <article data-game-overview="" data-sport={imageSport} className={styles.cinematicCard}>
+    return <article data-game-overview="" data-sport={imageSport} dir="ltr" className={styles.cinematicCard}>
       <div className={styles.cinematicScene}>
         <div className={styles.cinematicPhoto} style={{backgroundImage:`url("/images/match-cards/${imageSport}.webp")`}} aria-hidden="true"/>
         <div className={styles.cinematicTint} aria-hidden="true"/>
         <div className={styles.cinematicBody}>
-          <div className={styles.cinematicTop} dir="ltr">
+          <div className={styles.cinematicTop}>
+            <span className={styles.cinematicSport}><span aria-hidden="true">{SportIcon({id:sport,size:22})}</span><span dir="auto">{ar ? ({Volleyball:"كرة طائرة","Beach Volleyball":"طائرة شاطئية",Basketball:"كرة سلة",Padel:"بادل",Tennis:"تنس"} as Record<string,string>)[game.sport] ?? game.sport : game.sport}</span></span>
             <div className={styles.cinematicBadges}>
-              <span className={styles.cinematicStatus}>{statusLabel}</span>
-              <span className={styles.cinematicGender}>{game.gender === "mixed" ? (ar ? "ميكس" : "Mixed") : game.gender === "male" ? (ar ? "رجالة بس" : "Men only") : (ar ? "سيدات بس" : "Women only")}</span>
+              <span className={styles.cinematicStatus} dir="auto">{statusLabel}</span>
+              <span className={styles.cinematicGender} dir="auto">{game.gender === "mixed" ? (ar ? "ميكس" : "Mixed") : game.gender === "male" ? (ar ? "رجالة بس" : "Men only") : (ar ? "سيدات بس" : "Women only")}</span>
             </div>
-            <span className={styles.cinematicSport}><span aria-hidden="true">{SportIcon({id:sport,size:22})}</span>{ar ? ({Volleyball:"كرة طائرة","Beach Volleyball":"طائرة شاطئية",Basketball:"كرة سلة",Padel:"بادل",Tennis:"تنس"} as Record<string,string>)[game.sport] ?? game.sport : game.sport}</span>
           </div>
           <div className={styles.cinematicHeading}>
-            <h3 data-game-info="" className={styles.cinematicTitle}>{game.title}</h3>
+            <h3 data-game-info="" dir="auto" className={styles.cinematicTitle}>{game.title}</h3>
           </div>
           <div className={styles.cinematicWhen}><span><CalendarDays size={16}/><time dateTime={game.game_date}>{format(new Date(`${game.game_date}T00:00:00`),"EEE, d MMM",{locale})}</time></span><span><Clock size={16}/><span dir="ltr">{formatTime12h(game.start_time,lang)}{endTime ? ` – ${endTime}` : ""}</span></span></div>
-          <div className={styles.cinematicWhere}><MapPin size={17}/><span>{game.playground?.name || game.location || game.area || t("games_no_playground")}</span></div>
+          <div className={styles.cinematicWhere}><MapPin size={17}/><span dir="auto">{game.playground?.name || game.location || game.area || t("games_no_playground")}</span></div>
           <div className={styles.cinematicBottom}>
             <div className={styles.cinematicMetrics}>
               <div className={styles.cinematicPrice}><strong>{game.host_pays ? (ar ? "مجاني" : "Free") : game.share_price == null ? "—" : formatMoney(game.share_price,lang)}</strong><small>{ar ? "للفرد" : "per player"}</small></div>
