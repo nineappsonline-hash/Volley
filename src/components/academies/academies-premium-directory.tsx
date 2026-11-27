@@ -93,7 +93,7 @@ export function AcademiesPremiumDirectory({ teams }: { teams: PublicTeamDirector
     });
   };
   const filtered = academies.filter(matches).sort((a,b) => sort === "programs" ? b.teams.length - a.teams.length : a.name.localeCompare(b.name));
-  const visible = showAll ? filtered : filtered.slice(0, 6);
+  const visible = showAll ? filtered : filtered.slice(0, 9);
   const matchingTeams = (a: Academy) => a.teams.filter(t => (sport === "all" || t.sport?.name === sport) && (area === "all" || academyLocation(t) === area || t.venue?.governorate === area || t.academy.governorate === area) && (level === "all" || t.skill_level === level) && (gender === "all" || t.gender === gender) && (!age.trim() || !Number.isFinite(Number(age)) || ((t.min_age === null || Number(age) >= t.min_age) && (t.max_age === null || Number(age) <= t.max_age))));
   const programs = filtered.flatMap(a => matchingTeams(a).map(t => ({ team:t,academy:a }))).slice(0,6);
   const locations = filtered.flatMap<{academy:Academy;venue:Academy["venues"][number]|null}>(a => a.venues.length ? a.venues.map(venue => ({academy:a,venue})) : [{academy:a,venue:null}]);
@@ -109,20 +109,11 @@ export function AcademiesPremiumDirectory({ teams }: { teams: PublicTeamDirector
     <div className={styles.wrap}>
       <section className={styles.hero}>
         <div className={styles.heroText}>
-          <span className={styles.eyebrow}>{tr("SPORTS ACADEMIES","الأكاديميات الرياضية")}</span>
-          <h1>{tr("Find Your Perfect","اختار الأكاديمية")}<br/><em>{tr("Academy.","المناسبة ليك.")}</em></h1>
-          <p className={styles.intro}>{tr("Train better. Closer to home. Find the right program for your sport and level.","اتدرب أحسن، في مكان قريب منك. واختار برنامج يناسب سنك ومستواك.")}</p>
-          <div className={styles.heroActions}>
-            <a className={styles.mainCta} href="#academies-list">{tr("Explore Academies","اكتشف الأكاديميات")} <ArrowUpRight size={18}/></a>
-            <Link className={styles.outlineCta} href="/academy-management">{tr("List Your Academy","سجل أكاديميتك")}</Link>
-          </div>
+          <span className={styles.eyebrow}>{tr("DISCOVER ACADEMIES","اكتشف الأكاديميات")}</span>
+          <h1>{tr("Find Your Perfect ","اختار الأكاديمية ")}<em>{tr("Academy.","المناسبة ليك.")}</em></h1>
+          <p className={styles.intro}>{tr("Find sports training near you and compare academies by sport, location and age.","اكتشف تدريبات رياضية قريبة منك، وقارن حسب الرياضة والمنطقة والسن.")}</p>
         </div>
-        <div className={styles.heroVisual}>
-          <div className={styles.heroPhotoStrip} role="img" aria-label={tr("Volleyball, basketball and tennis sports photography","صور للكرة الطائرة والسلة والتنس")}>
-            {(["volleyball", "basketball", "tennis"] as const).map((game, index) => <div className={styles.heroPhotoTile} key={game}><Image src={`/images/academies/hd/${game}-wide.webp`} alt="" fill priority={index===0} quality={95} sizes="(max-width: 700px) 33vw, (max-width: 1400px) 18vw, 240px" className={styles.coverImage}/></div>)}
-          </div>
-          <span className={styles.heroLocation}><MapPin size={15}/>{tr("Find training near you","تدريب قريب منك")}</span>
-        </div>
+        <div className={styles.heroCounter}><Trophy size={24}/><span><b>{academies.length} {tr("Academies","أكاديميات")}</b><small>{tr("Listed on Playza","موجودة على Playza")}</small></span></div>
       </section>
       <section className={styles.sportSection} aria-label={tr("Choose your sport","اختار رياضتك")}>
         <div className={styles.sectionHeading}><h2>{tr("Choose Your Sport","اختار رياضتك")}</h2><span>{tr("One place. Every passion.","كل الرياضات في مكان واحد")}</span></div>
@@ -160,22 +151,29 @@ export function AcademiesPremiumDirectory({ teams }: { teams: PublicTeamDirector
             const location = academyLocation(first) || tr("Egypt","مصر");
             const favored = favorites.includes(a.id);
             return <article key={a.id} className={styles.card}>
-              <div className={styles.cardImage}><Image src={imageFor(sportName)} alt="" fill quality={95} sizes="(max-width: 700px) 100vw, (max-width: 1000px) 50vw, 440px" className={styles.coverImage} /><span className={styles.cardOverlay} aria-hidden="true" />
+              <div className={styles.cardImage}>
+                <Image src={imageFor(sportName)} alt="" fill quality={90} sizes="(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 33vw" className={styles.coverImage}/>
+                <span className={styles.cardOverlay} aria-hidden="true"/>
                 <span className={styles.sportBadge}>{sportTitle(sportName)}</span>
-                <button type="button" className={styles.heart} aria-label={favored?tr("Remove favorite","إزالة من المفضلة"):tr("Save favorite","إضافة للمفضلة")} aria-pressed={favored} onClick={()=>setFavorites(v=>favored?v.filter(id=>id!==a.id):[...v,a.id])}><Heart size={19} fill={favored?"#caff00":"none"}/></button>
+                <button type="button" className={styles.heart} aria-label={favored?tr("Remove favorite","إزالة من المفضلة"):tr("Save favorite","إضافة للمفضلة")} aria-pressed={favored} onClick={()=>setFavorites(v=>favored?v.filter(id=>id!==a.id):[...v,a.id])}><Heart size={17} fill={favored?"#d1fa35":"none"}/></button>
+                <span className={styles.cardPhotoCaption}><MapPin size={12}/>{location}</span>
               </div>
               <div className={styles.cardBody}>
-                <div className={styles.logoInitial}>{a.logo&&!imageError.includes(a.id)?<img src={a.logo} alt="" onError={()=>setImageError(v=>[...v,a.id])}/>:a.name.charAt(0).toUpperCase()}</div>
-                <h3>{a.name}</h3>
+                <div className={styles.identityRow}>
+                  <div className={styles.logoInitial}>{a.logo&&!imageError.includes(a.id)?<img src={a.logo} alt="" onError={()=>setImageError(v=>[...v,a.id])}/>:a.name.charAt(0).toUpperCase()}</div>
+                  <div className={styles.identityDetails}>
+                    <h3>{a.name}</h3>
+                    <p className={styles.place}><MapPin size={14}/>{location}{a.venues.length>1&&<span className={styles.branchCount}> · {a.venues.length} {tr("branches","فروع")}</span>}</p>
+                  </div>
+                </div>
                 <p className={styles.program}>{first.name}</p>
-                <p className={styles.place}><MapPin size={15}/>{location}{a.venues.length>1&&<span className={styles.branchCount}>{a.venues.length} {tr("venues","أماكن تدريب")}</span>}</p>
-                <div className={styles.stats}><span><CalendarDays size={16}/>{selectedTeams.length} {tr("programs","برامج")}</span><span><UsersRound size={16}/>{ageSummary(selectedTeams)}</span></div>
-                <Link className={styles.cardCta} href={`/a/${encodeURIComponent(a.slug)}`}>{tr("View Academy","عرض الأكاديمية")} <ArrowUpRight size={19}/></Link>
+                <div className={styles.stats}><span><UsersRound size={15}/>{ageSummary(selectedTeams)}</span><span><CalendarDays size={15}/>{selectedTeams.length} {tr("training programs","برامج تدريب")}</span></div>
+                <Link className={styles.cardCta} href={`/a/${encodeURIComponent(a.slug)}`}>{tr("View Academy Details","عرض تفاصيل الأكاديمية")} <ArrowUpRight size={17}/></Link>
               </div>
             </article>;
           })}</div>:
           <div className={styles.locationsGrid}>{locations.map(({academy:a,venue:v},i)=><article className={styles.locationCard} key={`${a.id}-${v?.id??i}`}><MapPin size={22}/><div><h3>{v?.name||a.name}</h3><p>{[v?.area||a.areas[0],v?.governorate,v?.address].filter(Boolean).join(" · ")}</p><small>{a.name}</small></div><div className={styles.locationActions}>{v?.location_link&&/^https:\/\//i.test(v.location_link)&&<a href={v.location_link} target="_blank" rel="noopener noreferrer"><Navigation size={15}/>{tr("Directions","الاتجاهات")}</a>}<Link href={`/a/${encodeURIComponent(a.slug)}`}>{tr("Academy","الأكاديمية")} <ArrowUpRight size={15}/></Link></div></article>)}</div>}
-        {view==="grid"&&filtered.length>6&&<button className={styles.more} type="button" onClick={()=>setShowAll(v=>!v)}>{showAll?tr("Show less","عرض أقل"):tr("View all academies","عرض كل الأكاديميات")} <ArrowRight size={18}/></button>}
+        {view==="grid"&&filtered.length>9&&<button className={styles.more} type="button" onClick={()=>setShowAll(v=>!v)}>{showAll?tr("Show less","عرض أقل"):tr("View all academies","عرض كل الأكاديميات")} <ArrowRight size={18}/></button>}
       </section>
       {programs.length>0&&<section className={styles.programs} id="training-programs">
         <div className={styles.sectionHeading}><div><span className={styles.caption}>{tr("START TRAINING","ابدأ التمرين")}</span><h2><CalendarDays size={26}/>{tr("Training Programs","برامج التدريب")}</h2><p>{tr("Browse real programs from the academies above.","استكشف البرامج الفعلية للأكاديميات المتاحة.")}</p></div></div>
