@@ -97,7 +97,10 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
             <span className={styles.cinematicSport}><span aria-hidden="true">{SportIcon({id:sport,size:22})}</span>{ar ? ({Volleyball:"كرة طائرة","Beach Volleyball":"طائرة شاطئية",Basketball:"كرة سلة",Padel:"بادل",Tennis:"تنس"} as Record<string,string>)[game.sport] ?? game.sport : game.sport}</span>
             <span className={styles.cinematicStatus}>{statusLabel}</span>
           </div>
-          <h3 data-game-info="" className={styles.cinematicTitle}>{game.title}</h3>
+          <div className={styles.cinematicHeading}>
+            <h3 data-game-info="" className={styles.cinematicTitle}>{game.title}</h3>
+            <span className={styles.cinematicGender}>{game.gender === "mixed" ? (ar ? "ميكس" : "Mixed") : game.gender === "male" ? (ar ? "رجالة بس" : "Men only") : (ar ? "سيدات بس" : "Women only")}</span>
+          </div>
           <div className={styles.cinematicWhen}><span><CalendarDays size={16}/><time dateTime={game.game_date}>{format(new Date(`${game.game_date}T00:00:00`),"EEE, d MMM",{locale})}</time></span><span><Clock size={16}/><span dir="ltr">{formatTime12h(game.start_time,lang)}{endTime ? ` – ${endTime}` : ""}</span></span></div>
           <div className={styles.cinematicWhere}><MapPin size={17}/><span>{game.playground?.name || game.location || game.area || t("games_no_playground")}</span></div>
           <div className={styles.cinematicBottom}>
