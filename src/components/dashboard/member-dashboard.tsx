@@ -8,6 +8,7 @@ import type { Profile } from "@/lib/types";
 import { MemberDiscoveryCards } from "./member-discovery-cards";
 import { ShopTeaser } from "@/components/shop/shop-catalog";
 import { AcademiesHomeBanner } from "./academies-home-banner";
+import { VenueOwnerHomeBanner } from "./venue-owner-home-banner";
 import { DesktopNextGame } from "./desktop-next-game";
 import styles from "./member-home.module.css";
 import { DashboardNavigation } from "./dashboard-navigation";
@@ -27,6 +28,7 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
       </section></div>
     </DashboardNavigation>
     <AcademiesHomeBanner />
+    <VenueOwnerHomeBanner />
     <ShopTeaser />
     <div className="mt-auto pt-10"><PlayzaFooter fullBleed /></div>
   </div>;
