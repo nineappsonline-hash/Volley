@@ -52,7 +52,7 @@ export function LocalHero({lang,title,description,badge,gamesCount,ctaId="local-
 }) {
  const ar=lang==="ar";
  const isBeach=title.toLowerCase().includes("beach")||title.includes("شاطئية");
- const mainTitle=title.includes("القاهرة الجديدة")&&title.includes("التجمع")
+ const mainTitle=(ar && title.includes("القاهرة الجديدة") && title.includes("التجمع")) || (!ar && title.includes("Tagamoa"))
    ? <>{ar?"ماتشات في التجمع":"Games in New Cairo"}<br/><span>{ar?"والقاهرة الجديدة":"& Tagamoa"}</span></>
    : <>{title}</>;
  return <>
