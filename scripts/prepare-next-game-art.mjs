@@ -5,6 +5,7 @@
  */
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { createHash } from "node:crypto";
 
 const base = process.cwd();
 const encoded = (await readFile(join(base, "assets/playza-next-game-designed.avif.base64"), "utf8")).trim();
@@ -12,7 +13,8 @@ if (!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded) || encoded.length < 4000) {
   throw new Error("Invalid Next Game image encoding");
 }
 const image = Buffer.from(encoded, "base64");
-if (image.length < 2000 || image.subarray(4, 12).toString("ascii") !== "ftypavif") {
+if (image.length !== 25058 || image.subarray(4, 12).toString("ascii") !== "ftypavif" ||
+  createHash("sha256").update(image).digest("hex") !== "0b99e65fe12fa51dc42737e66877b6db3c768495c1c1a6e050dae5d13dbd4cf4") {
   throw new Error("Next Game artwork is not a valid AVIF file");
 }
 const targetDir = join(base, "public/images");
