@@ -575,3 +575,53 @@
     background-repeat:no-repeat;
   }
 }
+
+
+/* Restore the original Discover outer banner. Only its inner large feature
+   card receives the new sports artwork. Do not tile one image twice. */
+:global(.playza-member-dashboard) .desktopHero {
+  background-image:
+    linear-gradient(90deg,rgba(43,18,68,.94) 0%,rgba(76,29,149,.74) 39%,rgba(31,12,47,.26) 100%),
+    url('/images/playza-dashboard-sports.webp');
+  background-size:cover;
+  background-position:center 35%;
+  background-repeat:no-repeat;
+}
+:global(.playza-member-dashboard) .desktopHero .heroCopy {
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  background:#241034;
+  box-shadow:0 3px 15px rgba(20,8,37,.20);
+}
+.heroSportsArtwork {
+  position:absolute;inset:0;z-index:0;
+  display:grid;grid-template-columns:1.1fr 1fr 1fr;
+  overflow:hidden;pointer-events:none;
+}
+.heroSportsArtwork > span {
+  display:block;min-width:0;height:100%;
+  background-position:center;
+  background-size:cover;
+  background-repeat:no-repeat;
+}
+.heroSportsVolleyball {background-image:url('/images/academies/hd/volleyball-wide.webp')}
+.heroSportsBasketball {background-image:url('/images/academies/hd/basketball-wide.webp')}
+.heroSportsTennis {background-image:url('/images/academies/hd/tennis-wide.webp')}
+.heroSportsArtwork:after {
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,#220d39 0%,rgba(39,13,63,.96) 24%,rgba(42,13,66,.78) 46%,rgba(34,12,55,.18) 100%),
+  linear-gradient(0deg,rgba(19,6,36,.36),transparent 70%);
+}
+:global(.playza-member-dashboard) .heroCopy > h1,
+:global(.playza-member-dashboard) .heroCopy > p {
+  position:relative;z-index:1;
+  color:#fff;
+}
+@media(max-width:1023px){
+  .heroSportsArtwork{grid-template-columns:1fr 1fr}
+  .heroSportsTennis{display:none!important}
+  .heroSportsArtwork:after{
+    background:linear-gradient(90deg,#220d39 0%,rgba(39,13,63,.93) 39%,rgba(42,13,66,.52) 75%,rgba(34,12,55,.28) 100%);
+  }
+}
