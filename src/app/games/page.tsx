@@ -1,4 +1,8 @@
-import { DirectoryExperience } from "@/components/public/directory-experience";
+import { GamesDiscoverPage } from "@/components/games/games-discover-page";
+import { guestGameCard } from "@/lib/guest-games";
+import { getSession } from "@/lib/session";
+import { Topbar } from "@/components/layout/topbar";
+import { MemberBottomNavigation } from "@/components/layout/member-bottom-navigation";
 import { ACTIVE_SPORTS, isActiveSport } from "@/lib/active-sports";
 import { notFound } from "next/navigation";
 import { publicGamePath } from "@/lib/game-discovery";
@@ -172,10 +176,9 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
   const sport = sportParam ? slugToSport(sportParam) : undefined;
   if (sportParam && (!sport || !isActiveSport(sport))) notFound();
 
-  const [games, sports] = await Promise.all([
-    getPublicGames(sport),
-    getPublicGameSports(),
-  ]);
+  const [allGames, session] = await Promise.all([getPublicGames(), getSession()]);
+  const games = sport ? allGames.filter(game => game.sport === sport) : allGames;
+  const profile = session?.profile;
 
   const jsonLd = [
     breadcrumbsJsonLd([
@@ -201,7 +204,13 @@ export default async function GamesPage({ searchParams }: { searchParams: SP }) 
 
   return <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@graph": jsonLd }) }} />
-    <DirectoryExperience kind="games" games={games} selectedSport={sport} availableSports={[...new Set([...ACTIVE_SPORTS, ...sports])]} />
+    <div className="min-h-screen bg-background pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-0">
+      {profile ? <Topbar role={profile.role} name={profile.name} username={profile.username} avatarUrl={profile.avatar_url} avatarId={profile.avatar_id} memberPlan={profile.member_plan} /> : <Topbar role="member" name="" username="" guest />}
+      <main className="mx-auto w-full max-w-[1600px] p-4 pb-0 sm:p-6 sm:pb-0 lg:p-8 lg:pb-0">
+        <GamesDiscoverPage games={allGames.map(guestGameCard)} selectedSport={sport ?? "all"} profile={profile?.role === "member" ? profile : undefined} />
+      </main>
+      <MemberBottomNavigation guest={!profile} />
+    </div>
   </>;
 }
 
