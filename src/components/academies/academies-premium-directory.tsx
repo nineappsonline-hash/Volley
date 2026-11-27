@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { ArrowRight, ArrowUpRight, CalendarDays, ChevronDown, Clock3, GraduationCap, Grid2X2, Heart, Map as MapIcon, MapPin, Navigation, Search, ShieldCheck, SlidersHorizontal, Sparkles, Store, Trophy, UsersRound, Volleyball, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
@@ -116,7 +117,8 @@ export function AcademiesPremiumDirectory({ teams }: { teams: PublicTeamDirector
             <Link className={styles.outlineCta} href="/academy-management">{tr("List Your Academy","سجل أكاديميتك")}</Link>
           </div>
         </div>
-        <div className={styles.heroVisual} role="img" aria-label={tr("Volleyball, basketball and tennis sports photography","صور للكرة الطائرة والسلة والتنس")}>
+        <div className={styles.heroVisual}>
+          <Image src="/images/academies/reference/hero-sports.webp" alt={tr("Volleyball, basketball and tennis sports photography","صور للكرة الطائرة والسلة والتنس")} fill priority quality={95} sizes="(max-width: 700px) 100vw, (max-width: 1400px) 52vw, 700px" className={styles.coverImage}/>
           <span className={styles.heroLocation}><MapPin size={15}/>{tr("Find training near you","تدريب قريب منك")}</span>
         </div>
       </section>
@@ -156,7 +158,7 @@ export function AcademiesPremiumDirectory({ teams }: { teams: PublicTeamDirector
             const location = academyLocation(first) || tr("Egypt","مصر");
             const favored = favorites.includes(a.id);
             return <article key={a.id} className={styles.card}>
-              <div className={styles.cardImage} style={{backgroundImage:`linear-gradient(0deg,rgba(17,7,30,.52),transparent 55%),url("${imageFor(sportName)}")`}}>
+              <div className={styles.cardImage}><Image src={imageFor(sportName)} alt="" fill quality={95} sizes="(max-width: 700px) 100vw, (max-width: 1000px) 50vw, 440px" className={styles.coverImage} /><span className={styles.cardOverlay} aria-hidden="true" />
                 <span className={styles.sportBadge}>{sportTitle(sportName)}</span>
                 <button type="button" className={styles.heart} aria-label={favored?tr("Remove favorite","إزالة من المفضلة"):tr("Save favorite","إضافة للمفضلة")} aria-pressed={favored} onClick={()=>setFavorites(v=>favored?v.filter(id=>id!==a.id):[...v,a.id])}><Heart size={19} fill={favored?"#caff00":"none"}/></button>
               </div>
@@ -175,7 +177,7 @@ export function AcademiesPremiumDirectory({ teams }: { teams: PublicTeamDirector
       </section>
       {programs.length>0&&<section className={styles.programs} id="training-programs">
         <div className={styles.sectionHeading}><div><span className={styles.caption}>{tr("START TRAINING","ابدأ التمرين")}</span><h2><CalendarDays size={26}/>{tr("Training Programs","برامج التدريب")}</h2><p>{tr("Browse real programs from the academies above.","استكشف البرامج الفعلية للأكاديميات المتاحة.")}</p></div></div>
-        <div className={styles.programGrid}>{programs.map(({team,academy:a})=><Link href={`/a/${encodeURIComponent(a.slug)}`} className={styles.programCard} key={team.id}><div className={styles.programPhoto} style={{backgroundImage:`url("${imageFor(team.sport?.name??"Volleyball","program")}")`}}/><div className={styles.programDetails}><span>{sportTitle(team.sport?.name??"")}</span><h3>{team.name}</h3><p>{a.name}</p><div className={styles.programFacts}><span><UsersRound size={15}/>{ageLabel(team,ar)}</span><span><Sparkles size={15}/>{team.skill_level||tr("All levels","كل المستويات")}</span>{team.venue?.area&&<span><MapPin size={15}/>{team.venue.area}</span>}</div><ArrowUpRight className={styles.programArrow} size={20}/></div></Link>)}</div>
+        <div className={styles.programGrid}>{programs.map(({team,academy:a})=><Link href={`/a/${encodeURIComponent(a.slug)}`} className={styles.programCard} key={team.id}><div className={styles.programPhoto}><Image src={imageFor(team.sport?.name??"Volleyball","program")} alt="" fill quality={95} sizes="(max-width: 700px) 100vw, (max-width: 1000px) 50vw, 440px" className={styles.coverImage}/></div><div className={styles.programDetails}><span>{sportTitle(team.sport?.name??"")}</span><h3>{team.name}</h3><p>{a.name}</p><div className={styles.programFacts}><span><UsersRound size={15}/>{ageLabel(team,ar)}</span><span><Sparkles size={15}/>{team.skill_level||tr("All levels","كل المستويات")}</span>{team.venue?.area&&<span><MapPin size={15}/>{team.venue.area}</span>}</div><ArrowUpRight className={styles.programArrow} size={20}/></div></Link>)}</div>
       </section>}
       <section className={styles.benefits} aria-label={tr("Why Playza","مميزات بلايزا")}><h2>{tr("Why Train on Playza?","ليه تتدرب مع بلايزا؟")}</h2><div className={styles.benefitCards}><div><MapPin/><span><b>{tr("Training locations","أماكن التدريب")}</b><small>{tr("See where each team trains.","اعرف مكان تدريب كل فريق.")}</small></span></div><div><CalendarDays/><span><b>{tr("Training programs","برامج التدريب")}</b><small>{tr("Compare available teams.","قارن بين البرامج المتاحة.")}</small></span></div><div><Trophy/><span><b>{tr("Multiple sports","رياضات متنوعة")}</b><small>{tr("Explore your favorite sport.","اكتشف رياضتك المفضلة.")}</small></span></div><div><ShieldCheck/><span><b>{tr("Clear details","تفاصيل واضحة")}</b><small>{tr("Sport, age and location together.","الرياضة والسن والمكان في كارت واحد.")}</small></span></div></div></section>
       <section className={styles.ownerCta}><Store size={46}/><div><h2>{tr("Own a Sports Academy?","عندك أكاديمية رياضية؟")}</h2><p>{tr("Manage training teams, programs and bookings with Playza.","نظّم فرقك وبرامج التدريب والحجوزات على بلايزا.")}</p></div><Link href="/academy-management">{tr("List Your Academy","سجل أكاديميتك")} <ArrowUpRight size={19}/></Link></section>
