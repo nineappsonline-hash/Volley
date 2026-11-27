@@ -86,3 +86,98 @@
 .orderActions{display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px}
 .orderMeta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;padding:0 16px 14px;font-size:10px;color:hsl(var(--muted-foreground))}
 @media(max-width:700px){.orderDetails{grid-template-columns:1fr;gap:12px}.orderTop{flex-direction:column}.orderPhoto,.orderPhotoPlaceholder{width:100%;height:160px}.orderTotals{flex-direction:column;align-items:flex-start}.adminGallery img{width:96px;height:128px}}
+
+
+/* Dashboard merch banner — artwork on the right, real localized copy and CTA on the left. */
+.teaser{
+  position:relative;isolation:isolate;display:grid;
+  grid-template-columns:minmax(0,1.07fr) minmax(0,1fr);
+  align-items:center;gap:0;
+  width:100%;max-width:1360px;min-height:312px;
+  margin:29px auto 0;padding:0;overflow:hidden;
+  border:2px solid #8d43c4;border-radius:26px;
+  background:linear-gradient(110deg,#1a0c2d 0%,#3d1264 43%,#45116b 75%,#28103a 100%);
+  color:#fff;box-shadow:0 10px 28px #07030d38;
+}
+.teaser::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse at 52% 94%,rgba(160,41,215,.42),transparent 49%);
+}
+.teaserCopy{
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+  min-width:0;min-height:310px;padding:34px clamp(24px,3vw,53px);gap:0;
+  z-index:2;
+}
+.teaser .teaserCopy h2{
+  margin:0;color:#fff;font-size:clamp(29px,3vw,43px);
+  line-height:1.17;letter-spacing:-.035em;
+  font-weight:900;font-style:italic;
+  text-wrap:balance;
+}
+.teaser .teaserCopy h2 em{color:#caff00;font-style:inherit}
+.teaserStroke{
+  display:block;width:132px;height:4px;margin:14px 0 19px;
+  border-radius:100%;background:#caff00;transform:rotate(-4deg);
+}
+.teaser .teaserCopy p{
+  color:#efe5f6;font-size:clamp(14px,1.25vw,18px);
+  line-height:1.5;margin:0 0 22px;font-weight:550;
+}
+.teaser a.teaserCta{
+  display:inline-flex;align-items:center;justify-content:center;gap:12px;
+  min-height:52px;margin:0;padding:11px 23px;
+  background:#caff00;color:#1b0e29;
+  border:1px solid #caff00;border-radius:15px;
+  font-size:clamp(14px,1.35vw,18px);font-weight:900;
+  text-decoration:none;white-space:nowrap;
+  transition:background .2s,transform .2s;
+}
+.teaser a.teaserCta:hover{background:#e1ff67;transform:translateY(-2px)}
+.teaser a.teaserCta:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.teaserArtwork{
+  position:relative;align-self:stretch;min-height:310px;overflow:hidden;
+}
+.teaserProducts{
+  position:absolute;inset:-2px -2px -2px -12%;
+  display:block;background-image:url('/images/shop/playza-merch-banner.webp');
+  background-size:cover;background-position:center center;background-repeat:no-repeat;
+  mask-image:linear-gradient(to right,transparent 0%,black 16%,black 100%);
+}
+:global([dir="rtl"]) .teaserProducts{
+  inset:-2px -12% -2px -2px;
+  mask-image:linear-gradient(to left,transparent 0%,black 16%,black 100%);
+}
+@media(min-width:1440px){
+  .teaser{min-height:350px}
+  .teaserCopy{min-height:348px}
+  .teaserArtwork{min-height:348px}
+}
+@media(max-width:900px){
+  .teaser{min-height:275px}
+  .teaserCopy{min-height:273px;padding:25px 22px}
+  .teaserArtwork{min-height:273px}
+  .teaser .teaserCopy h2{font-size:clamp(24px,3.2vw,32px)}
+  .teaser .teaserCopy p{font-size:13px}
+  .teaserProducts{background-position:52% 50%}
+}
+@media(max-width:700px){
+  .teaser{
+    display:flex;flex-direction:column;align-items:stretch;
+    margin:20px auto 0;min-height:0;padding:0;
+    border-radius:20px;
+  }
+  .teaserArtwork{order:0;min-height:175px;height:175px;align-self:stretch}
+  .teaserProducts{
+    inset:-1px;mask-image:linear-gradient(to bottom,black 0%,black 78%,transparent 100%);
+    background-size:cover;background-position:center 42%;
+  }
+  :global([dir="rtl"]) .teaserProducts{
+    inset:-1px;mask-image:linear-gradient(to bottom,black 0%,black 78%,transparent 100%);
+  }
+  .teaserCopy{order:1;min-height:0;padding:12px 18px 22px;align-items:flex-start}
+  .teaser .teaserCopy h2{font-size:27px}
+  .teaserStroke{width:90px;margin:10px 0 12px}
+  .teaser .teaserCopy p{font-size:13px;line-height:1.5;margin-bottom:16px}
+  .teaser a.teaserCta{min-height:44px;padding:10px 17px;font-size:14px;border-radius:12px}
+}
+@media(prefers-reduced-motion:reduce){.teaser a.teaserCta{transition:none}.teaser a.teaserCta:hover{transform:none}}
