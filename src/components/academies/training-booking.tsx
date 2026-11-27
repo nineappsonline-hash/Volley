@@ -58,7 +58,6 @@ function ProgramCard({program:p,index}:{program:TrainingProgram;index:number}) {
   }catch(error){toast.error(errorMessage(error,ar?"تعذر الحجز":"Booking failed"));await refresh();}finally{setBusy(false);}
  };
 return <article id={`training-${p.id}`} className={`training-mobile ${premium.offer}`}>
- <div className={premium.media}><TrainingSummary program={p} compact showAcademy={false}/></div>
  <div className={premium.header}>
    <div className={premium.badgeRow}>
      <span className={premium.badge}>{ar?"مجموعة التدريب":"Training group"} {index+1}</span>
