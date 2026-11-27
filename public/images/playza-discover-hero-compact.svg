@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 280" width="1600" height="280">
+<defs>
+<linearGradient id="bg" x1="0" y1=".15" x2="1" y2=".85"><stop stop-color="#1a082e"/><stop offset=".42" stop-color="#3b0c64"/><stop offset=".75" stop-color="#1a123c"/><stop offset="1" stop-color="#0b102c"/></linearGradient>
+<radialGradient id="violet"><stop stop-color="#7e29cb" stop-opacity=".68"/><stop offset="1" stop-color="#3a0a6d" stop-opacity="0"/></radialGradient>
+<radialGradient id="vball" cx=".25" cy=".19" r=".82"><stop stop-color="#fff777"/><stop offset=".4" stop-color="#ffe124"/><stop offset="1" stop-color="#d98a05"/></radialGradient>
+<radialGradient id="basket" cx=".23" cy=".2" r=".85"><stop stop-color="#ffbc6e"/><stop offset=".55" stop-color="#f07524"/><stop offset="1" stop-color="#9f3417"/></radialGradient>
+<radialGradient id="floor" cx=".5" cy=".2" r=".8"><stop stop-color="#7b34a8" stop-opacity=".68"/><stop offset="1" stop-color="#230a40" stop-opacity="0"/></radialGradient>
+<linearGradient id="gloss" x1="0" y1="0" x2=".1" y2="1"><stop stop-color="#fff" stop-opacity=".32"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<filter id="glow"><feGaussianBlur stdDeviation="12"/></filter>
+<filter id="shadow" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="1" dy="9" stdDeviation="9" flood-color="#080315" flood-opacity=".8"/></filter>
+<pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.4" fill="#b956f9" opacity=".38"/></pattern>
+<pattern id="net" width="35" height="23" patternUnits="userSpaceOnUse"><path d="M35 0H0V23" fill="none" stroke="#a883d1" stroke-width=".8" opacity=".32"/></pattern>
+<clipPath id="round"><rect width="1600" height="280" rx="24"/></clipPath>
+</defs>
+<g clip-path="url(#round)">
+<rect width="1600" height="280" fill="url(#bg)"/>
+<circle cx="680" cy="135" r="350" fill="url(#violet)"/>
+<circle cx="1320" cy="30" r="290" fill="url(#violet)" opacity=".55"/>
+<path d="M0 0H670L470 280H0Z" fill="#310b50" opacity=".42"/>
+<path d="M670-50L520 305" stroke="#7418ba" stroke-width="3" opacity=".6"/>
+<path d="M1190-35L1070 310" stroke="#a343de" stroke-width="2" opacity=".35"/>
+<path d="M0 0H740V280H0Z" fill="url(#dots)" opacity=".46"/>
+<path d="M760 95H1600V275H760Z" fill="url(#net)" opacity=".65"/>
+<path d="M880 25H1600" stroke="#ae83df" stroke-width="3" opacity=".21"/>
+<path d="M880 150H1600" stroke="#ae83df" stroke-width="2" opacity=".16"/>
+<g opacity=".9"><ellipse cx="1115" cy="17" rx="150" ry="36" fill="#b752fa" opacity=".35" filter="url(#glow)"/><g fill="#e8d5ff"><circle cx="1000" cy="20" r="5"/><circle cx="1048" cy="17" r="5"/><circle cx="1096" cy="13" r="6"/><circle cx="1145" cy="12" r="6"/><circle cx="1196" cy="15" r="5"/></g></g>
+<!-- floor -->
+<path d="M740 224Q1140 183 1600 220V280H740Z" fill="url(#floor)"/>
+<path d="M770 245Q1220 214 1650 236" fill="none" stroke="#dd96ff" stroke-width="2" opacity=".38"/>
+<!-- volleyball -->
+<g filter="url(#shadow)" transform="translate(910 119) rotate(-19)">
+<circle r="88" fill="url(#vball)" stroke="#ffe36d" stroke-width="3"/>
+<path d="M-86 4Q-26-51 30-85L64-65Q2-29-17 24Q-43 55-59 73" fill="#1659b7"/>
+<path d="M24-85Q36-20 85 10L81 39Q25 17-9-26" fill="#124189"/>
+<path d="M-62 64Q-18 26 41 40L69 67Q24 52-14 85" fill="#2156aa"/>
+<path d="M-87 4Q-22-31 24-85M-9-26Q8 8 81 39M-58 73Q-13 36 69 67" fill="none" stroke="#fff8bb" stroke-width="3.2" opacity=".72"/>
+<ellipse cx="-29" cy="-41" rx="32" ry="16" fill="#fff" opacity=".18" transform="rotate(-30)"/>
+</g>
+<!-- basketball -->
+<g filter="url(#shadow)" transform="translate(1120 128) rotate(15)">
+<circle r="99" fill="url(#basket)" stroke="#f2a364" stroke-width="3"/>
+<circle r="97" fill="none" stroke="#331820" stroke-width="5"/>
+<path d="M-97 0H97M0-99V99M-71-70Q0 3-71 70M71-70Q0 3 71 70" fill="none" stroke="#44212a" stroke-width="5.5"/>
+<ellipse cx="-28" cy="-44" rx="35" ry="15" fill="#ffd9a0" opacity=".23" transform="rotate(-28)"/>
+</g>
+<!-- tennis ball -->
+<g filter="url(#shadow)" transform="translate(1540 176)">
+<circle r="43" fill="#d4ff30" stroke="#a8cc12" stroke-width="2"/>
+<path d="M-38-20Q4 0-25 37M29-31Q-3-6 32 29" fill="none" stroke="#fcffcc" stroke-width="5"/>
+</g>
+<!-- padel racket -->
+<g filter="url(#shadow)" transform="translate(1383 119) rotate(23)">
+<rect x="-8" y="75" width="18" height="104" rx="7" fill="#22202a" stroke="#a1ff22" stroke-width="3"/>
+<ellipse cx="0" cy="0" rx="78" ry="95" fill="#191923" stroke="#caff27" stroke-width="12"/>
+<ellipse cx="0" cy="0" rx="62" ry="79" fill="#282437" stroke="#606071" stroke-width="2"/>
+<g fill="#a5a4b8" opacity=".75">
+<circle cx="-36" cy="-49" r="5"/><circle cx="-12" cy="-49" r="5"/><circle cx="12" cy="-49" r="5"/><circle cx="36" cy="-49" r="5"/>
+<circle cx="-47" cy="-27" r="5"/><circle cx="-23" cy="-27" r="5"/><circle cx="1" cy="-27" r="5"/><circle cx="25" cy="-27" r="5"/><circle cx="47" cy="-27" r="5"/>
+<circle cx="-47" cy="-4" r="5"/><circle cx="-23" cy="-4" r="5"/><circle cx="1" cy="-4" r="5"/><circle cx="25" cy="-4" r="5"/><circle cx="47" cy="-4" r="5"/>
+<circle cx="-47" cy="19" r="5"/><circle cx="-23" cy="19" r="5"/><circle cx="1" cy="19" r="5"/><circle cx="25" cy="19" r="5"/><circle cx="47" cy="19" r="5"/>
+<circle cx="-36" cy="42" r="5"/><circle cx="-12" cy="42" r="5"/><circle cx="12" cy="42" r="5"/><circle cx="36" cy="42" r="5"/>
+</g></g>
+<!-- branding swishes -->
+<path d="M0 268Q110 225 248 224Q129 252 0 280Z" fill="#caff19"/>
+<path d="M165 280Q320 224 570 225" fill="none" stroke="#adf315" stroke-width="3" opacity=".7"/>
+<path d="M1580 272Q1510 225 1477 186Q1545 224 1600 231V280Z" fill="#d0ff17"/>
+<path d="M730 15Q795 6 839-6" fill="none" stroke="#c5ff16" stroke-width="4" opacity=".7"/>
+<path d="M710 281Q975 237 1205 278" fill="none" stroke="#b64be4" stroke-width="20" opacity=".18"/>
+<path d="M0 0H1600V280H0Z" fill="url(#gloss)" opacity=".1"/>
+</g></svg>
