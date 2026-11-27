@@ -6,6 +6,7 @@ import { GuestDashboard } from "@/components/dashboard/guest-dashboard";
 import { guestGameCard } from "@/lib/guest-games";
 import { Topbar } from "@/components/layout/topbar";
 import { MemberBottomNavigation } from "@/components/layout/member-bottom-navigation";
+import { PlayzaFooter } from "@/components/shared/playza-footer";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import {
@@ -79,6 +80,7 @@ export default async function HomePage() {
         <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-8">
           <GuestDashboard games={publicGames.map(guestGameCard)} />
         </div>
+        <PlayzaFooter />
         <MemberBottomNavigation guest />
       </div>
     </>
