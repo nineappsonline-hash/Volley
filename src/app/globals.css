@@ -727,3 +727,35 @@ body:has(.playza-super-admin) {
 .playza-super-admin :is(.drop-shadow-lg,.drop-shadow-xl,.drop-shadow-2xl) {
   filter: none;
 }
+
+
+/* Signed-in member dashboard: same quiet violet as Super Admin, no neon glow.
+   Sport-specific gold/blue/green/orange identities stay intact. */
+body:has(.playza-member-dashboard){
+  background-color:#110c1b;
+  background-image:none;
+}
+.playza-member-dashboard{
+  --playza-purple:261 68% 35%;
+  --playza-purple-dark:261 55% 24%;
+  --playza-purple-700:261 66% 30%;
+  --playza-purple-800:261 55% 24%;
+  --secondary:261 68% 35%;
+  --accent:263 30% 20%;
+  --border:266 22% 26%;
+  --ring:var(--playza-lime);
+}
+.playza-member-dashboard [data-game-overview][data-sport="volleyball"]{
+  --match-border:#765194;
+  box-shadow:0 8px 24px rgba(0,0,0,.20);
+}
+.playza-member-dashboard [data-game-overview][data-sport="volleyball"]:hover{
+  box-shadow:0 12px 28px rgba(0,0,0,.25);
+}
+.playza-member-dashboard [data-game-overview][data-sport="volleyball"] [class*="cinematicStatus"],
+.playza-member-dashboard [data-game-overview][data-sport="volleyball"] [class*="cinematicSport"]{
+  border-color:#765194;
+}
+.playza-member-dashboard :is(button,a):focus-visible{
+  outline-color:hsl(var(--playza-lime));
+}
