@@ -51,8 +51,8 @@ function ProgramCard({program:p,index}:{program:TrainingProgram;index:number}) {
  // The old Sparkle demo artwork was low resolution and included labels inside
  // the image. Use the new 2000px text-free photography for its real groups.
  const sparkleCover=p.gender==="female"
-   ?"/images/academies/hd/volleyball-girls-group.webp"
-   :"/images/academies/hd/volleyball-mixed-group.webp";
+   ?"/images/academies/hd/volleyball-girls-training-v2.webp"
+   :"/images/academies/hd/volleyball-mixed-training-v2.webp";
  const cover=sparkle && sportSlug==="volleyball"
    ? sparkleCover
    : p.media?.find(m=>m.kind==="image")?.url ?? fallbackCover;
