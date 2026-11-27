@@ -19,5 +19,5 @@ export default async function GamesPage({
     redirect(`/games?join=${encodeURIComponent(searchParams.join)}`);
   }
   const [session, publicGames] = await Promise.all([getSession(), getPublicGames()]);
-  return <GuestDashboard games={publicGames.map(guestGameCard)} profile={session?.profile.role === "member" ? session.profile : undefined} />;
+  return <GuestDashboard discovery games={publicGames.map(guestGameCard)} profile={session?.profile.role === "member" ? session.profile : undefined} />;
 }
