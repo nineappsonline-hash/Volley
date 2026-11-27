@@ -1,3 +1,4 @@
+import { VolleyballWhatsAppGroup } from "@/components/public/volleyball-whatsapp-group";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AppLogo } from "@/components/shared/app-logo";
@@ -54,6 +55,7 @@ export async function NewCairoGamesHub({ lang }: { lang: LocalLanguage }) {
         <p className="mt-5 max-w-3xl text-lg leading-relaxed text-white/90">{meta.description}</p>
         <a href="#upcoming-local-games" className="mt-6 inline-flex rounded-xl bg-white px-5 py-3 font-bold text-brand">{copy("See available games", "شوف الماتشات الجاية")}</a>
       </section>
+      <VolleyballWhatsAppGroup lang={lang} />
       <section className="space-y-4" aria-labelledby="choose-local-sport">
         <h2 id="choose-local-sport" className="text-2xl font-bold">{copy("Choose the game that suits you", "اختار نوع اللعب المناسب ليك")}</h2>
         <p className="leading-relaxed text-muted-foreground">{copy("Playza lists organized games with individual joining options; court rental is a different service. Check the exact venue, skill level, remaining spots and per-player fee before requesting a place.", "بلايزا بيعرض ماتشات منظمة تقدر تطلب مكان فيها كلاعب فردي حسب شروط المنظم. حجز الملعب بالكامل مختلف عن الانضمام لماتش. راجع عنوان الملعب والمستوى والأماكن والتكلفة قبل المشاركة.")}</p>
