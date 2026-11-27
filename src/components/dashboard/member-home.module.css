@@ -312,3 +312,28 @@
 :global(.playza-member-dashboard) .categoryIcon,
 :global(.playza-member-dashboard) .tileArrow{color:#b88dd8}
 :global(.playza-member-dashboard) .nextGame{background:#241733;box-shadow:none}
+
+
+/* Sport picker contrast: inactive dark-purple chips always use white labels. */
+:global(.playza-member-dashboard) .sports > button:not([aria-pressed="true"]) {
+  color: #fff;
+}
+:global(.playza-member-dashboard) .sports > button:not([aria-pressed="true"]) > span:last-child {
+  color: #fff;
+  opacity: 1;
+}
+:global(.playza-member-dashboard) .sports > button:not([aria-pressed="true"]) .sportIcon,
+:global(.playza-member-dashboard) .sports > button:not([aria-pressed="true"]) .sportIcon svg {
+  color: #fff;
+}
+:global(.playza-member-dashboard) .sports > button[aria-pressed="true"],
+:global(.playza-member-dashboard) .sports > button[aria-pressed="true"] > span:last-child,
+:global(.playza-member-dashboard) .sports > button[aria-pressed="true"] .sportIcon,
+:global(.playza-member-dashboard) .sports > button[aria-pressed="true"] .sportIcon svg {
+  color: #190e26;
+}
+:global(.playza-member-dashboard) .sports > button:not([aria-pressed="true"]):hover,
+:global(.playza-member-dashboard) .sports > button:not([aria-pressed="true"]):hover > span:last-child,
+:global(.playza-member-dashboard) .sports > button:not([aria-pressed="true"]):hover .sportIcon {
+  color: #190e26;
+}
