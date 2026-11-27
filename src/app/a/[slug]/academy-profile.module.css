@@ -147,3 +147,21 @@
   .heroButtons>*{flex:1 1 auto;min-width:0;}
   .groups>section>div,.groups :global(.grid.items-start){grid-template-columns:1fr!important;gap:14px!important;}
 }
+
+
+/* Keep the complete source hero photo visible.  The decorative info strip at
+   bottom-left is baked into the original image, not an HTML card. */
+@media(min-width:751px){
+  .heroPhoto{
+    object-fit:contain!important;
+    object-position:left bottom!important;
+    height:100%!important;
+    width:61%!important;
+  }
+}
+@media(max-width:750px){
+  .heroPhoto{
+    object-fit:cover!important;
+    object-position:center bottom!important;
+  }
+}
