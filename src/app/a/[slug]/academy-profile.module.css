@@ -75,3 +75,75 @@
 @media(max-width:1200px){.workspace{grid-template-columns:minmax(0,1fr) 285px;gap:17px}.groups>section>div{grid-template-columns:repeat(2,minmax(0,1fr))}.heroHighlights{display:none}}
 @media(max-width:750px){.hero{min-height:0;display:flex;flex-direction:column;padding-top:173px}.heroPhoto{inset:0 0 auto;height:225px}.heroShade{background:linear-gradient(to bottom,#30104900 0%,#391459 31%,#32104f 45%,#32104f 100%)}.heroInner{padding:18px 18px 29px}.avatar{width:57px;height:57px;border-radius:13px}.identity{gap:11px}.identity h1{font-size:35px}.heroDesc{font-size:12px}.heroButtons{gap:7px}.heroPrimary,.heroSecondary{font-size:11px!important;padding:8px 11px!important;min-height:39px!important}.tabsInner{justify-content:flex-start;gap:1px;padding:0 7px}.tabsInner a{font-size:12px;padding:0 13px;min-height:52px}.body{padding:16px 13px 45px}.workspace{display:flex;flex-direction:column}.mainColumn{width:100%;order:1}.sidebar{position:static;width:100%;order:2}.groups>section>div{grid-template-columns:1fr}.groups :global(.training-mobile):before{height:146px}.panel{padding:17px}.sessionGrid{grid-template-columns:1fr}.photoGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.sideImage{height:180px}}
 @media(prefers-reduced-motion:reduce){.profile *{scroll-behavior:auto!important}}
+
+
+/* Sparkle hero layout correction: photo on the LEFT, content on the RIGHT.
+   The previous full-strength wash hid the portrait and the absolute badges
+   collided with the actual booking controls. */
+.hero{direction:rtl;min-height:385px}
+.heroPhoto{
+  display:block!important;position:absolute!important;
+  inset:0 auto 0 0!important;
+  width:61%!important;height:100%!important;
+  object-fit:cover!important;object-position:center 42%!important;
+  opacity:1!important;z-index:-2!important;
+}
+.heroShade{
+  background:linear-gradient(to left,
+    #32104f 0%,#361258 30%,rgba(52,18,83,.96) 42%,
+    rgba(47,14,77,.54) 58%,rgba(26,9,42,.04) 92%)!important;
+}
+.heroInner{
+  width:min(1390px,100%);padding:45px 38px!important;
+  margin:0 auto!important;direction:rtl;
+  display:flex;flex-direction:column;align-items:flex-start;
+}
+.heroInner>*{max-width:min(590px,55%);}
+.heroButtons{max-width:670px!important;gap:9px!important;row-gap:10px!important;}
+.heroButtons>*{position:relative!important;flex-shrink:0;max-width:100%;}
+.heroHighlights{display:none!important;}
+.identity{min-width:0;max-width:100%;gap:15px}
+.heroDesc{max-width:540px!important;line-height:1.95}
+.avatar{flex-shrink:0}
+
+/* Keep actual training-booking UI readable; don't crush live controls into
+   the narrow 3-column mockup card size. */
+.groups{min-width:0;width:100%;}
+.groups>section{min-width:0;width:100%;}
+.groups>section>div{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:17px!important;}
+.groups :global(.grid.items-start){grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:17px!important;}
+.groups :global(.training-mobile){
+  width:100%;min-width:0!important;overflow:visible!important;
+  overflow-wrap:anywhere;word-break:normal;
+  display:flex;flex-direction:column;gap:10px;
+}
+.groups :global(.training-mobile) :is(button,a,select,input){min-width:0;max-width:100%;}
+.groups :global(.training-mobile) :is(button,a){overflow-wrap:anywhere;white-space:normal;}
+.groups :global(.training-mobile .flex){min-width:0;flex-wrap:wrap;}
+.groups :global(.training-mobile .grid){min-width:0;}
+.groups :global(.training-mobile h3){font-size:17px!important;line-height:1.55}
+.groups :global(.training-mobile p){overflow-wrap:anywhere;}
+.groups :global(.training-mobile button[aria-expanded]){width:100%;display:flex;justify-content:center;}
+.groups :global(.training-mobile .rounded-xl){min-width:0;}
+.workspace{grid-template-columns:minmax(0,1fr) 305px;}
+@media(max-width:1080px){
+  .groups>section>div,.groups :global(.grid.items-start){grid-template-columns:1fr!important;}
+  .heroInner>*{max-width:min(570px,64%);}
+  .heroPhoto{width:65%!important;}
+}
+@media(max-width:750px){
+  .hero{min-height:0;direction:rtl;padding-top:205px;}
+  .heroPhoto{
+    inset:0 0 auto 0!important;width:100%!important;height:260px!important;
+    object-position:center 30%!important;
+  }
+  .heroShade{
+    background:linear-gradient(to bottom,rgba(50,16,79,.05) 0%,
+     rgba(50,16,79,.18) 23%,#32104f 44%,#32104f 100%)!important;
+  }
+  .heroInner{width:100%;padding:20px 18px 30px!important;}
+  .heroInner>*{max-width:100%!important;}
+  .heroButtons{width:100%;max-width:100%!important;}
+  .heroButtons>*{flex:1 1 auto;min-width:0;}
+  .groups>section>div,.groups :global(.grid.items-start){grid-template-columns:1fr!important;gap:14px!important;}
+}
