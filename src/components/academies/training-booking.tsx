@@ -47,10 +47,15 @@ function ProgramCard({program:p,index}:{program:TrainingProgram;index:number}) {
  const available=p.slots.filter(s=>s.seats_left>0);const monthly=available.slice(0,p.monthly_sessions);
  const sportSlug=p.sport.toLowerCase().includes("basket")?"basketball":p.sport.toLowerCase().includes("tennis")?"tennis":"volleyball";
  const sparkle=p.academy_slug?.toLowerCase().startsWith("sparkle-");
- const fallbackCover=sparkle
-   ? p.gender==="female"?"/images/academy-design/sparkle/girls-volleyball.jpg":p.gender==="male"?"/images/academy-design/sparkle/men-volleyball.jpg":"/images/academy-design/sparkle/mixed-volleyball.jpg"
-   : `/images/academies/hd/${sportSlug}-card.webp`;
- const cover=p.media?.find(m=>m.kind==="image")?.url ?? fallbackCover;
+ const fallbackCover=`/images/academies/hd/${sportSlug}-card.webp`;
+ // The old Sparkle demo artwork was low resolution and included labels inside
+ // the image. Use the new 2000px text-free photography for its real groups.
+ const sparkleCover=p.gender==="female"
+   ?"/images/academies/hd/volleyball-girls-group.webp"
+   :"/images/academies/hd/volleyball-mixed-group.webp";
+ const cover=sparkle && sportSlug==="volleyball"
+   ? sparkleCover
+   : p.media?.find(m=>m.kind==="image")?.url ?? fallbackCover;
  const reserve=async(kind:"monthly"|"trial")=>{
   trackBusinessEvent("academy_registration_click",{sport:p.sport,governorate:p.venue_governorate,area:p.venue_area,registration_type:"training_reservation"});
   setBusy(true);
@@ -63,7 +68,7 @@ function ProgramCard({program:p,index}:{program:TrainingProgram;index:number}) {
   }catch(error){toast.error(errorMessage(error,ar?"تعذر الحجز":"Booking failed"));await refresh();}finally{setBusy(false);}
  };
 return <article id={`training-${p.id}`} className={`training-mobile ${premium.offer}`}>
- <div className={premium.cover}><img src={cover} alt={ar?`تدريب ${p.name}`:`${p.name} training`} loading="lazy" onError={e=>{if(e.currentTarget.src!==new URL(fallbackCover,window.location.origin).href)e.currentTarget.src=fallbackCover;}}/></div>
+ <div className={premium.cover}><img src={cover} alt={ar?`تدريب ${p.name}`:`${p.name} training`} loading="lazy" decoding="async" onError={e=>{if(e.currentTarget.src!==new URL(fallbackCover,window.location.origin).href)e.currentTarget.src=fallbackCover;}}/></div>
  <div className={premium.header}>
    <div className={premium.badgeRow}>
      <span className={premium.badge}>{ar?"مجموعة التدريب":"Training group"} {index+1}</span>
