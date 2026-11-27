@@ -74,7 +74,7 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
       : game.status === "full" || slots === 0 ? (ar ? "مكتمل" : "Full")
       : game.status === "open" ? (ar ? "متاح" : "Open") : t(`community_status_${game.status}`);
     const startMinutes = (() => {
-      const match = /^(\\d{1,2}):(\\d{2})/.exec(game.start_time);
+      const match = /^(\d{1,2}):(\d{2})/.exec(game.start_time);
       return match ? Number(match[1]) * 60 + Number(match[2]) : null;
     })();
     const endTime = startMinutes === null ? null : (() => {
