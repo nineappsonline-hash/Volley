@@ -52,9 +52,14 @@ export function LocalHero({lang,title,description,badge,gamesCount,ctaId="local-
 }) {
  const ar=lang==="ar";
  const isBeach=title.toLowerCase().includes("beach")||title.includes("شاطئية");
- const mainTitle=(ar && title.includes("القاهرة الجديدة") && title.includes("التجمع")) || (!ar && title.includes("Tagamoa"))
+ const isCityHub=(ar && title.includes("القاهرة الجديدة") && title.includes("التجمع")) || (!ar && title.includes("Tagamoa"));
+ const mainTitle=isCityHub
    ? <>{ar?"ماتشات في التجمع":"Games in New Cairo"}<br/><span>{ar?"والقاهرة الجديدة":"& Tagamoa"}</span></>
-   : <>{title}</>;
+   : ar && title.includes("في التجمع")
+     ? <>{title.split("في التجمع")[0].trim()}<br/><span>في التجمع</span></>
+     : !ar && title.includes("New Cairo")
+       ? <>{title.split("in New Cairo")[0].trim()}<br/><span>in New Cairo</span></>
+       : <>{title}</>;
  return <>
   <div className={styles.hero}>
     <div className={styles.heroInner}>
