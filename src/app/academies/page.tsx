@@ -13,6 +13,8 @@ import {
   jsonLdStringify,
 } from "@/lib/seo";
 import { Topbar } from "@/components/layout/topbar";
+import { MemberBottomNavigation } from "@/components/layout/member-bottom-navigation";
+import { PlayzaFooter } from "@/components/shared/playza-footer";
 import { createClient } from "@/lib/supabase/server";
 
 export const revalidate = 3600;
@@ -94,6 +96,9 @@ export default async function AcademiesPage() {
 
   return <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@context": "https://schema.org", "@graph": jsonLd }) }} />
+    {topbar}
     <AcademiesPremiumDirectory teams={teams} />
+    <PlayzaFooter />
+    <MemberBottomNavigation guest={!session} />
   </>;
 }
