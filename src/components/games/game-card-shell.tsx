@@ -20,7 +20,7 @@ import { gameBookingPayment } from "@/lib/game-costs";
 import type { FriendlyGameWithDetails } from "@/lib/types";
 
 /** Compact overview shared by the games directory and community feed. */
-export function GameCardShell({ game, joined, waitlisted, paymentPending = false, children, detailsHref, initialExpanded = false, layout = "card", hideActionsWhenExpanded = false, deferPhotoLoading = false, hideBackgroundArt = false }: { detailsHref?: string; initialExpanded?: boolean; layout?: "card" | "list" | "cinematic"; deferPhotoLoading?: boolean; hideBackgroundArt?: boolean; game: FriendlyGameWithDetails; joined: boolean; waitlisted?: boolean; paymentPending?: boolean; children?: ReactNode; hideActionsWhenExpanded?: boolean }) {
+export function GameCardShell({ game, joined, waitlisted, paymentPending = false, children, detailsHref, initialExpanded = false, layout = "card", hideActionsWhenExpanded = false, deferPhotoLoading = false, hideBackgroundArt = false, onJoinClick, joinHref }: { onJoinClick?: () => void; joinHref?: string; detailsHref?: string; initialExpanded?: boolean; layout?: "card" | "list" | "cinematic"; deferPhotoLoading?: boolean; hideBackgroundArt?: boolean; game: FriendlyGameWithDetails; joined: boolean; waitlisted?: boolean; paymentPending?: boolean; children?: ReactNode; hideActionsWhenExpanded?: boolean }) {
   const { lang, locale, t } = useI18n();
   const ar = lang === "ar";
   const [expanded, setExpanded] = useState(initialExpanded);
@@ -85,9 +85,14 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
     const primaryLabel = joined ? (ar ? "عرض حجزي" : "My booking")
       : slots === 0 ? (ar ? "تفاصيل الماتش" : "Game details")
       : ar ? "انضم للماتش" : "Join Game";
-    const openDetails = (label: ReactNode) => detailsHref
-      ? <Link href={detailsHref} className={styles.cinematicJoin}>{label}<ArrowUpRight size={18} aria-hidden="true" /></Link>
-      : <button type="button" onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-controls={detailsId} className={styles.cinematicJoin}>{expanded ? (ar ? "إخفاء التفاصيل" : "Hide details") : label}<ArrowUpRight size={18} aria-hidden="true" /></button>;
+    const canJoin = slots > 0 && !joined && game.status === "open";
+    const openDetails = (label: ReactNode) => canJoin && joinHref
+      ? <Link href={joinHref} className={styles.cinematicJoin}>{label}<ArrowUpRight size={18} aria-hidden="true" /></Link>
+      : canJoin && onJoinClick
+        ? <button type="button" onClick={onJoinClick} className={styles.cinematicJoin}>{label}<ArrowUpRight size={18} aria-hidden="true" /></button>
+        : detailsHref
+          ? <Link href={detailsHref} className={styles.cinematicJoin}>{label}<ArrowUpRight size={18} aria-hidden="true" /></Link>
+          : <button type="button" onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-controls={detailsId} className={styles.cinematicJoin}>{expanded ? (ar ? "إخفاء التفاصيل" : "Hide details") : label}<ArrowUpRight size={18} aria-hidden="true" /></button>;
     return <article data-game-overview="" data-sport={imageSport} dir="ltr" className={styles.cinematicCard}>
       <div className={styles.cinematicScene}>
         <div className={styles.cinematicPhoto} style={{backgroundImage:`url("/images/match-cards/${imageSport}.webp")`}} aria-hidden="true"/>
@@ -119,7 +124,7 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
               <div className={styles.cinematicProgress}><div className={styles.cinematicProgressText}><span><Users size={17}/>{game.participants_count}/{game.max_players} {ar ? "لاعب" : "players"}</span><span>{slots ? (ar ? `${slots} أماكن متاحة` : `${slots} spots left`) : (ar ? "مكتمل" : "Full")}</span></div><div className={styles.cinematicTrack}><div style={{width:`${percent}%`}}/></div></div>
             </div>
             <div className={styles.cinematicActions}>{openDetails(primaryLabel)}
-              <div className={styles.cinematicUtilities}>{directions && <GoogleMapsDirectionsButton compact href={directions}/>} {share}</div>
+              <div className={styles.cinematicUtilities}>{(canJoin || !detailsHref) && <button type="button" className={styles.cinematicDetailsLink} onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-controls={detailsId}>{expanded ? (ar ? "إخفاء" : "Hide") : (ar ? "التفاصيل" : "Details")}</button>}{directions && <GoogleMapsDirectionsButton compact href={directions}/>} {share}</div>
             </div>
           </div>
         </div>
