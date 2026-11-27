@@ -99,7 +99,7 @@ export function AcademiesPremiumDirectory({teams, embedded=false}:{teams:PublicT
      <nav className={styles.sports} aria-label={ar?"اختار الرياضة":"Choose sport"}>
        <button type="button" className={styles.sport} data-active={sport==="all"} onClick={()=>{setSport("all");setShowAll(false)}}><LayoutGrid size={28}/><b>{ar?"كل الرياضات":"All Sports"}</b></button>
        {selectedOptions.map(s=><button type="button" className={styles.sport} key={s} data-active={sport===s} onClick={()=>{setSport(s);setShowAll(false)}} style={{backgroundImage:`linear-gradient(0deg,rgba(23,8,41,.88),rgba(36,12,60,.28)),url("${imageForSport(s,"filter")}")`}}><span>{SportIcon({id:sportLabels[s]?.slug??"volleyball",size:31})}</span><b>{title(s)}</b></button>)}
-       {sports.filter(s=>!selectedOptions.includes(s)).map(s=><button key={s} type="button" className={styles.sport} data-active={sport===s} onClick={()=>{setSport(s);setShowAll(false)}} style={{backgroundImage:`linear-gradient(0deg,rgba(23,8,41,.88),rgba(36,12,60,.28)),url("${imageForSport(s,"program")}")`}}><Volleyball size={28}/><b>{title(s)}</b></button>)}
+       {sports.filter(s=>!selectedOptions.includes(s)).map(s=><button key={s} type="button" className={styles.sport} data-active={sport===s} onClick={()=>{setSport(s);setShowAll(false)}} style={{backgroundImage:`linear-gradient(0deg,rgba(23,8,41,.88),rgba(36,12,60,.28)),url("${imageForSport(s,"filter")}")`}}><Volleyball size={28}/><b>{title(s)}</b></button>)}
      </nav>
      <section id="academies-list" className={styles.results} aria-labelledby="academy-results-title">
        <div className={styles.heading}><h2 id="academy-results-title"><Star size={29}/>{ar?"الأكاديميات المتاحة":"Featured Academies"} <small>({shown.length})</small></h2>{shown.length>6&&<button type="button" onClick={()=>setShowAll(v=>!v)}>{showAll?(ar?"عرض أقل":"Show Less"):(ar?"عرض الكل":"View All")} <ArrowUpRight size={19}/></button>}</div>
@@ -132,7 +132,7 @@ export function AcademiesPremiumDirectory({teams, embedded=false}:{teams:PublicT
      <section className={styles.programs} aria-labelledby="programs-heading">
        <h2 id="programs-heading"><CalendarDays size={27}/>{ar?"البرامج والتدريبات":"Programs & Training"}</h2>
        <p>{ar?"تصفح برامج التدريب حسب الرياضة والمستوى.":"Explore training programs across different sports and skill levels."}</p>
-       <div className={styles.programGrid}>{selectedOptions.map(s=><button key={s} type="button" onClick={()=>{setSport(s);setShowAll(true);document.getElementById("academies-list")?.scrollIntoView({behavior:"smooth"})}} style={{backgroundImage:`linear-gradient(0deg,#220b38ee,transparent 68%),url("${imageForSport(s)}")`}}><strong>{title(s)}</strong><span>{ar?"برامج التدريب":"Training Programs"}</span><ArrowUpRight size={21}/></button>)}</div>
+       <div className={styles.programGrid}>{selectedOptions.map(s=><button key={s} type="button" onClick={()=>{setSport(s);setShowAll(true);document.getElementById("academies-list")?.scrollIntoView({behavior:"smooth"})}} style={{backgroundImage:`linear-gradient(0deg,#220b38ee,transparent 68%),url("${imageForSport(s,"program")}")`}}><strong>{title(s)}</strong><span>{ar?"برامج التدريب":"Training Programs"}</span><ArrowUpRight size={21}/></button>)}</div>
      </section>
    </div>
  </main>;
