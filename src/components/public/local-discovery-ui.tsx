@@ -30,24 +30,6 @@ export function LocalHeader({ lang, alternate }: { lang: LocalLanguage; alternat
     </div>
   </header>;
 }
-function AirborneVolleyball() {
-  return <svg className={styles.photoBall} viewBox="0 0 180 180" role="presentation" aria-hidden="true">
-    <defs>
-      <radialGradient id="playza-volley-hero-ball" cx=".3" cy=".19" r=".85">
-        <stop stopColor="#ffdf73"/><stop offset=".4" stopColor="#f9a720"/><stop offset=".72" stopColor="#ed7d13"/><stop offset="1" stopColor="#a84e11"/>
-      </radialGradient>
-      <filter id="playza-ball-shadow"><feDropShadow dx="0" dy="12" stdDeviation="8" floodColor="#110924" floodOpacity=".45"/></filter>
-    </defs>
-    <g filter="url(#playza-ball-shadow)">
-      <circle cx="90" cy="90" r="82" fill="url(#playza-volley-hero-ball)" stroke="#fff3c2" strokeWidth="3"/>
-      <path d="M20 46C58 34 88 57 105 83C126 115 134 143 121 165C148 155 165 130 171 100C151 78 135 53 121 15C83 5 40 19 20 46Z" fill="#f8f3dc" stroke="#12234e" strokeWidth="7"/>
-      <path d="M13 77C45 70 57 85 69 112C78 135 80 155 66 171C31 163 9 126 8 96Z" fill="#183c9a" stroke="#fff7de" strokeWidth="4"/>
-      <path d="M49 16C54 47 70 51 90 54C117 60 141 44 141 30" fill="none" stroke="#12307a" strokeWidth="11"/>
-      <path d="M85 172C104 141 101 118 89 96" fill="none" stroke="#fff8da" strokeWidth="6"/>
-      <ellipse cx="61" cy="36" rx="38" ry="13" fill="#fff" opacity=".18" transform="rotate(-28 61 36)"/>
-    </g>
-  </svg>;
-}
 export function LocalHero({lang,title,description,badge,gamesCount,ctaId="local-games"}:{
  lang:LocalLanguage;title:string;description:string;badge:string;gamesCount:number;ctaId?:string;
 }) {
@@ -77,9 +59,6 @@ export function LocalHero({lang,title,description,badge,gamesCount,ctaId="local-
       <div className={styles.heroVisual} aria-label={ar?"ملعب طائرة وقت الغروب":"Volleyball court at sunset"} role="img">
         <div className={styles.heroImage} />
         <div className={styles.photoGlow} />
-        <div className={styles.limeSlash} aria-hidden="true"/>
-        <div className={styles.purpleCurve} aria-hidden="true"/>
-        <AirborneVolleyball/>
         <div className={styles.floatBadge}>
           <Volleyball size={36} aria-hidden="true"/>
           <span className={styles.floatBadgeDivider}/>
@@ -112,9 +91,9 @@ export function LocalGameCards({lang,games}:{lang:LocalLanguage;games:PublicGame
   const cost=free?(ar?"مجاني":"Free"):g.share_price!=null?`${g.share_price} ${ar?"جنيه":"EGP"}`:(ar?"اسأل عن السعر":"Ask price");
   const date=new Intl.DateTimeFormat(ar?"ar-EG":"en-GB",{day:"numeric",month:"long",timeZone:"Africa/Cairo"}).format(new Date(`${g.game_date}T12:00:00Z`));
   return <article key={g.id} className={styles.gameCard}>
-   <div className={styles.cardDecor} aria-hidden="true"><div className={styles.cardNet}/></div>
+   <div className={styles.cardDecor} aria-hidden="true"><Volleyball size={72} strokeWidth={1.1}/></div>
    <div className={styles.cardContent}>
-     <div className={styles.cardBadge}><Volleyball size={16} aria-hidden="true"/>{g.sport}</div>
+     <div className={styles.cardBadge}><Volleyball size={14} aria-hidden="true"/>{g.sport}</div>
      <h3 className={styles.gameName}><Link href={publicGamePath(g.id)}>{g.title}</Link></h3>
      <p className={styles.gameVenue}><MapPin size={17} aria-hidden="true"/>{gamePlace(g)||(ar?"التجمع الخامس":"New Cairo")}</p>
      <div className={styles.cardBottom}>
