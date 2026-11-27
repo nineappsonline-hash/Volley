@@ -63,7 +63,7 @@ export function GameParticipantNames({ participants, defaultOpen = false }: { pa
 }
 
 /** Public pages fetch names only after checking the visitor's session. */
-export function SignedInGameParticipantNames({ gameId, publicCount }: { gameId: string; publicCount?: number }) {
+export function SignedInGameParticipantNames({ gameId, publicCount, defaultOpen = false }: { gameId: string; publicCount?: number; defaultOpen?: boolean }) {
   const { lang } = useI18n();
   const [memberId, setMemberId] = useState("");
   useEffect(() => {
@@ -81,5 +81,5 @@ export function SignedInGameParticipantNames({ gameId, publicCount }: { gameId: 
   }, []);
   const query = useUpcomingGameParticipants(gameId, memberId);
   if (!memberId) return publicCount == null ? null : <p className="flex items-center gap-2 rounded-lg border px-3 py-3 text-sm font-semibold"><Users className="h-4 w-4 text-primary" aria-hidden="true" />{lang === "ar" ? "المشاركين" : "Participants"} ({publicCount})</p>;
-  return <QueryState queries={[query]}><GameParticipantNames participants={query.data ?? []} /></QueryState>;
+  return <QueryState queries={[query]}><GameParticipantNames participants={query.data ?? []} defaultOpen={defaultOpen} /></QueryState>;
 }
