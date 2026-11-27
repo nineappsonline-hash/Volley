@@ -124,7 +124,7 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
               <div className={styles.cinematicProgress}><div className={styles.cinematicProgressText}><span><Users size={17}/>{game.participants_count}/{game.max_players} {ar ? "لاعب" : "players"}</span><span>{slots ? (ar ? `${slots} أماكن متاحة` : `${slots} spots left`) : (ar ? "مكتمل" : "Full")}</span></div><div className={styles.cinematicTrack}><div style={{width:`${percent}%`}}/></div></div>
             </div>
             <div className={styles.cinematicActions}>{openDetails(primaryLabel)}
-              <div className={styles.cinematicUtilities}>{(canJoin || !detailsHref) && <button type="button" className={styles.cinematicDetailsLink} onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-controls={detailsId}>{expanded ? (ar ? "إخفاء" : "Hide") : (ar ? "التفاصيل" : "Details")}</button>}{directions && <GoogleMapsDirectionsButton compact href={directions}/>} {share}</div>
+              <div className={styles.cinematicUtilities}>{!detailsHref && <button type="button" className={styles.cinematicDetailsLink} onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-controls={detailsId}>{expanded ? (ar ? "إخفاء" : "Hide") : (ar ? "التفاصيل" : "Details")}</button>}{directions && <GoogleMapsDirectionsButton compact href={directions}/>} {share}</div>
             </div>
           </div>
         </div>
