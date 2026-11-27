@@ -1,6 +1,6 @@
 /* Playza premium 2:1 upcoming match banner. All text and buttons are live UI. */
 .section{grid-column:1/-1;min-width:0;width:100%;margin:0}
-.card{--neon:#bb48f9;position:relative;isolation:isolate;width:100%;height:clamp(370px,32vw,460px);overflow:hidden;border:2px solid var(--neon);border-radius:24px;background:#190b2c;color:#fff;box-shadow:0 8px 35px #0e041c77,0 0 18px #8639cb30;text-align:left}
+.card{--neon:#bb48f9;position:relative;isolation:isolate;width:100%;height:clamp(420px,43vw,620px);overflow:hidden;border:2px solid var(--neon);border-radius:24px;background:#190b2c;color:#fff;box-shadow:0 8px 35px #0e041c77,0 0 18px #8639cb30;text-align:left}
 .card[data-sport="beach-volleyball"]{--neon:#f5b729}
 .card[data-sport="basketball"]{--neon:#f4792c}
 .card[data-sport="padel"]{--neon:#14b8fb}
@@ -12,8 +12,9 @@
 .eyebrow svg{color:#d98aff;flex-shrink:0}
 .title{font-size:clamp(26px,3.3vw,44px);font-weight:900;line-height:1.2;max-width:80%;margin:2px 0 0;letter-spacing:-.025em;text-align:left;text-shadow:0 3px 20px #080315a0;overflow-wrap:anywhere}
 .badges{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
-.sport,.confirmed{display:inline-flex;align-items:center;gap:9px;padding:7px 13px;border-radius:999px;min-height:36px;font-weight:850;font-size:14px;background:#1a0a2bca;white-space:nowrap}
+.sport,.confirmed,.gender{display:inline-flex;align-items:center;gap:9px;padding:7px 13px;border-radius:999px;min-height:36px;font-weight:850;font-size:14px;background:#1a0a2bca;white-space:nowrap}
 .sport{border:1px solid #be60fb}
+.gender{border:1px solid #d39bf3;color:#f3e0ff}
 .confirmed{border:1px solid #caff00;color:#caff00}
 .sport svg{height:20px;width:20px}
 .meta{display:flex;gap:13px 23px;align-items:center;flex-wrap:wrap;color:#fff;font-weight:750;font-size:15px;text-shadow:0 2px 10px #080319b8}
