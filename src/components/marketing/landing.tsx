@@ -7,7 +7,7 @@ import { guestGameCard } from "@/lib/guest-games";
 import { publicGamePath } from "@/lib/game-discovery";
 
 import type { PublicGame } from "@/lib/public-games";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NextLink from "next/link";
 import Image from "next/image";
 import type { ComponentProps } from "react";
@@ -54,6 +54,16 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
   const { lang, dir } = useI18n();
   const ar = lang === "ar";
   const [paused, setPaused] = useState(false);
+  const [bannerReady, setBannerReady] = useState(false);
+  useEffect(() => {
+    if (!ar) return;
+    let active = true;
+    const probe = new window.Image();
+    probe.onload = () => { if (active) setBannerReady(true); };
+    probe.onerror = () => { if (active) setBannerReady(false); };
+    probe.src = "/images/playza-home-hero-banner.webp";
+    return () => { active = false; };
+  }, [ar]);
   const [shirtColor, setShirtColor] = useState("blue");
   const shirtColors = [{ id: "black", en: "Black", ar: "أسود", hex: "#202027" }, { id: "blue", en: "Blue", ar: "أزرق", hex: "#345a9c" }, { id: "white", en: "White", ar: "أبيض", hex: "#f5f5f7" }];
   const selectedShirt = shirtColors.find(color => color.id === shirtColor)!;
@@ -68,7 +78,24 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
     </header>
 
     <main>
-      <section className={styles.hero}>
+      {ar && bannerReady ? <section className={styles.bannerHero} aria-label="دور على ماتش قريب منك">
+        <h1 className="sr-only">دوّر على ماتش كرة طائرة أو سلة قريب منك على Playza</h1>
+        <img
+          className={styles.bannerImage}
+          src="/images/playza-home-hero-banner.webp"
+          alt="دوّر على ماتش كرة طائرة أو سلة قريب منك — ماتشات جاهزة وملاعب معتمدة وأكاديميات مميزة"
+          width="2060"
+          height="763"
+          decoding="async"
+          fetchPriority="high"
+        />
+        <NextLink className={styles.bannerHitTarget} href="/games" aria-label="شوف الماتش المناسب" />
+        <div className={styles.bannerMobileCopy}>
+          <h2>دوّر على ماتش<br/>كرة طائرة أو سلة<br/><span>قريب منك</span></h2>
+          <p>ماتشات جاهزة · ملاعب معتمدة · أكاديميات مميزة</p>
+          <NextLink href="/games" className={styles.bannerMobileButton}>شوف الماتش المناسب <ArrowUpRight size={19}/></NextLink>
+        </div>
+      </section> : <section className={styles.hero}>
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}><span />{SportsHeroSceneCopy[lang].eyebrow}</p>
           <h1>{copy("Find Volleyball", "لاقي ماتش")}<br />{copy("& Basketball Games", "كرة طائرة أو سلة")}<br /><span>{copy("Near You", "قريب منك")}<svg viewBox="0 0 400 25" aria-hidden="true"><path d="M5 18Q190-7 395 12M30 23Q210 6 365 18" /></svg></span></h1>
@@ -85,7 +112,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
           <button type="button" className={styles.motionButton} onClick={() => setPaused(!paused)} aria-pressed={paused} aria-label={paused ? copy("Play animations", "تشغيل الرسوم المتحركة") : copy("Pause animations", "إيقاف الرسوم المتحركة")}>{paused ? <Play size={15} /> : <Pause size={15} />}</button>
         </div>
         <a className={styles.scrollHint} href="#upcoming-games"><ArrowDown size={16} />{copy("LET’S GET YOU OUT THERE", "يلا ننزل الملعب")}</a>
-      </section>
+      </section>}
 
       <div className={styles.ribbon} aria-hidden="true"><div>{Array.from({ length: 4 }, (_, i) => <span key={i}> {copy("SERVE. SET. CONNECT.", "العب. اتعرّف. واتبسط.")} <span>✳</span> {copy("SEE YOU ON COURT", "نشوفك في الملعب")} <span>✳</span></span>)}</div></div>
 
