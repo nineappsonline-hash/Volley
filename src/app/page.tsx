@@ -2,7 +2,10 @@ import { LANDING_TITLE, LANDING_DESCRIPTION, LANDING_KEYWORDS, landingPageJsonLd
 import { getPublicGames } from "@/lib/public-games";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { LandingPage } from "@/components/marketing/landing";
+import { GuestDashboard } from "@/components/dashboard/guest-dashboard";
+import { guestGameCard } from "@/lib/guest-games";
+import { Topbar } from "@/components/layout/topbar";
+import { MemberBottomNavigation } from "@/components/layout/member-bottom-navigation";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import {
@@ -41,11 +44,9 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  // The server auth client reads Supabase's session only from its cookies.
-  // An anonymous visitor without an auth-token cookie cannot have a server
-  // session; avoid a redundant Auth API request on every public landing hit.
-  // A present cookie is NEVER trusted as authentication: Supabase getUser()
-  // still validates it before any dashboard redirect.
+  // Render the exact guest dashboard as our indexable homepage.
+  // Authenticated players continue to their personalized dashboard. A cookie
+  // only triggers a verified getUser() check; it is never treated as proof.
   const hasSessionCookie = cookies().getAll().some(({ name }) =>
     /^sb-[a-z0-9_-]+-auth-token(?:\.\d+)?$/i.test(name)
   );
@@ -58,10 +59,6 @@ export default async function HomePage() {
 
   if (user) redirect("/dashboard");
 
-  // One bounded, ordered query also covers pages with fewer than three joinable
-  // games. Avoid a second sequential Supabase round trip in the common case
-  // where most of the next 20 games are full or already started.
-  const upcomingGames = publicGames.slice(0, 3);
 
   const jsonLd = [
     organizationJsonLd(),
@@ -77,7 +74,13 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@graph": jsonLd }) }}
       />
-      <LandingPage upcomingGames={upcomingGames} />
+      <div className="min-h-screen bg-background pb-[calc(6rem+env(safe-area-inset-bottom))]">
+        <Topbar role="member" name="" username="" guest />
+        <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-8">
+          <GuestDashboard games={publicGames.map(guestGameCard)} />
+        </div>
+        <MemberBottomNavigation guest />
+      </div>
     </>
   );
 }
