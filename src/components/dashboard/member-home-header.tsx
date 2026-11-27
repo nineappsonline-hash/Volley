@@ -32,7 +32,7 @@ const sports = [
   { name: "Archery", ar: "رماية بالقوس", slug: "archery" },
 ];
 
-export function MemberHomeHeader({ guest = false, profile, onSearchChange, name, children, selectedSport = "all", onSportChange }: { onSearchChange?: (value: string) => void; profile?: Profile; guest?: boolean; selectedSport?: string; onSportChange?: (sport: string) => void; name?: string; children?: ReactNode }) {
+export function MemberHomeHeader({ guest = false, showExplore = true, profile, onSearchChange, name, children, selectedSport = "all", onSportChange }: { onSearchChange?: (value: string) => void; profile?: Profile; guest?: boolean; showExplore?: boolean; selectedSport?: string; onSportChange?: (sport: string) => void; name?: string; children?: ReactNode }) {
   const { lang } = useI18n();
   const ar = lang === "ar";
   async function share() {
@@ -54,7 +54,7 @@ export function MemberHomeHeader({ guest = false, profile, onSearchChange, name,
     <div className={styles.sportsHeader}><h2>{ar ? "اختار رياضتك" : "Choose Your Sport"}</h2><button type="button" aria-pressed={selectedSport === "all"} aria-controls="member-live-games" onClick={() => onSportChange?.("all")}>{ar ? "كل الرياضات" : "All Sports"}<span aria-hidden="true"> →</span></button></div>
     <nav className={styles.sports} aria-label={ar ? "الرياضات" : "Browse by sport"}><button type="button" className={styles.allSports} aria-pressed={selectedSport === "all"} aria-controls="member-live-games" onClick={() => onSportChange?.("all")}><LayoutGrid size={24} /><span>{ar ? "كل الرياضات" : "All Sports"}</span></button>{sports.map(sport => <button type="button" key={sport.slug} aria-pressed={selectedSport === sport.name} aria-controls="member-live-games" onClick={() => onSportChange?.(sport.name)}><span className={styles.sportIcon}>{SportIcon({ id: sport.slug, size: 32 })}</span><span>{ar ? sport.ar : sport.name}</span></button>)}</nav>
     {children}
-    {guest ? <>
+    {showExplore && (guest ? <>
       <h2 className={styles.discoverTitle}>{ar ? "اكتشف على بلايزا" : "Explore Playza"}</h2>
       <nav className={styles.categories} aria-label={ar ? "اختار نشاطك" : "Explore activities"}>
         {guestCategories.map(category => <Link key={category.href} href={category.href} className={`${styles.category} ${category.wide ? styles.wide : ""}`}><span className={styles.categoryIcon}>{category.href === "/academies" ? <GraduationCap /> : category.href.includes("tournaments") ? <Trophy /> : category.href.includes("courts") ? <MapPin /> : <CalendarDays />}</span><span aria-hidden="true" className={styles.categoryPhoto} style={{ backgroundPosition: category.photo }} /><span className={styles.shade} aria-hidden="true" /><strong>{ar ? category.ar : category.en}</strong><ArrowUpRight className={styles.tileArrow} size={18} aria-hidden="true" /></Link>)}
@@ -79,6 +79,6 @@ export function MemberHomeHeader({ guest = false, profile, onSearchChange, name,
           </Link>;
         })}
       </nav>
-    </section>}
+    </section>)}
   </div>;
 }
