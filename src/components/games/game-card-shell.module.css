@@ -421,3 +421,17 @@
 .cinematicUtilities :global(button){font-weight:600!important}
 .cinematicExpanded :global(section button){font-weight:600}
 .cinematicExpanded :global(section ul li){font-weight:500}
+
+
+/* Unified Playza-lime eligibility chips on every cinematic game card.
+   Dark background keeps the same lime text and border readable. */
+.cinematicCard .cinematicBadges .cinematicStatus,
+.cinematicCard .cinematicBadges .cinematicGender,
+.cinematicCard .cinematicBadges .cinematicLevel,
+.cinematicCard .cinematicBadges .cinematicAge,
+.cinematicCard[data-sport="beach-volleyball"] .cinematicBadges .cinematicStatus {
+  color:#caff00;
+  border-color:#caff00;
+  background:rgba(19,9,30,.86);
+  font-weight:600;
+}
