@@ -15,7 +15,7 @@
 /* Approved New Cairo reference alignment */
 .page[dir="rtl"] .heroCopy{align-items:flex-start;text-align:right}
 .page[dir="rtl"] .cardContent{text-align:right}
-.page[dir="rtl"] .headerActions{flex-direction:row-reverse}
+
 .page[dir="rtl"] .floatBadge{direction:rtl}
 .page[dir="rtl"] .heroVisual{border-bottom:4px solid #7532d2}
 
