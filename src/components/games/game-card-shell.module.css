@@ -108,3 +108,7 @@
 @media(max-width:740px){.cinematicScene,.cinematicBody{min-height:390px}.cinematicBody{padding:18px 17px}.cinematicTitle{font-size:22px}.cinematicPhoto{background-position:60% center}.cinematicMetrics{gap:10px}.cinematicPrice{min-width:94px}.cinematicPrice strong{font-size:15px}.cinematicJoin{font-size:13px;min-height:45px}.cinematicUtilities{gap:4px}.cinematicUtilities :global(button),.cinematicUtilities :global(a){font-size:10px!important;padding:6px 8px!important}}
 @media(max-width:390px){.cinematicActions{flex-wrap:wrap}.cinematicJoin{flex-basis:100%}.cinematicUtilities{width:100%;justify-content:flex-end}.cinematicMetrics{gap:8px}.cinematicPrice{min-width:87px;padding:8px}.cinematicProgressText{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.cinematicCard,.cinematicJoin,.cinematicTrack>div{transition:none}.cinematicCard:hover{transform:none}}
+
+/* Keep Arabic RTL copy on the dark side of each photograph. */
+:global([dir="rtl"]) .cinematicTint{background:linear-gradient(270deg,rgba(15,7,29,.96) 0%,rgba(15,7,29,.78) 46%,rgba(15,7,29,.28) 100%),linear-gradient(0deg,rgba(15,7,29,.98) 0%,rgba(15,7,29,.43) 30%,transparent 76%)}
+:global([dir="rtl"]) .cinematicPhoto{background-position:40% center}
