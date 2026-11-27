@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, ArrowLeft, CalendarDays, Clock3, MapPin, Volleyball, Trophy, LandPlot, ChevronDown, Zap, UsersRound, CalendarCheck2, ShieldCheck, LogIn, CircleUserRound, Plus } from "lucide-react";
+import { ArrowUpRight, CalendarDays, Clock3, MapPin, Volleyball, Trophy, LandPlot, ChevronDown, Zap, CircleUserRound, Plus } from "lucide-react";
 import { AppLogo } from "@/components/shared/app-logo";
 import type { PublicGame } from "@/lib/public-games";
 import type { PublicCourt } from "@/lib/public-playgrounds";
@@ -34,7 +34,6 @@ export function LocalHero({lang,title,description,badge,gamesCount,ctaId="local-
  lang:LocalLanguage;title:string;description:string;badge:string;gamesCount:number;ctaId?:string;
 }) {
  const ar=lang==="ar";
- const isBeach=title.toLowerCase().includes("beach")||title.includes("شاطئية");
  const isCityHub=(ar && title.includes("القاهرة الجديدة") && title.includes("التجمع")) || (!ar && title.includes("Tagamoa"));
  const mainTitle=isCityHub
    ? <>{ar?"ماتشات في التجمع":"Games in New Cairo"}<br/><span>{ar?"والقاهرة الجديدة":"& Tagamoa"}</span></>
@@ -59,20 +58,10 @@ export function LocalHero({lang,title,description,badge,gamesCount,ctaId="local-
       <div className={styles.heroVisual} aria-label={ar?"ملعب طائرة وقت الغروب":"Volleyball court at sunset"} role="img">
         <div className={styles.heroImage} />
         <div className={styles.photoGlow} />
-        <div className={styles.floatBadge}>
-          <Volleyball size={36} aria-hidden="true"/>
-          <span className={styles.floatBadgeDivider}/>
-          <span><strong>{gamesCount}</strong><small>{ar?"ماتشات متاحة الآن":"games available"}</small></span>
-        </div>
+
       </div>
     </div>
   </div>
-  <div className={styles.band}><div className={styles.bandInner}>
-    <span><Zap size={25}/>{ar?"حجز سريع وآمن":"Quick booking"}</span>
-    <span><CalendarCheck2 size={25}/>{ar?"تابع المواعيد الجديدة":"New game updates"}</span>
-    <span><MapPin size={25}/>{ar?"ملاعب في التجمع":"New Cairo courts"}</span>
-    <span><UsersRound size={25}/>{ar?"العب مع ناس جديدة":"Meet new players"}</span>
-  </div></div>
  </>;
 }
 
@@ -91,7 +80,6 @@ export function LocalGameCards({lang,games}:{lang:LocalLanguage;games:PublicGame
   const cost=free?(ar?"مجاني":"Free"):g.share_price!=null?`${g.share_price} ${ar?"جنيه":"EGP"}`:(ar?"اسأل عن السعر":"Ask price");
   const date=new Intl.DateTimeFormat(ar?"ar-EG":"en-GB",{day:"numeric",month:"long",timeZone:"Africa/Cairo"}).format(new Date(`${g.game_date}T12:00:00Z`));
   return <article key={g.id} className={styles.gameCard}>
-   <div className={styles.cardDecor} aria-hidden="true"><Volleyball size={72} strokeWidth={1.1}/></div>
    <div className={styles.cardContent}>
      <div className={styles.cardBadge}><Volleyball size={14} aria-hidden="true"/>{g.sport}</div>
      <h3 className={styles.gameName}><Link href={publicGamePath(g.id)}>{g.title}</Link></h3>
