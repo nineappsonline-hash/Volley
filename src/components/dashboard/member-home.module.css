@@ -598,3 +598,66 @@
     background-repeat:no-repeat;
   }
 }
+
+
+/* Playza's approved sports-led Discover hero.
+   The imagery is decorative; search input, titles and buttons remain real HTML.
+   Render a single layer, never repeat it as a nested hero background. */
+:global(.playza-member-dashboard) .desktopHero{
+  position:relative;isolation:isolate;overflow:hidden;
+  background:#220d39!important;
+  box-shadow:0 12px 30px rgba(32,13,52,.12);
+}
+:global(.playza-member-dashboard) .desktopHero::before{
+  content:"";position:absolute;z-index:1;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,#240c42 0%,rgba(40,13,69,.99) 19%,rgba(44,15,73,.88) 37%,rgba(37,13,60,.26) 64%,rgba(32,9,48,.08) 100%);
+}
+:global(.playza-member-dashboard) .discoverSportsArtwork{
+  position:absolute;inset:0 0 0 38%;z-index:0;
+  overflow:hidden;pointer-events:none;
+  background:#270e44;
+}
+:global(.playza-member-dashboard) .discoverSportsArtwork>span{
+  display:block;position:absolute;top:0;bottom:0;width:42%;
+  background-size:cover;background-position:center;
+  clip-path:polygon(14% 0,100% 0,86% 100%,0 100%);
+}
+:global(.playza-member-dashboard) .discoverSportsArtwork>span::before{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(0deg,rgba(27,8,52,.34),transparent 63%);
+}
+:global(.playza-member-dashboard) .discoverVolleyball{
+  left:-3%;background-image:url('/images/academies/hd/volleyball-wide.webp');
+}
+:global(.playza-member-dashboard) .discoverBasketball{
+  left:29%;background-image:url('/images/academies/hd/basketball-wide.webp');
+  border-left:6px solid #caff27;
+}
+:global(.playza-member-dashboard) .discoverPadel{
+  left:61%;background-image:url('/images/academies/hd/tennis-wide.webp');
+  border-left:6px solid #caff27;
+}
+:global(.playza-member-dashboard) .heroCopy,
+:global(.playza-member-dashboard) .heroSearch{
+  position:relative;z-index:2;
+}
+:global(.playza-member-dashboard) .desktopHero .heroCopy{
+  background:transparent!important;box-shadow:none!important;
+}
+:global(.playza-member-dashboard) .desktopHero .heroCopy h1{
+  text-shadow:0 3px 18px rgba(24,5,37,.4);
+}
+:global(.playza-member-dashboard) .desktopHero::after{
+  content:"";position:absolute;left:-6%;bottom:-8px;width:30%;height:13px;
+  transform:rotate(-10deg);background:#caff27;z-index:1;pointer-events:none;
+}
+@media(max-width:1023px){
+  :global(.playza-member-dashboard) .discoverSportsArtwork{inset:0 0 0 32%}
+  :global(.playza-member-dashboard) .discoverSportsArtwork>span{width:72%}
+  :global(.playza-member-dashboard) .discoverVolleyball{left:25%}
+  :global(.playza-member-dashboard) .discoverBasketball,
+  :global(.playza-member-dashboard) .discoverPadel{display:none}
+  :global(.playza-member-dashboard) .desktopHero::before{
+    background:linear-gradient(90deg,#240c42 0%,rgba(40,13,69,.94) 35%,rgba(37,13,60,.36) 100%);
+  }
+}
