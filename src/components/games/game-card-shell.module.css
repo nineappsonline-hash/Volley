@@ -346,3 +346,23 @@
 @media(max-width:390px){
   .cinematicBadges .cinematicLevel{font-size:11px;padding:5px 6px;min-height:28px}
 }
+
+
+/* Visible eligibility chips for every game, including unrestricted levels/ages. */
+.cinematicBadges .cinematicAge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:33px;padding:6px 10px;border:1px solid #eab56c;
+  border-radius:999px;background:#39241edb;color:#ffe0ab;
+  font-size:14px;font-weight:900;line-height:1.15;
+  white-space:nowrap;flex-shrink:0;
+}
+@media(min-width:1200px){
+  .cinematicBadges .cinematicAge{min-height:30px;padding:6px 8px;font-size:13px}
+  .cinematicBadges{gap:5px}
+}
+@media(min-width:1200px) and (max-width:1350px){
+  .cinematicBadges .cinematicAge{font-size:12px;padding:5px 6px}
+}
+@media(max-width:390px){
+  .cinematicBadges .cinematicAge{font-size:11px;padding:5px 6px;min-height:28px}
+}
