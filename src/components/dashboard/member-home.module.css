@@ -685,3 +685,33 @@
     background-repeat:no-repeat;
   }
 }
+
+/* Final single-image Discover hero. Earlier legacy rules painted a solid
+   !important background over the approved asset, while DOM collage covered it.
+   Keep all headings, search and buttons as interactive HTML. */
+:global(.playza-member-dashboard) .desktopHero{
+  background-color:#210c3b!important;
+  background-image:url('/images/playza-discover-hero-approved.avif')!important;
+  background-position:center center!important;
+  background-repeat:no-repeat!important;
+  background-size:cover!important;
+}
+:global(.playza-member-dashboard) .desktopHero::before,
+:global(.playza-member-dashboard) .desktopHero::after{
+  content:none!important;
+  display:none!important;
+}
+@media(min-width:1024px){
+  :global(.playza-member-dashboard) .desktopHero .heroCopy{
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+}
+@media(max-width:1023px){
+  :global(.playza-member-dashboard) .desktopHero{
+    background-image:url('/images/playza-discover-hero-approved.avif')!important;
+  }
+  :global(.playza-member-dashboard) .desktopHero .heroCopy{
+    background:linear-gradient(90deg,rgba(29,8,50,.84),rgba(29,8,50,.32) 80%)!important;
+  }
+}
