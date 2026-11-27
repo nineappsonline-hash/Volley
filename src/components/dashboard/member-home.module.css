@@ -825,7 +825,7 @@
     padding:25px 36px 16px!important;
     background-color:#220a3b!important;
     background-image:
-      linear-gradient(90deg,#220a3b 0%,#220a3b 30%,rgba(34,10,59,.97) 38%,rgba(34,10,59,.8) 45%,rgba(34,10,59,0) 62%),
+      linear-gradient(90deg,#220a3b 0%,#220a3b 59%,rgba(34,10,59,.96) 64%,rgba(34,10,59,0) 77%),
       url('/images/playza_sports_banner.webp')!important;
     background-size:100% 100%,auto 340px!important;
     background-position:center center,right center!important;
@@ -853,7 +853,7 @@
   :global(.playza-member-dashboard) .desktopHero {
     background-color:#220a3b!important;
     background-image:
-      linear-gradient(90deg,rgba(34,10,59,.97) 0%,rgba(34,10,59,.94) 38%,rgba(34,10,59,.44) 78%,rgba(34,10,59,.25) 100%),
+      linear-gradient(90deg,#220a3b 0%,#220a3b 64%,rgba(34,10,59,.96) 75%,rgba(34,10,59,.12) 100%),
       url('/images/playza_sports_banner.webp')!important;
     background-size:100% 100%,auto 330px!important;
     background-position:center center,right center!important;
