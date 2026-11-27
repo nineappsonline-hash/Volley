@@ -3,6 +3,7 @@ import { getPublicGames } from "@/lib/public-games";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { GuestDashboard } from "@/components/dashboard/guest-dashboard";
+import { AcademiesHomeBanner } from "@/components/dashboard/academies-home-banner";
 import { guestGameCard } from "@/lib/guest-games";
 import { Topbar } from "@/components/layout/topbar";
 import { MemberBottomNavigation } from "@/components/layout/member-bottom-navigation";
@@ -79,6 +80,7 @@ export default async function HomePage() {
         <Topbar role="member" name="" username="" guest />
         <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-8">
           <GuestDashboard games={publicGames.map(guestGameCard)} />
+          <AcademiesHomeBanner />
         </div>
         <PlayzaFooter />
         <MemberBottomNavigation guest />
