@@ -3,8 +3,10 @@ import { ArrowUpRight, CalendarDays, Clock3, MapPin, Volleyball, Trophy, LandPlo
 import { AppLogo } from "@/components/shared/app-logo";
 import type { PublicGame } from "@/lib/public-games";
 import type { PublicCourt } from "@/lib/public-playgrounds";
-import { publicGamePath, gamePlace } from "@/lib/game-discovery";
-import { formatTime12h } from "@/lib/constants";
+import { publicGamePath } from "@/lib/game-discovery";
+import { guestGameCard } from "@/lib/guest-games";
+import { GameCardShell } from "@/components/games/game-card-shell";
+import landingStyles from "@/components/marketing/volleyball-landing.module.css";
 import type { LocalLanguage } from "@/lib/local-games";
 import styles from "./local-discovery.module.css";
 
@@ -75,24 +77,18 @@ export function LocalSectionHeading({kicker,title,id,aside}:{kicker:string;title
 export function LocalGameCards({lang,games}:{lang:LocalLanguage;games:PublicGame[]}) {
  const ar=lang==="ar";
  if(!games.length)return <div className={styles.empty}>{ar?"مفيش ماتشات متاحة دلوقتي في المنطقة دي. تابع جروب واتساب أو شوف باقي الماتشات.":"No available games at the moment. Follow our community group or browse other games."}</div>;
- return <div className={styles.cards}>{games.map(g=>{
-  const free=Boolean(g.host_pays)||g.share_price===0;
-  const cost=free?(ar?"مجاني":"Free"):g.share_price!=null?`${g.share_price} ${ar?"جنيه":"EGP"}`:(ar?"اسأل عن السعر":"Ask price");
-  const date=new Intl.DateTimeFormat(ar?"ar-EG":"en-GB",{day:"numeric",month:"long",timeZone:"Africa/Cairo"}).format(new Date(`${g.game_date}T12:00:00Z`));
-  return <article key={g.id} className={styles.gameCard}>
-   <div className={styles.cardContent}>
-     <div className={styles.cardBadge}><Volleyball size={14} aria-hidden="true"/>{g.sport}</div>
-     <h3 className={styles.gameName}><Link href={publicGamePath(g.id)}>{g.title}</Link></h3>
-     <p className={styles.gameVenue}><MapPin size={17} aria-hidden="true"/>{gamePlace(g)||(ar?"التجمع الخامس":"New Cairo")}</p>
-     <div className={styles.cardBottom}>
-       <span className={styles.detail}><CalendarDays size={18} aria-hidden="true"/><time dateTime={g.game_date}>{date}</time></span>
-       <span className={styles.detail}><Clock3 size={18} aria-hidden="true"/>{formatTime12h(g.start_time,lang)}</span>
-       <strong className={styles.price}>{cost}<span>{ar?"":" / player"}</span></strong>
-       <Link className={styles.cardButton} href={publicGamePath(g.id)}>{g.status==="full"?(ar?"تفاصيل الماتش":"Game details"):(ar?"احجز مكانك":"Book your place")}<ArrowUpRight size={17} aria-hidden="true"/></Link>
-     </div>
-   </div>
-  </article>;
- })}</div>;
+ // Exactly the same component and list layout used for upcoming games on the homepage.
+ // Use the display-only guest adapter to avoid exposing private roster or payment data.
+ return <div className={`flex flex-col gap-3 text-start ${landingStyles.landingGameCards}`}>
+   {games.map(game => <GameCardShell
+     key={game.id}
+     layout="list"
+     deferPhotoLoading
+     game={guestGameCard(game)}
+     joined={false}
+     detailsHref={publicGamePath(game.id)}
+   />)}
+ </div>;
 }
 
 export function LocalArchive({lang,games}:{lang:LocalLanguage;games:PublicGame[]}) {
