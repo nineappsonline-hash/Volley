@@ -57,7 +57,7 @@ export async function NewCairoGamesHub({ lang }: { lang: LocalLanguage }) {
         <LocalSectionHeading id="local-games-heading" kicker={copy("LET'S PLAY", "يلا نلعب")} title={copy("Upcoming games", "الماتشات الجاية")}
           aside={<Link className={styles.textArrow} href="/games">{copy("All games", "كل الماتشات")} <ArrowUpRight size={17}/></Link>} />
         <LocalGameCards lang={lang} games={upcoming}/>
-        <div className={styles.waRow}><VolleyballWhatsAppGroup lang={lang}/></div>
+        <div className={styles.waRow}><VolleyballWhatsAppGroup lang={lang} theme="dark"/></div>
       </section>
       <section className={styles.section} aria-labelledby="local-sports-heading">
         <LocalSectionHeading id="local-sports-heading" kicker={copy("PICK YOUR GAME", "اختار رياضتك")} title={copy("Play your way", "بتحب تلعب إيه؟")}/>
