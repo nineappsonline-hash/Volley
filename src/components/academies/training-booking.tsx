@@ -3,7 +3,8 @@ import { trackBusinessEvent, trackCompletion, trackView } from "@/lib/analytics/
 import { PageHeader } from "@/components/shared/page-header";
 import { TrainingSummary } from "./training-summary";
 import { AcademyLogo } from "./academy-logo";
-import { ChevronDown } from "lucide-react";
+import { CalendarDays, ChevronDown, MapPin, UsersRound } from "lucide-react";
+import premium from "./training-offer-premium.module.css";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -43,7 +44,7 @@ function ProgramCard({program:p,index}:{program:TrainingProgram;index:number}) {
  const [expanded,setExpanded]=useState(false);
  useEffect(()=>{if(expanded)trackView("academy_view",p.academy_id,{sport:p.sport,governorate:p.venue_governorate,area:p.venue_area});},[expanded,p.academy_id,p.sport,p.venue_governorate,p.venue_area]);
  useEffect(()=>{const reveal=()=>{if(window.location.hash===`#training-${p.id}`)setExpanded(true);};reveal();window.addEventListener("hashchange",reveal);return()=>window.removeEventListener("hashchange",reveal);},[p.id]);
- const accents=["border-t-blue-500","border-t-emerald-500","border-t-violet-500","border-t-amber-500"];
+
  const available=p.slots.filter(s=>s.seats_left>0);const monthly=available.slice(0,p.monthly_sessions);
  const reserve=async(kind:"monthly"|"trial")=>{
   trackBusinessEvent("academy_registration_click",{sport:p.sport,governorate:p.venue_governorate,area:p.venue_area,registration_type:"training_reservation"});
@@ -56,11 +57,32 @@ function ProgramCard({program:p,index}:{program:TrainingProgram;index:number}) {
    setReserved(data as TrainingBooking);await refresh();
   }catch(error){toast.error(errorMessage(error,ar?"تعذر الحجز":"Booking failed"));await refresh();}finally{setBusy(false);}
  };
-return <article id={`training-${p.id}`} className={`training-mobile min-w-0 scroll-mt-24 space-y-4 rounded-2xl border border-t-4 bg-card p-4 shadow-md sm:p-6 ${accents[index%accents.length]}`}><div className="flex items-start gap-3"><AcademyLogo academyId={p.academy_id} name={p.academy_name}/><div className="min-w-0 flex-1"><div className="mb-3 flex flex-wrap items-center justify-between gap-2"><span className="rounded-full bg-muted px-3 py-1 text-xs font-bold">{ar?"مجموعة":"Group"} {index+1}</span><div className="flex items-center gap-1"><span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{p.sport}</span><ShareIconButton target={academyShareTarget({name:p.academy_name,slug:p.academy_slug,area:p.venue_area,governorate:p.venue_governorate},{id:p.id,name:p.name})} label={t("academy_share_program")}/></div></div><h3 className="break-words text-xl font-bold">{p.name}</h3><p className="mt-1 break-words text-sm text-muted-foreground">{p.academy_name} · {p.sport} · {p.venue_name}</p><p className="text-xs text-muted-foreground">{p.venue_address}</p></div></div>
-<TrainingSummary program={p} compact={!expanded} showAcademy={false}/>
- {!expanded && <div className="grid grid-cols-2 gap-3 text-sm"><div className="rounded-xl bg-muted/40 p-3"><p className="text-xs text-muted-foreground">{ar?"اشتراك 30 يومًا":"30-day plan"}</p><p className="mt-1 font-bold">{formatMoney(Number(p.monthly_price),lang)}</p><p className="text-xs">{p.monthly_sessions} {ar?"حصص":"sessions"}</p></div><div className="rounded-xl bg-muted/40 p-3"><p className="text-xs text-muted-foreground">{ar?"حصة تجريبية":"Trial session"}</p><p className="mt-1 font-bold">{formatMoney(Number(p.trial_price),lang)}</p></div></div>}
- <Button variant="outline" className="min-h-11 w-full whitespace-normal" aria-expanded={expanded} aria-controls={`group-details-${p.id}`} onClick={()=>setExpanded(!expanded)}>{expanded?(ar?"إخفاء التفاصيل":"Hide details"):(ar?"عرض المواعيد والحجز":"View schedule & book")}<ChevronDown aria-hidden="true" className={`h-4 w-4 shrink-0 transition-transform motion-reduce:transition-none ${expanded?"rotate-180":""}`}/></Button>
- <div id={`group-details-${p.id}`} hidden={!expanded}>
+return <article id={`training-${p.id}`} className={`training-mobile ${premium.offer}`}>
+ <div className={premium.media}><TrainingSummary program={p} compact showAcademy={false}/></div>
+ <div className={premium.header}>
+   <div className={premium.badgeRow}>
+     <span className={premium.badge}>{ar?"مجموعة التدريب":"Training group"} {index+1}</span>
+     <div className={premium.share}><span className={`${premium.badge} ${premium.sport}`}>{p.sport}</span><ShareIconButton target={academyShareTarget({name:p.academy_name,slug:p.academy_slug,area:p.venue_area,governorate:p.venue_governorate},{id:p.id,name:p.name})} label={t("academy_share_program")}/></div>
+   </div>
+   <div className={premium.heading}>
+     <div className={premium.logo}><AcademyLogo academyId={p.academy_id} name={p.academy_name}/></div>
+     <div className={premium.headingText}>
+       <h3 className={premium.title}>{p.name}</h3>
+       <p className={premium.subtitle}>{[p.academy_name,p.venue_name].filter(Boolean).join(" · ")}</p>
+     </div>
+   </div>
+ </div>
+ <div className={premium.facts}>
+  <span className={premium.fact}><UsersRound size={15}/>{p.min_age!=null&&p.max_age!=null?`${p.min_age}–${p.max_age}`:p.min_age!=null?`${p.min_age}+`:p.max_age!=null?`${ar?"حتى ":"Up to "}${p.max_age}`:(ar?"كل الأعمار":"All ages")} · {p.gender==="male"?(ar?"ذكور":"Male"):p.gender==="female"?(ar?"إناث":"Female"):(ar?"مختلط":"Mixed")}</span>
+  {p.venue_area&&<span className={premium.fact}><MapPin size={15}/>{p.venue_area}</span>}
+  {p.rating_count>0&&<span className={premium.fact}>★ {p.rating} / 5 ({p.rating_count})</span>}
+ </div>
+ <div className={premium.prices}>
+   <div className={premium.price}><small>{ar?"اشتراك 30 يومًا":"30-day plan"}</small><strong>{formatMoney(Number(p.monthly_price),lang)}</strong><span><CalendarDays size={12} className="inline-block align-middle me-1"/>{p.monthly_sessions} {ar?"حصص تدريب":"sessions"}</span></div>
+   <div className={premium.price}><small>{ar?"حصة تجريبية":"Trial session"}</small><strong>{formatMoney(Number(p.trial_price),lang)}</strong><span>{ar?"تجربة قبل الاشتراك":"Try before joining"}</span></div>
+ </div>
+ <Button className={premium.action} aria-expanded={expanded} aria-controls={`group-details-${p.id}`} onClick={()=>setExpanded(!expanded)}>{expanded?(ar?"إخفاء المواعيد":"Hide schedule"):(ar?"عرض المواعيد والحجز":"View schedule & book")}<ChevronDown aria-hidden="true" className={`shrink-0 transition-transform motion-reduce:transition-none ${expanded?"rotate-180":""}`}/></Button>
+ <div className={premium.expanded} id={`group-details-${p.id}`} hidden={!expanded}>
  <div className="grid gap-4 sm:grid-cols-2"><div className="min-w-0 space-y-3 rounded-xl border bg-muted/30 p-3"><h4>{ar?"اشتراك 30 يومًا":"30-day membership"}</h4><p>{formatMoney(Number(p.monthly_price),lang)} · {p.monthly_sessions} {ar?"حصص":"sessions"}</p><details><summary className="cursor-pointer text-sm">{ar?"مواعيد الحصص المشمولة":"Included session dates"}</summary><TrainingDates slots={monthly}/></details>{monthly.length<p.monthly_sessions&&<p className="text-xs text-muted-foreground">{ar?"عدد الحصص المتاحة لا يكفي للاشتراك حاليًا.":"Not enough available sessions for this plan yet."}</p>}
  {canBook?<Button className="h-auto min-h-11 w-full whitespace-normal" disabled={busy||monthly.length<p.monthly_sessions} onClick={()=>reserve("monthly")}>{ar?"احجز الاشتراك الشهري":"Book monthly plan"}</Button>:<Link href="/login" onClick={()=>trackBusinessEvent("academy_registration_click",{sport:p.sport,governorate:p.venue_governorate,area:p.venue_area,registration_type:"training_reservation"})} className="text-foreground hover:underline underline-offset-4 underline">{ar?"سجّل الدخول للحجز":"Sign in to book"}</Link>}</div>
  <div className="min-w-0 space-y-3 rounded-xl border bg-muted/30 p-3"><h4>{ar?"حصة تجريبية واحدة":"Single trial session"}</h4><p>{formatMoney(Number(p.trial_price),lang)}</p><label className="block text-sm">{ar?"اختار الموعد":"Choose a session"}<select className="mt-1 w-full rounded border bg-background p-2 text-foreground" value={choice} onChange={e=>setChoice(e.target.value)}><option value="">{ar?"اختار موعدًا متاحًا":"Select an available time"}</option>{available.map(s=><option key={`${s.session_date}-${s.starts_at}`} value={`${s.session_date}T${s.starts_at}`}>{s.session_date} · {formatTime12h(s.starts_at,lang)} ({s.seats_left})</option>)}</select></label>{canBook?<Button className="h-auto min-h-11 w-full whitespace-normal" disabled={busy||!available.some(s=>`${s.session_date}T${s.starts_at}`===choice)} onClick={()=>reserve("trial")}>{ar?"احجز حصة تجريبية":"Book a trial"}</Button>:<Link href="/login" onClick={()=>trackBusinessEvent("academy_registration_click",{sport:p.sport,governorate:p.venue_governorate,area:p.venue_area,registration_type:"training_reservation"})} className="text-foreground hover:underline underline-offset-4 underline">{ar?"سجّل الدخول للحجز":"Sign in to book"}</Link>}</div></div>
