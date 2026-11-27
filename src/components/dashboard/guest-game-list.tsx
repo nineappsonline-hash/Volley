@@ -15,10 +15,10 @@ export function GuestGameList({ games }: { games: FriendlyGameWithDetails[] }) {
   const params = useSearchParams();
   const { lang, t } = useI18n();
   const ar = lang === "ar";
-  return <div className={`flex flex-col gap-3 ${styles.desktopGames}`}>{games.map(game => {
+  return <div className={`grid grid-cols-1 gap-5 xl:grid-cols-2`}>{games.map(game => {
     const next = new URLSearchParams(params.toString()); next.set("focus", game.id);
     const returnTo = `${pathname}?${next}#game-${game.id}`;
-    return <div key={game.id} id={`game-${game.id}`} className="scroll-mt-20"><GameCardShell layout="list" game={game} joined={false} initialExpanded={params.get("focus") === game.id}>
+    return <div key={game.id} id={`game-${game.id}`} className="scroll-mt-20"><GameCardShell layout="cinematic" game={game} joined={false} initialExpanded={params.get("focus") === game.id}>
       <div className="space-y-3 p-4 text-sm">
         {game.description && <p className="whitespace-pre-wrap">{game.description}</p>}
         <p>{t(`games_gender_${game.gender}`)}{game.skill_level ? ` · ${t(`skill_${game.skill_level}`)}` : ""}</p>
