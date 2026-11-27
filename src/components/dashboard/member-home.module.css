@@ -784,3 +784,30 @@
    background:linear-gradient(90deg,rgba(25,7,43,.94),rgba(29,7,47,.50))!important;
  }
 }
+
+
+/* Restore the professional photographic sports montage. The temporary
+   oversized flat-vector ball illustration was rejected. At the original
+   compact 240px height, deliberately frame artwork without clipping faces. */
+@media(min-width:1024px){
+ :global(.playza-member-dashboard) .desktopHero{
+   height:240px!important;
+   min-height:240px!important;
+   max-height:240px!important;
+   background-image:linear-gradient(90deg,rgba(28,8,47,.70) 0%,rgba(28,8,47,.3) 30%,transparent 58%),url('/images/playza-discover-hero-approved.avif')!important;
+   background-size:100% 100%!important;
+   background-position:center!important;
+   background-repeat:no-repeat!important;
+   padding:25px 36px 16px!important;
+ }
+ :global(.playza-member-dashboard) .desktopHero .heroSearch{
+   margin-inline-start:12%;
+ }
+}
+@media(max-width:1023px){
+ :global(.playza-member-dashboard) .desktopHero{
+   background-image:url('/images/playza-discover-hero-approved.avif')!important;
+   background-size:cover!important;
+   background-position:72% 25%!important;
+ }
+}
