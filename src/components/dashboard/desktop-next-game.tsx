@@ -56,6 +56,7 @@ export function DesktopNextGame({ memberId }: { memberId: string }) {
           <h2 className={styles.title} dir="auto">{game.title}</h2>
           <div className={styles.badges}>
             <span className={styles.sport}><span aria-hidden="true">{SportIcon({ id: sport, size: 20 })}</span><span>{ar ? (sports[game.sport] ?? game.sport) : game.sport}</span></span>
+            <span className={styles.gender}>{game.gender === "mixed" ? (ar ? "ميكس" : "Mixed") : game.gender === "male" ? (ar ? "رجالة بس" : "Men only") : (ar ? "سيدات بس" : "Women only")}</span>
             <span className={styles.confirmed}><CheckCircle2 size={17} />{ar ? "الحجز مؤكد" : "Confirmed"}</span>
           </div>
           <div className={styles.meta}>
