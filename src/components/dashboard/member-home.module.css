@@ -661,3 +661,27 @@
     background:linear-gradient(90deg,#240c42 0%,rgba(40,13,69,.94) 35%,rgba(37,13,60,.36) 100%);
   }
 }
+
+
+/* Approved Playza three-sport hero. Single background image, all text and
+   search controls remain accessible live HTML elements. */
+@media (min-width:1024px) {
+  :global(.playza-member-dashboard) .desktopHero {
+    background-image:url('/images/playza-discover-hero-approved.avif');
+    background-position:center center;
+    background-size:cover;
+    background-repeat:no-repeat;
+  }
+  :global(.playza-member-dashboard) .desktopHero .heroCopy {
+    background:none;
+    box-shadow:none;
+  }
+}
+@media (max-width:1023px) {
+  :global(.playza-member-dashboard) .desktopHero .heroCopy {
+    background-image:linear-gradient(90deg,rgba(27,9,47,.89),rgba(35,11,57,.52) 68%,rgba(30,8,52,.18)),url('/images/playza-discover-hero-approved.avif');
+    background-position:center;
+    background-size:cover;
+    background-repeat:no-repeat;
+  }
+}
