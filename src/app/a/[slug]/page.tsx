@@ -272,7 +272,6 @@ export default async function PublicAcademyPage({
                 <span>{academy.name}</span>
               </div>
               <div className={styles.sideLines}>
-                {place && <p><MapPin size={19}/>{place}</p>}
                 <p><CalendarDays size={19}/><LangLabel en="Training times vary by group" ar="المواعيد حسب مجموعة التدريب" /></p>
                 {!!sports?.length && <p><Volleyball size={19}/>{sports.map(s=>s.name).join(" · ")}</p>}
               </div>
