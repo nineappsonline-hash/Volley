@@ -256,3 +256,59 @@
   .desktopContent > section{min-width:0;width:100%}
   .desktopContent > .nextGame{width:100%;max-width:420px}
 }
+
+
+/* Member Dashboard | subdued violet palette from approved admin reference.
+   Scoped so public pages and sport identity backgrounds remain unchanged. */
+:global(.playza-member-dashboard) .desktopHero {
+  background-image:linear-gradient(90deg,rgba(43,18,68,.94) 0%,rgba(76,29,149,.74) 39%,rgba(31,12,47,.26) 100%),url('/images/playza-dashboard-sports.webp');
+  box-shadow:none;
+}
+:global(.playza-member-dashboard) .heroCopy{
+  background-image:linear-gradient(90deg,rgba(43,18,68,.95),rgba(76,29,149,.58) 65%,rgba(31,12,47,.22)),url('/images/playza-dashboard-sports.webp');
+  box-shadow:none;
+}
+:global(.playza-member-dashboard) .heroSearch{
+  box-shadow:none;
+  background:#1e1729;
+  color:#f8f1ff;
+  border:1px solid #5b3d72;
+}
+:global(.playza-member-dashboard) .heroSearch > input,
+:global(.playza-member-dashboard) .heroSearch > span{color:#f9f3ff}
+:global(.playza-member-dashboard) .heroSearch > input::placeholder{color:#c6b4d6}
+:global(.playza-member-dashboard) .heroSearch > button:last-child{
+  color:#f2e6fd;
+  border-color:#79599d;
+  background:#342046;
+}
+:global(.playza-member-dashboard) .sports>button{
+  background:#241b31;
+  color:#e5d1f6;
+  border:1px solid #3a2a4b;
+  box-shadow:none;
+}
+:global(.playza-member-dashboard) .sports>button .sportIcon{color:#be94df}
+:global(.playza-member-dashboard) .sports>button[aria-pressed="true"],
+:global(.playza-member-dashboard) .sports>button:hover{
+  background:#d4ff54;
+  color:#190e26;
+  border-color:#d4ff54;
+  box-shadow:none;
+}
+:global(.playza-member-dashboard) .sports>button[aria-pressed="true"] .sportIcon,
+:global(.playza-member-dashboard) .sports>button:hover .sportIcon{color:#190e26}
+:global(.playza-member-dashboard) .category,
+:global(.playza-member-dashboard) .category.wide{
+  background:#241b30;
+  border:1px solid #44304e;
+  box-shadow:none;
+  color:#f5edff;
+}
+:global(.playza-member-dashboard) .category:hover{
+  background:#32213e;
+  border-color:#6e4a87;
+}
+:global(.playza-member-dashboard) .categoryIcon,
+:global(.playza-member-dashboard) .tileArrow{color:#b88dd8}
+:global(.playza-member-dashboard) .nextGame{background:#241733;box-shadow:none}
