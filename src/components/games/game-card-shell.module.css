@@ -390,15 +390,15 @@
   min-height:0;
   padding-block:5px;
   justify-content:center;
-  gap:2px;
+  gap:0;
 }
 .cinematicPrice strong {
-  line-height:1.08;
+  line-height:1;
 }
 .cinematicPrice small {
   display:block;
-  line-height:1.1;
-  margin:0;
+  line-height:1;
+  margin:-2px 0 0;
 }
 @media (min-width:1200px) {
   .cinematicPrice { min-height:0; padding-block:5px; }
