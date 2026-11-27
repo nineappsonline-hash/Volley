@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowRight, ArrowUpRight, CalendarDays, ChevronDown, Clock3, GraduationCap, Grid2X2, Heart, Map, MapPin, Navigation, Search, ShieldCheck, SlidersHorizontal, Sparkles, Store, Trophy, UsersRound, Volleyball, X } from "lucide-react";
+import { ArrowRight, ArrowUpRight, CalendarDays, ChevronDown, Clock3, GraduationCap, Grid2X2, Heart, Map as MapIcon, MapPin, Navigation, Search, ShieldCheck, SlidersHorizontal, Sparkles, Store, Trophy, UsersRound, Volleyball, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { SportIcon } from "@/components/marketing/sport-icons";
 import type { PublicTeamDirectoryEntry } from "@/lib/types";
@@ -144,7 +144,7 @@ export function AcademiesPremiumDirectory({ teams }: { teams: PublicTeamDirector
       <section id="academies-list" className={styles.results} aria-labelledby="academy-results-title">
         <div className={styles.resultHeading}>
           <div><span className={styles.caption}>{tr("DISCOVER YOUR PLACE","اكتشف مكانك")}</span><h2 id="academy-results-title">{tr("Academies Near You","الأكاديميات المتاحة")} <small>({filtered.length})</small></h2><p>{tr("Explore by sport, location and age.","ابحث حسب الرياضة والمنطقة والسن.")}</p></div>
-          <div className={styles.viewSwitch} role="group" aria-label={tr("View type","طريقة العرض")}><button type="button" aria-pressed={view==="grid"} className={view==="grid"?styles.activeView:""} onClick={()=>setView("grid")}><Grid2X2 size={17}/>{tr("Grid","كروت")}</button><button type="button" aria-pressed={view==="locations"} className={view==="locations"?styles.activeView:""} onClick={()=>setView("locations")}><Map size={17}/>{tr("Locations","الأماكن")}</button></div>
+          <div className={styles.viewSwitch} role="group" aria-label={tr("View type","طريقة العرض")}><button type="button" aria-pressed={view==="grid"} className={view==="grid"?styles.activeView:""} onClick={()=>setView("grid")}><Grid2X2 size={17}/>{tr("Grid","كروت")}</button><button type="button" aria-pressed={view==="locations"} className={view==="locations"?styles.activeView:""} onClick={()=>setView("locations")}><MapIcon size={17}/>{tr("Locations","الأماكن")}</button></div>
         </div>
         <div className={styles.sortRow}><span>{tr("Showing","عرض")} {filtered.length} {tr("academies","أكاديميات")}</span><label>{tr("Sort:","ترتيب:")} <select value={sort} onChange={e=>setSort(e.target.value as "name"|"programs")}><option value="name">{tr("Name","الاسم")}</option><option value="programs">{tr("Most programs","الأكثر برامج")}</option></select></label></div>
         {!filtered.length?<div className={styles.empty}><Search size={32}/><h3>{tr("No academies match your search","مفيش أكاديميات مطابقة للبحث")}</h3><button type="button" onClick={reset}>{tr("Reset search","امسح الفلاتر")}</button></div> : view==="grid" ?
