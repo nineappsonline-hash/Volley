@@ -759,3 +759,26 @@ body:has(.playza-member-dashboard){
 .playza-member-dashboard :is(button,a):focus-visible{
   outline-color:hsl(var(--playza-lime));
 }
+
+
+/* Academy discovery: the reference has a dark header even if member prefers light mode. */
+body:has([data-academy-directory]) > div header.pwa-pad-top,
+body:has([data-academy-directory]) header.pwa-pad-top{
+  background-color:#180e23 !important;
+  border-bottom-color:#58316d !important;
+  color:#fdf8ff !important;
+}
+body:has([data-academy-directory]) header.pwa-pad-top nav a{
+  color:#fdf8ff !important;
+}
+body:has([data-academy-directory]) header.pwa-pad-top nav a:hover{
+  background-color:#43205b !important;
+  color:#fff !important;
+}
+body:has([data-academy-directory]) header.pwa-pad-top nav a[aria-current="page"]{
+  background-color:#582482 !important;
+  color:#fff !important;
+}
+body:has([data-academy-directory]) header.pwa-pad-top button:not(.bg-primary){
+  color:#fdf8ff;
+}
