@@ -95,6 +95,7 @@ export function AcademiesPremiumDirectory({ teams }: { teams: PublicTeamDirector
   const visible = showAll ? filtered : filtered.slice(0, 6);
   const matchingTeams = (a: Academy) => a.teams.filter(t => (sport === "all" || t.sport?.name === sport) && (area === "all" || academyLocation(t) === area || t.venue?.governorate === area || t.academy.governorate === area) && (level === "all" || t.skill_level === level) && (gender === "all" || t.gender === gender) && (!age.trim() || !Number.isFinite(Number(age)) || ((t.min_age === null || Number(age) >= t.min_age) && (t.max_age === null || Number(age) <= t.max_age))));
   const programs = filtered.flatMap(a => matchingTeams(a).map(t => ({ team:t,academy:a }))).slice(0,6);
+  const locations = filtered.flatMap<{academy:Academy;venue:Academy["venues"][number]|null}>(a => a.venues.length ? a.venues.map(venue => ({academy:a,venue})) : [{academy:a,venue:null}]);
   const label = (key: string) => `${key} academy photo`;
   const reset = () => { setSport("all");setArea("all");setAge("");setLevel("all");setGender("all");setQuery("");setShowAll(false); };
   const ageSummary = (teamList: PublicTeamDirectoryEntry[]) => {
@@ -169,7 +170,7 @@ export function AcademiesPremiumDirectory({ teams }: { teams: PublicTeamDirector
               </div>
             </article>;
           })}</div>:
-          <div className={styles.locationsGrid}>{filtered.flatMap(a=>a.venues.length?a.venues.map(v=>({academy:a,venue:v})):[{academy:a,venue:null}]).map(({academy:a,venue:v},i)=><article className={styles.locationCard} key={`${a.id}-${v?.id??i}`}><MapPin size={22}/><div><h3>{v?.name||a.name}</h3><p>{[v?.area||a.areas[0],v?.governorate,v?.address].filter(Boolean).join(" · ")}</p><small>{a.name}</small></div><div className={styles.locationActions}>{v?.location_link&&/^https:\/\//i.test(v.location_link)&&<a href={v.location_link} target="_blank" rel="noopener noreferrer"><Navigation size={15}/>{tr("Directions","الاتجاهات")}</a>}<Link href={`/a/${encodeURIComponent(a.slug)}`}>{tr("Academy","الأكاديمية")} <ArrowUpRight size={15}/></Link></div></article>)}</div>}
+          <div className={styles.locationsGrid}>{locations.map(({academy:a,venue:v},i)=><article className={styles.locationCard} key={`${a.id}-${v?.id??i}`}><MapPin size={22}/><div><h3>{v?.name||a.name}</h3><p>{[v?.area||a.areas[0],v?.governorate,v?.address].filter(Boolean).join(" · ")}</p><small>{a.name}</small></div><div className={styles.locationActions}>{v?.location_link&&/^https:\/\//i.test(v.location_link)&&<a href={v.location_link} target="_blank" rel="noopener noreferrer"><Navigation size={15}/>{tr("Directions","الاتجاهات")}</a>}<Link href={`/a/${encodeURIComponent(a.slug)}`}>{tr("Academy","الأكاديمية")} <ArrowUpRight size={15}/></Link></div></article>)}</div>}
         {view==="grid"&&filtered.length>6&&<button className={styles.more} type="button" onClick={()=>setShowAll(v=>!v)}>{showAll?tr("Show less","عرض أقل"):tr("View all academies","عرض كل الأكاديميات")} <ArrowRight size={18}/></button>}
       </section>
       {programs.length>0&&<section className={styles.programs} id="training-programs">
