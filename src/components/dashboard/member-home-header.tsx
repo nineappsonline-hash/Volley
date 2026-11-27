@@ -12,10 +12,10 @@ import type { Profile } from "@/lib/types";
 import styles from "./member-home.module.css";
 
 const categories = [
-  { href: "/academies", en: "Academies & training", ar: "أكاديميات وتدريب", photo: "0% 100%", wide: true },
-  { href: "/dashboard/tournaments", en: "Tournaments", ar: "بطولات", photo: "100% 0%" },
-  { href: "/academy-bookings", en: "My training bookings", ar: "حجوزات تدريبي", photo: "100% 100%" },
-  { href: "/profile#evaluations", en: "My progress", ar: "تطوري وتقييمي", photo: "0% 0%" },
+  { href: "/academies", en: "Academies & training", ar: "أكاديميات وتدريب", descriptionEn: "Discover academies and improve your skills", descriptionAr: "اكتشف الأكاديميات وطوّر مهاراتك", image: "academies", photo: "0% 100%", wide: true, icon: GraduationCap },
+  { href: "/dashboard/tournaments", en: "Tournaments", ar: "البطولات", descriptionEn: "Join and compete in tournaments", descriptionAr: "شارك في البطولات ونافس غيرك", image: "tournaments", photo: "100% 0%", icon: Trophy },
+  { href: "/academy-bookings", en: "My training bookings", ar: "حجوزات تدريبي", descriptionEn: "Manage your training reservations", descriptionAr: "تابع ونظّم حجوزات تدريبك", image: "training-bookings", photo: "100% 100%", icon: CalendarDays },
+  { href: "/profile#evaluations", en: "My progress", ar: "تطوري وتقييمي", descriptionEn: "Track your performance and growth", descriptionAr: "تابع مستواك وتطور أدائك", image: "progress", photo: "0% 0%", icon: TrendingUp },
 ];
 const guestCategories = [
   { href: "/games", en: "Games", ar: "الماتشات", photo: "0% 0%", wide: true },
@@ -54,9 +54,31 @@ export function MemberHomeHeader({ guest = false, profile, onSearchChange, name,
     <div className={styles.sportsHeader}><h2>{ar ? "اختار رياضتك" : "Choose Your Sport"}</h2><button type="button" aria-pressed={selectedSport === "all"} aria-controls="member-live-games" onClick={() => onSportChange?.("all")}>{ar ? "كل الرياضات" : "All Sports"}<span aria-hidden="true"> →</span></button></div>
     <nav className={styles.sports} aria-label={ar ? "الرياضات" : "Browse by sport"}><button type="button" className={styles.allSports} aria-pressed={selectedSport === "all"} aria-controls="member-live-games" onClick={() => onSportChange?.("all")}><LayoutGrid size={24} /><span>{ar ? "كل الرياضات" : "All Sports"}</span></button>{sports.map(sport => <button type="button" key={sport.slug} aria-pressed={selectedSport === sport.name} aria-controls="member-live-games" onClick={() => onSportChange?.(sport.name)}><span className={styles.sportIcon}>{SportIcon({ id: sport.slug, size: 32 })}</span><span>{ar ? sport.ar : sport.name}</span></button>)}</nav>
     {children}
-    <h2 className={styles.discoverTitle}>{ar ? "اكتشف على بلايزا" : "Explore Playza"}</h2>
-    <nav className={styles.categories} aria-label={ar ? "اختار نشاطك" : "Explore activities"}>
-      {(guest ? guestCategories : categories).map(category => <Link key={category.href} href={category.href} className={`${styles.category} ${category.wide ? styles.wide : ""}`}><span className={styles.categoryIcon}>{category.href === "/academies" ? <GraduationCap /> : category.href.includes("tournaments") ? <Trophy /> : category.href.includes("profile") ? <TrendingUp /> : category.href.includes("courts") ? <MapPin /> : <CalendarDays />}</span><span aria-hidden="true" className={styles.categoryPhoto} style={{ backgroundPosition: category.photo }} /><span className={styles.shade} aria-hidden="true" /><strong>{ar ? category.ar : category.en}</strong><ArrowUpRight className={styles.tileArrow} size={18} aria-hidden="true" /></Link>)}
-    </nav>
+    {guest ? <>
+      <h2 className={styles.discoverTitle}>{ar ? "اكتشف على بلايزا" : "Explore Playza"}</h2>
+      <nav className={styles.categories} aria-label={ar ? "اختار نشاطك" : "Explore activities"}>
+        {guestCategories.map(category => <Link key={category.href} href={category.href} className={`${styles.category} ${category.wide ? styles.wide : ""}`}><span className={styles.categoryIcon}>{category.href === "/academies" ? <GraduationCap /> : category.href.includes("tournaments") ? <Trophy /> : category.href.includes("courts") ? <MapPin /> : <CalendarDays />}</span><span aria-hidden="true" className={styles.categoryPhoto} style={{ backgroundPosition: category.photo }} /><span className={styles.shade} aria-hidden="true" /><strong>{ar ? category.ar : category.en}</strong><ArrowUpRight className={styles.tileArrow} size={18} aria-hidden="true" /></Link>)}
+      </nav>
+    </> : <section className={styles.premiumExplore} aria-labelledby="explore-playza-heading">
+      <header className={styles.premiumExploreHeader}>
+        <h2 id="explore-playza-heading">{ar ? <>اكتشف <em>بلايزا</em></> : <>Explore <em>Playza</em></>}</h2>
+        <p>{ar ? "طرق أكتر للعب والتدريب والمنافسة" : "More ways to play, train and compete"}</p>
+      </header>
+      <nav className={styles.premiumCategories} aria-label={ar ? "اكتشف المزيد على بلايزا" : "Explore Playza"}>
+        {categories.map(category => {
+          const Icon = category.icon;
+          return <Link key={category.href} href={category.href} className={styles.premiumCategory} aria-label={ar ? category.ar : category.en}>
+            <span aria-hidden="true" className={styles.premiumCategoryPhoto} style={{ backgroundImage: `url("/images/explore/${category.image}.webp")` }} />
+            <span aria-hidden="true" className={styles.premiumCategoryShade} />
+            <span className={styles.premiumCategoryContent}>
+              <span className={styles.premiumCategoryIcon}><Icon size={30} strokeWidth={2.4} aria-hidden="true" /></span>
+              <strong>{ar ? category.ar : category.en}</strong>
+              <span className={styles.premiumCategoryDescription}>{ar ? category.descriptionAr : category.descriptionEn}</span>
+            </span>
+            <span aria-hidden="true" className={styles.premiumCategoryArrow}><ArrowUpRight size={23} /></span>
+          </Link>;
+        })}
+      </nav>
+    </section>}
   </div>;
 }
