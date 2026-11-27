@@ -26,7 +26,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await getSession();
-  if (!session) return <div className="min-h-screen bg-background pb-[calc(6rem+env(safe-area-inset-bottom))]">
+  if (!session) return <div className="min-h-screen bg-background pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-0">
     <Topbar role="member" name="" username="" guest />
     <main className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-8">{children}</main>
     <MemberBottomNavigation guest />
@@ -47,7 +47,7 @@ export default async function DashboardLayout({
       {profile.role !== "member" && <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 border-e bg-brand lg:block">
         <Sidebar role={profile.role} name={profile.name} memberPlan={profile.member_plan} isCoach={isCoach} hasAcademyWorkspace={hasAcademyWorkspace} />
       </aside>}
-      <div className={profile.role === "member" ? "pb-[calc(6rem+env(safe-area-inset-bottom))]" : "lg:ps-64"}>
+      <div className={profile.role === "member" ? "pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-0" : "lg:ps-64"}>
         <Topbar
           role={profile.role}
           name={profile.name}
