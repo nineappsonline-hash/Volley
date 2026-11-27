@@ -1,6 +1,7 @@
 import { AnalyticsView } from "@/components/analytics/business-analytics";
 import { LocationMap } from "@/components/shared/location-map";
 import { AcademyLogo } from "@/components/academies/academy-logo";
+import { AcademyHeroPhoto } from "@/components/academies/academy-hero-photo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -176,7 +177,7 @@ export default async function PublicAcademyPage({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@graph": jsonLd }) }} />
 
       <section className={styles.hero} aria-labelledby="academy-name">
-        <div className={styles.heroPhoto} style={{ backgroundImage: `url("${heroImage.replace(/["\\]/g,"")}")` }} aria-hidden="true" />
+        <AcademyHeroPhoto className={styles.heroPhoto} src={heroImage} alt={academy.name} />
         <div className={styles.heroShade} />
         <div className={styles.heroInner}>
           <div className={styles.identity}>
