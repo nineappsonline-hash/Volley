@@ -48,3 +48,7 @@
 @media(max-width:1000px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.navigation{gap:13px;font-size:12px}.heroArt{width:140px;height:135px}.heroArt svg{width:70px;height:70px}}
 @media(max-width:650px){.headerInner{padding:0 16px}.header{height:67px}.navigation{display:none}.logo{font-size:25px}.book{font-size:12px;padding:9px 13px}.shell{padding:0 16px}.hero{margin-top:17px;padding:26px 22px;min-height:185px;border-radius:18px}.title{font-size:clamp(27px,7.6vw,38px)}.subtitle{font-size:13px}.heroArt{width:64px;height:64px;position:absolute;inset-inline-end:17px;top:15px;opacity:.22;pointer-events:none}.heroArt svg{width:44px;height:44px}.toolbar{margin-top:27px}.toolbarTop{align-items:stretch;flex-direction:column;gap:12px}.sectionTitle{font-size:21px}.search{width:100%}.grid{grid-template-columns:1fr;gap:12px}.card{min-height:211px;padding:17px 18px}.cardTop{margin-bottom:18px}.card h2{font-size:17px}.chip{font-size:12px;padding:8px 13px}.cardBottom{padding-top:13px}}
 @media(prefers-reduced-motion:reduce){.card{transition:none}.card:hover{transform:none}}
+
+/* Match-specific premium visual grid */
+.gameGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+@media(max-width:900px){.gameGrid{grid-template-columns:1fr;gap:14px}}
