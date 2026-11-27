@@ -99,6 +99,13 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
           {upcomingGames.map(game => <GameCardShell key={game.id} layout="list" deferPhotoLoading game={guestGameCard(game)} joined={false} detailsHref={publicGamePath(game.id)} />)}
         </div> : <p className={styles.gamesEmpty}>{copy("Check the games page for the latest availability. You can also create an account and organize a game with your friends.", "شوف المواعيد المتاحة في صفحة الماتشات، أو اعمل حساب ونظّم ماتش مع صحابك.")}</p>}
         <div className={styles.actions}><Link href="/games" className={styles.primary}>{copy("Browse all upcoming games", "شوف كل الماتشات الجاية")}<ArrowUpRight size={20} aria-hidden="true" /></Link></div>
+        <nav aria-label={copy("Games by location", "ماتشات حسب المنطقة")} className="mx-auto mt-5 max-w-3xl rounded-2xl border border-border bg-card px-5 py-4 text-center">
+          <p className="text-sm font-semibold text-foreground">{copy("Looking for people to play with in New Cairo?", "بتدور على ناس تلعب معاها في التجمع؟")}</p>
+          <NextLink href={lang === "ar" ? "/ar/play/new-cairo" : "/play/new-cairo"} className="mt-2 inline-flex min-h-10 items-center justify-center gap-2 font-bold text-primary underline underline-offset-4">
+            {copy("See New Cairo & Tagamoa games, courts and past matches", "شوف ماتشات التجمع والقاهرة الجديدة والملاعب والألعاب السابقة")}
+            <ArrowUpRight size={18} aria-hidden="true" />
+          </NextLink>
+        </nav>
       </section>
 
 
@@ -109,7 +116,7 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
             <div className={styles.sportTileArt} aria-hidden="true"><SportCardArt sport={item} /></div>
             <h3 id={`${item}-title`}>{names[item]}</h3>
             <p>{item === "archery" ? ARCHERY_DESCRIPTION[lang] : item === "tennis" ? TENNIS_DESCRIPTION[lang] : item === "beach-volleyball" ? BEACH_DESCRIPTION[lang] : item === "padel" ? copy("Find padel courts and games in Egypt. Choose your location, level and time for your next rally.", "اكتشف ملاعب وماتشات البادل في مصر. اختار المكان والمستوى والوقت لماتشك الجاي.") : item === "basketball" ? BASKETBALL_DESCRIPTION[lang] : VOLLEYBALL_DESCRIPTION[lang]}</p>
-            <Link className={styles.textLink} href={`/dashboard?sport=${item}`}>{item === "archery" ? copy("Explore archery", "اكتشف الرماية بالقوس") : copy("Find games", "شوف الماتشات")}<ArrowUpRight size={18} aria-hidden="true" /></Link>
+            <Link className={styles.textLink} href={discoveryPath(lang, item)}>{item === "archery" ? copy("Explore archery", "اكتشف الرماية بالقوس") : copy("Explore this sport", "اكتشف الرياضة") }<ArrowUpRight size={18} aria-hidden="true" /></Link>
           </article>)}
         </div>
       </section>
@@ -179,6 +186,6 @@ export function LandingPage({ upcomingGames = [] }: { upcomingGames?: PublicGame
       <section className={styles.finalCta}><svg className={styles.ctaStar} viewBox="0 0 100 100" aria-hidden="true" focusable="false"><path d="M50 8V92M8 50H92M20 20L80 80M20 80L80 20" fill="none" stroke="currentColor" strokeWidth="12" /></svg><p className={styles.eyebrow}>{copy("LESS PLANNING. MORE PLAYING.", "كلام أقل. لعب أكتر.")}</p><h2>{copy("The court is calling.", "الملعب بيناديك.")}</h2><Link className={styles.primary} href={discoveryPath(lang)}>{copy("Find your next sport", "اكتشف لعبتك الجاية")}<ArrowUpRight size={20} /></Link><p>{copy("Volleyball, basketball, padel, tennis, beach volleyball or archery. Find your people and your next activity.", "كرة طائرة، كرة سلة، بادل، تنس، طائرة شاطئية أو رماية بالقوس. اختار لعبتك واتعرّف على ناس بتحبها.")}</p></section>
     </main>
 
-    <footer className={styles.footer}><div><AppLogo className="w-24" /><p>{copy("A little less online. A lot more on court.", "وقت أقل على الموبايل. ووقت أكتر في الملعب.")}</p></div><nav aria-label={copy("Footer", "روابط إضافية")}><Link href="/shop">{copy("Playza Shop", "متجر بلايزا")}</Link><Link href={discoveryPath(lang, "archery")}>{copy("Archery", "الرماية بالقوس")}</Link><Link href="/games">{copy("Upcoming games", "الماتشات الجاية")}</Link><Link href={discoveryPath(lang, "tennis")}>{copy("Tennis", "التنس")}</Link><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><Link href={listYourCourtPath(lang)}>{copy("List your playground", "أضف ملعبك")}</Link><Link href={academyManagementPath(lang)}>{copy("For academy owners", "لأصحاب الأكاديميات")}</Link><Link href={discoveryPath(lang, "beach-volleyball")}>{copy("Beach volleyball", "الطائرة الشاطئية")}</Link><Link href={lang === "ar" ? "/ar/guides" : "/guides"}>{copy("Playing guides", "إرشادات اللعب")}</Link><Link href="/faq">{copy("FAQs", "أسئلة شائعة")}</Link></nav><span>© {new Date().getFullYear()} Playza</span></footer>
+    <footer className={styles.footer}><div><AppLogo className="w-24" /><p>{copy("A little less online. A lot more on court.", "وقت أقل على الموبايل. ووقت أكتر في الملعب.")}</p></div><nav aria-label={copy("Footer", "روابط إضافية")}><Link href="/shop">{copy("Playza Shop", "متجر بلايزا")}</Link><Link href={discoveryPath(lang, "archery")}>{copy("Archery", "الرماية بالقوس")}</Link><Link href="/games">{copy("Upcoming games", "الماتشات الجاية")}</Link><Link href={lang === "ar" ? "/ar/play/new-cairo" : "/play/new-cairo"}>{copy("Games in New Cairo", "ماتشات التجمع")}</Link><Link href={discoveryPath(lang, "tennis")}>{copy("Tennis", "التنس")}</Link><Link href="/academies">{copy("Academies", "الأكاديميات")}</Link><Link href={listYourCourtPath(lang)}>{copy("List your playground", "أضف ملعبك")}</Link><Link href={academyManagementPath(lang)}>{copy("For academy owners", "لأصحاب الأكاديميات")}</Link><Link href={discoveryPath(lang, "beach-volleyball")}>{copy("Beach volleyball", "الطائرة الشاطئية")}</Link><Link href={lang === "ar" ? "/ar/guides" : "/guides"}>{copy("Playing guides", "إرشادات اللعب")}</Link><Link href="/faq">{copy("FAQs", "أسئلة شائعة")}</Link></nav><span>© {new Date().getFullYear()} Playza</span></footer>
   </div>;
 }
