@@ -17,7 +17,7 @@ export function GuestGameList({ games }: { games: FriendlyGameWithDetails[] }) {
   return <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4`}>{games.map(game => {
     const next = new URLSearchParams(params.toString()); next.set("focus", game.id);
     const returnTo = `${pathname}?${next}#game-${game.id}`;
-    return <div key={game.id} id={`game-${game.id}`} className="scroll-mt-20"><GameCardShell layout="cinematic" game={game} joined={false} initialExpanded={params.get("focus") === game.id}>
+    return <div key={game.id} id={`game-${game.id}`} className="scroll-mt-20"><GameCardShell layout="cinematic" joinHref={authLink("/login", returnTo)} game={game} joined={false} initialExpanded={params.get("focus") === game.id}>
       <section className={detailsStyles.panel} aria-label={ar ? "تفاصيل الماتش" : "Game details"}>
         <SignedInGameParticipantNames gameId={game.id} publicCount={game.participants_count} defaultOpen />
         <div className={detailsStyles.buttons}>
