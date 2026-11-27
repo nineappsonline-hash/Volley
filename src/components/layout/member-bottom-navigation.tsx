@@ -9,6 +9,13 @@ import { cn } from "@/lib/utils";
 
 // Home comes first so the dashboard is always one tap away; it was previously
 // only reachable by opening the drawer.
+const guestDestinations = [
+  { href: "/", icon: Home, en: "Discover", ar: "اكتشف", exact: true },
+  { href: "/games", icon: CalendarDays, en: "Games", ar: "الماتشات" },
+  { href: "/courts", icon: GraduationCap, en: "Courts", ar: "الملاعب" },
+  { href: "/academies", icon: UserRound, en: "Academies", ar: "الأكاديميات" },
+] as const;
+
 const destinations = [
   { href: "/dashboard", icon: Home, en: "Discover", ar: "اكتشف", exact: true },
   { href: "/dashboard/my-games", icon: CalendarDays, en: "My Games", ar: "ماتشاتي" },
@@ -27,7 +34,7 @@ export function MemberBottomNavigation({ guest = false }: { guest?: boolean }) {
       className="fixed inset-x-3 bottom-3 z-40 rounded-[28px] border bg-card/95 pb-[env(safe-area-inset-bottom)] shadow-[0_8px_35px_hsl(var(--playza-purple-dark)/0.1255)] backdrop-blur-lg lg:hidden sm:inset-x-auto sm:start-1/2 sm:w-[min(560px,calc(100%_-_24px))] sm:-translate-x-1/2 sm:rtl:translate-x-1/2"
     >
       <div className="mx-auto grid max-w-xl grid-cols-4 gap-1 px-2 py-2">
-        {destinations.map(({ href, en, ar, icon: Icon, ...rest }) => {
+        {(guest ? guestDestinations : destinations).map(({ href, en, ar, icon: Icon, ...rest }) => {
           // `/dashboard` is a prefix of every other dashboard route, so it must
           // match exactly or it would stay highlighted while browsing games.
           const active = "exact" in rest && rest.exact
@@ -36,7 +43,7 @@ export function MemberBottomNavigation({ guest = false }: { guest?: boolean }) {
           return (
             <Link
               key={href}
-              href={guest && href === "/academies" ? "/dashboard/academies" : href}
+              href={href}
               aria-current={active ? "page" : undefined}
               className={cn(
                 "flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-[22px] px-1 py-2 text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-xs",
