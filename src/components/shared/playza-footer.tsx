@@ -26,10 +26,10 @@ const sections = [
   },
 ] as const;
 
-export function PlayzaFooter() {
+export function PlayzaFooter({ fullBleed = false }: { fullBleed?: boolean } = {}) {
   const { lang, dir } = useI18n();
   const ar = lang === "ar";
-  return <footer dir={dir} className="mt-12 border-t border-[#64417f]/50 bg-[#10091b] text-[#f8f2ff]">
+  return <footer dir={dir} className={`${fullBleed ? "relative left-1/2 w-screen -translate-x-1/2" : "mt-12"} border-t border-[#64417f]/50 bg-[#10091b] text-[#f8f2ff]`}>
     <div className="mx-auto grid w-full max-w-[1600px] gap-8 px-5 pb-8 pt-9 sm:grid-cols-[1.6fr_1fr_1fr] sm:px-8 sm:pt-12">
       <div className="max-w-sm">
         <Link href="/" aria-label="Playza" className="inline-flex rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#ccff00]">
