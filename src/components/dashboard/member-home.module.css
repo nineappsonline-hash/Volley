@@ -811,3 +811,44 @@
    background-position:72% 25%!important;
  }
 }
+
+
+/* User-uploaded approved WebP is the only desktop Discover hero image.
+   Its English headline is baked into the artwork, so prevent duplicate HTML
+   copy on desktop while keeping the actual search and action buttons live. */
+@media (min-width:1024px) {
+  :global(.playza-member-dashboard) .desktopHero {
+    height:240px!important;
+    min-height:240px!important;
+    max-height:240px!important;
+    padding:25px 36px 16px!important;
+    background-color:#230b40!important;
+    background-image:url('/images/playza_sports_banner.webp')!important;
+    background-position:center!important;
+    background-size:100% 100%!important;
+    background-repeat:no-repeat!important;
+  }
+  :global(.playza-member-dashboard) .desktopHero .heroCopy {
+    opacity:0;
+    pointer-events:none;
+    background:none!important;
+    box-shadow:none!important;
+  }
+  :global(.playza-member-dashboard) .desktopHero .heroSearch {
+    position:relative;
+    z-index:2;
+    margin-inline-start:12%;
+    width:auto;
+  }
+}
+@media (max-width:1023px) {
+  :global(.playza-member-dashboard) .desktopHero {
+    background-color:#230b40!important;
+    background-image:linear-gradient(90deg,rgba(27,7,49,.95) 0%,rgba(27,7,49,.84) 40%,rgba(27,7,49,.28) 100%),url('/images/playza_sports_banner.webp')!important;
+    background-size:cover!important;
+    background-position:70% center!important;
+  }
+  :global(.playza-member-dashboard) .desktopHero .heroCopy {
+    opacity:1;
+  }
+}
