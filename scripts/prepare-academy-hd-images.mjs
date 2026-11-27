@@ -18,9 +18,6 @@ const tasks = assets.flatMap(([sport, photo]) => [
   { file: `${sport}-card.webp`, photo, width: 1400 },
   { file: `${sport}-filter.webp`, photo, width: 1100 },
 ]);
-// Full-size photography for Your Next Game card. No 5KB AVIF compression.
-tasks.push({ file: "next-game-volleyball-hd.webp", photo: "6203633", width: 2800 });
-
 // Wide, high-resolution, text-free editorial photographs for Sparkle's live training groups.
 // The previous mockup JPEGs were small and had captions baked into the pixels.
 tasks.push(
