@@ -271,3 +271,33 @@
 @keyframes shopPhotoFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-8px) rotate(1deg)}}
 @media(max-width:800px){.shopArt{min-height:0;padding-top:0}.shopShirt{max-width:330px}.shopColorPicker{padding:12px 16px}}
 @media(prefers-reduced-motion:reduce){.shopShirt{animation:none!important}}
+
+/* 2026 Playza compact hero: the approved text is baked into the image.
+   Display the complete wide artwork rather than cropping its Arabic lettering. */
+.bannerHero{position:relative;max-width:1400px;width:calc(100% - 48px);margin:18px auto 20px;overflow:hidden;border-radius:24px;background:#24103c;border:1px solid #66358c;box-shadow:0 16px 50px #16071d45;isolation:isolate}
+.bannerImage{display:block;width:100%;height:auto;aspect-ratio:2060/763;object-fit:contain}
+.bannerHitTarget{position:absolute;inset-inline-end:4%;top:69%;height:17%;width:32%;z-index:2;border-radius:999px}
+.bannerHitTarget:focus-visible{outline:4px solid #fff;outline-offset:-5px}
+.bannerMobileCopy{display:none}
+/* Fallback for English and for the period before the banner file is available. */
+.hero{min-height:0;padding-top:34px;padding-bottom:46px;gap:30px}
+.heroArt{max-width:530px;aspect-ratio:1.1}
+.hero h1{font-size:clamp(36px,4.3vw,66px);margin:18px 0 22px}
+.heroCopy .intro{font-size:14px}
+.hero .scrollHint{bottom:12px}
+@media(min-width:1500px){.hero{min-height:0}.bannerHero{max-width:1400px}}
+@media(max-width:900px){.hero{min-height:0;padding-top:25px;padding-bottom:35px}.heroArt{max-width:450px}.hero h1{font-size:clamp(35px,5.7vw,51px)}}
+@media(max-width:700px){
+  .bannerHero{width:calc(100% - 24px);margin:12px auto 18px;border-radius:18px}
+  .bannerImage{width:100%;height:185px;aspect-ratio:auto;object-fit:cover;object-position:left center}
+  .bannerHitTarget{display:none}
+  .bannerMobileCopy{display:flex;flex-direction:column;gap:12px;padding:18px 19px 21px;text-align:right;direction:rtl;background:linear-gradient(180deg,#321350,#1b0b2e)}
+  .bannerMobileCopy h2{font-size:clamp(26px,7vw,37px);font-weight:900;line-height:1.3;color:#fff;margin:0}
+  .bannerMobileCopy h2 span{color:#c8ff00}
+  .bannerMobileCopy p{font-size:11px;color:#efe5ff;margin:0;line-height:1.6}
+  .bannerMobileButton{display:flex;align-items:center;justify-content:center;gap:12px;background:#c8ff00;color:#1b092b!important;border-radius:999px;padding:13px 18px;font-size:13px;font-weight:900;text-decoration:none}
+  .hero{padding-top:22px;padding-bottom:26px;gap:8px}
+  .heroArt{max-width:300px;margin:0 auto}
+  .hero h1,.page[dir=rtl] .hero h1{font-size:clamp(33px,9vw,44px)}
+}
+@media(prefers-reduced-motion:reduce){.bannerHero,.bannerImage{animation:none!important}}
