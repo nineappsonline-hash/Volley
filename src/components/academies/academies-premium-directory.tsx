@@ -62,7 +62,7 @@ export function AcademiesPremiumDirectory({teams, embedded=false}:{teams:PublicT
  const selectedOptions=["Volleyball","Basketball","Tennis"].filter(s=>sports.includes(s));
  const age=(a:typeof academies[number])=>a.minAge!=null&&a.maxAge!=null?`${a.minAge}–${a.maxAge}`:a.minAge!=null?`${a.minAge}+`:a.maxAge!=null?`${ar?"حتى ":"Up to "}${a.maxAge}`:ar?"كل الأعمار":"All ages";
 
- return <main className={styles.page} dir={ar?"rtl":"ltr"} lang={lang}>
+ return <main className={styles.page} data-academy-directory="" dir={ar?"rtl":"ltr"} lang={lang}>
    <div className={styles.wrap}>
      <section className={styles.hero}>
        <div className={styles.heroText}>
