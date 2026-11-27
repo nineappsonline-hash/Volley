@@ -382,3 +382,24 @@
 .cinematicTitleToggle{display:block;min-width:0;max-width:100%;width:100%;border:0;padding:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
 .cinematicTitleToggle:hover .cinematicTitle{text-decoration:underline;text-decoration-color:#bb84eb;text-decoration-thickness:1px;text-underline-offset:4px}
 .cinematicTitleToggle:focus-visible{outline:2px solid #d3ff00;outline-offset:3px;border-radius:4px}
+
+
+/* Compact price badge in cinematic game cards: preserve price typography,
+   reduce vertical padding and tighten the "per player" caption. */
+.cinematicPrice {
+  min-height:0;
+  padding-block:5px;
+  justify-content:center;
+  gap:2px;
+}
+.cinematicPrice strong {
+  line-height:1.08;
+}
+.cinematicPrice small {
+  display:block;
+  line-height:1.1;
+  margin:0;
+}
+@media (min-width:1200px) {
+  .cinematicPrice { min-height:0; padding-block:5px; }
+}
