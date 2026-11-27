@@ -7,27 +7,28 @@ import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { QueryState } from "@/components/shared/query-state";
 import { cn } from "@/lib/utils";
+import premiumStyles from "./game-participant-names.module.css";
 
 type Player = { member_id?: string | null; sponsor_participant_id?: string | null; id: string; player_name: string; is_waitlisted: boolean };
 
-export function GameParticipantNames({ participants, defaultOpen = false }: { participants: Player[]; defaultOpen?: boolean }) {
+export function GameParticipantNames({ participants, defaultOpen = false, premium = false }: { participants: Player[]; defaultOpen?: boolean; premium?: boolean }) {
   const { lang } = useI18n();
   const ar = lang === "ar";
   const [open, setOpen] = useState(defaultOpen);
   const heading = ar ? "المشاركون" : "Participants";
   const count = participants.length;
   return (
-    <section className="rounded-lg border bg-muted/20">
+    <section className={premium ? premiumStyles.roster : "rounded-lg border bg-muted/20"}>
       <button
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-start"
+        className={premium ? premiumStyles.header : "flex w-full items-center justify-between gap-3 px-3 py-2.5 text-start"}
       >
-        <span className="flex items-center gap-1.5 text-sm font-semibold">
-          <Users className="h-4 w-4 text-primary" />
+        <span className={premium ? premiumStyles.headerTitle : "flex items-center gap-1.5 text-sm font-semibold"}>
+          <Users className={premium ? premiumStyles.headerIcon : "h-4 w-4 text-primary"} />
           {heading}
-          <span className="text-xs font-normal text-muted-foreground">
+          <span className={premium ? premiumStyles.count : "text-xs font-normal text-muted-foreground"}>
             ({count})
           </span>
         </span>
@@ -39,16 +40,17 @@ export function GameParticipantNames({ participants, defaultOpen = false }: { pa
         />
       </button>
       {open && (
-        <div className="border-t p-3">
+        <div className={premium ? premiumStyles.content : "border-t p-3"}>
           {count === 0 ? (
             <p className="text-xs text-muted-foreground">{ar ? "لسه مفيش مشاركون" : "No participants yet"}</p>
           ) : (
-            <ul className="flex flex-wrap gap-2">
+            <ul className={premium ? premiumStyles.playerGrid : "flex flex-wrap gap-2"}>
               {[...participants].sort((a, b) => a.player_name.localeCompare(b.player_name, lang)).map((player) => (
-                <li key={player.id} className="rounded-md bg-background px-2 py-1 text-sm">
-                  {player.player_name}{(player.member_id === null || player.sponsor_participant_id) && <span className="ms-1 text-xs text-muted-foreground">({ar ? "ضيف" : "Guest"})</span>}
+                <li key={player.id} className={premium ? premiumStyles.player : "rounded-md bg-background px-2 py-1 text-sm"}>
+                  {premium && <span aria-hidden="true" className={premiumStyles.avatar}>{(player.player_name.trim().charAt(0) || "?").toLocaleUpperCase(lang)}</span>}
+                  <span className={premium ? premiumStyles.playerName : ""} dir="auto">{player.player_name}</span>{(player.member_id === null || player.sponsor_participant_id) && <span className={premium ? premiumStyles.guest : "ms-1 text-xs text-muted-foreground"}>{premium ? (ar ? "ضيف" : "Guest") : `(${ar ? "ضيف" : "Guest"})`}</span>}
                   {player.is_waitlisted && (
-                    <span className="ms-1 text-xs text-muted-foreground">
+                    <span className={premium ? premiumStyles.guest : "ms-1 text-xs text-muted-foreground"}>
                       ({ar ? "قائمة الانتظار" : "Waitlisted"})
                     </span>
                   )}
@@ -63,7 +65,7 @@ export function GameParticipantNames({ participants, defaultOpen = false }: { pa
 }
 
 /** Public pages fetch names only after checking the visitor's session. */
-export function SignedInGameParticipantNames({ gameId, publicCount, defaultOpen = false }: { gameId: string; publicCount?: number; defaultOpen?: boolean }) {
+export function SignedInGameParticipantNames({ gameId, publicCount, defaultOpen = false, premium = false }: { gameId: string; publicCount?: number; defaultOpen?: boolean; premium?: boolean }) {
   const { lang } = useI18n();
   const [memberId, setMemberId] = useState("");
   useEffect(() => {
@@ -81,5 +83,5 @@ export function SignedInGameParticipantNames({ gameId, publicCount, defaultOpen 
   }, []);
   const query = useUpcomingGameParticipants(gameId, memberId);
   if (!memberId) return publicCount == null ? null : <p className="flex items-center gap-2 rounded-lg border px-3 py-3 text-sm font-semibold"><Users className="h-4 w-4 text-primary" aria-hidden="true" />{lang === "ar" ? "المشاركين" : "Participants"} ({publicCount})</p>;
-  return <QueryState queries={[query]}><GameParticipantNames participants={query.data ?? []} defaultOpen={defaultOpen} /></QueryState>;
+  return <QueryState queries={[query]}><GameParticipantNames participants={query.data ?? []} defaultOpen={defaultOpen} premium={premium} /></QueryState>;
 }
