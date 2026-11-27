@@ -3421,6 +3421,24 @@ export function useMyUpcomingGames(memberId: string) {
         .gte("game.game_date", new Date().toISOString().slice(0, 10))
         .in("game.status", ["open", "full"]);
       if (error) throw error;
+      const gameIds = (data ?? []).map(row => {
+        const g = Array.isArray(row.game) ? row.game[0] : row.game;
+        return g?.id as string | undefined;
+      }).filter((id): id is string => !!id);
+      const counts = new Map<string, number>();
+      if (gameIds.length) {
+        const { data: approved, error: participantsError } = await supabase()
+          .from("friendly_game_participants")
+          .select("game_id")
+          .in("game_id", gameIds)
+          .eq("pay_status", "approved")
+          .eq("is_waitlisted", false);
+        if (!participantsError) {
+          for (const participant of approved ?? []) {
+            counts.set(participant.game_id, (counts.get(participant.game_id) ?? 0) + 1);
+          }
+        }
+      }
       return (data ?? []).map((row) => {
         const g = (Array.isArray(row.game) ? row.game[0] : row.game) as any;
         const playground = Array.isArray(g?.playground) ? g.playground[0] ?? null : (g?.playground ?? null);
@@ -3428,10 +3446,11 @@ export function useMyUpcomingGames(memberId: string) {
           ...row,
           game: {
             ...g,
+            participants_count: counts.get(g.id) ?? null,
             playground,
           } as {
             id: string; playground_id: string | null; creator_id: string; title: string; sport: string; game_date: string; start_time: string;
-            status: string; invite_code: string | null; area: string | null;
+            status: string; invite_code: string | null; area: string | null; participants_count: number | null;
             location: string | null; duration_hours: number; description: string | null; max_players: number;
             min_players: number; lat: number | null; lng: number | null; is_public: boolean;
             share_price: number | null; host_pays: boolean;
