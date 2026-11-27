@@ -31,6 +31,6 @@ export async function CourtDirectory({ lang, slug }: { lang: DiscoveryLanguage; 
       breadcrumbsJsonLd([{ name: copy("Home", "الرئيسية"), url: SITE_URL }, { name: title, url: `${SITE_URL}${href}` }]),
       { "@type": "ItemList", name: title, numberOfItems: courts.length, itemListElement: courts.map((c,i) => ({ "@type": "ListItem", position:i+1, name:c.name, url:`${SITE_URL}/p/${encodeURIComponent(c.id)}` })) }
     ] }) }} />
-    <DirectoryExperience kind="courts" courts={courts} selectedSport={selected?.name} availableSports={sports} />
+    <DirectoryExperience kind="courts" courts={courts} selectedSport={selected?.name} availableSports={sports} langOverride={ar ? "ar" : undefined} />
   </>;
 }
