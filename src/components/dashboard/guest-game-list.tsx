@@ -19,7 +19,7 @@ export function GuestGameList({ games }: { games: FriendlyGameWithDetails[] }) {
     const returnTo = `${pathname}?${next}#game-${game.id}`;
     return <div key={game.id} id={`game-${game.id}`} className="scroll-mt-20"><GameCardShell layout="cinematic" joinHref={authLink("/login", returnTo)} game={game} joined={false} initialExpanded={params.get("focus") === game.id}>
       <section className={detailsStyles.panel} aria-label={ar ? "تفاصيل الماتش" : "Game details"}>
-        <SignedInGameParticipantNames gameId={game.id} publicCount={game.participants_count} defaultOpen />
+        <SignedInGameParticipantNames gameId={game.id} publicCount={game.participants_count} premium defaultOpen />
         <div className={detailsStyles.buttons}>
           <Link className={detailsStyles.report} href={authLink("/login", returnTo)}>
             {ar ? "إبلاغ" : "Report"} <span aria-hidden="true">↗</span>
