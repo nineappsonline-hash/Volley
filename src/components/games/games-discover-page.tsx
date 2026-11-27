@@ -25,6 +25,7 @@ export function GamesDiscoverPage({ games, selectedSport, profile }: {
 
   return <div className="playza-member-dashboard mx-auto flex w-full min-w-0 max-w-[1600px] flex-1 flex-col">
     <MemberHomeHeader
+      showExplore={false}
       name={profile?.name}
       profile={profile}
       onSearchChange={setSearch}
