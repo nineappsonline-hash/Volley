@@ -508,3 +508,19 @@
 :global(html.dark) :global(.playza-member-dashboard) .premiumExploreHeader p{
   color:#dacde6;
 }
+
+/* A single continuous photo across the desktop Discover hero.
+   Previously both .desktopHero and its nested .heroCopy painted the same photo,
+   producing the visible double-image seam. Mobile keeps its own heroCopy photo. */
+@media (min-width:1024px) {
+  :global(.playza-member-dashboard) .desktopHero .heroCopy {
+    background-image:none;
+    background-color:transparent;
+    box-shadow:none;
+  }
+  :global(.playza-member-dashboard) .desktopHero {
+    background-size:cover;
+    background-position:center 35%;
+    background-repeat:no-repeat;
+  }
+}
