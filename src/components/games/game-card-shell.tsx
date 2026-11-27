@@ -116,7 +116,7 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
           </div>
         </div>
       </div>
-      {!detailsHref && <div id={detailsId} hidden={!expanded} className={`${styles.details} border-t border-border bg-card text-card-foreground pt-2`}>{children}</div>}
+      {!detailsHref && <div id={detailsId} hidden={!expanded} className={styles.cinematicExpanded}>{children}</div>}
     </article>;
   }
 
