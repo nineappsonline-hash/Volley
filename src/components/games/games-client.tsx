@@ -26,6 +26,7 @@ import {
   Repeat,
   Share2,
   Trophy,
+  Trash2,
   Users,
   UsersRound,
   Wallet,
@@ -86,6 +87,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   useFriendlyGames,
   useLeaveFriendlyGame,
+  useCancelFriendlyGame,
   useMyGameParticipants,
   useSetKickoffReminder,
 } from "@/lib/queries";
@@ -151,17 +153,24 @@ export function GameCard({
   const recruit = useRequestGamePlayers();
   const [recruited, setRecruited] = useState(false);
   const leave = useLeaveFriendlyGame();
+  const cancelGame = useCancelFriendlyGame();
   const reminder = useSetKickoffReminder();
   const [reportOpen, setReportOpen] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
   const [payOpen, setPayOpen] = useState<"join" | "pay" | "rent" | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
+  const [cancelGameConfirmOpen, setCancelGameConfirmOpen] = useState(false);
 
   const isPro = profile.member_plan === "premium";
   const mine = myParticipants.find((p) => p.game_id === game.id);
   const isOrganizer = game.creator_id === profile.id;
   const canEdit = isOrganizer || profile.role === "super_admin";
+  const canCancelGame = canEdit && (profile.role === "super_admin" ||
+    !(game.participants ?? []).some(p =>
+      p.member_id !== profile.id && !p.is_waitlisted &&
+      (p.pay_status === "pending" || p.pay_status === "approved")
+    ));
   const joined = !!mine || isOrganizer;
   const rentRemaining = gameRentRemaining(game);
   const playgroundThumb = venueCardPhoto(game.playground?.photos, game.playground?.cover_url);
@@ -208,6 +217,17 @@ export function GameCard({
     setPayOpen("join");
   };
 
+  const handleCancelGame = async () => {
+    setCancelGameConfirmOpen(false);
+    if (!canCancelGame || !["open", "full"].includes(game.status)) return;
+    try {
+      await cancelGame.mutateAsync(game.id);
+      toast.success(t("community_game_cancelled"));
+    } catch (err) {
+      toast.error(errorMessage(err, t("common_error")));
+    }
+  };
+
   const handleLeave = async () => {
     setLeaveConfirmOpen(false);
     try {
@@ -231,6 +251,31 @@ export function GameCard({
 
   return (
     <GameCardShell initialExpanded={focus === game.id} layout={cinematic ? "cinematic" : "list"} game={game} joined={joined} paymentPending={!!mine && mine.pay_status !== "approved"} waitlisted={mine?.is_waitlisted} hideActionsWhenExpanded>
+      {cinematic ? (
+        <section className="flex flex-col gap-3 bg-[#1e112c] p-3 text-white" aria-label={lang === "ar" ? "تفاصيل الماتش" : "Game details"} dir="ltr">
+          <GameParticipantNames
+            participants={(game.participants ?? []).filter(p => !p.is_waitlisted && p.pay_status === "approved")}
+            defaultOpen
+          />
+          <div className="grid grid-cols-3 gap-2">
+            {canEdit && <Button type="button" variant="outline" size="sm" onClick={() => setEditOpen(true)}
+              className="h-10 gap-1 rounded-lg border-[#8f6aaa] bg-[#301a47] px-2 text-xs font-bold text-white hover:bg-[#492866] hover:text-white">
+              <Pencil className="h-4 w-4" />{lang === "ar" ? "تعديل" : "Edit"}
+            </Button>}
+            {(canEdit || joined) && <Button type="button" variant="outline" size="sm"
+              disabled={canEdit ? (!canCancelGame || !["open", "full"].includes(game.status) || cancelGame.isPending) : (leave.isPending || (!mine?.is_waitlisted && leaveBlocked))}
+              title={canEdit && !canCancelGame ? t("games_edit_cancel_blocked") : !canEdit && leaveBlocked ? t("games_leave_blocked") : undefined}
+              onClick={() => canEdit ? setCancelGameConfirmOpen(true) : setLeaveConfirmOpen(true)}
+              className="h-10 gap-1 rounded-lg border-[#c16f83] bg-[#3b1d30] px-2 text-xs font-bold text-[#ffe0e7] hover:bg-[#59293d] hover:text-white">
+              <Trash2 className="h-4 w-4" />{lang === "ar" ? "إلغاء" : "Cancel"}
+            </Button>}
+            <Button type="button" variant="outline" size="sm" onClick={() => setReportOpen(true)}
+              className="h-10 gap-1 rounded-lg border-[#8f6aaa] bg-[#301a47] px-2 text-xs font-bold text-white hover:bg-[#492866] hover:text-white">
+              <Flag className="h-4 w-4" />{lang === "ar" ? "إبلاغ" : "Report"}
+            </Button>
+          </div>
+        </section>
+      ) : <>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="truncate text-base">{game.title}</CardTitle>
@@ -515,6 +560,7 @@ export function GameCard({
         </div>
       )}
       </CardContent>
+      </>}
 
       <ReportDialog
         open={reportOpen}
@@ -554,6 +600,22 @@ export function GameCard({
               className="bg-destructive text-white hover:bg-destructive/90"
             >
               {t("community_leave_confirm_btn")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={cancelGameConfirmOpen} onOpenChange={setCancelGameConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("community_cancel_confirm_title")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("community_cancel_confirm_desc")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common_cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void handleCancelGame()} disabled={!canCancelGame || cancelGame.isPending}
+              className="bg-destructive text-white hover:bg-destructive/90">
+              {t("community_cancel_confirm_btn")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
