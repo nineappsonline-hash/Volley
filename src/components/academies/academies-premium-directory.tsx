@@ -108,6 +108,15 @@ export function AcademiesPremiumDirectory({ teams }: { teams: PublicTeamDirector
   return <main className={styles.page} data-academy-directory="" dir={ar?"rtl":"ltr"} lang={lang}>
     <div className={styles.wrap}>
       <section className={styles.hero}>
+        <div className={styles.heroBackdrop} aria-hidden="true">
+          <div className={styles.heroPhotoStrip}>
+            {(["volleyball", "basketball", "tennis"] as const).map((game, index) => (
+              <div className={styles.heroPhotoTile} key={game}>
+                <Image src={`/images/academies/hd/${game}-wide.webp`} alt="" fill priority={index === 0} quality={90} sizes="(max-width: 700px) 60vw, (max-width: 1100px) 36vw, 500px" className={styles.coverImage} />
+              </div>
+            ))}
+          </div>
+        </div>
         <div className={styles.heroText}>
           <span className={styles.eyebrow}>{tr("DISCOVER ACADEMIES","اكتشف الأكاديميات")}</span>
           <h1>{tr("Find Your Perfect ","اختار الأكاديمية ")}<em>{tr("Academy.","المناسبة ليك.")}</em></h1>
