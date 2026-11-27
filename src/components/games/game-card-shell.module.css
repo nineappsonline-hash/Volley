@@ -283,3 +283,39 @@
   .cinematicTop{gap:6px}
   .cinematicBadges{flex-wrap:wrap}
 }
+
+
+/* Bigger, easier-to-read type while retaining the four-column desktop grid. */
+.cinematicTop .cinematicSport{font-size:15px;line-height:1.25}
+.cinematicBadges .cinematicStatus,.cinematicBadges .cinematicGender{font-size:14px;min-height:33px}
+.cinematicHeading .cinematicTitle{font-size:24px;line-height:1.3}
+.cinematicWhen,.cinematicWhere{font-size:15px;line-height:1.5}
+.cinematicPrice strong{font-size:23px}
+.cinematicPrice small{font-size:13px}
+.cinematicProgressText{font-size:13px}
+.cinematicJoin{font-size:15px}
+.cinematicUtilities :global(a),.cinematicUtilities :global(button){font-size:13px!important}
+@media(min-width:1200px){
+  .cinematicScene,.cinematicBody{min-height:335px}
+  .cinematicBody{gap:7px;padding:12px}
+  .cinematicTop .cinematicSport{font-size:14px}
+  .cinematicBadges .cinematicStatus,.cinematicBadges .cinematicGender{font-size:13px;padding:6px 8px}
+  .cinematicHeading .cinematicTitle{font-size:22px}
+  .cinematicWhen,.cinematicWhere{font-size:13px}
+  .cinematicPrice strong{font-size:21px}
+  .cinematicPrice small{font-size:12px}
+  .cinematicProgressText{font-size:12px}
+  .cinematicJoin{font-size:14px}
+  .cinematicUtilities :global(a),.cinematicUtilities :global(button){font-size:12px!important}
+}
+@media(min-width:1200px) and (max-width:1350px){
+  .cinematicHeading .cinematicTitle{font-size:20px}
+  .cinematicWhen,.cinematicWhere{font-size:12px}
+  .cinematicTop .cinematicSport{font-size:13px}
+  .cinematicBadges .cinematicStatus,.cinematicBadges .cinematicGender{font-size:12px}
+}
+@media(max-width:740px){
+  .cinematicHeading .cinematicTitle{font-size:25px}
+  .cinematicWhen,.cinematicWhere{font-size:15px}
+  .cinematicProgressText{font-size:13px}
+}
