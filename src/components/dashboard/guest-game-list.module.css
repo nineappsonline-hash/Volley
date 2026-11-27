@@ -1,0 +1,46 @@
+/* Compact, visually integrated expanded details beneath the cinematic game card. */
+.panel{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  padding:15px;
+  background:linear-gradient(145deg,#261637,#1b102a);
+  color:#f5edff;
+  border-top:1px solid #7a509b;
+  text-align:left;
+  direction:ltr;
+}
+.info{display:flex;align-items:flex-start;flex-wrap:wrap;gap:7px}
+.tag{
+  display:inline-flex;align-items:center;
+  min-height:27px;padding:6px 9px;
+  border:1px solid #735188;border-radius:9px;
+  background:#3a234b;color:#fff;
+  font-size:11px;font-weight:750;line-height:1.2;
+}
+.description{margin:0;color:#e3d6f0;line-height:1.65;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;text-align:left}
+.buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;align-items:stretch}
+.buttons .directions,.buttons .join{
+  min-width:0;width:100%;min-height:42px;
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:7px;border-radius:12px;
+  padding:9px 8px;text-decoration:none;
+  line-height:1.25;font-size:12px;font-weight:850;
+  text-align:center;white-space:nowrap;
+  transition:background .15s,border-color .15s;
+}
+.buttons .directions{
+  color:#1a0d28!important;
+  background:#fff!important;
+  border:1px solid #fff!important;
+  box-shadow:none;
+}
+.buttons .directions:hover{background:#e8dcf4!important;border-color:#e8dcf4!important}
+.buttons .join{
+  color:#160a24!important;
+  background:#ccff00;border:1px solid #ccff00;
+}
+.buttons .join:hover{background:#ddff60;border-color:#ddff60}
+.buttons .directions:focus-visible,.buttons .join:focus-visible{outline:2px solid #be88ff;outline-offset:2px}
+@media(max-width:350px){.panel{padding:12px}.buttons{gap:7px}.buttons .directions,.buttons .join{font-size:11px;padding:8px 5px}}
+@media(prefers-reduced-motion:reduce){.buttons .directions,.buttons .join{transition:none}}
