@@ -131,12 +131,14 @@ function playgroundLabel(playground: NonNullable<FriendlyGame["playground"]>) {
 }
 
 export function GameCard({
+  cinematic = false,
   game,
   profile,
   myParticipants,
   copiedKey,
   onCopy,
 }: {
+  cinematic?: boolean;
   game: FriendlyGameWithDetails;
   profile: Profile;
   myParticipants: FriendlyGameParticipant[];
@@ -228,7 +230,7 @@ export function GameCard({
   ].filter(Boolean);
 
   return (
-    <GameCardShell initialExpanded={focus === game.id} layout="list" game={game} joined={joined} paymentPending={!!mine && mine.pay_status !== "approved"} waitlisted={mine?.is_waitlisted} hideActionsWhenExpanded>
+    <GameCardShell initialExpanded={focus === game.id} layout={cinematic ? "cinematic" : "list"} game={game} joined={joined} paymentPending={!!mine && mine.pay_status !== "approved"} waitlisted={mine?.is_waitlisted} hideActionsWhenExpanded>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="truncate text-base">{game.title}</CardTitle>
