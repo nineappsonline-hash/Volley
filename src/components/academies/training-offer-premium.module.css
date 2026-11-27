@@ -43,3 +43,28 @@
 :global(html.dark) .logo{background:#2b1b37;border-color:#5a4069}
 @media(max-width:640px){.header{padding:15px 14px 5px}.facts{padding:10px 14px 14px}.prices{padding:0 14px 14px;gap:8px}.price{padding:11px}.price strong{font-size:15px}.title{font-size:15px}.action{margin:0 14px 14px}.expanded{padding:0 14px 14px}}
 @media(prefers-reduced-motion:reduce){.offer{transition:none}.offer:hover{transform:none}}
+
+/* Explicitly constrain pills and action controls at narrow card widths. */
+.badgeRow{min-width:0;flex-wrap:nowrap;align-items:center;margin-bottom:14px}
+.badge{flex-shrink:0;white-space:nowrap;overflow-wrap:normal;line-height:1.4}
+.sport{max-width:140px;white-space:nowrap;word-break:keep-all;flex-shrink:0}
+.share{flex-shrink:0;flex-wrap:nowrap;white-space:nowrap;align-items:center;gap:8px;min-width:0}
+.share :global(button){display:inline-flex!important;align-items:center;justify-content:center;flex:0 0 35px!important;padding:0!important;background:#f7f1fa!important;color:#6935a8!important;border:1px solid #e6d8ee!important;box-shadow:none!important;min-height:35px!important;max-width:35px!important}
+.share :global(button:hover){background:#eae0f5!important}
+.logo{overflow:hidden;display:flex;align-items:center;justify-content:center;flex:0 0 43px}
+.logo>*{width:100%!important;height:100%!important;min-width:0;min-height:0;max-width:100%;max-height:100%;object-fit:contain}
+.header{padding-top:19px}
+.heading{align-items:center;flex-wrap:nowrap!important}
+.headingText{min-width:0}
+.price{min-height:88px}
+.fact{white-space:normal;word-break:normal}
+@media(max-width:410px){
+ .header{padding:14px 12px 5px}
+ .badgeRow{gap:6px}
+ .badge{font-size:10px;padding:6px 8px}
+ .sport{max-width:112px;font-size:10px}
+ .share{gap:5px}
+ .facts{padding:10px 12px 12px}
+ .prices{padding:0 12px 12px}
+ .action{margin:0 12px 12px}
+}
