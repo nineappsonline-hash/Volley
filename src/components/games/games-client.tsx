@@ -250,7 +250,7 @@ export function GameCard({
   ].filter(Boolean);
 
   return (
-    <GameCardShell initialExpanded={focus === game.id} layout={cinematic ? "cinematic" : "list"} game={game} joined={joined} paymentPending={!!mine && mine.pay_status !== "approved"} waitlisted={mine?.is_waitlisted} hideActionsWhenExpanded>
+    <GameCardShell initialExpanded={focus === game.id} layout={cinematic ? "cinematic" : "list"} onJoinClick={handleJoin} game={game} joined={joined} paymentPending={!!mine && mine.pay_status !== "approved"} waitlisted={mine?.is_waitlisted} hideActionsWhenExpanded>
       {cinematic ? (
         <section className="flex flex-col gap-3 bg-[#1e112c] p-3 text-white" aria-label={lang === "ar" ? "تفاصيل الماتش" : "Game details"} dir="ltr">
           <GameParticipantNames
