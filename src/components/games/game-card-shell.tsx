@@ -20,7 +20,7 @@ import { gameBookingPayment } from "@/lib/game-costs";
 import type { FriendlyGameWithDetails } from "@/lib/types";
 
 /** Compact overview shared by the games directory and community feed. */
-export function GameCardShell({ game, joined, waitlisted, paymentPending = false, children, detailsHref, initialExpanded = false, layout = "card", hideActionsWhenExpanded = false, deferPhotoLoading = false, hideBackgroundArt = false }: { detailsHref?: string; initialExpanded?: boolean; layout?: "card" | "list"; deferPhotoLoading?: boolean; hideBackgroundArt?: boolean; game: FriendlyGameWithDetails; joined: boolean; waitlisted?: boolean; paymentPending?: boolean; children?: ReactNode; hideActionsWhenExpanded?: boolean }) {
+export function GameCardShell({ game, joined, waitlisted, paymentPending = false, children, detailsHref, initialExpanded = false, layout = "card", hideActionsWhenExpanded = false, deferPhotoLoading = false, hideBackgroundArt = false }: { detailsHref?: string; initialExpanded?: boolean; layout?: "card" | "list" | "cinematic"; deferPhotoLoading?: boolean; hideBackgroundArt?: boolean; game: FriendlyGameWithDetails; joined: boolean; waitlisted?: boolean; paymentPending?: boolean; children?: ReactNode; hideActionsWhenExpanded?: boolean }) {
   const { lang, locale, t } = useI18n();
   const ar = lang === "ar";
   const [expanded, setExpanded] = useState(initialExpanded);
@@ -66,6 +66,46 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
       </span>
       <span className={styles.desktopCta}>{expanded ? (ar ? "إخفاء التفاصيل" : "Hide details") : waitlisted ? (ar ? "قائمة الانتظار" : "On waiting list") : paymentPending ? (ar ? "عرض الدفع" : "View payment") : joined ? (ar ? "عرض الحجز" : "View Booking") : (ar ? "انضم للماتش" : "Join Game")} <ArrowUpRight size={17} aria-hidden="true" /></span>
   </>;
+
+  if (layout === "cinematic") {
+    const imageSport = ["volleyball", "beach-volleyball", "basketball", "padel", "tennis"].includes(sport) ? sport : "volleyball";
+    const statusLabel = !game.is_public ? (ar ? "خاص" : "Private")
+      : pendingCreation ? (ar ? "بانتظار الموافقة" : "Needs approval")
+      : game.status === "full" || slots === 0 ? (ar ? "مكتمل" : "Full")
+      : game.status === "open" ? (ar ? "متاح" : "Open") : t(`community_status_${game.status}`);
+    const primaryLabel = joined ? (ar ? "عرض حجزي" : "My booking")
+      : slots === 0 ? (ar ? "تفاصيل الماتش" : "Game details")
+      : ar ? "انضم للماتش" : "Join Game";
+    const openDetails = (label: ReactNode) => detailsHref
+      ? <Link href={detailsHref} className={styles.cinematicJoin}>{label}<ArrowUpRight size={18} aria-hidden="true" /></Link>
+      : <button type="button" onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-controls={detailsId} className={styles.cinematicJoin}>{expanded ? (ar ? "إخفاء التفاصيل" : "Hide details") : label}<ArrowUpRight size={18} aria-hidden="true" /></button>;
+    return <article data-game-overview="" data-sport={imageSport} className={styles.cinematicCard}>
+      <div className={styles.cinematicScene}>
+        <div className={styles.cinematicPhoto} style={{backgroundImage:`url("/images/match-cards/${imageSport}.webp")`}} aria-hidden="true"/>
+        <div className={styles.cinematicTint} aria-hidden="true"/>
+        <div className={styles.cinematicBody}>
+          <div className={styles.cinematicTop}>
+            <span className={styles.cinematicSport}><span aria-hidden="true">{SportIcon({id:sport,size:22})}</span>{ar ? ({Volleyball:"كرة طائرة","Beach Volleyball":"طائرة شاطئية",Basketball:"كرة سلة",Padel:"بادل",Tennis:"تنس"} as Record<string,string>)[game.sport] ?? game.sport : game.sport}</span>
+            <span className={styles.cinematicStatus}>{statusLabel}</span>
+          </div>
+          <h3 data-game-info="" className={styles.cinematicTitle}>{game.title}</h3>
+          <div className={styles.cinematicWhen}><span><CalendarDays size={16}/><time dateTime={game.game_date}>{format(new Date(`${game.game_date}T00:00:00`),"EEE, d MMM",{locale})}</time></span><span><Clock size={16}/>{formatTime12h(game.start_time,lang)}</span></div>
+          <div className={styles.cinematicWhere}><MapPin size={17}/><span>{game.playground?.name || game.location || game.area || t("games_no_playground")}</span></div>
+          <div className={styles.cinematicBottom}>
+            <div className={styles.cinematicMetrics}>
+              <div className={styles.cinematicPrice}><strong>{game.host_pays ? (ar ? "مجاني" : "Free") : game.share_price == null ? "—" : formatMoney(game.share_price,lang)}</strong><small>{ar ? "للفرد" : "per player"}</small></div>
+              <div className={styles.cinematicProgress}><div className={styles.cinematicProgressText}><span><Users size={17}/>{game.participants_count}/{game.max_players} {ar ? "لاعب" : "players"}</span><span>{slots ? (ar ? `${slots} أماكن متاحة` : `${slots} spots left`) : (ar ? "مكتمل" : "Full")}</span></div><div className={styles.cinematicTrack}><div style={{width:`${percent}%`}}/></div></div>
+            </div>
+            <div className={styles.cinematicActions}>{openDetails(primaryLabel)}
+              <div className={styles.cinematicUtilities}>{directions && <GoogleMapsDirectionsButton compact href={directions}/>} {share}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {!detailsHref && <div id={detailsId} hidden={!expanded} className={`${styles.details} border-t border-border bg-card text-card-foreground pt-2`}>{children}</div>}
+    </article>;
+  }
+
   if (layout === "list") return <article data-game-overview="" className="overflow-hidden rounded-xl border border-border bg-card text-card-foreground transition-shadow hover:shadow-sm">
     <div className={`${styles.surface} sm:grid sm:grid-cols-[minmax(0,1fr)_auto]`}>
     {!hideBackgroundArt && <div className={styles.art} aria-hidden="true">{venuePhoto ? <>{optimizeVenuePhoto ? <Image src={venuePhoto} alt="" fill sizes="(max-width: 640px) 100vw, 420px" quality={70} loading={deferPhotoLoading ? "lazy" : "eager"} className="object-cover" onError={event => { event.currentTarget.style.display = "none"; }} /> : <img src={venuePhoto} alt="" loading={deferPhotoLoading ? "lazy" : "eager"} decoding="async" className="absolute inset-0 h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} />}<div className="absolute inset-0 bg-gradient-to-r from-[#251044]/90 via-[#251044]/65 to-[#251044]/40" /></> : <GameCardBackground sport={game.sport} />}</div>}
