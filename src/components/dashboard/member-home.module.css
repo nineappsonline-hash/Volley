@@ -869,12 +869,12 @@
 /* Discover hero headline: prominent Playza lime, one line on desktop. */
 @media (min-width:1024px) {
   :global(.playza-member-dashboard) .desktopHero .heroCopy {
-    width:64%;
-    max-width:64%;
+    width:70%;
+    max-width:70%;
   }
   :global(.playza-member-dashboard) .desktopHero .heroCopy h1 {
     color:#caff32!important;
-    font-size:clamp(31px,3.65vw,56px)!important;
+    font-size:clamp(42px,4.5vw,70px)!important;
     font-weight:850!important;
     font-style:italic;
     letter-spacing:-.045em;
@@ -889,7 +889,7 @@
 @media (max-width:1023px) {
   :global(.playza-member-dashboard) .desktopHero .heroCopy h1 {
     color:#caff32!important;
-    font-size:clamp(26px,5.2vw,39px)!important;
+    font-size:clamp(29px,5.8vw,44px)!important;
     line-height:1.12;
     white-space:normal;
     overflow-wrap:normal;
