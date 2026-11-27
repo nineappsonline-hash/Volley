@@ -84,6 +84,7 @@ export function LocalGameCards({lang,games}:{lang:LocalLanguage;games:PublicGame
      key={game.id}
      layout="list"
      deferPhotoLoading
+     hideBackgroundArt
      game={guestGameCard(game)}
      joined={false}
      detailsHref={publicGamePath(game.id)}
