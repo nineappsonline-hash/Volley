@@ -18,6 +18,12 @@ const tasks = assets.flatMap(([sport, photo]) => [
   { file: `${sport}-card.webp`, photo, width: 1400 },
   { file: `${sport}-filter.webp`, photo, width: 1100 },
 ]);
+// Wide, high-resolution, text-free editorial photographs for Sparkle's live training groups.
+// The previous mockup JPEGs were small and had captions baked into the pixels.
+tasks.push(
+  { file: "volleyball-girls-group.webp", photo: "4060754", width: 2000 },
+  { file: "volleyball-mixed-group.webp", photo: "6203568", width: 2000 },
+);
 
 async function ensureAsset({ file, photo, width }) {
   const path = join(base, file);
