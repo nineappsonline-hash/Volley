@@ -1,3 +1,5 @@
+import { guestGameCard } from "@/lib/guest-games";
+import { GameCardShell } from "@/components/games/game-card-shell";
 "use client";
 
 import { useState } from "react";
@@ -107,18 +109,8 @@ export function DirectoryExperience(props: Props) {
       <section aria-labelledby="directory-results">
         <h2 className={styles.sectionTitle} id="directory-results" style={{marginBottom:20}}>{words[4]} <span style={{fontSize:13,color:"#c3b3d4"}}>({count})</span></h2>
         {count === 0 ? <div className={styles.empty}>{copy("No results right now. Try a different filter.", "مفيش نتائج حاليًا. جرّب بحث تاني.")}</div> :
-        <div className={styles.grid}>
-          {props.kind === "games" && games.map(g => {
-            const full = g.status === "full" || g.joined >= g.max_players;
-            const price = g.host_pays || g.share_price === 0 ? copy("Free", "مجاني") : g.share_price != null ? copy(`EGP ${g.share_price}`,`${g.share_price} جنيه`) : copy("Ask for price", "اسأل عن السعر");
-            return <article key={g.id} className={styles.card}>
-              <div className={styles.cardTop}><span className={styles.badge}>{sportLabel(g.sport,ar)}</span><span className={styles.status}>{full ? copy("Full", "مكتمل") : copy(`${g.max_players-g.joined} spots left`, `${g.max_players-g.joined} أماكن متاحة`)}</span></div>
-              <h2>{g.title}</h2>
-              <p className={styles.meta}><MapPin size={14} style={{display:"inline",verticalAlign:"middle"}}/> {shortenPlace([g.playground?.name,g.playground?.area ?? g.area])}</p>
-              <div className={styles.details}><span><CalendarDays size={14}/>{dateLabel(g.game_date,ar)}</span><span><Clock3 size={14}/>{formatTime12h(g.start_time,lang)}</span><span><UsersRound size={14}/>{g.joined}/{g.max_players}</span></div>
-              <div className={styles.cardBottom}><strong className={styles.price}>{price}</strong><Link href={publicGamePath(g.id)} className={styles.action}>{copy("Details & booking", "تفاصيل وحجز")}<ArrowUpRight size={16}/></Link></div>
-            </article>;
-          })}
+        <div className={kind === "games" ? styles.gameGrid : styles.grid}>
+          {props.kind === "games" && games.map(g => <GameCardShell key={g.id} game={guestGameCard(g)} joined={false} layout="cinematic" detailsHref={publicGamePath(g.id)} deferPhotoLoading />)}
           {props.kind === "courts" && courts.map(c => <article key={c.id} className={styles.card}>
             <div className={styles.cardTop}><span className={styles.badge}>{sportLabel(c.sport?.name ?? "Sports",ar)}</span><span className={styles.status}>{copy("Court", "ملعب")}</span></div>
             <h2>{c.name}</h2><p className={styles.meta}><MapPin size={14} style={{display:"inline",verticalAlign:"middle"}}/> {shortenPlace([c.area,c.governorate])}</p>
