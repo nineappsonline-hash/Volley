@@ -44,11 +44,6 @@ export function MemberHomeHeader({ guest = false, showExplore = true, profile, o
   }
   return <div className={styles.homeHeader}>
     <section className={styles.desktopHero} aria-label={ar ? "اكتشف ماتشك الجاي" : "Find your next game"}>
-      <div className={styles.discoverSportsArtwork} aria-hidden="true">
-        <span className={styles.discoverVolleyball} />
-        <span className={styles.discoverBasketball} />
-        <span className={styles.discoverPadel} />
-      </div>
       <div className={styles.heroCopy}><h1>{ar ? "هنلعب إيه النهاردة؟" : <>Hanel3ab eh<br />el naharda?</>}</h1><p>{ar ? "اختار الرياضة والمكان واحجز ماتشك." : "Pick your sport and location. Book a game."}</p></div>
       <form action="#member-live-games" className={styles.heroSearch} onSubmit={event => { event.preventDefault(); onSearchChange?.(String(new FormData(event.currentTarget).get("search") ?? "")); document.getElementById("member-live-games")?.scrollIntoView({ behavior: "smooth" }); }}><Search aria-hidden="true" size={24} /><input name="search" type="search" aria-controls="member-live-games" onChange={event => onSearchChange?.(event.currentTarget.value)} aria-label={ar ? "دور على ماتش أو ملعب" : "Search games or courts"} placeholder={ar ? "دور على ماتش أو ملعب…" : "Dawer ‘ala match, ryada, aw makan…"} /><button type="submit"><Search size={20} aria-hidden="true" />{ar ? "دوّر على ماتش" : "Find a Game"}</button><DashboardCreateGameButton sport={selectedSport} profile={profile} /></form>
     </section>
