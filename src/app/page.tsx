@@ -76,7 +76,7 @@ export default async function HomePage() {
       />
       <div className="min-h-screen bg-background pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-0">
         <Topbar role="member" name="" username="" guest />
-        <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-8">
+        <div className="mx-auto w-full max-w-[1600px] p-4 pb-0 sm:p-6 sm:pb-0 lg:p-8 lg:pb-0">
           <GuestDashboard games={publicGames.map(guestGameCard)} />
         </div>
         <MemberBottomNavigation guest />
