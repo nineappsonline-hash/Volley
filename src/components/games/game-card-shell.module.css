@@ -379,14 +379,6 @@
 /* Separate, accessible details trigger; keep the booking / directions / share
    action row intact when the main CTA becomes a direct Join action. */
 .cinematicBody{position:relative}
-.cinematicDetailsLink{
-  position:absolute;right:12px;top:13px;z-index:2;
-  border:1px solid #a06ec0;border-radius:9px;
-  background:#251334e6;color:#fff;
-  font-size:11px;font-weight:850;
-  min-height:30px;padding:5px 10px;
-  white-space:nowrap;cursor:pointer;
-}
-.cinematicDetailsLink:hover{background:#4b2868}
-.cinematicDetailsLink:focus-visible{outline:2px solid #d3ff00;outline-offset:2px}
-@media(min-width:1200px){.cinematicDetailsLink{top:10px;right:10px;min-height:28px;padding:4px 7px;font-size:10px}}
+.cinematicTitleToggle{display:block;min-width:0;max-width:100%;width:100%;border:0;padding:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
+.cinematicTitleToggle:hover .cinematicTitle{text-decoration:underline;text-decoration-color:#bb84eb;text-decoration-thickness:1px;text-underline-offset:4px}
+.cinematicTitleToggle:focus-visible{outline:2px solid #d3ff00;outline-offset:3px;border-radius:4px}
