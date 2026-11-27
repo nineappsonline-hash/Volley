@@ -44,3 +44,13 @@
 .buttons .directions:focus-visible,.buttons .join:focus-visible{outline:2px solid #be88ff;outline-offset:2px}
 @media(max-width:350px){.panel{padding:12px}.buttons{gap:7px}.buttons .directions,.buttons .join{font-size:11px;padding:8px 5px}}
 @media(prefers-reduced-motion:reduce){.buttons .directions,.buttons .join{transition:none}}
+
+/* The preview has no second directions/join row: only roster + report. */
+.panel{padding:12px;gap:10px}
+.panel :global(section){border-color:#654080!important;background:#2a1940!important;color:#f5edff!important}
+.panel :global(section button){color:#fff!important}
+.panel :global(section li){background:#39214e!important;color:#fff!important}
+.buttons{display:flex;justify-content:flex-start}
+.report{display:inline-flex;min-height:38px;align-items:center;justify-content:center;gap:8px;padding:8px 16px;border-radius:10px;border:1px solid #9267af;background:#39224f;color:#fff!important;font-size:13px;font-weight:800;text-decoration:none}
+.report:hover{background:#52336a}
+.report:focus-visible{outline:2px solid #d6ff00;outline-offset:2px}
