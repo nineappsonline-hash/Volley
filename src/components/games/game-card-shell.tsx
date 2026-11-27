@@ -98,7 +98,14 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
             <div className={styles.cinematicBadges}>
               <span className={styles.cinematicStatus} dir="auto">{statusLabel}</span>
               <span className={styles.cinematicGender} dir="auto">{game.gender === "mixed" ? (ar ? "ميكس" : "Mixed") : game.gender === "male" ? (ar ? "رجالة بس" : "Men only") : (ar ? "سيدات بس" : "Women only")}</span>
-              {game.skill_level && <span className={styles.cinematicLevel} dir="auto">{t(`skill_${game.skill_level}`)}</span>}
+              <span className={styles.cinematicLevel} dir="auto">{game.skill_level ? t(`skill_${game.skill_level}`) : (ar ? "كل المستويات" : "Any level")}</span>
+              <span className={styles.cinematicAge} dir="auto">{game.min_age == null && game.max_age == null
+                ? (ar ? "كل الأعمار" : "All ages")
+                : game.min_age != null && game.max_age != null
+                  ? `${game.min_age}–${game.max_age} ${ar ? "سنة" : "yrs"}`
+                  : game.min_age != null
+                    ? `${game.min_age}+ ${ar ? "سنة" : "yrs"}`
+                    : `${ar ? "حتى" : "Up to"} ${game.max_age} ${ar ? "سنة" : "yrs"}`}</span>
             </div>
           </div>
           <div className={styles.cinematicHeading}>
