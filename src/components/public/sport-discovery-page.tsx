@@ -86,7 +86,7 @@ export async function SportDiscoveryPage({ slug, lang }: { slug: string; lang: D
   const title = ar ? `${name} في القاهرة` : `Play ${name} in Cairo`;
   return <main lang={lang} dir={ar ? "rtl" : "ltr"} className="min-h-screen bg-background pb-16">
     <Header lang={lang} slug={slug} />
-    {volleyball && <nav aria-label={ar ? "ماتشات في التجمع" : "Games in New Cairo"} className="mx-auto flex max-w-6xl flex-wrap gap-4 px-5 pb-5">{LOCAL_GAME_GUIDES.map(g => <Link key={g.slug} className="underline underline-offset-4" href={localGamePath(lang, g.slug)}>{g[lang].title}</Link>)}</nav>}
+    {volleyball && <nav aria-label={ar ? "ماتشات في التجمع" : "Games in New Cairo"} className="mx-auto flex max-w-6xl flex-wrap gap-4 px-5 pb-5"><Link href={ar ? "/ar/play/new-cairo" : "/play/new-cairo"} className="font-semibold text-primary underline underline-offset-4">{ar ? "كل ماتشات التجمع والقاهرة الجديدة" : "All New Cairo games"}</Link>{LOCAL_GAME_GUIDES.map(g => <Link key={g.slug} className="underline underline-offset-4" href={localGamePath(lang, g.slug)}>{g[lang].title}</Link>)}</nav>}
     {playerGuidesForSport(slug).length > 0 && <nav className="mx-auto flex max-w-6xl flex-wrap gap-4 px-5 pb-5" aria-label={ar ? "إرشادات اللعب" : "Playing guides"}>{playerGuidesForSport(slug).map(g => <Link key={g.slug} className="text-brand underline underline-offset-4" href={guidePath(lang, g.slug)}>{g[lang].title}</Link>)}</nav>}
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@context": "https://schema.org", "@graph": [
       { "@type": "WebPage", name: title, url: `${SITE_URL}${discoveryPath(lang, slug)}`, inLanguage: ar ? "ar-EG" : "en", description: sport.advice[lang], about: { "@type": "Thing", name: sport.name } },
