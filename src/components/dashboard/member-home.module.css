@@ -524,3 +524,28 @@
     background-repeat:no-repeat;
   }
 }
+
+/* Discover search: white surface in light mode, dark surface only in dark mode. */
+:global(html:not(.dark)) :global(.playza-member-dashboard) .heroSearch {
+  background:#fff;
+  color:#291b38;
+  border:1px solid #e4dce9;
+  box-shadow:0 6px 22px rgba(38,18,61,.09);
+}
+:global(html:not(.dark)) :global(.playza-member-dashboard) .heroSearch > input,
+:global(html:not(.dark)) :global(.playza-member-dashboard) .heroSearch > span,
+:global(html:not(.dark)) :global(.playza-member-dashboard) .heroSearch > svg {
+  color:#291b38;
+}
+:global(html:not(.dark)) :global(.playza-member-dashboard) .heroSearch > input::placeholder {
+  color:#80748e;
+  opacity:1;
+}
+:global(html:not(.dark)) :global(.playza-member-dashboard) .heroSearch > button:last-child {
+  background:#f6f0fb;
+  color:#562786;
+  border:1px solid #cbb8e0;
+}
+:global(html:not(.dark)) :global(.playza-member-dashboard) .heroSearch > button:last-child:hover {
+  background:#eee0fa;
+}
