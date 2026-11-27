@@ -18,7 +18,7 @@ const sportInfo: Record<string, { ar: string; slug: string }> = {
 };
 const imageFor = (sport: string, kind: "court" | "filter" | "program" = "court") => {
   const slug = sportInfo[sport]?.slug ?? "volleyball";
-  if (["volleyball", "basketball", "tennis"].includes(slug)) return `/images/academies/reference/${slug}-${kind}.webp`;
+  if (["volleyball", "basketball", "tennis"].includes(slug)) return `/images/academies/hd/${slug}-${kind === "filter" ? "filter" : "card"}.webp`;
   return `/images/match-cards/${slug}.webp`;
 };
 type Academy = {
@@ -118,7 +118,9 @@ export function AcademiesPremiumDirectory({ teams }: { teams: PublicTeamDirector
           </div>
         </div>
         <div className={styles.heroVisual}>
-          <Image src="/images/academies/reference/hero-sports.webp" alt={tr("Volleyball, basketball and tennis sports photography","صور للكرة الطائرة والسلة والتنس")} fill priority quality={95} sizes="(max-width: 700px) 100vw, (max-width: 1400px) 52vw, 700px" className={styles.coverImage}/>
+          <div className={styles.heroPhotoStrip} role="img" aria-label={tr("Volleyball, basketball and tennis sports photography","صور للكرة الطائرة والسلة والتنس")}>
+            {(["volleyball", "basketball", "tennis"] as const).map((game, index) => <div className={styles.heroPhotoTile} key={game}><Image src={`/images/academies/hd/${game}-wide.webp`} alt="" fill priority={index===0} quality={95} sizes="(max-width: 700px) 33vw, (max-width: 1400px) 18vw, 240px" className={styles.coverImage}/></div>)}
+          </div>
           <span className={styles.heroLocation}><MapPin size={15}/>{tr("Find training near you","تدريب قريب منك")}</span>
         </div>
       </section>
