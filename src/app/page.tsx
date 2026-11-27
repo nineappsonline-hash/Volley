@@ -3,12 +3,9 @@ import { getPublicGames } from "@/lib/public-games";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { GuestDashboard } from "@/components/dashboard/guest-dashboard";
-import { AcademiesHomeBanner } from "@/components/dashboard/academies-home-banner";
-import { VenueOwnerHomeBanner } from "@/components/dashboard/venue-owner-home-banner";
 import { guestGameCard } from "@/lib/guest-games";
 import { Topbar } from "@/components/layout/topbar";
 import { MemberBottomNavigation } from "@/components/layout/member-bottom-navigation";
-import { PlayzaFooter } from "@/components/shared/playza-footer";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import {
@@ -81,10 +78,7 @@ export default async function HomePage() {
         <Topbar role="member" name="" username="" guest />
         <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-8">
           <GuestDashboard games={publicGames.map(guestGameCard)} />
-          <AcademiesHomeBanner />
-    <VenueOwnerHomeBanner />
         </div>
-        <PlayzaFooter />
         <MemberBottomNavigation guest />
       </div>
     </>
