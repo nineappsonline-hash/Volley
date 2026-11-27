@@ -1,0 +1,63 @@
+/* Participant roster in the approved premium cinematic game-card visual language.
+   The grid uses container width so four-up desktop cards stay readable. */
+.roster{
+  color:#fff;
+  background:linear-gradient(150deg,#351947 0%,#241233 55%,#1c1029 100%);
+  border:1.5px solid #a75bd6;
+  border-radius:16px;
+  overflow:hidden;
+  min-width:0;
+  container-type:inline-size;
+}
+.header{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  width:100%;min-height:48px;padding:10px 13px;
+  background:linear-gradient(105deg,#4f246f66,#281638ad);
+  text-align:left;
+  color:#fff;
+}
+.headerTitle{display:inline-flex;align-items:center;gap:8px;font-size:16px;font-weight:850;min-width:0;color:#fff}
+.headerIcon{width:20px;height:20px;flex-shrink:0;color:#d991ff}
+.count{font-size:13px;color:#e8d7f8;font-weight:650}
+.header > svg{flex-shrink:0;color:#e7caf9}
+.content{border-top:1px solid #76428f;padding:11px}
+.playerGrid{
+  list-style:none;margin:0;padding:0;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,125px),1fr));
+  gap:8px;
+  max-height:258px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#6f4490 transparent
+}
+.player{
+  display:flex;align-items:center;gap:6px;min-width:0;min-height:41px;
+  padding:4px 7px 4px 4px;
+  background:linear-gradient(110deg,#462758cc,#392147e8);
+  border:1px solid #6e3e8659;
+  border-radius:999px;
+  color:#fff;font-size:12px;font-weight:700;line-height:1.3
+}
+.avatar{
+  display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;
+  border:1.5px solid #d37bfd;border-radius:50%;
+  background:linear-gradient(140deg,#ed78fe,#7850df 62%,#4b1c8c);
+  box-shadow:0 0 0 2px #271438;
+  color:#fff;font-size:14px;font-weight:900;
+}
+.player:nth-child(5n + 2) .avatar{background:linear-gradient(140deg,#ffb75d,#df4e9f 63%,#712dae)}
+.player:nth-child(5n + 3) .avatar{background:linear-gradient(140deg,#4ac7ed,#7460e3 63%,#542b9d)}
+.player:nth-child(5n + 4) .avatar{background:linear-gradient(140deg,#a5d864,#38a3b4 63%,#3453a2)}
+.player:nth-child(5n + 5) .avatar{background:linear-gradient(140deg,#ff8c8c,#d75aaa 63%,#5d309f)}
+.playerName{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.guest{
+  display:inline-flex;align-items:center;justify-content:center;
+  flex-shrink:0;min-height:19px;padding:2px 5px;
+  border:1px solid #bd80d5;border-radius:999px;
+  color:#e5b8f2;background:#3d2452;font-size:9px;font-weight:700
+}
+@container (max-width:285px){
+  .playerGrid{grid-template-columns:1fr;max-height:242px}
+  .player{font-size:12px}
+}
+@media (max-width:640px){
+  .headerTitle{font-size:15px}
+  .playerGrid{max-height:255px}
+}
