@@ -325,3 +325,24 @@
 .cinematicExpanded{border-top:1px solid #694184;background:#1d102b;color:#f5edff}
 .cinematicExpanded :global(.text-muted-foreground){color:#d9cbe6}
 .cinematicExpanded :global(.text-card-foreground){color:#f5edff}
+
+
+/* Level badge sits beside availability and gender, with no fabricated level for unset games. */
+.cinematicBadges .cinematicLevel{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:33px;padding:6px 10px;border:1px solid #75bffb;
+  border-radius:999px;background:#112741d9;color:#c1e8ff;
+  font-size:14px;font-weight:900;line-height:1.15;
+  white-space:nowrap;flex-shrink:0;
+}
+.cinematicBadges{flex-wrap:wrap;row-gap:5px;justify-content:flex-start}
+@media(min-width:1200px){
+  .cinematicBadges{column-gap:5px}
+  .cinematicBadges .cinematicLevel{min-height:30px;padding:6px 8px;font-size:13px}
+}
+@media(min-width:1200px) and (max-width:1350px){
+  .cinematicBadges .cinematicLevel{font-size:12px;padding:5px 6px}
+}
+@media(max-width:390px){
+  .cinematicBadges .cinematicLevel{font-size:11px;padding:5px 6px;min-height:28px}
+}
