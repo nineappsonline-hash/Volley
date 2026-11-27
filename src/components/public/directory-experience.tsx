@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, CalendarDays, Clock3, MapPin, Search, Trophy, Volleyball, LandPlot, GraduationCap, UsersRound, Plus } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
@@ -34,7 +34,7 @@ const kinds = {
   games: { en: ["Games", "Find your next game", "Choose a game and book your spot.", "Search games or locations", "Upcoming games"], ar: ["الماتشات", "لاقي ماتشك الجاي", "اختار ماتش واحجز مكانك.", "دور على ماتش أو منطقة", "الماتشات المتاحة"] },
   courts: { en: ["Courts", "Find your court", "Discover courts and book easily.", "Search courts or locations", "Available courts"], ar: ["الملاعب", "ملعبك في انتظارك", "اختار الملعب المناسب ليك.", "دور على ملعب أو منطقة", "الملاعب المتاحة"] },
   academies: { en: ["Academies", "Start your sports journey", "Find the academy for you.", "Search academies or sports", "Available academies"], ar: ["الأكاديميات", "ابدأ رحلتك الرياضية", "اختار الأكاديمية المناسبة ليك.", "دور على أكاديمية أو رياضة", "الأكاديميات المتاحة"] },
-  tournaments: { en: ["Tournaments", "The competition starts here", "Discover tournaments and join in.", "Search tournaments or sports", "البطولات المتاحة"], ar: ["البطولات", "المنافسة تبدأ هنا", "شوف البطولات وسجّل مع فريقك.", "دور على بطولة أو رياضة", "البطولات المتاحة"] },
+  tournaments: { en: ["Tournaments", "The competition starts here", "Discover tournaments and join in.", "Search tournaments or sports", "Available tournaments"], ar: ["البطولات", "المنافسة تبدأ هنا", "شوف البطولات وسجّل مع فريقك.", "دور على بطولة أو رياضة", "البطولات المتاحة"] },
 } as const;
 
 const nav = [
@@ -61,10 +61,10 @@ export function DirectoryExperience(props: Props) {
   const chosen = kind === "academies" ? academySport : props.selectedSport ?? "";
   const filterHref = (sport: string) => sport ? `/${kind}?sport=${encodeURIComponent(sportToSlug(sport))}` : `/${kind}`;
 
-  const games = useMemo(() => props.kind !== "games" ? [] : props.games.filter(g => matches([g.title,g.sport,g.location,g.area,g.playground?.name,g.playground?.area].join(" "))), [props, q]);
-  const courts = useMemo(() => props.kind !== "courts" ? [] : props.courts.filter(c => matches([c.name,c.address,c.area,c.governorate,c.sport?.name].join(" "))), [props, q]);
-  const teams = useMemo(() => props.kind !== "academies" ? [] : props.teams.filter(t => (!chosen || t.sport?.name === chosen) && matches([t.name,t.academy.name,t.sport?.name,t.venue?.name,t.academy.area].join(" "))), [props, q, chosen]);
-  const tournaments = useMemo(() => props.kind !== "tournaments" ? [] : props.tournaments.filter(t => matches([t.name,t.sport,t.venue?.name,t.academy?.name,t.academy?.area].join(" "))), [props, q]);
+  const games = props.kind !== "games" ? [] : props.games.filter(g => matches([g.title,g.sport,g.location,g.area,g.playground?.name,g.playground?.area].join(" ")));
+  const courts = props.kind !== "courts" ? [] : props.courts.filter(c => matches([c.name,c.address,c.area,c.governorate,c.sport?.name].join(" ")));
+  const teams = props.kind !== "academies" ? [] : props.teams.filter(t => (!chosen || t.sport?.name === chosen) && matches([t.name,t.academy.name,t.sport?.name,t.venue?.name,t.academy.area].join(" ")));
+  const tournaments = props.kind !== "tournaments" ? [] : props.tournaments.filter(t => matches([t.name,t.sport,t.venue?.name,t.academy?.name,t.academy?.area].join(" ")));
   const count = kind === "games" ? games.length : kind === "courts" ? courts.length : kind === "academies" ? teams.length : tournaments.length;
 
   return <main className={styles.page} lang={lang} dir={ar ? "rtl" : "ltr"}>
