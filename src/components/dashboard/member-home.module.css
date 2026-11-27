@@ -827,7 +827,7 @@
     background-image:
       linear-gradient(90deg,#220a3b 0%,#220a3b 30%,rgba(34,10,59,.97) 38%,rgba(34,10,59,.8) 45%,rgba(34,10,59,0) 62%),
       url('/images/playza_sports_banner.webp')!important;
-    background-size:100% 100%,auto 410px!important;
+    background-size:100% 100%,auto 340px!important;
     background-position:center center,right center!important;
     background-repeat:no-repeat!important;
   }
