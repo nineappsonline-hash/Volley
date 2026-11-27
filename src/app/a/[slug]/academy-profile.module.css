@@ -231,3 +231,17 @@
 .groups :global(.training-mobile:nth-child(3n+3)):before{
  content:none!important;display:none!important;
 }
+
+/* Even horizontal gutters for the whole booking card (RTL and LTR).
+   The previous forced padding:0 left the cover and content at the right edge. */
+.groups :global(.training-mobile){
+  padding:16px!important;
+  gap:0!important;
+}
+.groups :global(.training-mobile) :global([class*="training-offer-premium_cover"]){
+  border-radius:13px;
+  overflow:hidden;
+}
+@media(max-width:640px){
+  .groups :global(.training-mobile){padding:12px!important}
+}
