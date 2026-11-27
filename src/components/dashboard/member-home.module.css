@@ -337,3 +337,23 @@
 :global(.playza-member-dashboard) .sports > button:not([aria-pressed="true"]):hover .sportIcon {
   color: #190e26;
 }
+
+
+/* Sport SVGs need an explicit selected-state override, not only parent text color.
+   Some icons use currentColor for stroke, others for fill. */
+:global(.playza-member-dashboard) .sports > button[aria-pressed="true"] .sportIcon,
+:global(.playza-member-dashboard) .sports > button[aria-pressed="true"] .sportIcon svg,
+:global(.playza-member-dashboard) .sports > button[aria-pressed="true"] .sportIcon svg * ,
+:global(.playza-member-dashboard) .sports > button:hover .sportIcon,
+:global(.playza-member-dashboard) .sports > button:hover .sportIcon svg,
+:global(.playza-member-dashboard) .sports > button:hover .sportIcon svg * {
+  color: #190e26 !important;
+}
+:global(.playza-member-dashboard) .sports > button[aria-pressed="true"] .sportIcon svg,
+:global(.playza-member-dashboard) .sports > button:hover .sportIcon svg {
+  stroke: currentColor;
+}
+:global(.playza-member-dashboard) .sports > button[aria-pressed="true"] .sportIcon svg [fill="currentColor"],
+:global(.playza-member-dashboard) .sports > button:hover .sportIcon svg [fill="currentColor"] {
+  fill: currentColor;
+}
