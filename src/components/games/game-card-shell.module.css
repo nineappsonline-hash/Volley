@@ -112,3 +112,31 @@
 /* Keep Arabic RTL copy on the dark side of each photograph. */
 :global([dir="rtl"]) .cinematicTint{background:linear-gradient(270deg,rgba(15,7,29,.96) 0%,rgba(15,7,29,.78) 46%,rgba(15,7,29,.28) 100%),linear-gradient(0deg,rgba(15,7,29,.98) 0%,rgba(15,7,29,.43) 30%,transparent 76%)}
 :global([dir="rtl"]) .cinematicPhoto{background-position:40% center}
+
+
+/* Four-up desktop cards: retain readable content without horizontal overflow. */
+@media (min-width: 1200px) {
+  .cinematicCard { border-radius: 17px; }
+  .cinematicScene, .cinematicBody { min-height: 350px; }
+  .cinematicBody { padding: 13px 13px 12px; gap: 7px; }
+  .cinematicSport { font-size: 11px; min-height: 30px; padding: 4px 8px; gap: 5px; }
+  .cinematicSport svg { width: 16px; height: 16px; }
+  .cinematicStatus { font-size: 10px; padding: 5px 8px; }
+  .cinematicTitle { font-size: 17px; max-width: 100%; margin-top: 10px; min-height: 23px; line-height: 1.35; }
+  .cinematicWhen { font-size: 10px; gap: 5px 12px; }
+  .cinematicWhen svg, .cinematicWhere svg { width: 13px; height: 13px; }
+  .cinematicWhere { font-size: 11px; max-width: 100%; }
+  .cinematicBottom { padding-top: 9px; }
+  .cinematicMetrics { margin-bottom: 10px; gap: 9px; align-items: stretch; }
+  .cinematicPrice { min-width: 84px; min-height: 54px; padding: 6px 8px; border-radius: 10px; }
+  .cinematicPrice strong { font-size: 13px; }
+  .cinematicPrice small { font-size: 9px; }
+  .cinematicProgressText { font-size: 9px; gap: 3px; flex-wrap: wrap; }
+  .cinematicProgressText svg { width: 12px; height: 12px; }
+  .cinematicTrack { height: 6px; margin-top: 5px; }
+  .cinematicActions { flex-wrap: wrap; gap: 7px; }
+  .cinematicJoin { flex: 1 0 100%; min-height: 36px; padding: 7px 10px; font-size: 12px; }
+  .cinematicJoin svg { height: 15px; width: 15px; }
+  .cinematicUtilities { width: 100%; justify-content: space-between; gap: 5px; }
+  .cinematicUtilities :global(button), .cinematicUtilities :global(a) { min-height: 30px!important; padding: 5px 8px!important; font-size: 10px!important; }
+}
