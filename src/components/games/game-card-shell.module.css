@@ -403,3 +403,21 @@
 @media (min-width:1200px) {
   .cinematicPrice { min-height:0; padding-block:5px; }
 }
+
+
+/* Refined visual hierarchy for compact game cards: less heavy text,
+   with prices retained as the strongest element. */
+.cinematicHeading .cinematicTitle{font-weight:700;letter-spacing:-.025em}
+.cinematicTop .cinematicSport{font-weight:650}
+.cinematicBadges .cinematicStatus,
+.cinematicBadges .cinematicGender,
+.cinematicBadges .cinematicLevel,
+.cinematicBadges .cinematicAge{font-weight:600}
+.cinematicWhen{font-weight:500}
+.cinematicWhere{font-weight:500}
+.cinematicProgressText{font-weight:550}
+.cinematicJoin{font-weight:700}
+.cinematicUtilities :global(a),
+.cinematicUtilities :global(button){font-weight:600!important}
+.cinematicExpanded :global(section button){font-weight:600}
+.cinematicExpanded :global(section ul li){font-weight:500}
