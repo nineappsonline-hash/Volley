@@ -243,3 +243,16 @@
 
 /* The dashboard thumbnail uses the linked venue photo when one is available. */
 .desktopGames :global([data-game-photo][style*="background-image"]){background-position:center!important;background-size:cover!important}
+
+
+/* Signed-in home: never squeeze the 4-up match grid into the narrow
+   column next to Your Next Game. Match sizing now matches guest home. */
+@media (min-width:1024px){
+  .desktopContent{
+    grid-template-columns:minmax(0,1fr);
+    gap:22px;
+    align-items:start;
+  }
+  .desktopContent > section{min-width:0;width:100%}
+  .desktopContent > .nextGame{width:100%;max-width:420px}
+}
