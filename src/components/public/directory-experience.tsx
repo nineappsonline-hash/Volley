@@ -1,6 +1,7 @@
+"use client";
+
 import { guestGameCard } from "@/lib/guest-games";
 import { GameCardShell } from "@/components/games/game-card-shell";
-"use client";
 
 import { useState } from "react";
 import Link from "next/link";
