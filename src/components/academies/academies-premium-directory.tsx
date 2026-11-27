@@ -15,8 +15,11 @@ const sportLabels: Record<string,{ar:string;slug:string}> = {
   "Beach Volleyball":{ar:"كرة طائرة شاطئية",slug:"beach-volleyball"},
   Padel:{ar:"بادل",slug:"padel"},
 };
-function imageForSport(sport: string){
- const slug=sportLabels[sport]?.slug ?? "volleyball";
+function imageForSport(sport: string, placement: "court"|"filter"|"program" = "court"){
+ const slug = sportLabels[sport]?.slug ?? "volleyball";
+ if (["volleyball","basketball","tennis"].includes(slug)) {
+   return `/images/academies/reference/${slug}-${placement}.webp`;
+ }
  return `/images/match-cards/${slug}.webp`;
 }
 
@@ -95,8 +98,8 @@ export function AcademiesPremiumDirectory({teams, embedded=false}:{teams:PublicT
      </div>
      <nav className={styles.sports} aria-label={ar?"اختار الرياضة":"Choose sport"}>
        <button type="button" className={styles.sport} data-active={sport==="all"} onClick={()=>{setSport("all");setShowAll(false)}}><LayoutGrid size={28}/><b>{ar?"كل الرياضات":"All Sports"}</b></button>
-       {selectedOptions.map(s=><button type="button" className={styles.sport} key={s} data-active={sport===s} onClick={()=>{setSport(s);setShowAll(false)}} style={{backgroundImage:`linear-gradient(0deg,rgba(23,8,41,.88),rgba(36,12,60,.28)),url("${imageForSport(s)}")`}}><span>{SportIcon({id:sportLabels[s]?.slug??"volleyball",size:31})}</span><b>{title(s)}</b></button>)}
-       {sports.filter(s=>!selectedOptions.includes(s)).map(s=><button key={s} type="button" className={styles.sport} data-active={sport===s} onClick={()=>{setSport(s);setShowAll(false)}} style={{backgroundImage:`linear-gradient(0deg,rgba(23,8,41,.88),rgba(36,12,60,.28)),url("${imageForSport(s)}")`}}><Volleyball size={28}/><b>{title(s)}</b></button>)}
+       {selectedOptions.map(s=><button type="button" className={styles.sport} key={s} data-active={sport===s} onClick={()=>{setSport(s);setShowAll(false)}} style={{backgroundImage:`linear-gradient(0deg,rgba(23,8,41,.88),rgba(36,12,60,.28)),url("${imageForSport(s,"filter")}")`}}><span>{SportIcon({id:sportLabels[s]?.slug??"volleyball",size:31})}</span><b>{title(s)}</b></button>)}
+       {sports.filter(s=>!selectedOptions.includes(s)).map(s=><button key={s} type="button" className={styles.sport} data-active={sport===s} onClick={()=>{setSport(s);setShowAll(false)}} style={{backgroundImage:`linear-gradient(0deg,rgba(23,8,41,.88),rgba(36,12,60,.28)),url("${imageForSport(s,"program")}")`}}><Volleyball size={28}/><b>{title(s)}</b></button>)}
      </nav>
      <section id="academies-list" className={styles.results} aria-labelledby="academy-results-title">
        <div className={styles.heading}><h2 id="academy-results-title"><Star size={29}/>{ar?"الأكاديميات المتاحة":"Featured Academies"} <small>({shown.length})</small></h2>{shown.length>6&&<button type="button" onClick={()=>setShowAll(v=>!v)}>{showAll?(ar?"عرض أقل":"Show Less"):(ar?"عرض الكل":"View All")} <ArrowUpRight size={19}/></button>}</div>
@@ -105,7 +108,7 @@ export function AcademiesPremiumDirectory({teams, embedded=false}:{teams:PublicT
          const mainSport=a.sports[0]??"Volleyball";
          const favorite=favorites.includes(a.id);
          return <article key={a.id} className={styles.card}>
-           <div className={styles.cardImage} style={{backgroundImage:`linear-gradient(180deg,rgba(17,7,31,.07),#1c092ce6),url("${imageForSport(mainSport)}")`}}>
+           <div className={styles.cardImage} style={{backgroundImage:`linear-gradient(180deg,rgba(17,7,31,.07),#1c092ce6),url("${imageForSport(mainSport,"court")}")`}}>
              <span className={styles.sportBadge}>{title(mainSport)}</span>
              <button type="button" aria-label={favorite?(ar?"إزالة من المفضلة":"Remove favorite"):(ar?"إضافة للمفضلة":"Save favorite")} aria-pressed={favorite} className={styles.heart} onClick={()=>setFavorites(v=>favorite?v.filter(id=>id!==a.id):[...v,a.id])}><Heart size={21} fill={favorite?"#caff00":"none"}/></button>
            </div>
