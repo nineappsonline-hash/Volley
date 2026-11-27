@@ -260,7 +260,7 @@ export function GameCard({
           />
           <div className="grid grid-cols-3 gap-2">
             {canEdit && <Button type="button" variant="outline" size="sm" onClick={() => setEditOpen(true)}
-              className="h-11 gap-1.5 rounded-xl border-[#caff00] bg-[#caff00] px-2 text-sm font-extrabold text-[#180b25] hover:bg-[#e2ff70] hover:text-[#180b25] disabled:opacity-50">
+              className="h-11 gap-1.5 rounded-xl !border-[#caff00] !bg-[#caff00] px-2 text-sm font-extrabold !text-black hover:!bg-[#e2ff70] hover:!text-black disabled:opacity-50">
               <Pencil className="h-4 w-4" />{lang === "ar" ? "تعديل" : "Edit"}
             </Button>}
             {(canEdit || joined) && <Button type="button" variant="outline" size="sm"
@@ -271,7 +271,7 @@ export function GameCard({
               <Trash2 className="h-4 w-4" />{lang === "ar" ? "إلغاء" : "Cancel"}
             </Button>}
             <Button type="button" variant="outline" size="sm" onClick={() => setReportOpen(true)}
-              className="h-10 gap-1 rounded-lg border-[#8f6aaa] bg-[#301a47] px-2 text-xs font-bold text-white hover:bg-[#492866] hover:text-white">
+              className="h-11 gap-1.5 rounded-xl !border-[#caff00] !bg-[#caff00] px-2 text-sm font-extrabold !text-black hover:!bg-[#e2ff70] hover:!text-black">
               <Flag className="h-4 w-4" />{lang === "ar" ? "إبلاغ" : "Report"}
             </Button>
           </div>
