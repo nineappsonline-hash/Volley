@@ -49,7 +49,7 @@ export function DesktopNextGame({ memberId }: { memberId: string }) {
   return <aside className={styles.section} aria-label={ar ? "ماتشك الجاي" : "Your next game"}>
     <QueryState queries={[query]}>
       {game ? <article className={styles.card} data-sport={imageSport} dir="ltr">
-        <div className={styles.photo} style={{ backgroundImage: 'url("/images/playza-next-game-designed.avif")' }} aria-hidden="true" />
+        <div className={styles.photo} style={{ backgroundImage: 'url("/images/academies/hd/next-game-volleyball-hd.webp")' }} aria-hidden="true" />
         <div className={styles.shade} aria-hidden="true" />
         <div className={styles.body}>
           <header className={styles.eyebrow}><CalendarDays size={26} aria-hidden="true"/><span>{ar ? "ماتشك الجاي" : "Your Next Game"}</span></header>
