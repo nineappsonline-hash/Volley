@@ -1,3 +1,4 @@
+import { VolleyballWhatsAppGroup } from "@/components/public/volleyball-whatsapp-group";
 import { SharedGamePage } from "@/components/games/shared-game-page";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -67,6 +68,7 @@ export default async function PublicGamePage({ params }: Props) {
       ...(event ? [event] : []), breadcrumbsJsonLd([{ name: "Home", url: SITE_URL }, { name: "Games", url: `${SITE_URL}/games` }, { name: game.title, url: `${SITE_URL}${path}` }]),
     ] }) }} />
     <SharedGamePage game={sharedGame} publicParticipants={publicParticipants} />
+    {isLocalNewCairo && game.sport.toLowerCase() === "volleyball" && <div className="mx-auto max-w-3xl px-5 pt-6"><VolleyballWhatsAppGroup lang="ar" compact /></div>}
     {isPast && <section className="mx-auto max-w-3xl px-5 pt-7" aria-labelledby="past-game-alternatives">
       <h2 id="past-game-alternatives" className="text-xl font-semibold">This game has finished — find your next game</h2>
       <p className="mt-2 text-muted-foreground">The {game.sport} game on {game.game_date} in {gamePlace(game)} is in the past, so registration for this date is closed. You can still find a new game, meet other players, or create a game on Playza.</p>
