@@ -73,6 +73,15 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
       : pendingCreation ? (ar ? "بانتظار الموافقة" : "Needs approval")
       : game.status === "full" || slots === 0 ? (ar ? "مكتمل" : "Full")
       : game.status === "open" ? (ar ? "متاح" : "Open") : t(`community_status_${game.status}`);
+    const startMinutes = (() => {
+      const match = /^(\\d{1,2}):(\\d{2})/.exec(game.start_time);
+      return match ? Number(match[1]) * 60 + Number(match[2]) : null;
+    })();
+    const endTime = startMinutes === null ? null : (() => {
+      const minutes = (startMinutes + Math.round(game.duration_hours * 60)) % (24 * 60);
+      const raw = `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+      return formatTime12h(raw, lang);
+    })();
     const primaryLabel = joined ? (ar ? "عرض حجزي" : "My booking")
       : slots === 0 ? (ar ? "تفاصيل الماتش" : "Game details")
       : ar ? "انضم للماتش" : "Join Game";
@@ -89,7 +98,7 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
             <span className={styles.cinematicStatus}>{statusLabel}</span>
           </div>
           <h3 data-game-info="" className={styles.cinematicTitle}>{game.title}</h3>
-          <div className={styles.cinematicWhen}><span><CalendarDays size={16}/><time dateTime={game.game_date}>{format(new Date(`${game.game_date}T00:00:00`),"EEE, d MMM",{locale})}</time></span><span><Clock size={16}/>{formatTime12h(game.start_time,lang)}</span></div>
+          <div className={styles.cinematicWhen}><span><CalendarDays size={16}/><time dateTime={game.game_date}>{format(new Date(`${game.game_date}T00:00:00`),"EEE, d MMM",{locale})}</time></span><span><Clock size={16}/><span dir="ltr">{formatTime12h(game.start_time,lang)}{endTime ? ` – ${endTime}` : ""}</span></span></div>
           <div className={styles.cinematicWhere}><MapPin size={17}/><span>{game.playground?.name || game.location || game.area || t("games_no_playground")}</span></div>
           <div className={styles.cinematicBottom}>
             <div className={styles.cinematicMetrics}>
