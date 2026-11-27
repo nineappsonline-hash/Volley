@@ -3416,7 +3416,7 @@ export function useMyUpcomingGames(memberId: string) {
     refetchOnWindowFocus: "always",
     queryFn: async () => {
       const { data, error } = await supabase().from("friendly_game_participants")
-        .select("id, is_waitlisted, pay_status, game:friendly_games!inner(id, playground_id, creator_id, title, sport, game_date, start_time, status, invite_code, area, location, duration_hours, description, max_players, min_players, lat, lng, is_public, share_price, host_pays, playground:venues(name, country, area, governorate, address, lat, lng, location_link, photos, cover_url))")
+        .select("id, is_waitlisted, pay_status, game:friendly_games!inner(id, playground_id, creator_id, title, sport, gender, game_date, start_time, status, invite_code, area, location, duration_hours, description, max_players, min_players, lat, lng, is_public, share_price, host_pays, playground:venues(name, country, area, governorate, address, lat, lng, location_link, photos, cover_url))")
         .eq("member_id", memberId).eq("pay_status", "approved")
         .gte("game.game_date", new Date().toISOString().slice(0, 10))
         .in("game.status", ["open", "full"]);
@@ -3449,7 +3449,7 @@ export function useMyUpcomingGames(memberId: string) {
             participants_count: counts.get(g.id) ?? null,
             playground,
           } as {
-            id: string; playground_id: string | null; creator_id: string; title: string; sport: string; game_date: string; start_time: string;
+            id: string; playground_id: string | null; creator_id: string; title: string; sport: string; gender: "mixed" | "male" | "female"; game_date: string; start_time: string;
             status: string; invite_code: string | null; area: string | null; participants_count: number | null;
             location: string | null; duration_hours: number; description: string | null; max_players: number;
             min_players: number; lat: number | null; lng: number | null; is_public: boolean;
