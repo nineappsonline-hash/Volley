@@ -208,3 +208,14 @@
     margin-block:12px 17px;
   }
 }
+
+/* Render academy photography at device-pixel-aware responsive resolutions. */
+.coverImage{object-fit:cover;object-position:center;image-rendering:auto}
+.heroVisual>.coverImage{z-index:0}
+.heroVisual::before{z-index:1;pointer-events:none}
+.cardImage>.coverImage,.programPhoto>.coverImage{z-index:0}
+.cardOverlay{position:absolute;inset:0;z-index:1;background:linear-gradient(0deg,rgba(17,7,30,.52),transparent 55%);pointer-events:none}
+.cardImage>.sportBadge,.cardImage>.heart{z-index:2}
+.programPhoto{position:relative;overflow:hidden}
+/* Avoid an extra image-wide filter pass, which softens detail on some mobile GPUs. */
+:global(html:not(.dark)) .cardImage,:global(html:not(.dark)) .sport:not(:first-child){filter:none}
