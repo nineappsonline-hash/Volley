@@ -50,3 +50,27 @@
 @media(max-width:850px){.card{height:auto;min-height:370px}.body{min-height:370px}.title{max-width:100%}.shade{background:linear-gradient(90deg,#170a26f2,#170a26b8 70%,#170a2670),linear-gradient(0deg,#140922e8,transparent 45%)}.lower{max-width:100%}.meta{font-size:13px}.actions{gap:8px}.booking,.actions .directions,.share :global(button){padding:9px 7px;font-size:13px;min-height:47px}.price{min-width:130px}.playerText{font-size:13px}}
 @media(max-width:550px){.card{border-radius:18px;min-height:405px}.body{min-height:405px;padding:19px 17px;gap:12px}.eyebrow{font-size:21px}.title{font-size:27px}.badges{gap:6px}.sport,.confirmed{font-size:12px;padding:6px 10px}.meta{display:grid;gap:9px;font-size:13px}.infoRow{gap:10px}.price{min-width:100px;padding:8px}.price strong{font-size:21px}.price small{font-size:11px}.playerText{font-size:11px}.track{height:8px;margin-top:7px}.actions{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:8px}.share{grid-column:1/-1}.booking,.actions .directions,.share :global(button){font-size:12px;min-height:44px}.empty{align-items:flex-start;flex-wrap:wrap}.empty a{margin-left:0}}
 @media(prefers-reduced-motion:reduce){.booking,.actions .directions,.share :global(button){transition:none}}
+
+
+/* Match the calmer violet used by the main member dashboard. */
+:global(.playza-member-dashboard) .card[data-sport="volleyball"]{
+  --neon:#704394;
+  border-color:#704394;
+  box-shadow:0 10px 28px rgba(8,3,17,.20);
+  background:#1f102e;
+}
+:global(.playza-member-dashboard) .card{
+  box-shadow:0 10px 28px rgba(8,3,17,.20);
+}
+:global(.playza-member-dashboard) .sport{
+  border-color:#806094;
+  background:rgba(40,23,57,.88);
+}
+:global(.playza-member-dashboard) .gender{
+  border-color:#806094;
+  background:rgba(40,23,57,.88);
+}
+:global(.playza-member-dashboard) .eyebrow svg{color:#c4a0dc}
+:global(.playza-member-dashboard) .shade{
+  background:linear-gradient(90deg,rgba(28,13,43,.97) 0%,rgba(49,22,69,.82) 35%,rgba(32,15,46,.51) 62%,rgba(17,7,32,.16) 100%),linear-gradient(0deg,rgba(19,9,30,.90),transparent 38%);
+}
