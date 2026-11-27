@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, ArrowLeft, CalendarDays, Clock3, MapPin, Volleyball, Trophy, LandPlot, ChevronDown, Zap, UsersRound, CalendarCheck2, ShieldCheck, LogIn } from "lucide-react";
+import { ArrowUpRight, ArrowLeft, CalendarDays, Clock3, MapPin, Volleyball, Trophy, LandPlot, ChevronDown, Zap, UsersRound, CalendarCheck2, ShieldCheck, LogIn, CircleUserRound, Plus } from "lucide-react";
 import { AppLogo } from "@/components/shared/app-logo";
 import type { PublicGame } from "@/lib/public-games";
 import type { PublicCourt } from "@/lib/public-playgrounds";
@@ -24,7 +24,8 @@ export function LocalHeader({ lang, alternate }: { lang: LocalLanguage; alternat
       </nav>
       <div className={styles.headerActions}>
         <Link href={alternate} hrefLang={ar?"en":"ar-EG"} className={styles.languageLink}>{ar?"EN":"عربي"}</Link>
-        <Link href="/login" className={styles.loginLink}><LogIn size={17} aria-hidden="true" />{ar?"دخول":"Log in"}</Link>
+        <Link href="/games" className={styles.headerBook}><Plus size={19} aria-hidden="true"/>{ar?"حجز مباراة":"Book a game"}</Link>
+        <Link href="/login" className={styles.loginLink} aria-label={ar?"تسجيل الدخول":"Log in"}><CircleUserRound size={25} aria-hidden="true" /><span className={styles.loginText}>{ar?"دخول":"Log in"}</span></Link>
       </div>
     </div>
   </header>;
@@ -65,7 +66,7 @@ export function LocalHero({lang,title,description,badge,gamesCount,ctaId="local-
     <div className={styles.heroInner}>
       <div className={styles.heroCopy}>
         <nav className={styles.breadcrumbs} aria-label={ar?"مسار الصفحة":"Breadcrumb"}><Link href="/">{ar?"الرئيسية":"Home"}</Link><span aria-hidden="true">‹</span><span>{badge}</span></nav>
-        <p className={styles.eyebrow}>{ar?"PLAYZA / العب في التجمع":"PLAYZA / NEW CAIRO"}</p>
+        
         <h1 className={styles.heroTitle}>{mainTitle}</h1>
         <p className={styles.heroDescription}>{description}</p>
         <div className={styles.heroActions}>
@@ -119,7 +120,7 @@ export function LocalGameCards({lang,games}:{lang:LocalLanguage;games:PublicGame
      <div className={styles.cardBottom}>
        <span className={styles.detail}><CalendarDays size={18} aria-hidden="true"/><time dateTime={g.game_date}>{date}</time></span>
        <span className={styles.detail}><Clock3 size={18} aria-hidden="true"/>{formatTime12h(g.start_time,lang)}</span>
-       <strong className={styles.price}>{cost}<span>{ar?" / فرد":" / player"}</span></strong>
+       <strong className={styles.price}>{cost}<span>{ar?"":" / player"}</span></strong>
        <Link className={styles.cardButton} href={publicGamePath(g.id)}>{g.status==="full"?(ar?"تفاصيل الماتش":"Game details"):(ar?"احجز مكانك":"Book your place")}<ArrowUpRight size={17} aria-hidden="true"/></Link>
      </div>
    </div>
