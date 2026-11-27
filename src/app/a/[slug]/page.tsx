@@ -1,11 +1,10 @@
 import { AnalyticsView } from "@/components/analytics/business-analytics";
-import { LocationMap } from "@/components/shared/location-map";
 import { AcademyLogo } from "@/components/academies/academy-logo";
 import { AcademyHeroPhoto } from "@/components/academies/academy-hero-photo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, Camera, MapPin, MessageSquareText, Star, Trophy, UsersRound, Clock3, ArrowUpRight, Phone, ShieldCheck, Volleyball, Images, GraduationCap, Sparkles } from "lucide-react";
+import { CalendarDays, Camera, MapPin, MessageSquareText, Star, Trophy, UsersRound, Clock3, ArrowUpRight, Navigation, Phone, ShieldCheck, Volleyball, Images, GraduationCap, Sparkles } from "lucide-react";
 import styles from "./academy-profile.module.css";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { dictionary } from "@/lib/i18n/dictionary";
@@ -277,7 +276,19 @@ export default async function PublicAcademyPage({
                 <p><CalendarDays size={19}/><LangLabel en="Training times vary by group" ar="المواعيد حسب مجموعة التدريب" /></p>
                 {!!sports?.length && <p><Volleyball size={19}/>{sports.map(s=>s.name).join(" · ")}</p>}
               </div>
-              <div className={styles.mapWrap}><LocationMap name={academy.name} address={place} lat={academy.lat} lng={academy.lng}/></div>
+              {place && <div className={styles.locationFeature}>
+                <div className={styles.locationFeatureTop}>
+                  <span className={styles.locationIcon}><MapPin size={20}/></span>
+                  <div className={styles.locationInfo}>
+                    <span className={styles.locationEyebrow}><LangLabel en="TRAINING LOCATION" ar="مكان التدريب" /></span>
+                    <strong>{academy.area || academy.governorate || academy.country}</strong>
+                  </div>
+                </div>
+                <p className={styles.locationAddress}>{place}</p>
+                <a className={styles.locationDirections} href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(academy.lat!=null&&academy.lng!=null?`${academy.lat},${academy.lng}`:place)}`} target="_blank" rel="noopener noreferrer">
+                  <Navigation size={16}/><LangLabel en="Get directions" ar="الاتجاهات على الخريطة"/><ArrowUpRight size={15}/>
+                </a>
+              </div>}
               <div className={styles.sideActions}>
                 <a href="#groups"><UsersRound size={17}/><LangLabel en="Explore groups" ar="عرض المجموعات" /></a>
                 <a href="#trial-enquiry"><Sparkles size={17}/><LangLabel en="Trial enquiry" ar="استفسار عن تجربة" /></a>
