@@ -140,3 +140,40 @@
   .cinematicUtilities { width: 100%; justify-content: space-between; gap: 5px; }
   .cinematicUtilities :global(button), .cinematicUtilities :global(a) { min-height: 30px!important; padding: 5px 8px!important; font-size: 10px!important; }
 }
+
+
+/* Reference-match typography and information hierarchy in the 4-column grid.
+   Keep date + start/end time, venue, price, capacity/progress and all actions visible. */
+@media (min-width:1200px) {
+  .cinematicScene,.cinematicBody{min-height:365px}
+  .cinematicBody{padding:14px;gap:8px}
+  .cinematicTop{gap:6px}
+  .cinematicSport{font-size:12px;min-height:33px;padding:5px 9px}
+  .cinematicStatus{font-size:11px;padding:6px 9px}
+  .cinematicTitle{font-size:19px;min-height:51px;margin-top:8px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .cinematicWhen{font-size:11px;line-height:1.45;gap:7px 10px}
+  .cinematicWhen>span{white-space:nowrap;min-width:0}
+  .cinematicWhere{font-size:12px;line-height:1.5}
+  .cinematicBottom{padding-top:12px}
+  .cinematicMetrics{margin-bottom:13px;gap:10px}
+  .cinematicPrice{min-width:87px;min-height:61px;padding:7px 9px}
+  .cinematicPrice strong{font-size:18px;letter-spacing:-.035em}
+  .cinematicPrice small{font-size:11px}
+  .cinematicProgressText{font-size:10px;line-height:1.4;gap:4px}
+  .cinematicProgressText svg{width:13px;height:13px}
+  .cinematicTrack{height:8px;margin-top:7px}
+  .cinematicActions{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,.85fr);align-items:stretch;gap:6px;flex-wrap:nowrap}
+  .cinematicJoin{flex:auto;min-width:0;min-height:43px;padding:7px 5px;gap:4px;font-size:12px;line-height:1.25;white-space:nowrap}
+  .cinematicUtilities{display:contents;width:auto}
+  .cinematicUtilities>div{width:100%;min-width:0}
+  .cinematicUtilities :global(a),.cinematicUtilities :global(button){width:100%;min-height:43px!important;padding:6px 3px!important;font-size:10px!important;line-height:1.2;justify-content:center;white-space:nowrap;gap:3px}
+  .cinematicUtilities :global(svg){width:13px;height:13px;flex-shrink:0}
+  .cinematicUtilities :global(img){width:13px;height:13px}
+}
+@media(min-width:1200px) and (max-width:1350px){
+  .cinematicBody{padding:11px}
+  .cinematicTitle{font-size:17px}
+  .cinematicWhen{font-size:10px}
+  .cinematicSport{font-size:11px}
+  .cinematicStatus{font-size:10px}
+}
