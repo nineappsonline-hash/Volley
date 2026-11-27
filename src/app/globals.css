@@ -782,3 +782,26 @@ body:has([data-academy-directory]) header.pwa-pad-top nav a[aria-current="page"]
 body:has([data-academy-directory]) header.pwa-pad-top button:not(.bg-primary){
   color:#fdf8ff;
 }
+
+
+/* Academy discovery: coherent premium navigation in daylight theme. */
+html:not(.dark) body:has([data-academy-directory]) header.pwa-pad-top{
+  background-color:#ffffff !important;
+  border-bottom:1px solid #e5deeb !important;
+  color:#24182f !important;
+  box-shadow:0 3px 18px rgba(28,15,48,.055);
+}
+html:not(.dark) body:has([data-academy-directory]) header.pwa-pad-top nav a{
+  color:#271a32 !important;
+}
+html:not(.dark) body:has([data-academy-directory]) header.pwa-pad-top nav a:hover{
+  background-color:#f2eafa !important;
+  color:#542481 !important;
+}
+html:not(.dark) body:has([data-academy-directory]) header.pwa-pad-top nav a[aria-current="page"]{
+  background-color:#eee4f9 !important;
+  color:#542481 !important;
+}
+html:not(.dark) body:has([data-academy-directory]) header.pwa-pad-top button:not(.bg-primary){
+  color:#281833 !important;
+}
