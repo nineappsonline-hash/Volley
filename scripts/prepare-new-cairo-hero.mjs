@@ -14,13 +14,15 @@ const output = join(process.cwd(), "public", "images", "new-cairo-volleyball-sun
 const photo = "https://images.pexels.com/photos/13648398/pexels-photo-13648398.jpeg?fm=webp&w=1400";
 try {
   const existing = await stat(output).catch(() => null);
-  if (existing?.size > 10_000) {
+  // Keep the checked-in, optimized WebP even when under 10KB.
+  // The previous size-only threshold silently replaced the approved art with a stock net photo.
+  if (existing?.size > 5_000) {
     console.log("New Cairo hero already cached locally.");
   } else {
     const response = await fetch(photo, { signal: AbortSignal.timeout(20_000) });
     if (!response.ok) throw new Error(`Hero source returned ${response.status}`);
     const bytes = Buffer.from(await response.arrayBuffer());
-    if (bytes.length < 10_000 || bytes.length > 2_000_000 || bytes.toString("ascii", 0, 4) !== "RIFF" || bytes.toString("ascii", 8, 12) !== "WEBP") {
+    if (bytes.length < 5_000 || bytes.length > 2_000_000 || bytes.toString("ascii", 0, 4) !== "RIFF" || bytes.toString("ascii", 8, 12) !== "WEBP") {
       throw new Error("Hero source did not return a valid WebP asset");
     }
     await mkdir(join(process.cwd(), "public", "images"), { recursive: true });
