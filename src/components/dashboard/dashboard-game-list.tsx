@@ -26,7 +26,7 @@ export function DashboardGameList({ games, profile }: { games: FriendlyGameWithD
     }
   };
   return <QueryState queries={[participants]}>
-    <div className={`grid grid-cols-1 gap-5 xl:grid-cols-2`}>
+    <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4`}>
       {games.map(game => {
         const upcomingGame = upcoming.data?.find(row => row.game.id === game.id || (row.game.title === game.title && row.game.game_date === game.game_date && row.game.start_time === game.start_time))?.game;
         const photo = gamePlaygroundPhoto(game, venues.data ?? []) || (upcomingGame ? gamePlaygroundPhoto(upcomingGame, venues.data ?? []) : null);
