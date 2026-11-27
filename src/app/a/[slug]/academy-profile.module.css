@@ -222,3 +222,12 @@
 @media(max-width:750px){
  .groups :global(.training-mobile):before{height:170px!important;flex-basis:170px}
 }
+
+/* Images are now real elements selected from the group data. Remove mock
+   pseudo-images, including the legacy nth-child gender swaps. */
+.groups :global(.training-mobile):before,
+.groups :global(.training-mobile:nth-child(3n+1)):before,
+.groups :global(.training-mobile:nth-child(3n+2)):before,
+.groups :global(.training-mobile:nth-child(3n+3)):before{
+ content:none!important;display:none!important;
+}
