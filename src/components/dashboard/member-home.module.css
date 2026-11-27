@@ -813,42 +813,54 @@
 }
 
 
-/* User-uploaded approved WebP is the only desktop Discover hero image.
-   Its English headline is baked into the artwork, so prevent duplicate HTML
-   copy on desktop while keeping the actual search and action buttons live. */
+/* Playza compact Discover banner: original uploaded WebP, never stretched.
+   The 2172x724 file is ~3:1, while the banner is ~6:1.
+   A fixed IMAGE HEIGHT keeps the balls/racket circular; the deep-purple
+   gradient masks the baked-in headline so the real HTML heading stays sharp. */
 @media (min-width:1024px) {
   :global(.playza-member-dashboard) .desktopHero {
     height:240px!important;
     min-height:240px!important;
     max-height:240px!important;
     padding:25px 36px 16px!important;
-    background-color:#230b40!important;
-    background-image:url('/images/playza_sports_banner.webp')!important;
-    background-position:center!important;
-    background-size:100% 100%!important;
+    background-color:#220a3b!important;
+    background-image:
+      linear-gradient(90deg,#220a3b 0%,#220a3b 30%,rgba(34,10,59,.97) 38%,rgba(34,10,59,.8) 45%,rgba(34,10,59,0) 62%),
+      url('/images/playza_sports_banner.webp')!important;
+    background-size:100% 100%,auto 410px!important;
+    background-position:center center,right center!important;
     background-repeat:no-repeat!important;
   }
   :global(.playza-member-dashboard) .desktopHero .heroCopy {
-    opacity:0;
-    pointer-events:none;
-    background:none!important;
+    opacity:1!important;
+    pointer-events:auto!important;
+    position:relative;
+    z-index:2;
+    background:transparent!important;
     box-shadow:none!important;
+  }
+  :global(.playza-member-dashboard) .desktopHero .heroCopy h1 {
+    font-size:clamp(32px,3vw,43px);
   }
   :global(.playza-member-dashboard) .desktopHero .heroSearch {
     position:relative;
-    z-index:2;
+    z-index:3;
     margin-inline-start:12%;
     width:auto;
   }
 }
 @media (max-width:1023px) {
   :global(.playza-member-dashboard) .desktopHero {
-    background-color:#230b40!important;
-    background-image:linear-gradient(90deg,rgba(27,7,49,.95) 0%,rgba(27,7,49,.84) 40%,rgba(27,7,49,.28) 100%),url('/images/playza_sports_banner.webp')!important;
-    background-size:cover!important;
-    background-position:70% center!important;
+    background-color:#220a3b!important;
+    background-image:
+      linear-gradient(90deg,rgba(34,10,59,.97) 0%,rgba(34,10,59,.94) 38%,rgba(34,10,59,.44) 78%,rgba(34,10,59,.25) 100%),
+      url('/images/playza_sports_banner.webp')!important;
+    background-size:100% 100%,auto 330px!important;
+    background-position:center center,right center!important;
+    background-repeat:no-repeat!important;
   }
   :global(.playza-member-dashboard) .desktopHero .heroCopy {
-    opacity:1;
+    opacity:1!important;
+    background:transparent!important;
   }
 }
