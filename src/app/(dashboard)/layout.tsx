@@ -43,11 +43,11 @@ export default async function DashboardLayout({
   const { academy, isCoach, hasAcademyWorkspace } = await loadTopbarContext(profile);
 
   return (
-    <div className={`${profile.role === "super_admin" ? "playza-super-admin" : ""} min-h-screen bg-background pb-[env(safe-area-inset-bottom)]`}>
+    <div className={`${profile.role === "super_admin" ? "playza-super-admin" : ""} ${profile.role === "member" ? "flex flex-col min-h-[100dvh]" : "min-h-screen"} bg-background pb-[env(safe-area-inset-bottom)]`}>
       {profile.role !== "member" && <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 border-e bg-brand lg:block">
         <Sidebar role={profile.role} name={profile.name} memberPlan={profile.member_plan} isCoach={isCoach} hasAcademyWorkspace={hasAcademyWorkspace} />
       </aside>}
-      <div className={profile.role === "member" ? "pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-0" : "lg:ps-64"}>
+      <div className={profile.role === "member" ? "flex flex-1 flex-col pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-0" : "lg:ps-64"}>
         <Topbar
           role={profile.role}
           name={profile.name}
@@ -59,7 +59,7 @@ export default async function DashboardLayout({
           hasAcademyWorkspace={hasAcademyWorkspace}
           academy={academy}
         />
-        <main className={`mx-auto w-full ${profile.role === "member" ? "max-w-[1600px]" : "max-w-6xl"} p-4 sm:p-6 lg:p-8`}>
+        <main className={`mx-auto w-full ${profile.role === "member" ? "flex flex-1 flex-col max-w-[1600px]" : "max-w-6xl"} p-4 sm:p-6 lg:p-8`}>
           {profile.role !== "super_admin" && profile.role !== "member" && <InstallBanner />}
           {profile.role === "super_admin" || profile.role === "playground_owner" ? (
             children
