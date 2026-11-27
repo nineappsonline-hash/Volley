@@ -98,6 +98,7 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
             <div className={styles.cinematicBadges}>
               <span className={styles.cinematicStatus} dir="auto">{statusLabel}</span>
               <span className={styles.cinematicGender} dir="auto">{game.gender === "mixed" ? (ar ? "ميكس" : "Mixed") : game.gender === "male" ? (ar ? "رجالة بس" : "Men only") : (ar ? "سيدات بس" : "Women only")}</span>
+              {game.skill_level && <span className={styles.cinematicLevel} dir="auto">{t(`skill_${game.skill_level}`)}</span>}
             </div>
           </div>
           <div className={styles.cinematicHeading}>
