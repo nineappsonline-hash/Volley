@@ -4,7 +4,8 @@ import { AcademyLogo } from "@/components/academies/academy-logo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, Camera, MapPin, MessageSquareText, Star, Trophy } from "lucide-react";
+import { CalendarDays, Camera, MapPin, MessageSquareText, Star, Trophy, UsersRound, Clock3, ArrowUpRight, Phone, ShieldCheck, Volleyball, Images, GraduationCap, Sparkles } from "lucide-react";
+import styles from "./academy-profile.module.css";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { dictionary } from "@/lib/i18n/dictionary";
 import {
@@ -159,272 +160,135 @@ export default async function PublicAcademyPage({
     ]),
   ];
 
+  const place = [academy.area, academy.governorate, academy.country].filter(Boolean).join(", ");
+  const gallery = [
+    ...(academy.cover_url ? [{ id: "cover", photo_url: academy.cover_url, caption: academy.name }] : []),
+    ...(photos ?? []),
+  ];
+  const heroImage = academy.cover_url
+    || (photos ?? [])[0]?.photo_url
+    || "/images/academy-design/sparkle/hero-volleyball.jpg";
+
   return (
-    <main className="min-h-screen bg-muted/20 pb-[calc(6rem+env(safe-area-inset-bottom))]">
+    <main className={styles.profile}>
       <AnalyticsView event="academy_view" id={academy.id} context={{country:academy.country,governorate:academy.governorate,area:academy.area,sports:(sports??[]).map(s=>s.name)}} />
       <AcademyNavigation />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@graph": jsonLd }) }}
-      />
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b bg-gradient-to-br from-brand via-brand to-interactive-800 py-8 text-white sm:py-12">
-        <div className="pointer-events-none absolute -top-24 start-1/2 h-72 w-[32rem] -translate-x-1/2 rounded-full bg-white/15 blur-3xl rtl:translate-x-1/2" />
-        <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-4 px-6 text-center">
-          {academy.cover_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={academy.cover_url}
-              alt={academy.name}
-              className="h-40 w-full max-w-xl rounded-2xl border border-white/20 object-cover shadow-lg sm:h-56"
-            />
-          )}
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
-            <AcademyLogo academyId={academy.id} name={academy.name} logoUrl={academy.logo_url} />
-          </div>
-          <h1 className="text-3xl font-extrabold sm:text-4xl">{academy.name}</h1>
-          {academy.description && (
-            <p className="max-w-xl text-sm text-white/85 sm:text-base">
-              {academy.description}
-            </p>
-          )}
-          {(academy.country || academy.governorate) && (
-            <p className="flex items-center justify-center gap-1.5 text-sm text-white/85">
-              <MapPin className="h-4 w-4" />
-              {[academy.area, academy.governorate, academy.country]
-                .filter(Boolean)
-                .join(", ")}
-            </p>
-          )}
-          {ratingCount > 0 && (
-            <div className="flex items-center gap-2 text-sm text-white/90">
-              <span className="flex items-center gap-0.5" dir="ltr">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star
-                    key={i}
-                    className={`h-4 w-4 ${
-                      i <= Math.round(avgRating)
-                        ? "fill-attention-300 text-attention-300"
-                        : "text-white/40"
-                    }`}
-                  />
-                ))}
-              </span>
-              <span>
-                {avgRating.toFixed(1)} ·{" "}
-                <LangLabel
-                  en={(dictionary.en.directory_reviews as string).replace(
-                    "{n}",
-                    String(ratingCount)
-                  )}
-                  ar={(dictionary.ar.directory_reviews as string).replace(
-                    "{n}",
-                    String(ratingCount)
-                  )}
-                />
-              </span>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@graph": jsonLd }) }} />
+
+      <section className={styles.hero} aria-labelledby="academy-name">
+        <div className={styles.heroPhoto} style={{ backgroundImage: `url("${heroImage.replace(/["\\]/g,"")}")` }} aria-hidden="true" />
+        <div className={styles.heroShade} />
+        <div className={styles.heroInner}>
+          <div className={styles.identity}>
+            <div className={styles.avatar}><AcademyLogo academyId={academy.id} name={academy.name} logoUrl={academy.logo_url} /></div>
+            <div>
+              <span className={styles.kicker}><LangLabel en="SPORTS ACADEMY" ar="أكاديمية رياضية" /></span>
+              <h1 id="academy-name">{academy.name}</h1>
             </div>
-          )}
-          <div className="mt-1 flex flex-wrap items-center justify-center gap-3">
-            <a
-              href="#groups"
-              className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-2.5 text-sm font-bold text-brand shadow-lg transition-transform hover:scale-105"
-            >
-              <Trophy className="h-4 w-4" />
-              <LangLabel
-                en="Explore groups & prices"
-                ar="استكشف المجموعات والأسعار"
-              />
-            </a>
-            <JoinAcademyButton
-              academyId={academy.id}
-              analytics={{country:academy.country,governorate:academy.governorate,area:academy.area,sports:(sports??[]).map(s=>s.name)}}
-              className="rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-transform hover:scale-105"
-            />
-            <FollowAcademyButton
-              academyId={academy.id}
-              showCount
-              className="border border-white/40 bg-white/10 px-6 py-2.5 text-white hover:bg-white/20 hover:text-white"
-            />
-            <AcademyShareButton
-              academy={{
-                name: academy.name,
-                slug,
-                area: academy.area,
-                governorate: academy.governorate,
-              }}
-              variant="outline"
-              size="lg"
-              align="start"
-              className="border border-white/40 bg-white/10 px-6 py-2.5 text-white hover:bg-white/20 hover:text-white"
-            />
           </div>
+          {place && <p className={styles.heroPlace}><MapPin size={15} />{place}</p>}
+          {ratingCount > 0 && <p className={styles.heroRating}><Star size={18} fill="#caff00" /> {avgRating.toFixed(1)} <span>({ratingCount} <LangLabel en="reviews" ar="تقييمات" />)</span></p>}
+          {academy.description && <p className={styles.heroDesc}>{academy.description}</p>}
+          <div className={styles.heroButtons}>
+            <a className={styles.heroPrimary} href="#groups"><UsersRound size={18}/><LangLabel en="Explore training groups" ar="استكشف مجموعات التدريب" /></a>
+            <JoinAcademyButton academyId={academy.id} analytics={{country:academy.country,governorate:academy.governorate,area:academy.area,sports:(sports??[]).map(s=>s.name)}} className={styles.heroSecondary} />
+            <FollowAcademyButton academyId={academy.id} showCount className={styles.heroSecondary} />
+            <AcademyShareButton academy={{name:academy.name,slug,area:academy.area,governorate:academy.governorate}} variant="outline" size="lg" align="start" className={styles.heroSecondary} />
+          </div>
+        </div>
+        <div className={styles.heroHighlights}>
+          <span><Volleyball size={18}/><LangLabel en="Sports training" ar="تدريب رياضي" /></span>
+          <span><UsersRound size={18}/><LangLabel en="Training groups" ar="مجموعات تدريب" /></span>
+          <span><CalendarDays size={18}/><LangLabel en="Flexible scheduling" ar="مواعيد تدريب" /></span>
         </div>
       </section>
 
-      <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
-        <nav aria-label="Academy sections" className="flex flex-wrap gap-2 rounded-2xl border bg-card p-2 shadow-sm">
-          <a href="#groups" className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"><LangLabel en="Training groups" ar="مجموعات التدريب" /></a>
-          <a href="#sports" className="rounded-xl px-4 py-3 text-sm font-medium hover:bg-muted"><LangLabel en="Sports" ar="الرياضات" /></a>
-          {!!sessions?.length && <a href="#sessions" className="rounded-xl px-4 py-3 text-sm font-medium hover:bg-muted"><LangLabel en="Schedule" ar="المواعيد" /></a>}
-          {!!photos?.length && <a href="#photos" className="rounded-xl px-4 py-3 text-sm font-medium hover:bg-muted"><LangLabel en="Photos" ar="الصور" /></a>}
-          {!!reviews.length && <a href="#reviews" className="rounded-xl px-4 py-3 text-sm font-medium hover:bg-muted"><LangLabel en="Reviews" ar="التقييمات" /></a>}
+      <nav className={styles.tabs} aria-label="Academy page sections">
+        <div className={styles.tabsInner}>
+          <a className={styles.selectedTab} href="#groups"><UsersRound size={17}/><LangLabel en="Training groups" ar="مجموعات التدريب" /></a>
+          <a href="#sports"><Volleyball size={17}/><LangLabel en="Sports" ar="الرياضات" /></a>
+          {!!sessions?.length && <a href="#sessions"><CalendarDays size={17}/><LangLabel en="Schedule" ar="المواعيد" /></a>}
+          {!!gallery.length && <a href="#photos"><Images size={17}/><LangLabel en="Gallery" ar="الصور" /></a>}
+          {!!reviews.length && <a href="#reviews"><Star size={17}/><LangLabel en="Reviews" ar="التقييمات" /></a>}
+          <a href="#about"><GraduationCap size={17}/><LangLabel en="About" ar="عن الأكاديمية" /></a>
+        </div>
+      </nav>
+
+      <div className={styles.body}>
+        <div className={styles.workspace}>
+          <div className={styles.mainColumn}>
+            <section id="groups" className={styles.groups}>
+              <AcademyTrainingOffers academyId={academy.id}/>
+            </section>
+
+            {(sports??[]).length > 0 && <section id="sports" className={styles.panel}>
+              <h2><Volleyball size={21}/><LangLabel en="Sports at this academy" ar="الرياضات المتاحة" /></h2>
+              <div className={styles.sportPills}>{(sports??[]).map(s=>isActiveSport(s.name)
+                ? <Link key={s.id} href={discoveryPath("en",sportToSlug(s.name))}>{s.name} <ArrowUpRight size={15}/></Link>
+                : <span key={s.id}>{s.name}</span>)}</div>
+            </section>}
+
+            {(sessions??[]).length > 0 && <section id="sessions" className={styles.panel}>
+              <h2><CalendarDays size={21}/><LangLabel en="Upcoming sessions" ar="المواعيد القادمة" /></h2>
+              <div className={styles.sessionGrid}>{(sessions??[]).map(s=><div className={styles.session} key={`${s.date}-${s.time}`}>
+                <strong>{s.date}</strong><span><Clock3 size={15}/>{formatTime12h(s.time)} {s.location ? ` · ${s.location}` : ""}</span>
+              </div>)}</div>
+            </section>}
+
+            {!!gallery.length && <section id="photos" className={styles.panel}>
+              <h2><Camera size={21}/><LangLabel en="Photos & gallery" ar="الصور والمعرض" /></h2>
+              <div className={styles.photoGrid}>{gallery.map(p=><figure key={p.id}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.photo_url} alt={p.caption||academy.name} loading="lazy"/>
+                {p.caption && <figcaption>{p.caption}</figcaption>}
+              </figure>)}</div>
+            </section>}
+
+            {!!reviews.length && <section id="reviews" className={styles.panel}>
+              <h2><MessageSquareText size={21}/><LangLabel en="Academy reviews" ar="تقييمات الأكاديمية" /></h2>
+              <div className={styles.reviewList}>{reviews.map(r=><div key={r.id??`${r.created_at}-${r.rating}`} className={styles.review}>
+                <div><strong>{(r as {member?:{name?:string}}).member?.name||"—"}</strong><span><Star size={16} fill="#f6bc30"/>{r.rating}/5</span></div>
+                <time dir="ltr"><LangLabel en={fmtDate(r.created_at,"en")} ar={fmtDate(r.created_at,"ar")} /></time>
+                {r.comment && <p>{r.comment}</p>}
+              </div>)}</div>
+            </section>}
+
+            <section id="about" className={styles.panel}>
+              <h2><GraduationCap size={21}/><LangLabel en="About the academy" ar="عن الأكاديمية" /></h2>
+              {academy.description ? <p className={styles.about}>{academy.description}</p>
+                : <p className={styles.about}><LangLabel en="Explore this academy's sports, training groups and available booking options." ar="اكتشف الرياضات ومجموعات التدريب وخيارات الحجز المتاحة في الأكاديمية." /></p>}
+              <details className={styles.trial}>
+                <summary><LangLabel en="Ask about a different trial time" ar="اسأل عن موعد تجريبي مختلف" /></summary>
+                <p><LangLabel en="This is an enquiry, not a confirmed booking or payment." ar="ده استفسار فقط، مش حجز مؤكد أو عملية دفع." /></p>
+                <TrialForm anchorId="trial-enquiry" academyId={academy.id} sports={sports??[]}/>
+              </details>
+            </section>
+          </div>
+
+          <aside className={styles.sidebar} aria-label="Academy venue and details">
+            <div className={styles.sideCard}>
+              <div className={styles.sideImage} style={{backgroundImage:`url("${(gallery[0]?.photo_url || heroImage).replace(/["\\]/g,"")}")`}}>
+                <span>{academy.name}</span>
+              </div>
+              <div className={styles.sideLines}>
+                {place && <p><MapPin size={19}/>{place}</p>}
+                <p><CalendarDays size={19}/><LangLabel en="Training times vary by group" ar="المواعيد حسب مجموعة التدريب" /></p>
+                {!!sports?.length && <p><Volleyball size={19}/>{sports.map(s=>s.name).join(" · ")}</p>}
+              </div>
+              <div className={styles.mapWrap}><LocationMap name={academy.name} address={place} lat={academy.lat} lng={academy.lng}/></div>
+              <div className={styles.sideActions}>
+                <a href="#groups"><UsersRound size={17}/><LangLabel en="Explore groups" ar="عرض المجموعات" /></a>
+                <a href="#trial-enquiry"><Sparkles size={17}/><LangLabel en="Trial enquiry" ar="استفسار عن تجربة" /></a>
+              </div>
+            </div>
+            <p className={styles.sideHint}><ShieldCheck size={18}/><LangLabel en="Choose a training group and check actual prices and dates before booking." ar="اختار مجموعة التدريب وراجع الأسعار والمواعيد الفعلية قبل الحجز." /></p>
+          </aside>
+        </div>
+
+        <nav className={styles.bottomLinks} aria-label="More Playza destinations">
+          <Link href="/academies"><LangLabel en="Explore sports academies" ar="اكتشف أكاديميات تانية" /> <ArrowUpRight size={17}/></Link>
+          <Link href="/games"><LangLabel en="Find games to join" ar="دور على ماتشات" /> <ArrowUpRight size={17}/></Link>
         </nav>
-        <LocationMap name={academy.name} address={[academy.area, academy.governorate, academy.country].filter(Boolean).join(", ")} lat={academy.lat} lng={academy.lng} />
-
-        <section id="groups" className="scroll-mt-24">
-          <AcademyTrainingOffers academyId={academy.id} />
-        </section>
-        {/* Sports */}
-        {(sports ?? []).length > 0 && (
-          <section id="sports" className="scroll-mt-24 rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
-            <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
-              <Trophy className="h-5 w-5 text-primary" />
-              <LangLabel en={dictionary.en.public_sports} ar={dictionary.ar.public_sports} />
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {(sports ?? []).map((s) =>
-                // Link only sports Playza actually serves discovery pages for.
-                isActiveSport(s.name) ? (
-                  <Link
-                    key={s.name}
-                    href={discoveryPath("en", sportToSlug(s.name))}
-                    className="rounded-full border bg-muted/40 px-4 py-1.5 text-sm font-medium underline-offset-4 hover:underline"
-                  >
-                    {s.name}
-                  </Link>
-                ) : (
-                  <span
-                    key={s.name}
-                    className="rounded-full border bg-muted/40 px-4 py-1.5 text-sm font-medium"
-                  >
-                    {s.name}
-                  </span>
-                ),
-              )}
-            </div>
-          </section>
-        )}
-
-        {/* Upcoming sessions */}
-        {(sessions ?? []).length > 0 && (
-          <section id="sessions" className="scroll-mt-24 rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
-            <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
-              <CalendarDays className="h-5 w-5 text-primary" />
-              <LangLabel en={dictionary.en.public_upcoming} ar={dictionary.ar.public_upcoming} />
-            </h2>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {(sessions ?? []).map((s) => (
-                <div key={`${s.date}-${s.time}`} className="rounded-lg border p-3 text-sm">
-                  <p className="font-medium">{s.date}</p>
-                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <MapPin className="h-3 w-3" />
-                    {formatTime12h(s.time)}
-                    {s.location ? ` · ${s.location}` : ""}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Photos */}
-        {(photos ?? []).length > 0 && (
-          <section id="photos" className="scroll-mt-24 rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
-            <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
-              <Camera className="h-5 w-5 text-primary" />
-              <LangLabel en={dictionary.en.public_photos} ar={dictionary.ar.public_photos} />
-            </h2>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {(photos ?? []).map((p) => (
-                <figure key={p.id} className="overflow-hidden rounded-xl border">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={p.photo_url}
-                    alt={p.caption ?? academy.name}
-                    className="aspect-[4/3] w-full object-cover"
-                    loading="lazy"
-                  />
-                  {p.caption && (
-                    <figcaption className="px-3 py-2 text-xs text-muted-foreground">
-                      {p.caption}
-                    </figcaption>
-                  )}
-                </figure>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Reviews */}
-        {reviews.length > 0 && (
-          <section id="reviews" className="scroll-mt-24 rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
-            <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
-              <MessageSquareText className="h-5 w-5 text-primary" />
-              <LangLabel en={dictionary.en.public_reviews} ar={dictionary.ar.public_reviews} />
-            </h2>
-            <div className="space-y-3">
-              {reviews.map((r) => (
-                <div key={r.id ?? `${r.created_at}-${r.rating}`} className="rounded-xl border p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-sm font-semibold">
-                      {(r as { member?: { name?: string } }).member?.name ?? "—"}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <span className="flex items-center gap-0.5" dir="ltr">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <Star
-                            key={i}
-                            className={`h-3.5 w-3.5 ${
-                              i <= r.rating
-                                ? "fill-attention-300 text-attention-300"
-                                : "text-muted-foreground/40"
-                            }`}
-                          />
-                        ))}
-                      </span>
-                      <time className="text-xs text-muted-foreground" dir="ltr">
-                        <LangLabel
-                          en={fmtDate(r.created_at, "en")}
-                          ar={fmtDate(r.created_at, "ar")}
-                        />
-                      </time>
-                    </div>
-                  </div>
-                  {r.comment && (
-                    <p className="mt-1.5 text-sm text-muted-foreground">{r.comment}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Discovery links back to public routes for these sports */}
-        <nav
-          aria-label="Playza discovery"
-          className="flex flex-wrap items-center gap-3 text-sm"
-        >
-          <Link
-            href="/academies"
-            className="rounded-xl border bg-card px-4 py-2 font-semibold underline-offset-4 hover:underline"
-          >
-            <LangLabel en="Explore sports academies" ar="اكتشف الأكاديميات الرياضية" />
-          </Link>
-          <Link
-            href="/games"
-            className="rounded-xl border bg-card px-4 py-2 font-semibold underline-offset-4 hover:underline"
-          >
-            <LangLabel en="Find games to join" ar="لاقي ماتشات تنضم لها" />
-          </Link>
-        </nav>
-
-        {/* Trial booking */}
-        <details className="rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
-          <summary className="cursor-pointer font-medium"><LangLabel en="Ask the academy about another trial time" ar="اسأل الأكاديمية عن موعد تجريبي آخر" /></summary>
-          <p className="my-3 text-sm text-muted-foreground"><LangLabel en="This sends an enquiry; it does not reserve a session or confirm payment." ar="ده استفسار للأكاديمية بس، مش حجز لحصة أو تأكيد للدفع." /></p>
-          <TrialForm anchorId="trial-enquiry" academyId={academy.id} sports={sports ?? []} />
-        </details>
       </div>
       <MemberBottomNavigation />
     </main>
