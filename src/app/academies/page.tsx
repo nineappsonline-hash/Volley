@@ -1,3 +1,4 @@
+import { DirectoryExperience } from "@/components/public/directory-experience";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { dictionary } from "@/lib/i18n/dictionary";
@@ -91,39 +92,8 @@ export default async function AcademiesPage() {
     },
   ];
 
-  return (
-    <div className="min-h-screen">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: jsonLdStringify({ "@context": "https://schema.org", "@graph": jsonLd }),
-        }}
-      />
-      {topbar}
-      <section className="mx-auto max-w-5xl px-6 pt-9 pb-5">
-        <h1 className="text-3xl font-extrabold">Sports Teams &amp; Academies in Egypt</h1>
-        <p className="mt-3 max-w-3xl leading-relaxed text-muted-foreground">Explore published sports academies and teams by sport and location. Compare available training options and open each academy for details before registering.</p>
-      </section>
-      <AcademyTeamsSection teams={teams} />
-      <section
-        aria-label="Academy guides"
-        className="mx-auto max-w-5xl px-6 pb-14"
-      >
-        <h2 className="text-xl font-extrabold">Academy guides</h2>
-        <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {ACADEMY_GUIDES.map((guide) => (
-            <li key={guide.slug}>
-              <Link
-                href={guidePath("en", guide.slug)}
-                className="block rounded-lg border px-4 py-3 text-sm transition-colors hover:border-primary hover:bg-muted"
-              >
-                <span className="font-semibold">{guide.en.title}</span>
-                <span className="mt-0.5 block text-xs text-muted-foreground">{guide.en.description}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-    </div>
-  );
+  return <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@context": "https://schema.org", "@graph": jsonLd }) }} />
+    <DirectoryExperience kind="academies" teams={teams} />
+  </>;
 }
