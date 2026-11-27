@@ -245,3 +245,23 @@
 @media(max-width:640px){
   .groups :global(.training-mobile){padding:12px!important}
 }
+
+
+/* Premium venue information replaces the old inset location form field. */
+.locationFeature{margin:15px 0 13px;padding:16px;border-radius:16px;background:linear-gradient(135deg,#f7f1fc 0%,#fff 82%);border:1px solid #e8d9f2;box-shadow:0 6px 20px #31134809}
+.locationFeatureTop{display:flex;align-items:center;gap:11px;min-width:0}
+.locationIcon{width:43px;height:43px;border-radius:13px;display:grid;place-items:center;flex-shrink:0;background:#ede0f9;color:#7132b2}
+.locationInfo{display:flex;min-width:0;flex-direction:column;gap:3px}
+.locationEyebrow{font-size:9px;letter-spacing:.07em;font-weight:800;color:#8759ab}
+.locationInfo strong{font-size:14px;line-height:1.5;color:#2d1841;font-weight:850;overflow-wrap:anywhere}
+.locationAddress{margin:12px 0;color:#776587;font-size:11px;line-height:1.75;overflow-wrap:anywhere}
+.locationDirections{display:flex;align-items:center;justify-content:center;gap:8px;min-height:41px;width:100%;border-radius:11px;padding:10px 12px;background:#662ba4;color:#fff!important;font-size:11px;font-weight:850;text-decoration:none;transition:background .15s ease}
+.locationDirections:hover{background:#4e1d83;color:#fff!important}
+.locationDirections svg:last-child{margin-inline-start:auto}
+:global(html.dark) .locationFeature{background:linear-gradient(135deg,#362144,#271732);border-color:#624274;box-shadow:none}
+:global(html.dark) .locationIcon{background:#492a61;color:#e0c4fa}
+:global(html.dark) .locationEyebrow{color:#cfa4ed}
+:global(html.dark) .locationInfo strong{color:#fff}
+:global(html.dark) .locationAddress{color:#c9b6d8}
+:global(html.dark) .locationDirections{background:#8746c9}
+:global(html.dark) .locationDirections:hover{background:#a264da}
