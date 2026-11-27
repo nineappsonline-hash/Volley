@@ -59,7 +59,7 @@ export default async function DashboardLayout({
           hasAcademyWorkspace={hasAcademyWorkspace}
           academy={academy}
         />
-        <main className={`mx-auto w-full ${profile.role === "member" ? "flex flex-1 flex-col max-w-[1600px]" : "max-w-6xl"} p-4 sm:p-6 lg:p-8`}>
+        <main className={`mx-auto w-full ${profile.role === "member" ? "flex flex-1 flex-col max-w-[1600px]" : "max-w-6xl"} p-4 sm:p-6 lg:p-8 ${profile.role === "member" ? "pb-0 sm:pb-0 lg:pb-0" : ""}`}>
           {profile.role !== "super_admin" && profile.role !== "member" && <InstallBanner />}
           {profile.role === "super_admin" || profile.role === "playground_owner" ? (
             children
