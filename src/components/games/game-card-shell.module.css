@@ -366,3 +366,11 @@
 @media(max-width:390px){
   .cinematicBadges .cinematicAge{font-size:11px;padding:5px 6px;min-height:28px}
 }
+
+
+/* The compact expanded section inherits a dark-readable roster, not legacy card colours. */
+.cinematicExpanded :global(section){border-color:#694184;background:#2c1a40;color:#fff}
+.cinematicExpanded :global(section button){color:#fff}
+.cinematicExpanded :global(section ul li){background:#3c2355;color:#fff}
+.cinematicExpanded :global(section .text-muted-foreground){color:#e2d4ed}
+.cinematicExpanded :global(section button:focus-visible){outline:2px solid #caff00;outline-offset:2px}
