@@ -265,3 +265,22 @@
 :global(html.dark) .locationAddress{color:#c9b6d8}
 :global(html.dark) .locationDirections{background:#8746c9}
 :global(html.dark) .locationDirections:hover{background:#a264da}
+
+
+/* Three academy group cards per row on roomy desktop screens. Preserve
+   readable two-column pricing inside each card and collapse responsively. */
+@media(min-width:1380px){
+  .workspace{grid-template-columns:minmax(0,1fr) 285px;gap:20px}
+  .groups>section>div,
+  .groups :global(.grid.items-start){
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:13px!important;
+  }
+  .groups :global(.training-mobile){padding:11px!important}
+}
+@media(min-width:1081px) and (max-width:1379px){
+  .groups>section>div,
+  .groups :global(.grid.items-start){
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
