@@ -1,4 +1,4 @@
-import { DirectoryExperience } from "@/components/public/directory-experience";
+import { AcademiesPremiumDirectory } from "@/components/academies/academies-premium-directory";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { dictionary } from "@/lib/i18n/dictionary";
@@ -94,6 +94,6 @@ export default async function AcademiesPage() {
 
   return <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@context": "https://schema.org", "@graph": jsonLd }) }} />
-    <DirectoryExperience kind="academies" teams={teams} />
+    <AcademiesPremiumDirectory teams={teams} />
   </>;
 }
