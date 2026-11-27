@@ -43,7 +43,7 @@ export async function LocalGamePage({ lang, slug }: { lang: LocalLanguage; slug:
         <LocalSectionHeading id="local-games-title" kicker={text("UP NEXT","المواعيد القادمة")} title={text("Find your next match", "اختار ماتشك الجاي")}
           aside={<Link className={styles.textArrow} href="/games">{text("All games","كل الماتشات")} <ArrowUpRight size={17}/></Link>}/>
         <LocalGameCards lang={lang} games={localGames}/>
-        {guide.sport==="Volleyball" && <div className={styles.waRow}><VolleyballWhatsAppGroup lang={lang}/></div>}
+        {guide.sport==="Volleyball" && <div className={styles.waRow}><VolleyballWhatsAppGroup lang={lang} theme="dark"/></div>}
       </section>
       {localCourts.length>0 && <section className={styles.section} aria-labelledby="local-courts-title">
         <LocalSectionHeading id="local-courts-title" kicker={text("THE COURTS","أماكن اللعب")} title={text("Where we play", "بنلعب فين؟")}/>
