@@ -219,3 +219,13 @@
 .programPhoto{position:relative;overflow:hidden}
 /* Avoid an extra image-wide filter pass, which softens detail on some mobile GPUs. */
 :global(html:not(.dark)) .cardImage,:global(html:not(.dark)) .sport:not(:first-child){filter:none}
+
+/* High-resolution academy photography, three-sport hero. */
+.heroVisual{background-image:none}
+.heroPhotoStrip{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:hidden}
+.heroPhotoTile{position:relative;min-width:0;overflow:hidden}
+.heroPhotoTile+.heroPhotoTile{border-inline-start:2px solid rgba(255,255,255,.14)}
+.heroPhotoTile .coverImage{object-fit:cover;object-position:center}
+.heroPhotoTile:first-child .coverImage{object-position:53% center}
+.heroVisual::before{z-index:1}
+.heroLocation{z-index:2}
