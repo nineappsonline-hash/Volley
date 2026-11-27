@@ -75,7 +75,7 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdStringify({ "@graph": jsonLd }) }}
       />
-      <div className="min-h-screen bg-background pb-[calc(6rem+env(safe-area-inset-bottom))]">
+      <div className="min-h-screen bg-background pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-0">
         <Topbar role="member" name="" username="" guest />
         <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-8">
           <GuestDashboard games={publicGames.map(guestGameCard)} />
