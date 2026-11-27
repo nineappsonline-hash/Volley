@@ -482,3 +482,29 @@
 .premiumExploreHeader{display:block}
 .premiumExploreHeader p{margin:6px 0 0 clamp(0px,6.5vw,105px);text-align:start}
 @media(max-width:600px){.premiumExploreHeader p{margin-inline-start:0}}
+
+
+/* Theme-aware section heading: light backgrounds need dark ink.
+   Keep the original white/lime treatment for genuine dark mode. */
+:global(html:not(.dark)) :global(.playza-member-dashboard) .premiumExploreHeader h2{
+  color:#241332;
+}
+:global(html:not(.dark)) :global(.playza-member-dashboard) .premiumExploreHeader h2 em{
+  color:#54218c;
+}
+:global(html:not(.dark)) :global(.playza-member-dashboard) .premiumExploreHeader p{
+  color:#584568;
+}
+:global(html:not(.dark)) :global(.playza-member-dashboard) .premiumExploreHeader h2::after{
+  background:#54218c;
+}
+:global(html.dark) :global(.playza-member-dashboard) .premiumExploreHeader h2{
+  color:#fff;
+}
+:global(html.dark) :global(.playza-member-dashboard) .premiumExploreHeader h2 em,
+:global(html.dark) :global(.playza-member-dashboard) .premiumExploreHeader h2::after{
+  color:#caff00;background-color:#caff00;
+}
+:global(html.dark) :global(.playza-member-dashboard) .premiumExploreHeader p{
+  color:#dacde6;
+}
