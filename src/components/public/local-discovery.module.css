@@ -17,8 +17,8 @@
 .page[dir="rtl"] .cardContent{text-align:right}
 .page[dir="rtl"] .headerActions{flex-direction:row-reverse}
 .page[dir="rtl"] .floatBadge{direction:rtl}
-.page[dir="rtl"] .heroVisual{clip-path:none;border-bottom:none;border-bottom-right-radius:48% 20%}
-.page[dir="rtl"] .heroVisual::after{content:"";position:absolute;right:0;bottom:0;width:78%;height:84%;border-bottom:8px solid #7532d2;border-right:8px solid #7532d2;border-bottom-right-radius:74% 80%;pointer-events:none;z-index:3}
-.page[dir="rtl"] .purpleCurve{display:none}
+.page[dir="rtl"] .heroVisual{border-bottom:4px solid #7532d2}
+
+
 @media(max-width:920px){.page[dir="rtl"] .heroVisual{border-radius:0;clip-path:none}.page[dir="rtl"] .heroVisual::after{display:none}}
 @media(max-width:620px){.headerBook{padding:9px 12px;font-size:11px}.headerBook svg{width:15px}.loginLink{min-width:37px;min-height:37px;padding:6px}.loginLink svg{width:22px}.headerActions{gap:7px}.headerNav{font-size:11px}.section{padding-top:32px}}
