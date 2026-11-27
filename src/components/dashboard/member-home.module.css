@@ -357,3 +357,122 @@
 :global(.playza-member-dashboard) .sports > button:hover .sportIcon svg [fill="currentColor"] {
   fill: currentColor;
 }
+
+
+/* Explore Playza — cinematic illustrated tiles.
+   The illustrations are decorative; text, icons, links and arrows remain accessible HTML. */
+.premiumExplore{
+  grid-column:1/-1;min-width:0;width:100%;
+  margin-top:12px;padding:0 0 14px;
+}
+.premiumExploreHeader{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:16px;margin:0 0 22px;
+}
+.premiumExploreHeader h2{
+  position:relative;margin:0;padding:0 0 11px;
+  color:#fff;font-size:clamp(24px,2.8vw,38px);
+  font-style:italic;font-weight:900;letter-spacing:-.025em;line-height:1.14;
+}
+.premiumExploreHeader h2 em{font-style:inherit;color:#caff00}
+.premiumExploreHeader h2::after{
+  content:"";position:absolute;bottom:0;inset-inline-start:1px;
+  width:100px;height:4px;border-radius:100%;
+  background:#caff00;transform:rotate(-4deg);
+}
+.premiumExploreHeader p{
+  color:#dacde6;font-size:13px;font-weight:550;
+  line-height:1.5;margin:0 0 4px;text-align:end;
+}
+.premiumCategories{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:15px;min-width:0;
+}
+.premiumCategory{
+  position:relative;isolation:isolate;display:flex;
+  align-items:flex-end;min-width:0;min-height:282px;
+  overflow:hidden;border:1.5px solid #784696;
+  border-radius:22px;padding:17px;
+  background:#24112f;color:#fff;text-decoration:none;
+  box-shadow:0 8px 23px #08020d33;
+  transition:border-color .2s,transform .2s,box-shadow .2s;
+}
+.premiumCategory:focus-visible{
+  outline:3px solid #caff00;outline-offset:4px;
+}
+.premiumCategory:hover{
+  transform:translateY(-3px);border-color:#b18ac5;
+  box-shadow:0 13px 28px #08020d4a;
+}
+.premiumCategoryPhoto{
+  position:absolute;inset:0;z-index:-2;
+  background-size:cover;background-position:top center;
+  transform:scale(1.012);transition:transform .3s;
+}
+.premiumCategory:hover .premiumCategoryPhoto{transform:scale(1.04)}
+.premiumCategoryShade{
+  position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(180deg,rgba(29,10,42,0) 12%,rgba(27,9,41,.13) 30%,rgba(31,10,45,.83) 63%,rgba(29,9,43,.98) 100%);
+}
+.premiumCategoryContent{
+  display:flex;flex-direction:column;align-items:flex-start;
+  gap:7px;width:100%;padding-inline-end:38px;
+  color:#fff;text-align:start;min-width:0;
+}
+.premiumCategoryIcon{
+  display:grid;place-items:center;width:51px;height:51px;
+  flex-shrink:0;margin-bottom:4px;
+  border-radius:15px;border:1px solid #9861b0;
+  background:linear-gradient(150deg,#643079e6,#39134fe6);
+  color:#caff00;
+}
+.premiumCategoryIcon svg{width:29px;height:29px;color:inherit}
+.premiumCategoryContent strong{
+  max-width:100%;color:#fff;
+  font-size:clamp(15px,1.35vw,20px);
+  font-weight:900;line-height:1.25;letter-spacing:-.02em;
+  overflow-wrap:anywhere;
+}
+.premiumCategoryDescription{
+  max-width:100%;color:#f0e9f5;
+  font-size:clamp(11px,.95vw,13px);
+  font-weight:550;line-height:1.5;
+}
+.premiumCategoryArrow{
+  position:absolute;inset-inline-end:14px;bottom:17px;
+  display:grid;place-items:center;
+  width:40px;height:40px;border-radius:13px;
+  background:#caff00;color:#190e26;
+  transition:background .2s,transform .2s;
+}
+.premiumCategory:hover .premiumCategoryArrow{background:#e1ff66;transform:translate(2px,-2px)}
+:global([dir="rtl"]) .premiumCategory:hover .premiumCategoryArrow{transform:translate(-2px,-2px)}
+@media(min-width:1500px){
+  .premiumCategory{min-height:310px;padding:21px}
+  .premiumCategoryContent strong{font-size:21px}
+  .premiumCategoryDescription{font-size:14px}
+}
+@media(max-width:1100px){
+  .premiumCategories{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .premiumCategory{min-height:278px}
+  .premiumCategoryContent strong{font-size:21px}
+  .premiumCategoryDescription{font-size:13px}
+}
+@media(max-width:600px){
+  .premiumExplore{margin-top:7px}
+  .premiumExploreHeader{display:block;margin-bottom:16px}
+  .premiumExploreHeader h2{font-size:27px;padding-bottom:10px}
+  .premiumExploreHeader p{margin-top:9px;text-align:start;font-size:12px}
+  .premiumCategories{grid-template-columns:1fr;gap:12px}
+  .premiumCategory{min-height:232px;padding:16px;border-radius:18px}
+  .premiumCategoryPhoto{background-position:center 32%}
+  .premiumCategoryShade{background:linear-gradient(180deg,rgba(29,10,42,.06) 0%,rgba(29,9,43,.40) 32%,rgba(29,9,43,.98) 100%)}
+  .premiumCategoryContent strong{font-size:20px}
+  .premiumCategoryDescription{font-size:13px}
+  .premiumCategoryIcon{width:46px;height:46px}
+  .premiumCategoryArrow{bottom:17px}
+}
+@media(prefers-reduced-motion:reduce){
+  .premiumCategory,.premiumCategoryPhoto,.premiumCategoryArrow{transition:none}
+  .premiumCategory:hover,.premiumCategory:hover .premiumCategoryPhoto,.premiumCategory:hover .premiumCategoryArrow{transform:none}
+}
