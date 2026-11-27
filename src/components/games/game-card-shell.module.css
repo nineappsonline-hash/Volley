@@ -319,3 +319,9 @@
   .cinematicWhen,.cinematicWhere{font-size:15px}
   .cinematicProgressText{font-size:13px}
 }
+
+
+/* No legacy light gutter when opening cinematic card details. */
+.cinematicExpanded{border-top:1px solid #694184;background:#1d102b;color:#f5edff}
+.cinematicExpanded :global(.text-muted-foreground){color:#d9cbe6}
+.cinematicExpanded :global(.text-card-foreground){color:#f5edff}
