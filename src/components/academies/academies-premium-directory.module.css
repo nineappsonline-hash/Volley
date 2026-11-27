@@ -39,3 +39,104 @@
 @media(max-width:1000px){.hero{grid-template-columns:48% 52%}.heroText{padding:35px 24px}.hero h1{font-size:clamp(32px,4.1vw,50px)}.cards,.programGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.benefitCards{grid-template-columns:repeat(2,minmax(0,1fr))}.sports{grid-template-columns:repeat(4,minmax(0,1fr))}.searchSection{grid-template-columns:minmax(0,1fr) 210px 115px}}
 @media(max-width:700px){.wrap{padding:15px 14px 0}.hero{display:flex;flex-direction:column-reverse;min-height:0;border-radius:19px}.heroVisual{min-height:185px}.heroVisual:before{background:linear-gradient(to top,#251330bf,transparent 45%)}.heroText{padding:23px 20px 29px}.hero h1{font-size:35px;margin:14px 0}.intro{font-size:13px;margin-bottom:17px}.heroActions{gap:8px}.mainCta,.outlineCta{min-height:43px;font-size:12px;padding:10px 12px}.heroLocation{font-size:10px;bottom:12px}.sportSection{margin:31px 0 22px}.sectionHeading>span{display:none}.sectionHeading h2,.benefits h2{font-size:21px}.sports{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.sport{height:101px}.sport b{font-size:14px}.searchSection{grid-template-columns:1fr 1fr;gap:9px;margin-top:24px;padding:10px}.searchBox{grid-column:1/-1}.searchBox,.selectBox,.filterButton{min-height:46px;padding:0 10px}.selectBox select{font-size:12px}.filterGrid{grid-template-columns:1fr}.results{margin-top:38px}.resultHeading h2{font-size:22px}.resultHeading p{font-size:11px}.viewSwitch button{font-size:0;padding:9px}.viewSwitch svg{width:18px}.cards,.programGrid,.locationsGrid{grid-template-columns:1fr;gap:15px}.cardImage{height:184px}.locationCard{flex-wrap:wrap}.locationActions{width:100%}.programs{margin-top:44px}.benefits{margin-top:43px}.benefitCards{gap:11px}.benefitCards>div{padding:14px 10px;gap:9px}.benefitCards>div>svg{width:24px;height:24px}.benefitCards b{font-size:11px}.benefitCards small{font-size:10px}.ownerCta{padding:21px;gap:13px;flex-wrap:wrap}.ownerCta>svg{width:32px}.ownerCta>div{flex-basis:calc(100% - 50px)}.ownerCta h2{font-size:19px}.ownerCta p{font-size:11px}.ownerCta>a{width:100%;justify-content:center}}
 @media(prefers-reduced-motion:reduce){.sport,.card,.programCard{transition:none}.sport:hover,.card:hover,.programCard:hover{transform:none}}
+
+
+/* Premium daylight treatment — intentionally distinct from dark mode. */
+:global(html:not(.dark)) .page{
+  --bg:#f5f6f9;--panel:#ffffff;--panel2:#f6f3f9;--ink:#1d1830;
+  --muted:#565269;--line:#e2dce9;--violet:#532681;
+  --shadow:0 12px 36px rgba(29,18,55,.085);
+  background:#f5f6f9;color:var(--ink);
+}
+:global(html:not(.dark)) .wrap{padding-top:24px}
+:global(html:not(.dark)) .hero{
+  background:linear-gradient(110deg,#ffffff 0%,#fcfaff 100%);
+  border:1px solid #e7e0ee;box-shadow:0 20px 50px rgba(31,18,53,.09);
+}
+:global(html:not(.dark)) .heroText{background:linear-gradient(120deg,#fff 8%,#fcfaff 100%)}
+:global(html:not(.dark)) .hero h1{color:#1c1530;font-weight:950}
+:global(html:not(.dark)) .hero h1 em{color:#512184}
+:global(html:not(.dark)) .eyebrow{
+  background:#f3eafd;color:#512184;border:1px solid #dbc5eb;font-weight:900;
+}
+:global(html:not(.dark)) .intro{color:#4c455b;font-weight:500;font-size:15px}
+:global(html:not(.dark)) .heroVisual:before{
+  background:linear-gradient(to right,#fcfaff 0%,rgba(252,250,255,.76) 6%,transparent 21%),
+    linear-gradient(to top,rgba(27,10,47,.19),transparent 38%);
+}
+:global(html:not(.dark)) .heroVisual{filter:saturate(1.13) contrast(1.06)}
+:global(html:not(.dark)) .outlineCta{background:#fff;color:#372449!important;border:1px solid #d7c6e3;box-shadow:0 3px 10px #1a10300a}
+:global(html:not(.dark)) .mainCta{box-shadow:0 5px 16px #accd163b}
+:global(html:not(.dark)) .sectionHeading h2,
+:global(html:not(.dark)) .resultHeading h2,
+:global(html:not(.dark)) .benefits h2,
+:global(html:not(.dark)) .programs h2{
+  color:#21162e;font-weight:950;
+}
+:global(html:not(.dark)) .sectionHeading>span,
+:global(html:not(.dark)) .resultHeading p,
+:global(html:not(.dark)) .sectionHeading>div>p{color:#645b70}
+:global(html:not(.dark)) .sports{gap:15px}
+:global(html:not(.dark)) .sport{border-color:#ded5e7;box-shadow:0 7px 18px #1c0b3014}
+:global(html:not(.dark)) .sport:first-child{
+  background:linear-gradient(130deg,#35164d,#54257b);color:#fff;
+  border-color:#683e86;
+}
+:global(html:not(.dark)) .sport:first-child svg{color:#d7bde8}
+:global(html:not(.dark)) .sport:first-child[data-active="true"]{
+  border-color:#b4ed00;box-shadow:0 0 0 2px #b4ed004b,0 8px 24px #1b0e2d25;
+}
+:global(html:not(.dark)) .sport:first-child[data-active="true"] svg{color:#d7ff30}
+:global(html:not(.dark)) .sport:not(:first-child){filter:saturate(1.14)}
+:global(html:not(.dark)) .sport b{font-size:16px}
+:global(html:not(.dark)) .searchSection{
+  background:#fff;border:1px solid #e4dce9;
+  box-shadow:0 8px 24px rgba(30,18,54,.06);
+}
+:global(html:not(.dark)) .searchBox,
+:global(html:not(.dark)) .selectBox,
+:global(html:not(.dark)) .filterButton{
+  background:#fff;border:1px solid #dcd5e3;color:#271b38;
+}
+:global(html:not(.dark)) .searchBox input{color:#20182e}
+:global(html:not(.dark)) .searchBox input::placeholder{color:#716a7d}
+:global(html:not(.dark)) .searchBox svg,
+:global(html:not(.dark)) .selectBox svg,
+:global(html:not(.dark)) .filterButton svg{color:#5d3183}
+:global(html:not(.dark)) .filterButton{font-weight:850;background:#f6f0fa}
+:global(html:not(.dark)) .selectBox:focus-within,
+:global(html:not(.dark)) .searchBox:focus-within{border-color:#67338f;box-shadow:0 0 0 2px #67338f22}
+:global(html:not(.dark)) .advanced,
+:global(html:not(.dark)) .card,
+:global(html:not(.dark)) .programCard,
+:global(html:not(.dark)) .locationCard,
+:global(html:not(.dark)) .benefitCards>div{
+  background:#fff;border-color:#e1dbe7;
+  box-shadow:0 10px 26px rgba(29,18,55,.07);
+}
+:global(html:not(.dark)) .resultHeading .caption,
+:global(html:not(.dark)) .caption{color:#62358c}
+:global(html:not(.dark)) .resultHeading h2 small{color:#5f2988}
+:global(html:not(.dark)) .sortRow{color:#554961}
+:global(html:not(.dark)) .viewSwitch{background:#fff;border-color:#d8d0e2}
+:global(html:not(.dark)) .viewSwitch button:not(.activeView){color:#392846}
+:global(html:not(.dark)) .cardImage{filter:saturate(1.11)}
+:global(html:not(.dark)) .cardBody h3,
+:global(html:not(.dark)) .programDetails h3,
+:global(html:not(.dark)) .locationCard h3{color:#1c162a}
+:global(html:not(.dark)) .program{color:#595064}
+:global(html:not(.dark)) .place{color:#352841}
+:global(html:not(.dark)) .stats{background:#f5f0f8;color:#2c1f39}
+:global(html:not(.dark)) .stats svg{color:#69358c}
+:global(html:not(.dark)) .logoInitial{box-shadow:0 0 0 4px #fff}
+:global(html:not(.dark)) .programFacts span{color:#352841}
+:global(html:not(.dark)) .benefitCards>div>svg{color:#5e278b}
+:global(html:not(.dark)) .ownerCta{
+  border-color:#713c93;box-shadow:0 15px 34px rgba(37,18,64,.15);
+}
+@media(max-width:700px){
+ :global(html:not(.dark)) .heroVisual:before{
+   background:linear-gradient(to top,rgba(31,12,48,.28),transparent 43%);
+ }
+ :global(html:not(.dark)) .sport b{font-size:14px}
+}
