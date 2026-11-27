@@ -21,6 +21,15 @@ export function landingBrowsePath(href: string): string {
   if (href === "/" || /^\/(login|signup)(\?|\/|$)/.test(href)) return href;
   const url = new URL(href, "https://playza.invalid");
   if (url.pathname === "/shop") return "/shop";
+  // Preserve actual public, canonical content URLs. The homepage uses this
+  // mapper for guest links; rewriting guides or local hubs to /games causes
+  // crawlers and visitors to miss the intended SEO landing pages.
+  if (/^\/(?:ar\/)?(?:play|guides|sports)(?:\/|$)/.test(url.pathname)) {
+    return `${url.pathname}${url.search}${url.hash}`;
+  }
+  if (/^\/(?:a|p|training)\/[^/]+\/?$/.test(url.pathname)) {
+    return `${url.pathname}${url.search}${url.hash}`;
+  }
   const ar = url.pathname.startsWith("/ar/") ? "/ar" : "";
   const sportParam = url.searchParams.get("sport") ?? [...LANDING_SPORTS].find(s => href.includes(s));
   const sport = sportParam && LANDING_SPORTS.has(sportParam) ? sportParam : undefined;
