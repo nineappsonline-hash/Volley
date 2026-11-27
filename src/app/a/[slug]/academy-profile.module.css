@@ -118,8 +118,8 @@
   display:flex;flex-direction:column;gap:10px;
 }
 .groups :global(.training-mobile) :is(button,a,select,input){min-width:0;max-width:100%;}
-.groups :global(.training-mobile) :is(button,a){overflow-wrap:anywhere;white-space:normal;}
-.groups :global(.training-mobile .flex){min-width:0;flex-wrap:wrap;}
+.groups :global(.training-mobile) :is(button,a){min-width:0;}
+.groups :global(.training-mobile .flex){min-width:0;}
 .groups :global(.training-mobile .grid){min-width:0;}
 .groups :global(.training-mobile h3){font-size:17px!important;line-height:1.55}
 .groups :global(.training-mobile p){overflow-wrap:anywhere;}
@@ -196,4 +196,29 @@
 @media(max-width:750px){
  .heroPhoto{object-fit:cover!important;object-position:40% 35%!important;}
  .heroHighlights{display:none!important}
+}
+
+/* Booking-card layout: replace the old mock-card rules which forced colored
+   top borders, internal padding and wrapped every flex row. */
+.groups :global(.training-mobile){
+  padding:0!important;gap:0!important;overflow:hidden!important;
+  border:1px solid var(--border)!important;border-radius:21px!important;
+  box-shadow:0 12px 30px rgba(32,13,49,.09)!important;
+}
+.groups :global(.training-mobile:nth-child(3n+1)),
+.groups :global(.training-mobile:nth-child(3n+2)),
+.groups :global(.training-mobile:nth-child(3n+3)){border-top:1px solid var(--border)!important}
+.groups :global(.training-mobile):before{
+  content:"";display:block!important;height:158px!important;flex:0 0 158px;
+  width:100%;margin:0!important;border-radius:0!important;
+  background-position:center!important;background-size:cover!important;
+}
+.groups :global(.training-mobile h3){font-size:16px!important;line-height:1.55!important}
+.groups :global(.training-mobile button){min-height:0}
+.groups :global(.training-mobile button[aria-expanded]){
+  background:#caff00!important;border:0!important;color:#21122b!important;
+  border-radius:12px!important;min-height:46px!important;
+}
+@media(max-width:750px){
+ .groups :global(.training-mobile):before{height:170px!important;flex-basis:170px}
 }
