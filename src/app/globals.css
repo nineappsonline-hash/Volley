@@ -693,3 +693,37 @@ body:has(.playza-super-admin) {
     animation-duration: .01ms !important;
   }
 }
+
+
+/* Super Admin violet: matched to approved /admin screenshot (not neon).
+   Image reference samples: sidebar #4c1d95; cards #461a8a.
+   Scoped to the admin role so player match-card sport colors stay untouched. */
+.playza-super-admin {
+  --playza-navy: 261 68% 35%;
+  --playza-navy-900: 261 68% 32%;
+  --playza-purple: 261 68% 35%;
+  --playza-purple-600: 261 68% 35%;
+  --playza-purple-700: 261 66% 30%;
+  --playza-purple-800: 261 55% 24%;
+  --playza-purple-900: 261 50% 19%;
+}
+.playza-super-admin > aside {
+  background-color: #4c1d95;
+  border-color: #643a9e;
+  box-shadow: none;
+}
+.playza-super-admin main :is(header.bg-gradient-to-br, nav a.bg-gradient-to-br) {
+  background-image: linear-gradient(120deg,#4c1d95 0%,#461a8a 100%);
+  box-shadow: none;
+}
+.playza-super-admin main nav a.bg-gradient-to-br:hover {
+  background-image: linear-gradient(120deg,#53239a 0%,#49208b 100%);
+  box-shadow: none;
+}
+.playza-super-admin :is(.shadow-lg,.shadow-xl,.shadow-2xl) {
+  --tw-shadow: 0 8px 24px rgba(0,0,0,.16);
+  --tw-shadow-colored: 0 8px 24px var(--tw-shadow-color);
+}
+.playza-super-admin :is(.drop-shadow-lg,.drop-shadow-xl,.drop-shadow-2xl) {
+  filter: none;
+}
