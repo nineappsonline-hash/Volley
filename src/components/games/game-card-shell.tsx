@@ -114,7 +114,7 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
             </div>
           </div>
           <div className={styles.cinematicHeading}>
-            <h3 data-game-info="" dir="auto" className={styles.cinematicTitle}>{game.title}</h3>
+            {!detailsHref ? <button type="button" className={styles.cinematicTitleToggle} onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-controls={detailsId} aria-label={expanded ? (ar ? "إخفاء تفاصيل الماتش" : "Hide game details") : (ar ? "عرض المشاركين وتفاصيل الماتش" : "View participants and game details")}><h3 data-game-info="" dir="auto" className={styles.cinematicTitle}>{game.title}</h3></button> : <h3 data-game-info="" dir="auto" className={styles.cinematicTitle}>{game.title}</h3>}
           </div>
           <div className={styles.cinematicWhen}><span><CalendarDays size={16}/><time dateTime={game.game_date}>{format(new Date(`${game.game_date}T00:00:00`),"EEE, d MMM",{locale})}</time></span><span><Clock size={16}/><span dir="ltr">{formatTime12h(game.start_time,lang)}{endTime ? ` – ${endTime}` : ""}</span></span></div>
           <div className={styles.cinematicWhere}><MapPin size={17}/><span dir="auto">{game.playground?.name || game.location || game.area || t("games_no_playground")}</span></div>
@@ -124,7 +124,7 @@ export function GameCardShell({ game, joined, waitlisted, paymentPending = false
               <div className={styles.cinematicProgress}><div className={styles.cinematicProgressText}><span><Users size={17}/>{game.participants_count}/{game.max_players} {ar ? "لاعب" : "players"}</span><span>{slots ? (ar ? `${slots} أماكن متاحة` : `${slots} spots left`) : (ar ? "مكتمل" : "Full")}</span></div><div className={styles.cinematicTrack}><div style={{width:`${percent}%`}}/></div></div>
             </div>
             <div className={styles.cinematicActions}>{openDetails(primaryLabel)}
-              <div className={styles.cinematicUtilities}>{!detailsHref && <button type="button" className={styles.cinematicDetailsLink} onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-controls={detailsId}>{expanded ? (ar ? "إخفاء" : "Hide") : (ar ? "التفاصيل" : "Details")}</button>}{directions && <GoogleMapsDirectionsButton compact href={directions}/>} {share}</div>
+              <div className={styles.cinematicUtilities}>{directions && <GoogleMapsDirectionsButton compact href={directions}/>} {share}</div>
             </div>
           </div>
         </div>
