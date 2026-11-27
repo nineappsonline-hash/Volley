@@ -18,7 +18,7 @@ import styles from "./member-home.module.css";
 import gameStyles from "./next-game-premium.module.css";
 
 /** One Discover experience for visitors and members; only account data differs. */
-export function GuestDashboard({ games, profile }: { games: FriendlyGameWithDetails[]; discovery?: boolean; profile?: Profile }) {
+export function GuestDashboard({ games, profile, discovery = false }: { games: FriendlyGameWithDetails[]; discovery?: boolean; profile?: Profile }) {
   const { lang } = useI18n();
   const [search, setSearch] = useState("");
   const params = useSearchParams();
@@ -33,7 +33,7 @@ export function GuestDashboard({ games, profile }: { games: FriendlyGameWithDeta
   }, [router]);
 
   return <div className="playza-member-dashboard mx-auto flex w-full min-w-0 max-w-[1600px] flex-1 flex-col pb-0">
-    <MemberHomeHeader onSearchChange={setSearch} selectedSport={sport} onSportChange={setSport} profile={profile} name={profile?.name}>
+    <MemberHomeHeader showExplore={!discovery} onSearchChange={setSearch} selectedSport={sport} onSportChange={setSport} profile={profile} name={profile?.name}>
       <div className={styles.desktopContent}>
         {profile ? <DesktopNextGame memberId={profile.id} /> : <aside className={gameStyles.section} aria-label={lang === "ar" ? "ماتشك الجاي" : "Your next game"}>
           <div className={gameStyles.empty}>
@@ -50,9 +50,7 @@ export function GuestDashboard({ games, profile }: { games: FriendlyGameWithDeta
         </section>
       </div>
     </MemberHomeHeader>
-    <AcademiesHomeBanner />
-    <VenueOwnerHomeBanner />
-    <ShopTeaser />
+    {!discovery && <><AcademiesHomeBanner /><VenueOwnerHomeBanner /><ShopTeaser /></>}
     <div className="mt-auto pt-10"><PlayzaFooter fullBleed /></div>
   </div>;
 }
