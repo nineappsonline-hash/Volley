@@ -19,13 +19,13 @@ export function MemberDashboard({ profile }: { profile: Profile }) {
   const params = useSearchParams();
   const [selectedSport, setSelectedSport] = useState(() => slugToSport(params.get("sport") ?? "") ?? "all");
 
-  return <div className="playza-member-dashboard mx-auto min-w-0 max-w-[1600px] pb-2">
+  return <div className="playza-member-dashboard mx-auto flex w-full min-w-0 max-w-[1600px] flex-1 flex-col pb-0">
     <DashboardNavigation onSearchChange={setSearch} profile={p} selectedSport={selectedSport} onSportChange={setSelectedSport} name={p.name}>
       <div className={styles.desktopContent}><DesktopNextGame memberId={p.id} /><section id="activity" className="min-w-0 scroll-mt-24">
         <MemberDiscoveryCards search={search} memberId={p.id} hasAcademy={!!p.academy_id} preferences={p} profile={p} focusGameId={params.get("focus") ?? undefined} mode="games" interactive sportFilter={selectedSport} />
       </section></div>
     </DashboardNavigation>
     <ShopTeaser />
-    <PlayzaFooter />
+    <div className="mt-auto pt-10"><PlayzaFooter fullBleed /></div>
   </div>;
 }
