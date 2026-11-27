@@ -476,3 +476,9 @@
   .premiumCategory,.premiumCategoryPhoto,.premiumCategoryArrow{transition:none}
   .premiumCategory:hover,.premiumCategory:hover .premiumCategoryPhoto,.premiumCategory:hover .premiumCategoryArrow{transform:none}
 }
+
+
+/* Keep subtitle tucked beneath the heading, as in the approved mockup. */
+.premiumExploreHeader{display:block}
+.premiumExploreHeader p{margin:6px 0 0 clamp(0px,6.5vw,105px);text-align:start}
+@media(max-width:600px){.premiumExploreHeader p{margin-inline-start:0}}
