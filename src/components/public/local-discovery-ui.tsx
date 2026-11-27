@@ -79,12 +79,11 @@ export function LocalGameCards({lang,games}:{lang:LocalLanguage;games:PublicGame
  if(!games.length)return <div className={styles.empty}>{ar?"مفيش ماتشات متاحة دلوقتي في المنطقة دي. تابع جروب واتساب أو شوف باقي الماتشات.":"No available games at the moment. Follow our community group or browse other games."}</div>;
  // Exactly the same component and list layout used for upcoming games on the homepage.
  // Use the display-only guest adapter to avoid exposing private roster or payment data.
- return <div className={`flex flex-col gap-3 text-start ${landingStyles.landingGameCards}`}>
+ return <div className="grid grid-cols-1 gap-5 text-start xl:grid-cols-2">
    {games.map(game => <GameCardShell
      key={game.id}
-     layout="list"
+     layout="cinematic"
      deferPhotoLoading
-     hideBackgroundArt
      game={guestGameCard(game)}
      joined={false}
      detailsHref={publicGamePath(game.id)}
