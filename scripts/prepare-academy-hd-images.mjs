@@ -22,7 +22,7 @@ const tasks = assets.flatMap(([sport, photo]) => [
 async function ensureAsset({ file, photo, width }) {
   const path = join(base, file);
   const cached = await readFile(path).catch(() => null);
-  if (cached?.length > 50_000 && cached.toString("ascii", 0, 4) === "RIFF" && cached.toString("ascii", 8, 12) === "WEBP") return;
+  if (cached?.length > 15_000 && cached.toString("ascii", 0, 4) === "RIFF" && cached.toString("ascii", 8, 12) === "WEBP") return;
   const url = `https://images.pexels.com/photos/${photo}/pexels-photo-${photo}.jpeg?fm=webp&w=${width}&q=88`;
   let lastError;
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -30,7 +30,7 @@ async function ensureAsset({ file, photo, width }) {
       const response = await fetch(url, { signal: AbortSignal.timeout(25_000) });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const bytes = Buffer.from(await response.arrayBuffer());
-      if (bytes.length < 50_000 || bytes.length > 7_000_000 ||
+      if (bytes.length < 15_000 || bytes.length > 7_000_000 ||
           bytes.toString("ascii", 0, 4) !== "RIFF" ||
           bytes.toString("ascii", 8, 12) !== "WEBP") throw new Error("Invalid or low quality WebP response");
       await writeFile(path, bytes);
