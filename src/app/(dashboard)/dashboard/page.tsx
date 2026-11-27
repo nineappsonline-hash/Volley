@@ -20,7 +20,7 @@ export default async function DashboardPage() {
   if (profile.role === "playground_owner") redirect("/playgrounds");
 
   return (
-    <div className="space-y-6">
+    <div className={profile.role === "member" ? "flex flex-1 flex-col" : "space-y-6"}>
       {profile.role !== "member" && <DashboardHeader isAdmin />}
       {profile.role !== "member" ? (
         <AdminDashboard />
