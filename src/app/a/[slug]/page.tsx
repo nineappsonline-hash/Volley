@@ -166,7 +166,8 @@ export default async function PublicAcademyPage({
     ...(academy.cover_url ? [{ id: "cover", photo_url: academy.cover_url, caption: academy.name }] : []),
     ...(photos ?? []),
   ];
-  const heroImage = academy.cover_url
+  const sparkleArtwork = slug.toLowerCase().startsWith("sparkle-");
+  const heroImage = sparkleArtwork ? "/images/academy-design/sparkle/hero-volleyball-hq.jpg" : academy.cover_url
     || (photos ?? [])[0]?.photo_url
     || "/images/academy-design/sparkle/hero-volleyball.jpg";
 
@@ -268,7 +269,7 @@ export default async function PublicAcademyPage({
 
           <aside className={styles.sidebar} aria-label="Academy venue and details">
             <div className={styles.sideCard}>
-              <div className={styles.sideImage} style={{backgroundImage:`url("${(gallery[0]?.photo_url || heroImage).replace(/["\\]/g,"")}")`}}>
+              <div className={styles.sideImage} style={{backgroundImage:`url("${(sparkleArtwork ? heroImage : (gallery[0]?.photo_url || heroImage)).replace(/["\\]/g,"")}")`}}>
                 <span>{academy.name}</span>
               </div>
               <div className={styles.sideLines}>
