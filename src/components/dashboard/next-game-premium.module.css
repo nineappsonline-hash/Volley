@@ -74,3 +74,15 @@
 :global(.playza-member-dashboard) .shade{
   background:linear-gradient(90deg,rgba(28,13,43,.97) 0%,rgba(49,22,69,.82) 35%,rgba(32,15,46,.51) 62%,rgba(17,7,32,.16) 100%),linear-gradient(0deg,rgba(19,9,30,.90),transparent 38%);
 }
+
+
+/* Approved Playza multi-sport illustration is used only for Your Next Game.
+   Keep volleyball and padel action visible in the cropped banner. */
+:global(.playza-member-dashboard) .photo{
+  background-position:center 24%;
+  background-repeat:no-repeat;
+  filter:none;
+}
+@media(max-width:850px){
+  :global(.playza-member-dashboard) .photo{background-position:65% 22%}
+}
