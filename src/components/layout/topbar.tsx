@@ -86,7 +86,7 @@ export function Topbar({ guest = false, role, navigationRole = role, name, usern
           only always-visible way back to the dashboard. */}
       {navigationRole === "member" && (
         <Link href="/dashboard" aria-label={lang === "ar" ? "الصفحة الرئيسية" : "Go to dashboard"} className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <AppLogo className="h-7 w-auto" />
+          <AppLogo className="h-10 w-auto sm:h-11" />
         </Link>
       )}
 
